@@ -331,7 +331,7 @@ class DisassemblerX64 : public ValueObject {
 
   int PrintOperands(const char* mnem, OperandType op_order, uint8_t* data);
 
-  typedef const char* (DisassemblerX64::*RegisterNameMapping)(int reg) const;
+  typedef const char* (DisassemblerX64::* RegisterNameMapping)(int reg) const;
 
   int PrintRightOperandHelper(uint8_t* modrmp,
                               RegisterNameMapping register_name);

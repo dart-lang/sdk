@@ -11,7 +11,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart'
     show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show
         templateJsInteropExportInvalidInteropTypeArgument,
         templateJsInteropExportInvalidTypeArgument,
@@ -152,7 +152,7 @@ class SharedInteropTransformer extends Transformer {
         // invocation.
         if (!_inIsATearoff) {
           _diagnosticReporter.report(
-              templateJsInteropIsAInvalidType.withArguments(interopType, true),
+              templateJsInteropIsAInvalidType.withArguments(interopType),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file);
@@ -193,8 +193,7 @@ class SharedInteropTransformer extends Transformer {
   bool _verifyExportable(DartType dartType) {
     if (dartType is! InterfaceType) {
       _diagnosticReporter.report(
-          templateJsInteropExportInvalidTypeArgument.withArguments(
-              dartType, true),
+          templateJsInteropExportInvalidTypeArgument.withArguments(dartType),
           invocation.fileOffset,
           invocation.name.text.length,
           invocation.location?.file);
@@ -205,8 +204,8 @@ class SharedInteropTransformer extends Transformer {
         js_interop.hasStaticInteropAnnotation(dartClass) ||
         js_interop.hasAnonymousAnnotation(dartClass)) {
       _diagnosticReporter.report(
-          templateJsInteropExportInvalidInteropTypeArgument.withArguments(
-              dartType, true),
+          templateJsInteropExportInvalidInteropTypeArgument
+              .withArguments(dartType),
           invocation.fileOffset,
           invocation.name.text.length,
           invocation.location?.file);
@@ -468,8 +467,8 @@ class SharedInteropTransformer extends Transformer {
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(
-                templateJsInteropIsAObjectLiteralType.withArguments(
-                    interopType, true),
+                templateJsInteropIsAObjectLiteralType
+                    .withArguments(interopType),
                 invocation.fileOffset,
                 invocation.name.text.length,
                 invocation.location?.file);
@@ -496,7 +495,7 @@ class SharedInteropTransformer extends Transformer {
       if (interopTypeDecl != jsType) {
         _diagnosticReporter.report(
             templateJsInteropIsAPrimitiveExtensionType.withArguments(
-                interopType, jsTypeName, true),
+                interopType, jsTypeName),
             invocation.fileOffset,
             invocation.name.text.length,
             invocation.location?.file);

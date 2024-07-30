@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
+import "explicit_creation_impl.dart" show runExplicitCreationTest;
 import 'testing_utils.dart' show getGitFiles;
 import "utils/io_utils.dart" show computeRepoDirUri;
-import "explicit_creation_impl.dart" show runExplicitCreationTest;
 
 Future<void> main(List<String> args) async {
   final Uri repoDir = computeRepoDirUri();

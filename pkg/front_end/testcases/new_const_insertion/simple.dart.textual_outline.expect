@@ -1,8 +1,0 @@
-// @dart = 2.9
-
-class A {
-  final int x;
-  const A(this.x);
-}
-
-main() {}

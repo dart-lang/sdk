@@ -88,7 +88,10 @@ main() {
 
       // Expect that there is metadata attached that matches the file/location we
       // expect.
-      expect(mainStackFrameEvent.source?.path, testFile.path);
+      expect(
+        mainStackFrameEvent.source?.path,
+        dap.client.uppercaseDriveLetter(testFile.path),
+      );
       expect(mainStackFrameEvent.line, exceptionLine);
       expect(mainStackFrameEvent.column, 5);
     });

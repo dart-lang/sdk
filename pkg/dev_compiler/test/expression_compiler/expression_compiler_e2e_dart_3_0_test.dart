@@ -17,26 +17,6 @@ void main(List<String> args) async {
       await driver.finish();
     });
 
-    group('(Unsound null safety)', () {
-      group('(AMD module system)', () {
-        var setup = SetupCompilerOptions(
-          soundNullSafety: false,
-          moduleFormat: ModuleFormat.amd,
-          args: args,
-        );
-        runSharedTests(setup, driver);
-      });
-
-      group('(DDC module system)', () {
-        var setup = SetupCompilerOptions(
-          soundNullSafety: false,
-          moduleFormat: ModuleFormat.ddc,
-          args: args,
-        );
-        runSharedTests(setup, driver);
-      });
-    });
-
     group('(Sound null safety)', () {
       group('(AMD module system)', () {
         var setup = SetupCompilerOptions(

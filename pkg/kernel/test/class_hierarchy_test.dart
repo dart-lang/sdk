@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/minitest.dart";
+import "package:expect/minitest.dart"; // ignore: deprecated_member_use
 
 import "package:kernel/ast.dart";
 import "package:kernel/class_hierarchy.dart";
@@ -113,7 +113,7 @@ class A {}
     component.libraries.add(libWithB);
     libWithB.addClass(b);
     _assertLibraryText(libWithB, '''
-library test_b /*isLegacy*/;
+library test_b;
 import self as self;
 import "test.dart" as test;
 
@@ -1345,13 +1345,9 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
 ''');
 
     var b_int = new InterfaceType(b, Nullability.legacy, [int]);
-    expect(
-        hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, a,
-            isNonNullableByDefault: library.isNonNullableByDefault),
+    expect(hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, a),
         new InterfaceType(a, Nullability.legacy, [int, bool]));
-    expect(
-        hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, objectClass,
-            isNonNullableByDefault: library.isNonNullableByDefault),
+    expect(hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, objectClass),
         new InterfaceType(objectClass, Nullability.legacy));
   }
 
@@ -1389,7 +1385,7 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
 
     // Clean up the text a bit.
     const oftenUsedPrefix = '''
-library test /*isLegacy*/;
+library test;
 import self as self;
 import "dart:core" as core;
 

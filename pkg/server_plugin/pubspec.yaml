@@ -7,8 +7,6 @@ environment:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  analyzer: any
-  analyzer_plugin: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

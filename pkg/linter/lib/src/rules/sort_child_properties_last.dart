@@ -84,14 +84,15 @@ class SortChildPropertiesLast extends LintRule {
   static const LintCode code = LintCode('sort_child_properties_last',
       "The '{0}' argument should be last in widget constructor invocations.",
       correctionMessage:
-          'Try moving the argument to the end of the argument list.');
+          'Try moving the argument to the end of the argument list.',
+      hasPublishedDocs: true);
 
   SortChildPropertiesLast()
       : super(
             name: 'sort_child_properties_last',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

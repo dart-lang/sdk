@@ -323,13 +323,19 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
 
   if (internal) {
     JSONObject heaps(&obj, "_heaps");
-    { heap->PrintToJSONObject(Heap::kNew, &heaps); }
-    { heap->PrintToJSONObject(Heap::kOld, &heaps); }
+    {
+      heap->PrintToJSONObject(Heap::kNew, &heaps);
+    }
+    {
+      heap->PrintToJSONObject(Heap::kOld, &heaps);
+    }
   }
 
   {
     JSONObject memory(&obj, "memoryUsage");
-    { heap->PrintMemoryUsageJSON(&memory); }
+    {
+      heap->PrintMemoryUsageJSON(&memory);
+    }
   }
 
   Thread* thread = Thread::Current();

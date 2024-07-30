@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:linter/src/rules/flutter_style_todos.dart';
 
 class ConvertToFlutterStyleTodo extends ResolvedCorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => true;
+  ConvertToFlutterStyleTodo({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_FLUTTER_STYLE_TODO;

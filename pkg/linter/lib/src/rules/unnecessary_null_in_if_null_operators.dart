@@ -9,10 +9,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r'Avoid using `null` in `if null` operators.';
+const _desc = r'Avoid using `null` in `??` operators.';
 
 const _details = r'''
-**AVOID** using `null` as an operand in `if null` operators.
+**AVOID** using `null` as an operand in `??` operators.
 
 Using `null` in an `if null` operator is redundant, regardless of which side
 `null` is used on.
@@ -34,14 +34,15 @@ class UnnecessaryNullInIfNullOperators extends LintRule {
   static const LintCode code = LintCode('unnecessary_null_in_if_null_operators',
       "Unnecessary use of '??' with 'null'.",
       correctionMessage:
-          "Try removing the '??' operator and the 'null' operand.");
+          "Try removing the '??' operator and the 'null' operand.",
+      hasPublishedDocs: true);
 
   UnnecessaryNullInIfNullOperators()
       : super(
             name: 'unnecessary_null_in_if_null_operators',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

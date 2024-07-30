@@ -45,14 +45,15 @@ class AvoidRelativeLibImports extends LintRule {
       "Can't use a relative path to import a library in 'lib'.",
       correctionMessage:
           "Try fixing the relative path or changing the import to a 'package:' "
-          'import.');
+          'import.',
+      hasPublishedDocs: true);
 
   AvoidRelativeLibImports()
       : super(
             name: 'avoid_relative_lib_imports',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

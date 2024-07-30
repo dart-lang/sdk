@@ -537,19 +537,19 @@ static method switchList(core::List<core::int> list) → core::int
     #L1:
     {
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C8){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C8){(core::num) → core::bool}) {
           #t10 = 2;
           break #L1;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t12 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C9) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t12 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C9) {
           #t10 = 1;
           break #L1;
         }
       }
       {
-        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t13 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C7){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool #t13 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C7){(core::num) → core::bool}) {
           #t10 = 0;
           break #L1;
         }

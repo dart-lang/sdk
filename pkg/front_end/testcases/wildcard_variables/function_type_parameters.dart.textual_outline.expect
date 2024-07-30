@@ -1,0 +1,7 @@
+typedef F = void Function<_, _ extends int, _>();
+
+void fn(void Function<_, _>() x) {}
+
+void fn1<_, _ extends int>(void Function<_, _>() x) {}
+
+test() {}

@@ -1,7 +1,0 @@
-library test;
-
-import 'dart:async';
-
-test() {}
-
-main() {}

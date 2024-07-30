@@ -1,5 +1,0 @@
-library test;
-
-String? foo(obj) => obj is String ? obj.toUpperCase() : null;
-
-main() {}

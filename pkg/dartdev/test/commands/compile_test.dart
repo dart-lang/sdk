@@ -27,6 +27,7 @@ const String unsoundNullSafetyError =
     'Error: the flag --no-sound-null-safety is not supported in Dart 3.';
 const String unsoundNullSafetyWarning =
     'Warning: the flag --no-sound-null-safety is deprecated and pending removal.';
+const String failedAssertionError = 'Failed assertion: line';
 String usingTargetOSMessageForPlatform(String targetOS) =>
     'Specializing Platform getters for target OS $targetOS.';
 final String usingTargetOSMessage =
@@ -796,6 +797,37 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
+  test('Compile exe with asserts', () async {
+    final p = project(mainSrc: '''
+void main() {
+  assert(int.parse('1') == 2);
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    final result = await p.run(
+      [
+        'compile',
+        'exe',
+        '--enable-asserts',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+
+    final runResult = await Process.run(outFile, []);
+    expect(runResult.stdout, isEmpty);
+    expect(runResult.stderr, contains(failedAssertionError));
+  }, skip: isRunningOnIA32);
+
   test('Compile exe from kernel', () async {
     final p = project(mainSrc: '''
 void main() {}
@@ -876,7 +908,6 @@ void main() {
       ],
     );
 
-    expect(result.stdout, contains('Compilation to WasmGC is experimental'));
     expect(result.stderr, contains('Error: '));
     // The CFE doesn't print to stderr, so all output is piped to stderr, even
     // including info-only output:
@@ -1058,6 +1089,41 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
+  test('Compile AOT snapshot with asserts', () async {
+    final p = project(mainSrc: '''
+void main() {
+  assert(int.parse('1') == 2);
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'aot-snapshot',
+        '--enable-asserts',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+
+    final Directory binDir = File(Platform.resolvedExecutable).parent;
+    result = await Process.run(
+      path.join(binDir.path, 'dartaotruntime'),
+      [outFile],
+    );
+    expect(result.stdout, isEmpty);
+    expect(result.stderr, contains(failedAssertionError));
+  }, skip: isRunningOnIA32);
+
   test('Compile AOT snapshot from kernel', () async {
     final p = project(mainSrc: '''
 void main() {}
@@ -1175,31 +1241,6 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile kernel with unsound null safety', () async {
-    final p = project(mainSrc: '''
-void main() {}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'kernel',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
-    expect(result.stdout, contains(unsoundNullSafetyWarning));
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-  });
-
   test('Compile kernel with --sound-null-safety', () async {
     final p = project(mainSrc: '''void main() {
       print((<int?>[] is List<int>) ? 'oh no' : 'sound');
@@ -1219,31 +1260,6 @@ void main() {}
     );
 
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-  });
-
-  test('Compile kernel with --no-sound-null-safety', () async {
-    final p = project(mainSrc: '''void main() {
-      print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
-    }''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'kernel',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stdout, contains(unsoundNullSafetyWarning));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1445,4 +1461,50 @@ void main() {
       await basicCompileTest();
     }, skip: isRunningOnIA32);
   }
+
+  // Tests for --depfile for compiling to AOT snapshots, executables and
+  // kernel.
+  group('depfiles', () {
+    Future<void> testDepFileGeneration(String subcommand) async {
+      final p = project(mainSrc: '''void main() {}''');
+      final inFile =
+          path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+      final outFile =
+          path.canonicalize(path.join(p.dirPath, 'output.$subcommand'));
+      final depFile =
+          path.canonicalize(path.join(p.dirPath, 'output.$subcommand.d'));
+
+      final result = await p.run(
+        [
+          'compile',
+          subcommand,
+          '--depfile',
+          depFile,
+          '-o',
+          outFile,
+          inFile,
+        ],
+      );
+
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+
+      expect(File(depFile).existsSync(), isTrue);
+
+      final depFileContent = File(depFile).readAsStringSync();
+
+      String escapePath(String path) =>
+          path.replaceAll('\\', '\\\\').replaceAll(' ', '\\ ');
+
+      expect(depFileContent, startsWith('${escapePath(outFile)}: '));
+      expect(depFileContent, contains(escapePath(inFile)));
+    }
+
+    test('compile aot-snapshot', () => testDepFileGeneration('aot-snapshot'),
+        skip: isRunningOnIA32);
+    test('compile exe', () => testDepFileGeneration('exe'),
+        skip: isRunningOnIA32);
+    test('compile kernel', () => testDepFileGeneration('kernel'),
+        skip: isRunningOnIA32);
+  });
 }

@@ -21,23 +21,36 @@ class DeprecatedRule extends LintRule {
           name: 'deprecated_rule',
           description: '',
           details: '...',
-          group: Group.errors,
+          categories: {Category.errors},
           state: State.deprecated(since: dart2_12),
         );
 }
 
+class RemovedRule extends LintRule {
+  RemovedRule()
+      : super(
+            name: 'removed_rule',
+            description: '',
+            details: '...',
+            categories: {Category.errors},
+            state: State.removed());
+}
+
 @reflectiveTest
 class RemoveLintTest extends AnalysisOptionsFixTest {
-  // Keep track of this rule so it can be unregistered in `tearDown`.
+  // Keep track of these rules so they can be unregistered in `tearDown`.
   var deprecatedRule = DeprecatedRule();
+  var removedRule = RemovedRule();
 
   void setUp() {
     registerLintRules();
     Registry.ruleRegistry.register(deprecatedRule);
+    Registry.ruleRegistry.register(removedRule);
   }
 
   void tearDown() {
     Registry.ruleRegistry.unregister(deprecatedRule);
+    Registry.ruleRegistry.unregister(removedRule);
   }
 
   Future<void> test_deprecated() async {
@@ -94,6 +107,45 @@ analyzer:
   exclude:
     - test/data/**
 
+linter:
+  rules:
+    - camel_case_types
+''');
+  }
+
+  Future<void> test_duplicated() async {
+    await assertHasFix('''
+linter:
+  rules:
+    - camel_case_types
+    - camel_case_types
+''', '''
+linter:
+  rules:
+    - camel_case_types
+''');
+  }
+
+  Future<void> test_removed() async {
+    await assertHasFix('''
+linter:
+  rules:
+    - camel_case_types
+    - removed_rule
+''', '''
+linter:
+  rules:
+    - camel_case_types
+''');
+  }
+
+  Future<void> test_undefined() async {
+    await assertHasFix('''
+linter:
+  rules:
+    - camel_case_types
+    - undefined_rule
+''', '''
 linter:
   rules:
     - camel_case_types

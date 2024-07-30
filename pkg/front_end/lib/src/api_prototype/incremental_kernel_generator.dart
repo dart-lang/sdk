@@ -4,26 +4,20 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/string_scanner.dart'
     show StringScanner;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/kernel.dart'
     show Component, Library, Procedure, DartType, TypeParameter;
 
+import '../base/compiler_context.dart' show CompilerContext;
+import '../base/incremental_compiler.dart' show IncrementalCompiler;
+import '../base/incremental_serializer.dart' show IncrementalSerializer;
 import '../base/processed_options.dart' show ProcessedOptions;
-
-import '../fasta/compiler_context.dart' show CompilerContext;
-
-import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
-
-import '../fasta/incremental_serializer.dart' show IncrementalSerializer;
-
 import 'compiler_options.dart' show CompilerOptions;
 
-export '../fasta/incremental_serializer.dart' show IncrementalSerializer;
+export '../base/incremental_serializer.dart' show IncrementalSerializer;
 
+// Coverage-ignore(suite): Not run.
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(
       CompilerOptions options, List<Uri> entryPoints,
@@ -117,7 +111,7 @@ abstract class IncrementalKernelGenerator {
   /// [libraryUri] must refer to either a previously compiled library.
   /// [className] may optionally refer to a class within such library to use for
   /// the scope of the expression. In that case, [isStatic] indicates whether
-  /// the scope can access [this].
+  /// the scope can access this [IncrementalKernelGenerator].
   ///
   /// It is illegal to use "await" in [expression] and the compiled function
   /// will always be synchronous.
@@ -145,6 +139,7 @@ abstract class IncrementalKernelGenerator {
   void setExperimentalFeaturesForTesting(Set<String> features);
 }
 
+// Coverage-ignore(suite): Not run.
 bool isLegalIdentifier(String identifier) {
   return StringScanner.isLegalIdentifier(identifier);
 }

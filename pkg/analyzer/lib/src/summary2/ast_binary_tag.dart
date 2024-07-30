@@ -29,6 +29,7 @@ enum MacroDiagnosticKind {
   introspectionCycle,
   invalidTarget,
   macro,
+  notAllowedDeclaration,
 }
 
 enum MacroDiagnosticTargetKind {
@@ -48,6 +49,8 @@ class Tag {
   static const int AsExpression = 84;
   static const int AssertInitializer = 82;
   static const int AssignmentExpression = 96;
+  static const int AugmentedExpression = 111;
+  static const int AugmentedInvocation = 112;
   static const int AwaitExpression = 100;
   static const int BinaryExpression = 52;
   static const int BooleanLiteral = 4;
@@ -145,18 +148,6 @@ class Tag {
   static const int RecordType = 10;
   static const int TypeParameterType = 11;
   static const int VoidType = 12;
-}
-
-enum TypeAnnotationLocationKind {
-  aliasedType,
-  element,
-  extendsClause,
-  formalParameter,
-  listIndex,
-  recordNamedField,
-  recordPositionalField,
-  returnType,
-  variableType,
 }
 
 enum TypeParameterVarianceTag {

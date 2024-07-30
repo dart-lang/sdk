@@ -63,7 +63,7 @@ class RegExpBuilder : public ZoneAllocated {
   GrowableArray<RegExpTree*> text_;
   GrowableArray<RegExpTree*> alternatives_;
 #ifdef DEBUG
-  enum {ADD_NONE, ADD_CHAR, ADD_TERM, ADD_ASSERT, ADD_ATOM} last_added_;
+  enum { ADD_NONE, ADD_CHAR, ADD_TERM, ADD_ASSERT, ADD_ATOM } last_added_;
 #define LAST(x) last_added_ = x;
 #else
 #define LAST(x)
@@ -164,7 +164,7 @@ class RegExpParser : public ValueObject {
                       RegExpFlags flags,
                       Zone* zone)
         : previous_state_(previous_state),
-          builder_(new (zone) RegExpBuilder(flags)),
+          builder_(new(zone) RegExpBuilder(flags)),
           group_type_(group_type),
           lookaround_type_(lookaround_type),
           disjunction_capture_index_(disjunction_capture_index),

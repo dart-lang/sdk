@@ -22,6 +22,7 @@ class MissingCodeBlockLanguageInDocCommentTest extends LintRuleTest {
 /// ```dart
 /// test
 /// ```
+class A {}
 ''');
   }
 
@@ -39,6 +40,17 @@ class A {}
 /// ```dart
 /// test
 /// more test
+class A {}
+''');
+  }
+
+  test_indentedCodeBlock() async {
+    await assertNoDiagnostics(r'''
+/// Example:
+///
+///     var printer = Printer();
+///     printer.printToStdout();
+///
 class A {}
 ''');
   }

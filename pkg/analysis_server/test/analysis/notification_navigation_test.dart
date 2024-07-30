@@ -188,7 +188,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
     await handleSuccessfulRequest(
       AnalysisSetSubscriptionsParams({
         AnalysisService.NAVIGATION: [testFile.path],
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await _resultsAvailable.future;
     assertRegionsSorted();
@@ -197,7 +197,8 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
-      var params = AnalysisNavigationParams.fromNotification(notification);
+      var params = AnalysisNavigationParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       if (params.file == testFile.path || params.file == augmentFilePath) {
         regions = params.regions;
         targets = params.targets;
@@ -375,7 +376,7 @@ void f() {
 
   Future<void> test_augmentation_class_method() async {
     addTestFile(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment class A {
    foo(){
      bar();
@@ -397,7 +398,7 @@ class A {
 
   Future<void> test_augmentation_within_augment() async {
     addTestFile(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment class A {
    A.named(){
      bar();
@@ -423,7 +424,7 @@ void f() {
 
   Future<void> test_class_augmentation_constructor() async {
     var aFile = newFile(augmentFilePath, r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
    A.named(){}
 }
@@ -444,7 +445,7 @@ void f() {
 
   Future<void> test_class_augmentation_method() async {
     var aFile = newFile(augmentFilePath, r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   void foo() {}
 }
@@ -461,6 +462,44 @@ void f() {
     await prepareNavigation();
     assertHasRegion('foo');
     assertHasTarget('foo', targetFile: aFile);
+  }
+
+  Future<void>
+      test_class_constructor_annotationConstructor_importPrefix() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+  const A.named();
+}
+''');
+
+    addTestFile('''
+augment library 'b.dart';
+import 'a.dart' as prefix;
+
+class B {
+  @prefix.A()
+  @prefix.A.named()
+  B().foo();
+}
+''');
+
+    await prepareNavigation();
+
+    assertHasRegion('prefix.A()');
+    assertHasTarget('prefix;');
+
+    assertHasRegion('A()');
+    assertHasTarget('A();', targetFile: a);
+
+    assertHasRegion('prefix.A.named()');
+    assertHasTarget('prefix;');
+
+    assertHasRegion('A.named()');
+    assertHasTarget('named()', targetFile: a);
+
+    assertHasRegion('named()');
+    assertHasTarget('named()', targetFile: a);
   }
 
   Future<void> test_class_constructor_named() async {
@@ -1381,6 +1420,35 @@ library my.lib;
     assertHasTargetString('my.lib');
   }
 
+  Future<void>
+      test_libraryAugmentation_topLevelFunction_annotationConstructor_importPrefix() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import augment 'test.dart';
+''');
+
+    addTestFile('''
+augment library 'b.dart';
+import 'a.dart' as prefix;
+
+@prefix.A()
+external B().foo();
+''');
+
+    await prepareNavigation();
+
+    assertHasRegion('prefix.A()');
+    assertHasTarget('prefix;');
+
+    assertHasRegion('A()');
+    assertHasTarget('A();', targetFile: a);
+  }
+
   Future<void> test_multiplyDefinedElement() async {
     newFile('$testPackageLibPath/libA.dart', 'library A; int TEST = 1;');
     newFile('$testPackageLibPath/libB.dart', 'library B; int TEST = 2;');
@@ -1409,9 +1477,8 @@ void g() {
   }
 
   Future<void> test_navigation_dart_example_api() async {
-    final exampleLinkPath = 'examples/api/lib/test_file.dart';
-    final exampleApiFile =
-        convertPath(join(workspaceRootPath, exampleLinkPath));
+    var exampleLinkPath = 'examples/api/lib/test_file.dart';
+    var exampleApiFile = convertPath(join(workspaceRootPath, exampleLinkPath));
     newFile(exampleApiFile, '/// Test');
     addTestFile('''
 /// Dartdoc comment
@@ -1428,11 +1495,11 @@ const int foo = 0;
   }
 
   Future<void> test_navigation_dart_example_api_multiple() async {
-    final exampleLinkPath0 = 'examples/api/lib/test_file.0.dart';
-    final exampleLinkPath1 = 'examples/api/lib/test_file.1.dart';
-    final exampleApiFile0 =
+    var exampleLinkPath0 = 'examples/api/lib/test_file.0.dart';
+    var exampleLinkPath1 = 'examples/api/lib/test_file.1.dart';
+    var exampleApiFile0 =
         convertPath(join(workspaceRootPath, exampleLinkPath0));
-    final exampleApiFile1 =
+    var exampleApiFile1 =
         convertPath(join(workspaceRootPath, exampleLinkPath1));
     newFile(exampleApiFile0, '/// Test 0');
     newFile(exampleApiFile1, '/// Test 1');
@@ -1642,6 +1709,22 @@ class A {
     }
   }
 
+  Future<void> test_string_augmentLibrary() async {
+    var augmentedCode = 'import augment "test.dart";';
+    var augmentedFile =
+        newFile('$testPackageLibPath/augmented.dart', augmentedCode).path;
+    addTestFile('augment library "augmented.dart";');
+    await prepareNavigation();
+    assertHasRegionString('"augmented.dart"');
+    assertHasFileTarget(augmentedFile, 0, 0);
+  }
+
+  Future<void> test_string_augmentLibrary_unresolvedUri() async {
+    addTestFile('augment library "no.dart";');
+    await prepareNavigation();
+    assertNoRegionString('"no.dart"');
+  }
+
   Future<void> test_string_configuration() async {
     newFile('$testPackageLibPath/lib.dart', '').path;
     var lib2File = newFile('$testPackageLibPath/lib2.dart', '').path;
@@ -1684,6 +1767,22 @@ class A {
 
   Future<void> test_string_import_unresolvedUri() async {
     addTestFile('import "no.dart";');
+    await prepareNavigation();
+    assertNoRegionString('"no.dart"');
+  }
+
+  Future<void> test_string_importAugment() async {
+    var augmentCode = 'augment library "test.dart";';
+    var augmentFile =
+        newFile('$testPackageLibPath/augment.dart', augmentCode).path;
+    addTestFile('import augment "augment.dart";');
+    await prepareNavigation();
+    assertHasRegionString('"augment.dart"');
+    assertHasFileTarget(augmentFile, 0, 0);
+  }
+
+  Future<void> test_string_importAugment_unresolvedUri() async {
+    addTestFile('import augment "no.dart";');
     await prepareNavigation();
     assertNoRegionString('"no.dart"');
   }

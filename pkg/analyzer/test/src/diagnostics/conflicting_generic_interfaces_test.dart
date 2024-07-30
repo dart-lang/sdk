@@ -17,7 +17,7 @@ main() {
 class ConflictingGenericInterfacesTest extends PubPackageResolutionTest {
   test_class_extends_augmentation_implements() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class B implements I<String> {}
 ''');

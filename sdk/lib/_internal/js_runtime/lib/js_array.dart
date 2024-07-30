@@ -225,7 +225,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     return false;
   }
 
-  /// Removes elements matching [test] from [this] List.
+  /// Removes elements matching [test] from this [JSArray].
   void removeWhere(bool test(E element)) {
     checkGrowable('removeWhere');
     _removeWhere(test, true);

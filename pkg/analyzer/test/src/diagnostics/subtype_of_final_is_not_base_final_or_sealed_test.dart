@@ -29,6 +29,24 @@ class B extends A {}
     ]);
   }
 
+  test_class_extends_inAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment class B extend A {}
+''');
+
+    await assertErrorsInCode(r'''
+import augment 'a.dart';
+final class A {}
+class B {}
+''', [
+      error(CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          48, 1,
+          text:
+              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'."),
+    ]);
+  }
+
   test_class_extends_outside() async {
     // No [SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED] reported outside of
     // library.
@@ -46,7 +64,7 @@ class B extends A {}
   }
 
   test_class_extends_outside_viaLanguage219AndCore() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 // @dart=2.19
 import 'dart:core';
 class A implements MapEntry<int, int> {
@@ -104,7 +122,7 @@ class B implements A {}
     // No [SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED] reported outside of
     // library to avoid over-reporting when we have a
     // [FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY] error.
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 // @dart=2.19
 import 'dart:core';
 class A implements MapEntry<int, int> {

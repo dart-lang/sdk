@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -14,14 +14,14 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
 
 class ConvertToRelativeImport extends ResolvedCorrectionProducer {
+  ConvertToRelativeImport({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_RELATIVE_IMPORT;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT;
@@ -40,7 +40,7 @@ class ConvertToRelativeImport extends ResolvedCorrectionProducer {
     }
 
     // Ignore if invalid URI.
-    final elementUri = targetNode.element?.uri;
+    var elementUri = targetNode.element?.uri;
     if (elementUri is! DirectiveUriWithSource) {
       return;
     }
@@ -51,7 +51,7 @@ class ConvertToRelativeImport extends ResolvedCorrectionProducer {
       return;
     }
 
-    final importUri = elementUri.relativeUri;
+    var importUri = elementUri.relativeUri;
 
     // Ignore if import uri is not a package: uri.
     if (!importUri.isScheme('package')) {
@@ -74,7 +74,7 @@ class ConvertToRelativeImport extends ResolvedCorrectionProducer {
       from: path.dirname(sourceUri.path),
     );
 
-    final node_final = targetNode;
+    var node_final = targetNode;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
         range.node(node_final.uri).getExpanded(-1),

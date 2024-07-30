@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use
 
 import 'package:smith/smith.dart';
 
@@ -236,6 +236,13 @@ void main() {
             {},
             'Must specify at least one of compiler or runtime in options or '
                 'configuration name.');
+      });
+
+      test("custom configuration", () {
+        final result = Configuration.parse("custom-configuration-1", {});
+        // Succeeds. Since this test runs in JIT mode, should be dartk and vm.
+        expect(result.compiler, Compiler.dartk);
+        expect(result.runtime, Runtime.vm);
       });
 
       test("empty string", () {

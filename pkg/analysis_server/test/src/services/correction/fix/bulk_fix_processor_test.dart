@@ -149,6 +149,50 @@ void bad() {
 
 @reflectiveTest
 class PubspecFixTest extends BulkFixProcessorTest {
+  Future<void> test_delete_change() async {
+    var content = '''
+name: test
+dependencies:
+  a: any
+dev_dependencies:
+  b: any
+  c: any
+  d: any
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  c: any
+dev_dependencies:
+  b: any
+  d: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/lib.dart', '''
+import 'package:c/c.dart';
+
+void bad() {
+  try {
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''');
+    var testFile = newFile('$testPackageTestPath/test.dart', '''
+import 'package:b/b.dart';
+import 'package:c/c.dart';
+import 'package:d/d.dart';
+import 'package:test/lib.dart';
+void f() {
+  print(C());
+}
+''');
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
   Future<void> test_fix() async {
     var content = '''
 name: test
@@ -201,6 +245,69 @@ void bad() {
 ''');
 
     await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_multiple_pubspec_change() async {
+    var content = '''
+name: test
+dependencies:
+  a: any
+dev_dependencies:
+  b: any
+  d: any
+  c: any
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  c: any
+  test2: any
+dev_dependencies:
+  b: any
+  d: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/lib.dart', '''
+import 'package:c/c.dart';
+import 'package:test2/lib.dart';
+import 'package:flutter_gen/gen.dart';
+
+void bad() {
+  try {
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''');
+    var testFile = newFile('$testPackageTestPath/test.dart', '''
+import 'package:b/b.dart';
+import 'package:c/c.dart';
+import 'package:d/d.dart';
+import 'package:test/lib.dart';
+void f() {
+  print(C());
+}
+''');
+
+    newFile('$workspaceRootPath/test2/lib.dart', '''
+import 'package:d/d.dart';
+import 'package:flutter_gen/gen.dart';
+
+class A{}
+''');
+    var test2PubspecContent = '''
+name: test2
+deps:
+  d: any
+''';
+    var test2Pubspec =
+        newFile('$workspaceRootPath/test2/pubspec.yaml', test2PubspecContent);
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+    await assertFixPubspec(test2PubspecContent, test2PubspecContent,
+        file: test2Pubspec);
   }
 
   Future<void> test_no_fix() async {

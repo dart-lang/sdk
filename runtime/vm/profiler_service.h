@@ -365,7 +365,6 @@ class ProfileCodeTable : public ZoneAllocated {
   ZoneGrowableArray<ProfileCode*> table_;
 };
 
-
 // The model for a profile. Most of the model is zone allocated, therefore
 // a zone must be created that lives longer than this object.
 class Profile : public ValueObject {

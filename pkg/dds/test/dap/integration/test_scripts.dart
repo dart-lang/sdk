@@ -59,17 +59,18 @@ const simpleArgPrintingProgram = r'''
 ///
 /// The output will contain stack traces include both the supplied file, package
 /// and dart URIs.
-String stderrPrintingProgram(Uri fileUri, Uri packageUri, Uri dartUri) {
+String stackPrintingProgram(
+    String outputKind, Uri fileUri, Uri packageUri, Uri dartUri) {
   return '''
   import 'dart:io';
   import '$packageUri';
 
   void main(List<String> args) async {
-    stderr.writeln('Start');
-    stderr.writeln('#0      main ($fileUri:1:2)');
-    stderr.writeln('#1      main2 ($packageUri:3:4)');
-    stderr.writeln('#2      main3 ($dartUri:5:6)');
-    stderr.write('End');
+    $outputKind.writeln('Start');
+    $outputKind.writeln('#0      main ($fileUri:1:2)');
+    $outputKind.writeln('#1      main2 ($packageUri:3:4)');
+    $outputKind.writeln('#2      main3 ($dartUri:5:6)');
+    $outputKind.write('End');
     await Future.delayed(const Duration(seconds: 1));
   }
 ''';
@@ -165,7 +166,6 @@ const simpleBreakpointProgram = '''
 /// A simple script that provides a @withHello macro that adds a
 /// `hello()` method to a class that prints "Hello".
 const withHelloMacroImplementation = '''
-// There is no public API exposed yet, the in-progress API lives here.
 import 'package:macros/macros.dart';
 
 macro class WithHello implements ClassDeclarationsMacro {
@@ -220,6 +220,23 @@ const restartFrameProgram = '''
 const simpleMultiBreakpointProgram = '''
   void main(List<String> args) async {
     print('1'); $breakpointMarker
+    print('2');
+    print('3');
+    print('4');
+    print('5');
+  }
+''';
+
+/// A program that immediately pauses with debugger() and then has 5 print
+/// statements.
+///
+/// Used for verifying breaking and stepping behaviour.
+const debuggerPauseAndPrintManyProgram = '''
+  import 'dart:developer';
+
+  void main(List<String> args) async {
+    debugger();
+    print('1');
     print('2');
     print('3');
     print('4');
@@ -320,6 +337,29 @@ const simpleFailingTestProgram = '''
       expect(1, equals(2));
     });
   }
+''';
+
+/// A program that pauses the debugger and when resumed, spawns a second
+/// isolate. This can be used to ensure correct breakpoint resolution
+/// in new isolates where breakpoint IDs may overlap with IDs already used by
+/// other isolates.
+///
+/// Two different lines are marked '// BREAKPOINT 1' and '// BREAKPOINT 2'.
+const multiIsolateBreakpointResolutionProgram = '''
+import 'dart:developer';
+import 'dart:isolate';
+
+Future<void> main() async {
+  print('1'); // BREAKPOINT 1
+  print('2'); // BREAKPOINT 2
+  debugger();
+  Isolate.run(f);
+}
+
+void f() {
+  debugger();
+}
+
 ''';
 
 /// A simple test that should pass and contains a comment marker

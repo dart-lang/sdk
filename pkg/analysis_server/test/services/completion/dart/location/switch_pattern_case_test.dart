@@ -184,8 +184,12 @@ replacement
 suggestions
   A01
     kind: class
+  A01
+    kind: constructorInvocation
   A02
     kind: class
+  A02
+    kind: constructorInvocation
 ''');
   }
 

@@ -186,6 +186,30 @@ print(x) {}
 ''');
   }
 
+  test_isUsed_underscoreField_shadowsLocal() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var _ = 1;
+  void m() {
+    var _ = 0;
+    print(_);
+  }
+}
+''');
+  }
+
+  // See: https://github.com/dart-lang/sdk/issues/55862
+  test_isUsed_underscoreField_shadowsParameter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var _ = 1;
+  void m(int? _) {
+    print(_);
+  }
+}
+''');
+  }
+
   test_notUsed_compoundAssign() async {
     await assertErrorsInCode(r'''
 class A {
@@ -261,6 +285,29 @@ class A {
 }
 ''', [
       error(WarningCode.UNUSED_FIELD, 16, 2),
+    ]);
+  }
+
+  test_notUsed_noReference_wildcard() async {
+    await assertErrorsInCode(r'''
+class A {
+  int _ = 0;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 16, 1),
+    ]);
+  }
+
+  test_notUsed_noReference_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  int _ = 0;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 60, 1),
     ]);
   }
 

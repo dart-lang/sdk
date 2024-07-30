@@ -102,7 +102,7 @@ const String TEST_INLINED_2 = r"""
 typedef InfoCheck = void Function(AllInfo);
 
 infoTest(String program, bool useBinary, InfoCheck check) async {
-  var options = ['--out=out.js', Flags.dumpInfo];
+  var options = ['--out=out.js', '--stage=dump-info-all'];
   // Note: we always pass '--dump-info' because the memory-compiler does not
   // have the logic in dart2js.dart to imply dump-info when --dump-info=binary
   // is provided.

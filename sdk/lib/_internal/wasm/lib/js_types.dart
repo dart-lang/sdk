@@ -16,6 +16,13 @@ library dart._js_types;
 import 'dart:_error_utils';
 import 'dart:_internal';
 import 'dart:_js_helper' as js;
+import 'dart:_object_helper';
+import 'dart:_simd'
+    show
+        NaiveUnmodifiableInt32x4List,
+        NaiveUnmodifiableFloat32x4List,
+        NaiveUnmodifiableFloat64x2List;
+import 'dart:_string';
 import 'dart:_string_helper';
 import 'dart:_wasm';
 import 'dart:collection';
@@ -24,7 +31,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 part 'js_array.dart';
-part 'js_string.dart';
 part 'js_typed_array.dart';
 
 typedef JSAnyRepType = js.JSValue;
@@ -77,7 +83,7 @@ typedef JSBigIntRepType = js.JSValue;
 
 // While this type is not a JS type, it is here for convenience so we don't need
 // to create a new shared library.
-typedef ExternalDartReferenceRepType = js.JSValue;
+typedef ExternalDartReferenceRepType<T> = js.JSValue?;
 
 // JSVoid is just a typedef for void. While we could just use JSUndefined, in
 // the future we may be able to use this to elide `return`s in JS trampolines.

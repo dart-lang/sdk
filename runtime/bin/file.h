@@ -230,7 +230,7 @@ class File : public ReferenceCounted<File> {
   static File* OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode);
 
   // Attempts to convert the given [uri] to a file path.
-  static Utils::CStringUniquePtr UriToPath(const char* uri);
+  static CStringUniquePtr UriToPath(const char* uri);
 
   // Create a file object for the specified stdio file descriptor
   // (stdin, stout or stderr).

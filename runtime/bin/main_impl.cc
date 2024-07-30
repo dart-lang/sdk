@@ -18,7 +18,6 @@
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
-#include "bin/eventhandler.h"
 #include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
@@ -28,18 +27,15 @@
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/snapshot_utils.h"
-#include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 #include "include/bin/dart_io_api.h"
+#include "include/bin/native_assets_api.h"
 #include "include/dart_api.h"
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/globals.h"
-#include "platform/growable_array.h"
-#include "platform/hashmap.h"
 #include "platform/syslog.h"
-#include "platform/text_buffer.h"
 #include "platform/utils.h"
 
 extern "C" {
@@ -251,6 +247,13 @@ failed:
   return false;
 }
 
+static void* NativeAssetsDlopenRelative(const char* path, char** error) {
+  auto isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  const char* script_uri = isolate_group_data->script_url;
+  return NativeAssets::DlopenRelative(path, script_uri, error);
+}
+
 static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        bool is_main_isolate,
                                        const char* script_uri,
@@ -385,6 +388,18 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+#if !defined(DART_PRECOMPILER)
+  NativeAssetsApi native_assets;
+  memset(&native_assets, 0, sizeof(native_assets));
+  native_assets.dlopen_absolute = &NativeAssets::DlopenAbsolute;
+  native_assets.dlopen_relative = &NativeAssetsDlopenRelative;
+  native_assets.dlopen_system = &NativeAssets::DlopenSystem;
+  native_assets.dlopen_executable = &NativeAssets::DlopenExecutable;
+  native_assets.dlopen_process = &NativeAssets::DlopenProcess;
+  native_assets.dlsym = &NativeAssets::Dlsym;
+  Dart_InitializeNativeAssetsResolver(&native_assets);
+#endif  // !defined(DART_PRECOMPILER)
+
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -511,9 +526,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
-  flags->null_safety =
-      Dart_DetectNullSafety(nullptr, nullptr, nullptr, isolate_snapshot_data,
-                            isolate_snapshot_instructions, nullptr, -1);
   isolate = Dart_CreateIsolateGroup(
       script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
       isolate_snapshot_instructions, flags, isolate_group_data,
@@ -678,8 +690,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     Dart_IsolateFlags* flags,
     void* callback_data,
     char** error,
-    int* exit_code,
-    bool force_no_sound_null_safety = false) {
+    int* exit_code) {
   int64_t start = Dart_TimelineGetMicros();
   ASSERT(script_uri != nullptr);
   uint8_t* kernel_buffer = nullptr;
@@ -714,9 +725,6 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   }
 
   bool isolate_run_app_snapshot = true;
-  flags->null_safety =
-      Dart_DetectNullSafety(nullptr, nullptr, nullptr, isolate_snapshot_data,
-                            isolate_snapshot_instructions, nullptr, -1);
 #else
   // JIT: Main isolate starts from the app snapshot, if any. Other isolates
   // use the core libraries snapshot.
@@ -757,15 +765,6 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   }
   PathSanitizer script_uri_sanitizer(script_uri);
   PathSanitizer packages_config_sanitizer(packages_config);
-  if (force_no_sound_null_safety) {
-    flags->null_safety = false;
-  } else {
-    flags->null_safety = Dart_DetectNullSafety(
-        script_uri_sanitizer.sanitized_uri(),
-        packages_config_sanitizer.sanitized_uri(),
-        DartUtils::original_working_directory, isolate_snapshot_data,
-        isolate_snapshot_instructions, kernel_buffer, kernel_buffer_size);
-  }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   auto isolate_group_data = new IsolateGroupData(
@@ -991,7 +990,6 @@ static void CompileAndSaveKernel(const char* script_name,
 
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
-                    bool force_no_sound_null_safety,
                     CommandLineOptions* dart_options) {
   if (script_name != nullptr) {
     const char* base_name = strrchr(script_name, '/');
@@ -1030,8 +1028,7 @@ void RunMainIsolate(const char* script_name,
       /* is_main_isolate */ true, script_name, "main",
       Options::packages_file() == nullptr ? package_config_override
                                           : Options::packages_file(),
-      &flags, nullptr /* callback_data */, &error, &exit_code,
-      force_no_sound_null_safety);
+      &flags, nullptr /* callback_data */, &error, &exit_code);
 
   if (isolate == nullptr) {
     Syslog::PrintErr("%s\n", error);
@@ -1324,6 +1321,7 @@ void main(int argc, char** argv) {
     vm_options.AddArgument("--link_natives_lazily");
 #endif
   }
+
   // If we need to write an app-jit snapshot or a depfile, then add an exit
   // hook that writes the snapshot and/or depfile as appropriate.
   if ((Options::gen_snapshot_kind() == kAppJIT) ||
@@ -1414,13 +1412,12 @@ void main(int argc, char** argv) {
   Dart_SetEmbedderInformationCallback(&EmbedderInformationCallback);
   bool ran_dart_dev = false;
   bool should_run_user_program = true;
-  bool force_no_sound_null_safety = false;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (DartDevIsolate::should_run_dart_dev() && !Options::disable_dart_dev() &&
       Options::gen_snapshot_kind() == SnapshotKind::kNone) {
     DartDevIsolate::DartDev_Result dartdev_result = DartDevIsolate::RunDartDev(
         CreateIsolateGroupAndSetup, &package_config_override, &script_name,
-        &force_no_sound_null_safety, &dart_options);
+        &dart_options);
     ASSERT(dartdev_result != DartDevIsolate::DartDev_Result_Unknown);
     ran_dart_dev = true;
     should_run_user_program =
@@ -1442,8 +1439,7 @@ void main(int argc, char** argv) {
       CompileAndSaveKernel(script_name, package_config_override, &dart_options);
     } else {
       // Run the main isolate until we aren't told to restart.
-      RunMainIsolate(script_name, package_config_override,
-                     force_no_sound_null_safety, &dart_options);
+      RunMainIsolate(script_name, package_config_override, &dart_options);
     }
   }
 

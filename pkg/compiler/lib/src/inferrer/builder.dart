@@ -1675,9 +1675,9 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   TypeInformation _handleRecordFieldGet(
       ir.Expression node, ir.Expression receiver, String fieldName) {
     final receiverType = visit(receiver)!;
-    (_memberData as KernelGlobalTypeInferenceElementData)
-        .setReceiverTypeMask(node, receiverType.type);
-    return _types.allocateRecordFieldGet(node, fieldName, receiverType);
+    _typeOfReceiver(node, receiver);
+    return _types.allocateRecordFieldGet(
+        node, fieldName, receiverType, _analyzedMember);
   }
 
   @override
@@ -2245,6 +2245,11 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   TypeInformation visitConstantExpression(ir.ConstantExpression node) {
     return TypeInformationConstantVisitor(this, node)
         .visitConstant(node.constant);
+  }
+
+  @override
+  TypeInformation visitFileUriExpression(ir.FileUriExpression node) {
+    return visit(node.expression)!;
   }
 }
 

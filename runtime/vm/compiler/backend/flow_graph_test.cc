@@ -296,10 +296,6 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Float64x2) {
 }
 
 ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Double) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
-    return;
-  }
-
   const char* kScript = R"(
     double foo(double sum, int n) {
        if (sum == null) return 0.0;
@@ -328,12 +324,6 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Double) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
   }));
-  if (!FLAG_sound_null_safety) {
-    RELEASE_ASSERT(cursor.TryMatch({
-        kMatchAndMoveBranchFalse,
-        kMatchAndMoveTargetEntry,
-    }));
-  }
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveUnbox,  // outside of loop
       kMatchAndMoveCheckSmi,
@@ -382,12 +372,6 @@ static void TestPhiUnboxingHeuristicSimd(const char* script) {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
   }));
-  if (!FLAG_sound_null_safety) {
-    RELEASE_ASSERT(cursor.TryMatch({
-        kMatchAndMoveBranchFalse,
-        kMatchAndMoveTargetEntry,
-    }));
-  }
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveUnbox,  // outside of loop
       kMatchAndMoveCheckSmi,

@@ -316,7 +316,7 @@ abstract interface class Directory implements FileSystemEntity {
   /// [FileSystemException].
   void deleteSync({bool recursive = false});
 
-  /// A [Directory] whose path is the absolute path of [this].
+  /// A [Directory] whose path is the absolute path of this [Directory].
   ///
   /// The absolute path is computed by prefixing
   /// a relative path with the current working directory,

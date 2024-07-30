@@ -16,8 +16,9 @@
 namespace dart {
 
 void PrintUtf16(uint16_t c) {
-  const char* format =
-      (0x20 <= c && c <= 0x7F) ? "%c" : (c <= 0xff) ? "\\x%02x" : "\\u%04x";
+  const char* format = (0x20 <= c && c <= 0x7F) ? "%c"
+                       : (c <= 0xff)            ? "\\x%02x"
+                                                : "\\u%04x";
   OS::PrintErr(format, c);
 }
 
@@ -86,17 +87,15 @@ uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
   return static_cast<uword>(Bool::True().ptr());
 }
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    CaseInsensitiveCompareUCS2,
-    4,
-    false /* is_float */,
-    reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUCS2));
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(CaseInsensitiveCompareUCS2,
+                              /*argument_count=*/4,
+                              /*is_float=*/false,
+                              CaseInsensitiveCompareUCS2);
 
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    CaseInsensitiveCompareUTF16,
-    4,
-    false /* is_float */,
-    reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUTF16));
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(CaseInsensitiveCompareUTF16,
+                              /*argument_count=*/4,
+                              /*is_float=*/false,
+                              CaseInsensitiveCompareUTF16);
 
 BlockLabel::BlockLabel() {
 #if !defined(DART_PRECOMPILED_RUNTIME)

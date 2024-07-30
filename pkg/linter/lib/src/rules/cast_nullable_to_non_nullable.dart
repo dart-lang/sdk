@@ -48,7 +48,7 @@ class CastNullableToNonNullable extends LintRule {
           name: 'cast_nullable_to_non_nullable',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

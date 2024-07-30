@@ -179,10 +179,7 @@ class BaseFlowGraphBuilder {
                            InnerPointerAccess loads_inner_pointer,
                            bool calls_initializer = false);
   Fragment LoadNativeField(const Slot& native_field,
-                           bool calls_initializer = false) {
-    return LoadNativeField(native_field, InnerPointerAccess::kNotUntagged,
-                           calls_initializer);
-  }
+                           bool calls_initializer = false);
   // Pass true for index_unboxed if indexing into external typed data.
   Fragment LoadIndexed(classid_t class_id,
                        intptr_t index_scale = compiler::target::kWordSize,
@@ -440,6 +437,8 @@ class BaseFlowGraphBuilder {
                               position);
   }
 
+  Fragment CheckNotDeeplyImmutable(CheckWritableInstr::Kind kind);
+
   // Records extra unchecked entry point 'unchecked_entry' in 'graph_entry'.
   void RecordUncheckedEntryPoint(GraphEntryInstr* graph_entry,
                                  FunctionEntryInstr* unchecked_entry);
@@ -536,7 +535,9 @@ class BaseFlowGraphBuilder {
   const bool inlining_unchecked_entry_;
   const Array& saved_args_desc_array_;
 
-  GrowableArray<intptr_t> coverage_array_positions_;
+  // Mapping from token position to the index in the coverage array at which
+  // coverage state is stored.
+  IntMap<intptr_t> coverage_state_index_for_position_;
   Array& coverage_array_;
 
   friend class StreamingFlowGraphBuilder;

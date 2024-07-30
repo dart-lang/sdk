@@ -161,7 +161,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
 
-    final element = this.element;
+    var element = this.element;
     if (element is PatternVariableElementImpl) {
       var rootVariable = element.rootVariable;
       var declaredElements = rootVariable is JoinPatternVariableElementImpl
@@ -174,7 +174,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
         if (declaredElement is BindPatternVariableElementImpl) {
           // If a variable is used to resolve a named field with an implicit
           // name, we need to make the field name explicit.
-          final fieldName = declaredElement.node.fieldNameWithImplicitName;
+          var fieldName = declaredElement.node.fieldNameWithImplicitName;
           if (fieldName != null) {
             processor.replace(
               referenceElement: element,

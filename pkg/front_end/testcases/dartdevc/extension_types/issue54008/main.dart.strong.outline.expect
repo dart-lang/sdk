@@ -1,0 +1,162 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+extension type SameString(core::String s) {
+  abstract extension-type-member representation-field get s() → core::String;
+  constructor • = self::SameString|constructor#;
+  constructor tearoff • = self::SameString|constructor#_#new#tearOff;
+  constructor named = self::SameString|constructor#named;
+  constructor tearoff named = self::SameString|constructor#_#named#tearOff;
+}
+extension type SameNullable(core::String? s) {
+  abstract extension-type-member representation-field get s() → core::String?;
+  constructor • = self::SameNullable|constructor#;
+  constructor tearoff • = self::SameNullable|constructor#_#new#tearOff;
+}
+extension type SameGeneric<T extends core::Object? = dynamic>(T% s) {
+  abstract extension-type-member representation-field get s() → T%;
+  constructor • = self::SameGeneric|constructor#;
+  constructor tearoff • = self::SameGeneric|constructor#_#new#tearOff;
+}
+static const field self::SameString% /* erasure=core::String, declared=! */ sameString0 = const self::SameString|constructor#("hello");
+static const field self::SameString% /* erasure=core::String, declared=! */ sameString1 = const self::SameString|constructor#named("hello");
+static const field self::SameNullable% /* erasure=core::String?, declared=! */ sameNullable0 = const self::SameNullable|constructor#(null);
+static const field self::SameNullable% /* erasure=core::String?, declared=! */ sameNullable1 = const self::SameNullable|constructor#("hello");
+static const field self::SameGeneric<core::String>% /* erasure=core::String, declared=! */ sameGeneric0 = const self::SameGeneric|constructor#<core::String>("hello");
+static const field self::SameGeneric<core::String?>% /* erasure=core::String?, declared=! */ sameGeneric1 = const self::SameGeneric|constructor#<core::String?>(null);
+static const field self::SameGeneric<core::String?>% /* erasure=core::String?, declared=! */ sameGeneric2 = const self::SameGeneric|constructor#<core::String?>("hello");
+static const field mai::ExtString% /* erasure=core::String, declared=! */ valString0 = const mai::ExtString|constructor#("hello");
+static const field mai::ExtString% /* erasure=core::String, declared=! */ valString1 = const mai::ExtString|constructor#named("hello");
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ valNullable0 = const mai::ExtNullable|constructor#(null);
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ valNullable1 = const mai::ExtNullable|constructor#("hello");
+static const field mai::ExtGeneric<core::String>% /* erasure=core::String, declared=! */ valGeneric0 = const mai::ExtGeneric|constructor#<core::String>("hello");
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ valGeneric1 = const mai::ExtGeneric|constructor#<core::String?>(null);
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ valGeneric2 = const mai::ExtGeneric|constructor#<core::String?>("hello");
+static extension-type-member method SameString|constructor#(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
+  lowered final self::SameString% /* erasure=core::String, declared=! */ #this = s;
+  return #this;
+}
+static extension-type-member method SameString|constructor#_#new#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
+  return self::SameString|constructor#(s);
+static extension-type-member method SameString|constructor#named(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
+  lowered final self::SameString% /* erasure=core::String, declared=! */ #this = "${s} world";
+  return #this;
+}
+static extension-type-member method SameString|constructor#_#named#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
+  return self::SameString|constructor#named(s);
+static extension-type-member method SameNullable|constructor#(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */ {
+  lowered final self::SameNullable% /* erasure=core::String?, declared=! */ #this = s;
+  return #this;
+}
+static extension-type-member method SameNullable|constructor#_#new#tearOff(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */
+  return self::SameNullable|constructor#(s);
+static extension-type-member method SameGeneric|constructor#<T extends core::Object? = dynamic>(self::SameGeneric|constructor#::T% s) → self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ {
+  lowered final self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ #this = s;
+  return #this;
+}
+static extension-type-member method SameGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::SameGeneric|constructor#_#new#tearOff::T% s) → self::SameGeneric<self::SameGeneric|constructor#_#new#tearOff::T%>% /* erasure=self::SameGeneric|constructor#_#new#tearOff::T%, declared=! */
+  return self::SameGeneric|constructor#<self::SameGeneric|constructor#_#new#tearOff::T%>(s);
+static method sameLibrary() → dynamic
+  ;
+static method sameString(dynamic expected, self::SameString% /* erasure=core::String, declared=! */ es) → void
+  ;
+static method sameNullable(dynamic expected, self::SameNullable% /* erasure=core::String?, declared=! */ es) → void
+  ;
+static method sameGeneric<T extends core::Object? = dynamic>(dynamic expected, self::SameGeneric<self::sameGeneric::T%>% /* erasure=self::sameGeneric::T%, declared=! */ es) → void
+  ;
+static method otherLibrary() → dynamic
+  ;
+static method imported() → dynamic
+  ;
+static method extString(dynamic expected, mai::ExtString% /* erasure=core::String, declared=! */ es) → void
+  ;
+static method extNullable(dynamic expected, mai::ExtNullable% /* erasure=core::String?, declared=! */ es) → void
+  ;
+static method extGeneric<T extends core::Object? = dynamic>(dynamic expected, mai::ExtGeneric<self::extGeneric::T%>% /* erasure=self::extGeneric::T%, declared=! */ es) → void
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+extension type ExtString(core::String s) {
+  abstract extension-type-member representation-field get s() → core::String;
+  constructor • = mai::ExtString|constructor#;
+  constructor tearoff • = mai::ExtString|constructor#_#new#tearOff;
+  constructor named = mai::ExtString|constructor#named;
+  constructor tearoff named = mai::ExtString|constructor#_#named#tearOff;
+}
+extension type ExtNullable(core::String? s) {
+  abstract extension-type-member representation-field get s() → core::String?;
+  constructor • = mai::ExtNullable|constructor#;
+  constructor tearoff • = mai::ExtNullable|constructor#_#new#tearOff;
+}
+extension type ExtGeneric<T extends core::Object? = dynamic>(T% s) {
+  abstract extension-type-member representation-field get s() → T%;
+  constructor • = mai::ExtGeneric|constructor#;
+  constructor tearoff • = mai::ExtGeneric|constructor#_#new#tearOff;
+}
+static const field mai::ExtString% /* erasure=core::String, declared=! */ libString0 = const mai::ExtString|constructor#("hello");
+static const field mai::ExtString% /* erasure=core::String, declared=! */ libString1 = const mai::ExtString|constructor#named("hello");
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ libNullable0 = const mai::ExtNullable|constructor#(null);
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ libNullable1 = const mai::ExtNullable|constructor#("hello");
+static const field mai::ExtGeneric<core::String>% /* erasure=core::String, declared=! */ libGeneric0 = const mai::ExtGeneric|constructor#<core::String>("hello");
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric1 = const mai::ExtGeneric|constructor#<core::String?>(null);
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric2 = const mai::ExtGeneric|constructor#<core::String?>("hello");
+static extension-type-member method ExtString|constructor#(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
+  lowered final mai::ExtString% /* erasure=core::String, declared=! */ #this = s;
+  return #this;
+}
+static extension-type-member method ExtString|constructor#_#new#tearOff(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */
+  return mai::ExtString|constructor#(s);
+static extension-type-member method ExtString|constructor#named(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
+  lowered final mai::ExtString% /* erasure=core::String, declared=! */ #this = "${s} world";
+  return #this;
+}
+static extension-type-member method ExtString|constructor#_#named#tearOff(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */
+  return mai::ExtString|constructor#named(s);
+static extension-type-member method ExtNullable|constructor#(core::String? s) → mai::ExtNullable% /* erasure=core::String?, declared=! */ {
+  lowered final mai::ExtNullable% /* erasure=core::String?, declared=! */ #this = s;
+  return #this;
+}
+static extension-type-member method ExtNullable|constructor#_#new#tearOff(core::String? s) → mai::ExtNullable% /* erasure=core::String?, declared=! */
+  return mai::ExtNullable|constructor#(s);
+static extension-type-member method ExtGeneric|constructor#<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#::T%>% /* erasure=mai::ExtGeneric|constructor#::T%, declared=! */ {
+  lowered final mai::ExtGeneric<mai::ExtGeneric|constructor#::T%>% /* erasure=mai::ExtGeneric|constructor#::T%, declared=! */ #this = s;
+  return #this;
+}
+static extension-type-member method ExtGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#_#new#tearOff::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#_#new#tearOff::T%>% /* erasure=mai::ExtGeneric|constructor#_#new#tearOff::T%, declared=! */
+  return mai::ExtGeneric|constructor#<mai::ExtGeneric|constructor#_#new#tearOff::T%>(s);
+
+
+Extra constant evaluation status:
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:7:21 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:9:32 -> StringConstant("hello world")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:15:23 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:17:23 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:21:22 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:23:22 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:25:22 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:64:20 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:66:30 -> StringConstant("hello world")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:68:22 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:70:22 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:72:21 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:74:21 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main.dart:76:21 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:5:20 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:7:30 -> StringConstant("hello world")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:13:22 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:15:22 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:19:21 -> StringConstant("hello")
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:21:21 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:23:21 -> StringConstant("hello")
+Extra constant evaluation: evaluated: 55, effectively constant: 21

@@ -204,6 +204,8 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.mirrorReference:
       case M.InstanceKind.weakProperty:
       case M.InstanceKind.finalizer:
+      case M.InstanceKind.nativeFinalizer:
+      case M.InstanceKind.finalizerEntry:
       case M.InstanceKind.weakReference:
       case M.InstanceKind.record:
         return [
@@ -225,6 +227,9 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.weakReference:
       case M.InstanceKind.weakProperty:
       case M.InstanceKind.recordType:
+      case M.InstanceKind.finalizer:
+      case M.InstanceKind.nativeFinalizer:
+      case M.InstanceKind.finalizerEntry:
         return true;
       case M.InstanceKind.list:
       case M.InstanceKind.map:
@@ -270,6 +275,14 @@ class InstanceRefElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new SpanElement()..text = 'context = ',
                 anyRef(_isolate, _loadedInstance!.closureContext, _objects,
+                    queue: _r.queue)
+              ]);
+          }
+          if (_loadedInstance!.closureReceiver != null) {
+            members.add(new DivElement()
+              ..children = <Element>[
+                new SpanElement()..text = 'receiver = ',
+                anyRef(_isolate, _loadedInstance!.closureReceiver, _objects,
                     queue: _r.queue)
               ]);
           }
@@ -369,6 +382,33 @@ class InstanceRefElement extends CustomElement implements Renderable {
                 .element,
             if (i + 1 != fields.length) new BRElement(),
           ]
+        ];
+      case M.InstanceKind.finalizer:
+        return [
+          new SpanElement()..text = 'callback = ',
+          anyRef(_isolate, _loadedInstance!.callback!, _objects,
+              queue: _r.queue),
+          new BRElement(),
+          new SpanElement()..text = 'allEntries = ',
+          anyRef(_isolate, _loadedInstance!.allEntries!, _objects,
+              queue: _r.queue),
+        ];
+      case M.InstanceKind.nativeFinalizer:
+        return [
+          new SpanElement()..text = 'allEntries = ',
+          anyRef(_isolate, _loadedInstance!.allEntries!, _objects,
+              queue: _r.queue),
+        ];
+      case M.InstanceKind.finalizerEntry:
+        return [
+          new SpanElement()..text = 'value = ',
+          anyRef(_isolate, _loadedInstance!.value!, _objects, queue: _r.queue),
+          new BRElement(),
+          new SpanElement()..text = 'detach = ',
+          anyRef(_isolate, _loadedInstance!.detach!, _objects, queue: _r.queue),
+          new BRElement(),
+          new SpanElement()..text = 'token = ',
+          anyRef(_isolate, _loadedInstance!.token!, _objects, queue: _r.queue),
         ];
       default:
         return [];

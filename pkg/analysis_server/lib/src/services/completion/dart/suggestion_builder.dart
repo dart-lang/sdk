@@ -12,11 +12,11 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
-import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -218,9 +218,13 @@ class SuggestionBuilder {
   /// actually adding them.
   late final String targetPrefixLower;
 
+  /// Used to compute the relevance of the completion suggestion.
+  final RelevanceComputer relevanceComputer;
+
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
-  SuggestionBuilder(this.request, {this.listener, required this.useFilter}) {
+  SuggestionBuilder(this.request, {this.listener, required this.useFilter})
+      : relevanceComputer = RelevanceComputer(request, listener) {
     targetPrefixLower = request.targetPrefix.toLowerCase();
   }
 
@@ -260,6 +264,7 @@ class SuggestionBuilder {
     PropertyAccessorElement accessor, {
     required double inheritanceDistance,
     bool withEnclosingName = false,
+    int? relevance,
   }) {
     var enclosingPrefix = '';
     var enclosingName = _enclosingClassOrExtensionName(accessor);
@@ -294,7 +299,7 @@ class SuggestionBuilder {
             featureComputer.startsWithDollarFeature(accessor.name);
         var superMatches = featureComputer.superMatchesFeature(
             _containingMemberName, accessor.name);
-        var relevance = _computeRelevance(
+        relevance ??= relevanceComputer.computeScore(
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
@@ -327,7 +332,7 @@ class SuggestionBuilder {
     var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(parameter)
         : 0.0;
-    var relevance = _computeRelevance(
+    var relevance = relevanceComputer.computeScore(
       contextType: contextType,
       elementKind: elementKind,
       isConstant: isConstant,
@@ -346,13 +351,16 @@ class SuggestionBuilder {
   /// If [includeTrailingComma] is `true` then the completion text will include
   /// a trailing comma, such as when the closure is part of an argument list.
   void suggestClosure(FunctionType type, {bool includeTrailingComma = false}) {
+    var includeTypes =
+        request.fileState.analysisOptions.codeStyleOptions.specifyTypes;
     var indent = getRequestLineIndent(request);
-    var parametersString = buildClosureParameters(type);
-    // Build a version of the parameter string without keywords for the
-    // completion label because `required` is less useful and may push the
-    // end of the completion (`=>` vs `() {}`) off the end.
-    var parametersDisplayString =
-        buildClosureParameters(type, includeKeywords: false);
+    var parametersString = buildClosureParameters(type,
+        includeTypes: includeTypes, includeKeywords: true);
+    // Build a short version of the parameter string without keywords or types
+    // for the completion label because they're less useful there and may push
+    // the end of the completion (`=>` vs `() {}`) off the end.
+    var parametersDisplayString = buildClosureParameters(type,
+        includeKeywords: false, includeTypes: false);
 
     var blockBuffer = StringBuffer(parametersString);
     blockBuffer.writeln(' {');
@@ -416,15 +424,13 @@ class SuggestionBuilder {
     bool suggestUnnamedAsNew = false,
     bool hasClassName = false,
     String? prefix,
+    int? relevance,
   }) {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
 
-    var enclosingClass = constructor.enclosingElement.augmented?.declaration;
-    if (enclosingClass == null) {
-      return;
-    }
+    var enclosingClass = constructor.enclosingElement.augmented.declaration;
 
     var className = enclosingClass.name;
     if (className.isEmpty) {
@@ -449,8 +455,8 @@ class SuggestionBuilder {
 
     if (_couldMatch(completion, prefix)) {
       var returnType = _instantiateInstanceElement(enclosingClass);
-      var relevance =
-          _computeTopLevelRelevance(constructor, elementType: returnType);
+      relevance ??= relevanceComputer.computeTopLevelRelevance(constructor,
+          elementType: returnType, isNotImportedLibrary: isNotImportedLibrary);
       _addBuilder(
         _createCompletionSuggestionBuilder(
           constructor,
@@ -489,13 +495,14 @@ class SuggestionBuilder {
 
   /// Add a suggestion for an enum [constant]. If the enum can only be
   /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestEnumConstant(FieldElement constant, {String? prefix}) {
+  void suggestEnumConstant(FieldElement constant,
+      {String? prefix, int? relevance}) {
     var constantName = constant.name;
     var enumElement = constant.enclosingElement;
     var enumName = enumElement.name;
     var completion = '$enumName.$constantName';
-    var relevance =
-        _computeTopLevelRelevance(constant, elementType: constant.type);
+    relevance ??= relevanceComputer.computeTopLevelRelevance(constant,
+        elementType: constant.type, isNotImportedLibrary: isNotImportedLibrary);
     _addBuilder(
       _createCompletionSuggestionBuilder(
         constant,
@@ -513,12 +520,14 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestExtension(ExtensionElement extension,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String? prefix}) {
+      String? prefix,
+      int? relevance}) {
     var completion = _getCompletionString(extension);
     if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
-      var relevance = _computeTopLevelRelevance(extension,
-          elementType: extension.extendedType);
+      relevance ??= relevanceComputer.computeTopLevelRelevance(extension,
+          elementType: extension.extendedType,
+          isNotImportedLibrary: isNotImportedLibrary);
       _addBuilder(
         _createCompletionSuggestionBuilder(
           extension,
@@ -536,7 +545,8 @@ class SuggestionBuilder {
   /// the member containing the reference. The [inheritanceDistance] is the
   /// value of the inheritance distance feature computed for the field (or
   /// `-1.0` if the field is a static field).
-  void suggestField(FieldElement field, {required double inheritanceDistance}) {
+  void suggestField(FieldElement field,
+      {required double inheritanceDistance, int? relevance}) {
     var completion = _getCompletionString(field);
     if (completion == null) return;
     if (_couldMatch(completion, null)) {
@@ -552,7 +562,7 @@ class SuggestionBuilder {
           featureComputer.startsWithDollarFeature(field.name);
       var superMatches = featureComputer.superMatchesFeature(
           _containingMemberName, field.name);
-      var relevance = _computeRelevance(
+      relevance ??= relevanceComputer.computeScore(
         contextType: contextType,
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
@@ -589,6 +599,7 @@ class SuggestionBuilder {
   void suggestFormalParameter({
     required ParameterElement element,
     required int distance,
+    int? relevance,
   }) {
     var variableType = element.type;
     var contextType = request.featureComputer
@@ -599,7 +610,7 @@ class SuggestionBuilder {
     var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(element)
         : 0.0;
-    var relevance = _computeRelevance(
+    relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
       elementKind: elementKind,
       isConstant: isConstant,
@@ -617,7 +628,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion for the `call` method defined on functions.
   void suggestFunctionCall() {
-    final element = protocol.Element(protocol.ElementKind.METHOD,
+    var element = protocol.Element(protocol.ElementKind.METHOD,
         FunctionElement.CALL_METHOD_NAME, protocol.Element.makeFlags(),
         parameters: '()', returnType: 'void');
     _addSuggestion(
@@ -642,12 +653,14 @@ class SuggestionBuilder {
 
   /// Add a suggestion for an [element]. If the class can only be
   /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestInterface(InterfaceElement element, {String? prefix}) {
+  void suggestInterface(InterfaceElement element,
+      {String? prefix, int? relevance}) {
     var completion = _getCompletionString(element);
     if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
-      var relevance = _computeTopLevelRelevance(element,
-          elementType: _instantiateInstanceElement(element));
+      relevance ??= relevanceComputer.computeTopLevelRelevance(element,
+          elementType: _instantiateInstanceElement(element),
+          isNotImportedLibrary: isNotImportedLibrary);
       _addBuilder(
         _createCompletionSuggestionBuilder(
           element,
@@ -662,7 +675,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
   /// beginning of the keyword where the cursor will be left.
-  void suggestKeyword(String keyword, {int? offset}) {
+  void suggestKeyword(String keyword, {int? offset, int? relevance}) {
     DartType? elementType;
     if (keyword == 'null') {
       elementType = request.featureComputer.typeProvider.nullType;
@@ -673,7 +686,7 @@ class SuggestionBuilder {
         .contextTypeFeature(request.contextType, elementType);
     var keywordFeature = request.featureComputer
         .keywordFeature(keyword, request.opType.completionLocation);
-    var relevance = _computeRelevance(
+    relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
       keyword: keywordFeature,
     );
@@ -714,6 +727,7 @@ class SuggestionBuilder {
   void suggestLocalVariable({
     required LocalVariableElement element,
     required int distance,
+    int? relevance,
   }) {
     var variableType = element.type;
     var contextType = request.featureComputer
@@ -725,7 +739,7 @@ class SuggestionBuilder {
     var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(element)
         : 0.0;
-    var relevance = _computeRelevance(
+    relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
       elementKind: elementKind,
       isConstant: isConstant,
@@ -746,7 +760,8 @@ class SuggestionBuilder {
   /// the inheritance distance feature computed for the method.
   void suggestMethod(MethodElement method,
       {required CompletionSuggestionKind kind,
-      required double inheritanceDistance}) {
+      required double inheritanceDistance,
+      int? relevance}) {
     // TODO(brianwilkerson): Refactor callers so that we're passing in the type
     //  of the target (assuming we don't already have that type available via
     //  the [request]) and compute the [inheritanceDistance] in this method.
@@ -763,7 +778,7 @@ class SuggestionBuilder {
     var startsWithDollar = featureComputer.startsWithDollarFeature(method.name);
     var superMatches =
         featureComputer.superMatchesFeature(_containingMemberName, method.name);
-    var relevance = _computeRelevance(
+    relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
       elementKind: elementKind,
       hasDeprecated: hasDeprecated,
@@ -779,7 +794,7 @@ class SuggestionBuilder {
     var enclosingElement = method.enclosingElement;
     if (method.name == 'setState' &&
         enclosingElement is ClassElement &&
-        Flutter.isExactState(enclosingElement)) {
+        enclosingElement.isExactState) {
       // TODO(brianwilkerson): Make this more efficient by creating the correct
       //  suggestion in the first place.
       // Find the line indentation.
@@ -822,11 +837,11 @@ class SuggestionBuilder {
   }
 
   /// Add a suggestion to use the [name] at a declaration site.
-  void suggestName(String name) {
+  void suggestName(String name, {int? selectionOffset}) {
     // TODO(brianwilkerson): Explore whether there are any features of the name
     //  that can be used to provide better relevance scores.
     _addSuggestion(CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
-        500, name, name.length, 0, false, false));
+        500, name, selectionOffset ?? name.length, 0, false, false));
   }
 
   /// Add a suggestion to add a named argument corresponding to the [parameter].
@@ -836,7 +851,8 @@ class SuggestionBuilder {
   void suggestNamedArgument(ParameterElement parameter,
       {required bool appendColon,
       required bool appendComma,
-      int? replacementLength}) {
+      int? replacementLength,
+      int? relevance}) {
     var name = parameter.name;
     var type = parameter.type.getDisplayString();
 
@@ -847,11 +863,11 @@ class SuggestionBuilder {
     var selectionOffset = completion.length;
 
     // Optionally add Flutter child widget details.
-    // TODO(pq): revisit this special casing; likely it can be generalized away
+    // TODO(pq): revisit this special casing; likely it can be generalized away.
     var element = parameter.enclosingElement;
-    // If appendColon is false, default values should never be appended.
+    // If `appendColon` is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.isWidget(element.enclosingElement.augmented?.declaration)) {
+      if (element.enclosingElement.augmented.declaration.isWidget) {
         var analysisOptions = request.analysisSession.analysisContext
             .getAnalysisOptionsForFile(
                 request.resourceProvider.getFile(request.path));
@@ -876,11 +892,9 @@ class SuggestionBuilder {
       completion += ',';
     }
 
-    int relevance;
+    relevance ??= Relevance.namedArgument;
     if (parameter.isRequiredNamed || parameter.hasRequired) {
       relevance = Relevance.requiredNamedArgument;
-    } else {
-      relevance = Relevance.namedArgument;
     }
 
     var suggestion = DartCompletionSuggestion(
@@ -894,10 +908,11 @@ class SuggestionBuilder {
         parameterName: name,
         parameterType: type,
         replacementLength: replacementLength,
+        element: convertElement(parameter),
         elementLocation: parameter.location);
+
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
-      suggestion.element = convertElement(parameter);
     }
 
     _addSuggestion(suggestion);
@@ -911,14 +926,14 @@ class SuggestionBuilder {
       {required bool appendColon,
       required bool appendComma,
       int? replacementLength}) {
-    final name = field.name;
-    final type = field.type.getDisplayString();
+    var name = field.name;
+    var type = field.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
       completion += ': ';
     }
-    final selectionOffset = completion.length;
+    var selectionOffset = completion.length;
 
     if (appendComma) {
       completion += ',';
@@ -1022,12 +1037,12 @@ class SuggestionBuilder {
   }
 
   /// Add a suggestion for a [prefix] associated with a [library].
-  void suggestPrefix(LibraryElement library, String prefix) {
+  void suggestPrefix(LibraryElement library, String prefix, {int? relevance}) {
     var elementKind = _computeElementKind(library);
     // TODO(brianwilkerson): If we are in a constant context it would be nice
     //  to promote prefixes for libraries that define constants, but that
     //  might be more work than it's worth.
-    var relevance = _computeRelevance(
+    relevance ??= relevanceComputer.computeScore(
       elementKind: elementKind,
     );
     _addBuilder(
@@ -1044,16 +1059,17 @@ class SuggestionBuilder {
   void suggestRecordField({
     required RecordTypeField field,
     required String name,
+    int? relevance,
   }) {
-    final type = field.type;
-    final featureComputer = request.featureComputer;
-    final contextType =
+    var type = field.type;
+    var featureComputer = request.featureComputer;
+    var contextType =
         featureComputer.contextTypeFeature(request.contextType, type);
-    final relevance = _computeRelevance(
+    relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
     );
 
-    final returnType = field.type.getDisplayString();
+    var returnType = field.type.getDisplayString();
 
     _addSuggestion(
       CompletionSuggestion(
@@ -1074,7 +1090,8 @@ class SuggestionBuilder {
   ///
   /// If the enclosing element can only be referenced using a prefix, then
   /// the [prefix] should be provided.
-  void suggestStaticField(FieldElement element, {String? prefix}) {
+  void suggestStaticField(FieldElement element,
+      {String? prefix, int? relevance}) {
     assert(element.isStatic);
     if (element.isSynthetic) {
       var getter = element.getter;
@@ -1093,8 +1110,9 @@ class SuggestionBuilder {
       }
       var completion = enclosingPrefix + element.name;
       if (_couldMatch(completion, prefix)) {
-        var relevance =
-            _computeTopLevelRelevance(element, elementType: element.type);
+        relevance ??= relevanceComputer.computeTopLevelRelevance(element,
+            elementType: element.type,
+            isNotImportedLibrary: isNotImportedLibrary);
         _addBuilder(
           _createCompletionSuggestionBuilder(
             element,
@@ -1126,12 +1144,14 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelFunction(FunctionElement function,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String? prefix}) {
+      String? prefix,
+      int? relevance}) {
     var completion = _getCompletionString(function);
     if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
-      var relevance =
-          _computeTopLevelRelevance(function, elementType: function.returnType);
+      relevance ??= relevanceComputer.computeTopLevelRelevance(function,
+          elementType: function.returnType,
+          isNotImportedLibrary: isNotImportedLibrary);
       _addBuilder(
         _createCompletionSuggestionBuilder(
           function,
@@ -1147,7 +1167,7 @@ class SuggestionBuilder {
   /// Add a suggestion for a top-level property [accessor]. If the accessor can
   /// only be referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
-      {String? prefix}) {
+      {String? prefix, int? relevance}) {
     assert(
         accessor.enclosingElement is CompilationUnitElement,
         'Enclosing element of ${accessor.runtimeType} is '
@@ -1178,7 +1198,7 @@ class SuggestionBuilder {
         var startsWithDollar =
             featureComputer.startsWithDollarFeature(accessor.name);
         var superMatches = 0.0;
-        var relevance = _computeRelevance(
+        relevance ??= relevanceComputer.computeScore(
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
@@ -1204,13 +1224,14 @@ class SuggestionBuilder {
   /// Add a suggestion for a top-level [variable]. If the variable can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
-      {String? prefix}) {
+      {String? prefix, int? relevance}) {
     var completion = _getCompletionString(variable);
     if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
       assert(variable.enclosingElement is CompilationUnitElement);
-      var relevance =
-          _computeTopLevelRelevance(variable, elementType: variable.type);
+      relevance ??= relevanceComputer.computeTopLevelRelevance(variable,
+          elementType: variable.type,
+          isNotImportedLibrary: isNotImportedLibrary);
       _addBuilder(
         _createCompletionSuggestionBuilder(
           variable,
@@ -1225,12 +1246,14 @@ class SuggestionBuilder {
 
   /// Add a suggestion for a [typeAlias]. If the alias can only be referenced
   /// using a prefix, then the [prefix] should be provided.
-  void suggestTypeAlias(TypeAliasElement typeAlias, {String? prefix}) {
+  void suggestTypeAlias(TypeAliasElement typeAlias,
+      {String? prefix, int? relevance}) {
     var completion = _getCompletionString(typeAlias);
     if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
-      var relevance = _computeTopLevelRelevance(typeAlias,
-          elementType: _instantiateTypeAlias(typeAlias));
+      relevance ??= relevanceComputer.computeTopLevelRelevance(typeAlias,
+          elementType: _instantiateTypeAlias(typeAlias),
+          isNotImportedLibrary: isNotImportedLibrary);
       _addBuilder(
         _createCompletionSuggestionBuilder(
           typeAlias,
@@ -1244,12 +1267,12 @@ class SuggestionBuilder {
   }
 
   /// Add a suggestion for a type [parameter].
-  void suggestTypeParameter(TypeParameterElement parameter) {
+  void suggestTypeParameter(TypeParameterElement parameter, {int? relevance}) {
     var elementKind = _computeElementKind(parameter);
     var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(parameter)
         : 0.0;
-    var relevance = _computeRelevance(
+    relevance ??= relevanceComputer.computeScore(
       elementKind: elementKind,
       isConstant: isConstant,
     );
@@ -1343,74 +1366,6 @@ class SuggestionBuilder {
       }
     }
     return elementKind;
-  }
-
-  /// Compute the relevance based on the given feature values and pass those
-  /// feature values to the listener if there is one.
-  int _computeRelevance(
-      {double contextType = 0.0,
-      double elementKind = 0.0,
-      double hasDeprecated = 0.0,
-      double isConstant = 0.0,
-      double isNoSuchMethod = 0.0,
-      double isNotImported = 0.0,
-      double keyword = 0.0,
-      double startsWithDollar = 0.0,
-      double superMatches = 0.0,
-      // Dependent features
-      double inheritanceDistance = 0.0,
-      double localVariableDistance = 0.0}) {
-    var score = weightedAverage(
-        contextType: contextType,
-        elementKind: elementKind,
-        hasDeprecated: hasDeprecated,
-        isConstant: isConstant,
-        isNoSuchMethod: isNoSuchMethod,
-        isNotImported: isNotImported,
-        keyword: keyword,
-        startsWithDollar: startsWithDollar,
-        superMatches: superMatches,
-        localVariableDistance: localVariableDistance);
-    var relevance = toRelevance(score);
-    listener?.computedFeatures(
-      contextType: contextType,
-      elementKind: elementKind,
-      hasDeprecated: hasDeprecated,
-      isConstant: isConstant,
-      isNoSuchMethod: isNoSuchMethod,
-      isNotImported: isNotImported,
-      keyword: keyword,
-      startsWithDollar: startsWithDollar,
-      superMatches: superMatches,
-      // Dependent features
-      inheritanceDistance: inheritanceDistance,
-      localVariableDistance: localVariableDistance,
-    );
-    return relevance;
-  }
-
-  /// Return the relevance score for a top-level [element].
-  int _computeTopLevelRelevance(Element element,
-      {required DartType elementType}) {
-    // TODO(brianwilkerson): The old relevance computation used a signal based
-    //  on whether the element being suggested was from the same library in
-    //  which completion is being performed. Explore whether that's a useful
-    //  signal.
-    var featureComputer = request.featureComputer;
-    var contextType =
-        featureComputer.contextTypeFeature(request.contextType, elementType);
-    var elementKind = _computeElementKind(element);
-    var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
-    var isConstant =
-        _preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
-    return _computeRelevance(
-      contextType: contextType,
-      elementKind: elementKind,
-      hasDeprecated: hasDeprecated,
-      isConstant: isConstant,
-      isNotImported:
-          request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
-    );
   }
 
   bool _couldMatch(String candidateArbitraryCase, String? prefix) {
@@ -1741,7 +1696,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   @override
   CompletionSuggestion build() {
-    final element = suggestionBuilder._createElementCompletionData(orgElement);
+    var element = suggestionBuilder._createElementCompletionData(orgElement);
     return DartCompletionSuggestion(
       kind,
       relevance,

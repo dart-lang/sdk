@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -30,14 +31,14 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       return success(const []);
     }
 
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
-    return offset.mapResult((requestedOffset) {
-      final collector = OccurrencesCollectorImpl();
-      addDartOccurrences(collector, unit.result.unit);
+    return (unit, offset).mapResults((unit, requestedOffset) async {
+      var collector = OccurrencesCollectorImpl();
+      addDartOccurrences(collector, unit.unit);
 
       /// Checks whether an Occurrence offset/length spans the requested
       /// offset.
@@ -50,12 +51,12 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       }
 
       // Find an occurrence that has an instance that spans the position.
-      final occurrences = collector.allOccurrences
+      var occurrences = collector.allOccurrences
           .where((occurrence) => occurrence.offsets.any(
               (offset) => spansRequestedPosition(offset, occurrence.length)))
           .toList();
       if (occurrences.isNotEmpty) {
-        return success(toHighlights(unit.result.lineInfo, occurrences));
+        return success(toHighlights(unit.lineInfo, occurrences));
       }
 
       // No matches.

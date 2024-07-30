@@ -7,6 +7,7 @@ analyzer:
     sdk_version_since: ignore
   exclude:
     - deferred_loading/**
+    - dynamic_interface_annotator/**
     - to_string_transformer/**
     - type_flow/**
     - unreachable_code_elimination/**

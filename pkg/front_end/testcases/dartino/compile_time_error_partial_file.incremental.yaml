@@ -7,9 +7,9 @@ main.dart.patch: |
   // fix_compile_time_error_in_field.
   class C {
   <<<< {"messages":[],"hasCompileTimeError":1}
-    int sync*;
+    int? sync*;
   ==== []
-    int sync;
+    int? sync;
   }
   main() {
     new C();

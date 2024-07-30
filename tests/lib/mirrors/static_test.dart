@@ -12,6 +12,7 @@ import 'stringify.dart';
 
 class Foo {
   static String bar = '...';
+  static const int biz = 5;
   String aux = '';
   static foo() {}
   baz() {}
@@ -27,4 +28,6 @@ void main() {
       reflectClass(Foo).declarations[new Symbol('foo')]);
   expect('Variable(s(bar) in s(Foo), static)',
       reflectClass(Foo).declarations[new Symbol('bar')]);
+  expect('Variable(s(biz) in s(Foo), static, final, const)',
+      reflectClass(Foo).declarations[new Symbol('biz')]);
 }

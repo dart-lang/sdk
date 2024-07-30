@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -20,7 +20,7 @@ import 'package:dart_style/dart_style.dart';
 /// Return a formatted string if successful, throws a [FormatterException] if
 /// unable to format. Takes a string as input.
 String format(String content) {
-  final code = SourceCode(content);
+  var code = SourceCode(content);
   var formatter = DartFormatter();
   SourceCode formattedResult;
   formattedResult = formatter.formatSource(code);

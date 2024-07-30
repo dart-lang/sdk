@@ -67,8 +67,17 @@ Run "${runner!.executableName} help" to see global options.''');
           .where((e) => !e.startsWith('--$experimentFlagName='))
           .toList();
       log.trace('dart $testExecutable ${argsRestNoExperiment.join(' ')}');
-      VmInteropHandler.run(testExecutable.executable, argsRestNoExperiment,
-          packageConfigOverride: testExecutable.packageConfig!);
+      VmInteropHandler.run(
+        testExecutable.executable,
+        argsRestNoExperiment,
+        packageConfigOverride: testExecutable.packageConfig!,
+        // TODO(bkonyi): remove once DartDev moves to AOT and this flag can be
+        // provided directly to the process spawned by `dart run` and
+        // `dart test`.
+        //
+        // See https://github.com/dart-lang/sdk/issues/53576
+        markMainIsolateAsSystemIsolate: true,
+      );
       return 0;
     } on CommandResolutionFailedException catch (e) {
       if (project.hasPubspecFile) {

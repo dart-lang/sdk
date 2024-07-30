@@ -6,9 +6,6 @@ import "package:expect/expect.dart";
 
 // Dart test program for DateTime.
 
-bool get supportsMicroseconds =>
-    new DateTime.fromMicrosecondsSinceEpoch(1).microsecondsSinceEpoch == 1;
-
 // Identical to _maxMillisecondsSinceEpoch in date_time.dart
 const int _MAX_MILLISECONDS = 8640000000000000;
 
@@ -271,8 +268,6 @@ void testEquivalentYears() {
   Expect.equals(0, dt.microsecond);
   Expect.equals("2036-07-18 13:20:00.000", dt.toString());
 
-  if (!supportsMicroseconds) return;
-
   dt = new DateTime.utc(2035, 1, 1, 0, 0, 0, 0, 1);
   Expect.equals(SECONDS_YEAR_2035 * 1000000 + 1, dt.microsecondsSinceEpoch);
   dt = new DateTime.utc(2034, 12, 31, 23, 59, 59, 999, 999);
@@ -333,8 +328,6 @@ void testUTCGetters() {
   Expect.equals(20, dt.second);
   Expect.equals(1, dt.millisecond);
   Expect.equals(0, dt.microsecond);
-
-  if (!supportsMicroseconds) return;
 
   dt = new DateTime.fromMicrosecondsSinceEpoch(-9999999999, isUtc: true);
   Expect.equals(1969, dt.year);
@@ -493,8 +486,6 @@ void testSubAdd() {
   Expect.equals(true, dt1 == dt3);
   Expect.equals(false, dt1 == dt2);
 
-  if (!supportsMicroseconds) return;
-
   dt1 = new DateTime.fromMillisecondsSinceEpoch(1305140315000, isUtc: true);
   dt2 = dt1
       .add(new Duration(microseconds: 3 * Duration.microsecondsPerSecond + 5));
@@ -513,8 +504,7 @@ void testSubAdd() {
 }
 
 void testUnderflowAndOverflow() {
-  int microsecond = supportsMicroseconds ? 499 : 0;
-  final dtBase = new DateTime(2012, 6, 20, 12, 30, 30, 500, microsecond);
+  final dtBase = new DateTime(2012, 6, 20, 12, 30, 30, 500, 499);
 
   // Millisecond
   print("  >>> Millisecond+");
@@ -718,8 +708,6 @@ void testUnderflowAndOverflow() {
   Expect.equals(dtBase1.second, dtTick.second);
   Expect.equals(dtBase1.millisecond, dtTick.millisecond);
   Expect.equals(dtBase1.microsecond, dtTick.microsecond);
-
-  if (!supportsMicroseconds) return;
 
   // Microsecond
   print("  >>> Microsecond+");
@@ -943,48 +931,24 @@ void testDateStrings() {
   Expect.equals(0, dt1.microsecond);
   Expect.equals(true, dt1.isUtc);
   dt1 = DateTime.parse("1999-01-02 23:59:59.99951");
-  if (supportsMicroseconds) {
-    Expect.equals(1999, dt1.year);
-    Expect.equals(1, dt1.month);
-    Expect.equals(2, dt1.day);
-    Expect.equals(23, dt1.hour);
-    Expect.equals(59, dt1.minute);
-    Expect.equals(59, dt1.second);
-    Expect.equals(999, dt1.millisecond);
-    Expect.equals(510, dt1.microsecond);
-  } else {
-    // We only support millisecond. If the user supplies more data (the "51"
-    // here), we round.
-    Expect.equals(1999, dt1.year);
-    Expect.equals(1, dt1.month);
-    Expect.equals(3, dt1.day);
-    Expect.equals(0, dt1.hour);
-    Expect.equals(0, dt1.minute);
-    Expect.equals(0, dt1.second);
-    Expect.equals(0, dt1.millisecond);
-    Expect.equals(0, dt1.microsecond);
-  }
+  Expect.equals(1999, dt1.year);
+  Expect.equals(1, dt1.month);
+  Expect.equals(2, dt1.day);
+  Expect.equals(23, dt1.hour);
+  Expect.equals(59, dt1.minute);
+  Expect.equals(59, dt1.second);
+  Expect.equals(999, dt1.millisecond);
+  Expect.equals(510, dt1.microsecond);
   Expect.equals(false, dt1.isUtc);
   dt1 = DateTime.parse("1999-01-02 23:58:59.99951Z");
-  if (supportsMicroseconds) {
-    Expect.equals(1999, dt1.year);
-    Expect.equals(1, dt1.month);
-    Expect.equals(2, dt1.day);
-    Expect.equals(23, dt1.hour);
-    Expect.equals(58, dt1.minute);
-    Expect.equals(59, dt1.second);
-    Expect.equals(999, dt1.millisecond);
-    Expect.equals(510, dt1.microsecond);
-  } else {
-    Expect.equals(1999, dt1.year);
-    Expect.equals(1, dt1.month);
-    Expect.equals(2, dt1.day);
-    Expect.equals(23, dt1.hour);
-    Expect.equals(59, dt1.minute);
-    Expect.equals(0, dt1.second);
-    Expect.equals(0, dt1.millisecond);
-    Expect.equals(0, dt1.microsecond);
-  }
+  Expect.equals(1999, dt1.year);
+  Expect.equals(1, dt1.month);
+  Expect.equals(2, dt1.day);
+  Expect.equals(23, dt1.hour);
+  Expect.equals(58, dt1.minute);
+  Expect.equals(59, dt1.second);
+  Expect.equals(999, dt1.millisecond);
+  Expect.equals(510, dt1.microsecond);
   Expect.equals(true, dt1.isUtc);
   dt1 = DateTime.parse("0009-09-09 09:09:09.009Z");
   Expect.equals(9, dt1.year);
@@ -1079,22 +1043,15 @@ void testDateStrings() {
       () => DateTime.parse("275760-09-14T00:00:00.000Z"));
   Expect.throwsFormatException(
       () => DateTime.parse("275760-09-13T00:00:00.001Z"));
-  if (supportsMicroseconds) {
-    Expect.throwsFormatException(
-        () => DateTime.parse("275760-09-13T00:00:00.000001Z"));
-  } else {
-    dt1 = DateTime.parse("275760-09-13T00:00:00.000001Z");
-  }
-
+  Expect.throwsFormatException(
+      () => DateTime.parse("275760-09-13T00:00:00.000001Z"));
   // first valid time; should not throw.
   dt1 = DateTime.parse("-271821-04-20T00:00:00.000Z");
   Expect.throwsFormatException(
       () => DateTime.parse("-271821-04-19T23:59:59.999Z"));
 
-  if (supportsMicroseconds) {
-    Expect.throwsFormatException(
-        () => DateTime.parse("-271821-04-19T23:59:59.999999Z"));
-  }
+  Expect.throwsFormatException(
+      () => DateTime.parse("-271821-04-19T23:59:59.999999Z"));
 }
 
 void testWeekday() {
@@ -1159,14 +1116,11 @@ void testToStrings() {
   test("1970-01-01", "00:00:00.000");
   test("1969-12-31", "23:59:59.999");
   test("1969-09-09", "00:09:09.009");
-
-  if (supportsMicroseconds) {
-    test("2000-01-01", "12:00:00.000001");
-    test("-2000-01-01", "12:00:00.000001");
-    test("1970-01-01", "00:00:00.000001");
-    test("1969-12-31", "23:59:59.999999");
-    test("1969-09-09", "00:09:09.009999");
-  }
+  test("2000-01-01", "12:00:00.000001");
+  test("-2000-01-01", "12:00:00.000001");
+  test("1970-01-01", "00:00:00.000001");
+  test("1969-12-31", "23:59:59.999999");
+  test("1969-09-09", "00:09:09.009999");
 }
 
 void testIsoString() {
@@ -1187,8 +1141,6 @@ void testIsoString() {
   Expect.equals("+010000-01-01T23:59:59.999Z", d.toIso8601String());
   d = new DateTime.utc(-10000, 1, 1, 23, 59, 59, 999);
   Expect.equals("-010000-01-01T23:59:59.999Z", d.toIso8601String());
-
-  if (!supportsMicroseconds) return;
 
   d = new DateTime(9999, 1, 1, 23, 59, 59, 999, 999);
   Expect.equals("9999-01-01T23:59:59.999999", d.toIso8601String());

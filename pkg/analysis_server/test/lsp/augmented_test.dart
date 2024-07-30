@@ -18,8 +18,6 @@ void main() {
 
 @reflectiveTest
 class AugmentedTest extends AbstractLspAnalysisServerTest {
-  String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
-
   Future<void> test_class_body_augmentationToAugmentation() async {
     await verifyGoToAugmented('''
 class A {}
@@ -241,7 +239,7 @@ augment class A {
   Future<void> verifyGoToAugmented(String content) async {
     // Build an augmentation library for mainFileUri.
     var code = TestCode.parse('''
-library augment '$mainFileUri';
+augment library '$mainFileUri';
 
 $content
 ''');
@@ -263,7 +261,7 @@ $content
   Future<void> verifyNoAugmented(String content) async {
     // Build an augmentation library for mainFileUri.
     var code = TestCode.parse('''
-library augment '$mainFileUri';
+augment library '$mainFileUri';
 
 $content
 ''');

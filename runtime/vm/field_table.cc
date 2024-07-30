@@ -118,24 +118,39 @@ void FieldTable::Grow(intptr_t new_capacity) {
   // Ensure that new_table_ is populated before it is published
   // via store to table_.
   reinterpret_cast<AcqRelAtomic<ObjectPtr*>*>(&table_)->store(new_table);
-  if (isolate_ != nullptr && isolate_->mutator_thread() != nullptr) {
+  if (isolate_group_ != nullptr) {
+    isolate_group_->ForEachIsolate(
+        [&](Isolate* isolate) {
+          if (isolate->mutator_thread() != nullptr) {
+            isolate->mutator_thread()->shared_field_table_values_ = table_;
+          }
+        },
+        /*at_safepoint=*/false);
+  } else if (isolate_ != nullptr && isolate_->mutator_thread() != nullptr) {
     isolate_->mutator_thread()->field_table_values_ = table_;
   }
 }
 
-FieldTable* FieldTable::Clone(Isolate* for_isolate) {
+FieldTable* FieldTable::Clone(Isolate* for_isolate,
+                              IsolateGroup* for_isolate_group) {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
 
-  FieldTable* clone = new FieldTable(for_isolate);
-  auto new_table =
-      static_cast<ObjectPtr*>(malloc(capacity_ * sizeof(ObjectPtr)));  // NOLINT
-  memmove(new_table, table_, capacity_ * sizeof(ObjectPtr));
+  FieldTable* clone = new FieldTable(for_isolate, for_isolate_group);
   ASSERT(clone->table_ == nullptr);
-  clone->table_ = new_table;
-  clone->capacity_ = capacity_;
-  clone->top_ = top_;
-  clone->free_head_ = free_head_;
+  if (table_ == nullptr) {
+    ASSERT(capacity_ == 0);
+    ASSERT(top_ == 0);
+    ASSERT(free_head_ == -1);
+  } else {
+    auto new_table = static_cast<ObjectPtr*>(
+        malloc(capacity_ * sizeof(ObjectPtr)));  // NOLINT
+    memmove(new_table, table_, capacity_ * sizeof(ObjectPtr));
+    clone->table_ = new_table;
+    clone->capacity_ = capacity_;
+    clone->top_ = top_;
+    clone->free_head_ = free_head_;
+  }
   return clone;
 }
 

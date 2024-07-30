@@ -3,14 +3,19 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
+
+[@vm.inferred-return-type.metadata=dart.core::bool (value: true)]
 static method _defaultCheck([dynamic _ = #C1]) → core::bool
   return true;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testStaticTypeOfConditional<T extends core::Object? = dynamic>([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::main)] (self::testStaticTypeOfConditional::T%) →? core::bool check) → void {
   if(#C2 is self::testStaticTypeOfConditional::T% && _in::unsafeCast<core::bool>([@vm.direct-call.metadata=closure 1 in #lib::main] [@vm.inferred-type.metadata=dart.core::bool (value: true) (receiver not int)](let final (self::testStaticTypeOfConditional::T%) →? core::bool #t1 = check in _in::unsafeCast<core::Function>(#t1{(self::testStaticTypeOfConditional::T%) → core::bool}))(#C2))) {
     core::print("ok");
   }
 }
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main() → void {
   self::testStaticTypeOfConditional<core::String>([@vm.closure-id=1](core::String _) → core::bool => true);

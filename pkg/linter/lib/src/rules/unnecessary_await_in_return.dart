@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Unnecessary await keyword in return.';
+const _desc = r'Unnecessary `await` keyword in return.';
 
 const _details = r'''
 Avoid returning an awaited expression when the expression type is assignable to
@@ -45,7 +45,7 @@ class UnnecessaryAwaitInReturn extends LintRule {
             name: 'unnecessary_await_in_return',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

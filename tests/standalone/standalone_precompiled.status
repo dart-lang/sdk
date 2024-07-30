@@ -46,8 +46,6 @@ io/stdin_sync_test: Skip
 io/stdio_implicit_close_test: Skip
 io/stdio_nonblocking_test: Skip
 io/stdout_stderr_test: Skip
-io/test_extension_fail_test: Skip
-io/test_extension_test: Skip
 io/windows_environment_test: Skip
 package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Skip
 package/scenarios/invalid/invalid_utf8_test: Skip

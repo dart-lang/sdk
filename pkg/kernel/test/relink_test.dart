@@ -196,5 +196,6 @@ Component createComponent(int literal) {
       fileUri: mainUri);
   main.addProcedure(mainProcedure);
   return new Component(libraries: [main, lib])
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
+    ..setMainMethodAndMode(
+        null, false, NonNullableByDefaultCompiledMode.Strong);
 }

@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 class C1 extends core::Object {
   final field core::int id;
-  constructor n1(core::int id, [core::String s = #C1]) → self::C1
+  constructor n1(final core::int id, [final core::String s = #C1]) → self::C1
     : self::C1::id = id, super core::Object::•() {
     self::log = s;
   }
-  static method _#n1#tearOff(core::int id, [core::String s = #C1]) → self::C1
+  static method _#n1#tearOff(final core::int id, [final core::String s = #C1]) → self::C1
     return new self::C1::n1(id, s);
 }
 extension type ET1(core::int id) {
@@ -19,30 +19,30 @@ extension type ET1(core::int id) {
   constructor tearoff n1 = self::ET1|constructor#_#n1#tearOff;
 }
 static field dynamic log;
-static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#(final core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
-static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member method ET1|constructor#_#new#tearOff(final core::int id) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(id);
-static extension-type-member method ET1|constructor#n1(core::int id, [core::String s = #C2]) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#n1(final core::int id, [final core::String s = #C2]) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
   {
     self::log = s;
   }
   return #this;
 }
-static extension-type-member method ET1|constructor#_#n1#tearOff(core::int id, [core::String s = #C2]) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member method ET1|constructor#_#n1#tearOff(final core::int id, [final core::String s = #C2]) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#n1(id, s);
 static method main() → dynamic {
-  (core::int, [core::String]) → self::C1 x = #C3;
+  final (core::int, [core::String]) → self::C1 x = #C3;
   x(0){(core::int, [core::String]) → self::C1};
   self::expect("a", self::log);
-  (core::int, [core::String]) → self::ET1% /* erasure=core::int, declared=! */ y = #C4;
+  final (core::int, [core::String]) → self::ET1% /* erasure=core::int, declared=! */ y = #C4;
   y(1){(core::int, [core::String]) → self::ET1% /* erasure=core::int, declared=! */};
   self::expect("b", self::log);
 }
-static method expect(dynamic expected, dynamic actual) → dynamic {
+static method expect(final dynamic expected, final dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }

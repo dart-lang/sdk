@@ -2095,9 +2095,8 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
 
   // Test the MakeFixedLength functionality to make sure the resulting array
   // object is properly setup.
-  // 1. Should produce an array of length 2 and a left over int8 array.
+  // 1. Should produce an array of length 2 and a filler of minimal size.
   Array& new_array = Array::Handle();
-  TypedData& left_over_array = TypedData::Handle();
   Object& obj = Object::Handle();
   uword addr = 0;
   intptr_t used_size = 0;
@@ -2117,19 +2116,12 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   new_array ^= obj.ptr();
   EXPECT_EQ(2, new_array.Length());
   addr += used_size;
-  obj = UntaggedObject::FromAddr(addr);
-#if defined(DART_COMPRESSED_POINTERS)
-  // In compressed pointer mode, the TypedData doesn't fit.
-  EXPECT(obj.IsInstance());
-#else
-  EXPECT(obj.IsTypedData());
-  left_over_array ^= obj.ptr();
-  EXPECT_EQ(4 * kWordSize - TypedData::InstanceSize(0),
-            left_over_array.Length());
-#endif
+  ObjectPtr filler = UntaggedObject::FromAddr(addr);
+  EXPECT(filler->IsFreeListElement());
+  EXPECT_EQ(filler->untag()->HeapSize(),
+            Array::InstanceSize(kArrayLen + 1) - used_size);
 
-  // 2. Should produce an array of length 3 and a left over int8 array or
-  // instance.
+  // 2. Should produce an array of length 3 and a filler object.
   array = GrowableObjectArray::New(kArrayLen);
   EXPECT_EQ(kArrayLen, array.Capacity());
   EXPECT_EQ(0, array.Length());
@@ -2145,17 +2137,12 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   new_array ^= obj.ptr();
   EXPECT_EQ(3, new_array.Length());
   addr += used_size;
-  obj = UntaggedObject::FromAddr(addr);
-  if (TypedData::InstanceSize(0) <= 2 * kCompressedWordSize) {
-    EXPECT(obj.IsTypedData());
-    left_over_array ^= obj.ptr();
-    EXPECT_EQ(2 * kCompressedWordSize - TypedData::InstanceSize(0),
-              left_over_array.Length());
-  } else {
-    EXPECT(obj.IsInstance());
-  }
+  filler = UntaggedObject::FromAddr(addr);
+  EXPECT(filler->IsFreeListElement());
+  EXPECT_EQ(filler->untag()->HeapSize(),
+            Array::InstanceSize(kArrayLen) - used_size);
 
-  // 3. Should produce an array of length 1 and a left over int8 array.
+  // 3. Should produce an array of length 1 and a filler object.
   array = GrowableObjectArray::New(kArrayLen + 3);
   EXPECT_EQ((kArrayLen + 3), array.Capacity());
   EXPECT_EQ(0, array.Length());
@@ -2171,16 +2158,10 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   new_array ^= obj.ptr();
   EXPECT_EQ(1, new_array.Length());
   addr += used_size;
-  obj = UntaggedObject::FromAddr(addr);
-#if defined(DART_COMPRESSED_POINTERS)
-  // In compressed pointer mode, the TypedData doesn't fit.
-  EXPECT(obj.IsInstance());
-#else
-  EXPECT(obj.IsTypedData());
-  left_over_array ^= obj.ptr();
-  EXPECT_EQ(8 * kWordSize - TypedData::InstanceSize(0),
-            left_over_array.Length());
-#endif
+  filler = UntaggedObject::FromAddr(addr);
+  EXPECT(filler->IsFreeListElement());
+  EXPECT_EQ(filler->untag()->HeapSize(),
+            Array::InstanceSize(kArrayLen + 3) - used_size);
 
   // 4. Verify that GC can handle the filler object for a large array.
   array = GrowableObjectArray::New((1 * MB) >> kWordSizeLog2);
@@ -5426,8 +5407,7 @@ static void PrintMetadata(const char* name, const Object& data) {
 
 TEST_CASE(Metadata) {
   // clang-format off
-  auto kScriptChars =
-      Utils::CStringUniquePtr(OS::SCreate(nullptr,
+  const char* kScriptChars =
         "@metafoo                       \n"
         "class Meta {                   \n"
         "  final m;                     \n"
@@ -5438,7 +5418,7 @@ TEST_CASE(Metadata) {
         "const metabar = 'meta' 'bar';  \n"
         "                               \n"
         "@metafoo                       \n"
-        "@Meta(0) String%s gVar;        \n"
+        "@Meta(0) String? gVar;         \n"
         "                               \n"
         "@metafoo                       \n"
         "get tlGetter => gVar;          \n"
@@ -5457,11 +5437,10 @@ TEST_CASE(Metadata) {
         "@Meta('main')                  \n"
         "A main() {                     \n"
         "  return A();                  \n"
-        "}                              \n",
-        TestCase::NullableTag()), std::free);
+        "}                              \n";
   // clang-format on
 
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars.get(), nullptr);
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(h_lib);
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
@@ -6388,16 +6367,6 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"valueAsString\":\"<not initialized>\"}",
         js.ToCString());
   }
-  // Transition sentinel reference
-  {
-    JSONStream js;
-    Object::transition_sentinel().PrintJSON(&js, true);
-    EXPECT_STREQ(
-        "{\"type\":\"Sentinel\","
-        "\"kind\":\"BeingInitialized\","
-        "\"valueAsString\":\"<being initialized>\"}",
-        js.ToCString());
-  }
 }
 
 #endif  // !PRODUCT
@@ -6466,7 +6435,7 @@ static bool HashCodeEqualsCanonicalizeHash(
     uint32_t hashcode_canonicalize_vm = kCalculateCanonicalizeHash,
     bool check_identity = true,
     bool check_hashcode = true) {
-  auto kScriptChars = Utils::CStringUniquePtr(
+  CStringUniquePtr kScriptChars(
       OS::SCreate(nullptr,
                   "%s"
                   "\n"
@@ -6477,8 +6446,7 @@ static bool HashCodeEqualsCanonicalizeHash(
                   "valueIdentityHashCode() {\n"
                   "  return identityHashCode(value());\n"
                   "}\n",
-                  value_script),
-      std::free);
+                  value_script));
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars.get(), nullptr);
   EXPECT_VALID(lib);
@@ -7437,9 +7405,6 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   auto& closure_type_nullable = Type::Handle(
       closure_type.ToNullability(Nullability::kNullable, Heap::kNew));
   FinalizeAndCanonicalize(&closure_type_nullable);
-  auto& closure_type_legacy = Type::Handle(
-      closure_type.ToNullability(Nullability::kLegacy, Heap::kNew));
-  FinalizeAndCanonicalize(&closure_type_legacy);
   auto& closure_type_nonnullable = Type::Handle(
       closure_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
   FinalizeAndCanonicalize(&closure_type_nonnullable);
@@ -7449,27 +7414,14 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   auto& function_type_nullable = Type::Handle(
       function_type.ToNullability(Nullability::kNullable, Heap::kNew));
   FinalizeAndCanonicalize(&function_type_nullable);
-  auto& function_type_legacy = Type::Handle(
-      function_type.ToNullability(Nullability::kLegacy, Heap::kNew));
-  FinalizeAndCanonicalize(&function_type_legacy);
   auto& function_type_nonnullable = Type::Handle(
       function_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
   FinalizeAndCanonicalize(&function_type_nonnullable);
 
   EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_legacy);
   EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nonnullable);
-  EXPECT_SUBTYPE(closure_type_legacy, function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_legacy, function_type_legacy);
-  EXPECT_SUBTYPE(closure_type_legacy, function_type_nonnullable);
   EXPECT_SUBTYPE(closure_type_nullable, function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_nullable, function_type_legacy);
-  // Nullable types are not a subtype of non-nullable types in strict mode.
-  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    EXPECT_NOT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
-  } else {
-    EXPECT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
-  }
+  EXPECT_NOT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
 
   const auto& async_lib = Library::Handle(Library::AsyncLibrary());
   const auto& future_or_class =
@@ -7477,9 +7429,6 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   auto& tav_function_nullable = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_nullable.SetTypeAt(0, function_type_nullable);
   tav_function_nullable = tav_function_nullable.Canonicalize(thread);
-  auto& tav_function_legacy = TypeArguments::Handle(TypeArguments::New(1));
-  tav_function_legacy.SetTypeAt(0, function_type_legacy);
-  tav_function_legacy = tav_function_legacy.Canonicalize(thread);
   auto& tav_function_nonnullable = TypeArguments::Handle(TypeArguments::New(1));
   tav_function_nonnullable.SetTypeAt(0, function_type_nonnullable);
   tav_function_nonnullable = tav_function_nonnullable.Canonicalize(thread);
@@ -7487,28 +7436,15 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   auto& future_or_function_type_nullable =
       Type::Handle(Type::New(future_or_class, tav_function_nullable));
   FinalizeAndCanonicalize(&future_or_function_type_nullable);
-  auto& future_or_function_type_legacy =
-      Type::Handle(Type::New(future_or_class, tav_function_legacy));
-  FinalizeAndCanonicalize(&future_or_function_type_legacy);
   auto& future_or_function_type_nonnullable =
       Type::Handle(Type::New(future_or_class, tav_function_nonnullable));
   FinalizeAndCanonicalize(&future_or_function_type_nonnullable);
 
   EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_legacy);
   EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nonnullable);
-  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_legacy);
-  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nonnullable);
   EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nullable);
-  EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_legacy);
-  // Nullable types are not a subtype of non-nullable types in strict mode.
-  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    EXPECT_NOT_SUBTYPE(closure_type_nullable,
-                       future_or_function_type_nonnullable);
-  } else {
-    EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nonnullable);
-  }
+  EXPECT_NOT_SUBTYPE(closure_type_nullable,
+                     future_or_function_type_nonnullable);
 }
 
 ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
@@ -7526,11 +7462,7 @@ ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
   FinalizeAndCanonicalize(&type_nullable_function_int_nullary);
 
   EXPECT_SUBTYPE(type_function_int_nullary, type_object);
-  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    EXPECT_NOT_SUBTYPE(type_nullable_function_int_nullary, type_object);
-  } else {
-    EXPECT_SUBTYPE(type_nullable_function_int_nullary, type_object);
-  }
+  EXPECT_NOT_SUBTYPE(type_nullable_function_int_nullary, type_object);
 }
 
 #undef EXPECT_NOT_SUBTYPE
@@ -7710,16 +7642,6 @@ ISOLATE_UNIT_TEST_CASE(AbstractType_NormalizeFutureOrType) {
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_non_nullable_object, type);
   }
 
-  //   if S is Object* then S
-
-  {
-    const auto& type_legacy_object =
-        Type::Handle(object_store->legacy_object_type());
-    const auto& type = AbstractType::Handle(
-        normalized_future_or(type_legacy_object, Nullability::kNonNullable));
-    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_legacy_object, type);
-  }
-
   //   if S is Never then Future<Never>
 
   {
@@ -7801,8 +7723,6 @@ FutureOr<T?> bar<T>() { return null; }
       Type::Handle(object_store->nullable_object_type());
   const auto& type_non_nullable_object =
       Type::Handle(object_store->non_nullable_object_type());
-  const auto& type_legacy_object =
-      Type::Handle(object_store->legacy_object_type());
 
   // Testing same cases as AbstractType_NormalizeFutureOrType.
 
@@ -7854,27 +7774,11 @@ FutureOr<T?> bar<T>() { return null; }
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
   }
 
-  // FutureOr<T?>[Object*] = Object?
-
-  {
-    const auto& got = AbstractType::Handle(
-        instantiate_future_or(future_or_nullable_T, type_legacy_object));
-    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
-  }
-
   // FutureOr<T>?[Object] = Object?
 
   {
     const auto& got = AbstractType::Handle(
         instantiate_future_or(nullable_future_or_T, type_non_nullable_object));
-    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
-  }
-
-  // FutureOr<T>?[Object*] = Object?
-
-  {
-    const auto& got = AbstractType::Handle(
-        instantiate_future_or(nullable_future_or_T, type_legacy_object));
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(type_nullable_object, got);
   }
 

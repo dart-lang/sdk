@@ -1,0 +1,39 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → void
+  ;
+
+@_js_annotations::JS::•()
+library static_interop;
+import self as self2;
+import "dart:_js_annotations" as _js;
+import "dart:core" as core;
+
+import "package:js/js.dart";
+
+@_js::JS::•("JSClass")
+@_js::staticInterop
+class StaticJSClass extends core::Object {
+  external static factory •() → self2::StaticJSClass;
+  static method _#new#tearOff() → self2::StaticJSClass
+    return self2::StaticJSClass::•();
+  static factory factory() → self2::StaticJSClass
+    ;
+  static method _#factory#tearOff() → self2::StaticJSClass
+    return self2::StaticJSClass::factory();
+}
+@_js::JS::•()
+external static method eval(core::String code) → void;
+static method setUp() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:5:2 -> InstanceConstant(const JS{JS.name: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:13:2 -> InstanceConstant(const JS{JS.name: "JSClass"})
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib.dart:14:2 -> InstanceConstant(const _StaticInterop{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:10:2 -> InstanceConstant(const JS{JS.name: null})
+Extra constant evaluation: evaluated: 6, effectively constant: 4

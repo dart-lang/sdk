@@ -5,8 +5,8 @@
 import "dart:io" show File, Platform;
 import "dart:typed_data" show Uint8List;
 
-import "package:front_end/src/fasta/util/parser_ast.dart" show getAST;
-import "package:front_end/src/fasta/util/parser_ast_helper.dart"
+import "package:front_end/src/util/parser_ast.dart" show getAST;
+import "package:front_end/src/util/parser_ast_helper.dart"
     show ParserAstNode, ParserAstType;
 
 import "console_helper.dart";
@@ -17,7 +17,13 @@ void main(List<String> args) {
     uri = Uri.base.resolve(args.first);
   }
   Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
-  ParserAstNode ast = getAST(bytes, enableExtensionMethods: true);
+  ParserAstNode ast = getAST(
+    bytes,
+    enableExtensionMethods: true,
+    enableNonNullable: true,
+    enableTripleShift: true,
+    allowPatterns: true,
+  );
 
   Widget widget = new QuitOnQWidget(
     new WithSingleLineBottomWidget(
@@ -80,10 +86,19 @@ class AstWidget extends Widget {
         "${element.deprecatedArguments.toString()}${extra}";
   }
 
+  int printLineFrom = 0;
+
   @override
   void print(WriteOnlyOutput output) {
-    for (int row = 0; row < shown.length; row++) {
-      if (row >= output.rows) break;
+    if (selected - printLineFrom >= output.rows) {
+      // going down -- "scroll" so the selected line is at the bottom.
+      printLineFrom = selected - output.rows + 1;
+    } else if (selected - printLineFrom < 0) {
+      // going up -- "scroll" so the selected line is at the top.
+      printLineFrom = selected;
+    }
+    for (int row = printLineFrom; row < shown.length; row++) {
+      if ((row - printLineFrom) >= output.rows) break;
 
       PrintedLine element = shown[row];
       String line = element.text;
@@ -91,7 +106,8 @@ class AstWidget extends Widget {
       if (selected == row) {
         // Mark line with blue background.
         for (int column = 0; column < output.columns; column++) {
-          output.setCell(row, column, backgroundColor: BackgroundColor.Blue);
+          output.setCell(row - printLineFrom, column,
+              backgroundColor: BackgroundColor.Blue);
         }
       }
 
@@ -101,7 +117,7 @@ class AstWidget extends Widget {
         length = output.columns;
       }
       for (int column = 0; column < length; column++) {
-        output.setCell(row, column, char: line[column]);
+        output.setCell(row - printLineFrom, column, char: line[column]);
       }
     }
   }

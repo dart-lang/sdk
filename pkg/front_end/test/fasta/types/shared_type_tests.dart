@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart" show Expect;
-
 import "package:kernel/type_environment.dart";
 
 abstract class SubtypeTest<T, E> {

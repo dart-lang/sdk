@@ -29,14 +29,14 @@ extension AnalysisSessionExtension on AnalysisSession {
   ///
   /// Returns `null` if the element cannot be found.
   Future<Element?> locateElement(ElementLocation location) async {
-    final components = location.components;
+    var components = location.components;
     if (location.components.isEmpty) {
       return null;
     }
 
     // The first component is the library which we'll use to start the search.
-    final libraryUri = components.first;
-    final result = await getLibraryByUri(libraryUri);
+    var libraryUri = components.first;
+    var result = await getLibraryByUri(libraryUri);
     return result is LibraryElementResult
         ? result.element.locateElement(location)
         : null;

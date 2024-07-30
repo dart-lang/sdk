@@ -13,7 +13,7 @@ Definition Order:
  topLevelFunction7:FunctionDefinitionMacro1.new()
  topLevelFunction8:FunctionDefinitionMacro1.new()
 Definitions:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'dart:core' as prefix0;
 import 'dart:math' as prefix1;

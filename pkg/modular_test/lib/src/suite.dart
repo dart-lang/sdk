@@ -65,7 +65,17 @@ class Module {
   /// will be true only for the SDK and shared packages like `package:expect`.
   bool isShared;
 
+  /// A map containing information about the macros defined in the module.
+  ///
+  /// The outer map is keyed on the source URI, and the values are the macros
+  /// defined in that source.
+  ///
+  /// The inner map is keyed on class names, and the values are lists of the
+  /// names of the public constructors for those macros.
+  Map<String, Map<String, List<String>>> macroConstructors;
+
   Module(this.name, this.dependencies, this.rootUri, this.sources,
+      this.macroConstructors,
       {this.mainSource,
       this.isPackage = false,
       this.isMain = false,

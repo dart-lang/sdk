@@ -53,8 +53,8 @@ void main() {
     String output1 =
         File.fromUri(tmpDir.uri.resolve('without/out.js')).readAsStringSync();
 
-    command =
-        dart2JsCommand(['--out=json/out.js', 'swarm.dart', '--dump-info']);
+    command = dart2JsCommand(
+        ['--out=json/out.js', 'swarm.dart', '--stage=dump-info-all']);
     print('Run $command');
     result = Process.runSync(Platform.resolvedExecutable, command,
         workingDirectory: tmpDir.path);
@@ -73,8 +73,12 @@ void main() {
     print('Compare outputs...');
     Expect.equals(output1, output2);
 
-    command = dart2JsCommand(
-        ['--out=binary/out.js', 'swarm.dart', '--dump-info=binary']);
+    command = dart2JsCommand([
+      '--out=binary/out.js',
+      'swarm.dart',
+      '--dump-info=binary',
+      '--stage=dump-info-all'
+    ]);
     print('Run $command');
     result = Process.runSync(Platform.resolvedExecutable, command,
         workingDirectory: tmpDir.path);
@@ -108,8 +112,9 @@ void main() {
     print(result.stderr);
     command = dart2JsCommand([
       '--input-dill=json/cfe.dill',
-      '--write-closed-world=json/world.data',
+      '--closed-world-data=json/world.data',
       '--out=json/world.dill',
+      '--stage=closed-world',
       'swarm.dart',
     ]);
     print('Run $command');
@@ -122,8 +127,9 @@ void main() {
     print(result.stderr);
     command = dart2JsCommand([
       '--input-dill=json/world.dill',
-      '--read-closed-world=json/world.data',
-      '--write-data=json/global.data',
+      '--closed-world-data=json/world.data',
+      '--global-inference-data=json/global.data',
+      '--stage=global-inference',
       'swarm.dart',
     ]);
     print('Run $command');
@@ -136,11 +142,12 @@ void main() {
     print(result.stderr);
     command = dart2JsCommand([
       '--input-dill=json/world.dill',
-      '--read-closed-world=json/world.data',
-      '--read-data=json/global.data',
-      '--write-codegen=codegen',
+      '--closed-world-data=json/world.data',
+      '--global-inference-data=json/global.data',
+      '--codegen-data=codegen',
       '--codegen-shards=1',
       '--codegen-shard=0',
+      '--stage=codegen',
       'swarm.dart',
     ]);
     print('Run $command');
@@ -153,12 +160,13 @@ void main() {
     print(result.stderr);
     command = dart2JsCommand([
       '--input-dill=json/world.dill',
-      '--read-closed-world=json/world.data',
-      '--read-data=json/global.data',
-      '--read-codegen=codegen',
+      '--closed-world-data=json/world.data',
+      '--global-inference-data=json/global.data',
+      '--codegen-data=codegen',
       '--codegen-shards=1',
       '--out=out.js',
-      '--write-dump-info-data=json/dump.data',
+      '--dump-info-data=json/dump.data',
+      '--stage=emit-js',
       'swarm.dart',
     ]);
     print('Run $command');
@@ -171,11 +179,12 @@ void main() {
     print(result.stderr);
     command = dart2JsCommand([
       '--input-dill=json/world.dill',
-      '--read-closed-world=json/world.data',
-      '--read-data=json/global.data',
-      '--read-codegen=codegen',
+      '--closed-world-data=json/world.data',
+      '--global-inference-data=json/global.data',
+      '--codegen-data=codegen',
       '--codegen-shards=1',
-      '--read-dump-info-data=json/dump.data',
+      '--dump-info-data=json/dump.data',
+      '--stage=dump-info',
       'swarm.dart',
     ]);
     print('Run $command');
@@ -195,12 +204,13 @@ void main() {
 
     command = dart2JsCommand([
       '--input-dill=json/world.dill',
-      '--read-closed-world=json/world.data',
-      '--read-data=json/global.data',
-      '--read-codegen=codegen',
+      '--closed-world-data=json/world.data',
+      '--global-inference-data=json/global.data',
+      '--codegen-data=codegen',
       '--codegen-shards=1',
-      '--read-dump-info-data=json/dump.data',
+      '--dump-info-data=json/dump.data',
       '--dump-info=binary',
+      '--stage=dump-info',
       'swarm.dart',
     ]);
     print('Run $command');

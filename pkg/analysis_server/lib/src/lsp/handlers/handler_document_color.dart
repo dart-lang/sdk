@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_color.dart'
     show ColorComputer, ColorReference;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -37,9 +38,9 @@ class DocumentColorHandler
       return success([]);
     }
 
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    return unit.mapResult((unit) => _getColors(unit));
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    return unit.mapResultSync((unit) => _getColors(unit));
   }
 
   ErrorOr<List<ColorInformation>> _getColors(ResolvedUnitResult unit) {
@@ -57,8 +58,8 @@ class DocumentColorHandler
       );
     }
 
-    final computer = ColorComputer(unit, pathContext);
-    final colors = computer.compute();
+    var computer = ColorComputer(unit, pathContext);
+    var colors = computer.compute();
     return success(colors.map(toColorInformation).toList());
   }
 }

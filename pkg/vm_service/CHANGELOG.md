@@ -1,3 +1,18 @@
+## 14.2.4
+- Improved deserialization performance by utilizing a combination of `Utf8Decoder` and
+  `JsonDecoder` to avoid extra type conversions.
+
+## 14.2.3
+- An instance of RPCError is now thrown when attempting to invoke an RPC after the
+  `VmService` instance has been disposed.
+
+## 14.2.2
+- Fixes issue where outstanding service requests were not automatically completed
+  with an error when the VM service connection was closed.
+
+## 14.2.1
+- Fixes heap snapshot decoding error (dart-lang/sdk#55475).
+
 ## 14.2.0
 - Update to version `4.15` of the spec.
 - Added `closureReceiver` property to `Instance` and `InstanceRef`.

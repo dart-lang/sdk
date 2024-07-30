@@ -7,8 +7,8 @@ analyzer:
     strict-raw-types: true
   errors:
     # This package imports much of the implementation libraries of the
-    # 'analyzer' (and sometimes the '_fe_analyzer_shared' package), because it
-    # is tightly integrated. This will not likely change any time soon.
+    # 'analyzer' package, because it is tightly integrated. This will not
+    # likely change any time soon.
     implementation_imports: ignore
 
 linter:

@@ -133,4 +133,43 @@ void f() {
     expect(x.isLate, isTrue);
     expect(x.isStatic, isFalse);
   }
+
+  test_localVariable_wildcardVariable_field() async {
+    await assertNoErrorsInCode('''
+class C {
+  var _ = 1;
+  void m() {
+    var _ = 0;
+    _;
+  }
+}
+''');
+
+    var node = findNode.simple('_;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: _
+  staticElement: self::@class::C::@getter::_
+  staticType: int
+''');
+  }
+
+  test_localVariable_wildcardVariable_topLevel() async {
+    await assertNoErrorsInCode('''
+var _ = 1;
+
+void f() {
+  var _ = 0;
+  _;
+}
+''');
+
+    var node = findNode.simple('_;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: _
+  staticElement: self::@getter::_
+  staticType: int
+''');
+  }
 }

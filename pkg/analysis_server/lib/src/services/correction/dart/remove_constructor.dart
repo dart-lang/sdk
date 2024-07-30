@@ -2,37 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class RemoveConstructor extends ResolvedCorrectionProducer {
+  RemoveConstructor({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
+
   @override
   FixKind get fixKind => DartFixKind.REMOVE_CONSTRUCTOR;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final container = _findContainer();
+    var container = _findContainer();
     if (container == null) {
       return;
     }
 
-    final constructor = _findConstructor();
+    var constructor = _findConstructor();
     if (constructor == null) {
       return;
     }
 
-    final previous = container.members.lastWhereOrNull(
+    var previous = container.members.lastWhereOrNull(
       (e) => e.end < constructor.offset,
     );
 
     await builder.addDartFileEdit(file, (builder) {
-      final constructorRange = range.endEnd(
+      var constructorRange = range.endEnd(
         previous?.endToken ?? container.leftBracket,
         constructor.endToken,
       );
@@ -41,13 +48,14 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
   }
 
   ConstructorDeclaration? _findConstructor() {
-    final errorOffset = this.errorOffset;
+    var errorOffset = this.errorOffset;
     if (errorOffset == null) {
       return null;
     }
 
-    for (final constructor in invalidNodes) {
-      if (constructor is ConstructorDeclaration) {
+    var invalidNodes = (unit as CompilationUnitImpl).invalidNodes;
+    for (var constructor in invalidNodes) {
+      if (constructor is ConstructorDeclarationImpl) {
         if (range.node(constructor).contains(errorOffset)) {
           return constructor;
         }

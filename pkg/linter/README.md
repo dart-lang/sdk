@@ -84,7 +84,7 @@ Please file feature requests and bugs in the [issue tracker][tracker].
 [dart_cli]: https://dart.dev/tools/dart-tool
 [effective_dart]: https://dart.dev/effective-dart
 [lints]: https://dart.dev/lints
-[options_file]: https://dart.dev/guides/language/analysis-options#the-analysis-options-file
+[options_file]: https://dart.dev/tools/analysis#the-analysis-options-file
 [package-dart-lints]: https://github.com/dart-lang/lints
 [package-flutter-lints]: https://github.com/flutter/packages/tree/main/packages/flutter_lints
 [style_guide]: https://dart.dev/effective-dart/style

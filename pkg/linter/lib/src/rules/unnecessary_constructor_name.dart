@@ -42,14 +42,14 @@ var makeA = A.new;
 class UnnecessaryConstructorName extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_constructor_name', "Unnecessary '.new' constructor name.",
-      correctionMessage: "Try removing the '.new'.");
+      correctionMessage: "Try removing the '.new'.", hasPublishedDocs: true);
 
   UnnecessaryConstructorName()
       : super(
             name: 'unnecessary_constructor_name',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

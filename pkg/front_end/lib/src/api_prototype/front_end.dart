@@ -8,6 +8,6 @@
 library front_end.front_end;
 
 export 'compiler_options.dart';
+export 'file_system.dart';
 export 'kernel_generator.dart';
 export 'summary_generator.dart';
-export 'file_system.dart';

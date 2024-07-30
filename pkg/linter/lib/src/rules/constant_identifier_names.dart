@@ -48,14 +48,15 @@ class ConstantIdentifierNames extends LintRule {
   static const LintCode code = LintCode('constant_identifier_names',
       "The constant name '{0}' isn't a lowerCamelCase identifier.",
       correctionMessage:
-          'Try changing the name to follow the lowerCamelCase style.');
+          'Try changing the name to follow the lowerCamelCase style.',
+      hasPublishedDocs: true);
 
   ConstantIdentifierNames()
       : super(
             name: 'constant_identifier_names',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -91,16 +92,22 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    if (node.isAugmentation) return;
+
     checkIdentifier(node.name);
   }
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (node.isAugmentation) return;
+
     visitVariableDeclarationList(node.variables);
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
+    if (node.parent?.isAugmentation ?? false) return;
+
     for (var v in node.variables) {
       if (v.isConst) {
         checkIdentifier(v.name);

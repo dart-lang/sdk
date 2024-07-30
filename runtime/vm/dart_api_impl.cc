@@ -53,7 +53,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
-#include "vm/uri.h"
 #include "vm/version.h"
 #include "vm/zone_text_buffer.h"
 
@@ -2157,6 +2156,17 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   return Api::NewHandle(T, SendPort::New(port_id, origin_id));
 }
 
+DART_EXPORT Dart_Handle Dart_NewSendPortEx(Dart_PortEx portex_id) {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  if (portex_id.port_id == ILLEGAL_PORT) {
+    return Api::NewError("%s: illegal port_id %" Pd64 ".", CURRENT_FUNC,
+                         portex_id.port_id);
+  }
+  return Api::NewHandle(T,
+                        SendPort::New(portex_id.port_id, portex_id.origin_id));
+}
+
 DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
                                            Dart_Port* port_id) {
   DARTSCOPE(Thread::Current());
@@ -2170,6 +2180,23 @@ DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
     RETURN_NULL_ERROR(port_id);
   }
   *port_id = send_port.Id();
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_SendPortGetIdEx(Dart_Handle port,
+                                             Dart_PortEx* portex_id) {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  const SendPort& send_port = Api::UnwrapSendPortHandle(Z, port);
+  if (send_port.IsNull()) {
+    RETURN_TYPE_ERROR(Z, port, SendPort);
+  }
+  if (portex_id == nullptr) {
+    RETURN_NULL_ERROR(port_id);
+  }
+  portex_id->port_id = send_port.Id();
+  portex_id->origin_id = send_port.origin_id();
   return Api::Success();
 }
 
@@ -3048,47 +3075,15 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
 // --- Lists ---
 
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
-  return Dart_NewListOf(Dart_CoreType_Dynamic, length);
-}
-
-static TypeArgumentsPtr TypeArgumentsForElementType(
-    ObjectStore* store,
-    Dart_CoreType_Id element_type_id) {
-  switch (element_type_id) {
-    case Dart_CoreType_Dynamic:
-      return TypeArguments::null();
-    case Dart_CoreType_Int:
-      return store->type_argument_legacy_int();
-    case Dart_CoreType_String:
-      return store->type_argument_legacy_string();
-  }
-  UNREACHABLE();
-  return TypeArguments::null();
-}
-
-DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
-                                       intptr_t length) {
   DARTSCOPE(Thread::Current());
-  if (T->isolate_group()->null_safety() &&
-      element_type_id != Dart_CoreType_Dynamic) {
-    return Api::NewError(
-        "Cannot use legacy types with --sound-null-safety enabled. "
-        "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
-  }
   CHECK_LENGTH(length, Array::kMaxElements);
   CHECK_CALLBACK_STATE(T);
   const Array& arr = Array::Handle(Z, Array::New(length));
-  if (element_type_id != Dart_CoreType_Dynamic) {
-    arr.SetTypeArguments(TypeArguments::Handle(
-        Z, TypeArgumentsForElementType(T->isolate_group()->object_store(),
-                                       element_type_id)));
-  }
   return Api::NewHandle(T, arr.ptr());
 }
 
 static bool CanTypeContainNull(const Type& type) {
-  return (type.nullability() == Nullability::kLegacy) ||
-         (type.nullability() == Nullability::kNullable);
+  return (type.nullability() == Nullability::kNullable);
 }
 
 DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
@@ -5391,29 +5386,6 @@ Dart_SetLibraryTagHandler(Dart_LibraryTagHandler handler) {
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
-                                                    Dart_Handle url) {
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  CHECK_CALLBACK_STATE(T);
-
-  const String& base_uri = Api::UnwrapStringHandle(Z, base_url);
-  if (base_uri.IsNull()) {
-    RETURN_TYPE_ERROR(Z, base_url, String);
-  }
-  const String& uri = Api::UnwrapStringHandle(Z, url);
-  if (uri.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-
-  const char* resolved_uri;
-  if (!ResolveUri(uri.ToCString(), base_uri.ToCString(), &resolved_uri)) {
-    return Api::NewError("%s: Unable to canonicalize uri '%s'.", CURRENT_FUNC,
-                         uri.ToCString());
-  }
-  return Api::NewHandle(T, String::New(resolved_uri));
-}
-
 DART_EXPORT Dart_Handle
 Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler) {
   Isolate* isolate = Isolate::Current();
@@ -5468,8 +5440,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (tmp.IsNull()) {
     return Api::NewError(
         "Invoked Dart programs must have a 'main' function defined:\n"
-        "https://dart.dev/guides/language/"
-        "language-tour#a-basic-dart-program");
+        "https://dart.dev/to/main-function");
   }
   library ^= tmp.ptr();
   IG->object_store()->set_root_library(library);
@@ -5602,13 +5573,9 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle class_name,
                                      intptr_t number_of_type_arguments,
                                      Dart_Handle* type_arguments) {
-  if (IsolateGroup::Current()->null_safety()) {
-    return Api::NewError(
-        "Cannot use legacy types with --sound-null-safety enabled. "
-        "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
-  }
-  return GetTypeCommon(library, class_name, number_of_type_arguments,
-                       type_arguments, Nullability::kLegacy);
+  return Api::NewError(
+      "Cannot use legacy types with --sound-null-safety enabled. "
+      "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
 }
 
 DART_EXPORT Dart_Handle Dart_GetNullableType(Dart_Handle library,
@@ -5667,10 +5634,6 @@ DART_EXPORT Dart_Handle Dart_IsNullableType(Dart_Handle type, bool* result) {
 
 DART_EXPORT Dart_Handle Dart_IsNonNullableType(Dart_Handle type, bool* result) {
   return IsOfTypeNullabilityHelper(type, Nullability::kNonNullable, result);
-}
-
-DART_EXPORT Dart_Handle Dart_IsLegacyType(Dart_Handle type, bool* result) {
-  return IsOfTypeNullabilityHelper(type, Nullability::kLegacy, result);
 }
 
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
@@ -5978,6 +5941,14 @@ Dart_SetFfiNativeResolver(Dart_Handle library,
   return Api::Success();
 }
 
+DART_EXPORT
+void Dart_InitializeNativeAssetsResolver(NativeAssetsApi* native_assets_api) {
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  isolate_group->SetNativeAssetsCallbacks(native_assets_api);
+}
+
 // --- Peer support ---
 
 DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
@@ -6072,9 +6043,9 @@ Dart_CompileToKernel(const char* script_uri,
       nullptr, verbosity);
   if (incremental_compile) {
     Dart_KernelCompilationResult ack_result =
-        result.status == Dart_KernelCompilationStatus_Ok ?
-            KernelIsolate::AcceptCompilation():
-            KernelIsolate::RejectCompilation();
+        result.status == Dart_KernelCompilationStatus_Ok
+            ? KernelIsolate::AcceptCompilation()
+            : KernelIsolate::RejectCompilation();
     if (ack_result.status != Dart_KernelCompilationStatus_Ok) {
       FATAL(
           "An error occurred in the CFE while acking the most recent"
@@ -6113,30 +6084,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const uint8_t* snapshot_instructions,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-  // If we have a snapshot then try to figure out the mode by
-  // sniffing the feature string in the snapshot.
-  if (snapshot_data != nullptr) {
-    // Read the snapshot and check for null safety option.
-    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
-    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
-      return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
-    }
-  }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // If kernel_buffer is specified, it could be a self contained
-  // kernel file or the kernel file of the application,
-  // figure out the null safety mode by sniffing the kernel file.
-  if (kernel_buffer != nullptr) {
-    const auto null_safety =
-        kernel::Program::DetectNullSafety(kernel_buffer, kernel_buffer_size);
-    if (null_safety != NNBDCompiledMode::kInvalid) {
-      return null_safety == NNBDCompiledMode::kStrong;
-    }
-  }
-#endif
-
-  return FLAG_sound_null_safety;
+  return true;
 }
 
 // --- Service support ---

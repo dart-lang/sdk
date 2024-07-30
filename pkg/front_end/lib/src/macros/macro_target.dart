@@ -7,9 +7,11 @@ import 'package:kernel/target/targets.dart' show Target;
 import 'macro_target_unsupported.dart'
     if (dart.library.io) 'macro_target_io.dart' as impl;
 
+// Coverage-ignore(suite): Not run.
 MacroConfiguration computeMacroConfiguration({Uri? targetSdkSummary}) =>
     impl.computeMacroConfiguration(targetSdkSummary: targetSdkSummary);
 
+// Coverage-ignore(suite): Not run.
 class MacroConfiguration {
   final Target target;
   final Uri? sdkSummary;

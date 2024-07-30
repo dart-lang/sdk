@@ -404,7 +404,9 @@ bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables);
 bool WillAllocateNewOrRememberedArray(intptr_t length);
 
 #define FINAL_CLASS()                                                          \
-  static word NextFieldOffset() { return -kWordSize; }
+  static word NextFieldOffset() {                                              \
+    return -kWordSize;                                                         \
+  }
 
 //
 // Target specific offsets and constants.
@@ -416,7 +418,7 @@ class UntaggedObject : public AllStatic {
  public:
   static const word kCardRememberedBit;
   static const word kCanonicalBit;
-  static const word kNewBit;
+  static const word kNewOrEvacuationCandidateBit;
   static const word kOldAndNotRememberedBit;
   static const word kNotMarkedBit;
   static const word kImmutableBit;
@@ -759,7 +761,6 @@ class Nullability : public AllStatic {
  public:
   static const uint8_t kNullable;
   static const uint8_t kNonNullable;
-  static const uint8_t kLegacy;
 };
 
 class Double : public AllStatic {
@@ -1154,7 +1155,8 @@ class Thread : public AllStatic {
   static word active_stacktrace_offset();
   static word resume_pc_offset();
   static word saved_shadow_call_stack_offset();
-  static word marking_stack_block_offset();
+  static word old_marking_stack_block_offset();
+  static word new_marking_stack_block_offset();
   static word top_exit_frame_info_offset();
   static word top_resource_offset();
   static word global_object_pool_offset();
@@ -1167,6 +1169,7 @@ class Thread : public AllStatic {
   static word isolate_offset();
   static word isolate_group_offset();
   static word field_table_values_offset();
+  static word shared_field_table_values_offset();
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
   static word write_barrier_mask_offset();

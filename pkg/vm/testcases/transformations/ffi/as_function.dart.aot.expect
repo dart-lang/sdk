@@ -7,6 +7,7 @@ import "dart:_internal" as _in;
 import "dart:ffi";
 
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method testVoidNoArg() → dynamic {
   final ffi::Pointer<ffi::NativeFunction<() → ffi::Void>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<() → ffi::Void>>(3735928559);
@@ -22,6 +23,7 @@ static method testVoidNoArg() → dynamic {
   [@vm.direct-call.metadata=closure 1 in #lib::testVoidNoArg] [@vm.inferred-type.metadata=!? (receiver not int)] function(){() → void};
 }
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.closure-id=1]
 [@vm.unboxing-info.metadata=()->i]
 static method testIntInt() → dynamic {
@@ -39,6 +41,7 @@ static method testIntInt() → dynamic {
   return [@vm.direct-call.metadata=closure 1 in #lib::testIntInt] [@vm.inferred-type.metadata=int (receiver not int)] function(42){(core::int) → core::int};
 }
 
+[@vm.inferred-return-type.metadata=int]
 [@vm.closure-id=1]
 [@vm.unboxing-info.metadata=()->i]
 static method testLeaf5Args() → dynamic {
@@ -59,6 +62,8 @@ static method testLeaf5Args() → dynamic {
   } =>#ffiClosure2;
   return [@vm.direct-call.metadata=closure 1 in #lib::testLeaf5Args] [@vm.inferred-type.metadata=int (receiver not int)] function(1, 2, 3, 4, 5){(core::int, core::int, core::int, core::int, core::int) → core::int};
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::testVoidNoArg();
   self::testIntInt();

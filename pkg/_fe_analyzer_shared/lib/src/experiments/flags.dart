@@ -6,7 +6,7 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 4);
+const Version defaultLanguageVersion = const Version(3, 5);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -83,7 +83,7 @@ enum ExperimentalFlag {
   inferenceUpdate3(
       name: 'inference-update-3',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 4),
       experimentReleasedVersion: const Version(3, 4)),
 
@@ -128,6 +128,13 @@ enum ExperimentalFlag {
       isExpired: true,
       experimentEnabledVersion: const Version(2, 13),
       experimentReleasedVersion: const Version(2, 13)),
+
+  nullAwareElements(
+      name: 'null-aware-elements',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   patterns(
       name: 'patterns',
@@ -201,6 +208,13 @@ enum ExperimentalFlag {
 
   variance(
       name: 'variance',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
+  wildcardVariables(
+      name: 'wildcard-variables',
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,

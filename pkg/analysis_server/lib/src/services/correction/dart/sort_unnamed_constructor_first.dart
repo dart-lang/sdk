@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -11,11 +11,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => true;
+  SortUnnamedConstructorFirst({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.SORT_UNNAMED_CONSTRUCTOR_FIRST;
@@ -25,21 +25,21 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var clazz = coveredNode?.parent?.parent;
+    var clazz = coveringNode?.parent?.parent;
     if (clazz is! ClassDeclaration) {
       return;
     }
 
-    final members = clazz.members;
-    final constructors = members.whereType<ConstructorDeclaration>().toList();
+    var members = clazz.members;
+    var constructors = members.whereType<ConstructorDeclaration>().toList();
 
-    final firstConstructor = constructors.firstOrNull;
+    var firstConstructor = constructors.firstOrNull;
     if (firstConstructor == null) {
       return;
     }
 
-    final unnamedConstructor = constructors.firstWhereOrNull((constructor) {
-      final name = constructor.name;
+    var unnamedConstructor = constructors.firstWhereOrNull((constructor) {
+      var name = constructor.name;
       return name == null || name.lexeme == 'new';
     });
 
@@ -49,16 +49,16 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      final unnamedIndex = members.indexOf(unnamedConstructor);
-      final moveRange = range.endEnd(
+      var unnamedIndex = members.indexOf(unnamedConstructor);
+      var moveRange = range.endEnd(
         members[unnamedIndex - 1],
         unnamedConstructor,
       );
 
       builder.addDeletion(moveRange);
 
-      final firstIndex = members.indexOf(firstConstructor);
-      final tokenBeforeFirst = firstIndex != 0
+      var firstIndex = members.indexOf(firstConstructor);
+      var tokenBeforeFirst = firstIndex != 0
           ? members[firstIndex - 1].endToken
           : clazz.leftBracket;
       builder.addSimpleInsertion(

@@ -7,11 +7,11 @@
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
-import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/kernel.dart' show Component, Library, dummyComponent;
 import 'package:kernel/target/targets.dart' show Target;
 import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 
+import '../api_prototype/compiler_options.dart';
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../api_prototype/file_system.dart' show FileSystem;
 import '../api_prototype/front_end.dart' show CompilerResult;
@@ -34,7 +34,7 @@ export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 export '../base/nnbd_mode.dart' show NnbdMode;
-export '../fasta/kernel/utils.dart' show serializeComponent;
+export '../kernel/utils.dart' show serializeComponent;
 export 'compiler_state.dart' show InitializedCompilerState;
 
 /// Initializes the compiler for a modular build.
@@ -56,7 +56,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Map<String, String> environmentDefines, {
   bool trackNeededDillLibraries = false,
   bool verbose = false,
-  NnbdMode nnbdMode = NnbdMode.Weak,
+  NnbdMode nnbdMode = NnbdMode.Strong,
   bool requirePrebuiltMacros = false,
   List<String> precompiledMacros = const [],
   SerializationMode macroSerializationMode = SerializationMode.byteData,
@@ -100,7 +100,7 @@ InitializedCompilerState initializeCompiler(
   Iterable<String> experiments,
   Map<String, String>? environmentDefines, {
   bool verbose = false,
-  NnbdMode nnbdMode = NnbdMode.Weak,
+  NnbdMode nnbdMode = NnbdMode.Strong,
   bool requirePrebuiltMacros = false,
   List<String> precompiledMacros = const [],
   SerializationMode macroSerializationMode = SerializationMode.byteData,

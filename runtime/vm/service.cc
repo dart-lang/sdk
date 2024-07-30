@@ -25,6 +25,7 @@
 #include "vm/debugger.h"
 #include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
+#include "vm/json_stream.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
 #include "vm/message.h"
@@ -3920,14 +3921,17 @@ static void AddBreakpointCommon(Thread* thread,
   }
   ASSERT(!script_uri.IsNull());
   Breakpoint* bpt = nullptr;
-  bpt = thread->isolate()->debugger()->SetBreakpointAtLineCol(script_uri, line,
-                                                              col);
-  if (bpt == nullptr) {
+  const Error& error =
+      Error::Handle(thread->isolate()->debugger()->SetBreakpointAtLineCol(
+          script_uri, line, col, &bpt));
+  if (!error.IsNull()) {
     js->PrintError(kCannotAddBreakpoint,
-                   "%s: Cannot add breakpoint at line '%s'", js->method(),
-                   line_param);
+                   "%s: Cannot add breakpoint at line %s. Error occurred "
+                   "when resolving breakpoint location: %s.",
+                   js->method(), line_param, error.ToErrorCString());
     return;
   }
+  ASSERT(bpt != nullptr);
   bpt->PrintJSON(js);
 }
 
@@ -3993,14 +3997,18 @@ static void AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
     return;
   }
   const Function& function = Function::Cast(obj);
-  Breakpoint* bpt =
-      thread->isolate()->debugger()->SetBreakpointAtEntry(function, false);
-  if (bpt == nullptr) {
+  Breakpoint* bpt = nullptr;
+  const Error& error =
+      Error::Handle(thread->isolate()->debugger()->SetBreakpointAtEntry(
+          function, false, &bpt));
+  if (!error.IsNull()) {
     js->PrintError(kCannotAddBreakpoint,
-                   "%s: Cannot add breakpoint at function '%s'", js->method(),
-                   function.ToCString());
+                   "%s: Cannot add breakpoint at function '%s'. Error occurred "
+                   "when resolving breakpoint location: %s.",
+                   js->method(), function.ToCString(), error.ToErrorCString());
     return;
   }
+  ASSERT(bpt != nullptr);
   bpt->PrintJSON(js);
 }
 
@@ -4022,13 +4030,18 @@ static void AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
     return;
   }
   const Instance& closure = Instance::Cast(obj);
-  Breakpoint* bpt = thread->isolate()->debugger()->SetBreakpointAtActivation(
-      closure, /*single_shot=*/false);
-  if (bpt == nullptr) {
+  Breakpoint* bpt;
+  const Error& error =
+      Error::Handle(thread->isolate()->debugger()->SetBreakpointAtActivation(
+          closure, /*single_shot=*/false, &bpt));
+  if (!error.IsNull()) {
     js->PrintError(kCannotAddBreakpoint,
-                   "%s: Cannot add breakpoint at activation", js->method());
+                   "%s: Cannot add breakpoint at activation. Error occurred "
+                   "when resolving breakpoint location: %s.",
+                   js->method(), error.ToErrorCString());
     return;
   }
+  ASSERT(bpt != nullptr);
   bpt->PrintJSON(js);
 }
 
@@ -4923,7 +4936,7 @@ class PersistentHandleVisitor : public HandleVisitor {
         "callbackAddress", "0x%" Px "",
         reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
     // Attempt to include a native symbol name.
-    char* name = NativeSymbolResolver::LookupSymbolName(
+    const char* name = NativeSymbolResolver::LookupSymbolName(
         reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
     obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
     if (name != nullptr) {
@@ -5825,19 +5838,17 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
     CLASS_LIST_SETS(DEFINE_ADD_VALUE_F_CID)
   }
 #define DEFINE_ADD_MAP_KEY(clazz)                                              \
-  {                                                                            \
-    JSONArray internals(&map, #clazz);                                         \
-    DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
-    DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                             \
-    DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
-    DEFINE_ADD_VALUE_F_CID(UnmodifiableTypedData##clazz##View)                 \
+  {JSONArray internals(&map, #clazz);                                          \
+  DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                     \
+  DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                               \
+  DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                             \
+  DEFINE_ADD_VALUE_F_CID(UnmodifiableTypedData##clazz##View)                   \
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY
 #define DEFINE_ADD_MAP_KEY(clazz)                                              \
-  {                                                                            \
-    JSONArray internals(&map, #clazz);                                         \
-    DEFINE_ADD_VALUE_F_CID(Ffi##clazz)                                         \
+  {JSONArray internals(&map, #clazz);                                          \
+  DEFINE_ADD_VALUE_F_CID(Ffi##clazz)                                           \
   }
   CLASS_LIST_FFI(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY

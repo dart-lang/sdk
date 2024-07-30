@@ -6,7 +6,7 @@ library MirrorsTest;
 
 import 'dart:mirrors';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 bool isDart2js = false; // TODO(ahe): Remove this field.
 

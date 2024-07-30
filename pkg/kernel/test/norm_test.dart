@@ -157,8 +157,7 @@ void run() {
 }
 
 void check(String input, String output, [String typeParameters = '']) {
-  Env env = new Env('', isNonNullableByDefault: true)
-    ..extendWithTypeParameters(typeParameters);
+  Env env = new Env('')..extendWithTypeParameters(typeParameters);
   DartType inputType = env.parseType(input);
   DartType expectedOutputType = env.parseType(output);
   DartType actualOutputType = norm(env.coreTypes, inputType);

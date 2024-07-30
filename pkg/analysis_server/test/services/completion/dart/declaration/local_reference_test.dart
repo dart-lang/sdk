@@ -2139,12 +2139,6 @@ A0 S1;
 replacement
   left: 1
 suggestions
-  A0
-    kind: class
-  S2.B
-    kind: class
-  _B0
-    kind: class
   S2
     kind: library
 ''');
@@ -2739,12 +2733,6 @@ class A0 {
 suggestions
   A0.new
     kind: constructor
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  f0
-    kind: functionInvocation
 ''');
   }
 
@@ -3160,14 +3148,10 @@ class A0 {}
 mixin M0 {}
 class B extends ^
 ''');
-    // TODO(brianwilkerson): We should not be suggesting `M0` because you can't
-    //  extend a mixin.
     assertResponse(r'''
 suggestions
   A0
     kind: class
-  M0
-    kind: mixin
 ''');
   }
 
@@ -3505,9 +3489,12 @@ void f(a0) {
   for (int f0 in bar) ^
 }
 ''');
-    // This should suggest 'a0' and 'f0'.
     assertResponse(r'''
 suggestions
+  f0
+    kind: localVariable
+  a0
+    kind: parameter
 ''');
   }
 
@@ -3517,9 +3504,12 @@ void f(a0) {
   for (var f0 in bar) ^
 }
 ''');
-    // This should suggest 'a0' and 'f0'.
     assertResponse(r'''
 suggestions
+  f0
+    kind: localVariable
+  a0
+    kind: parameter
 ''');
   }
 
@@ -4104,6 +4094,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -5139,10 +5133,14 @@ foo = {^
 suggestions
   C0
     kind: class
-  C0
-    kind: constructorInvocation
   C1
     kind: class
+  T0
+    kind: topLevelVariable
+  T1
+    kind: topLevelVariable
+  C0
+    kind: constructorInvocation
   C1
     kind: constructorInvocation
   D0
@@ -5153,10 +5151,6 @@ suggestions
     kind: functionInvocation
   F1
     kind: functionInvocation
-  T0
-    kind: topLevelVariable
-  T1
-    kind: topLevelVariable
 ''');
   }
 
@@ -6493,18 +6487,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s1
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0
@@ -6542,8 +6536,12 @@ suggestions
     kind: topLevelVariable
   X0
     kind: class
+  X0
+    kind: constructorInvocation
   Y0
     kind: class
+  Y0
+    kind: constructorInvocation
 ''');
   }
 
@@ -7200,18 +7198,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s0
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0

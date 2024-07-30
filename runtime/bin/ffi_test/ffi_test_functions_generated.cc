@@ -23568,9 +23568,10 @@ DART_EXPORT int32_t VariadicAt1Struct12BytesHomogeneousInt32Int32x4(
   int32_t a4 = va_arg(var_args, int32_t);
   va_end(var_args);
 
-  std::cout << "VariadicAt1Struct12BytesHomogeneousInt32Int32x4" << "(("
-            << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "), " << a1 << ", "
-            << a2 << ", " << a3 << ", " << a4 << ")" << "\n";
+  std::cout << "VariadicAt1Struct12BytesHomogeneousInt32Int32x4"
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "), " << a1
+            << ", " << a2 << ", " << a3 << ", " << a4 << ")"
+            << "\n";
 
   int32_t result = 0;
 
@@ -24530,7 +24531,8 @@ DART_EXPORT intptr_t TestVariadicAt1Struct12BytesHomogeneousInt32Int32x4(
 
   std::cout << "Calling TestVariadicAt1Struct12BytesHomogeneousInt32Int32x4("
             << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "), " << a1
-            << ", " << a2 << ", " << a3 << ", " << a4 << ")" << ")\n";
+            << ", " << a2 << ", " << a3 << ", " << a4 << ")"
+            << ")\n";
 
   int32_t result = f(a0, a1, a2, a3, a4);
 

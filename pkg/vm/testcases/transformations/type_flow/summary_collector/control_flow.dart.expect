@@ -1,29 +1,29 @@
 ------------ C1. ------------
 %this = _Parameter #0 [_T (#lib::C1)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ C2. ------------
 %this = _Parameter #0 [_T (#lib::C2)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ C3. ------------
 %this = _Parameter #0 [_T (#lib::C3)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ C4. ------------
 %this = _Parameter #0 [_T (#lib::C4)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ C5. ------------
 %this = _Parameter #0 [_T (#lib::C5)+]
 t1 = _Call direct [dart.core::Object.] (%this)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ TestEnum. ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
 %#index = _Parameter #1 [_T (dart.core::int)+]
 %#name = _Parameter #2 [_T (dart.core::String)+]
 t3 = _Call direct [dart.core::_Enum.] (%this, %#index, %#name)
-RESULT: _T {}?
+RESULT: _T {}
 ------------ TestEnum._enumToString ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
 t1 = _Call virtual get [dart.core::_Enum._name] (%this)

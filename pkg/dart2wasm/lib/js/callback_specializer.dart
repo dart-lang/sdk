@@ -17,9 +17,6 @@ class CallbackSpecializer {
   CallbackSpecializer(
       this._staticTypeContext, this._util, this._methodCollector);
 
-  bool _needsArgumentsLength(FunctionType type) =>
-      type.requiredParameterCount < type.positionalParameters.length;
-
   Statement _generateDispatchCase(
       FunctionType function,
       VariableDeclaration callbackVariable,
@@ -33,7 +30,7 @@ class CallbackSpecializer {
       VariableGet v = VariableGet(positionalParameters[i]);
       if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
         expression = _createJSValue(v);
-        if (!callbackParameterType.isPotentiallyNullable) {
+        if (!callbackParameterType.extensionTypeErasure.isPotentiallyNullable) {
           expression = NullCheck(expression);
         }
       } else {
@@ -54,12 +51,11 @@ class CallbackSpecializer {
   /// Creates a callback trampoline for the given [function].
   ///
   /// This callback trampoline expects a Dart callback as its first argument,
-  /// then an integer value(double type) indicating the position of the last
-  /// defined argument(only for callbacks that take optional parameters),
-  /// followed by all of the arguments to the Dart callback as JS objects. The
-  /// trampoline will `dartifyRaw` or box all incoming JS objects and then cast
-  /// them to their appropriate types, dispatch, and then `jsifyRaw` or box any
-  /// returned value.
+  /// then an integer value(double type) indicating the number of arguments
+  /// passed, followed by all of the arguments to the Dart callback as JS
+  /// objects. The trampoline will `dartifyRaw` or box all incoming JS objects
+  /// and then cast them to their appropriate types, dispatch, and then
+  /// `jsifyRaw` or box any returned value.
   ///
   /// Returns a [String] function name representing the name of the wrapping
   /// function.
@@ -69,20 +65,18 @@ class CallbackSpecializer {
     // arguments will be JS objects. The generated wrapper will cast each
     // argument to the correct type.  The first argument to this function will
     // be the Dart callback, which will be cast to the supplied [FunctionType]
-    // before being invoked. If the callback takes optional parameters then, the
-    // second argument will be a `double` indicating the last defined argument.
+    // before being invoked. The second argument will be a `double` indicating
+    // the number of arguments passed.
     int parameterId = 1;
     final callbackVariable = VariableDeclaration('callback',
         type: _util.nonNullableObjectType, isSynthesized: true);
-    VariableDeclaration? argumentsLength;
-    if (_needsArgumentsLength(function)) {
-      argumentsLength = VariableDeclaration('argumentsLength',
-          type: _util.coreTypes.doubleNonNullableRawType, isSynthesized: true);
-    }
+    final argumentsLength = VariableDeclaration('argumentsLength',
+        type: _util.coreTypes.doubleNonNullableRawType, isSynthesized: true);
 
     // Initialize variable declarations.
     List<VariableDeclaration> positionalParameters = [];
-    for (int j = 0; j < function.positionalParameters.length; j++) {
+    final positionalParametersLength = function.positionalParameters.length;
+    for (int j = 0; j < positionalParametersLength; j++) {
       positionalParameters.add(VariableDeclaration('x${parameterId++}',
           type: _util.nullableWasmExternRefType, isSynthesized: true));
     }
@@ -91,26 +85,42 @@ class CallbackSpecializer {
     // find the last defined argument in JS, that is the last argument which was
     // explicitly passed by the user, and then we dispatch to a Dart function
     // with the right number of arguments.
-    //
-    // First we handle cases where some or all arguments are undefined.
-    // TODO(joshualitt): Consider using a switch instead.
     List<Statement> dispatchCases = [];
-    for (int i = function.requiredParameterCount + 1;
-        i <= function.positionalParameters.length;
-        i++) {
+    // If more arguments were passed than there are parameters, ignore the extra
+    // arguments.
+    dispatchCases.add(IfStatement(
+        _util.variableGreaterThanOrEqualToConstant(
+            argumentsLength, IntConstant(positionalParametersLength)),
+        _generateDispatchCase(function, callbackVariable, positionalParameters,
+            positionalParametersLength,
+            boxExternRef: boxExternRef),
+        null));
+    // TODO(srujzs): Consider using a switch instead.
+    for (int i = positionalParametersLength - 1;
+        i >= function.requiredParameterCount;
+        i--) {
       dispatchCases.add(IfStatement(
           _util.variableCheckConstant(
-              argumentsLength!, DoubleConstant(i.toDouble())),
+              argumentsLength, DoubleConstant(i.toDouble())),
           _generateDispatchCase(
               function, callbackVariable, positionalParameters, i,
               boxExternRef: boxExternRef),
           null));
     }
 
-    // Finally handle the case where only required parameters are passed.
-    dispatchCases.add(_generateDispatchCase(function, callbackVariable,
-        positionalParameters, function.requiredParameterCount,
-        boxExternRef: boxExternRef));
+    // Throw since we have too few arguments. Alternatively, we can continue
+    // checking lengths and try to call the callback, which will then throw, but
+    // that's unnecessary extra code. Note that we can't exclude this and assume
+    // the last dispatch case will catch this. Since arguments that are not
+    // passed are `undefined` and `undefined` gets converted to `null`, they may
+    // be treated as valid `null` arguments to the Dart function even though
+    // they were never passed.
+    dispatchCases.add(ExpressionStatement(Throw(StringConcatenation([
+      StringLiteral('Too few arguments passed. '
+          'Expected ${function.requiredParameterCount} or more, got '),
+      invokeMethod(argumentsLength, _util.numToIntTarget),
+      StringLiteral(' instead.')
+    ]))));
     Statement functionTrampolineBody = Block(dispatchCases);
 
     // Create a new procedure for the callback trampoline. This procedure will
@@ -124,8 +134,9 @@ class CallbackSpecializer {
         FunctionNode(functionTrampolineBody,
             positionalParameters: [
               callbackVariable,
-              if (argumentsLength != null) argumentsLength
-            ].followedBy(positionalParameters).toList(),
+              argumentsLength,
+              ...positionalParameters
+            ],
             returnType: _util.nullableWasmExternRefType)
           ..fileOffset = node.fileOffset,
         node.fileUri,
@@ -144,11 +155,7 @@ class CallbackSpecializer {
       jsParameters.add('x$i');
     }
     String jsParametersString = jsParameters.join(',');
-    String dartArguments = 'f';
-    bool needsArguments = _needsArgumentsLength(type);
-    if (needsArguments) {
-      dartArguments = '$dartArguments,arguments.length';
-    }
+    String dartArguments = 'f,arguments.length';
     if (jsParameters.isNotEmpty) {
       dartArguments = '$dartArguments,$jsParametersString';
     }
@@ -171,24 +178,12 @@ class CallbackSpecializer {
     // Create JS method.
     // Note: We have to use a regular function for the inner closure in some
     // cases because we need access to `arguments`.
-    if (needsArguments) {
-      _methodCollector.addMethod(
-          dartProcedure,
-          jsMethodName,
-          "f => finalizeWrapper(f, function($jsParametersString) {"
-          " return dartInstance.exports.$functionTrampolineName($dartArguments) "
-          "})");
-    } else {
-      if (parametersNeedParens(jsParameters)) {
-        jsParametersString = '($jsParametersString)';
-      }
-      _methodCollector.addMethod(
-          dartProcedure,
-          jsMethodName,
-          "f => "
-          "finalizeWrapper(f,$jsParametersString => "
-          "dartInstance.exports.$functionTrampolineName($dartArguments))");
-    }
+    _methodCollector.addMethod(
+        dartProcedure,
+        jsMethodName,
+        "f => finalizeWrapper(f, function($jsParametersString) {"
+        " return dartInstance.exports.$functionTrampolineName($dartArguments) "
+        "})");
 
     return dartProcedure;
   }
@@ -207,6 +202,9 @@ class CallbackSpecializer {
   /// these Dart functions flow to JS, they are replaced by their wrappers.  If
   /// the wrapper should ever flow back into Dart then it will be replaced by
   /// the original Dart function.
+  // TODO(srujzs): It looks like there's no more code that references this
+  // function anymore in dart2wasm. Should we delete this lowering and related
+  // code?
   Expression allowInterop(StaticInvocation staticInvocation) {
     final argument = staticInvocation.arguments.positional.single;
     final type = argument.getStaticType(_staticTypeContext) as FunctionType;

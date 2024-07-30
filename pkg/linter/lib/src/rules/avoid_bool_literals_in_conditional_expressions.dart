@@ -7,10 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Avoid bool literals in conditional expressions.';
+const _desc = r'Avoid `bool` literals in conditional expressions.';
 
 const _details = r'''
-**AVOID** bool literals in conditional expressions.
+**AVOID** `bool` literals in conditional expressions.
 
 **BAD:**
 ```dart
@@ -42,7 +42,7 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
             name: 'avoid_bool_literals_in_conditional_expressions',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -65,8 +65,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     var typeProvider = context.typeProvider;
-    var thenExp = node.thenExpression;
-    var elseExp = node.elseExpression;
+    var thenExp = node.thenExpression.unParenthesized;
+    var elseExp = node.elseExpression.unParenthesized;
 
     if (thenExp.staticType == typeProvider.boolType &&
         elseExp.staticType == typeProvider.boolType) {

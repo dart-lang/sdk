@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:yaml/yaml.dart';
@@ -32,18 +33,18 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
 
   @override
   Future<List<CodeActionWithPriority>> getFixActions() async {
-    final session = await server.getAnalysisSession(path);
+    var session = await server.getAnalysisSession(path);
     if (session == null) {
       return [];
     }
 
-    final resourceProvider = server.resourceProvider;
-    final pubspecFile = resourceProvider.getFile(path);
-    final content = safelyRead(pubspecFile);
+    var resourceProvider = server.resourceProvider;
+    var pubspecFile = resourceProvider.getFile(path);
+    var content = safelyRead(pubspecFile);
     if (content == null) {
       return [];
     }
-    final lineInfo = LineInfo.fromContent(content);
+    var lineInfo = LineInfo.fromContent(content);
 
     YamlNode node;
     try {
@@ -51,28 +52,27 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
     } catch (exception) {
       return [];
     }
-    final errors = validatePubspec(
+    var errors = validatePubspec(
       contents: node,
-      source: pubspecFile.createSource(),
+      source: FileSource(pubspecFile),
       provider: resourceProvider,
       analysisOptions: analysisOptions,
     );
 
-    final codeActions = <CodeActionWithPriority>[];
-    for (final error in errors) {
-      final generator =
+    var codeActions = <CodeActionWithPriority>[];
+    for (var error in errors) {
+      var generator =
           PubspecFixGenerator(resourceProvider, error, content, node);
-      final fixes = await generator.computeFixes();
+      var fixes = await generator.computeFixes();
       if (fixes.isEmpty) {
         continue;
       }
 
-      final result = createResult(session, lineInfo, errors);
-      final diagnostic = createDiagnostic(lineInfo, result, error);
+      var result = createResult(session, lineInfo, errors);
+      var diagnostic = createDiagnostic(lineInfo, result, error);
       codeActions.addAll(
         fixes.map((fix) {
-          final action =
-              createFixAction(fix.change, diagnostic, path, lineInfo);
+          var action = createFixAction(fix.change, diagnostic, path, lineInfo);
           return (action: action, priority: fix.kind.priority);
         }),
       );

@@ -8,15 +8,80 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstantIdentifierNamesRecordsTest);
-    defineReflectiveTests(ConstantIdentifierNamesPatternsTest);
+    defineReflectiveTests(ConstantIdentifierNamesTest);
   });
 }
 
 @reflectiveTest
-class ConstantIdentifierNamesPatternsTest extends LintRuleTest {
+class ConstantIdentifierNamesTest extends LintRuleTest {
   @override
   String get lintRule => 'constant_identifier_names';
+
+  test_augmentationEnum() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+enum E {
+  a;
+}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment enum E {
+  Xy;
+}
+''', [
+      lint(46, 2),
+    ]);
+  }
+
+  test_augmentationTopLevelVariable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+const PI = 3.14;
+''', [
+      lint(33, 2),
+    ]);
+  }
+
+  test_augmentedEnumValue() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+enum E {
+  Xy;
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment enum E {
+  augment Xy;
+}
+''');
+  }
+
+  test_augmentedTopLevelVariable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+const PI = 3.14;
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment const PI = 3.1415;
+''');
+  }
 
   test_destructuredConstField() async {
     await assertDiagnostics(r'''
@@ -85,12 +150,17 @@ f(A a) {
 }
 ''');
   }
-}
 
-@reflectiveTest
-class ConstantIdentifierNamesRecordsTest extends LintRuleTest {
-  @override
-  String get lintRule => 'constant_identifier_names';
+  test_enumValue_upperFirstLetter() async {
+    await assertDiagnostics(r'''
+enum Foo {
+  bar,
+  Baz,
+}
+''', [
+      lint(20, 3),
+    ]);
+  }
 
   test_recordFieldDestructured() async {
     await assertDiagnostics(r'''
@@ -122,5 +192,31 @@ const RR = (x: 1);
     await assertNoDiagnostics(r'''
 const r = (x: 1);
 ''');
+  }
+
+  test_staticField_allCaps() async {
+    await assertDiagnostics(r'''
+class C {
+  static const DEBUG = false;
+}
+''', [
+      lint(25, 5),
+    ]);
+  }
+
+  test_topLevel_allCaps() async {
+    await assertDiagnostics(r'''
+const PI = 3.14;
+''', [
+      lint(6, 2),
+    ]);
+  }
+
+  test_topLevel_screamingSnake() async {
+    await assertDiagnostics(r'''
+const CCC_CCC = 1000;
+''', [
+      lint(6, 7),
+    ]);
   }
 }

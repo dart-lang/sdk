@@ -39,7 +39,7 @@ class DartUnitFoldingComputer {
     // So these types of blocks should have their folding regions end at the
     // end of the preceding statement.
 
-    final start = block.leftBracket.end;
+    var start = block.leftBracket.end;
     Token? comment = block.endToken.precedingComments;
     if (comment != null) {
       var lastComment = comment;
@@ -100,7 +100,7 @@ class DartUnitFoldingComputer {
     } else {
       // Single line comments need grouping together explicitly but should
       // only group if the prefix is the same and up to any blank line.
-      final isTripleSlash = commentToken.isTripleSlash;
+      var isTripleSlash = commentToken.isTripleSlash;
       // Track the last comment that belongs to this folding region.
       var lastComment = commentToken;
       var current = lastComment.next;
@@ -126,7 +126,7 @@ class DartUnitFoldingComputer {
               _hasBlankLineBetween(end, _unit.beginToken.offset));
     }
 
-    final kind = isFileHeader
+    var kind = isFileHeader
         ? FoldingKind.FILE_HEADER
         : (commentToken.lexeme.startsWith('///') ||
                 commentToken.lexeme.startsWith('/**'))
@@ -432,6 +432,26 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    _computer._addRegion(
+      node.offset,
+      node.end,
+      FoldingKind.LITERAL,
+    );
+    super.visitSimpleStringLiteral(node);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    _computer._addRegion(
+      node.offset,
+      node.end,
+      FoldingKind.LITERAL,
+    );
+    super.visitStringInterpolation(node);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _computer._addRegion(node.colon.end, node.end, FoldingKind.BLOCK);
     super.visitSwitchCase(node);
@@ -492,7 +512,7 @@ extension _CommentTokenExtensions on Token {
   /// Return the offset of the first eol character or `null` if no newlines were
   /// found.
   int? get eolOffset {
-    final offset = lexeme.indexOf(_newlinePattern);
+    var offset = lexeme.indexOf(_newlinePattern);
     return offset != -1 ? offset : null;
   }
 

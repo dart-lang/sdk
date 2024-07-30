@@ -1,26 +1,6 @@
-library /*isLegacy*/;
+library;
 //
 // Problems in library:
-//
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:5:1: Error: Library doesn't support null safety.
-// // @dart=2.9
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:9:5: Error: Switch case may fall through to the next case.
-//     case 1:
-//     ^
-//
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:15:5: Error: Switch case may fall through to the next case.
-//     case 2:
-//     ^
-//
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:22:5: Error: Switch case may fall through to the next case.
-//     case 3:
-//     ^
-//
-// pkg/front_end/testcases/rasta/switch_fall_through.dart:28:5: Error: Switch case may fall through to the next case.
-//     case 4:
-//     ^
 //
 // pkg/front_end/testcases/rasta/switch_fall_through.dart:33:5: Error: Switch case may fall through to the next case.
 //     case 5:
@@ -29,9 +9,9 @@ library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
-static method test() → dynamic {
+static method main() → dynamic {
   #L1:
-  switch(1) /* core::int* */ {
+  switch(1) /* core::int */ {
     #L2:
     case #C1:
       {
@@ -40,7 +20,6 @@ static method test() → dynamic {
           break #L1;
           ;
         }
-        invalid-expression "Switch case may fall through to the next case.";
       }
     #L3:
     case #C2:
@@ -51,7 +30,6 @@ static method test() → dynamic {
             break #L1;
           }
         }
-        invalid-expression "Switch case may fall through to the next case.";
       }
     #L4:
     case #C3:
@@ -62,7 +40,6 @@ static method test() → dynamic {
         finally {
           break #L1;
         }
-        invalid-expression "Switch case may fall through to the next case.";
       }
     #L5:
     case #C4:
@@ -73,7 +50,6 @@ static method test() → dynamic {
         }
         finally {
         }
-        invalid-expression "Switch case may fall through to the next case.";
       }
     #L6:
     case #C5:
@@ -83,7 +59,6 @@ static method test() → dynamic {
         }
         finally {
         }
-        invalid-expression "Switch case may fall through to the next case.";
       }
     #L7:
     case #C6:

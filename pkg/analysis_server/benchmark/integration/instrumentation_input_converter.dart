@@ -31,7 +31,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
     try {
       fields = _parseFields(line);
       if (fields.length < 2) {
-        final readBuffer = this.readBuffer;
+        var readBuffer = this.readBuffer;
         if (readBuffer != null) {
           readBuffer.writeln(fields.length == 1 ? fields[0] : '');
           return null;

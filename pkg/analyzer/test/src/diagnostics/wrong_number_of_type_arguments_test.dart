@@ -370,7 +370,7 @@ void f(A<int> a) {}
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 6),
     ]);
 
-    final node = findNode.namedType('A<int>');
+    var node = findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -396,7 +396,7 @@ void f(A<int> a) {}
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 42, 6),
     ]);
 
-    final node = findNode.namedType('A<int>');
+    var node = findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -422,7 +422,7 @@ void f(A<int, String> a) {}
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 39, 14),
     ]);
 
-    final node = findNode.namedType('A<int, String>');
+    var node = findNode.namedType('A<int, String>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A

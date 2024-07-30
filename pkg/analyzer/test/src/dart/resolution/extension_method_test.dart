@@ -187,6 +187,24 @@ f(C c) {
     ]);
   }
 
+  test_visibility_private() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int _a = 1;
+}
+''');
+    await assertErrorsInCode('''
+import 'lib.dart';
+
+f(C c) {
+  c._a;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 2),
+    ]);
+  }
+
   test_visibility_shadowed_byClass() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class C {}
@@ -943,7 +961,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1325,7 +1343,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -2340,7 +2358,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -3019,7 +3037,7 @@ extension E on C {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression

@@ -17,5 +17,5 @@ library from "org-dartlang-test:///main.dart" as main {
 
 }
 constants  {
-  #C1 = TypeLiteralConstant(<T extends dart.core::Object? = dynamic>(T*) →* T*)
+  #C1 = TypeLiteralConstant(<T extends dart.core::Object? = dynamic>(T%) → T%)
 }

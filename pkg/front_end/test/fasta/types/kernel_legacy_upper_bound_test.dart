@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "legacy_upper_bound_helper.dart" show LegacyUpperBoundTest;
-
 import "package:kernel/ast.dart" show DartType, InterfaceType;
-
 import "package:kernel/class_hierarchy.dart" show ClassHierarchy;
+
+import "legacy_upper_bound_helper.dart" show LegacyUpperBoundTest;
 
 class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   late ClassHierarchy hierarchy;
-
-  @override
-  bool get isNonNullableByDefault => true;
 
   @override
   Future<void> parseComponent(String source) async {
@@ -21,11 +17,9 @@ class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   }
 
   @override
-  DartType getLegacyLeastUpperBound(DartType a, DartType b,
-      {required bool isNonNullableByDefault}) {
+  DartType getLegacyLeastUpperBound(DartType a, DartType b) {
     return hierarchy.getLegacyLeastUpperBound(
-        a as InterfaceType, b as InterfaceType,
-        isNonNullableByDefault: isNonNullableByDefault);
+        a as InterfaceType, b as InterfaceType);
   }
 }
 

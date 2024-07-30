@@ -13,16 +13,15 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/numeric.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -173,7 +172,7 @@ class FeatureComputer {
   /// offset is within the given [node], or `null` if the context does not
   /// impose any type.
   DartType? computeContextType(AstNode node, int offset) {
-    final contextType = node.accept(
+    var contextType = node.accept(
       _ContextTypeVisitor(typeProvider, offset),
     );
     if (contextType == null || contextType is DynamicType) {
@@ -457,7 +456,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
-      final parameters = node.functionType?.parameters;
+      var parameters = node.functionType?.parameters;
       if (parameters == null) {
         return null;
       }
@@ -624,12 +623,12 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;
-      if (parent is MethodDeclaration) {
-        return BodyInferenceContext.of(parent.body)?.contextType;
-      } else if (parent is FunctionExpression) {
+      if (parent is MethodDeclarationImpl) {
+        return parent.body.bodyContext?.contextType;
+      } else if (parent is FunctionExpressionImpl) {
         var grandparent = parent.parent;
         if (grandparent is FunctionDeclaration) {
-          return BodyInferenceContext.of(parent.body)?.contextType;
+          return parent.body.bodyContext?.contextType;
         }
         return _visitParent(parent);
       }
@@ -775,7 +774,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitListLiteral(ListLiteral node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
-      final type = node.staticType;
+      var type = node.staticType;
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/48965
       if (type == null) {
         throw '''
@@ -794,7 +793,7 @@ parent3: ${node.parent?.parent?.parent}
   @override
   DartType? visitListPattern(ListPattern node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
-      final type = node.requiredType;
+      var type = node.requiredType;
       if (type == null) {
         throw '''
 No required type.
@@ -872,7 +871,7 @@ parent3: ${node.parent?.parent?.parent}
 
   @override
   DartType? visitParenthesizedExpression(ParenthesizedExpression node) {
-    final type = _visitParent(node);
+    var type = _visitParent(node);
 
     // `RecordType := (^)` without any fields.
     if (type is RecordType) {
@@ -931,7 +930,7 @@ parent3: ${node.parent?.parent?.parent}
 
   @override
   DartType? visitRecordLiteral(RecordLiteral node) {
-    final type = node.parent?.accept(this);
+    var type = node.parent?.accept(this);
     if (type is! RecordType) {
       return null;
     }
@@ -945,14 +944,14 @@ parent3: ${node.parent?.parent?.parent}
       return null;
     }
 
-    for (final argument in node.fields) {
+    for (var argument in node.fields) {
       if (argument is NamedExpression) {
         if (offset <= argument.offset) {
           return typeOfIndexPositionalField();
         }
         if (argument.contains(offset)) {
           if (offset >= argument.name.colon.end) {
-            final name = argument.name.label.name;
+            var name = argument.name.label.name;
             return type.namedField(name)?.type;
           }
           return null;
@@ -990,9 +989,9 @@ parent3: ${node.parent?.parent?.parent}
   @override
   DartType? visitReturnStatement(ReturnStatement node) {
     if (node.returnKeyword.end < offset) {
-      var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+      var functionBody = node.thisOrAncestorOfType<FunctionBodyImpl>();
       if (functionBody != null) {
-        return BodyInferenceContext.of(functionBody)?.contextType;
+        return functionBody.bodyContext?.contextType;
       }
     }
     return null;
@@ -1105,9 +1104,9 @@ parent3: ${node.parent?.parent?.parent}
   @override
   DartType? visitYieldStatement(YieldStatement node) {
     if (range.endStart(node.yieldKeyword, node.semicolon).contains(offset)) {
-      var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+      var functionBody = node.thisOrAncestorOfType<FunctionBodyImpl>();
       if (functionBody != null) {
-        return BodyInferenceContext.of(functionBody)?.contextType;
+        return functionBody.bodyContext?.contextType;
       }
     }
     return null;
@@ -1251,7 +1250,7 @@ extension on AstNode {
 extension on ArgumentList {
   /// Return the [FunctionType], if there is one, for this [ArgumentList].
   FunctionType? get functionType {
-    final parent = this.parent;
+    var parent = this.parent;
     if (parent is InstanceCreationExpression) {
       return parent.constructorName.staticElement?.type;
     } else if (parent is MethodInvocation) {

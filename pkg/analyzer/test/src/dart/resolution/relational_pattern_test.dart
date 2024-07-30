@@ -28,7 +28,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
@@ -51,7 +51,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
@@ -76,7 +76,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >
@@ -103,7 +103,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >
@@ -128,7 +128,7 @@ void f(A x) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >
@@ -153,7 +153,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >=
@@ -180,7 +180,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >=
@@ -205,7 +205,7 @@ void f(A x) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >=
@@ -227,7 +227,7 @@ void f(A x) {
   if (x case == 0) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
@@ -252,7 +252,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <
@@ -279,7 +279,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <
@@ -304,7 +304,7 @@ void f(A x) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <
@@ -329,7 +329,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <=
@@ -356,7 +356,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <=
@@ -381,7 +381,7 @@ void f(A x) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <=
@@ -406,7 +406,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: !=
@@ -429,7 +429,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: !=
@@ -453,7 +453,7 @@ void f(x, int Function() a) {
       error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 57,
           3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
@@ -486,7 +486,7 @@ void f(A x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==

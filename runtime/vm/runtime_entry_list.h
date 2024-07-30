@@ -81,12 +81,14 @@ namespace dart {
   V(intptr_t, DeoptimizeCopyFrame, uword, uword)                               \
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
-  V(void, MarkingStackBlockProcess, Thread*)                                   \
+  V(void, OldMarkingStackBlockProcess, Thread*)                                \
+  V(void, NewMarkingStackBlockProcess, Thread*)                                \
   V(void, RememberCard, uword /*ObjectPtr*/, ObjectPtr*)                       \
   V(uword /*ObjectPtr*/, EnsureRememberedAndMarkingDeferred,                   \
     uword /*ObjectPtr*/ object, Thread* thread)                                \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
+  V(double, LibcFmod, double, double)                                          \
   V(double, LibcFloor, double)                                                 \
   V(double, LibcCeil, double)                                                  \
   V(double, LibcTrunc, double)                                                 \

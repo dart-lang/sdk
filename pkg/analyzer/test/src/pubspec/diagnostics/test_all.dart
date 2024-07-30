@@ -26,6 +26,7 @@ import 'path_pubspec_does_not_exist_test.dart' as path_pubspec_does_not_exist;
 import 'platform_value_disallowed_test.dart' as platform_value_disallowed_test;
 import 'unknown_platforms_test.dart' as unknown_platforms_test;
 import 'unnecessary_dev_dependency_test.dart' as unnecessary_dev_dependency;
+import 'workspace_field_test.dart' as workspace_field;
 
 main() {
   defineReflectiveSuite(() {
@@ -50,5 +51,6 @@ main() {
     platforms_field_test.main();
     unknown_platforms_test.main();
     unnecessary_dev_dependency.main();
+    workspace_field.main();
   }, name: 'diagnostics');
 }

@@ -57,6 +57,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes analysis results for Dart files.
@@ -95,7 +96,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 353;
+  static const int DATA_VERSION = 369;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -349,7 +350,7 @@ class AnalysisDriver {
   /// in this driver.
   List<String> get enabledPluginNames => analysisOptionsMap.entries
       .map((e) => e.options.enabledPluginNames)
-      .flattenedToList2;
+      .flattenedToList;
 
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
@@ -376,6 +377,7 @@ class AnalysisDriver {
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
       macroSupport: macroSupport,
+      packagesFile: analysisContext?.contextRoot.packagesFile,
       externalSummaries: _externalSummaries,
       fileSystemState: _fsState,
     );
@@ -525,6 +527,10 @@ class AnalysisDriver {
     addFile(file.path);
   }
 
+  void afterPerformWork() {
+    _fsState.parsedFileStateCache.clear();
+  }
+
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
   ///
@@ -555,18 +561,18 @@ class AnalysisDriver {
     required List<Uri> uriList,
     PackageBundleSdk? packageBundleSdk,
   }) async {
-    final elementFactory = libraryContext.elementFactory;
+    var elementFactory = libraryContext.elementFactory;
 
-    final bundleWriter = BundleWriter(
+    var bundleWriter = BundleWriter(
       elementFactory.dynamicRef,
     );
-    final packageBundleBuilder = PackageBundleBuilder();
+    var packageBundleBuilder = PackageBundleBuilder();
 
-    for (final uri in uriList) {
-      final uriStr = uri.toString();
-      final libraryResult = await getLibraryByUri(uriStr);
+    for (var uri in uriList) {
+      var uriStr = uri.toString();
+      var libraryResult = await getLibraryByUri(uriStr);
       if (libraryResult is LibraryElementResult) {
-        final libraryElement = libraryResult.element as LibraryElementImpl;
+        var libraryElement = libraryResult.element as LibraryElementImpl;
         bundleWriter.writeLibraryElement(libraryElement);
 
         packageBundleBuilder.addLibrary(
@@ -578,7 +584,7 @@ class AnalysisDriver {
       }
     }
 
-    final writeWriterResult = bundleWriter.finish();
+    var writeWriterResult = bundleWriter.finish();
 
     return packageBundleBuilder.finish(
       resolutionBytes: writeWriterResult.resolutionBytes,
@@ -672,7 +678,7 @@ class AnalysisDriver {
 
     // Discover files in package/lib folders.
     if (_sourceFactory.packageMap case var packageMap?) {
-      var folders = packageMap.values.flattenedToList2;
+      var folders = packageMap.values.flattenedToList;
       for (var folder in folders) {
         discoverRecursively(folder);
       }
@@ -681,7 +687,7 @@ class AnalysisDriver {
 
   /// Notify the driver that the client is going to stop using it.
   Future<void> dispose2() async {
-    final completer = Completer<void>();
+    var completer = Completer<void>();
     _disposed = true;
     _disposeRequests.add(completer);
 
@@ -861,9 +867,9 @@ class AnalysisDriver {
 
     // Check if the element is already computed.
     if (_pendingFileChanges.isEmpty) {
-      final rootReference = libraryContext.elementFactory.rootReference;
-      final reference = rootReference.getChild('$uriObj');
-      final element = reference.element;
+      var rootReference = libraryContext.elementFactory.rootReference;
+      var reference = rootReference.getChild('$uriObj');
+      var element = reference.element;
       if (element is LibraryElementImpl) {
         return LibraryElementResultImpl(element);
       }
@@ -873,8 +879,8 @@ class AnalysisDriver {
     switch (fileOr) {
       case null:
         return CannotResolveUriResult();
-      case UriResolutionFile(:final file):
-        final kind = file.kind;
+      case UriResolutionFile(:var file):
+        var kind = file.kind;
         if (kind is LibraryFileKind) {
         } else if (kind is AugmentationFileKind) {
           return NotLibraryButAugmentationResult();
@@ -898,8 +904,8 @@ class AnalysisDriver {
 
         // Should not happen.
         return UnspecifiedInvalidResult();
-      case UriResolutionExternalLibrary(:final source):
-        final uri = source.uri;
+      case UriResolutionExternalLibrary(:var source):
+        var uri = source.uri;
         // TODO(scheglov): Check if the source is not for library.
         var element = libraryContext.getLibraryElement(uri);
         return LibraryElementResultImpl(element);
@@ -918,8 +924,8 @@ class AnalysisDriver {
       return NotPathOfUriResult();
     }
 
-    final file = _fsState.getFileForPath(path);
-    final kind = file.kind;
+    var file = _fsState.getFileForPath(path);
+    var kind = file.kind;
     if (kind is LibraryFileKind) {
     } else if (kind is AugmentationFileKind) {
       return NotLibraryButAugmentationResult();
@@ -956,7 +962,7 @@ class AnalysisDriver {
     switch (fileOr) {
       case null:
         return CannotResolveUriResult();
-      case UriResolutionFile(:final file):
+      case UriResolutionFile(:var file):
         return getParsedLibrary(file.path);
       case UriResolutionExternalLibrary():
         return UriOfExternalLibraryResult();
@@ -996,7 +1002,7 @@ class AnalysisDriver {
       return cached;
     }
 
-    final completer = Completer<SomeResolvedLibraryResult>();
+    var completer = Completer<SomeResolvedLibraryResult>();
     _requestedLibraries.add(path, completer);
     _scheduler.notify();
     return completer.future;
@@ -1017,7 +1023,7 @@ class AnalysisDriver {
     switch (fileOr) {
       case null:
         return CannotResolveUriResult();
-      case UriResolutionFile(:final file):
+      case UriResolutionFile(:var file):
         return getResolvedLibrary(file.path);
       case UriResolutionExternalLibrary():
         return UriOfExternalLibraryResult();
@@ -1150,7 +1156,10 @@ class AnalysisDriver {
 
     FileState file = _fsState.getFileForPath(path);
     RecordingErrorListener listener = RecordingErrorListener();
-    CompilationUnit unit = file.parse(listener);
+    CompilationUnit unit = file.parse(
+      errorListener: listener,
+      performance: OperationPerformanceImpl('<root>'),
+    );
     return ParsedUnitResultImpl(
       session: currentSession,
       fileState: file,
@@ -1171,7 +1180,7 @@ class AnalysisDriver {
 
     if (_resolveForCompletionRequests.removeLastOrNull() case var request?) {
       try {
-        final result = await _resolveForCompletion(request);
+        var result = await _resolveForCompletion(request);
         request.completer.complete(result);
       } catch (exception, stackTrace) {
         _reportException(request.path, exception, stackTrace, null);
@@ -1271,7 +1280,7 @@ class AnalysisDriver {
     required int offset,
     required OperationPerformanceImpl performance,
   }) async {
-    final request = _ResolveForCompletionRequest(
+    var request = _ResolveForCompletionRequest(
       path: path,
       offset: offset,
       performance: performance,
@@ -1293,15 +1302,30 @@ class AnalysisDriver {
   }
 
   Future<void> _analyzeFile(String path) async {
+    await scheduler.accumulatedPerformance.runAsync(
+      'analyzeFile',
+      (performance) async {
+        await _analyzeFileImpl(
+          path: path,
+          performance: performance,
+        );
+      },
+    );
+  }
+
+  Future<void> _analyzeFileImpl({
+    required String path,
+    required OperationPerformanceImpl performance,
+  }) async {
     // We will produce the result for this file, at least.
     // And for any other files of the same library.
     _fileTracker.fileWasAnalyzed(path);
 
-    final file = _fsState.getFileForPath(path);
+    var file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
-    final kind = file.kind;
-    final library = kind.library ?? kind.asLibrary;
+    var kind = file.kind;
+    var library = kind.library ?? kind.asLibrary;
 
     // We need the fully resolved unit, or the result is not cached.
     return _logger.runAsync('Compute analysis result for $path', () async {
@@ -1331,9 +1355,14 @@ class AnalysisDriver {
           return;
         }
 
-        await libraryContext.load(
-          targetLibrary: library,
-          performance: OperationPerformanceImpl('<root>'),
+        await performance.runAsync(
+          'libraryContext',
+          (performance) async {
+            await libraryContext.load(
+              targetLibrary: library,
+              performance: performance,
+            );
+          },
         );
 
         for (var import in library.docImports) {
@@ -1360,22 +1389,21 @@ class AnalysisDriver {
           libraryElement,
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
-          resourceProvider.pathContext,
           testingData: testingData,
           typeSystemOperations: typeSystemOperations,
         ).analyze();
 
-        final isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
+        var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
 
-        final resolvedUnits = <ResolvedUnitResultImpl>[];
+        var resolvedUnits = <ResolvedUnitResultImpl>[];
         for (var unitResult in results) {
           var unitFile = unitResult.file;
 
-          final index = enableIndex
+          var index = enableIndex
               ? indexUnit(unitResult.unit)
               : AnalysisDriverUnitIndexBuilder();
 
-          final resolvedUnit = _createResolvedUnitImpl(
+          var resolvedUnit = _createResolvedUnitImpl(
             file: unitFile,
             unitResult: unitResult,
           );
@@ -1396,10 +1424,10 @@ class AnalysisDriver {
           // getIndex()
           _indexRequestedFiles.completeAll(unitFile.path, index);
 
-          final unitSignature = _getResolvedUnitSignature(library, unitFile);
+          var unitSignature = _getResolvedUnitSignature(library, unitFile);
           {
-            final unitKey = _getResolvedUnitKey(unitSignature);
-            final unitBytes = AnalysisDriverResolvedUnitBuilder(
+            var unitKey = _getResolvedUnitKey(unitSignature);
+            var unitBytes = AnalysisDriverResolvedUnitBuilder(
               errors: unitResult.errors.map((error) {
                 return ErrorEncoding.encode(error);
               }).toList(),
@@ -1419,7 +1447,7 @@ class AnalysisDriver {
           _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.errors);
         }
 
-        final libraryResult = ResolvedLibraryResultImpl(
+        var libraryResult = ResolvedLibraryResultImpl(
           session: currentSession,
           element: resolvedUnits.first.libraryElement,
           units: resolvedUnits,
@@ -1436,21 +1464,21 @@ class AnalysisDriver {
         _logger.writeln('Computed new analysis result.');
         // return result;
       } catch (exception, stackTrace) {
-        final contextKey =
+        var contextKey =
             _storeExceptionContext(path, library, exception, stackTrace);
         _reportException(path, exception, stackTrace, contextKey);
 
         // Complete all related requests with an error.
         void completeWithError<T>(List<Completer<T>>? completers) {
           if (completers != null) {
-            for (final completer in completers) {
+            for (var completer in completers) {
               completer.completeError(exception, stackTrace);
             }
           }
         }
 
         // TODO(scheglov): write tests
-        for (final file in library.files) {
+        for (var file in library.files) {
           // getResolvedUnit()
           completeWithError(
             _requestedFiles.remove(file.path),
@@ -1523,10 +1551,10 @@ class AnalysisDriver {
         library: library,
       ),
     );
-    final unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    final errors = _getErrorsFromSerialized(file, unit.errors);
+    var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
+    var errors = _getErrorsFromSerialized(file, unit.errors);
     _updateHasErrorOrWarningFlag(file, errors);
-    final result = _createErrorsResultImpl(
+    var result = _createErrorsResultImpl(
       file: file,
       errors: errors,
     );
@@ -1566,7 +1594,6 @@ class AnalysisDriver {
     );
 
     _fsState = FileSystemState(
-      _logger,
       _byteStore,
       _resourceProvider,
       name,
@@ -1618,10 +1645,10 @@ class AnalysisDriver {
     }
     _hasDartCoreDiscovered = true;
 
-    final dartCoreUri = uriCache.parse('dart:core');
-    final dartCoreResolution = _fsState.getFileForUri(dartCoreUri);
+    var dartCoreUri = uriCache.parse('dart:core');
+    var dartCoreResolution = _fsState.getFileForUri(dartCoreUri);
     if (dartCoreResolution is UriResolutionFile) {
-      final kind = dartCoreResolution.file.kind;
+      var kind = dartCoreResolution.file.kind;
       if (kind is LibraryFileKind) {
         kind.discoverReferencedFiles();
       }
@@ -1634,7 +1661,7 @@ class AnalysisDriver {
     }
     _hasLibrariesDiscovered = true;
 
-    for (final path in _fileTracker.addedFiles) {
+    for (var path in _fileTracker.addedFiles) {
       _fsState.getFileForPath(path);
     }
   }
@@ -1692,17 +1719,17 @@ class AnalysisDriver {
   }
 
   Future<void> _getErrors(String path) async {
-    final file = _fsState.getFileForPath(path);
+    var file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
-    final kind = file.kind;
-    final library = kind.library ?? kind.asLibrary;
+    var kind = file.kind;
+    var library = kind.library ?? kind.asLibrary;
 
     // Prepare the signature and key.
-    final signature = _getResolvedUnitSignature(library, file);
-    final key = _getResolvedUnitKey(signature);
+    var signature = _getResolvedUnitSignature(library, file);
+    var key = _getResolvedUnitKey(signature);
 
-    final bytes = _byteStore.get(key);
+    var bytes = _byteStore.get(key);
     if (bytes != null) {
       var result = _createErrorsResultFromBytes(file, library, bytes);
       _errorsRequestedFiles.completeAll(path, result);
@@ -1754,19 +1781,19 @@ class AnalysisDriver {
   }
 
   Future<void> _getIndex(String path) async {
-    final file = _fsState.getFileForPath(path);
+    var file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
-    final kind = file.kind;
-    final library = kind.library ?? kind.asLibrary;
+    var kind = file.kind;
+    var library = kind.library ?? kind.asLibrary;
 
     // Prepare the signature and key.
-    final signature = _getResolvedUnitSignature(library, file);
-    final key = _getResolvedUnitKey(signature);
+    var signature = _getResolvedUnitSignature(library, file);
+    var key = _getResolvedUnitKey(signature);
 
-    final bytes = _byteStore.get(key);
+    var bytes = _byteStore.get(key);
     if (bytes != null) {
-      final unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
+      var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
       _indexRequestedFiles.completeAll(path, unit.index!);
       return;
     }
@@ -1776,8 +1803,8 @@ class AnalysisDriver {
 
   /// Completes the [getResolvedLibrary] request.
   Future<void> _getResolvedLibrary(String path) async {
-    final file = _fsState.getFileForPath(path);
-    final kind = file.kind;
+    var file = _fsState.getFileForPath(path);
+    var kind = file.kind;
     switch (kind) {
       case LibraryFileKind():
         break;
@@ -1797,7 +1824,7 @@ class AnalysisDriver {
         throw UnimplementedError('(${kind.runtimeType}) $kind');
     }
 
-    if (_resolvedLibraryCache[path] case final cached?) {
+    if (_resolvedLibraryCache[path] case var cached?) {
       _requestedLibraries.completeAll(path, cached);
       return;
     }
@@ -1828,25 +1855,35 @@ class AnalysisDriver {
   }
 
   Future<void> _getUnitElement(String path) async {
-    FileState file = _fsState.getFileForPath(path);
+    await scheduler.accumulatedPerformance.runAsync(
+      'getUnitElement',
+      (performance) async {
+        FileState file = _fsState.getFileForPath(path);
 
-    // Prepare the library - the file itself, or the known library.
-    final kind = file.kind;
-    final library = kind.library ?? kind.asLibrary;
+        // Prepare the library - the file itself, or the known library.
+        var kind = file.kind;
+        var library = kind.library ?? kind.asLibrary;
 
-    await libraryContext.load(
-      targetLibrary: library,
-      performance: OperationPerformanceImpl('<root>'),
+        await performance.runAsync(
+          'libraryContext',
+          (performance) async {
+            await libraryContext.load(
+              targetLibrary: library,
+              performance: performance,
+            );
+          },
+        );
+
+        var element = libraryContext.computeUnitElement(library, file);
+        var result = UnitElementResultImpl(
+          session: currentSession,
+          fileState: file,
+          element: element,
+        );
+
+        _unitElementRequestedFiles.completeAll(path, result);
+      },
     );
-
-    var element = libraryContext.computeUnitElement(library, file);
-    var result = UnitElementResultImpl(
-      session: currentSession,
-      fileState: file,
-      element: element,
-    );
-
-    _unitElementRequestedFiles.completeAll(path, result);
   }
 
   bool _hasLibraryByUri(String uriStr) {
@@ -1854,7 +1891,7 @@ class AnalysisDriver {
     var fileOr = _fsState.getFileForUri(uri);
     return switch (fileOr) {
       null => false,
-      UriResolutionFile(:final file) => file.exists,
+      UriResolutionFile(:var file) => file.exists,
       UriResolutionExternalLibrary() => true,
     };
   }
@@ -1864,7 +1901,7 @@ class AnalysisDriver {
   }
 
   bool _isLibraryWithPriorityFile(LibraryFileKind library) {
-    for (final file in library.files) {
+    for (var file in library.files) {
       if (_priorityFiles.contains(file.path)) {
         return true;
       }
@@ -1877,7 +1914,7 @@ class AnalysisDriver {
       _scheduler.remove(this);
       clearLibraryContext();
 
-      for (final completer in _disposeRequests.toList()) {
+      for (var completer in _disposeRequests.toList()) {
         completer.complete();
       }
     }
@@ -1912,7 +1949,7 @@ class AnalysisDriver {
   }
 
   void _onNewFile(FileState file) {
-    final ownedFiles = this.ownedFiles;
+    var ownedFiles = this.ownedFiles;
     if (ownedFiles != null) {
       if (addedFiles.contains(file.path)) {
         ownedFiles.addAdded(file.uri, this);
@@ -1923,32 +1960,63 @@ class AnalysisDriver {
   }
 
   Future<void> _produceErrors(String path) async {
-    final file = _fsState.getFileForPath(path);
+    var file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
-    final kind = file.kind;
-    final library = kind.library ?? kind.asLibrary;
+    var kind = file.kind;
+    var library = kind.library ?? kind.asLibrary;
 
-    // Prepare the signature and key.
-    final signature = _getResolvedUnitSignature(library, file);
-    final key = _getResolvedUnitKey(signature);
+    // Errors are based on elements, so load them.
+    await libraryContext.load(
+      targetLibrary: library,
+      performance: OperationPerformanceImpl('<root>'),
+    );
 
-    // Don't produce errors if the signature is the same.
-    if (_lastProducedSignatures[path] == signature) {
-      _fileTracker.fileWasAnalyzed(path);
+    // Check if we have cached errors for all library files.
+    List<(FileState, String, Uint8List)>? forAllFiles = [];
+    for (var file in library.files) {
+      // If the file is priority, we need the resolved unit.
+      // So, the cached errors is not enough.
+      if (priorityFiles.contains(file.path)) {
+        forAllFiles = null;
+        break;
+      }
+
+      var signature = _getResolvedUnitSignature(library, file);
+      var key = _getResolvedUnitKey(signature);
+
+      var bytes = _byteStore.get(key);
+      if (bytes == null) {
+        forAllFiles = null;
+        break;
+      }
+
+      // Will not be `null` here.
+      forAllFiles?.add((file, signature, bytes));
+    }
+
+    // If we have results for all library files, produce them.
+    if (forAllFiles != null) {
+      for (var (file, signature, bytes) in forAllFiles) {
+        // We have the result for this file.
+        _fileTracker.fileWasAnalyzed(file.path);
+
+        // Don't produce the result if the signature is the same.
+        if (_lastProducedSignatures[file.path] == signature) {
+          continue;
+        }
+
+        // Produce the result from bytes.
+        var result = _createErrorsResultFromBytes(file, library, bytes);
+        _lastProducedSignatures[file.path] = signature;
+        _errorsRequestedFiles.completeAll(file.path, result);
+        _scheduler.eventsController.add(result);
+      }
+      // We produced all results for the library.
       return;
     }
 
-    final bytes = _byteStore.get(key);
-    if (bytes != null) {
-      var result = _createErrorsResultFromBytes(file, library, bytes);
-      _fileTracker.fileWasAnalyzed(path);
-      _lastProducedSignatures[path] = signature;
-      _scheduler.eventsController.add(result);
-      return;
-    }
-
-    // Analyze, will produce a result into the stream.
+    // Analyze, will produce results into the stream.
     await _analyzeFile(path);
   }
 
@@ -1959,12 +2027,12 @@ class AnalysisDriver {
     var affected = <FileState>{};
     _fsState.collectAffected(path, affected);
 
-    final removedKeys = <String>{};
+    var removedKeys = <String>{};
     _libraryContext?.remove(affected, removedKeys);
 
     // TODO(scheglov): Eventually list of `LibraryOrAugmentationFileKind`.
-    for (final file in affected) {
-      final kind = file.kind;
+    for (var file in affected) {
+      var kind = file.kind;
       if (kind is LibraryFileKind) {
         kind.invalidateLibraryCycle();
       }
@@ -1983,15 +2051,15 @@ class AnalysisDriver {
     var fileContentMap = <String, String>{};
 
     try {
-      final file = _fsState.getFileForPath(path);
-      final fileKind = file.kind;
-      final libraryKind = fileKind.library;
+      var file = _fsState.getFileForPath(path);
+      var fileKind = file.kind;
+      var libraryKind = fileKind.library;
       if (libraryKind != null) {
-        for (final file in libraryKind.files) {
+        for (var file in libraryKind.files) {
           fileContentMap[file.path] = file.content;
         }
       } else {
-        final file = fileKind.file;
+        var file = fileKind.file;
         fileContentMap[file.path] = file.content;
       }
     } catch (_) {
@@ -2019,7 +2087,7 @@ class AnalysisDriver {
     _ResolveForCompletionRequest request,
   ) async {
     return request.performance.runAsync('body', (performance) async {
-      final path = request.path;
+      var path = request.path;
       if (!_isAbsolutePath(path)) {
         return null;
       }
@@ -2031,8 +2099,8 @@ class AnalysisDriver {
       var file = _fsState.getFileForPath(path);
 
       // Prepare the library - the file itself, or the known library.
-      final kind = file.kind;
-      final library = kind.library ?? kind.asLibrary;
+      var kind = file.kind;
+      var library = kind.library ?? kind.asLibrary;
 
       await performance.runAsync(
         'libraryContext',
@@ -2057,7 +2125,6 @@ class AnalysisDriver {
         libraryElement,
         libraryContext.elementFactory.analysisSession.inheritanceManager,
         library,
-        resourceProvider.pathContext,
         testingData: testingData,
         typeSystemOperations: typeSystemOperations,
       ).analyzeForCompletion(
@@ -2090,7 +2157,7 @@ class AnalysisDriver {
       allowedNumberOfContextsToWrite--;
     }
     try {
-      final contextFiles = library.files
+      var contextFiles = library.files
           .map((file) => AnalysisDriverExceptionFileBuilder(
               path: file.path, content: file.content))
           .toList();
@@ -2214,6 +2281,14 @@ class AnalysisDriverScheduler {
   /// Don't use outside of Analyzer and Analysis Server.
   SchedulerWorker? outOfBandWorker;
 
+  /// The operations performance accumulated so far.
+  ///
+  /// It is expected that the consumer of this performance operation will
+  /// do analysis operations, take the instance to print and otherwise
+  /// process, and reset this field with a new instance.
+  OperationPerformanceImpl accumulatedPerformance =
+      OperationPerformanceImpl('<scheduler>');
+
   AnalysisDriverScheduler(this._logger, {this.driverWatcher});
 
   /// The [Stream] that produces analysis results for all drivers, and status
@@ -2259,7 +2334,7 @@ class AnalysisDriverScheduler {
 
   /// Return `true` if there is a driver with a file to analyze.
   bool get _hasFilesToAnalyze {
-    for (final driver in _drivers) {
+    for (var driver in _drivers) {
       if (driver._hasFilesToAnalyze) {
         return true;
       }
@@ -2322,7 +2397,7 @@ class AnalysisDriverScheduler {
 
       await _hasWork.signal;
 
-      for (final driver in _drivers.toList()) {
+      for (var driver in _drivers.toList()) {
         await driver._maybeDispose();
       }
 
@@ -2339,7 +2414,7 @@ class AnalysisDriverScheduler {
       // Find the driver with the highest priority.
       late AnalysisDriver bestDriver;
       AnalysisDriverPriority bestPriority = AnalysisDriverPriority.nothing;
-      for (final driver in _drivers) {
+      for (var driver in _drivers) {
         AnalysisDriverPriority priority = driver.workPriority;
         if (priority.index > bestPriority.index) {
           bestDriver = driver;
@@ -2372,6 +2447,7 @@ class AnalysisDriverScheduler {
 
       // Ask the driver to perform a chunk of work.
       await bestDriver.performWork();
+      bestDriver.afterPerformWork();
 
       // Schedule one more cycle.
       _hasWork.notify();

@@ -63,7 +63,8 @@ class RequestErrorTest {
     var error = RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
     expect(error.code, RequestErrorCode.INVALID_REQUEST);
     expect(error.message, 'msg');
-    expect(error.toJson(), equals({CODE: 'INVALID_REQUEST', MESSAGE: 'msg'}));
+    expect(error.toJson(clientUriConverter: null),
+        equals({CODE: 'INVALID_REQUEST', MESSAGE: 'msg'}));
   }
 
   void test_fromJson() {
@@ -73,7 +74,8 @@ class RequestErrorTest {
       MESSAGE: 'foo',
       STACK_TRACE: trace
     };
-    var error = RequestError.fromJson(ResponseDecoder(null), '', json);
+    var error = RequestError.fromJson(ResponseDecoder(null), '', json,
+        clientUriConverter: null);
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
     expect(error.message, 'foo');
     expect(error.stackTrace, trace);
@@ -83,7 +85,7 @@ class RequestErrorTest {
     var trace = 'a stack trace\r\nbar';
     var error = RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'msg',
         stackTrace: trace);
-    expect(error.toJson(),
+    expect(error.toJson(clientUriConverter: null),
         {CODE: 'UNKNOWN_REQUEST', MESSAGE: 'msg', STACK_TRACE: trace});
   }
 }

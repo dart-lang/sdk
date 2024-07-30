@@ -62,7 +62,6 @@ class GCMarker {
   void ProcessWeakHandles(Thread* thread);
   void ProcessWeakTables(Thread* thread);
   void ProcessRememberedSet(Thread* thread);
-  void ProcessObjectIdTable(Thread* thread);
 
   // Called by anyone: finalize and accumulate stats from 'visitor'.
   template <class MarkingVisitorType>
@@ -70,8 +69,21 @@ class GCMarker {
 
   IsolateGroup* const isolate_group_;
   Heap* const heap_;
-  MarkingStack marking_stack_;
+  // The regular marking worklists, divided by generation. The marker and the
+  // write-barrier push here. Dividing by generation allows faster filtering at
+  // the end of a scavenge.
+  MarkingStack old_marking_stack_;
   MarkingStack new_marking_stack_;
+  // New-space objects whose scanning is being delayed because they are still in
+  // a TLAB and subject to write barrier eliminiation. Unlike
+  // [deferred_marking_stack_], the objects are always marked and never
+  // repeated. Tney can be folded back into the regular mark list after a
+  // scavenge, preventing accumulation of STW work.
+  MarkingStack tlab_deferred_marking_stack_;
+  // Objects that need to be marked (non-writable instructions) or scanned
+  // (object used in a barrier-skipping context) during the final STW phase.
+  // Unlike the other mark lists, objects might be repeated in this list, and
+  // need to be scanned even if they are already marked.
   MarkingStack deferred_marking_stack_;
   GCLinkedLists global_list_;
   MarkingVisitorBase<true>** visitors_;

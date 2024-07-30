@@ -1,0 +1,24 @@
+callable:
+  - library: 'lib1.dart'
+  - library: 'lib2.dart'
+    class: A
+  - library: 'lib2.dart'
+    class: B
+    member: imethod5
+  - library: 'lib2.dart'
+    member: sfield9
+  - library: 'lib3.dart'
+    class: ['A', 'B']
+  - library: 'prefix/lib*'
+
+extendable:
+  - library: 'lib1.dart'
+    class: 'A'
+  - library: 'lib2.dart'
+
+can-be-overridden:
+  - library: 'lib1.dart'
+    class: 'A'
+  - library: 'lib2.dart'
+    class: 'D'
+    member: 'build'

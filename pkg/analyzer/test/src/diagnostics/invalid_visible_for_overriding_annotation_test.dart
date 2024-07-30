@@ -27,7 +27,7 @@ class InvalidVisibleForOverridingAnnotationTest
 import 'package:meta/meta.dart';
 @visibleForOverriding
 class C {}
-''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
+''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)]);
   }
 
   test_invalid_constructor() async {
@@ -38,7 +38,7 @@ class C {
   C();
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 45, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 46, 20),
     ]);
   }
 
@@ -47,7 +47,7 @@ class C {
 import 'package:meta/meta.dart';
 @visibleForOverriding
 extension on double {}
-''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
+''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)]);
   }
 
   test_invalid_extensionMember() async {
@@ -58,7 +58,7 @@ extension E on String {
   void foo() {}
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 59, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 60, 20),
     ]);
   }
 
@@ -67,7 +67,7 @@ extension E on String {
 import 'package:meta/meta.dart';
 @visibleForOverriding
 extension type E(int i) {}
-''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
+''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)]);
   }
 
   test_invalid_extensionType_member() async {
@@ -78,7 +78,7 @@ extension type E(int i) {
   @visibleForOverriding
   void f() { }
 }
-''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 63, 21)]);
+''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 64, 20)]);
   }
 
   test_invalid_staticMember() async {
@@ -89,7 +89,7 @@ class C {
   static void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 45, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 46, 20),
     ]);
   }
 
@@ -98,7 +98,7 @@ class C {
 import 'package:meta/meta.dart';
 @visibleForOverriding void foo() {}
 ''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20),
     ]);
   }
 
@@ -107,7 +107,7 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForOverriding final a = 1;
 ''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20),
     ]);
   }
 
@@ -116,7 +116,7 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForOverriding var a = 1, b;
 ''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
+      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20),
     ]);
   }
 

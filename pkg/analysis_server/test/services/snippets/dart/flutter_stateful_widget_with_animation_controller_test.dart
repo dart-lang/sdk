@@ -31,8 +31,8 @@ class FlutterStatefulWidgetWithAnimationControllerTest
   Future<void> test_noSuperParams() async {
     writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
-    final code = TestCode.empty;
-    final snippet = await expectValidSnippet(code);
+    var code = TestCode.empty;
+    var snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     var result = code.code;
@@ -82,10 +82,10 @@ class _MyWidgetState extends State<MyWidget>
   Future<void> test_valid() async {
     writeTestPackageConfig(flutter: true);
 
-    final snippet = await expectValidSnippet(TestCode.empty);
+    var snippet = await expectValidSnippet(TestCode.empty);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
-    final expected = TestCode.parse('''
+    var expected = TestCode.parse('''
 import 'package:flutter/widgets.dart';
 
 class /*0*/MyWidget extends StatefulWidget {

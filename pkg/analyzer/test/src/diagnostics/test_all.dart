@@ -38,6 +38,19 @@ import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
+import 'augmentation_extends_clause_already_present_test.dart'
+    as augmentation_extends_clause_already_present;
+import 'augmentation_modifier_extra_test.dart' as augmentation_modifier_extra;
+import 'augmentation_modifier_missing_test.dart'
+    as augmentation_modifier_missing;
+import 'augmentation_of_different_declaration_kind_test.dart'
+    as augmentation_of_different_declaration_kind;
+import 'augmentation_type_parameter_bound_test.dart'
+    as augmentation_type_parameter_bound;
+import 'augmentation_type_parameter_count_test.dart'
+    as augmentation_type_parameter_count;
+import 'augmentation_type_parameter_name_test.dart'
+    as augmentation_type_parameter_name;
 import 'augmentation_without_declaration_test.dart'
     as augmentation_without_declaration;
 import 'await_in_late_local_variable_initializer_test.dart'
@@ -153,6 +166,8 @@ import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
+import 'declaration_named_augmented_inside_augmentation_test.dart'
+    as declaration_named_augmented_inside_augmentation;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_redirecting_factory_constructor_test.dart'
@@ -218,6 +233,7 @@ import 'enum_mixin_with_instance_variable_test.dart'
     as enum_mixin_with_instance_variable;
 import 'enum_with_abstract_member_test.dart' as enum_with_abstract_member;
 import 'enum_with_name_values_test.dart' as enum_with_name_values;
+import 'enum_without_constants_test.dart' as enum_without_constants;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
@@ -414,12 +430,12 @@ import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_constant_test.dart' as invalid_constant;
 import 'invalid_constructor_name_test.dart' as invalid_constructor_name;
+import 'invalid_do_not_submit_test.dart' as invalid_do_not_submit;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
 import 'invalid_export_of_internal_element_test.dart'
     as invalid_export_of_internal_element;
 import 'invalid_extension_argument_count_test.dart'
     as invalid_extension_argument_count;
-import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
 import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_factory_name_not_a_class_test.dart'
     as invalid_factory_name_not_a_class;
@@ -451,7 +467,6 @@ import 'invalid_required_optional_positional_param_test.dart'
     as invalid_required_optional_positional_param;
 import 'invalid_required_positional_param_test.dart'
     as invalid_required_positional_param;
-import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
 import 'invalid_super_formal_parameter_location_test.dart'
     as invalid_super_formal_parameter_location;
 import 'invalid_super_in_initializer_test.dart' as invalid_super_in_initializer;
@@ -586,6 +601,8 @@ import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_expression_test.dart' as non_bool_expression;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
+import 'non_const_argument_for_const_parameter_test.dart'
+    as non_const_argument_for_const_parameter;
 import 'non_const_call_to_literal_constructor_test.dart'
     as non_const_call_to_literal_constructor;
 import 'non_const_generative_enum_constructor_test.dart'
@@ -611,6 +628,9 @@ import 'non_constant_map_pattern_key_test.dart' as non_constant_map_pattern_key;
 import 'non_constant_map_value_from_deferred_library_test.dart'
     as non_constant_map_value_from_deferred_library;
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
+import 'non_constant_record_field_from_deferred_library_test.dart'
+    as non_constant_record_field_from_deferred_library;
+import 'non_constant_record_field_test.dart' as non_constant_record_field;
 import 'non_constant_relational_pattern_expression_test.dart'
     as non_constant_relational_pattern_expression;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
@@ -710,6 +730,8 @@ import 'recursive_interface_inheritance_extends_test.dart'
     as recursive_interface_inheritance_extends;
 import 'recursive_interface_inheritance_implements_test.dart'
     as recursive_interface_inheritance_implements;
+import 'recursive_interface_inheritance_on_test.dart'
+    as recursive_interface_inheritance_on;
 import 'recursive_interface_inheritance_test.dart'
     as recursive_interface_inheritance;
 import 'recursive_interface_inheritance_with_test.dart'
@@ -879,6 +901,8 @@ import 'unused_label_test.dart' as unused_label;
 import 'unused_local_variable_test.dart' as unused_local_variable;
 import 'unused_result_test.dart' as unused_result;
 import 'unused_shown_name_test.dart' as unused_shown_name;
+import 'uri_does_not_exist_in_doc_import_test.dart'
+    as uri_does_not_exist_in_doc_import;
 import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
 import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
 import 'use_of_native_extension_test.dart' as use_of_native_extension;
@@ -931,6 +955,13 @@ main() {
     assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
+    augmentation_extends_clause_already_present.main();
+    augmentation_modifier_extra.main();
+    augmentation_modifier_missing.main();
+    augmentation_of_different_declaration_kind.main();
+    augmentation_type_parameter_bound.main();
+    augmentation_type_parameter_count.main();
+    augmentation_type_parameter_name.main();
     augmentation_without_declaration.main();
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
@@ -1006,6 +1037,7 @@ main() {
     creation_of_struct_or_union.main();
     dead_code.main();
     dead_null_aware_expression.main();
+    declaration_named_augmented_inside_augmentation.main();
     default_value_in_function_type.main();
     default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();
@@ -1048,6 +1080,7 @@ main() {
     enum_mixin_with_instance_variable.main();
     enum_with_abstract_member.main();
     enum_with_name_values.main();
+    enum_without_constants.main();
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();
@@ -1168,10 +1201,10 @@ main() {
     invalid_assignment.main();
     invalid_constant.main();
     invalid_constructor_name.main();
+    invalid_do_not_submit.main();
     invalid_exception_value.main();
     invalid_export_of_internal_element.main();
     invalid_extension_argument_count.main();
-    invalid_factory_annotation.main();
     invalid_factory_method_impl.main();
     invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();
@@ -1194,7 +1227,6 @@ main() {
     invalid_required_named_param.main();
     invalid_required_optional_positional_param.main();
     invalid_required_positional_param.main();
-    invalid_sealed_annotation.main();
     invalid_super_formal_parameter_location.main();
     invalid_super_in_initializer.main();
     invalid_type_argument_in_const_list.main();
@@ -1278,23 +1310,26 @@ main() {
     non_bool_expression.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
+    non_const_argument_for_const_parameter.main();
     non_const_call_to_literal_constructor.main();
     non_const_generative_enum_constructor.main();
     non_const_map_as_expression_statement.main();
     non_constant_annotation_constructor.main();
-    non_constant_list_element.main();
     non_constant_case_expression_from_deferred_library.main();
     non_constant_case_expression.main();
     non_constant_default_value_from_deferred_library.main();
     non_constant_default_value.main();
     non_constant_list_element_from_deferred_library.main();
+    non_constant_list_element.main();
+    non_constant_map_element.main();
+    non_constant_map_key_from_deferred_library.main();
     non_constant_map_key.main();
     non_constant_map_pattern_key.main();
-    non_constant_map_key_from_deferred_library.main();
-    non_constant_map_element.main();
-    non_constant_map_value.main();
-    non_constant_relational_pattern_expression.main();
     non_constant_map_value_from_deferred_library.main();
+    non_constant_map_value.main();
+    non_constant_record_field_from_deferred_library.main();
+    non_constant_record_field.main();
+    non_constant_relational_pattern_expression.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();
     non_covariant_type_parameter_position_in_representation_type.main();
@@ -1359,6 +1394,7 @@ main() {
     recursive_factory_redirect.main();
     recursive_interface_inheritance_extends.main();
     recursive_interface_inheritance_implements.main();
+    recursive_interface_inheritance_on.main();
     recursive_interface_inheritance.main();
     recursive_interface_inheritance_with.main();
     redeclare_on_non_redeclaring_member.main();
@@ -1481,6 +1517,7 @@ main() {
     unused_result.main();
     unused_shown_name.main();
     uri_does_not_exist.main();
+    uri_does_not_exist_in_doc_import.main();
     uri_with_interpolation.main();
     use_of_native_extension.main();
     use_of_nullable_value_test.main();

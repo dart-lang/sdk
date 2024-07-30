@@ -37,14 +37,15 @@ class NonConstantIdentifierNames extends LintRule {
   static const LintCode code = LintCode('non_constant_identifier_names',
       "The variable name '{0}' isn't a lowerCamelCase identifier.",
       correctionMessage:
-          'Try changing the name to follow the lowerCamelCase style.');
+          'Try changing the name to follow the lowerCamelCase style.',
+      hasPublishedDocs: true);
 
   NonConstantIdentifierNames()
       : super(
             name: 'non_constant_identifier_names',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -176,6 +177,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.isAugmentation) return;
+
     if (!node.isConst) {
       checkIdentifier(node.name);
     }

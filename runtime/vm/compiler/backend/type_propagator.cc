@@ -312,7 +312,7 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
   Function& target = Function::Handle();
   if (Error::Handle(null_class.EnsureIsFinalized(thread)).IsNull()) {
     target = Resolver::ResolveDynamicAnyArgs(thread->zone(), null_class,
-                                             function_name);
+                                             function_name, /*allow_add=*/true);
   }
   if (target.IsNull()) {
     // If the selector is not defined on Null, we can propagate non-nullness.
@@ -425,8 +425,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       left = instance_of->value()->definition();
     }
     if (!type->IsTopTypeForInstanceOf()) {
-      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter() ||
-                                (type->IsNeverType() && type->IsLegacy()))
+      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter())
                                    ? CompileType::kCanBeNull
                                    : CompileType::kCannotBeNull;
       EnsureMoreAccurateRedefinition(
@@ -1410,7 +1409,7 @@ CompileType StrictCompareInstr::ComputeType() const {
   return CompileType::Bool();
 }
 
-CompileType TestSmiInstr::ComputeType() const {
+CompileType TestIntInstr::ComputeType() const {
   return CompileType::Bool();
 }
 
@@ -1527,21 +1526,17 @@ CompileType DispatchTableCallInstr::ComputeType() const {
 }
 
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
-  bool is_nullable = CompileType::kCanBeNull;
   if (IsSureToCallSingleRecognizedTarget()) {
     const Function& target = *targets_.TargetAt(0)->target;
     if (target.has_pragma()) {
       const intptr_t cid = MethodRecognizer::ResultCidFromPragma(target);
       if (cid != kDynamicCid) {
         return CompileType::FromCid(cid);
-      } else if (MethodRecognizer::HasNonNullableResultTypeFromPragma(target)) {
-        is_nullable = CompileType::kCannotBeNull;
       }
     }
   }
 
-  CompileType type = InstanceCallBaseInstr::ComputeType();
-  return is_nullable ? type : type.CopyNonNullable();
+  return InstanceCallBaseInstr::ComputeType();
 }
 
 static CompileType ComputeListFactoryType(CompileType* inferred_type,
@@ -1595,9 +1590,6 @@ CompileType StaticCallInstr::ComputeType() const {
     const intptr_t cid = MethodRecognizer::ResultCidFromPragma(function_);
     if (cid != kDynamicCid) {
       return CompileType::FromCid(cid);
-    }
-    if (MethodRecognizer::HasNonNullableResultTypeFromPragma(function_)) {
-      is_nullable = CompileType::kCannotBeNull;
     }
   }
 

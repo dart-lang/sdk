@@ -24,8 +24,8 @@ class ClosingLabelsTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_afterChange() async {
-    final initialContent = 'void f() {}';
-    final updatedContent = '''
+    var initialContent = 'void f() {}';
+    var updatedContent = '''
 Widget build(BuildContext context) {
   return new Row(         // Row       1:9
     children: <Widget>[   // Widget[]  2:14
@@ -37,19 +37,19 @@ Widget build(BuildContext context) {
 ''';
     await initialize(initializationOptions: {'closingLabels': true});
 
-    final labelsUpdateBeforeChange = waitForClosingLabels(mainFileUri);
+    var labelsUpdateBeforeChange = waitForClosingLabels(mainFileUri);
     await openFile(mainFileUri, initialContent);
-    final labelsBeforeChange = await labelsUpdateBeforeChange;
+    var labelsBeforeChange = await labelsUpdateBeforeChange;
 
-    final labelsUpdateAfterChange = waitForClosingLabels(mainFileUri);
+    var labelsUpdateAfterChange = waitForClosingLabels(mainFileUri);
     await replaceFile(1, mainFileUri, updatedContent);
-    final labelsAfterChange = await labelsUpdateAfterChange;
+    var labelsAfterChange = await labelsUpdateAfterChange;
 
     expect(labelsBeforeChange, isEmpty);
     expect(labelsAfterChange, hasLength(2));
 
-    final first = labelsAfterChange.first;
-    final second = labelsAfterChange.last;
+    var first = labelsAfterChange.first;
+    var second = labelsAfterChange.last;
 
     expect(first.label, equals('Row'));
     expect(first.range.start.line, equals(1));
@@ -65,7 +65,7 @@ Widget build(BuildContext context) {
   }
 
   Future<void> test_initial() async {
-    final content = '''
+    var content = '''
 Widget build(BuildContext context) {
   return new Row(         // Row       1:9
     children: <Widget>[   // Widget[]  2:14
@@ -77,13 +77,13 @@ Widget build(BuildContext context) {
 ''';
     await initialize(initializationOptions: {'closingLabels': true});
 
-    final closingLabelsUpdate = waitForClosingLabels(mainFileUri);
+    var closingLabelsUpdate = waitForClosingLabels(mainFileUri);
     await openFile(mainFileUri, content);
-    final labels = await closingLabelsUpdate;
+    var labels = await closingLabelsUpdate;
 
     expect(labels, hasLength(2));
-    final first = labels.first;
-    final second = labels.last;
+    var first = labels.first;
+    var second = labels.last;
 
     expect(first.label, equals('Row'));
     expect(first.range.start.line, equals(1));

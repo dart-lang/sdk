@@ -11,6 +11,7 @@ import 'dart:isolate';
 import 'test/utils/io_utils.dart';
 
 Future<void> main(List<String> args) async {
+  Directory.current = Directory.fromUri(_repoDir);
   Stopwatch stopwatch = new Stopwatch()..start();
   // Expect something like /full/path/to/sdk/pkg/some_dir/whatever/else
   if (args.length != 1) throw "Need exactly one argument.";
@@ -76,8 +77,8 @@ const Set<String> _generatedFilesUpToDateFiles = {
   "pkg/_fe_analyzer_shared/lib/src/parser/listener.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/parser_impl.dart",
   "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart",
-  "pkg/front_end/lib/src/fasta/codes/fasta_codes_cfe_generated.dart",
-  "pkg/front_end/lib/src/fasta/util/parser_ast_helper.dart",
+  "pkg/front_end/lib/src/codes/cfe_codes_generated.dart",
+  "pkg/front_end/lib/src/util/parser_ast_helper.dart",
   "pkg/front_end/messages.yaml",
   "pkg/front_end/test/generated_files_up_to_date_git_test.dart",
   "pkg/front_end/test/parser_test_listener_creator.dart",

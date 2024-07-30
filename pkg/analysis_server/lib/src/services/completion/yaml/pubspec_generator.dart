@@ -17,7 +17,7 @@ class PubPackageNameProducer extends KeyValueProducer {
   @override
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
-    final cachedPackages = request.pubPackageService?.cachedPackages;
+    var cachedPackages = request.pubPackageService?.cachedPackages;
     if (cachedPackages != null) {
       var relevance = cachedPackages.length;
       yield* cachedPackages.map((package) =>
@@ -36,9 +36,9 @@ class PubPackageVersionProducer extends Producer {
   @override
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
-    final versions = request.pubPackageService
+    var versions = request.pubPackageService
         ?.cachedPubOutdatedVersions(request.filePath, package);
-    final resolvable = versions?.resolvableVersion;
+    var resolvable = versions?.resolvableVersion;
     var latest = versions?.latestVersion;
 
     // If we didn't get a latest version from the "pub outdated" results, we can
@@ -77,6 +77,8 @@ class PubspecGenerator extends YamlCompletionGenerator {
       'flutter': EmptyProducer(),
       'sdk': EmptyProducer(),
     }),
+    'workspace': ListProducer(FilePathProducer()),
+    'resolution': EnumProducer(['external', 'local', 'workspace']),
     'dependencies': PubPackageNameProducer(),
     'dev_dependencies': PubPackageNameProducer(),
     // TODO(brianwilkerson): Suggest names already listed under 'dependencies'

@@ -24,7 +24,7 @@ class C<T> {}
 var t = C<int>;
 ''');
 
-    final node = findNode.typeLiteral('C<int>;');
+    var node = findNode.typeLiteral('C<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -52,7 +52,7 @@ import 'a.dart' as a;
 var t = a.C<int>;
 ''');
 
-    final node = findNode.typeLiteral('C<int>;');
+    var node = findNode.typeLiteral('C<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -83,7 +83,7 @@ var t = C<int>;
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 26, 5),
     ]);
 
-    final node = findNode.typeLiteral('C<int>;');
+    var node = findNode.typeLiteral('C<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -110,7 +110,7 @@ var t = C<int, int>;
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 23, 10),
     ]);
 
-    final node = findNode.typeLiteral('C<int, int>;');
+    var node = findNode.typeLiteral('C<int, int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -142,7 +142,7 @@ var t = C<String>;
           contextMessages: [message(testFile, 34, 9)]),
     ]);
 
-    final node = findNode.typeLiteral('C<String>;');
+    var node = findNode.typeLiteral('C<String>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -168,7 +168,7 @@ typedef CA<T> = C<T>;
 var t = CA<int>;
 ''');
 
-    final node = findNode.typeLiteral('CA<int>;');
+    var node = findNode.typeLiteral('CA<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -197,7 +197,7 @@ typedef CA<T> = C<T, int>;
 var t = CA<String>;
 ''');
 
-    final node = findNode.typeLiteral('CA<String>;');
+    var node = findNode.typeLiteral('CA<String>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -226,7 +226,7 @@ typedef CA<T> = C<T>;
 var t = CA<void Function()>;
 ''');
 
-    final node = findNode.typeLiteral('CA<void Function()>;');
+    var node = findNode.typeLiteral('CA<void Function()>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -268,7 +268,7 @@ import 'a.dart' as a;
 var t = a.CA<int>;
 ''');
 
-    final node = findNode.typeLiteral('CA<int>;');
+    var node = findNode.typeLiteral('CA<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -304,7 +304,7 @@ var t = CA<String>;
           contextMessages: [message(testFile, 56, 10)]),
     ]);
 
-    final node = findNode.typeLiteral('CA<String>;');
+    var node = findNode.typeLiteral('CA<String>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -332,7 +332,7 @@ extension type A<T>(T it) {}
 final v = A<int>;
 ''');
 
-    final node = findNode.typeLiteral('A<int>;');
+    var node = findNode.typeLiteral('A<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -361,7 +361,7 @@ import 'a.dart' as a;
 var t = a.A<int>;
 ''');
 
-    final node = findNode.typeLiteral('A<int>;');
+    var node = findNode.typeLiteral('A<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -390,7 +390,7 @@ typedef Fn<T> = void Function(T);
 var t = Fn<int>;
 ''');
 
-    final node = findNode.typeLiteral('Fn<int>;');
+    var node = findNode.typeLiteral('Fn<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -421,7 +421,7 @@ import 'a.dart' as a;
 var t = a.Fn<int>;
 ''');
 
-    final node = findNode.typeLiteral('Fn<int>;');
+    var node = findNode.typeLiteral('Fn<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -462,7 +462,7 @@ extension E on Type {
       error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 58, 3),
     ]);
 
-    final node = findNode.typeLiteral('Fn<int>');
+    var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -502,7 +502,7 @@ extension E on Type {
       error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 48, 3),
     ]);
 
-    final node = findNode.typeLiteral('Fn<int>');
+    var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -541,7 +541,7 @@ extension E on Type {
 }
 ''');
 
-    final node = findNode.typeLiteral('Fn<int>');
+    var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -578,7 +578,7 @@ extension E on Type {
       error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
     ]);
 
-    final node = findNode.typeLiteral('Fn<int>');
+    var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -613,7 +613,7 @@ extension E on Type {
 }
 ''');
 
-    final node = findNode.typeLiteral('Fn<int>');
+    var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -650,7 +650,7 @@ extension E on Type {
       error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3),
     ]);
 
-    final node = findNode.typeLiteral('Fn<int>');
+    var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -685,7 +685,7 @@ extension E on Type {
 }
 ''');
 
-    final node = findNode.typeLiteral('Fn<int>');
+    var node = findNode.typeLiteral('Fn<int>');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -715,7 +715,7 @@ var t = Fn<int>;
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 5),
     ]);
 
-    final node = findNode.typeLiteral('Fn<int>;');
+    var node = findNode.typeLiteral('Fn<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -746,7 +746,7 @@ var t = Fn<int, String>;
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 13),
     ]);
 
-    final node = findNode.typeLiteral('Fn<int, String>;');
+    var node = findNode.typeLiteral('Fn<int, String>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -781,7 +781,7 @@ var t = Fn<String>;
           contextMessages: [message(testFile, 54, 10)]),
     ]);
 
-    final node = findNode.typeLiteral('Fn<String>;');
+    var node = findNode.typeLiteral('Fn<String>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -809,7 +809,7 @@ mixin M<T> {}
 var t = M<int>;
 ''');
 
-    final node = findNode.typeLiteral('M<int>;');
+    var node = findNode.typeLiteral('M<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -834,7 +834,7 @@ typedef T<E> = E;
 var t = T<int>;
 ''');
 
-    final node = findNode.typeLiteral('T<int>;');
+    var node = findNode.typeLiteral('T<int>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType
@@ -862,7 +862,7 @@ typedef T<E> = E;
 var t = T<void Function()>;
 ''');
 
-    final node = findNode.typeLiteral('T<void Function()>;');
+    var node = findNode.typeLiteral('T<void Function()>;');
     assertResolvedNodeText(node, r'''
 TypeLiteral
   type: NamedType

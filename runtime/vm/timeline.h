@@ -547,12 +547,8 @@ class TimelineEvent {
     return PreSerializedArgsBit::decode(state_);
   }
 
-  TimelineEvent* next() const {
-    return next_;
-  }
-  void set_next(TimelineEvent* next) {
-    next_ = next;
-  }
+  TimelineEvent* next() const { return next_; }
+  void set_next(TimelineEvent* next) { next_ = next; }
 
  private:
   void StreamInit(TimelineStream* stream) { stream_ = stream; }
@@ -642,11 +638,11 @@ class TimelineTrackMetadata {
  public:
   TimelineTrackMetadata(intptr_t pid,
                         intptr_t tid,
-                        Utils::CStringUniquePtr&& track_name);
+                        CStringUniquePtr&& track_name);
   intptr_t pid() const { return pid_; }
   intptr_t tid() const { return tid_; }
   const char* track_name() const { return track_name_.get(); }
-  inline void set_track_name(Utils::CStringUniquePtr&& track_name);
+  inline void set_track_name(CStringUniquePtr&& track_name);
 #if !defined(PRODUCT)
   /*
    * Prints a Chrome-format event representing the metadata stored by this
@@ -669,7 +665,7 @@ class TimelineTrackMetadata {
   // The trace ID of the thread that this track is associated with.
   intptr_t tid_;
   // The name of this track.
-  Utils::CStringUniquePtr track_name_;
+  CStringUniquePtr track_name_;
 };
 
 class AsyncTimelineTrackMetadata {
@@ -1087,9 +1083,7 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual void OnEvent(TimelineEvent* event) = 0;
 
   const char* name() const { return CALLBACK_RECORDER_NAME; }
-  intptr_t Size() {
-    return 0;
-  }
+  intptr_t Size() { return 0; }
 
  protected:
   TimelineEventBlock* GetNewBlockLocked() { UNREACHABLE(); }

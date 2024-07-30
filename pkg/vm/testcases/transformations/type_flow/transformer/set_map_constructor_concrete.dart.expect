@@ -42,6 +42,8 @@ static field core::Map<core::String, core::String> linkedIdentityMap = [@vm.infe
 
 [@vm.inferred-type.metadata=dart.collection::_CompactLinkedCustomHashMap<dart.core::String, dart.core::String>]
 static field core::Map<core::String, core::String> linkedCustomMap = let final (core::String, core::String) → core::bool #t4 = (core::String a, core::String b) → core::bool => [@vm.inferred-type.metadata=dart.core::bool (receiver not int)] a =={core::String::==}{(core::Object) → core::bool} b in let final (core::String) → core::int #t5 = (core::String o) → core::int => [@vm.inferred-type.metadata=dart.core::_Smi] o.{core::String::hashCode}{core::int} in let final (dynamic) → core::bool #t6 = (dynamic o) → core::bool => true in [@vm.inferred-type.metadata=dart.collection::_CompactLinkedCustomHashMap<dart.core::String, dart.core::String>] col::LinkedHashMap::•<core::String, core::String>(#t4, #t5, isValidKey: #t6);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   core::print([@vm.inferred-type.metadata=dart.collection::_Set<dynamic>] self::globalSet);
   core::print([@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashSet<dynamic>] self::identitySet);

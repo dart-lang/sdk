@@ -55,14 +55,14 @@ void main() {
       if (messageSet.length >= 6) {
         server.close();
         port.close();
-        Expect.setEquals([
+        Expect.setEquals({
           "Root 1",
           "Root 2",
           "Branch 1",
           "Branch 2",
           "Leaf 1",
           "Leaf 2",
-        ], messageSet);
+        }, messageSet);
       }
     });
 

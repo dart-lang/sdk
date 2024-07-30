@@ -20,13 +20,13 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag, defaultExperimentalFlags;
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
+import 'package:front_end/src/base/command_line_reporting.dart'
+    as command_line_reporting;
+import 'package:front_end/src/base/hybrid_file_system.dart'
+    show HybridFileSystem;
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/command_line_reporting.dart'
-    as command_line_reporting;
-import 'package:front_end/src/fasta/hybrid_file_system.dart'
-    show HybridFileSystem;
 import 'package:kernel/ast.dart' show Location, Source;
 import "package:kernel/target/targets.dart" show TargetFlags;
 import "package:testing/testing.dart"

@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 mixin TestMixin<R, T> {
   Future<T> test(Future<R> fetch) async {}
 }

@@ -110,7 +110,7 @@ class InferredType {
     }
     if (_constantValue != null) {
       buf.write(
-          ' (value: ${_constantValue!.toText(astTextStrategyForTesting)})');
+          ' (value: ${_constantValue.toText(astTextStrategyForTesting)})');
     }
     if (receiverNotInt) {
       buf.write(' (receiver not int)');
@@ -174,6 +174,15 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
 /// Repository for incoming argument [InferredType].
 class InferredArgTypeMetadataRepository extends InferredTypeMetadataRepository {
   static const String repositoryTag = 'vm.inferred-arg-type.metadata';
+
+  @override
+  String get tag => repositoryTag;
+}
+
+/// Repository for returned [InferredType].
+class InferredReturnTypeMetadataRepository
+    extends InferredTypeMetadataRepository {
+  static const String repositoryTag = 'vm.inferred-return-type.metadata';
 
   @override
   String get tag => repositoryTag;

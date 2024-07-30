@@ -26,10 +26,26 @@ intValue.truncate();
 
 string.toString();
 string = 'hello\n'
-    'world\n'
-    ''; // useless empty string
+    ''
+    'world';
 
 'string with ${x.toString()}';
+```
+
+Note that the empty string literals at the beginning or end of a string are
+allowed, as they are typically used to format the string literal across multiple
+lines:
+
+```dart
+// OK
+string = ''
+    'hello\n'
+    'world\n';
+
+// OK
+string = 'hello\n'
+    'world\n'
+    '';
 ```
 ''';
 
@@ -43,7 +59,7 @@ class NoopPrimitiveOperations extends LintRule {
           name: 'noop_primitive_operations',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override
@@ -69,7 +85,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    for (var literal in node.strings) {
+    // We allow empty string literals at the beginning or end of a string:
+    // https://github.com/dart-lang/sdk/issues/55541#issuecomment-2073437613
+    for (var i = 1; i < node.strings.length - 1; i++) {
+      var literal = node.strings[i];
       if (literal.stringValue?.isEmpty ?? false) {
         rule.reportLint(literal);
       }

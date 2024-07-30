@@ -20,7 +20,8 @@ library;
 // ignore_for_file: overridden_fields
 
 import 'dart:async';
-import 'dart:convert' show base64, jsonDecode, jsonEncode, utf8;
+import 'dart:convert'
+    show base64, jsonDecode, JsonDecoder, jsonEncode, utf8, Utf8Decoder;
 import 'dart:typed_data';
 
 export 'snapshot_graph.dart' show HeapSnapshotClass,
@@ -65,6 +66,10 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
   }
 
   Future<void> dispose() async {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
     await _streamSub.cancel();
     _outstandingRequests.forEach((id, request) {
       request._completer.completeError(RPCError(
@@ -78,9 +83,8 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     if (handler != null) {
       await handler();
     }
-    if (!_onDoneCompleter.isCompleted) {
-      _onDoneCompleter.complete();
-    }
+    assert(!_onDoneCompleter.isCompleted);
+    _onDoneCompleter.complete();
   }
 
   /// When overridden, this method wraps [future] with logic.
@@ -96,6 +100,13 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
   }
 
   Future<T> _call<T>(String method, [Map args = const {}]) {
+    if (_disposed) {
+      throw RPCError(
+        method,
+        RPCErrorKind.kServerError.code,
+        'Service connection disposed',
+      );
+    }
     return wrapFuture<T>(
       method,
       () {
@@ -145,11 +156,11 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     final int dataOffset = bytes.getUint32(0, Endian.little);
     final metaLength = dataOffset - metaOffset;
     final dataLength = bytes.lengthInBytes - dataOffset;
-    final meta = utf8.decode(Uint8List.view(
-        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength));
+    final decoder = (const Utf8Decoder()).fuse(const JsonDecoder());
+    final map = decoder.convert(Uint8List.view(
+        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength)) as dynamic;
     final data = ByteData.view(
         bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
-    final map = jsonDecode(meta)!;
     if (map['method'] == 'streamNotify') {
       final streamId = map['params']['streamId'];
       final event = map['params']['event'];
@@ -581,6 +592,8 @@ typedef VmServiceFactory<T extends VmService> = T Function({
   Future<void> get onDone => _onDoneCompleter.future;
   final _onDoneCompleter = Completer<void>();
 
+  bool _disposed = false;
+
   final _eventControllers = <String, StreamController<Event>>{};
 
   StreamController<Event> _getEventController(String eventName) {
@@ -602,16 +615,14 @@ typedef VmServiceFactory<T extends VmService> = T Function({
     Future? streamClosed,
     this.wsUri,
   }) {
-    _streamSub = inStream.listen(_processMessage,
-        onDone: () => _onDoneCompleter.complete());
+    _streamSub = inStream.listen(
+      _processMessage,
+      onDone: () async => await dispose(),
+    );
     _writeMessage = writeMessage;
     _log = log ?? _NullLog();
     _disposeHandler = disposeHandler;
-    streamClosed?.then((_) {
-      if (!_onDoneCompleter.isCompleted) {
-        _onDoneCompleter.complete();
-      }
-    });
+    streamClosed?.then((_) async => await dispose());
   }
 
   static VmService defaultFactory({

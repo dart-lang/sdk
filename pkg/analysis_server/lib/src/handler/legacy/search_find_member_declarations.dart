@@ -16,9 +16,10 @@ class SearchFindMemberDeclarationsHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    final searchEngine = server.searchEngine;
-    var params =
-        protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
+    var searchEngine = server.searchEngine;
+    var params = protocol.SearchFindMemberDeclarationsParams.fromRequest(
+        request,
+        clientUriConverter: server.uriConverter);
     await server.onAnalysisComplete;
     // respond
     var searchId = (server.nextSearchId++).toString();

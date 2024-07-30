@@ -7,11 +7,11 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
-import 'package:front_end/src/fasta/source/source_member_builder.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' hide Variance, MapLiteralEntry;
+import 'package:front_end/src/type_inference/type_inference_engine.dart';
+import 'package:kernel/ast.dart' hide MapLiteralEntry;
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
@@ -21,8 +21,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const WhyNotPromotedDataComputer(), [cfeNonNullableOnlyConfig]));
+      runTest:
+          runTestFor(const WhyNotPromotedDataComputer(), [defaultCfeConfig]));
 }
 
 class WhyNotPromotedDataComputer extends CfeDataComputer<String> {

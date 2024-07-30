@@ -36,7 +36,6 @@ Future<Map<String, dynamic>> makeHttpServiceRequest({
   final request = await httpClient.getUrl(requestUri);
   final response = await request.close();
   final jsonResponse = await response
-      .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(json.decoder)
       .first as Map<String, dynamic>;

@@ -2,22 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => true;
+  ReplaceWithDecoratedBox({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_DECORATED_BOX;
@@ -44,7 +45,6 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
 
     var deletions = <Token>[];
     var replacements = <AstNode, String>{};
-    var linterContext = getLinterContext(resourceProvider.pathContext);
 
     void replace(Expression expression, {required bool addConst}) {
       if (expression is InstanceCreationExpression && _hasLint(expression)) {
@@ -57,7 +57,7 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     /// and return whether it can be a `const` or not.
     bool canExpressionBeConst(Expression expression,
         {required bool isReplace}) {
-      var canBeConst = linterContext.canBeConst(expression);
+      var canBeConst = expression.canBeConst;
       if (!canBeConst &&
           isReplace &&
           expression is InstanceCreationExpression &&

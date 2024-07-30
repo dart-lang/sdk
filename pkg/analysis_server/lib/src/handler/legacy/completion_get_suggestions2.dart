@@ -23,7 +23,6 @@ import 'package:analysis_server/src/services/completion/yaml/yaml_completion_gen
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 /// The handler for the `completion.getSuggestions2` request.
@@ -43,8 +42,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     required CompletionBudget budget,
     required OperationPerformanceImpl performance,
     required DartCompletionRequest request,
-    Set<ElementKind>? includedElementKinds,
-    Set<String>? includedElementNames,
+    required int maxSuggestions,
     NotImportedSuggestions? notImportedSuggestions,
     required bool useFilter,
   }) async {
@@ -62,8 +60,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     await performance.runAsync('computeSuggestions', (performance) async {
       var manager = DartCompletionManager(
         budget: budget,
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
         notImportedSuggestions: notImportedSuggestions,
       );
 
@@ -71,6 +67,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         await manager.computeSuggestions(
           request,
           performance,
+          maxSuggestions: maxSuggestions,
           useFilter: useFilter,
         ),
       );
@@ -115,7 +112,8 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     }
 
     var requestLatency = request.timeSinceRequest;
-    var params = CompletionGetSuggestions2Params.fromRequest(request);
+    var params = CompletionGetSuggestions2Params.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
     var offset = params.offset;
 
@@ -130,14 +128,14 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     var pathContext = provider.pathContext;
 
     if (file.endsWith('.yaml')) {
-      final suggestions = computeYamlSuggestions(file, offset);
+      var suggestions = computeYamlSuggestions(file, offset);
       server.sendResponse(
         CompletionGetSuggestions2Result(
           suggestions.replacementOffset,
           suggestions.replacementLength,
           suggestions.suggestions,
           false,
-        ).toResponse(request.id),
+        ).toResponse(request.id, clientUriConverter: server.uriConverter),
       );
       return;
     }
@@ -145,7 +143,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(
         CompletionGetSuggestions2Result(offset, 0, [], false)
-            .toResponse(request.id),
+            .toResponse(request.id, clientUriConverter: server.uriConverter),
       );
       return;
     }
@@ -177,7 +175,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
           return;
         }
 
-        final completionPerformance = CompletionPerformance(
+        var completionPerformance = CompletionPerformance(
           performance: performance,
           path: file,
           requestLatency: requestLatency,
@@ -210,6 +208,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
             budget: budget,
             performance: performance,
             request: completionRequest,
+            maxSuggestions: params.maxResults,
             notImportedSuggestions: notImportedSuggestions,
             useFilter: true,
           );
@@ -220,7 +219,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
               completionRequest.replacementLength,
               [],
               true,
-            ).toResponse(request.id),
+            ).toResponse(request.id, clientUriConverter: server.uriConverter),
           );
         }
 

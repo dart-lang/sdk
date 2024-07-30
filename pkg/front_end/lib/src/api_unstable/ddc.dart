@@ -36,15 +36,14 @@ export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
+export '../base/compiler_context.dart' show CompilerContext;
+export '../base/hybrid_file_system.dart' show HybridFileSystem;
+export '../base/incremental_compiler.dart' show IncrementalCompiler;
 export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/processed_options.dart' show ProcessedOptions;
-export '../fasta/compiler_context.dart' show CompilerContext;
-export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
-export '../fasta/incremental_compiler.dart' show IncrementalCompiler;
-export '../fasta/kernel/constructor_tearoff_lowering.dart'
-    show isTearOffLowering;
-export '../fasta/ticker.dart' show Ticker;
-export '../fasta/type_inference/type_schema_environment.dart'
+export '../base/ticker.dart' show Ticker;
+export '../kernel/constructor_tearoff_lowering.dart' show isTearOffLowering;
+export '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;
 export 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
@@ -104,6 +103,7 @@ InitializedCompilerState initializeCompiler(
     Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
     required NnbdMode nnbdMode,
+    bool requirePrebuiltMacros = false,
     List<String>? precompiledMacros,
     String? macroSerializationMode}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
@@ -117,7 +117,9 @@ InitializedCompilerState initializeCompiler(
       equalLists(oldState.options.additionalDills, additionalDills) &&
       equalMaps(oldState.options.explicitExperimentalFlags,
           explicitExperimentalFlags) &&
-      equalMaps(oldState.options.environmentDefines, environmentDefines)) {
+      equalMaps(oldState.options.environmentDefines, environmentDefines) &&
+      equalLists(oldState.options.precompiledMacros, precompiledMacros) &&
+      oldState.options.requirePrebuiltMacros == requirePrebuiltMacros) {
     // Reuse old state.
     return oldState;
   }
@@ -166,6 +168,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     required Map<String, String> environmentDefines,
     bool trackNeededDillLibraries = false,
+    bool requirePrebuiltMacros = false,
+    List<String> precompiledMacros = const [],
     required NnbdMode nnbdMode}) {
   return modular.initializeIncrementalCompiler(
       oldState,
@@ -184,6 +188,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       environmentDefines: environmentDefines,
       outlineOnly: false,
       omitPlatform: false,
+      requirePrebuiltMacros: requirePrebuiltMacros,
+      precompiledMacros: precompiledMacros,
       trackNeededDillLibraries: trackNeededDillLibraries,
       nnbdMode: nnbdMode);
 }

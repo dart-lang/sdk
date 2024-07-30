@@ -6,24 +6,20 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show LanguageVersionToken, Scanner, ScannerConfiguration, scan;
-
 import 'package:kernel/ast.dart' show Version;
-export 'package:kernel/ast.dart' show Version;
-
 import 'package:package_config/package_config.dart'
     show InvalidLanguageVersion, Package;
 
+import '../base/compiler_context.dart' show CompilerContext;
 import '../base/processed_options.dart' show ProcessedOptions;
-
-import '../fasta/compiler_context.dart' show CompilerContext;
-
-import '../fasta/uri_translator.dart' show UriTranslator;
-
+import '../base/uri_translator.dart' show UriTranslator;
 import 'compiler_options.dart' show CompilerOptions;
-
 import 'experimental_flags.dart' show ExperimentalFlag;
 import 'file_system.dart' show FileSystem, FileSystemException;
 
+export 'package:kernel/ast.dart' show Version;
+
+// Coverage-ignore(suite): Not run.
 /// Gets the language version for a specific URI.
 ///
 /// Note that this returning some language version, doesn't mean there aren't
@@ -133,6 +129,7 @@ Future<VersionAndPackageUri> languageVersionForUri(
   });
 }
 
+// Coverage-ignore(suite): Not run.
 /// Returns `true` if the language version of [uri] does not support null
 /// safety.
 Future<bool> uriUsesLegacyLanguageVersion(
@@ -147,6 +144,7 @@ Future<bool> uriUsesLegacyLanguageVersion(
       versionAndLibraryUri.version);
 }
 
+// Coverage-ignore(suite): Not run.
 class VersionAndPackageUri {
   final Version version;
   final Uri packageUri;

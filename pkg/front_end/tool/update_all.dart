@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart' as id;
+
 import 'update_expectations.dart' as expectations;
 
 const List<String> idTests = <String>[

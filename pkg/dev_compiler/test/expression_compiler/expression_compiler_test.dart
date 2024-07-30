@@ -11,18 +11,6 @@ import 'expression_compiler_suite.dart';
 void main(List<String> args) {
   for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
     group('Module format: $moduleFormat |', () {
-      group('Unsound null safety |', () {
-        runTests(SetupCompilerOptions(
-          soundNullSafety: false,
-          moduleFormat: moduleFormat,
-          args: args,
-        ));
-      });
-    });
-  }
-
-  for (var moduleFormat in [ModuleFormat.amd, ModuleFormat.ddc]) {
-    group('Module format: $moduleFormat |', () {
       group('Sound null safety |', () {
         runTests(SetupCompilerOptions(
           soundNullSafety: true,

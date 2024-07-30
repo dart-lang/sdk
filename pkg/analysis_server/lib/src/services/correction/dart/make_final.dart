@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class MakeFinal extends ResolvedCorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => true;
+  MakeFinal({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_FINAL;
@@ -25,8 +25,8 @@ class MakeFinal extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
-    final parent = node.parent;
+    var node = this.node;
+    var parent = node.parent;
 
     if (node is DeclaredIdentifier && parent is ForEachPartsWithDeclaration) {
       await builder.addDartFileEdit(file, (builder) {
@@ -42,16 +42,16 @@ class MakeFinal extends ResolvedCorrectionProducer {
 
     if (node is SimpleFormalParameter) {
       await builder.addDartFileEdit(file, (builder) {
-        final keyword = node.keyword;
+        var keyword = node.keyword;
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addSimpleReplacement(range.token(keyword), 'final');
         } else {
-          final type = node.type;
+          var type = node.type;
           if (type != null) {
             builder.addSimpleInsertion(type.offset, 'final ');
             return;
           }
-          final identifier = node.name;
+          var identifier = node.name;
           if (identifier != null) {
             builder.addSimpleInsertion(identifier.offset, 'final ');
           } else {
@@ -83,21 +83,31 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (node is DeclaredVariablePattern) {
-      var keyword = node.keyword;
-      if (keyword == null) {
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleInsertion(node.offset, 'final ');
-        });
-      } else if (node.type == null) {
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.token(keyword), 'final');
-        });
+    if (node is DeclaredVariablePatternImpl) {
+      switch (node.patternContext) {
+        case ForEachPartsWithPatternImpl patternContext:
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addSimpleReplacement(
+              range.token(patternContext.keyword),
+              'final',
+            );
+          });
+        default:
+          var keyword = node.keyword;
+          if (keyword == null) {
+            await builder.addDartFileEdit(file, (builder) {
+              builder.addSimpleInsertion(node.offset, 'final ');
+            });
+          } else if (node.type == null) {
+            await builder.addDartFileEdit(file, (builder) {
+              builder.addSimpleReplacement(range.token(keyword), 'final');
+            });
+          }
       }
       return;
     }
 
-    final list = _getVariableDeclarationList(node);
+    var list = _getVariableDeclarationList(node);
     if (list != null && list.variables.length == 1) {
       await builder.addDartFileEdit(file, (builder) {
         var keyword = list.keyword;
@@ -118,7 +128,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return node;
     }
 
-    final parent = node.parent;
+    var parent = node.parent;
     if (node is VariableDeclaration && parent is VariableDeclarationList) {
       return parent;
     }
@@ -127,7 +137,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return parent;
     }
 
-    final parent2 = parent?.parent;
+    var parent2 = parent?.parent;
     if (parent is NamedType && parent2 is VariableDeclarationList) {
       return parent2;
     }

@@ -267,11 +267,15 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
-  void visitMethodInvocation(MethodInvocation node,
+  /// Resolves the method invocation, [node].
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
+  FunctionExpressionInvocation? visitMethodInvocation(MethodInvocation node,
       {List<WhyNotPromotedGetter>? whyNotPromotedList,
       required DartType contextType}) {
     whyNotPromotedList ??= [];
-    _methodInvocationResolver.resolve(
+    return _methodInvocationResolver.resolve(
         node as MethodInvocationImpl, whyNotPromotedList,
         contextType: contextType);
   }
@@ -307,12 +311,13 @@ class ElementResolver {
       // TODO(brianwilkerson): Report this error.
       return;
     }
+    var enclosingAugmented = enclosingClass.augmented;
     ConstructorElement? element;
     var name = node.constructorName;
     if (name == null) {
-      element = enclosingClass.unnamedConstructor;
+      element = enclosingAugmented.unnamedConstructor;
     } else {
-      element = enclosingClass.getNamedConstructor(name.name);
+      element = enclosingAugmented.getNamedConstructor(name.name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to

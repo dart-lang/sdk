@@ -24,8 +24,12 @@ typedef DTDServiceCallback = Future<Map<String, Object?>> Function(
 ///
 /// The base interactions for Dart Tooling Daemon are found here.
 class DartToolingDaemon {
-  DartToolingDaemon._(StreamChannel connectionChannel)
-      : _clientPeer = Peer(connectionChannel.cast<String>()) {
+  /// Connects to a Dart Tooling Daemon instance over the provided
+  /// [streamChannel].
+  ///
+  /// To over a WebSocket, the [DartToolingDaemon.connect] helper can be used.
+  DartToolingDaemon.fromStreamChannel(StreamChannel<String> streamChannel)
+      : _clientPeer = Peer(streamChannel) {
     _clientPeer.registerMethod('streamNotify', (Parameters params) {
       final streamId = params['streamId'].asString;
       final eventKind = params['eventKind'].asString;
@@ -49,11 +53,12 @@ class DartToolingDaemon {
   ///
   /// ```dart
   /// final uri = Uri.parse('ws://127.0.0.1:59247/em6ZgeqMpvV8tOKg');
-  /// final client = DartToolingDaemon.connectToDaemonAt(uri);
+  /// final client = DartToolingDaemon.connect(uri);
   /// ```
   static Future<DartToolingDaemon> connect(Uri uri) async {
     final channel = WebSocketChannel.connect(uri);
-    return DartToolingDaemon._(channel);
+    await channel.ready;
+    return DartToolingDaemon.fromStreamChannel(channel.cast<String>());
   }
 
   late final Peer _clientPeer;
@@ -176,7 +181,7 @@ class DartToolingDaemon {
   Future<DTDResponse> call(
     String serviceName,
     String methodName, {
-    Map<String, Object>? params,
+    Map<String, Object?>? params,
   }) async {
     final json = await _clientPeer.sendRequest(
       '$serviceName.$methodName',
@@ -256,6 +261,8 @@ class DartToolingDaemon {
   ///
   /// If [uri] does not have a file scheme, then an [RpcException] with
   /// [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
+  ///
+  /// The returned uris will be `file://` Uris.
   Future<UriList> listDirectoryContents(Uri uri) async {
     final result = await call(
       kFileSystemServiceName,
@@ -293,6 +300,8 @@ class DartToolingDaemon {
   }
 
   /// Gets the IDE workspace roots for the FileSystem service.
+  ///
+  /// The returned uris will be `file://` Uris.
   Future<IDEWorkspaceRoots> getIDEWorkspaceRoots() async {
     final result = await call(
       kFileSystemServiceName,
@@ -310,6 +319,8 @@ class DartToolingDaemon {
   ///
   /// [depth] is the maximum depth that each IDE workspace root directory tree
   /// will be searched for project roots.
+  ///
+  /// The returned uris will be `file://` Uris.
   Future<UriList> getProjectRoots({
     int depth = defaultGetProjectRootsDepth,
   }) async {

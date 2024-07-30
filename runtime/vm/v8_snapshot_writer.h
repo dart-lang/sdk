@@ -233,7 +233,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
              intptr_t type = kInvalidString,
              intptr_t name = kInvalidString)
         : id(id),
-          edges(new (profile_writer->zone_) EdgeMap(profile_writer->zone_)),
+          edges(new(profile_writer->zone_) EdgeMap(profile_writer->zone_)),
           type(type),
           name(name) {}
 

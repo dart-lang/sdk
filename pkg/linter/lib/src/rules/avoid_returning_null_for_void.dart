@@ -8,10 +8,10 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Avoid returning null for void.';
+const _desc = r'Avoid returning `null` for `void`.';
 
 const _details = r'''
-**AVOID** returning null for void.
+**AVOID** returning `null` for `void`.
 
 In a large variety of languages `void` as return type is used to indicate that
 a function doesn't return anything. Dart allows returning `null` in functions
@@ -48,14 +48,14 @@ class AvoidReturningNullForVoid extends LintRule {
 
   static const LintCode fromMethod = LintCode('avoid_returning_null_for_void',
       "Don't return 'null' from a method with a return type of 'void'.",
-      correctionMessage: "Try removing the 'null'.");
+      correctionMessage: "Try removing the 'null'.", hasPublishedDocs: true);
 
   AvoidReturningNullForVoid()
       : super(
             name: 'avoid_returning_null_for_void',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<LintCode> get lintCodes => [fromFunction, fromMethod];

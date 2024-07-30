@@ -1,0 +1,156 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::List<core::int> list = <core::int>[1, 2, 3];
+  core::print(self::f<core::int>(list));
+  core::print(self::subs<core::int>(list));
+  core::print(self::perms<core::int>(list));
+  core::print(self::equals<core::int>(list, list));
+}
+static method f<A extends core::Object? = dynamic>(core::List<self::f::A%> list) → core::List<self::f::A%>
+  return block {
+    core::List<self::f::A%> #t1;
+    final synthesized core::List<self::f::A%> #0#0 = list;
+    #L1:
+    {
+      {
+        if(#0#0.{core::List::length}{core::int}.{core::num::<=}(#C1){(core::num) → core::bool}) {
+          #t1 = <self::f::A%>[];
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = <self::f::A%>[];
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%> list) → core::List<core::List<self::subs::A%>>
+  return block {
+    core::List<core::List<self::subs::A%>> #t2;
+    final synthesized core::List<self::subs::A%> #0#0 = list;
+    synthesized core::int #0#1;
+    synthesized core::bool #0#1#isSet = false;
+    #L2:
+    {
+      {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t3 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) {
+          #t2 = <core::List<self::subs::A%>>[];
+          break #L2;
+        }
+      }
+      {
+        hoisted self::subs::A% x;
+        hoisted core::List<self::subs::A%> xs;
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t4 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+          x = #0#0.{core::List::[]}(0){(core::int) → self::subs::A%};
+          xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::subs::A%>};
+          #t2 = block {
+            final core::List<core::List<self::subs::A%>> #t5 = <core::List<self::subs::A%>>[];
+            for (core::List<self::subs::A%> ys in self::subs<self::subs::A%>(xs))
+              #t5.{core::List::addAll}{Invariant}(<core::List<self::subs::A%>>[<self::subs::A%>[x].{core::List::+}(ys){(core::List<self::subs::A%>) → core::List<self::subs::A%>}, ys]){(core::Iterable<core::List<self::subs::A%>>) → void};
+            #t5.{core::List::add}{Invariant}(<self::subs::A%>[x]){(core::List<self::subs::A%>) → void};
+          } =>#t5;
+          break #L2;
+        }
+      }
+    }
+  } =>#t2;
+static method perms<A extends core::Object? = dynamic>(core::List<self::perms::A%> list) → core::List<core::List<self::perms::A%>>
+  return block {
+    core::List<core::List<self::perms::A%>> #t6;
+    final synthesized core::List<self::perms::A%> #0#0 = list;
+    synthesized core::int #0#1;
+    synthesized core::bool #0#1#isSet = false;
+    #L3:
+    {
+      {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t7 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool} || (#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t8 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C2) {
+          #t6 = <core::List<self::perms::A%>>[list];
+          break #L3;
+        }
+      }
+      {
+        hoisted self::perms::A% x;
+        hoisted core::List<self::perms::A%> xs;
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t9 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) {
+          x = #0#0.{core::List::[]}(0){(core::int) → self::perms::A%};
+          xs = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::perms::A%>};
+          #t6 = block {
+            final core::List<core::List<self::perms::A%>> #t10 = <core::List<self::perms::A%>>[];
+            for (core::int i = 0; i.{core::num::<}(list.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+              for (core::List<self::perms::A%> perm in self::perms<self::perms::A%>(xs))
+                #t10.{core::List::add}{Invariant}( block {
+                  final core::List<self::perms::A%> #t11 = core::List::of<self::perms::A%>(perm.{core::Iterable::take}(i){(core::int) → core::Iterable<self::perms::A%>});
+                  #t11.{core::List::add}{Invariant}(x){(self::perms::A%) → void};
+                  #t11.{core::List::addAll}{Invariant}(perm.{core::Iterable::skip}(i){(core::int) → core::Iterable<self::perms::A%>}){(core::Iterable<self::perms::A%>) → void};
+                } =>#t11){(core::List<self::perms::A%>) → void};
+          } =>#t10;
+          break #L3;
+        }
+      }
+    }
+  } =>#t6;
+static method equals<A extends core::Object? = dynamic>(core::List<self::equals::A%> a, core::List<self::equals::A%> b) → core::bool
+  return block {
+    core::bool #t12;
+    final synthesized(core::List<self::equals::A%>, core::List<self::equals::A%>) #0#0 = (a, b);
+    synthesized core::bool #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    synthesized core::List<self::equals::A%> #0#1;
+    synthesized core::bool #0#1#isSet = false;
+    synthesized core::bool #0#7;
+    synthesized core::bool #0#7#isSet = false;
+    synthesized core::int #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    synthesized core::List<self::equals::A%> #0#5;
+    synthesized core::bool #0#5#isSet = false;
+    synthesized core::bool #0#9;
+    synthesized core::bool #0#9#isSet = false;
+    synthesized core::bool #0#11;
+    synthesized core::bool #0#11#isSet = false;
+    #L4:
+    {
+      {
+        if((#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t13 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t14 = #0#2#isSet = true in #0#2 = (#0#1#isSet ?{core::List<self::equals::A%>} #0#1{core::List<self::equals::A%>} : let final dynamic #t15 = #0#1#isSet = true in #0#1 = #0#0.$1{core::List<self::equals::A%>}).{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final dynamic #t16 = #0#7#isSet = true in #0#7 = (#0#6#isSet ?{core::int} #0#6{core::int} : let final dynamic #t17 = #0#6#isSet = true in #0#6 = (#0#5#isSet ?{core::List<self::equals::A%>} #0#5{core::List<self::equals::A%>} : let final dynamic #t18 = #0#5#isSet = true in #0#5 = #0#0.$2{core::List<self::equals::A%>}).{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool})) {
+          #t12 = true;
+          break #L4;
+        }
+      }
+      {
+        if((#0#9#isSet ?{core::bool} #0#9{core::bool} : let final dynamic #t19 = #0#9#isSet = true in #0#9 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t20 = #0#2#isSet = true in #0#2 = (#0#1#isSet ?{core::List<self::equals::A%>} #0#1{core::List<self::equals::A%>} : let final dynamic #t21 = #0#1#isSet = true in #0#1 = #0#0.$1{core::List<self::equals::A%>}).{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && (#0#7#isSet ?{core::bool} #0#7{core::bool} : let final dynamic #t22 = #0#7#isSet = true in #0#7 = (#0#6#isSet ?{core::int} #0#6{core::int} : let final dynamic #t23 = #0#6#isSet = true in #0#6 = (#0#5#isSet ?{core::List<self::equals::A%>} #0#5{core::List<self::equals::A%>} : let final dynamic #t24 = #0#5#isSet = true in #0#5 = #0#0.$2{core::List<self::equals::A%>}).{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool})) {
+          #t12 = false;
+          break #L4;
+        }
+      }
+      {
+        if((#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t25 = #0#4#isSet = true in #0#4 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t26 = #0#2#isSet = true in #0#2 = (#0#1#isSet ?{core::List<self::equals::A%>} #0#1{core::List<self::equals::A%>} : let final dynamic #t27 = #0#1#isSet = true in #0#1 = #0#0.$1{core::List<self::equals::A%>}).{core::List::length}{core::int}).{core::num::<=}(#C1){(core::num) → core::bool}) && (#0#11#isSet ?{core::bool} #0#11{core::bool} : let final dynamic #t28 = #0#11#isSet = true in #0#11 = (#0#6#isSet ?{core::int} #0#6{core::int} : let final dynamic #t29 = #0#6#isSet = true in #0#6 = (#0#5#isSet ?{core::List<self::equals::A%>} #0#5{core::List<self::equals::A%>} : let final dynamic #t30 = #0#5#isSet = true in #0#5 = #0#0.$2{core::List<self::equals::A%>}).{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool})) {
+          #t12 = false;
+          break #L4;
+        }
+      }
+      {
+        hoisted self::equals::A% l;
+        hoisted core::List<self::equals::A%> ls;
+        hoisted self::equals::A% r;
+        hoisted core::List<self::equals::A%> rs;
+        if((#0#9#isSet ?{core::bool} #0#9{core::bool} : let final dynamic #t31 = #0#9#isSet = true in #0#9 = (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t32 = #0#2#isSet = true in #0#2 = (#0#1#isSet ?{core::List<self::equals::A%>} #0#1{core::List<self::equals::A%>} : let final dynamic #t33 = #0#1#isSet = true in #0#1 = #0#0.$1{core::List<self::equals::A%>}).{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool}) && (let final dynamic #t34 = l = (#0#1#isSet ?{core::List<self::equals::A%>} #0#1{core::List<self::equals::A%>} : let final dynamic #t35 = #0#1#isSet = true in #0#1 = #0#0.$1{core::List<self::equals::A%>}).{core::List::[]}(0){(core::int) → self::equals::A%} in true) && (let final dynamic #t36 = ls = (#0#1#isSet ?{core::List<self::equals::A%>} #0#1{core::List<self::equals::A%>} : let final dynamic #t37 = #0#1#isSet = true in #0#1 = #0#0.$1{core::List<self::equals::A%>}).{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::equals::A%>} in true) && (#0#11#isSet ?{core::bool} #0#11{core::bool} : let final dynamic #t38 = #0#11#isSet = true in #0#11 = (#0#6#isSet ?{core::int} #0#6{core::int} : let final dynamic #t39 = #0#6#isSet = true in #0#6 = (#0#5#isSet ?{core::List<self::equals::A%>} #0#5{core::List<self::equals::A%>} : let final dynamic #t40 = #0#5#isSet = true in #0#5 = #0#0.$2{core::List<self::equals::A%>}).{core::List::length}{core::int}).{core::num::>=}(#C2){(core::num) → core::bool})) {
+          r = (#0#5#isSet ?{core::List<self::equals::A%>} #0#5{core::List<self::equals::A%>} : let final dynamic #t41 = #0#5#isSet = true in #0#5 = #0#0.$2{core::List<self::equals::A%>}).{core::List::[]}(0){(core::int) → self::equals::A%};
+          rs = (#0#5#isSet ?{core::List<self::equals::A%>} #0#5{core::List<self::equals::A%>} : let final dynamic #t42 = #0#5#isSet = true in #0#5 = #0#0.$2{core::List<self::equals::A%>}).{core::List::sublist}(1){(core::int, [core::int?]) → core::List<self::equals::A%>};
+          #t12 = l =={core::Object::==}{(core::Object) → core::bool} r && self::equals<self::equals::A%>(ls, rs);
+          break #L4;
+        }
+      }
+    }
+  } =>#t12;
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+}

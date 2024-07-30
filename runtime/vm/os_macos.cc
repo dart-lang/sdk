@@ -289,12 +289,7 @@ OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
   if (auto* const image_build_id = instructions_image.build_id()) {
     return {instructions_image.build_id_length(), image_build_id};
   }
-  Dl_info snapshot_info;
-  if (dladdr(snapshot_instructions, &snapshot_info) == 0) {
-    return {0, nullptr};
-  }
-  const uint8_t* dso_base =
-      static_cast<const uint8_t*>(snapshot_info.dli_fbase);
+  const uint8_t* dso_base = GetAppDSOBase(snapshot_instructions);
   const auto& macho_header =
       *reinterpret_cast<const struct mach_header*>(dso_base);
   // We assume host endianness in the Mach-O file.

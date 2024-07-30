@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/computer/computer_closingLabels.dart';
+import 'package:analysis_server/src/computer/computer_closing_labels.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
@@ -14,7 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:collection/collection.dart';
 
 Future<void> scheduleImplementedNotification(
     LegacyAnalysisServer server, Iterable<String> files) async {
@@ -28,7 +28,8 @@ Future<void> scheduleImplementedNotification(
         await computer.compute();
         var params = protocol.AnalysisImplementedParams(
             file, computer.classes, computer.members);
-        server.sendNotification(params.toNotification());
+        server.sendNotification(
+            params.toNotification(clientUriConverter: server.uriConverter));
       } catch (exception, stackTrace) {
         server.instrumentationService.logException(CaughtException.withMessage(
             'Failed to send analysis.implemented notification.',
@@ -43,7 +44,7 @@ void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
   _sendNotification(server, () {
     var analyzedFiles = server.driverMap.values
         .map((driver) => driver.knownFiles)
-        .flattenedToList2
+        .flattenedToList
         .map((file) => file.path)
         .toSet();
 
@@ -61,7 +62,8 @@ void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
     }
     server.prevAnalyzedFiles = analyzedFiles;
     var params = protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
-    server.sendNotification(params.toNotification());
+    server.sendNotification(
+        params.toNotification(clientUriConverter: server.uriConverter));
   });
 }
 
@@ -70,7 +72,8 @@ void sendAnalysisNotificationClosingLabels(LegacyAnalysisServer server,
   _sendNotification(server, () {
     var labels = DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
     var params = protocol.AnalysisClosingLabelsParams(file, labels);
-    server.sendNotification(params.toNotification());
+    server.sendNotification(
+        params.toNotification(clientUriConverter: server.uriConverter));
   });
 }
 
@@ -79,7 +82,8 @@ void sendAnalysisNotificationFlushResults(
   _sendNotification(server, () {
     if (files.isNotEmpty) {
       var params = protocol.AnalysisFlushResultsParams(files);
-      server.sendNotification(params.toNotification());
+      server.sendNotification(
+          params.toNotification(clientUriConverter: server.uriConverter));
     }
   });
 }
@@ -89,7 +93,8 @@ void sendAnalysisNotificationFolding(LegacyAnalysisServer server, String file,
   _sendNotification(server, () {
     var regions = DartUnitFoldingComputer(lineInfo, dartUnit).compute();
     var params = protocol.AnalysisFoldingParams(file, regions);
-    server.sendNotification(params.toNotification());
+    server.sendNotification(
+        params.toNotification(clientUriConverter: server.uriConverter));
   });
 }
 
@@ -117,7 +122,8 @@ void sendAnalysisNotificationOutline(
     var params = protocol.AnalysisOutlineParams(
         resolvedUnit.path, fileKind, outline,
         libraryName: libraryName);
-    server.sendNotification(params.toNotification());
+    server.sendNotification(
+        params.toNotification(clientUriConverter: server.uriConverter));
   });
 }
 
@@ -126,7 +132,8 @@ void sendAnalysisNotificationOverrides(
   _sendNotification(server, () {
     var overrides = DartUnitOverridesComputer(dartUnit).compute();
     var params = protocol.AnalysisOverridesParams(file, overrides);
-    server.sendNotification(params.toNotification());
+    server.sendNotification(
+        params.toNotification(clientUriConverter: server.uriConverter));
   });
 }
 

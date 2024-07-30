@@ -17,6 +17,42 @@ class AvoidUnusedConstructorParametersTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_unused_constructor_parameters';
 
+  test_augmentationClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A { }
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  A(int a);
+}
+''', [
+      lint(49, 5),
+    ]);
+  }
+
+  test_augmentedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  A(int a);
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  augment A.new(int a);
+}
+''');
+  }
+
   test_super() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -26,6 +62,25 @@ class A {
 }
 class B extends A {
   B(super.a, super.b);
+}
+''');
+  }
+
+  test_wildcardParam() async {
+    await assertNoDiagnostics(r'''
+class C {
+ C(int _);
+}
+''');
+  }
+
+  test_wildcardParam_preWildcards() async {
+    await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class C {
+ C(int _);
 }
 ''');
   }

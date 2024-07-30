@@ -40,7 +40,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // Page's TLAB use is always ascending.
   Label done;
   __ AndImmediate(ECX, EAX, target::kPageMask);
-  __ LoadFromOffset(ECX, Address(ECX, target::Page::original_top_offset()));
+  __ LoadFromOffset(ECX, ECX, target::Page::original_top_offset());
   __ CompareRegisters(EAX, ECX);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 
@@ -105,7 +105,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
   }
 
   // Pass NativeArguments structure by value and call runtime.
-  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);    // Set thread in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   // Compute argv.
   __ leal(EAX,
@@ -544,9 +544,9 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub() {
 void StubCodeCompiler::GenerateCallStaticFunctionStub() {
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ pushl(Immediate(0));  // Setup space on stack for return value.
+  __ pushl(Immediate(0));   // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
-  __ popl(EAX);  // Get Code object result.
+  __ popl(EAX);            // Get Code object result.
   __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveFrame();
@@ -564,9 +564,9 @@ void StubCodeCompiler::GenerateFixCallersTargetStub() {
   // This was a static call.
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ pushl(Immediate(0));  // Setup space on stack for return value.
+  __ pushl(Immediate(0));   // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
-  __ popl(EAX);  // Get Code object.
+  __ popl(EAX);            // Get Code object.
   __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ LeaveFrame();
@@ -777,6 +777,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
   } else if (kind == kLazyDeoptFromThrow) {
+    // Preserve CODE_REG for one more runtime call.
+    __ pushl(CODE_REG);
     __ pushl(EBX);  // Preserve exception, it will be GC-d here.
     __ pushl(ECX);  // Preserve stacktrace, it will be GC-d here.
   }
@@ -789,8 +791,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ popl(EAX);  // Restore result.
   } else if (kind == kLazyDeoptFromThrow) {
-    __ popl(EDX);  // Restore exception.
-    __ popl(EAX);  // Restore stacktrace.
+    __ popl(EDX);  // Restore stacktrace.
+    __ popl(EAX);  // Restore exception.
+    __ popl(CODE_REG);
   }
   __ LeaveStubFrame();
 
@@ -798,6 +801,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ addl(ESP, EBX);  // Remove materialization arguments.
   __ pushl(ECX);      // Push return address.
   // The caller is responsible for emitting the return instruction.
+
+  if (kind == kLazyDeoptFromThrow) {
+    // Unoptimized frame is now ready to accept the exception. Rethrow it to
+    // find the right handler. Ask rethrow machinery to bypass debugger it
+    // was already notified about this exception.
+    __ EnterStubFrame();
+    __ pushl(Immediate(target::ToRawSmi(0)));  // Space for the result.
+    __ pushl(EAX);                             // Exception
+    __ pushl(EDX);                             // Stacktrace
+    __ pushl(Immediate(target::ToRawSmi(1)));  // Bypass debugger.
+    __ CallRuntime(kReThrowRuntimeEntry, 3);
+    __ LeaveStubFrame();
+  }
 }
 
 // EAX: result, must be preserved
@@ -855,17 +871,6 @@ static void GenerateNoSuchMethodDispatcherCode(Assembler* assembler) {
   __ popl(EAX);  // Return value.
   __ LeaveFrame();
   __ ret();
-}
-
-static void GenerateDispatcherCode(Assembler* assembler,
-                                   Label* call_target_function) {
-  __ Comment("NoSuchMethodDispatch");
-  // When lazily generated invocation dispatchers are disabled, the
-  // miss-handler may return null.
-  const Immediate& raw_null = Immediate(target::ToRawPointer(NullObject()));
-  __ cmpl(EAX, raw_null);
-  __ j(NOT_EQUAL, call_target_function);
-  GenerateNoSuchMethodDispatcherCode(assembler);
 }
 
 void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
@@ -992,8 +997,8 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     for (intptr_t offset = 0; offset < target::kObjectAlignment;
          offset += target::kWordSize) {
       // No generational barrier needed, since we are storing null.
-      __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
-                                  Address(EDI, offset), NullObject());
+      __ StoreObjectIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                        Address(EDI, offset), NullObject());
     }
     // Safe to only check every kObjectAlignment bytes instead of each word.
     ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
@@ -1253,7 +1258,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
     // EAX: new object.
     // EDX: number of context variables.
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(
+    __ StoreObjectIntoObjectNoBarrier(
         EAX, FieldAddress(EAX, target::Context::parent_offset()), NullObject());
 
     // Initialize the context variables.
@@ -1267,8 +1272,8 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
       __ Bind(&loop);
       __ decl(EDX);
       // No generational barrier needed, since we are storing null.
-      __ StoreIntoObjectNoBarrier(EAX, Address(EBX, EDX, TIMES_4, 0),
-                                  NullObject());
+      __ StoreObjectIntoObjectNoBarrier(EAX, Address(EBX, EDX, TIMES_4, 0),
+                                        NullObject());
       __ Bind(&entry);
       __ cmpl(EDX, Immediate(0));
       __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
@@ -1416,7 +1421,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
     __ Bind(&retry);
     __ movl(ECX, EAX);
@@ -1428,23 +1433,37 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
     __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
-    __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
-    __ movl(Address(EAX, ECX, TIMES_4,
-                    target::MarkingStackBlock::pointers_offset()),
-            EBX);
-    __ incl(ECX);
-    __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
-    __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
-    __ j(NOT_EQUAL, &done);
+    __ testl(EBX,
+             Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+    __ j(NOT_ZERO, &is_new);
 
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/1 * target::kWordSize,
-                          /*preserve_registers=*/true);
-      __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ movl(EAX, Address(THR, offset));
+      __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
+      __ movl(Address(EAX, ECX, TIMES_4,
+                      target::MarkingStackBlock::pointers_offset()),
+              EBX);
+      __ incl(ECX);
+      __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
+      __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
+      __ j(NOT_EQUAL, &done);
+
+      {
+        LeafRuntimeScope rt(assembler,
+                            /*frame_size=*/1 * target::kWordSize,
+                            /*preserve_registers=*/true);
+        __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+        rt.Call(entry, 1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ jmp(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
   }
@@ -1529,13 +1548,12 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     // Get card table.
     __ Bind(&remember_card);
-    __ movl(EAX, EDX);                              // Object.
-    __ andl(EAX, Immediate(target::kPageMask));     // Page.
+    __ movl(EAX, EDX);                           // Object.
+    __ andl(EAX, Immediate(target::kPageMask));  // Page.
     __ cmpl(Address(EAX, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ pushl(EBX);
     __ subl(EDI, EAX);  // Offset in page.
     __ movl(EAX,
@@ -1547,6 +1565,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ shrl(ECX, Immediate(target::Page::kBytesPerCardLog2));
     __ movl(EBX, Immediate(1));
     __ shll(EBX, ECX);  // Bit mask. (Shift amount is mod 32.)
+    __ lock();
     __ orl(Address(EAX, EDI, TIMES_4, 0), EBX);
     __ popl(EBX);
     __ popl(ECX);
@@ -1662,7 +1681,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       for (intptr_t current_offset = target::Instance::first_field_offset();
            current_offset < instance_size;
            current_offset += target::kWordSize) {
-        __ StoreIntoObjectNoBarrier(
+        __ StoreObjectIntoObjectNoBarrier(
             AllocateObjectABI::kResultReg,
             FieldAddress(AllocateObjectABI::kResultReg, current_offset),
             NullObject());
@@ -1680,8 +1699,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       __ Bind(&loop);
       for (intptr_t offset = 0; offset < target::kObjectAlignment;
            offset += target::kWordSize) {
-        __ StoreIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
-                                    Address(ECX, offset), NullObject());
+        __ StoreObjectIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                          Address(ECX, offset), NullObject());
       }
       // Safe to only check every kObjectAlignment bytes instead of each word.
       ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
@@ -2049,8 +2068,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ pushl(ECX);           // Preserve IC data object.
-  __ pushl(Immediate(0));  // Result slot.
+  __ pushl(ECX);            // Preserve IC data object.
+  __ pushl(Immediate(0));   // Result slot.
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ movl(EBX, Address(EAX, -target::kWordSize * i));
@@ -2062,16 +2081,13 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popl(EAX);
   }
-  __ popl(FUNCTION_REG);  // Pop returned function object into EAX.
-  __ popl(ECX);  // Restore IC data array.
+  __ popl(FUNCTION_REG);   // Pop returned function object into EAX.
+  __ popl(ECX);            // Restore IC data array.
   __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ LeaveFrame();
   Label call_target_function;
-  if (!FLAG_lazy_dispatchers) {
-    GenerateDispatcherCode(assembler, &call_target_function);
-  } else {
-    __ jmp(&call_target_function);
-  }
+  ASSERT(!FLAG_precompiled_mode);
+  __ jmp(&call_target_function);
 
   __ Bind(&found);
   // EBX: Pointer to an IC data check group.
@@ -2467,7 +2483,7 @@ static void GenerateSubtypeTestCacheLoop(
     __ CompareToStack(src, original_tos_offset + depth);
   };
 
-  __ LoadAcquireCompressed(
+  __ LoadAcquireCompressedFromOffset(
       STCInternal::kScratchReg, STCInternal::kCacheArrayReg,
       target::kCompressedWordSize *
           target::SubtypeTestCache::kInstanceCidOrSignature);
@@ -2827,7 +2843,7 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub() {
   __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ pushl(EBX);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
-  __ popl(EAX);  // Discard argument.
+  __ popl(EAX);            // Discard argument.
   __ popl(FUNCTION_REG);   // Get Function object
   __ popl(ARGS_DESC_REG);  // Restore argument descriptor.
   __ LeaveFrame();

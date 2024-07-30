@@ -69,6 +69,7 @@ class ProtocolConverter {
       var stringValue = allowCallingToString &&
               (valueAsString == null || !allowTruncatedValue)
           ? await _callToString(thread, ref,
+              allowTruncatedValue: allowTruncatedValue,
               // Quotes are handled below, so they can be wrapped around the
               // ellipsis.
               format: VariableFormat.noQuotes())
@@ -85,12 +86,13 @@ class ProtocolConverter {
       } else if (ref.kind == vm.InstanceKind.kInt) {
         return formatter.formatInt(int.tryParse(valueAsString));
       } else {
-        return valueAsString.toString();
+        return valueAsString;
       }
     } else if (ref.kind == 'PlainInstance') {
       var stringValue = ref.classRef?.name ?? '<unknown instance>';
       if (allowCallingToString) {
         final toStringValue = await _callToString(thread, ref,
+            allowTruncatedValue: allowTruncatedValue,
             // Suppress quotes because this is going inside a longer string.
             format: VariableFormat.noQuotes());
         // Include the toString() result only if it's not the default (which
@@ -294,9 +296,17 @@ class ProtocolConverter {
           }
         }
 
-        // Collect getter names for this instances class and its supers.
+        // Collect getter names for this instances class and its supers, but
+        // remove any names that have already showed up as fields because
+        // otherwise they will show up duplicated.
         final getterNames =
             await _getterNamesForClassHierarchy(thread, instance.classRef);
+
+        // Remove any existing field variables where there are getters, because
+        // otherwise we'll have dupes, and the user will generally expected to
+        // see the getters value (if not the same).
+        variables
+            .removeWhere((variable) => getterNames.contains(variable.name));
 
         final getterVariables = getterNames.mapIndexed(createVariable);
         variables.addAll(await Future.wait(getterVariables));
@@ -696,34 +706,43 @@ class ProtocolConverter {
   Future<String?> _callToString(
     ThreadInfo thread,
     vm.InstanceRef ref, {
+    bool allowTruncatedValue = true,
     VariableFormat? format,
   }) async {
     final service = _adapter.vmService;
     if (service == null) {
       return null;
     }
-    var result = await service.invoke(
-      thread.isolate.id!,
-      ref.id!,
-      'toString',
-      [],
-      disableBreakpoints: true,
-    );
+    try {
+      var result = await service.invoke(
+        thread.isolate.id!,
+        ref.id!,
+        'toString',
+        [],
+        disableBreakpoints: true,
+      );
 
-    // If the response is a string and is truncated, use getObject() to get the
-    // full value.
-    if (result is vm.InstanceRef &&
-        result.kind == 'String' &&
-        (result.valueAsStringIsTruncated ?? false)) {
-      result = await service.getObject(thread.isolate.id!, result.id!);
+      // If the response is a string and is truncated, use getObject() to get the
+      // full value.
+      if (result is vm.InstanceRef &&
+          result.kind == 'String' &&
+          (result.valueAsStringIsTruncated ?? false) &&
+          !allowTruncatedValue) {
+        result = await service.getObject(thread.isolate.id!, result.id!);
+      }
+
+      return convertVmResponseToDisplayString(
+        thread,
+        result,
+        allowCallingToString: false, // Don't allow recursing.
+        format: format,
+      );
+    } on vm.SentinelException catch (e) {
+      // invoke() will throw on sentinels, so we should return the appropriate
+      // text from the sentinel instead of letting this bubble up and require
+      // handling by all callers.
+      return e.sentinel.valueAsString ?? '<sentinel>';
     }
-
-    return convertVmResponseToDisplayString(
-      thread,
-      result,
-      allowCallingToString: false, // Don't allow recursing.
-      format: format,
-    );
   }
 
   /// Collect a list of all getter names for [classRef] and its super classes.

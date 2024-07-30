@@ -122,7 +122,8 @@ class AnalysisNotificationOverridesTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OVERRIDES) {
-      var params = AnalysisOverridesParams.fromNotification(notification);
+      var params = AnalysisOverridesParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       if (params.file == testFile.path) {
         overridesList = params.overrides;
         _resultsAvailable.complete();
@@ -533,7 +534,7 @@ class C extends B {
 
   Future<void> test_class_super_method_overriddenFromAugmentation() async {
     var augmentation = newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   m() {} // in A
@@ -563,7 +564,7 @@ class A {
 class B extends A {}
 ''');
     addTestFile('''
-library augment 'b.dart';
+augment library 'b.dart';
 
 augment class B {
   m() {} // in B

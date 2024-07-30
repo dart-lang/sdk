@@ -17,6 +17,83 @@ class UnnecessaryBraceInStringInterpsTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_brace_in_string_interps';
 
+  test_braces_bangAfter() async {
+    await assertDiagnostics(r'''
+void f() {
+  print('hello ${int}!');
+}
+''', [
+      lint(26, 6),
+    ]);
+  }
+
+  test_braces_nonSimpleIdentifier() async {
+    await assertNoDiagnostics(r'''
+void f(int p) {
+  print('hello ${p.hashCode}');
+}
+''');
+  }
+
+  test_braces_precededByDollar() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var $int = 7;
+  print('Value is: ${$int}');
+}
+''');
+  }
+
+  test_braces_simpleIdentifier() async {
+    await assertDiagnostics(r'''
+void f() {
+  print('hello ${int}');
+}
+''', [
+      lint(26, 6),
+    ]);
+  }
+
+  test_braces_simpleIdentifier_numberAfter() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('hello ${int}1');
+}
+''');
+  }
+
+  test_braces_surroundedByUnderscores() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('hello _${int}_');
+}
+''');
+  }
+
+  test_noBraces() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('hello $int');
+}
+''');
+  }
+
+  test_noBraces_bangAfter() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('hello $int!');
+}
+''');
+  }
+
+  test_noInterpolation() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('hello');
+}
+''');
+  }
+
   test_simpleIdentifier() async {
     await assertDiagnostics(r'''
 void hi(String name) {

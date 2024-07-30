@@ -21,7 +21,11 @@ import '../js_backend/codegen_inputs.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart'
-    show TypeExpressionRecipe, TypeRecipeDomain, TypeRecipeDomainImpl;
+    show
+        TypeEnvironmentStructure,
+        TypeExpressionRecipe,
+        TypeRecipeDomain,
+        TypeRecipeDomainImpl;
 import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -1000,16 +1004,24 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   HInstruction maybeAddNativeReturnNullCheck(
       HInstruction node, HInstruction replacement, FunctionEntity method) {
-    if (_options.nativeNullAssertions) {
+    if (_options.nativeNullAssertions && memberEntityIsInWebLibrary(method)) {
       FunctionType type =
           _closedWorld.elementEnvironment.getFunctionType(method);
-      if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType) &&
-          memberEntityIsInWebLibrary(method)) {
+      if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
         node.block!.addBefore(node, replacement);
         replacement = HNullCheck(replacement,
             _abstractValueDomain.excludeNull(replacement.instructionType),
             sticky: true);
       }
+    } else if (_options.interopNullAssertions &&
+        _nativeData.interopNullChecks.containsKey(Selector.getter(PublicName(
+            _nativeData.computeUnescapedJSInteropName(method.name!))))) {
+      node.block!.addBefore(node, replacement);
+      final replacementType = _options.experimentNullSafetyChecks
+          ? replacement.instructionType
+          : _abstractValueDomain.excludeNull(replacement.instructionType);
+      replacement = HInvokeStatic(commonElements.interopNullAssertion,
+          [replacement], replacementType, const <DartType>[]);
     }
     return replacement;
   }
@@ -1170,6 +1182,18 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       if (right is HConstant && right.constant.isZero) return left;
     }
     return super.visitAdd(node);
+  }
+
+  @override
+  HInstruction visitSubtract(HSubtract node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    if (right is HConstant) {
+      final constant = right.constant;
+      // Rewrite `a - 0` to `a`, provided the zero is not negative zero.
+      if (constant.isZero && !constant.isMinusZero) return left;
+    }
+    return super.visitSubtract(node);
   }
 
   @override
@@ -1535,6 +1559,25 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
           return _graph.addConstant(value, _closedWorld);
         }
       }
+      if (constant is RecordConstantValue) {
+        final recordData = _closedWorld.recordData;
+        final shape = constant.shape;
+        final representation = recordData.representationForShape(shape);
+        if (representation != null) {
+          // The `representation` does not have a method to convert a field into
+          // a record-index, so look at all the possible access paths to find
+          // one that matches the field. Although this is 'slow' (1) only short
+          // records have direct fields (longer ones use arrays), and (2) we
+          // should always find a matching path, so the search will not be
+          // repeated in later phases.
+          for (int i = 0; i < constant.shape.fieldCount; i++) {
+            final path = recordData.pathForAccess(shape, i);
+            if (path.field == node.element && path.index == null) {
+              return _graph.addConstant(constant.values[i], _closedWorld);
+            }
+          }
+        }
+      }
     }
 
     return node;
@@ -1615,18 +1658,47 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitIndex(HIndex node) {
-    HInstruction receiver = node.receiver;
-    if (receiver is HConstant) {
-      HInstruction index = node.index;
-      if (index is HConstant) {
-        final foldedValue =
-            constant_system.index.fold(receiver.constant, index.constant);
+    switch (node) {
+      case HIndex(
+          receiver: HConstant(:final constant),
+          index: HConstant(constant: final constantIndex)
+        ):
+        final foldedValue = constant_system.index.fold(constant, constantIndex);
         if (foldedValue != null) {
           _metrics.countIndexFolded.add();
           return _graph.addConstant(foldedValue, _closedWorld);
         }
-      }
+
+      // Match the access path `(constant_record._values)[i]` for 'long' records
+      // where the record fields are stored in an Array (the `_RecordN` family
+      // of representations).
+      case HIndex(
+            receiver: HFieldGet(
+              receiver: HConstant(
+                constant: RecordConstantValue(:final shape, :final values)
+              ),
+              element: final field
+            ),
+            index: HConstant(
+              constant: IntConstantValue(:final intValue) && final constantIndex
+            )
+          )
+          when constantIndex.isUInt31():
+        int indexValue = intValue.toInt();
+        final recordData = _closedWorld.recordData;
+        final representation = recordData.representationForShape(shape);
+        if (representation != null) {
+          // We assume that the record index is going to be the same as the
+          // HIndex index. If not (for example, we put the shape in the first
+          // slot of the array, offsetting the record field indexes), the
+          // codegen test will fail.
+          final path = recordData.pathForAccess(shape, indexValue);
+          if (path.field == field && path.index == indexValue) {
+            return _graph.addConstant(values[indexValue], _closedWorld);
+          }
+        }
     }
+
     return node;
   }
 
@@ -1872,20 +1944,23 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
           return argument;
         }
       }
-    } else if (element == commonElements.assertHelper ||
-        element == commonElements.assertTest) {
-      if (node.inputs.length == 1) {
-        HInstruction argument = node.inputs[0];
-        if (argument is HConstant) {
-          ConstantValue constant = argument.constant;
-          if (constant is BoolConstantValue) {
-            bool value = constant is TrueConstantValue;
-            if (element == commonElements.assertTest) {
-              // `assertTest(argument)` effectively negates the argument.
-              return _graph.addConstantBool(!value, _closedWorld);
+    } else {
+      final isAssertHelper = commonElements.isAssertHelper(element);
+      final isAssertTest = commonElements.isAssertTest(element);
+      if (isAssertHelper || isAssertTest) {
+        if (node.inputs.length == 1) {
+          HInstruction argument = node.inputs[0];
+          if (argument is HConstant) {
+            ConstantValue constant = argument.constant;
+            if (constant is BoolConstantValue) {
+              bool value = constant is TrueConstantValue;
+              if (isAssertTest) {
+                // `assertTest(argument)` effectively negates the argument.
+                return _graph.addConstantBool(!value, _closedWorld);
+              }
+              // `assertHelper(true)` is a no-op, other values throw.
+              if (value) return argument;
             }
-            // `assertHelper(true)` is a no-op, other values throw.
-            if (value) return argument;
           }
         }
       }
@@ -2146,7 +2221,24 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitTypeBind(HTypeBind node) {
-    // TODO(sra):  env1.eval(X).bind(env1.eval(Y)) --> env1.eval(...X...Y...)
+    final environment = node.inputs[0];
+    final argument = node.inputs[1];
+    if (environment is HTypeEval &&
+        argument is HTypeEval &&
+        environment.inputs.single == argument.inputs.single &&
+        // Should always be true, but checking is safe:
+        TypeEnvironmentStructure.same(
+            environment.envStructure, argument.envStructure)) {
+      //  env.eval(X).bind(env.eval(Y)) --> env.eval(...X...Y...)
+      final result = _typeRecipeDomain.foldEvalBindEvalWithSharedEnvironment(
+          environment.envStructure,
+          environment.typeExpression,
+          argument.typeExpression);
+      if (result != null) {
+        return HTypeEval(environment.inputs.single, result.environmentStructure,
+            result.recipe, node.instructionType);
+      }
+    }
     return node;
   }
 
@@ -2216,13 +2308,14 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     }
 
     final specialization = SpecializedChecks.findIsTestSpecialization(
-        node.dartType, _graph.element, _closedWorld);
+        node.dartType, _graph.element, _closedWorld,
+        experimentNullSafetyChecks: _options.experimentNullSafetyChecks);
 
-    if (specialization == IsTestSpecialization.isNull ||
-        specialization == IsTestSpecialization.isNotNull) {
+    if (specialization == SimpleIsTestSpecialization.isNull ||
+        specialization == SimpleIsTestSpecialization.isNotNull) {
       HInstruction nullTest = HIdentity(node.checkedInput,
           _graph.addConstantNull(_closedWorld), _abstractValueDomain.boolType);
-      if (specialization == IsTestSpecialization.isNull) return nullTest;
+      if (specialization == SimpleIsTestSpecialization.isNull) return nullTest;
       nullTest.sourceInformation = node.sourceInformation;
       node.block!.addBefore(node, nullTest);
       return HNot(nullTest, _abstractValueDomain.boolType);
@@ -4242,7 +4335,8 @@ class MemorySet {
     }
   }
 
-  /// Returns the intersection between [this] and the [other] memory set.
+  /// Returns the intersection between this [MemorySet] and the [other] memory
+  /// set.
   MemorySet intersectionFor(
       MemorySet? other, HBasicBlock block, int predecessorIndex) {
     MemorySet result = MemorySet(closedWorld);
@@ -4323,7 +4417,7 @@ class MemorySet {
     return result;
   }
 
-  /// Returns a copy of [this] memory set.
+  /// Returns a copy of this [MemorySet].
   MemorySet clone() {
     MemorySet result = MemorySet(closedWorld);
 
@@ -4339,7 +4433,7 @@ class MemorySet {
     return result;
   }
 
-  /// Returns a copy of [this] memory set, removing any expressions that are not
+  /// Returns a copy of this [MemorySet], removing any expressions that are not
   /// valid in [block].
   MemorySet cloneIfDominatesBlock(HBasicBlock block) {
     bool instructionDominatesBlock(HInstruction? instruction) {

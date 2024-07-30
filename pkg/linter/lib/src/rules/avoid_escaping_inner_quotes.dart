@@ -34,7 +34,7 @@ class AvoidEscapingInnerQuotes extends LintRule {
             name: 'avoid_escaping_inner_quotes',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

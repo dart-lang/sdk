@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class SplitMultipleDeclarations extends ResolvedCorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => true;
+  SplitMultipleDeclarations({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.SPLIT_MULTIPLE_DECLARATIONS;
@@ -24,12 +24,12 @@ class SplitMultipleDeclarations extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaredVariable = node;
+    var declaredVariable = node;
     if (declaredVariable is! VariableDeclaration) {
       return;
     }
 
-    final variableList = node.parent;
+    var variableList = node.parent;
     if (variableList is! VariableDeclarationList) {
       return;
     }
@@ -39,43 +39,43 @@ class SplitMultipleDeclarations extends ResolvedCorrectionProducer {
       return;
     }
 
-    final declaration = variableList.parent;
+    var declaration = variableList.parent;
     if (declaration == null) {
       return;
     }
 
     // We don't support metadata.
     switch (declaration) {
-      case FieldDeclaration(:final metadata):
-      case TopLevelVariableDeclaration(:final metadata):
+      case FieldDeclaration(:var metadata):
+      case TopLevelVariableDeclaration(:var metadata):
         if (metadata.isNotEmpty) {
           return;
         }
     }
 
-    final variables = variableList.variables;
+    var variables = variableList.variables;
     if (variables.length < 2) {
       return;
     }
 
-    final modifiersTypeLast = variables.first.name.previous;
+    var modifiersTypeLast = variables.first.name.previous;
     if (modifiersTypeLast == null) {
       return;
     }
 
-    final modifiersType = utils.getRangeText(
+    var modifiersType = utils.getRangeText(
       range.startEnd(declaration, modifiersTypeLast),
     );
 
-    final spacesBefore = utils.getLinePrefix(declaration.offset);
+    var spacesBefore = utils.getLinePrefix(declaration.offset);
 
     await builder.addDartFileEdit(file, (builder) {
-      final endOfLine = utils.endOfLine;
+      var endOfLine = utils.endOfLine;
       var previous = variables[0];
       for (var i = 1; i < variables.length; i++) {
-        final current = variables[i];
-        final sourceRange = range.endStart(previous, current);
-        final replacement = ';$endOfLine$spacesBefore$modifiersType ';
+        var current = variables[i];
+        var sourceRange = range.endStart(previous, current);
+        var replacement = ';$endOfLine$spacesBefore$modifiersType ';
         builder.addSimpleReplacement(sourceRange, replacement);
         previous = current;
       }

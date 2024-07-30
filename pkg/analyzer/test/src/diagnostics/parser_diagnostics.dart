@@ -69,12 +69,12 @@ class ParserDiagnosticsTest {
     required bool withCheckingLinking,
     required bool withOffsets,
   }) {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
-    final elementPrinter = ElementPrinter(
+    var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
       selfUriStr: null,

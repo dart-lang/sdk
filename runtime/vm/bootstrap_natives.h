@@ -90,18 +90,11 @@ namespace dart {
   V(Double_sub, 2)                                                             \
   V(Double_mul, 2)                                                             \
   V(Double_div, 2)                                                             \
-  V(Double_remainder, 2)                                                       \
-  V(Double_modulo, 2)                                                          \
   V(Double_greaterThanFromInteger, 2)                                          \
   V(Double_equalToInteger, 2)                                                  \
   V(Double_greaterThan, 2)                                                     \
   V(Double_equal, 2)                                                           \
   V(Double_doubleFromInteger, 2)                                               \
-  V(Double_round, 1)                                                           \
-  V(Double_floor, 1)                                                           \
-  V(Double_ceil, 1)                                                            \
-  V(Double_truncate, 1)                                                        \
-  V(Double_toInt, 1)                                                           \
   V(Double_parse, 3)                                                           \
   V(Double_toString, 1)                                                        \
   V(Double_toStringAsFixed, 2)                                                 \
@@ -119,7 +112,6 @@ namespace dart {
   V(RegExp_ExecuteMatch, 3)                                                    \
   V(RegExp_ExecuteMatchSticky, 3)                                              \
   V(List_allocate, 2)                                                          \
-  V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
   V(List_getLength, 1)                                                         \
   V(List_slice, 4)                                                             \
@@ -140,14 +132,13 @@ namespace dart {
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \
-  V(Math_doublePow, 2)                                                         \
   V(Random_initialSeed, 0)                                                     \
   V(SecureRandom_getBytes, 1)                                                  \
   V(DateTime_currentTimeMicros, 0)                                             \
   V(DateTime_timeZoneName, 1)                                                  \
   V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
   V(AssertionError_throwNew, 3)                                                \
-  V(AssertionError_throwNewSource, 4)                                          \
+  V(AssertionError_throwNewSource, 5)                                          \
   V(Error_throwWithStackTrace, 2)                                              \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
@@ -264,7 +255,6 @@ namespace dart {
   V(Isolate_spawnFunction, 10)                                                 \
   V(Isolate_spawnUri, 12)                                                      \
   V(GrowableList_allocate, 2)                                                  \
-  V(GrowableList_getIndexed, 2)                                                \
   V(GrowableList_setIndexed, 3)                                                \
   V(GrowableList_getLength, 1)                                                 \
   V(GrowableList_getCapacity, 1)                                               \
@@ -283,7 +273,8 @@ namespace dart {
   V(Internal_writeIntoOneByteString, 3)                                        \
   V(Internal_writeIntoTwoByteString, 3)                                        \
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
-  V(Internal_randomInstructionsOffsetInsideAllocateObjectStub, 0)              \
+  V(Internal_allocateObjectInstructionsStart, 0)                               \
+  V(Internal_allocateObjectInstructionsEnd, 0)                                 \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(Uri_isWindowsPlatform, 0)                                                  \

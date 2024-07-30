@@ -54,14 +54,15 @@ class CurlyBracesInFlowControlStructures extends LintRule {
   static const LintCode code = LintCode(
       'curly_braces_in_flow_control_structures',
       'Statements in {0} should be enclosed in a block.',
-      correctionMessage: 'Try wrapping the statement in a block.');
+      correctionMessage: 'Try wrapping the statement in a block.',
+      hasPublishedDocs: true);
 
   CurlyBracesInFlowControlStructures()
       : super(
             name: 'curly_braces_in_flow_control_structures',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   bool get canUseParsedResult => true;

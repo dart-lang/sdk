@@ -609,7 +609,7 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
       const intptr_t kBuffSize = 512;
       char buff[kBuffSize];
       uword dso_base;
-      char* dso_name;
+      const char* dso_name;
       if (NativeSymbolResolver::LookupSharedObject(start(), &dso_base,
                                                    &dso_name)) {
         uword dso_offset = start() - dso_base;
@@ -1388,7 +1388,7 @@ class ProfileBuilder : public ValueObject {
 
     // Check NativeSymbolResolver for pc.
     uword native_start = 0;
-    char* native_name =
+    const char* native_name =
         NativeSymbolResolver::LookupSymbolName(pc, &native_start);
     if (native_name == nullptr) {
       // Failed to find a native symbol for pc.

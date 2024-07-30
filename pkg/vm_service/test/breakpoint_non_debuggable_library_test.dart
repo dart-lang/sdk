@@ -65,7 +65,7 @@ var tests = <IsolateTest>[
     } on RPCError catch (e) {
       // Cannot add breakpoint error code
       expect(e.code, 102);
-      expect(e.details, contains("Cannot add breakpoint at line '11'"));
+      expect(e.details, contains('Cannot add breakpoint at line $LINE_B'));
       print('Set Breakpoint to non-debuggable library is not allowed');
     }
   },

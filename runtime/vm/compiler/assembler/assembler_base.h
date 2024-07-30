@@ -601,8 +601,6 @@ class AssemblerBase : public StackResource {
  public:
   explicit AssemblerBase(ObjectPoolBuilder* object_pool_builder)
       : StackResource(ThreadState::Current()),
-        prologue_offset_(-1),
-        has_monomorphic_entry_(false),
         object_pool_builder_(object_pool_builder) {}
   virtual ~AssemblerBase();
 
@@ -622,12 +620,19 @@ class AssemblerBase : public StackResource {
   intptr_t prologue_offset() const { return prologue_offset_; }
   bool has_monomorphic_entry() const { return has_monomorphic_entry_; }
 
+  // Tracks if the resulting code should be aligned by kPreferredLoopAlignment
+  // boundary.
+  void mark_should_be_aligned() { should_be_aligned_ = true; }
+  bool should_be_aligned() const { return should_be_aligned_; }
+
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   static bool EmittingComments();
 
   virtual void Breakpoint() = 0;
 
   virtual void SmiTag(Register r) = 0;
+
+  virtual void Bind(Label* label) = 0;
 
   // If Smis are compressed and the Smi value in dst is non-negative, ensures
   // the upper bits are cleared. If Smis are not compressed, is a no-op.
@@ -704,14 +709,6 @@ class AssemblerBase : public StackResource {
                       instance_reg, temp);
   }
 
-  virtual void LoadFromOffset(Register dst,
-                              const Address& address,
-                              OperandSize sz = kWordBytes) = 0;
-  // Does not use write barriers, use StoreIntoObject instead for boxed fields.
-  virtual void StoreToOffset(Register src,
-                             const Address& address,
-                             OperandSize sz = kWordBytes) = 0;
-
   virtual void BranchIfSmi(Register reg,
                            Label* label,
                            JumpDistance distance = kFarJump) = 0;
@@ -745,99 +742,332 @@ class AssemblerBase : public StackResource {
     kRelaxedNonAtomic,
   };
 
-  virtual void LoadAcquire(Register reg,
-                           Register address,
-                           int32_t offset = 0,
-                           OperandSize size = kWordBytes) = 0;
-
   virtual void LoadFieldAddressForOffset(Register reg,
                                          Register base,
                                          int32_t offset) = 0;
+  virtual void LoadFieldAddressForRegOffset(
+      Register address,
+      Register instance,
+      Register offset_in_words_as_smi) = 0;
 
-  virtual void LoadField(Register dst, const FieldAddress& address) = 0;
-  virtual void LoadFieldFromOffset(Register reg,
+  virtual void LoadAcquire(Register dst,
+                           const Address& address,
+                           OperandSize size = kWordBytes) = 0;
+  virtual void StoreRelease(Register src,
+                            const Address& address,
+                            OperandSize size = kWordBytes) = 0;
+
+  virtual void Load(Register dst,
+                    const Address& address,
+                    OperandSize sz = kWordBytes) = 0;
+  // Does not use write barriers, use StoreIntoObject instead for boxed fields.
+  virtual void Store(Register src,
+                     const Address& address,
+                     OperandSize sz = kWordBytes) = 0;
+
+  // When emitting the write barrier code on IA32, either the caller must
+  // allocate a scratch register or the implementation chooses a register to
+  // save and restore and uses that as a scratch register internally.
+  // Thus, the scratch register is an additional optional argument to
+  // StoreIntoObject, StoreIntoArray, StoreIntoObjectOffset, and StoreBarrier
+  // that defaults to TMP on other architectures. (TMP is kNoRegister on IA32,
+  // so the default value invokes the correct behavior.)
+
+  // Store into a heap object and applies the appropriate write barriers.
+  // (See StoreBarrier for which are applied on a given architecture.)
+  //
+  // All stores into heap objects must pass through this function or,
+  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
+  // variant. Preserves the [object] and [value] registers.
+  void StoreIntoObject(Register object,         // Object being stored into.
+                       const Address& address,  // Offset into object.
+                       Register value,          // Value being stored.
+                       CanBeSmi can_be_smi = kValueCanBeSmi,
+                       MemoryOrder memory_order = kRelaxedNonAtomic,
+                       Register scratch = TMP,
+                       OperandSize size = kWordBytes);
+
+  void StoreIntoObjectNoBarrier(Register object,  // Object being stored into.
+                                const Address& address,  // Offset into object.
+                                Register value,          // Value being stored.
+                                MemoryOrder memory_order = kRelaxedNonAtomic,
+                                OperandSize size = kWordBytes);
+  virtual void StoreObjectIntoObjectNoBarrier(
+      Register object,         // Object being stored into.
+      const Address& address,  // Offset into object.
+      const Object& value,     // Value being stored.
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      OperandSize size = kWordBytes) = 0;
+
+  virtual void LoadIndexedPayload(Register dst,
+                                  Register base,
+                                  int32_t offset,
+                                  Register index,
+                                  ScaleFactor scale,
+                                  OperandSize sz = kWordBytes) = 0;
+
+  // For virtual XOffset methods, the base method implementation creates an
+  // appropriate address from the base register and offset and calls the
+  // corresponding address-taking method. These should be overridden for
+  // architectures where offsets should not be converted to addresses without
+  // additional precautions, for when the ARM-specific Assembler needs
+  // to override with an overloaded version for the Condition argument,
+  // or for when the IA32-specific Assembler needs to override with an
+  // overloaded version for adding a scratch register argument.
+
+  void LoadAcquireFromOffset(Register dst,
+                             Register base,
+                             int32_t offset = 0,
+                             OperandSize size = kWordBytes);
+  void StoreReleaseToOffset(Register src,
+                            Register base,
+                            int32_t offset = 0,
+                            OperandSize size = kWordBytes);
+
+  virtual void LoadFromOffset(Register dst,
+                              Register base,
+                              int32_t offset,
+                              OperandSize sz = kWordBytes);
+  // Does not use write barriers, use StoreIntoObject instead for boxed fields.
+  virtual void StoreToOffset(Register src,
+                             Register base,
+                             int32_t offset,
+                             OperandSize sz = kWordBytes);
+
+  virtual void StoreIntoObjectOffset(
+      Register object,  // Object being stored into.
+      int32_t offset,   // Offset into object.
+      Register value,   // Value being stored.
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      Register scratch = TMP,
+      OperandSize size = kWordBytes);
+  virtual void StoreIntoObjectOffsetNoBarrier(
+      Register object,  // Object being stored into.
+      int32_t offset,   // Offset into object.
+      Register value,   // Value being stored.
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      OperandSize size = kWordBytes);
+  void StoreObjectIntoObjectOffsetNoBarrier(
+      Register object,      // Object being stored into.
+      int32_t offset,       // Offset into object.
+      const Object& value,  // Value being stored.
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      OperandSize size = kWordBytes);
+
+  void LoadField(Register dst,
+                 const FieldAddress& address,
+                 OperandSize sz = kWordBytes);
+  virtual void LoadFieldFromOffset(Register dst,
                                    Register base,
                                    int32_t offset,
-                                   OperandSize = kWordBytes) = 0;
-  void LoadFromSlot(Register dst, Register base, const Slot& slot);
+                                   OperandSize sz = kWordBytes);
 
-  virtual void StoreIntoObject(
-      Register object,      // Object we are storing into.
-      const Address& dest,  // Where we are storing into.
-      Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
-  virtual void StoreIntoObjectNoBarrier(
-      Register object,      // Object we are storing into.
-      const Address& dest,  // Where we are storing into.
-      Register value,       // Value we are storing.
-      MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
-  // For native unboxed slots, both methods are the same, as no write barrier
-  // is needed.
-  void StoreToSlot(Register src, Register base, const Slot& slot);
-  void StoreToSlotNoBarrier(Register src, Register base, const Slot& slot);
+  // Does not use write barriers, use StoreIntoObjectOffset instead for
+  // boxed fields.
+  virtual void StoreFieldToOffset(Register src,
+                                  Register base,
+                                  int32_t offset,
+                                  OperandSize sz = kWordBytes);
 
-  // Loads a Smi, handling sign extension appropriately when compressed.
-  // In DEBUG mode, also checks that the loaded value is a Smi and halts if not.
-  virtual void LoadCompressedSmi(Register dst, const Address& slot) = 0;
+  // Loads a Smi. In DEBUG mode, also checks that the loaded value is a Smi and
+  // halts if not.
+  void LoadSmi(Register dst, const Address& address) {
+    Load(dst, address);
+    DEBUG_ONLY(VerifySmi(dst));
+  }
 
-  // Install pure virtual methods if using compressed pointers, to ensure that
-  // these methods are overridden. If there are no compressed pointers, forward
-  // to the uncompressed version.
+  // Loads a Smi field from a Dart object. In DEBUG mode, also checks that the
+  // loaded value is a Smi and halts if not.
+  void LoadSmiField(Register dst, const FieldAddress& address);
+
+  // Loads a Smi. In DEBUG mode, also checks that the loaded value is a Smi and
+  // halts if not.
+  void LoadSmiFromOffset(Register dst, Register base, int32_t offset);
+
+  // Loads a Smi field from a Dart object. In DEBUG mode, also checks that the
+  // loaded value is a Smi and halts if not.
+  void LoadSmiFieldFromOffset(Register dst, Register base, int32_t offset);
+
 #if defined(DART_COMPRESSED_POINTERS)
-  virtual void LoadAcquireCompressed(Register dst,
-                                     Register address,
-                                     int32_t offset = 0) = 0;
-  virtual void LoadCompressedField(Register dst,
-                                   const FieldAddress& address) = 0;
-  virtual void LoadCompressedFieldFromOffset(Register dst,
-                                             Register base,
-                                             int32_t offset) = 0;
-  virtual void StoreCompressedIntoObject(
-      Register object,      // Object we are storing into.
-      const Address& dest,  // Where we are storing into.
-      Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
-  virtual void StoreCompressedIntoObjectNoBarrier(
-      Register object,      // Object we are storing into.
-      const Address& dest,  // Where we are storing into.
-      Register value,       // Value we are storing.
-      MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
+  // These are the base methods that all other compressed methods delegate to.
+  //
+  // For the virtual methods, they are only virtual when using compressed
+  // pointers, so the overriding definitions must be guarded with an #ifdef.
+
+  virtual void LoadCompressedFieldAddressForRegOffset(
+      Register address,
+      Register instance,
+      Register offset_in_words_as_smi) = 0;
+
+  virtual void LoadAcquireCompressed(Register dst, const Address& address) = 0;
+
+  virtual void LoadCompressed(Register dst, const Address& address) = 0;
+
+  virtual void LoadIndexedCompressed(Register dst,
+                                     Register base,
+                                     int32_t offset,
+                                     Register index) = 0;
+
+  // Loads a compressed Smi. In DEBUG mode, also checks that the loaded value is
+  // a Smi and halts if not.
+  void LoadCompressedSmi(Register dst, const Address& address) {
+    Load(dst, address, kUnsignedFourBytes);  // Zero extension.
+    DEBUG_ONLY(VerifySmi(dst);)
+  }
 #else
-  virtual void LoadAcquireCompressed(Register dst,
-                                     Register address,
-                                     int32_t offset = 0) {
-    LoadAcquire(dst, address, offset);
+  // These are the base methods that all other compressed methods delegate to.
+  //
+  // The methods are non-virtual and forward to the uncompressed versions.
+
+  void LoadCompressedFieldAddressForRegOffset(Register address,
+                                              Register instance,
+                                              Register offset_in_words_as_smi) {
+    LoadFieldAddressForRegOffset(address, instance, offset_in_words_as_smi);
   }
-  virtual void LoadCompressedField(Register dst, const FieldAddress& address) {
-    LoadField(dst, address);
+
+  void LoadAcquireCompressed(Register dst, const Address& address) {
+    LoadAcquire(dst, address);
   }
-  virtual void LoadCompressedFieldFromOffset(Register dst,
-                                             Register base,
-                                             int32_t offset) {
-    LoadFieldFromOffset(dst, base, offset);
+
+  void LoadCompressed(Register dst, const Address& address) {
+    Load(dst, address);
   }
-  virtual void StoreCompressedIntoObject(
-      Register object,      // Object we are storing into.
-      const Address& dest,  // Where we are storing into.
-      Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) {
-    StoreIntoObject(object, dest, value, can_be_smi);
+
+  void LoadIndexedCompressed(Register dst,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    LoadIndexedPayload(dst, base, offset, index, TIMES_WORD_SIZE, kWordBytes);
   }
-  virtual void StoreCompressedIntoObjectNoBarrier(
-      Register object,      // Object we are storing into.
-      const Address& dest,  // Where we are storing into.
-      Register value,       // Value we are storing.
-      MemoryOrder memory_order = kRelaxedNonAtomic) {
-    StoreIntoObjectNoBarrier(object, dest, value);
+
+  // Loads a compressed Smi. In DEBUG mode, also checks that the loaded value is
+  // a Smi and halts if not.
+  void LoadCompressedSmi(Register dst, const Address& address) {
+    LoadSmi(dst, address);
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
-  virtual void StoreRelease(Register src,
-                            Register address,
-                            int32_t offset = 0) = 0;
+  // Compressed store methods are implemented in AssemblerBase, as the only
+  // difference is whether the entire word is stored or just the low bits.
+
+  void StoreReleaseCompressed(Register src, const Address& address) {
+    StoreRelease(src, address, kObjectBytes);
+  }
+  void StoreReleaseCompressedToOffset(Register src,
+                                      Register base,
+                                      int32_t offset = 0) {
+    StoreReleaseToOffset(src, base, offset, kObjectBytes);
+  }
+
+  void StoreCompressedIntoObject(
+      Register object,         // Object being stored into.
+      const Address& address,  // Address to store the value at.
+      Register value,          // Value being stored.
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      Register scratch = TMP) {
+    StoreIntoObject(object, address, value, can_be_smi, memory_order, TMP,
+                    kObjectBytes);
+  }
+  void StoreCompressedIntoObjectNoBarrier(
+      Register object,         // Object being stored into.
+      const Address& address,  // Address to store the value at.
+      Register value,          // Value being stored.
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, address, value, memory_order,
+                             kObjectBytes);
+  }
+  virtual void StoreCompressedObjectIntoObjectNoBarrier(
+      Register object,         // Object being stored into.
+      const Address& address,  // Address to store the value at.
+      const Object& value,     // Value being stored.
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreObjectIntoObjectNoBarrier(object, address, value, memory_order,
+                                   kObjectBytes);
+  }
+
+  void StoreCompressedIntoObjectOffset(
+      Register object,  // Object being stored into.
+      int32_t offset,   // Offset into object.
+      Register value,   // Value being stored.
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      Register scratch = TMP) {
+    StoreIntoObjectOffset(object, offset, value, can_be_smi, memory_order, TMP,
+                          kObjectBytes);
+  }
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,  // Object being stored into.
+      int32_t offset,   // Offset into object.
+      Register value,   // Value being stored.
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectOffsetNoBarrier(object, offset, value, memory_order,
+                                   kObjectBytes);
+  }
+  void StoreCompressedObjectIntoObjectOffsetNoBarrier(
+      Register object,      // Object being stored into.
+      int32_t offset,       // Offset into object.
+      const Object& value,  // Value being stored.
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreObjectIntoObjectOffsetNoBarrier(object, offset, value, memory_order,
+                                         kObjectBytes);
+  }
+
+  void StoreIntoArray(Register object,
+                      Register slot,
+                      Register value,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                      Register scratch = TMP,
+                      OperandSize size = kWordBytes);
+  void StoreCompressedIntoArray(Register object,
+                                Register slot,
+                                Register value,
+                                CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                                Register scratch = TMP) {
+    StoreIntoArray(object, slot, value, can_value_be_smi, scratch,
+                   kObjectBytes);
+  }
+
+  // These methods just delegate to the non-Field classes, either passing
+  // along a FieldAddress as the Address or adjusting the offset appropriately.
+
+  void LoadAcquireCompressedFromOffset(Register dst,
+                                       Register base,
+                                       int32_t offset);
+  void LoadCompressedField(Register dst, const FieldAddress& address);
+  void LoadCompressedFromOffset(Register dst, Register base, int32_t offset);
+  void LoadCompressedFieldFromOffset(Register dst,
+                                     Register base,
+                                     int32_t offset);
+  void LoadCompressedSmiField(Register dst, const FieldAddress& address);
+  void LoadCompressedSmiFromOffset(Register dst, Register base, int32_t offset);
+  void LoadCompressedSmiFieldFromOffset(Register dst,
+                                        Register base,
+                                        int32_t offset);
+
+  // There are no StoreCompressedField methods because only Dart objects contain
+  // compressed pointers and compressed pointers may require write barriers, so
+  // StoreCompressedIntoObject should be used instead.
+
+  void LoadFromSlot(Register dst, Register base, const Slot& slot);
+  void StoreToSlot(Register src,
+                   Register base,
+                   const Slot& slot,
+                   CanBeSmi can_be_smi,
+                   MemoryOrder memory_order = kRelaxedNonAtomic,
+                   Register scratch = TMP);
+  void StoreToSlotNoBarrier(Register src,
+                            Register base,
+                            const Slot& slot,
+                            MemoryOrder memory_order = kRelaxedNonAtomic);
+  // Uses the type information of the Slot to determine whether the field
+  // can be a Smi or not.
+  void StoreToSlot(Register src,
+                   Register base,
+                   const Slot& slot,
+                   MemoryOrder memory_order = kRelaxedNonAtomic,
+                   Register scratch = TMP);
 
   // Truncates upper bits.
   virtual void LoadInt32FromBoxOrSmi(Register result, Register value) = 0;
@@ -862,6 +1092,17 @@ class AssemblerBase : public StackResource {
   void CompareAbstractTypeNullabilityWith(Register type,
                                           /*Nullability*/ int8_t value,
                                           Register scratch);
+
+  // [dst] = [base] + ([index] << [scale]) + [disp].
+  //
+  // Base can be kNoRegister (or ZR if available), in which case
+  //   [dst] = [index] << [scale] + [disp]
+  // with a set of emitted instructions optimized for that case.
+  virtual void AddScaled(Register dst,
+                         Register base,
+                         Register index,
+                         ScaleFactor scale,
+                         int32_t disp) = 0;
 
   virtual void LoadImmediate(Register dst, target::word imm) = 0;
 
@@ -986,14 +1227,48 @@ class AssemblerBase : public StackResource {
                           RangeCheckCondition condition,
                           Label* target) = 0;
 
+  // Checks [dst] for a Smi, halting if it does not contain one.
+  void VerifySmi(Register dst) {
+    Label done;
+    BranchIfSmi(dst, &done, kNearJump);
+    Stop("Expected Smi");
+    Bind(&done);
+  }
+
  protected:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  int32_t prologue_offset_;
-  bool has_monomorphic_entry_;
+  int32_t prologue_offset_ = -1;
+  bool has_monomorphic_entry_ = false;
+  bool should_be_aligned_ = false;
 
   intptr_t unchecked_entry_offset_ = 0;
 
  private:
+  // Apply the generational write barrier on all architectures and incremental
+  // write barrier on non-IA32 architectures.
+  //
+  // On IA32, since the incremental write barrier is not applied,
+  // concurrent marking cannot be enabled.
+  virtual void StoreBarrier(Register object,  // Object being stored into.
+                            Register value,   // Value being stored.
+                            CanBeSmi can_be_smi,
+                            Register scratch) = 0;
+
+  // Apply the generational write barrier on all architectures and incremental
+  // write barrier on non-IA32 architectures when storing into an array.
+  //
+  // On IA32, since the incremental write barrier is not applied,
+  // concurrent marking cannot be enabled.
+  virtual void ArrayStoreBarrier(Register object,  // Object being stored into.
+                                 Register slot,    // Slot being stored into.
+                                 Register value,   // Value being stored.
+                                 CanBeSmi can_be_smi,
+                                 Register scratch) = 0;
+
+  // Checks that storing [value] into [object] does not require a write barrier.
+  virtual void VerifyStoreNeedsNoWriteBarrier(Register object,
+                                              Register value) = 0;
+
   GrowableArray<CodeComment*> comments_;
   ObjectPoolBuilder* object_pool_builder_;
 };

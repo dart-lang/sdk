@@ -2787,6 +2787,23 @@ bool LiveRange::Contains(intptr_t pos) const {
   return false;
 }
 
+bool FlowGraphAllocator::IsLiveAfterCatchEntry(
+    CatchBlockEntryInstr* catch_entry,
+    ParameterInstr* param) {
+  ASSERT(param->GetBlock() == catch_entry);
+  auto* raw_exception_var = catch_entry->raw_exception_var();
+  if (raw_exception_var != nullptr &&
+      param->env_index() == flow_graph_.EnvIndex(raw_exception_var)) {
+    return true;
+  }
+  auto* raw_stacktrace_var = catch_entry->raw_stacktrace_var();
+  if (raw_stacktrace_var != nullptr &&
+      param->env_index() == flow_graph_.EnvIndex(raw_stacktrace_var)) {
+    return true;
+  }
+  return false;
+}
+
 void FlowGraphAllocator::AssignSafepoints(Definition* defn, LiveRange* range) {
   for (intptr_t i = safepoints_.length() - 1; i >= 0; i--) {
     Instruction* safepoint_instr = safepoints_[i];
@@ -2796,7 +2813,18 @@ void FlowGraphAllocator::AssignSafepoints(Definition* defn, LiveRange* range) {
       // definition's liverange.
       continue;
     }
-
+    // Exception and stack trace parameters of CatchBlockEntry are live
+    // only after catch block entry. Their spill slots should not be scanned
+    // if GC occurs during a safepoint with a catch block entry PC
+    // (before control is transferred to the catch entry).
+    if (auto* catch_entry = safepoint_instr->AsCatchBlockEntry()) {
+      if (auto* param = defn->AsParameter()) {
+        if ((param->GetBlock() == catch_entry) &&
+            IsLiveAfterCatchEntry(catch_entry, param)) {
+          continue;
+        }
+      }
+    }
     const intptr_t pos = GetLifetimePosition(safepoint_instr);
     if (range->End() <= pos) break;
 
@@ -2854,6 +2882,8 @@ bool FlowGraphAllocator::UnallocatedIsSorted() {
     LiveRange* a = unallocated_[i];
     LiveRange* b = unallocated_[i - 1];
     if (!ShouldBeAllocatedBefore(a, b)) {
+      a->Print();
+      b->Print();
       UNREACHABLE();
       return false;
     }
@@ -2957,8 +2987,8 @@ static void EmitMoveOnEdge(BlockEntryInstr* succ,
                            BlockEntryInstr* pred,
                            const MoveOperands& move) {
   Instruction* last = pred->last_instruction();
-  if ((last->SuccessorCount() == 1) && !pred->IsGraphEntry()) {
-    ASSERT(last->IsGoto());
+  if (last->IsGoto() && !pred->IsGraphEntry()) {
+    ASSERT(last->SuccessorCount() == 1);
     last->AsGoto()->GetParallelMove()->AddMove(move.dest(), move.src());
   } else {
     succ->GetParallelMove()->AddMove(move.dest(), move.src());
@@ -3226,7 +3256,6 @@ void FlowGraphAllocator::CollectRepresentations() {
   }
 }
 
-
 void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
   // Intrinsic functions are naturally frameless.
   if (intrinsic_mode_) {
@@ -3258,11 +3287,21 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
   bool has_write_barrier_call = false;
 #endif
+  intptr_t num_calls_on_shared_slow_path = 0;
   for (auto block : block_order_) {
     for (auto instruction : block->instructions()) {
       if (instruction->HasLocs() && instruction->locs()->can_call()) {
-        // Function contains a call and thus needs a frame.
-        return;
+        if (!instruction->locs()->call_on_shared_slow_path()) {
+          // Function contains a call and thus needs a frame.
+          return;
+        }
+        // For calls on shared slow paths the frame can be created on
+        // a slow path around the call. Only allow one call on a shared
+        // slow path to avoid extra code size.
+        ++num_calls_on_shared_slow_path;
+        if (num_calls_on_shared_slow_path > 1) {
+          return;
+        }
       }
 
       // Some instructions contain write barriers inside, which can call

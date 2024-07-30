@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -21,11 +23,14 @@ class KeywordHelper {
   /// The offset of the completion location.
   final int offset;
 
+  final CompletionState state;
+
   /// Initialize a newly created helper to add suggestions to the [collector].
   KeywordHelper(
       {required this.collector,
       required this.featureSet,
-      required this.offset});
+      required this.offset,
+      required this.state});
 
   /// Add the keywords that are appropriate when the selection is in a class
   /// declaration between the name of the class and the body. The [node] is the
@@ -318,7 +323,8 @@ class KeywordHelper {
   /// extension declaration between the name of the extension and the body. The
   /// [node] is the extension declaration containing the selection point.
   void addExtensionDeclarationKeywords(ExtensionDeclaration node) {
-    if (node.onKeyword.isSynthetic) {
+    var onClause = node.onClause;
+    if (onClause == null || onClause.onKeyword.isSynthetic) {
       addKeyword(Keyword.ON);
       if (node.name == null && featureSet.isEnabled(Feature.inline_class)) {
         addText('type');
@@ -468,12 +474,16 @@ class KeywordHelper {
 
   /// Add a keyword suggestion to suggest the [keyword].
   void addKeyword(Keyword keyword) {
-    collector.addSuggestion(
-      KeywordSuggestion.fromKeyword(
-        keyword: keyword,
-        annotatedText: null,
-      ),
-    );
+    var matcherScore = state.matcher.score(keyword.lexeme);
+    if (matcherScore != -1) {
+      collector.addSuggestion(
+        KeywordSuggestion.fromKeyword(
+          keyword: keyword,
+          annotatedText: null,
+          matcherScore: matcherScore,
+        ),
+      );
+    }
   }
 
   /// Add a keyword suggestion to suggest the [keyword] followed by the
@@ -486,12 +496,16 @@ class KeywordHelper {
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
   void addKeywordAndText(Keyword keyword, String annotatedText) {
-    collector.addSuggestion(
-      KeywordSuggestion.fromKeyword(
-        keyword: keyword,
-        annotatedText: annotatedText,
-      ),
-    );
+    var matcherScore = state.matcher.score(keyword.lexeme);
+    if (matcherScore != -1) {
+      collector.addSuggestion(
+        KeywordSuggestion.fromKeyword(
+          keyword: keyword,
+          annotatedText: annotatedText,
+          matcherScore: matcherScore,
+        ),
+      );
+    }
   }
 
   /// Add the keywords that are appropriate when the selection is in a mixin
@@ -590,9 +604,13 @@ class KeywordHelper {
 
   /// Add a keyword suggestion to suggest the [annotatedText].
   void addText(String annotatedText) {
-    collector.addSuggestion(
-      KeywordSuggestion.fromText(annotatedText),
-    );
+    var (rawText, _) = annotatedText.withoutCaret;
+    var matcherScore = state.matcher.score(rawText);
+    if (matcherScore != -1) {
+      collector.addSuggestion(
+        KeywordSuggestion.fromText(annotatedText, matcherScore: matcherScore),
+      );
+    }
   }
 
   /// Add the keywords that are appropriate when the selection is after the
@@ -642,7 +660,7 @@ extension on CollectionElement? {
 
 extension on FormalParameterList {
   bool inNamedGroup(int offset) {
-    final leftDelimiter = this.leftDelimiter;
+    var leftDelimiter = this.leftDelimiter;
     if (leftDelimiter == null ||
         leftDelimiter.type != TokenType.OPEN_CURLY_BRACKET) {
       return false;
@@ -655,7 +673,7 @@ extension on FormalParameterList {
 
 extension on NodeList<ConstructorInitializer> {
   ConstructorInitializer get lastNonSynthetic {
-    final last = this.last;
+    var last = this.last;
     if (last.beginToken.isSynthetic && length > 1) {
       return this[length - 2];
     }

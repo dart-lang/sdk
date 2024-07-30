@@ -32,52 +32,268 @@ AssemblerBase::~AssemblerBase() {}
 void AssemblerBase::LoadFromSlot(Register dst,
                                  Register base,
                                  const Slot& slot) {
-  auto const rep = slot.representation();
-  const FieldAddress address(base, slot.offset_in_bytes());
-  if (rep != kTagged) {
-    auto const sz = RepresentationUtils::OperandSize(rep);
-    return LoadFromOffset(dst, address, sz);
-  }
-  if (slot.is_compressed()) {
-    if (slot.type().ToCid() == kSmiCid) {
-      return LoadCompressedSmi(dst, address);
+  if (!slot.is_tagged()) {
+    // The result cannot be a floating point or SIMD value.
+    ASSERT(slot.representation() == kUntagged ||
+           RepresentationUtils::IsUnboxedInteger(slot.representation()));
+    // Since we only have a single destination register, the result value must
+    // fit into a register.
+    ASSERT(RepresentationUtils::ValueSize(slot.representation()) <=
+           compiler::target::kWordSize);
+    auto const sz = RepresentationUtils::OperandSize(slot.representation());
+    if (slot.has_untagged_instance()) {
+      LoadFromOffset(dst, base, slot.offset_in_bytes(), sz);
     } else {
-      return LoadCompressedField(dst, address);
+      LoadFieldFromOffset(dst, base, slot.offset_in_bytes(), sz);
+    }
+  } else if (slot.has_untagged_instance()) {
+    // Non-Dart objects do not contain compressed pointers.
+    ASSERT(!slot.is_compressed());
+    LoadFromOffset(dst, base, slot.offset_in_bytes());
+  } else if (!slot.is_guarded_field() && slot.type().ToCid() == kSmiCid) {
+    if (slot.is_compressed()) {
+      LoadCompressedSmiFieldFromOffset(dst, base, slot.offset_in_bytes());
+    } else {
+      LoadSmiFieldFromOffset(dst, base, slot.offset_in_bytes());
+    }
+  } else {
+    if (slot.is_compressed()) {
+      LoadCompressedFieldFromOffset(dst, base, slot.offset_in_bytes());
+    } else {
+      LoadFieldFromOffset(dst, base, slot.offset_in_bytes());
     }
   }
-  return LoadField(dst, address);
 }
 
-void AssemblerBase::StoreToSlot(Register src, Register base, const Slot& slot) {
-  auto const rep = slot.representation();
-  const FieldAddress address(base, slot.offset_in_bytes());
-  if (rep != kTagged) {
-    auto const sz = RepresentationUtils::OperandSize(rep);
-    return StoreToOffset(src, address, sz);
+void AssemblerBase::StoreToSlot(Register src,
+                                Register base,
+                                const Slot& slot,
+                                MemoryOrder memory_order,
+                                Register scratch) {
+  auto const can_be_smi =
+      slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi;
+  StoreToSlot(src, base, slot, can_be_smi, memory_order, scratch);
+}
+
+void AssemblerBase::StoreToSlot(Register src,
+                                Register base,
+                                const Slot& slot,
+                                CanBeSmi can_be_smi,
+                                MemoryOrder memory_order,
+                                Register scratch) {
+  if (!slot.is_tagged() || slot.has_untagged_instance()) {
+    // Same as the no barrier case.
+    StoreToSlotNoBarrier(src, base, slot, memory_order);
+  } else if (slot.is_compressed()) {
+    StoreCompressedIntoObjectOffset(base, slot.offset_in_bytes(), src,
+                                    can_be_smi, memory_order, scratch);
+  } else {
+    StoreIntoObjectOffset(base, slot.offset_in_bytes(), src, can_be_smi,
+                          memory_order, scratch);
   }
-  if (slot.is_compressed()) {
-    return StoreCompressedIntoObject(
-        base, address, src,
-        slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
-  }
-  return StoreIntoObject(
-      base, address, src,
-      slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
 }
 
 void AssemblerBase::StoreToSlotNoBarrier(Register src,
                                          Register base,
-                                         const Slot& slot) {
-  auto const rep = slot.representation();
-  const FieldAddress address(base, slot.offset_in_bytes());
-  if (rep != kTagged) {
-    auto const sz = RepresentationUtils::OperandSize(rep);
-    return StoreToOffset(src, address, sz);
+                                         const Slot& slot,
+                                         MemoryOrder memory_order) {
+  if (!slot.is_tagged()) {
+    // The stored value cannot be a floating point or SIMD value.
+    ASSERT(slot.representation() == kUntagged ||
+           RepresentationUtils::IsUnboxedInteger(slot.representation()));
+    // Since we only have a single source register, the stored value must
+    // fit into a register.
+    ASSERT(RepresentationUtils::ValueSize(slot.representation()) <=
+           compiler::target::kWordSize);
+    auto const sz = RepresentationUtils::OperandSize(slot.representation());
+    if (slot.has_untagged_instance()) {
+      StoreToOffset(src, base, slot.offset_in_bytes(), sz);
+    } else {
+      StoreFieldToOffset(src, base, slot.offset_in_bytes(), sz);
+    }
+  } else if (slot.has_untagged_instance()) {
+    // Non-Dart objects do not contain compressed pointers.
+    ASSERT(!slot.is_compressed());
+    StoreToOffset(src, base, slot.offset_in_bytes());
+  } else if (slot.is_compressed()) {
+    StoreCompressedIntoObjectOffsetNoBarrier(base, slot.offset_in_bytes(), src,
+                                             memory_order);
+  } else {
+    StoreIntoObjectOffsetNoBarrier(base, slot.offset_in_bytes(), src,
+                                   memory_order);
   }
-  if (slot.is_compressed()) {
-    return StoreCompressedIntoObjectNoBarrier(base, address, src);
+}
+
+void AssemblerBase::LoadFromOffset(Register dst,
+                                   Register base,
+                                   int32_t offset,
+                                   OperandSize sz) {
+  Load(dst, Address(base, offset), sz);
+}
+
+void AssemblerBase::StoreToOffset(Register src,
+                                  Register base,
+                                  int32_t offset,
+                                  OperandSize sz) {
+  Store(src, Address(base, offset), sz);
+}
+
+void AssemblerBase::LoadField(Register dst,
+                              const FieldAddress& address,
+                              OperandSize sz) {
+  Load(dst, address, sz);
+}
+void AssemblerBase::LoadFieldFromOffset(Register dst,
+                                        Register base,
+                                        int32_t offset,
+                                        OperandSize sz) {
+  Load(dst, FieldAddress(base, offset), sz);
+}
+
+void AssemblerBase::StoreFieldToOffset(Register src,
+                                       Register base,
+                                       int32_t offset,
+                                       OperandSize sz) {
+  Store(src, FieldAddress(base, offset), sz);
+}
+
+void AssemblerBase::LoadSmiField(Register dst, const FieldAddress& address) {
+  LoadSmi(dst, address);
+}
+void AssemblerBase::LoadSmiFromOffset(Register dst,
+                                      Register base,
+                                      int32_t offset) {
+  LoadSmi(dst, Address(base, offset));
+}
+void AssemblerBase::LoadSmiFieldFromOffset(Register dst,
+                                           Register base,
+                                           int32_t offset) {
+  LoadSmi(dst, FieldAddress(base, offset));
+}
+
+void AssemblerBase::LoadAcquireCompressedFromOffset(Register dst,
+                                                    Register base,
+                                                    int32_t offset) {
+  LoadAcquireCompressed(dst, Address(base, offset));
+}
+void AssemblerBase::LoadCompressedField(Register dst,
+                                        const FieldAddress& address) {
+  LoadCompressed(dst, address);
+}
+void AssemblerBase::LoadCompressedFromOffset(Register dst,
+                                             Register base,
+                                             int32_t offset) {
+  LoadCompressed(dst, Address(base, offset));
+}
+void AssemblerBase::LoadCompressedFieldFromOffset(Register dst,
+                                                  Register base,
+                                                  int32_t offset) {
+  LoadCompressed(dst, FieldAddress(base, offset));
+}
+void AssemblerBase::LoadCompressedSmiField(Register dst,
+                                           const FieldAddress& address) {
+  LoadCompressedSmi(dst, address);
+}
+void AssemblerBase::LoadCompressedSmiFromOffset(Register dst,
+                                                Register base,
+                                                int32_t offset) {
+  LoadCompressedSmi(dst, Address(base, offset));
+}
+void AssemblerBase::LoadCompressedSmiFieldFromOffset(Register dst,
+                                                     Register base,
+                                                     int32_t offset) {
+  LoadCompressedSmi(dst, FieldAddress(base, offset));
+}
+
+void AssemblerBase::LoadAcquireFromOffset(Register dst,
+                                          Register base,
+                                          int32_t offset,
+                                          OperandSize size) {
+  LoadAcquire(dst, Address(base, offset), size);
+}
+void AssemblerBase::StoreReleaseToOffset(Register src,
+                                         Register base,
+                                         int32_t offset,
+                                         OperandSize size) {
+  StoreRelease(src, Address(base, offset), size);
+}
+
+void AssemblerBase::StoreIntoObject(Register object,
+                                    const Address& address,
+                                    Register value,
+                                    CanBeSmi can_be_smi,
+                                    MemoryOrder memory_order,
+                                    Register scratch,
+                                    OperandSize size) {
+  // A write barrier should never be applied when writing a reference to an
+  // object into itself.
+  ASSERT(object != value);
+  ASSERT(object != scratch);
+  ASSERT(value != scratch);
+  if (memory_order == kRelease) {
+    StoreRelease(value, address, size);
+  } else {
+    Store(value, address, size);
   }
-  return StoreIntoObjectNoBarrier(base, address, src);
+  StoreBarrier(object, value, can_be_smi, scratch);
+}
+
+void AssemblerBase::StoreIntoObjectNoBarrier(Register object,
+                                             const Address& address,
+                                             Register value,
+                                             MemoryOrder memory_order,
+                                             OperandSize size) {
+  if (memory_order == kRelease) {
+    StoreRelease(value, address, size);
+  } else {
+    Store(value, address, size);
+  }
+  DEBUG_ONLY(VerifyStoreNeedsNoWriteBarrier(object, value));
+}
+
+void AssemblerBase::StoreIntoObjectOffset(Register object,
+                                          int32_t offset,
+                                          Register value,
+                                          CanBeSmi can_be_smi,
+                                          MemoryOrder memory_order,
+                                          Register scratch,
+                                          OperandSize size) {
+  StoreIntoObject(object, FieldAddress(object, offset), value, can_be_smi,
+                  memory_order, scratch, size);
+}
+
+void AssemblerBase::StoreIntoObjectOffsetNoBarrier(Register object,
+                                                   int32_t offset,
+                                                   Register value,
+                                                   MemoryOrder memory_order,
+                                                   OperandSize size) {
+  StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                           memory_order, size);
+}
+void AssemblerBase::StoreObjectIntoObjectOffsetNoBarrier(
+    Register object,
+    int32_t offset,
+    const Object& value,
+    MemoryOrder memory_order,
+    OperandSize size) {
+  StoreObjectIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                                 memory_order, size);
+}
+
+void AssemblerBase::StoreIntoArray(Register object,
+                                   Register slot,
+                                   Register value,
+                                   CanBeSmi can_be_smi,
+                                   Register scratch,
+                                   OperandSize size) {
+  ASSERT(object != scratch);
+  ASSERT(value != object);
+  ASSERT(value != scratch);
+  ASSERT(slot != object);
+  ASSERT(slot != value);
+  ASSERT(slot != scratch);
+  Store(value, Address(slot, 0), size);
+  ArrayStoreBarrier(object, slot, value, can_be_smi, scratch);
 }
 
 void AssemblerBase::UnrolledMemCopy(Register dst_base,
@@ -89,28 +305,24 @@ void AssemblerBase::UnrolledMemCopy(Register dst_base,
   intptr_t offset = 0;
   if (target::kWordSize >= 8) {
     while (offset + 8 <= size) {
-      LoadFromOffset(temp, Address(src_base, src_offset + offset), kEightBytes);
-      StoreToOffset(temp, Address(dst_base, dst_offset + offset), kEightBytes);
+      LoadFromOffset(temp, src_base, src_offset + offset, kEightBytes);
+      StoreToOffset(temp, dst_base, dst_offset + offset, kEightBytes);
       offset += 8;
     }
   }
   while (offset + 4 <= size) {
-    LoadFromOffset(temp, Address(src_base, src_offset + offset),
-                   kUnsignedFourBytes);
-    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
-                  kUnsignedFourBytes);
+    LoadFromOffset(temp, src_base, src_offset + offset, kUnsignedFourBytes);
+    StoreToOffset(temp, dst_base, dst_offset + offset, kUnsignedFourBytes);
     offset += 4;
   }
   while (offset + 2 <= size) {
-    LoadFromOffset(temp, Address(src_base, src_offset + offset),
-                   kUnsignedTwoBytes);
-    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
-                  kUnsignedTwoBytes);
+    LoadFromOffset(temp, src_base, src_offset + offset, kUnsignedTwoBytes);
+    StoreToOffset(temp, dst_base, dst_offset + offset, kUnsignedTwoBytes);
     offset += 2;
   }
   while (offset + 1 <= size) {
-    LoadFromOffset(temp, Address(src_base, src_offset + offset), kUnsignedByte);
-    StoreToOffset(temp, Address(dst_base, dst_offset + offset), kUnsignedByte);
+    LoadFromOffset(temp, src_base, src_offset + offset, kUnsignedByte);
+    StoreToOffset(temp, dst_base, dst_offset + offset, kUnsignedByte);
     offset += 1;
   }
   ASSERT(offset == size);
@@ -166,6 +378,8 @@ intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
 }
 
 void AssemblerBase::MsanUnpoison(Register base, intptr_t length_in_bytes) {
+  Comment("MsanUnpoison base %s length_in_bytes %" Pd,
+          RegisterNames::RegisterName(base), length_in_bytes);
   LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
                       /*preserve_registers=*/true);
   MoveRegister(CallingConventions::ArgumentRegisters[0], base);
@@ -174,6 +388,9 @@ void AssemblerBase::MsanUnpoison(Register base, intptr_t length_in_bytes) {
 }
 
 void AssemblerBase::MsanUnpoison(Register base, Register length_in_bytes) {
+  Comment("MsanUnpoison base %s length_in_bytes %s",
+          RegisterNames::RegisterName(base),
+          RegisterNames::RegisterName(length_in_bytes));
   LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
                       /*preserve_registers=*/true);
   const Register a0 = CallingConventions::ArgumentRegisters[0];

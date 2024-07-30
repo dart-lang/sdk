@@ -15,9 +15,10 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename_class_mem
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -33,10 +34,158 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:meta/meta.dart';
 
-const String _TOKEN_SEPARATOR = '\uFFFF';
+const String _tokenSeparator = '\uFFFF';
+
+/// Adds edits to the given [change] that ensure that all the [libraries] are
+/// imported into the given [targetLibrary].
+@visibleForTesting
+Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
+    LibraryElement targetLibrary, Set<Source> libraries) async {
+  var libraryPath = targetLibrary.source.fullName;
+
+  var resolveResult = await session.getResolvedUnit(libraryPath);
+  if (resolveResult is! ResolvedUnitResult) {
+    return;
+  }
+
+  var libUtils = CorrectionUtils(resolveResult);
+  var eol = libUtils.endOfLine;
+  // Prepare information about existing imports.
+  var directives = resolveResult.unit.directives;
+  var libraryDirective = directives.whereType<LibraryDirective>().firstOrNull;
+  var importDirectives = [
+    for (var directive in directives)
+      if (directive case ImportDirective(uri: StringLiteral(:var stringValue?)))
+        _ImportDirectiveInfo(stringValue, directive.offset, directive.end),
+  ];
+
+  // Prepare all URIs to import.
+  var uriList = libraries
+      .map((library) => getLibrarySourceUri(
+          session.resourceProvider.pathContext, targetLibrary, library.uri))
+      .toList()
+    ..sort((a, b) => a.compareTo(b));
+
+  var analysisOptions =
+      session.analysisContext.getAnalysisOptionsForFile(resolveResult.file);
+  var quote = analysisOptions.codeStyleOptions
+      .preferredQuoteForUris(directives.whereType<NamespaceDirective>());
+
+  // Insert imports: between existing imports.
+  if (importDirectives.isNotEmpty) {
+    var isFirstPackage = true;
+    for (var importUri in uriList) {
+      var inserted = false;
+      var isPackage = importUri.startsWith('package:');
+      var isAfterDart = false;
+      for (var existingImport in importDirectives) {
+        if (existingImport.uri.startsWith('dart:')) {
+          isAfterDart = true;
+        }
+        if (existingImport.uri.startsWith('package:')) {
+          isFirstPackage = false;
+        }
+        if (importUri.compareTo(existingImport.uri) < 0) {
+          var importCode = 'import $quote$importUri$quote;$eol';
+          doSourceChange_addElementEdit(change, targetLibrary,
+              SourceEdit(existingImport.offset, 0, importCode));
+          inserted = true;
+          break;
+        }
+      }
+      if (!inserted) {
+        var importCode = '${eol}import $quote$importUri$quote;';
+        if (isPackage && isFirstPackage && isAfterDart) {
+          importCode = eol + importCode;
+        }
+        doSourceChange_addElementEdit(change, targetLibrary,
+            SourceEdit(importDirectives.last.end, 0, importCode));
+      }
+      if (isPackage) {
+        isFirstPackage = false;
+      }
+    }
+    return;
+  }
+
+  // Insert imports: after the library directive.
+  if (libraryDirective != null) {
+    var prefix = eol + eol;
+    for (var importUri in uriList) {
+      var importCode = '${prefix}import $quote$importUri$quote;';
+      prefix = eol;
+      doSourceChange_addElementEdit(change, targetLibrary,
+          SourceEdit(libraryDirective.end, 0, importCode));
+    }
+    return;
+  }
+
+  // If still at the beginning of the file, skip hash-bang and line comments.
+  {
+    // Skip leading line comments.
+    var offset = 0;
+    var insertEmptyLineBefore = false;
+    var insertEmptyLineAfter = false;
+    var source = resolveResult.content;
+    // Skip hash-bang.
+    if (offset < source.length - 2) {
+      var linePrefix = libUtils.getText(offset, 2);
+      if (linePrefix == '#!') {
+        insertEmptyLineBefore = true;
+        offset = libUtils.getLineNext(offset);
+        // Skip empty lines to first line comment.
+        var emptyOffset = offset;
+        while (emptyOffset < source.length - 2) {
+          var nextLineOffset = libUtils.getLineNext(emptyOffset);
+          var line = source.substring(emptyOffset, nextLineOffset);
+          if (line.trim().isEmpty) {
+            emptyOffset = nextLineOffset;
+            continue;
+          } else if (line.startsWith('//')) {
+            offset = emptyOffset;
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    // Skip line comments.
+    while (offset < source.length - 2) {
+      var linePrefix = libUtils.getText(offset, 2);
+      if (linePrefix == '//') {
+        insertEmptyLineBefore = true;
+        offset = libUtils.getLineNext(offset);
+      } else {
+        break;
+      }
+    }
+    // Determine if empty line is required after.
+    var nextLineOffset = libUtils.getLineNext(offset);
+    var insertLine = source.substring(offset, nextLineOffset);
+    if (insertLine.trim().isNotEmpty) {
+      insertEmptyLineAfter = true;
+    }
+
+    for (var i = 0; i < uriList.length; i++) {
+      var importUri = uriList[i];
+      var importCode = 'import $quote$importUri$quote;$eol';
+      if (i == 0 && insertEmptyLineBefore) {
+        importCode = '$eol$importCode';
+      }
+      if (i == uriList.length - 1 && insertEmptyLineAfter) {
+        importCode = '$importCode$eol';
+      }
+      doSourceChange_addElementEdit(
+          change, targetLibrary, SourceEdit(offset, 0, importCode));
+    }
+  }
+}
 
 bool isLocalElement(Element? element) {
   return element is LocalVariableElement ||
@@ -57,7 +206,7 @@ Element? _getLocalElement(SimpleIdentifier node) {
 /// from tokens, so ignores all the comments and spaces.
 String _getNormalizedSource(String src, FeatureSet featureSet) {
   var selectionTokens = TokenUtils.getTokens(src, featureSet);
-  return selectionTokens.join(_TOKEN_SEPARATOR);
+  return selectionTokens.join(_tokenSeparator);
 }
 
 /// Returns the [Map] which maps [map] values to their keys.
@@ -329,7 +478,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       {
         var returnExpressionSource = _getMethodBodySource();
         // closure
-        final selectionFunctionExpression = _selectionFunctionExpression;
+        var selectionFunctionExpression = _selectionFunctionExpression;
         if (selectionFunctionExpression != null) {
           var returnTypeCode = _getExpectedClosureReturnTypeCode();
           declarationSource =
@@ -523,7 +672,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       _parentMember = getEnclosingClassOrUnitMember(selectedNode);
       // single expression selected
       if (selectedNodes.length == 1) {
-        if (!_utils.selectionIncludesNonWhitespaceOutsideNode(
+        if (!_selectionIncludesNonWhitespaceOutsideNode(
             _selectionRange, selectedNode)) {
           if (selectedNode is Expression) {
             _selectionExpression = selectedNode;
@@ -662,7 +811,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     // apply replacements
     source = SourceEdit.applySequence(source, replaceEdits);
     // change indentation
-    final selectionFunctionExpression = _selectionFunctionExpression;
+    var selectionFunctionExpression = _selectionFunctionExpression;
     if (selectionFunctionExpression != null) {
       var baseNode =
           selectionFunctionExpression.thisOrAncestorOfType<Statement>();
@@ -673,7 +822,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         source = source.trim();
       }
     }
-    final selectionStatements = _selectionStatements;
+    var selectionStatements = _selectionStatements;
     if (selectionStatements != null) {
       var selectionIndent = _utils.getNodePrefix(selectionStatements[0]);
       var targetIndent = '${_utils.getNodePrefix(_parentMember!)}  ';
@@ -742,12 +891,12 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     );
 
     // single expression
-    final selectionExpression = _selectionExpression;
+    var selectionExpression = _selectionExpression;
     if (selectionExpression != null) {
       _returnType = selectionExpression.typeOrThrow;
     }
     // verify that none or all execution flows end with a "return"
-    final selectionStatements = _selectionStatements;
+    var selectionStatements = _selectionStatements;
     if (selectionStatements != null) {
       var hasReturn = selectionStatements.any(_mayEndWithReturnStatement);
       if (hasReturn && !ExitDetector.exits(selectionStatements.last)) {
@@ -795,7 +944,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   Future<void> _initializeReturnType() async {
     var typeProvider = _resolveResult.typeProvider;
-    final returnTypeObj = _returnType;
+    var returnTypeObj = _returnType;
     if (_selectionFunctionExpression != null) {
       _variableType = '';
       returnType = '';
@@ -839,6 +988,18 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     return analyzer.status.isOK;
   }
 
+  /// Returns whether [range] contains only whitespace or comments.
+  bool _isJustWhitespaceOrComment(SourceRange range) {
+    var trimmedText = _utils.getRangeText(range).trim();
+    // May be whitespace.
+    if (trimmedText.isEmpty) {
+      return true;
+    }
+    // May be comment.
+    return TokenUtils.getTokens(trimmedText, _resolveResult.unit.featureSet)
+        .isEmpty;
+  }
+
   bool _isParameterNameConflictWithBody(RefactoringMethodParameter parameter) {
     var id = parameter.id;
     var name = parameter.name;
@@ -876,7 +1037,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   void _prepareNames() {
     names.clear();
-    final selectionExpression = _selectionExpression;
+    var selectionExpression = _selectionExpression;
     if (selectionExpression != null) {
       names.addAll(getVariableNameSuggestionsForExpression(
           selectionExpression.typeOrThrow, selectionExpression, _excludedNames,
@@ -891,6 +1052,31 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       offsets.add(occurrence.range.offset);
       lengths.add(occurrence.range.length);
     }
+  }
+
+  /// Returns whether [selection] covers [node] and there are any
+  /// non-whitespace tokens between [selection] and [node]'s `offset` and `end`
+  /// respectively.
+  bool _selectionIncludesNonWhitespaceOutsideNode(
+      SourceRange selection, AstNode node) {
+    var sourceRange = range.node(node);
+
+    // Selection should cover range.
+    if (!selection.covers(sourceRange)) {
+      return false;
+    }
+    // Non-whitespace between selection start and range start.
+    if (!_isJustWhitespaceOrComment(
+        range.startOffsetEndOffset(selection.offset, sourceRange.offset))) {
+      return true;
+    }
+    // Non-whitespace after range.
+    if (!_isJustWhitespaceOrComment(
+        range.startOffsetEndOffset(sourceRange.end, selection.end))) {
+      return true;
+    }
+    // Only whitespace in selection around range.
+    return false;
   }
 
   /// Checks if the given [expression] is reasonable to extract as a getter.
@@ -1205,6 +1391,14 @@ class _HasReturnStatementVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
+class _ImportDirectiveInfo {
+  final String uri;
+  final int offset;
+  final int end;
+
+  _ImportDirectiveInfo(this.uri, this.offset, this.end);
+}
+
 class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
   final _SourcePattern selectionPattern;
@@ -1394,7 +1588,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   visitVariableDeclaration(VariableDeclaration node) {
     var nodeRange = range.node(node);
     if (ref._selectionRange.covers(nodeRange)) {
-      final element = node.declaredElement!;
+      var element = node.declaredElement!;
 
       // remember, if assigned and used after selection
       if (ref._isUsedAfterSelection(element)) {
@@ -1408,7 +1602,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
         // declared local elements
         var range = ref._visibleRangeMap[element as LocalElement];
         if (range != null) {
-          final name = node.name.lexeme;
+          var name = node.name.lexeme;
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
           ranges.add(range);
         }
@@ -1660,15 +1854,15 @@ extension on LibraryElement {
     required Set<Source> librariesToImport,
     required RecordType type,
   }) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
 
-    final positionalFields = type.positionalFields;
-    final namedFields = type.namedFields;
-    final fieldCount = positionalFields.length + namedFields.length;
+    var positionalFields = type.positionalFields;
+    var namedFields = type.namedFields;
+    var fieldCount = positionalFields.length + namedFields.length;
     buffer.write('(');
 
     var index = 0;
-    for (final field in positionalFields) {
+    for (var field in positionalFields) {
       buffer.write(
         getTypeSource(field.type, librariesToImport),
       );
@@ -1679,7 +1873,7 @@ extension on LibraryElement {
 
     if (namedFields.isNotEmpty) {
       buffer.write('{');
-      for (final field in namedFields) {
+      for (var field in namedFields) {
         buffer.write(
           getTypeSource(field.type, librariesToImport),
         );

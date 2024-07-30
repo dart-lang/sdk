@@ -26,7 +26,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('a(0)');
+    var node = findNode.functionExpressionInvocation('a(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -64,7 +64,7 @@ main(A a) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('a([');
+    var node = findNode.functionExpressionInvocation('a([');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -107,7 +107,7 @@ void f(A a, int context) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('a()');
+    var node = findNode.functionExpressionInvocation('a()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -138,7 +138,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('a<int>()');
+    var node = findNode.functionExpressionInvocation('a<int>()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -171,7 +171,7 @@ main() {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('(0)');
+    var node = findNode.functionExpressionInvocation('(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ParenthesizedExpression
@@ -210,7 +210,7 @@ main() {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('(0)');
+    var node = findNode.functionExpressionInvocation('(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ParenthesizedExpression
@@ -267,7 +267,7 @@ extension on int? {
   int call() => 0;
 }
 ''');
-    final node = findNode.functionExpressionInvocation('();');
+    var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -293,7 +293,7 @@ extension on (String,) {
   int call() => 0;
 }
 ''');
-    final node = findNode.functionExpressionInvocation('();');
+    var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -317,7 +317,7 @@ void f((String,) a) {
 ''', [
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 24, 1),
     ]);
-    final node = findNode.functionExpressionInvocation('();');
+    var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -374,7 +374,7 @@ void f(F<int> a) {
 }
 ''');
 
-    final node = findNode.singleFunctionExpressionInvocation;
+    var node = findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -484,6 +484,36 @@ FunctionExpressionInvocation
 ''');
   }
 
+  test_getter_functionTyped_withSetterDeclaredLocally() async {
+    await assertNoErrorsInCode('''
+class A {
+  Function get foo => () {};
+}
+class B extends A {
+  set foo(Function _) {}
+
+  void f() {
+    foo();
+  }
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: Function
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_invalidConst_topLevelVariable() async {
     await assertErrorsInCode(r'''
 const id = identical;
@@ -532,7 +562,7 @@ void f(Never x) {
       error(WarningCode.DEAD_CODE, 26, 8),
     ]);
 
-    final node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
+    var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -581,7 +611,7 @@ void f(Never? x) {
       error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
-    final node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
+    var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -634,7 +664,7 @@ class B {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('a?.foo()');
+    var node = findNode.functionExpressionInvocation('a?.foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: PropertyAccess
@@ -711,7 +741,7 @@ void f(Object? x) {
 void foo() {}
 ''');
 
-    final node = findNode.functionExpressionInvocation('}()');
+    var node = findNode.functionExpressionInvocation('}()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SwitchExpression
@@ -752,7 +782,7 @@ void f(({void Function(int) foo}) r) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('(0)');
+    var node = findNode.functionExpressionInvocation('(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: PropertyAccess
@@ -787,7 +817,7 @@ void f((void Function(int),) r) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('(0)');
+    var node = findNode.functionExpressionInvocation('(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: PropertyAccess
@@ -822,7 +852,7 @@ void f((void Function(int),) r) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('(0)');
+    var node = findNode.functionExpressionInvocation('(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ParenthesizedExpression

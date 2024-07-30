@@ -151,16 +151,16 @@ extension on ENonInterop {
   // [web] JS interop type or @Native type from an SDK web library required for 'external' extension members.
 }
 
-extension type EExternalDartReference._(ExternalDartReference _) {
+extension type EExternalDartReference._(ExternalDartReference<Object> _) {
   external EExternalDartReference();
   //       ^
   // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
 }
 
 @JS()
-extension type EExternalDartReference2._(ExternalDartReference _) {}
+extension type EExternalDartReference2._(ExternalDartReference<Object> _) {}
 //             ^
-// [web] Extension type 'EExternalDartReference2' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'ExternalDartReference'.
+// [web] Extension type 'EExternalDartReference2' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'ExternalDartReference<Object>'.
 
 extension on EExternalDartReference {
   external int field;

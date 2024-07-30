@@ -89,6 +89,8 @@ config("dart_precompiler_config") {
   # the same mode (TSAN or non-TSAN).
   if (is_tsan) {
     defines += [ "TARGET_USES_THREAD_SANITIZER" ]
+  } else if (is_msan) {
+    defines += [ "TARGET_USES_MEMORY_SANITIZER" ]
   }
 }
 

@@ -4,14 +4,21 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
+  ConvertIntoIsNotEmpty({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
 
@@ -58,7 +65,7 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
       return;
     }
 
-    final isEmptyIdentifier_final = isEmptyIdentifier;
+    var isEmptyIdentifier_final = isEmptyIdentifier;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
           range.startStart(prefixExpression, prefixExpression.operand));

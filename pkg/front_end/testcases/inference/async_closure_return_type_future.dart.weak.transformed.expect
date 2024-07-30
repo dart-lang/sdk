@@ -1,9 +1,0 @@
-library test;
-import self as self;
-import "dart:async" as asy;
-import "dart:core" as core;
-
-static field () → asy::Future<core::int> f = () → asy::Future<core::int> async /* emittedValueType= core::int */ => 0;
-static method main() → dynamic {
-  self::f;
-}

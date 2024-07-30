@@ -91,7 +91,7 @@ mixin StringTypes on AbstractTypeSystemTest {
   }
 
   String typesString(List<DartType> types) {
-    final str = types.map(typeString).join('\n');
+    var str = types.map(typeString).join('\n');
     return '$str\n';
   }
 
@@ -357,7 +357,7 @@ mixin StringTypes on AbstractTypeSystemTest {
       List<DartType> positionalTypes,
       Map<String, DartType> namedTypes,
     ) {
-      final type = recordTypeNone(
+      var type = recordTypeNone(
         positionalTypes: positionalTypes,
         namedTypes: namedTypes,
       );
@@ -369,7 +369,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     }
 
     void allPositionalQuestion(String str, List<DartType> types) {
-      final type = recordTypeQuestion(
+      var type = recordTypeQuestion(
         positionalTypes: types,
       );
       _defineType(str, type);
@@ -399,7 +399,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     }
 
     void allNamedQuestion(String str, Map<String, DartType> types) {
-      final type = recordTypeQuestion(
+      var type = recordTypeQuestion(
         namedTypes: types,
       );
       _defineType(str, type);
@@ -505,11 +505,11 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
   @override
   void visitRecordType(RecordType type) {
-    final fields = [
+    var fields = [
       ...type.positionalFields,
       ...type.namedFields,
     ];
-    for (final field in fields) {
+    for (var field in fields) {
       field.type.accept(this);
     }
   }

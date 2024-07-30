@@ -307,7 +307,8 @@ class ReadStream {
     final len = readInteger();
 
     final Uint16List codeUnits;
-    if (_currentChunkHasBytes(len * 2) && _byteIndex & 1 == 0) {
+    if (_currentChunkHasBytes(len * 2) &&
+        (_currentChunk.offsetInBytes + _byteIndex) & 1 == 0) {
       codeUnits = Uint16List.sublistView(
           _currentChunk, _byteIndex, _byteIndex + len * 2);
       _byteIndex += len * 2;

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
@@ -125,11 +126,6 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   TextRepresentationDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<String>> actualMap, this.strategy)
       : super(compilerResult, actualMap);
-
-  @override
-  String computeLibraryValue(Id id, Library node) {
-    return 'nnbd=${node.isNonNullableByDefault}';
-  }
 
   @override
   void visitConstructor(Constructor node) {

@@ -55,8 +55,8 @@ void main(List<String> args) async {
 
       var outputEvents = await dap.client.collectOutput(file: testFile);
 
-      // Skip the first line because it's the VM Service connection info.
-      final output = outputEvents.skip(1).map((e) => e.output).join();
+      // Skip the first two lines because it's the VM Service connection info.
+      final output = outputEvents.skip(2).map((e) => e.output).join();
       expectLines(output, [
         '[log] this is a test',
         '      across two lines',

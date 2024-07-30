@@ -1,9 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method foo<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::foo::X% x, core::String y) → dynamic {
-  if(x is self::foo::Y%) {
-    core::Object v = let final self::foo::X% & self::foo::Y% /* '%' & '%' = '%' */ #t1 = x{self::foo::X% & self::foo::Y% /* '%' & '%' = '%' */} in #t1 == null ?{core::Object} y : #t1{self::foo::X% & self::foo::Y% & core::Object /* '%' & '!' = '!' */ /* '%' & '!' = '!' */};
-  }
-}

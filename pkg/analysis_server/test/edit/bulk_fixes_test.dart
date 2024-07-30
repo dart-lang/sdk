@@ -439,9 +439,11 @@ abstract class BulkFixesTest extends PubPackageAnalysisServerTest {
   Future<EditBulkFixesResult> _getBulkFixes() async {
     var request = _getRequest();
     var response = await handleSuccessfulRequest(request);
-    return EditBulkFixesResult.fromResponse(response);
+    return EditBulkFixesResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
   }
 
   Request _getRequest() =>
-      EditBulkFixesParams([workspaceRoot.path], codes: codes).toRequest('0');
+      EditBulkFixesParams([workspaceRoot.path], codes: codes)
+          .toRequest('0', clientUriConverter: server.uriConverter);
 }

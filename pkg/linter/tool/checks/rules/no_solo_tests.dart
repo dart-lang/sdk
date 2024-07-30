@@ -34,12 +34,12 @@ class NoSoloTests extends LintRule {
             name: 'no_solo_tests',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (context.inTestDir(context.currentUnit.unit)) {
+    if (context.definingUnit.unit.inTestDir) {
       var visitor = _Visitor(this);
       registry.addMethodDeclaration(this, visitor);
     }
@@ -54,7 +54,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     // TODO(pq): we *could* ensure we're in a reflective test too.
-    if (node.name.lexeme.startsWith('solo_test_')) {
+    // Handle both 'solo_test_' and 'solo_fail_'.
+    if (node.name.lexeme.startsWith('solo_')) {
       rule.reportLintForToken(node.name);
       return;
     }

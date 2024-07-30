@@ -93,7 +93,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   void visitDoStatement(DoStatement node) {
     super.visitDoStatement(node);
-    final selectedNodes = this.selectedNodes;
+    var selectedNodes = this.selectedNodes;
     if (_contains(selectedNodes, node.body)) {
       invalidSelection(
           "Operation not applicable to a 'do' statement's body and expression.");
@@ -105,7 +105,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
     super.visitForStatement(node);
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
-      final selectedNodes = this.selectedNodes;
+      var selectedNodes = this.selectedNodes;
       bool containsInit;
       if (forLoopParts is ForPartsWithExpression) {
         containsInit = _contains(selectedNodes, forLoopParts.initialization);
@@ -135,7 +135,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   void visitSwitchStatement(SwitchStatement node) {
     super.visitSwitchStatement(node);
-    final selectedNodes = this.selectedNodes;
+    var selectedNodes = this.selectedNodes;
     List<SwitchMember> switchMembers = node.members;
     for (var selectedNode in selectedNodes) {
       if (switchMembers.contains(selectedNode)) {
@@ -149,7 +149,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   void visitTryStatement(TryStatement node) {
     super.visitTryStatement(node);
-    final firstSelectedNode = this.firstSelectedNode;
+    var firstSelectedNode = this.firstSelectedNode;
     if (firstSelectedNode != null) {
       if (firstSelectedNode == node.body ||
           firstSelectedNode == node.finallyBlock) {
@@ -172,7 +172,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   void visitWhileStatement(WhileStatement node) {
     super.visitWhileStatement(node);
-    final selectedNodes = this.selectedNodes;
+    var selectedNodes = this.selectedNodes;
     if (_contains(selectedNodes, node.condition) &&
         _contains(selectedNodes, node.body)) {
       invalidSelection(

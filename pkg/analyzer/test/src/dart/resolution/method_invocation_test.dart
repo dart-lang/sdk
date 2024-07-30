@@ -31,7 +31,7 @@ void g(Object a) {}
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -100,7 +100,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleCascadeExpression;
+    var node = findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: SimpleIdentifier
@@ -1389,8 +1389,8 @@ MethodInvocation
   }
 
   test_class_explicitThis_inAugmentation_augmentationDeclares() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -1410,7 +1410,7 @@ class A {}
 
     await resolveFile2(a);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
@@ -1431,7 +1431,7 @@ MethodInvocation
 
   test_class_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -1449,7 +1449,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
@@ -1470,7 +1470,7 @@ MethodInvocation
 
   test_class_implicitStatic_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   static void foo() {}
@@ -1488,7 +1488,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1505,7 +1505,7 @@ MethodInvocation
 
   test_class_implicitThis_inDeclaration_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment void foo() {}
@@ -1523,7 +1523,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1540,7 +1540,7 @@ MethodInvocation
 
   test_class_implicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -1558,7 +1558,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -3113,7 +3113,7 @@ extension type A(int it) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
@@ -3143,7 +3143,7 @@ extension type A(int it) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -3235,7 +3235,7 @@ MethodInvocation
 
   test_hasReceiver_className_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment static void foo() {}
@@ -3253,7 +3253,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -3275,7 +3275,7 @@ MethodInvocation
 
   test_hasReceiver_className_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   static void foo() {}
@@ -3291,7 +3291,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -3435,7 +3435,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4115,7 +4115,7 @@ FunctionExpressionInvocation
 
   test_hasReceiver_interfaceType_class_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment void foo() {}
@@ -4133,7 +4133,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4155,7 +4155,7 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_class_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -4171,7 +4171,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4269,7 +4269,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4300,7 +4300,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4334,7 +4334,7 @@ void f(A? a) {
           67, 3),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4365,7 +4365,7 @@ void f(A? a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4400,7 +4400,7 @@ void f(X x) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4437,7 +4437,7 @@ void f(X x) {
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 109, 3),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4472,7 +4472,7 @@ void f(X x) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4494,7 +4494,7 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_mixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   augment void foo() {}
@@ -4512,7 +4512,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4534,7 +4534,7 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_mixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   void foo() {}
@@ -4550,7 +4550,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4570,6 +4570,74 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_interfaceType_ofExtension() async {
+    await assertNoErrorsInCode(r'''
+extension E on int {
+  void foo() {}
+}
+
+void f() {
+  0.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_ofExtension_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+augment extension E {
+  vois foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+extension E on int {}
+
+void f() {
+  0.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::foo
+    staticType: InvalidType Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType Function()
+  staticType: InvalidType
+''');
+  }
+
   test_hasReceiver_interfaceType_switchExpression() async {
     await assertNoErrorsInCode(r'''
 Object f(Object? x) {
@@ -4579,7 +4647,7 @@ Object f(Object? x) {
 }
 ''');
 
-    final node = findNode.methodInvocation('toString()');
+    var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SwitchExpression
@@ -4967,7 +5035,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.methodInvocation('r.foo(0)');
+    var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -5003,7 +5071,7 @@ void f((int, String)? r) {
 }
 ''');
 
-    final node = findNode.methodInvocation('r.foo(0)');
+    var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -5042,7 +5110,7 @@ void f((int, String)? r) {
           86, 3),
     ]);
 
-    final node = findNode.methodInvocation('r.foo(0)');
+    var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -5141,7 +5209,7 @@ class B extends A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class B {
   void bar() {
@@ -5181,7 +5249,7 @@ class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class B {
   void bar() {
@@ -5197,7 +5265,7 @@ augment class B {
 MethodInvocation
   target: SuperExpression
     superKeyword: super
-    staticType: InvalidType
+    staticType: B
   operator: .
   methodName: SimpleIdentifier
     token: foo
@@ -5508,7 +5576,7 @@ class A {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 45, 3),
     ]);
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5540,7 +5608,7 @@ class A {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5572,7 +5640,7 @@ class A {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5600,7 +5668,7 @@ void f(foo) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5634,7 +5702,7 @@ void f() {
       error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5684,7 +5752,7 @@ void f() {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 29, 3),
     ]);
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5714,7 +5782,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5810,7 +5878,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5839,7 +5907,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -6123,7 +6191,7 @@ MethodInvocation
 
   test_mixin_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   void foo() {}
@@ -6141,7 +6209,7 @@ mixin A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
@@ -6162,7 +6230,7 @@ MethodInvocation
 
   test_mixin_implicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   void foo() {}
@@ -6180,7 +6248,7 @@ mixin A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -6352,7 +6420,7 @@ extension E on int Function() {
 }
 ''');
 
-    final node = findNode.methodInvocation('call()');
+    var node = findNode.methodInvocation('call()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -6376,7 +6444,7 @@ extension E<T extends int Function()> on T {
 }
 ''');
 
-    final node = findNode.methodInvocation('call()');
+    var node = findNode.methodInvocation('call()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -7009,7 +7077,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: dart:core::@class::Object::@method::toString
-    staticType: null
+    staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

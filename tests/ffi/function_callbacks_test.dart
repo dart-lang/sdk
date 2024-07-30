@@ -10,7 +10,8 @@
 // VMOptions=--use-slow-path --stacktrace-every=100
 // VMOptions=--dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
 // VMOptions=--test_il_serialization
-// VMOptions=--profiler
+// VMOptions=--profiler --profile_vm=true
+// VMOptions=--profiler --profile_vm=false
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';

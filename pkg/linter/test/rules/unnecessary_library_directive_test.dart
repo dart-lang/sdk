@@ -36,7 +36,7 @@ library with_comment;
   }
 
   test_hasPart() async {
-    newFile2('$testPackageLibPath/part.dart', '''
+    newFile('$testPackageLibPath/part.dart', '''
 part of 'test.dart';
 ''');
     // Parts may still use library names to reference what they are a 'part of'.

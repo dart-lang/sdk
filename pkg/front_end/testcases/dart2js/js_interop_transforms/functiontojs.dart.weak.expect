@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:js_interop" as js_;
+import "dart:core" as core;
+
+import "dart:js_interop";
+
+static method main() → void {
+  js_::JSExportedDartFunction /* erasure=_interceptors::JavaScriptFunction */ jsFunction = js_::FunctionToJSExportedDartFunction|get#toJS(() → Null {});
+  js_::FunctionToJSExportedDartFunction|get#toJS((core::int arg1) → core::int => arg1);
+  js_::FunctionToJSExportedDartFunction|get#toJS((([core::int? arg1 = #C1]) → core::int? => arg1) as () → void);
+  js_::FunctionToJSExportedDartFunction|get#toJS((core::int arg1, core::String arg2) → core::String => arg2);
+  js_::FunctionToJSExportedDartFunction|get#toJS((([core::int? arg1 = #C1, core::String? arg2 = #C1]) → core::String? => arg2) as ([core::int]) → void);
+  js_::FunctionToJSExportedDartFunction|get#toJS((core::int arg1, core::String arg2, js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ arg3) → js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ => arg3);
+  js_::FunctionToJSExportedDartFunction|get#toJS(((core::int arg1, [core::String? arg2 = #C1, js_::JSArray<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSArray<core::Object?>? */ arg3 = #C1]) → js_::JSArray<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSArray<core::Object?>? */ => arg3) as (core::int, [core::String]) → void);
+  js_::FunctionToJSExportedDartFunction|get#toJS((core::int arg1, core::String arg2, js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ arg3, js_::JSObject /* erasure=_interceptors::JSObject */ arg4) → js_::JSObject /* erasure=_interceptors::JSObject */ => arg4);
+  js_::FunctionToJSExportedDartFunction|get#toJS(((core::int arg1, core::String arg2, js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ arg3, [js_::JSObject? /* erasure=_interceptors::JSObject? */ arg4 = #C1]) → js_::JSObject? /* erasure=_interceptors::JSObject? */ => arg4) as (core::int, core::String, js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */) → void);
+  js_::FunctionToJSExportedDartFunction|get#toJS((core::int arg1, core::String arg2, js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ arg3, js_::JSObject /* erasure=_interceptors::JSObject */ arg4, js_::JSPromise<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSObject */ arg5) → js_::JSPromise<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSObject */ => arg5);
+  js_::FunctionToJSExportedDartFunction|get#toJS(((core::int arg1, core::String arg2, [js_::JSArray<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSArray<core::Object?>? */ arg3 = #C1, js_::JSObject? /* erasure=_interceptors::JSObject? */ arg4 = #C1, js_::JSPromise<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSObject? */ arg5 = #C1]) → js_::JSPromise<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSObject? */ => arg5) as (core::int, core::String, [js_::JSArray<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSArray<core::Object?>? */, js_::JSObject? /* erasure=_interceptors::JSObject? */]) → void);
+  js_::FunctionToJSExportedDartFunction|get#toJS((core::int arg1, core::String arg2, js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ arg3, js_::JSObject /* erasure=_interceptors::JSObject */ arg4, js_::JSPromise<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSObject */ arg5, js_::JSAny /* erasure=core::Object */ arg6) → js_::JSAny /* erasure=core::Object */ => arg6);
+  js_::FunctionToJSExportedDartFunction|get#toJS(((core::int arg1, core::String arg2, js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ arg3, js_::JSObject /* erasure=_interceptors::JSObject */ arg4, [js_::JSPromise<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSObject? */ arg5 = #C1, js_::JSAny? /* erasure=core::Object? */ arg6 = #C1]) → js_::JSAny? /* erasure=core::Object? */ => arg6) as (core::int, core::String, js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */, js_::JSObject /* erasure=_interceptors::JSObject */, [js_::JSPromise<js_::JSAny? /* erasure=core::Object? */>? /* erasure=_interceptors::JSObject? */]) → void);
+  js_::JSExportedDartFunctionToFunction|get#toDart(jsFunction);
+}
+
+constants  {
+  #C1 = null
+}

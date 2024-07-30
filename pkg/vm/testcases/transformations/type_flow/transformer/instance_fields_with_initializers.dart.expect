@@ -33,11 +33,14 @@ class A extends core::Object {
     ;
 }
 
+[@vm.inferred-return-type.metadata=dart.core::_Smi]
 [@vm.unboxing-info.metadata=(i)->i]
 static method sideEffect([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int x) → core::int {
   core::print(x);
   return x;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   let final core::int #t10 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.unary-] [@vm.inferred-type.metadata=int (skip check)] 8.{core::int::unary-}(){() → core::int} in new self::A::•();
   new self::A::foo();

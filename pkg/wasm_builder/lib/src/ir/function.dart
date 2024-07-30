@@ -70,6 +70,7 @@ class DefinedFunction extends BaseFunction implements Serializable {
     // Bundle locals and body
     localS.write(body);
     s.writeUnsigned(localS.data.length);
+    s.sourceMapSerializer.copyMappings(localS.sourceMapSerializer, s.offset);
     s.writeData(localS);
   }
 

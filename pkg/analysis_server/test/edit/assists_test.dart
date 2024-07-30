@@ -31,10 +31,11 @@ class AssistsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> prepareAssistsAt(int offset, int length) async {
-    var request =
-        EditGetAssistsParams(testFile.path, offset, length).toRequest('0');
+    var request = EditGetAssistsParams(testFile.path, offset, length)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = EditGetAssistsResult.fromResponse(response);
+    var result = EditGetAssistsResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     changes = result.assists;
   }
 
@@ -67,7 +68,8 @@ class AssistsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditGetAssistsParams('test.dart', 0, 0).toRequest('0');
+    var request = EditGetAssistsParams('test.dart', 0, 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -79,7 +81,7 @@ class AssistsTest extends PubPackageAnalysisServerTest {
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         EditGetAssistsParams(convertPath('/foo/../bar/test.dart'), 0, 0)
-            .toRequest('0');
+            .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,

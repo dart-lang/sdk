@@ -11,7 +11,7 @@ import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
 
-const _desc = r'Use `isEmpty` for Iterables and Maps.';
+const _desc = r'Use `isEmpty` for `Iterable`s and `Map`s.';
 const _details = r'''
 **DON'T** use `length` to see if a collection is empty.
 
@@ -43,31 +43,35 @@ class PreferIsEmpty extends LintRule {
   static const LintCode alwaysFalse = LintCode(
       'prefer_is_empty',
       "The comparison is always 'false' because the length is always greater "
-          'than or equal to 0.');
+          'than or equal to 0.',
+      hasPublishedDocs: true);
 
   static const LintCode alwaysTrue = LintCode(
       'prefer_is_empty',
       "The comparison is always 'true' because the length is always greater "
-          'than or equal to 0.');
+          'than or equal to 0.',
+      hasPublishedDocs: true);
 
   static const LintCode useIsEmpty = LintCode(
       'prefer_is_empty',
       "Use 'isEmpty' instead of 'length' to test whether the collection is "
           'empty.',
-      correctionMessage: "Try rewriting the expression to use 'isEmpty'.");
+      correctionMessage: "Try rewriting the expression to use 'isEmpty'.",
+      hasPublishedDocs: true);
 
   static const LintCode useIsNotEmpty = LintCode(
       'prefer_is_empty',
       "Use 'isNotEmpty' instead of 'length' to test whether the collection is "
           'empty.',
-      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.");
+      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
+      hasPublishedDocs: true);
 
   PreferIsEmpty()
       : super(
             name: 'prefer_is_empty',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<LintCode> get lintCodes =>

@@ -120,7 +120,7 @@ analyzer:
     var response = await handleRequest(
       AnalysisSetPriorityFilesParams([
         'test.dart',
-      ]).toRequest('1'),
+      ]).toRequest('1', clientUriConverter: server.uriConverter),
     );
     assertResponseFailure(
       response,
@@ -132,7 +132,7 @@ analyzer:
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var response = await handleRequest(AnalysisSetPriorityFilesParams([
       convertPath('/foo/../bar/test.dart'),
-    ]).toRequest('1'));
+    ]).toRequest('1', clientUriConverter: server.uriConverter));
     assertResponseFailure(
       response,
       requestId: '1',
@@ -155,7 +155,7 @@ analyzer:
     return await handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(<String>[
         file.path,
-      ]).toRequest('1'),
+      ]).toRequest('1', clientUriConverter: server.uriConverter),
     );
   }
 

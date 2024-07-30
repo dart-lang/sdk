@@ -12,8 +12,12 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=dart.async::_Future]
 static method doSomething() → asy::Future<core::int> async /* emittedValueType= core::int */ 
   return 3;
+
+[@vm.inferred-return-type.metadata=dart.async::_Future]
 static method useFinalizableAsync([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → asy::Future<core::int> async /* emittedValueType= core::int */ {
   await block {
     final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 6);
@@ -39,6 +43,8 @@ static method useFinalizableAsync([@vm.inferred-arg-type.metadata=#lib::MyFinali
     _in::reachabilityFence(finalizable3);
   } =>:expressionValueWrappedFinalizable;
 }
+
+[@vm.inferred-return-type.metadata=dart.async::_Future]
 static method main() → void async /* emittedValueType= void */ {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   final asy::Future<core::int> asyncResult = self::useFinalizableAsync(finalizable);

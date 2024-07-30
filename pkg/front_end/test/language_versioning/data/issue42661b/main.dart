@@ -1,5 +1,5 @@
 /*library: 
- languageVersion=2.7,
+ languageVersion=%VERSION_MARKER2%,
  packageUri=package:pack
 */
 

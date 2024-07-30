@@ -79,6 +79,8 @@ class RISCVDisassembler {
   void DisassembleMISCMEM(Instr instr);
   void DisassembleSYSTEM(Instr instr);
   void DisassembleAMO(Instr instr);
+  void DisassembleAMO8(Instr instr);
+  void DisassembleAMO16(Instr instr);
   void DisassembleAMO32(Instr instr);
   void DisassembleAMO64(Instr instr);
   void DisassembleLOADFP(Instr instr);
@@ -1097,11 +1099,43 @@ void RISCVDisassembler::DisassembleSYSTEM(Instr instr) {
 
 void RISCVDisassembler::DisassembleAMO(Instr instr) {
   switch (instr.funct3()) {
+    case WIDTH8:
+      DisassembleAMO8(instr);
+      break;
+    case WIDTH16:
+      DisassembleAMO16(instr);
+      break;
     case WIDTH32:
       DisassembleAMO32(instr);
       break;
     case WIDTH64:
       DisassembleAMO64(instr);
+      break;
+    default:
+      UnknownInstruction(instr);
+  }
+}
+
+void RISCVDisassembler::DisassembleAMO8(Instr instr) {
+  switch (instr.funct5()) {
+    case LOADORDERED:
+      Print("lb'order 'rd, ('rs1)", instr, RV_Zalasr);
+      break;
+    case STOREORDERED:
+      Print("sb'order 'rs2, ('rs1)", instr, RV_Zalasr);
+      break;
+    default:
+      UnknownInstruction(instr);
+  }
+}
+
+void RISCVDisassembler::DisassembleAMO16(Instr instr) {
+  switch (instr.funct5()) {
+    case LOADORDERED:
+      Print("lh'order 'rd, ('rs1)", instr, RV_Zalasr);
+      break;
+    case STOREORDERED:
+      Print("sh'order 'rs2, ('rs1)", instr, RV_Zalasr);
       break;
     default:
       UnknownInstruction(instr);
@@ -1143,6 +1177,12 @@ void RISCVDisassembler::DisassembleAMO32(Instr instr) {
     case AMOMAXU:
       Print("amomaxu.w'order 'rd, 'rs2, ('rs1)", instr, RV_A);
       break;
+    case LOADORDERED:
+      Print("lw'order 'rd, ('rs1)", instr, RV_Zalasr);
+      break;
+    case STOREORDERED:
+      Print("sw'order 'rs2, ('rs1)", instr, RV_Zalasr);
+      break;
     default:
       UnknownInstruction(instr);
   }
@@ -1183,6 +1223,12 @@ void RISCVDisassembler::DisassembleAMO64(Instr instr) {
       break;
     case AMOMAXU:
       Print("amomaxu.d'order 'rd, 'rs2, ('rs1)", instr, RV_A);
+      break;
+    case LOADORDERED:
+      Print("ld'order 'rd, ('rs1)", instr, RV_Zalasr);
+      break;
+    case STOREORDERED:
+      Print("sd'order 'rs2, ('rs1)", instr, RV_Zalasr);
       break;
 #endif
     default:

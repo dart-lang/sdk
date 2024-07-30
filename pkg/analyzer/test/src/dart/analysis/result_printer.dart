@@ -34,7 +34,7 @@ class DriverEventsPrinter {
   });
 
   void write(List<DriverEvent> events) {
-    for (final event in events) {
+    for (var event in events) {
       _writeEvent(event);
     }
   }
@@ -53,7 +53,7 @@ class DriverEventsPrinter {
   void _writeErrorsResult(SomeErrorsResult result) {
     switch (result) {
       case ErrorsResultImpl():
-        final id = idProvider[result];
+        var id = idProvider[result];
         sink.writelnWithIndent('ErrorsResult $id');
 
         sink.withIndent(() {
@@ -68,6 +68,13 @@ class DriverEventsPrinter {
             'isMacroAugmentation': result.isMacroAugmentation,
             'isPart': result.isPart,
           });
+
+          if (configuration.errorsConfiguration.withContentPredicate(result)) {
+            sink.writelnWithIndent('content');
+            sink.writeln('---');
+            sink.write(result.content);
+            sink.writeln('---');
+          }
 
           sink.writeElements('errors', result.errors, _writeAnalysisError);
         });
@@ -106,7 +113,7 @@ class DriverEventsPrinter {
   void _writeGetCachedResolvedUnit(GetCachedResolvedUnitEvent event) {
     _writeGetEvent(event);
     sink.withIndent(() {
-      if (event.result case final result?) {
+      if (event.result case var result?) {
         _writeResolvedUnitResult(result);
       } else {
         sink.writelnWithIndent('null');
@@ -149,7 +156,7 @@ class DriverEventsPrinter {
   void _writeGetUnitElementEvent(GetUnitElementEvent event) {
     _writeGetEvent(event);
     sink.withIndent(() {
-      final result = event.result;
+      var result = event.result;
       switch (result) {
         case UnitElementResult():
           _writeUnitElementResult(result);
@@ -218,14 +225,14 @@ class DriverEventsPrinter {
   }
 
   void _writeResultStreamEvent(ResultStreamEvent event) {
-    final object = event.object;
+    var object = event.object;
     switch (object) {
       case events.AnalyzeFile():
         sink.writelnWithIndent('[operation] analyzeFile');
         sink.withIndent(() {
-          final file = object.file.resource;
+          var file = object.file.resource;
           sink.writelnWithIndent('file: ${file.posixPath}');
-          final libraryFile = object.library.file.resource;
+          var libraryFile = object.library.file.resource;
           sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
       case ErrorsResult():
@@ -236,9 +243,9 @@ class DriverEventsPrinter {
       case events.GetErrorsFromBytes():
         sink.writelnWithIndent('[operation] getErrorsFromBytes');
         sink.withIndent(() {
-          final file = object.file.resource;
+          var file = object.file.resource;
           sink.writelnWithIndent('file: ${file.posixPath}');
-          final libraryFile = object.library.file.resource;
+          var libraryFile = object.library.file.resource;
           sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
       case ResolvedUnitResult():
@@ -279,14 +286,14 @@ class DriverEventsPrinter {
       'isPart': result.isPart,
     });
 
-    final unitElement = result.element;
+    var unitElement = result.element;
 
     elementPrinter.writeNamedElement(
       'enclosing',
       unitElement.enclosingElement,
     );
 
-    final elementsToWrite =
+    var elementsToWrite =
         configuration.unitElementConfiguration.elementSelector(unitElement);
     elementPrinter.writeElementList('selectedElements', elementsToWrite);
   }
@@ -295,7 +302,12 @@ class DriverEventsPrinter {
 class DriverEventsPrinterConfiguration {
   var libraryConfiguration = ResolvedLibraryResultPrinterConfiguration();
   var unitElementConfiguration = UnitElementPrinterConfiguration();
+  var errorsConfiguration = ErrorsResultPrinterConfiguration();
   var withStreamResolvedUnitResults = true;
+}
+
+class ErrorsResultPrinterConfiguration {
+  bool Function(FileResult) withContentPredicate = (_) => false;
 }
 
 /// The result of `getCachedResolvedUnit`.
@@ -449,14 +461,14 @@ class ResolvedLibraryResultPrinter {
   }
 
   void _writeResolvedLibraryResult(ResolvedLibraryResult result) {
-    if (idProvider.existing(result) case final id?) {
+    if (idProvider.existing(result) case var id?) {
       sink.writelnWithIndent('ResolvedLibraryResult $id');
       return;
     }
 
     _libraryElement = result.element;
 
-    final id = idProvider[result];
+    var id = idProvider[result];
     sink.writelnWithIndent('ResolvedLibraryResult $id');
 
     sink.withIndent(() {
@@ -509,12 +521,12 @@ class ResolvedUnitResultPrinter {
   }
 
   void _writeResolvedUnitResult(ResolvedUnitResultImpl result) {
-    if (idProvider.existing(result) case final id?) {
+    if (idProvider.existing(result) case var id?) {
       sink.writelnWithIndent('ResolvedUnitResult $id');
       return;
     }
 
-    final id = idProvider[result];
+    var id = idProvider[result];
     sink.writelnWithIndent('ResolvedUnitResult $id');
 
     sink.withIndent(() {
@@ -545,7 +557,7 @@ class ResolvedUnitResultPrinter {
 
       sink.writeElements('errors', result.errors, _writeAnalysisError);
 
-      final nodeToWrite = configuration.nodeSelector(result);
+      var nodeToWrite = configuration.nodeSelector(result);
       if (nodeToWrite != null) {
         sink.writeWithIndent('selectedNode: ');
         nodeToWrite.accept(
@@ -557,7 +569,7 @@ class ResolvedUnitResultPrinter {
         );
       }
 
-      final typesToWrite = configuration.typesSelector(result);
+      var typesToWrite = configuration.typesSelector(result);
       sink.writeElements(
         'selectedTypes',
         typesToWrite.entries.toList(),
@@ -568,7 +580,7 @@ class ResolvedUnitResultPrinter {
         },
       );
 
-      final variableTypesToWrite = configuration.variableTypesSelector(result);
+      var variableTypesToWrite = configuration.variableTypesSelector(result);
       sink.writeElements(
         'selectedVariableTypes',
         variableTypesToWrite,
@@ -588,7 +600,7 @@ class ResolvedUnitResultPrinterConfiguration {
   Map<String, DartType> Function(ResolvedUnitResult) typesSelector = (_) => {};
   List<VariableElement> Function(ResolvedUnitResult) variableTypesSelector =
       (_) => [];
-  bool Function(ResolvedUnitResult) withContentPredicate = (_) => false;
+  bool Function(FileResult) withContentPredicate = (_) => false;
 }
 
 /// The event of received an object into the `results` stream.

@@ -12,7 +12,7 @@ import 'response_impls.dart';
 
 abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
   /// All the collected diagnostics for this builder.
-  final List<Diagnostic> _diagnostics = [];
+  final List<Diagnostic> _diagnostics;
 
   /// If execution was stopped by an exception, the exception.
   MacroExceptionImpl? _exception;
@@ -20,6 +20,10 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
   /// All the enum values to be added, indexed by the identifier for the
   /// augmented enum declaration.
   final Map<IdentifierImpl, List<DeclarationCode>> _enumValueAugmentations;
+
+  /// All the extends clauses to be added, indexed by the identifier for the
+  /// augmented type declaration.
+  final Map<IdentifierImpl, NamedTypeAnnotationCode> _extendsTypeAugmentations;
 
   /// All the interfaces to be added, indexed by the identifier for the
   /// augmented type declaration.
@@ -47,6 +51,7 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
         diagnostics: _diagnostics,
         exception: _exception,
         enumValueAugmentations: _enumValueAugmentations,
+        extendsTypeAugmentations: _extendsTypeAugmentations,
         interfaceAugmentations: _interfaceAugmentations,
         libraryAugmentations: _libraryAugmentations,
         mixinAugmentations: _mixinAugmentations,
@@ -54,13 +59,27 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
         typeAugmentations: _typeAugmentations,
       );
 
-  TypeBuilderBase({
+  TypeBuilderBase()
+      : _diagnostics = [],
+        _enumValueAugmentations = {},
+        _extendsTypeAugmentations = {},
+        _interfaceAugmentations = {},
+        _libraryAugmentations = [],
+        _mixinAugmentations = {},
+        _typeAugmentations = {};
+
+  TypeBuilderBase.nested({
     Map<IdentifierImpl, List<DeclarationCode>>? parentEnumValueAugmentations,
+    Map<IdentifierImpl, NamedTypeAnnotationCode>?
+        parentExtendsTypeAugmentations,
     Map<IdentifierImpl, List<TypeAnnotationCode>>? parentInterfaceAugmentations,
     List<DeclarationCode>? parentLibraryAugmentations,
     Map<IdentifierImpl, List<TypeAnnotationCode>>? parentMixinAugmentations,
     Map<IdentifierImpl, List<DeclarationCode>>? parentTypeAugmentations,
-  })  : _enumValueAugmentations = parentEnumValueAugmentations ?? {},
+    List<Diagnostic>? parentDiagnostics,
+  })  : _diagnostics = parentDiagnostics ?? [],
+        _enumValueAugmentations = parentEnumValueAugmentations ?? {},
+        _extendsTypeAugmentations = parentExtendsTypeAugmentations ?? {},
         _interfaceAugmentations = parentInterfaceAugmentations ?? {},
         _libraryAugmentations = parentLibraryAugmentations ?? [],
         _mixinAugmentations = parentMixinAugmentations ?? {},
@@ -93,6 +112,23 @@ class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
   }
 }
 
+mixin ExtendsTypeBuilderImpl on TypeBuilderImpl implements ExtendsTypeBuilder {
+  /// The type that we are going to be adding an extends clause.
+  IdentifierImpl get originalType;
+
+  /// Sets the `extends` clause to [superclass].
+  ///
+  /// The type must not already have an `extends` clause.
+  @override
+  void extendsType(NamedTypeAnnotationCode superclass) {
+    if (_extendsTypeAugmentations.containsKey(originalType)) {
+      throw ArgumentError.value(
+          originalType.name, null, 'A type cannot extend multiple types');
+    }
+    _extendsTypeAugmentations[originalType] = superclass;
+  }
+}
+
 mixin InterfaceTypesBuilderImpl on TypeBuilderImpl
     implements InterfaceTypesBuilder {
   /// The type that we are going to be adding interfaces to.
@@ -119,7 +155,10 @@ mixin MixinTypesBuilderImpl on TypeBuilderImpl implements MixinTypesBuilder {
 }
 
 class ClassTypeBuilderImpl extends TypeBuilderImpl
-    with InterfaceTypesBuilderImpl, MixinTypesBuilderImpl
+    with
+        ExtendsTypeBuilderImpl,
+        InterfaceTypesBuilderImpl,
+        MixinTypesBuilderImpl
     implements ClassTypeBuilder {
   @override
   final IdentifierImpl originalType;
@@ -151,13 +190,17 @@ abstract class DeclarationBuilderBase extends TypeBuilderBase
   @override
   DeclarationPhaseIntrospector get introspector;
 
-  DeclarationBuilderBase({
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentTypeAugmentations,
-    super.parentMixinAugmentations,
-  });
+  DeclarationBuilderBase();
+
+  DeclarationBuilderBase.nested({
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentTypeAugmentations,
+    required super.parentMixinAugmentations,
+  }) : super.nested();
 
   @override
   Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) =>
@@ -239,14 +282,18 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
   @override
   final DefinitionPhaseIntrospector introspector;
 
-  DefinitionBuilderBase(
+  DefinitionBuilderBase(this.introspector);
+
+  DefinitionBuilderBase.nested(
     this.introspector, {
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentTypeAugmentations,
-    super.parentMixinAugmentations,
-  });
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentTypeAugmentations,
+    required super.parentMixinAugmentations,
+  }) : super.nested();
 
   @override
   Future<Declaration> declarationOf(Identifier identifier) =>
@@ -270,15 +317,19 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
   /// The declaration this is a builder for.
   final TypeDeclaration declaration;
 
-  TypeDefinitionBuilderImpl(
+  TypeDefinitionBuilderImpl(this.declaration, super.introspector);
+
+  TypeDefinitionBuilderImpl.nested(
     this.declaration,
     super.introspector, {
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentTypeAugmentations,
-    super.parentMixinAugmentations,
-  });
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentTypeAugmentations,
+    required super.parentMixinAugmentations,
+  }) : super.nested();
 
   @override
   Future<ConstructorDefinitionBuilder> buildConstructor(
@@ -287,7 +338,12 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
                 .constructorsOf(declaration))
             .firstWhere((constructor) => constructor.identifier == identifier)
         as ConstructorDeclarationImpl;
-    return ConstructorDefinitionBuilderImpl(constructor, introspector,
+    return ConstructorDefinitionBuilderImpl.nested(constructor, introspector,
+        parentDiagnostics: _diagnostics,
+        parentEnumValueAugmentations: _enumValueAugmentations,
+        parentExtendsTypeAugmentations: _extendsTypeAugmentations,
+        parentInterfaceAugmentations: _interfaceAugmentations,
+        parentMixinAugmentations: _mixinAugmentations,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -296,7 +352,12 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
   Future<VariableDefinitionBuilder> buildField(Identifier identifier) async {
     FieldDeclaration field = (await introspector.fieldsOf(declaration))
         .firstWhere((field) => field.identifier == identifier);
-    return VariableDefinitionBuilderImpl(field, introspector,
+    return VariableDefinitionBuilderImpl.nested(field, introspector,
+        parentDiagnostics: _diagnostics,
+        parentEnumValueAugmentations: _enumValueAugmentations,
+        parentExtendsTypeAugmentations: _extendsTypeAugmentations,
+        parentInterfaceAugmentations: _interfaceAugmentations,
+        parentMixinAugmentations: _mixinAugmentations,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -306,7 +367,12 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
     MethodDeclarationImpl method = (await introspector.methodsOf(declaration))
             .firstWhere((method) => method.identifier == identifier)
         as MethodDeclarationImpl;
-    return FunctionDefinitionBuilderImpl(method, introspector,
+    return FunctionDefinitionBuilderImpl.nested(method, introspector,
+        parentDiagnostics: _diagnostics,
+        parentEnumValueAugmentations: _enumValueAugmentations,
+        parentExtendsTypeAugmentations: _extendsTypeAugmentations,
+        parentInterfaceAugmentations: _interfaceAugmentations,
+        parentMixinAugmentations: _mixinAugmentations,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -318,14 +384,19 @@ class EnumDefinitionBuilderImpl extends TypeDefinitionBuilderImpl
   EnumDeclaration get declaration => super.declaration as EnumDeclaration;
 
   EnumDefinitionBuilderImpl(
+      EnumDeclaration super.declaration, super.introspector);
+
+  EnumDefinitionBuilderImpl.nested(
     EnumDeclaration super.declaration,
     super.introspector, {
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentTypeAugmentations,
-    super.parentMixinAugmentations,
-  });
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentMixinAugmentations,
+    required super.parentTypeAugmentations,
+  }) : super.nested();
 
   @override
   Future<EnumValueDefinitionBuilder> buildEnumValue(
@@ -333,10 +404,12 @@ class EnumDefinitionBuilderImpl extends TypeDefinitionBuilderImpl
     EnumValueDeclarationImpl entry = (await introspector.valuesOf(declaration))
             .firstWhere((entry) => entry.identifier == identifier)
         as EnumValueDeclarationImpl;
-    return EnumValueDefinitionBuilderImpl(
+    return EnumValueDefinitionBuilderImpl.nested(
       entry,
       introspector,
+      parentDiagnostics: _diagnostics,
       parentEnumValueAugmentations: _enumValueAugmentations,
+      parentExtendsTypeAugmentations: _extendsTypeAugmentations,
       parentInterfaceAugmentations: _interfaceAugmentations,
       parentLibraryAugmentations: _libraryAugmentations,
       parentMixinAugmentations: _mixinAugmentations,
@@ -349,15 +422,19 @@ class EnumValueDefinitionBuilderImpl extends DefinitionBuilderBase
     implements EnumValueDefinitionBuilder {
   final EnumValueDeclarationImpl declaration;
 
-  EnumValueDefinitionBuilderImpl(
+  EnumValueDefinitionBuilderImpl(this.declaration, super.introspector);
+
+  EnumValueDefinitionBuilderImpl.nested(
     this.declaration,
     super.introspector, {
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentMixinAugmentations,
-    super.parentTypeAugmentations,
-  });
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentMixinAugmentations,
+    required super.parentTypeAugmentations,
+  }) : super.nested();
 
   @override
   void augment(DeclarationCode entry) {
@@ -372,15 +449,19 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
     implements FunctionDefinitionBuilder {
   final FunctionDeclarationImpl declaration;
 
-  FunctionDefinitionBuilderImpl(
+  FunctionDefinitionBuilderImpl(this.declaration, super.introspector);
+
+  FunctionDefinitionBuilderImpl.nested(
     this.declaration,
     super.introspector, {
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentMixinAugmentations,
-    super.parentTypeAugmentations,
-  });
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentMixinAugmentations,
+    required super.parentTypeAugmentations,
+  }) : super.nested();
 
   @override
   void augment(FunctionBodyCode body, {CommentCode? docComments}) {
@@ -401,27 +482,25 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
     implements ConstructorDefinitionBuilder {
   final ConstructorDeclarationImpl declaration;
 
-  ConstructorDefinitionBuilderImpl(
+  ConstructorDefinitionBuilderImpl(this.declaration, super.introspector);
+
+  ConstructorDefinitionBuilderImpl.nested(
     this.declaration,
     super.introspector, {
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentMixinAugmentations,
-    super.parentTypeAugmentations,
-  });
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentMixinAugmentations,
+    required super.parentTypeAugmentations,
+  }) : super.nested();
 
   @override
   void augment(
       {FunctionBodyCode? body,
       List<Code>? initializers,
       CommentCode? docComments}) {
-    if (body != null && declaration.hasBody) {
-      // TODO: https://github.com/dart-lang/language/issues/3555
-      throw UnsupportedError(
-          'Augmenting existing constructor bodies is not allowed.');
-    }
-    body ??= FunctionBodyCode.fromString(';');
     DeclarationCode augmentation = _buildFunctionAugmentation(body, declaration,
         initializers: initializers, docComments: docComments);
     _typeAugmentations.update(
@@ -434,15 +513,19 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
     implements VariableDefinitionBuilder {
   final VariableDeclaration declaration;
 
-  VariableDefinitionBuilderImpl(
+  VariableDefinitionBuilderImpl(this.declaration, super.introspector);
+
+  VariableDefinitionBuilderImpl.nested(
     this.declaration,
     super.introspector, {
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentMixinAugmentations,
-    super.parentTypeAugmentations,
-  });
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentMixinAugmentations,
+    required super.parentTypeAugmentations,
+  }) : super.nested();
 
   @override
   void augment(
@@ -471,15 +554,19 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
     implements LibraryDefinitionBuilder {
   final Library library;
 
-  LibraryDefinitionBuilderImpl(
+  LibraryDefinitionBuilderImpl(this.library, super.introspector);
+
+  LibraryDefinitionBuilderImpl.nested(
     this.library,
     super.introspector, {
-    super.parentEnumValueAugmentations,
-    super.parentInterfaceAugmentations,
-    super.parentLibraryAugmentations,
-    super.parentMixinAugmentations,
-    super.parentTypeAugmentations,
-  });
+    required super.parentDiagnostics,
+    required super.parentEnumValueAugmentations,
+    required super.parentExtendsTypeAugmentations,
+    required super.parentInterfaceAugmentations,
+    required super.parentLibraryAugmentations,
+    required super.parentMixinAugmentations,
+    required super.parentTypeAugmentations,
+  }) : super.nested();
 
   @override
   Future<FunctionDefinitionBuilder> buildFunction(Identifier identifier) async {
@@ -487,9 +574,17 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
                 .topLevelDeclarationsOf(library))
             .firstWhere((declaration) => declaration.identifier == identifier)
         as FunctionDeclarationImpl;
-    return FunctionDefinitionBuilderImpl(function, introspector,
-        parentTypeAugmentations: _typeAugmentations,
-        parentLibraryAugmentations: _libraryAugmentations);
+    return FunctionDefinitionBuilderImpl.nested(
+      function,
+      introspector,
+      parentDiagnostics: _diagnostics,
+      parentEnumValueAugmentations: _enumValueAugmentations,
+      parentExtendsTypeAugmentations: _extendsTypeAugmentations,
+      parentInterfaceAugmentations: _interfaceAugmentations,
+      parentMixinAugmentations: _mixinAugmentations,
+      parentTypeAugmentations: _typeAugmentations,
+      parentLibraryAugmentations: _libraryAugmentations,
+    );
   }
 
   @override
@@ -497,7 +592,12 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
     TypeDeclaration type = (await introspector.topLevelDeclarationsOf(library))
             .firstWhere((declaration) => declaration.identifier == identifier)
         as TypeDeclaration;
-    return TypeDefinitionBuilderImpl(type, introspector,
+    return TypeDefinitionBuilderImpl.nested(type, introspector,
+        parentDiagnostics: _diagnostics,
+        parentEnumValueAugmentations: _enumValueAugmentations,
+        parentExtendsTypeAugmentations: _extendsTypeAugmentations,
+        parentInterfaceAugmentations: _interfaceAugmentations,
+        parentMixinAugmentations: _mixinAugmentations,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -508,7 +608,12 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
                 .topLevelDeclarationsOf(library))
             .firstWhere((declaration) => declaration.identifier == identifier)
         as VariableDeclarationImpl;
-    return VariableDefinitionBuilderImpl(variable, introspector,
+    return VariableDefinitionBuilderImpl.nested(variable, introspector,
+        parentDiagnostics: _diagnostics,
+        parentEnumValueAugmentations: _enumValueAugmentations,
+        parentExtendsTypeAugmentations: _extendsTypeAugmentations,
+        parentInterfaceAugmentations: _interfaceAugmentations,
+        parentMixinAugmentations: _mixinAugmentations,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -568,7 +673,7 @@ List<DeclarationCode> _buildVariableAugmentations(
 /// The [initializers] parameter can only be used if [declaration] is a
 /// constructor.
 DeclarationCode _buildFunctionAugmentation(
-    FunctionBodyCode body, FunctionDeclaration declaration,
+    FunctionBodyCode? body, FunctionDeclaration declaration,
     {List<Code>? initializers, CommentCode? docComments}) {
   assert(initializers == null || declaration is ConstructorDeclaration);
 
@@ -627,15 +732,19 @@ DeclarationCode _buildFunctionAugmentation(
       ],
       ')',
     ],
-    ' ',
     if (initializers != null && initializers.isNotEmpty) ...[
-      ' : ',
+      '\n      : ',
       initializers.first,
       for (Code initializer in initializers.skip(1)) ...[
-        ',\n',
+        ',\n        ',
         initializer,
       ],
     ],
-    body,
+    if (body == null)
+      ';'
+    else ...[
+      ' ',
+      body,
+    ]
   ]);
 }

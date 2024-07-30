@@ -68,8 +68,7 @@ class InstanceCreationExpressionResolver {
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: elementToInfer?.asType);
-    _resolver.inferenceHelper
-        .recordStaticType(node, node.constructorName.type.type!);
+    node.recordStaticType(node.constructorName.type.type!, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }

@@ -9,7 +9,7 @@ part 'global.dart';
 
 class Globals {
   /// Imported globals.
-  final List<Import> imported;
+  final List<ImportedGlobal> imported;
 
   /// Defined globals.
   final List<DefinedGlobal> defined;

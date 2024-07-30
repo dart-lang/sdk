@@ -285,6 +285,9 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   final Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations;
 
   @override
+  final Map<IdentifierImpl, NamedTypeAnnotationCode> extendsTypeAugmentations;
+
+  @override
   final Map<IdentifierImpl, List<TypeAnnotationCode>> interfaceAugmentations;
 
   @override
@@ -303,6 +306,7 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     required this.diagnostics,
     this.exception,
     required this.enumValueAugmentations,
+    required this.extendsTypeAugmentations,
     required this.interfaceAugmentations,
     required this.libraryAugmentations,
     required this.mixinAugmentations,
@@ -336,6 +340,15 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
               hasNextCode = deserializer.moveNext())
             deserializer.expectCode(),
         ]
+    };
+
+    deserializer
+      ..moveNext()
+      ..expectList();
+    Map<IdentifierImpl, NamedTypeAnnotationCode> extendsTypeAugmentations = {
+      for (; deserializer.moveNext();)
+        deserializer.expectRemoteInstance():
+            (deserializer..moveNext()).expectCode(),
     };
 
     deserializer
@@ -404,6 +417,7 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
       diagnostics: diagnostics,
       exception: exception,
       enumValueAugmentations: enumValueAugmentations,
+      extendsTypeAugmentations: extendsTypeAugmentations,
       interfaceAugmentations: interfaceAugmentations,
       libraryAugmentations: libraryAugmentations,
       mixinAugmentations: mixinAugmentations,
@@ -434,6 +448,13 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
         augmentation.serialize(serializer);
       }
       serializer.endList();
+    }
+    serializer.endList();
+
+    serializer.startList();
+    for (IdentifierImpl type in extendsTypeAugmentations.keys) {
+      type.serialize(serializer);
+      extendsTypeAugmentations[type]!.serialize(serializer);
     }
     serializer.endList();
 

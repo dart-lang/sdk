@@ -70,6 +70,7 @@ enum UnlinkedTokenType {
   IN,
   INDEX,
   INDEX_EQ,
+  INOUT,
   INT,
   INTERFACE,
   IS,
@@ -93,6 +94,7 @@ enum UnlinkedTokenType {
   OPEN_PAREN,
   OPEN_SQUARE_BRACKET,
   OPERATOR,
+  OUT,
   PART,
   PATCH,
   PERCENT,
@@ -141,6 +143,4 @@ enum UnlinkedTokenType {
   WHILE,
   WITH,
   YIELD,
-  INOUT,
-  OUT,
 }

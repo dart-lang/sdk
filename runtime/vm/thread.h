@@ -343,14 +343,15 @@ class Thread : public ThreadState {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
   enum TaskKind {
-    kUnknownTask = 0x0,
-    kMutatorTask = 0x1,
-    kCompilerTask = 0x2,
-    kMarkerTask = 0x4,
-    kSweeperTask = 0x8,
-    kCompactorTask = 0x10,
-    kScavengerTask = 0x20,
-    kSampleBlockTask = 0x40,
+    kUnknownTask = 0,
+    kMutatorTask,
+    kCompilerTask,
+    kMarkerTask,
+    kSweeperTask,
+    kCompactorTask,
+    kScavengerTask,
+    kSampleBlockTask,
+    kIncrementalCompactorTask,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);
@@ -459,7 +460,6 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, safepoint_state_);
   }
 
-
   // Tag state is maintained on transitions.
   enum {
     // Always true in generated state.
@@ -542,6 +542,10 @@ class Thread : public ThreadState {
 
   static intptr_t field_table_values_offset() {
     return OFFSET_OF(Thread, field_table_values_);
+  }
+
+  static intptr_t shared_field_table_values_offset() {
+    return OFFSET_OF(Thread, shared_field_table_values_);
   }
 
   bool IsDartMutatorThread() const {
@@ -663,17 +667,25 @@ class Thread : public ThreadState {
   }
 #endif
   void StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy);
+  void StoreBufferReleaseGC();
+  void StoreBufferAcquireGC();
   static intptr_t store_buffer_block_offset() {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
-  bool is_marking() const { return marking_stack_block_ != nullptr; }
+  bool is_marking() const { return old_marking_stack_block_ != nullptr; }
   void MarkingStackAddObject(ObjectPtr obj);
+  void OldMarkingStackAddObject(ObjectPtr obj);
+  void NewMarkingStackAddObject(ObjectPtr obj);
   void DeferredMarkingStackAddObject(ObjectPtr obj);
-  void MarkingStackBlockProcess();
+  void OldMarkingStackBlockProcess();
+  void NewMarkingStackBlockProcess();
   void DeferredMarkingStackBlockProcess();
-  static intptr_t marking_stack_block_offset() {
-    return OFFSET_OF(Thread, marking_stack_block_);
+  static intptr_t old_marking_stack_block_offset() {
+    return OFFSET_OF(Thread, old_marking_stack_block_);
+  }
+  static intptr_t new_marking_stack_block_offset() {
+    return OFFSET_OF(Thread, new_marking_stack_block_);
   }
 
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
@@ -1175,6 +1187,7 @@ class Thread : public ThreadState {
   uword end_ = 0;
   const uword* dispatch_table_array_ = nullptr;
   ObjectPtr* field_table_values_ = nullptr;
+  ObjectPtr* shared_field_table_values_ = nullptr;
 
   // Offsets up to this point can all fit in a byte on X64. All of the above
   // fields are very abundantly accessed from code. Thus, keeping them first
@@ -1210,7 +1223,8 @@ class Thread : public ThreadState {
   uword stack_overflow_flags_ = 0;
   uword volatile top_exit_frame_info_ = 0;
   StoreBufferBlock* store_buffer_block_ = nullptr;
-  MarkingStackBlock* marking_stack_block_ = nullptr;
+  MarkingStackBlock* old_marking_stack_block_ = nullptr;
+  MarkingStackBlock* new_marking_stack_block_ = nullptr;
   MarkingStackBlock* deferred_marking_stack_block_ = nullptr;
   uword volatile vm_tag_ = 0;
   // Memory locations dedicated for passing unboxed int64 and double
@@ -1285,8 +1299,8 @@ class Thread : public ThreadState {
 
   uword true_end_ = 0;
   TaskKind task_kind_;
-  TimelineStream* dart_stream_;
-  StreamInfo* service_extension_stream_;
+  TimelineStream* const dart_stream_;
+  StreamInfo* const service_extension_stream_;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;
@@ -1317,6 +1331,9 @@ class Thread : public ThreadState {
   ErrorPtr sticky_error_;
 
   ObjectPtr* field_table_values() const { return field_table_values_; }
+  ObjectPtr* shared_field_table_values() const {
+    return shared_field_table_values_;
+  }
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
@@ -1396,12 +1413,16 @@ class Thread : public ThreadState {
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
 
-  void MarkingStackRelease();
-  void MarkingStackAcquire();
-  void MarkingStackFlush();
+  void OldMarkingStackRelease();
+  void OldMarkingStackAcquire();
+  void NewMarkingStackRelease();
+  void NewMarkingStackAcquire();
   void DeferredMarkingStackRelease();
   void DeferredMarkingStackAcquire();
-  void DeferredMarkingStackFlush();
+
+  void AcquireMarkingStacks();
+  void ReleaseMarkingStacks();
+  void FlushMarkingStacks();
 
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();

@@ -23,6 +23,8 @@ import 'package:dev_compiler/dev_compiler.dart'
         ExpressionCompiler,
         parseModuleFormat,
         ProgramCompiler;
+import 'package:front_end/src/api_prototype/macros.dart' as macros
+    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart' as ddc
     show IncrementalCompiler;
 import 'package:front_end/src/api_unstable/vm.dart';
@@ -32,12 +34,12 @@ import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:package_config/package_config.dart';
-import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import 'src/javascript_bundle.dart';
+import 'src/uuid.dart';
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -100,6 +102,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       defaultsTo: const <String>[])
   ..addOption('native-assets',
       help: 'Provide the native-assets mapping for @Native external functions.')
+  ..addFlag('native-assets-only',
+      help: "Only compile the native-assets mapping. "
+          "Don't compile the dart program.")
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>[
@@ -183,7 +188,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.', defaultsTo: true)
+      help: 'Respect the nullability of types at runtime.',
+      defaultsTo: true,
+      hide: true)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, e.g. set-literals.',
       hide: true)
@@ -285,6 +292,14 @@ abstract class CompilerInterface {
   /// Returns [true] if compilation was successful and produced no errors.
   Future<bool> compile(
     String entryPoint,
+    ArgResults options, {
+    IncrementalCompiler? generator,
+  });
+
+  /// Compiles the native_assets.yaml into a dill file.
+  ///
+  /// Returns [true] if compilation was successful and produced no errors.
+  Future<bool> compileNativeAssetsOnly(
     ArgResults options, {
     IncrementalCompiler? generator,
   });
@@ -478,7 +493,9 @@ class FrontendCompiler implements CompilerInterface {
     _additionalSources =
         (options['source'] as List<String>).map(resolveInputUri).toList();
     final String? nativeAssets = options['native-assets'] as String?;
-    _nativeAssets = nativeAssets != null ? resolveInputUri(nativeAssets) : null;
+    if (_nativeAssets == null && nativeAssets != null) {
+      _nativeAssets = resolveInputUri(nativeAssets);
+    }
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
         (_options['output-dill'] != null
@@ -490,13 +507,17 @@ class FrontendCompiler implements CompilerInterface {
     _assumeInitializeFromDillUpToDate =
         _options['assume-initialize-from-dill-up-to-date'] ?? false;
     _printIncrementalDependencies = _options['print-incremental-dependencies'];
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
     final String? packagesOption = _options['packages'];
     final bool soundNullSafety = _options['sound-null-safety'];
+    if (!soundNullSafety) {
+      print('Error: --no-sound-null-safety is not supported.');
+      return false;
+    }
     final CompilerOptions compilerOptions = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
@@ -508,7 +529,6 @@ class FrontendCompiler implements CompilerInterface {
       ..explicitExperimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = _onDiagnostic
       ..verbosity = Verbosity.parseArgument(options['verbosity'],
           onError: (msg) => errors.add(msg));
@@ -585,7 +605,6 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
-      soundNullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
     );
@@ -624,7 +643,9 @@ class FrontendCompiler implements CompilerInterface {
         nativeAssetsLibrary: _nativeAssetsLibrary,
         classHierarchy: compilerResult.classHierarchy,
         coreTypes: compilerResult.coreTypes,
-        compiledSources: component.uriToSource.keys,
+        // TODO(https://dartbug.com/55246): track macro deps when available.
+        compiledSources: component.uriToSource.keys
+            .where((uri) => !macros.isMacroLibraryUri(uri)),
       );
 
       incrementalSerializer = _generator.incrementalSerializer;
@@ -637,22 +658,25 @@ class FrontendCompiler implements CompilerInterface {
         ];
       }
       results = await _runWithPrintRedirection(() => compileToKernel(
-          _mainSource, compilerOptions,
-          additionalSources: _additionalSources,
-          nativeAssets: _nativeAssets,
-          includePlatform: options['link-platform'],
-          deleteToStringPackageUris: options['delete-tostring-package-uri'],
-          keepClassNamesImplementing: options['keep-class-names-implementing'],
-          aot: options['aot'],
-          targetOS: options['target-os'],
-          useGlobalTypeFlowAnalysis: options['tfa'],
-          useRapidTypeAnalysis: options['rta'],
-          environmentDefines: environmentDefines,
-          enableAsserts: options['enable-asserts'],
-          useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
-          minimalKernel: options['minimal-kernel'],
-          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
-          fromDillFile: options['from-dill']));
+          new KernelCompilationArguments(
+              source: _mainSource,
+              options: compilerOptions,
+              additionalSources: _additionalSources,
+              nativeAssets: _nativeAssets,
+              includePlatform: options['link-platform'],
+              deleteToStringPackageUris: options['delete-tostring-package-uri'],
+              keepClassNamesImplementing:
+                  options['keep-class-names-implementing'],
+              aot: options['aot'],
+              targetOS: options['target-os'],
+              useGlobalTypeFlowAnalysis: options['tfa'],
+              useRapidTypeAnalysis: options['rta'],
+              environmentDefines: environmentDefines,
+              enableAsserts: options['enable-asserts'],
+              useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
+              minimalKernel: options['minimal-kernel'],
+              treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
+              fromDillFile: options['from-dill'])));
     }
     if (results!.component != null) {
       transformer?.transform(results.component!);
@@ -667,7 +691,6 @@ class FrontendCompiler implements CompilerInterface {
         _kernelBinaryFilename,
         filterExternal: importDill != null || options['minimal-kernel'],
         incrementalSerializer: incrementalSerializer,
-        aot: options['aot'],
       );
 
       _outputStream.writeln(boundaryKey);
@@ -677,6 +700,7 @@ class FrontendCompiler implements CompilerInterface {
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String? depfile = options['depfile'];
       if (depfile != null) {
+        // TODO(https://dartbug.com/55246): track macro deps when available.
         await writeDepfile(compilerOptions.fileSystem, compiledSources,
             _kernelBinaryFilename, depfile);
       }
@@ -687,6 +711,55 @@ class FrontendCompiler implements CompilerInterface {
     }
     results = null; // Fix leak: Probably variation of http://dartbug.com/36983.
     return errors.isEmpty;
+  }
+
+  @override
+  Future<bool> compileNativeAssetsOnly(
+    ArgResults options, {
+    IncrementalCompiler? generator,
+  }) async {
+    _fileSystem = createFrontEndFileSystem(
+      options['filesystem-scheme'],
+      options['filesystem-root'],
+      allowHttp: options['enable-http-uris'],
+    );
+    _options = options;
+    final String? nativeAssets = options['native-assets'] as String?;
+    if (_nativeAssets == null && nativeAssets != null) {
+      _nativeAssets = resolveInputUri(nativeAssets);
+    }
+    if (_nativeAssets == null) {
+      print(
+        'Error: When --native-assets-only is specified it is required to'
+        ' specify --native-assets option that points to physical file system'
+        ' location of a source native_assets.yaml file.',
+      );
+      return false;
+    }
+    if (_options['output-dill'] == null) {
+      print(
+        'Error: When --native-assets-only is specified it is required to'
+        ' specify --output-dill option that points to physical file system'
+        ' location of a target dill file.',
+      );
+      return false;
+    }
+    _kernelBinaryFilename = _options['output-dill'];
+    final CompilerOptions compilerOptions = new CompilerOptions();
+    _compilerOptions = compilerOptions;
+
+    final String boundaryKey = generateV4UUID();
+    _outputStream.writeln('result $boundaryKey');
+    await _compileNativeAssets();
+    await writeDillFileNativeAssets(
+      _nativeAssetsLibrary!,
+      _kernelBinaryFilename,
+    );
+    _outputStream.writeln(boundaryKey);
+    _outputStream.writeln('+${await asFileUri(_fileSystem, _nativeAssets!)}');
+    _outputStream
+        .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
+    return true;
   }
 
   @override
@@ -706,13 +779,11 @@ class FrontendCompiler implements CompilerInterface {
       return;
     }
 
-    final KernelCompilationResults results =
-        await _runWithPrintRedirection(() => compileToKernel(
-              null,
-              _compilerOptions,
+    final KernelCompilationResults results = await _runWithPrintRedirection(
+        () => compileToKernel(new KernelCompilationArguments(
+              options: _compilerOptions,
               nativeAssets: _nativeAssets,
-              environmentDefines: {},
-            ));
+            )));
     _nativeAssetsLibrary = results.nativeAssetsLibrary;
   }
 
@@ -756,7 +827,6 @@ class FrontendCompiler implements CompilerInterface {
     PackageConfig packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             new File('.dart_tool/package_config.json').absolute.uri);
-    bool soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component!;
 
     final IncrementalJavaScriptBundler bundler =
@@ -767,7 +837,6 @@ class FrontendCompiler implements CompilerInterface {
       useDebuggerModuleNames: useDebuggerModuleNames,
       emitDebugMetadata: emitDebugMetadata,
       moduleFormat: moduleFormat,
-      soundNullSafety: soundNullSafety,
       canaryFeatures: canaryFeatures,
     );
     if (fullComponent) {
@@ -822,18 +891,9 @@ class FrontendCompiler implements CompilerInterface {
     String filename, {
     bool filterExternal = false,
     IncrementalSerializer? incrementalSerializer,
-    bool aot = false,
   }) async {
     final Component component = results.component!;
     final Library? nativeAssetsLibrary = results.nativeAssetsLibrary;
-
-    if (aot && nativeAssetsLibrary != null) {
-      // If Dart component in AOT, write the vm:native-assets library _inside_
-      // the Dart component.
-      // TODO(https://dartbug.com/50152): Support AOT dill concatenation.
-      component.libraries.add(nativeAssetsLibrary);
-      nativeAssetsLibrary.parent = component;
-    }
 
     final IOSink sink = new File(filename).openWrite();
 
@@ -855,7 +915,7 @@ class FrontendCompiler implements CompilerInterface {
 
     printer.writeComponentFile(component);
 
-    if (nativeAssetsLibrary != null && !aot) {
+    if (nativeAssetsLibrary != null) {
       final BinaryPrinter printer = new BinaryPrinter(sink);
       printer.writeComponentFile(new Component(
         libraries: [nativeAssetsLibrary],
@@ -877,6 +937,19 @@ class FrontendCompiler implements CompilerInterface {
           : _options['data-dir'];
       await createFarManifest(output, dataDir, manifestFilename);
     }
+  }
+
+  Future<void> writeDillFileNativeAssets(
+    Library nativeAssetsLibrary,
+    String filename,
+  ) async {
+    final IOSink sink = new File(filename).openWrite();
+    final BinaryPrinter printer = new BinaryPrinter(sink);
+    printer.writeComponentFile(new Component(
+      libraries: [nativeAssetsLibrary],
+      mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
+    ));
+    await sink.close();
   }
 
   Future<void> invalidateIfInitializingFromDill() async {
@@ -939,7 +1012,7 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   Future<void> recompileDelta({String? entryPoint}) async {
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     await invalidateIfInitializingFromDill();
     if (entryPoint != null) {
@@ -992,7 +1065,7 @@ class FrontendCompiler implements CompilerInterface {
       int offset,
       String? scriptUri,
       bool isStatic) async {
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     Procedure? procedure = await _generator.compileExpression(
         expression,
@@ -1048,7 +1121,7 @@ class FrontendCompiler implements CompilerInterface {
       return;
     }
 
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
 
     _processedOptions.ticker
@@ -1095,7 +1168,7 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   void reportError(String msg) {
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     _outputStream.writeln(msg);
     _outputStream.writeln(boundaryKey);
@@ -1199,7 +1272,7 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   Future<void> rejectLastDelta() async {
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     await _generator.reject();
     _outputStream.writeln(boundaryKey);
@@ -1301,6 +1374,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         const String COMPILE_INSTRUCTION_SPACE = 'compile ';
         const String RECOMPILE_INSTRUCTION_SPACE = 'recompile ';
         const String NATIVE_ASSETS_INSTRUCTION_SPACE = 'native-assets ';
+        const String NATIVE_ASSETS_ONLY_INSTRUCTION = 'native-assets-only';
         const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
             'compile-expression ';
         const String COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE =
@@ -1309,6 +1383,8 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           final String entryPoint =
               string.substring(COMPILE_INSTRUCTION_SPACE.length);
           await compiler.compile(entryPoint, options, generator: generator);
+        } else if (string == NATIVE_ASSETS_ONLY_INSTRUCTION) {
+          await compiler.compileNativeAssetsOnly(options, generator: generator);
         } else if (string.startsWith(RECOMPILE_INSTRUCTION_SPACE)) {
           // 'recompile [<entryPoint>] <boundarykey>'
           //   where <boundarykey> can't have spaces

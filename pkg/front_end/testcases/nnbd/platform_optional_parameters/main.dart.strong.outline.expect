@@ -1,0 +1,72 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:6:20: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void method([int i]) {}
+//                    ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:11:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void patchedMethod([int i]) {}
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:17:25: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// void patchedMethod([int i]) {}
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:19:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// void _injectedMethod([int i]) {}
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:13:29: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void _injectedMethod([int i]) {}
+//                             ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:11:18: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// void method([int i]) {}
+//                  ^
+//
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+class Class extends core::Object {
+  synthetic constructor •() → self2::Class
+    ;
+  method method([core::int i = null]) → void
+    ;
+  @_in::patch
+  external method patchedMethod([core::int i = null]) → void;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = null]) → void
+    ;
+}
+static method method([core::int i]) → void
+  ;
+@_in::patch
+external static method patchedMethod([core::int i]) → void;
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i]) → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:11:2 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 3, effectively constant: 3

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Declare method return types.';
 
@@ -45,19 +46,25 @@ typedef predicate = bool Function(Object o);
 ''';
 
 class AlwaysDeclareReturnTypes extends LintRule {
-  static const LintCode code = LintCode(
-      'always_declare_return_types', 'Missing return type on method.',
-      correctionMessage: 'Try adding a return type.');
+  static const LintCode functionCode = LintCode('always_declare_return_types',
+      "The function '{0}' should have a return type but doesn't.",
+      correctionMessage: 'Try adding a return type to the function.',
+      hasPublishedDocs: true);
+
+  static const LintCode methodCode = LintCode('always_declare_return_types',
+      "The method '{0}' should have a return type but doesn't.",
+      correctionMessage: 'Try adding a return type to the method.',
+      hasPublishedDocs: true);
 
   AlwaysDeclareReturnTypes()
       : super(
             name: 'always_declare_return_types',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
-  LintCode get lintCode => code;
+  List<LintCode> get lintCodes => [functionCode, methodCode];
 
   @override
   void registerNodeProcessors(
@@ -70,27 +77,16 @@ class AlwaysDeclareReturnTypes extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode functionCode = LintCode(
-      "always_declare_return_types", // ignore: prefer_single_quotes
-      "The function '{0}' should have a return type but doesn't.",
-      correctionMessage:
-          "Try adding a return type to the function."); // ignore: prefer_single_quotes
-
-  static const LintCode methodCode = LintCode(
-      "always_declare_return_types", // ignore: prefer_single_quotes
-      "The method '{0}' should have a return type but doesn't.",
-      correctionMessage:
-          "Try adding a return type to the method."); // ignore: prefer_single_quotes
-
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (!node.isSetter && node.returnType == null) {
+    if (!node.isSetter && node.returnType == null && !node.isAugmentation) {
       rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme], errorCode: functionCode);
+          arguments: [node.name.lexeme],
+          errorCode: AlwaysDeclareReturnTypes.functionCode);
     }
   }
 
@@ -98,7 +94,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.returnType == null) {
       rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme], errorCode: functionCode);
+          arguments: [node.name.lexeme],
+          errorCode: AlwaysDeclareReturnTypes.functionCode);
     }
   }
 
@@ -106,9 +103,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isSetter &&
         node.returnType == null &&
-        node.name.type != TokenType.INDEX_EQ) {
+        node.name.type != TokenType.INDEX_EQ &&
+        !node.isAugmentation) {
       rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme], errorCode: methodCode);
+          arguments: [node.name.lexeme],
+          errorCode: AlwaysDeclareReturnTypes.methodCode);
     }
   }
 }

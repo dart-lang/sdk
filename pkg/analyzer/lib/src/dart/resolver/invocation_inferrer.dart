@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 Set<Object> _computeExplicitlyTypedParameterSet(
@@ -99,6 +101,34 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
+/// nodes of type [AugmentedInvocation].
+class AugmentedInvocationInferrer
+    extends FullInvocationInferrer<AugmentedInvocationImpl> {
+  AugmentedInvocationInferrer({
+    required super.resolver,
+    required super.node,
+    required super.argumentList,
+    required super.contextType,
+    required super.whyNotPromotedList,
+  }) : super._();
+
+  @override
+  SyntacticEntity get _errorEntity {
+    return node.augmentedKeyword;
+  }
+
+  @override
+  bool get _needsTypeArgumentBoundsCheck => true;
+
+  @override
+  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
+  @override
+  ErrorCode get _wrongNumberOfTypeArgumentsErrorCode =>
+      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+}
+
+/// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes that require full downward and upward inference.
 abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     extends InvocationInferrer<Node> {
@@ -109,7 +139,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       required super.contextType,
       required super.whyNotPromotedList});
 
-  AstNode get _errorNode => node;
+  SyntacticEntity get _errorEntity => node;
 
   bool get _isConst => false;
 
@@ -125,7 +155,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   @override
   DartType resolveInvocation({required FunctionType? rawType}) {
     var typeArgumentList = _typeArguments;
-    final originalType = rawType;
+    var originalType = rawType;
 
     List<DartType>? typeArgumentTypes;
     GenericInferrer? inferrer;
@@ -188,6 +218,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     } else {
       rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
+      inferenceLogWriter?.enterGenericInference(rawType.typeFormals, rawType);
 
       inferrer = resolver.typeSystem.setupGenericTypeInference(
         typeParameters: rawType.typeFormals,
@@ -195,7 +226,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         contextReturnType: contextType,
         isConst: _isConst,
         errorReporter: resolver.errorReporter,
-        errorNode: _errorNode,
+        errorEntity: _errorEntity,
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
         strictInference: resolver.analysisOptions.strictInference,
         strictCasts: resolver.analysisOptions.strictCasts,
@@ -311,7 +342,7 @@ class FunctionExpressionInvocationInferrer
       : super._();
 
   @override
-  ExpressionImpl get _errorNode => node.function;
+  ExpressionImpl get _errorEntity => node.function;
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
@@ -327,7 +358,7 @@ class InstanceCreationInferrer
       : super._();
 
   @override
-  ConstructorNameImpl get _errorNode => node.constructorName;
+  ConstructorNameImpl get _errorEntity => node.constructorName;
 
   @override
   bool get _isConst => node.isConst;
@@ -379,7 +410,7 @@ abstract class InvocationExpressionInferrer<
       : super._();
 
   @override
-  Expression get _errorNode => node.function;
+  Expression get _errorEntity => node.function;
 
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;

@@ -41,17 +41,13 @@ class _AssertionError extends Error implements AssertionError {
   }
 
   @pragma("vm:entry-point", "call")
-  @pragma('vm:never-inline')
-  static _throwNewNullAssertion(String name, int line, int column) {
-    _doThrowNewSource('$name != null', line, column, null);
-  }
+  @pragma("vm:external-name", "AssertionError_throwNewSource")
+  external static _throwNewSource(String failedAssertion, String? scriptUrl,
+      int line, int column, Object? message);
 
   @pragma("vm:external-name", "AssertionError_throwNew")
   external static _doThrowNew(
       int assertionStart, int assertionEnd, Object? message);
-  @pragma("vm:external-name", "AssertionError_throwNewSource")
-  external static _doThrowNewSource(
-      String failedAssertion, int line, int column, Object? message);
 
   @pragma("vm:entry-point", "call")
   static _evaluateAssertion(condition) {
@@ -133,30 +129,6 @@ class StateError {
   @pragma("vm:entry-point")
   static _throwNew(String msg) {
     throw new StateError(msg);
-  }
-}
-
-/// Error thrown when a lazily initialized variable cannot be initialized.
-///
-/// Cyclic dependencies are no longer detected at runtime in null safe code.
-/// Such code will fail in other ways instead,
-/// possibly with a [StackOverflowError].
-///
-/// Will be removed when support for non-null-safe code is discontinued.
-@Deprecated("Remove when no longer supporting non-null-safe code.")
-class _CyclicInitializationError extends Error {
-  final String? variableName;
-  @pragma("vm:entry-point")
-  _CyclicInitializationError([this.variableName]);
-  String toString() {
-    var variableName = this.variableName;
-    return variableName == null
-        ? "Reading static variable during its initialization"
-        : "Reading static variable '$variableName' during its initialization";
-  }
-
-  static _throwNew(String variableName) {
-    throw new _CyclicInitializationError(variableName);
   }
 }
 

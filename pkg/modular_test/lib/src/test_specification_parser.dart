@@ -110,7 +110,60 @@ TestSpecification parseTestSpecification(String contents) {
       _invalidSpecification("packages is not a map");
     }
   }
-  return TestSpecification(normalizedFlags, normalizedMap, normalizedPackages);
+
+  final Map<String, Map<String, Map<String, List<String>>>> normalizedMacros =
+      {};
+  var macros = spec['macros'];
+  if (macros != null) {
+    if (macros is Map) {
+      macros.forEach((module, macroConfig) {
+        if (module is! String) {
+          _invalidSpecification("macros key $module was not a String");
+        }
+        if (macroConfig is! Map) {
+          _invalidSpecification(
+              "macros[$module] value $macroConfig was not a Map");
+        }
+        var normalizedConfig = normalizedMacros[module] = {};
+        macroConfig.forEach((library, macroConstructors) {
+          if (library is! String) {
+            _invalidSpecification(
+                "macros[$module] key `$library` was not a String");
+          }
+          if (macroConstructors is! Map) {
+            _invalidSpecification(
+                "macros[$module][$library] value `$macroConstructors` was not "
+                "a Map");
+          }
+          var normalizedConstructors = normalizedConfig[library] = {};
+          macroConstructors.forEach((clazz, constructors) {
+            if (clazz is! String) {
+              _invalidSpecification(
+                  "macros[$module][$library] key `$clazz` was not a String");
+            }
+            if (constructors is! List) {
+              _invalidSpecification(
+                  "macro[$module][$library][$clazz] value `$constructors` was "
+                  "not a List");
+            }
+            var constructorNames = normalizedConstructors[clazz] = [];
+            for (var constructor in constructors) {
+              if (constructor is! String) {
+                _invalidSpecification(
+                    "macros[$module][$library][$clazz] element `$constructor` "
+                    "was not a String");
+              }
+              constructorNames.add(constructor);
+            }
+          });
+        });
+      });
+    } else {
+      _invalidSpecification("macros is not a Map");
+    }
+  }
+  return TestSpecification(
+      normalizedFlags, normalizedMap, normalizedPackages, normalizedMacros);
 }
 
 /// Data specifying details about a modular test including dependencies and
@@ -136,10 +189,18 @@ class TestSpecification {
   /// where this test specification was defined.
   final Map<String, String> packages;
 
-  TestSpecification(this.flags, this.dependencies, this.packages);
+  /// A map containing information about the macros defined in each module.
+  ///
+  /// The keys are the macro names, and the values describe the macros in each
+  /// module.
+  ///
+  /// See the `Module` class for more information about the values.
+  final Map<String, Map<String, Map<String, List<String>>>> macros;
+
+  TestSpecification(this.flags, this.dependencies, this.packages, this.macros);
 }
 
-_invalidSpecification(String message) {
+Never _invalidSpecification(String message) {
   throw InvalidSpecificationError(message);
 }
 

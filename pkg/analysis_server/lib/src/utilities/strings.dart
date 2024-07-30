@@ -4,6 +4,8 @@
 
 import 'dart:math';
 
+import 'package:analyzer/src/utilities/extensions/string.dart';
+
 /// "$"
 const int CHAR_DOLLAR = 0x24;
 
@@ -50,7 +52,7 @@ int countLeadingWhitespaces(String str) {
   var i = 0;
   for (; i < str.length; i++) {
     var c = str.codeUnitAt(i);
-    if (!isWhitespace(c)) {
+    if (!c.isWhitespace) {
       break;
     }
   }
@@ -75,7 +77,7 @@ int countTrailingWhitespaces(String str) {
   var i = 0;
   for (; i < str.length; i++) {
     var c = str.codeUnitAt(str.length - 1 - i);
-    if (!isWhitespace(c)) {
+    if (!c.isWhitespace) {
       break;
     }
   }
@@ -106,34 +108,12 @@ int findCommonSuffix(String a, String b) {
   return n;
 }
 
-/// Checks if [str] is `null`, empty or is whitespace.
+/// Checks if [str] is `null`, empty or whitespace.
 bool isBlank(String? str) {
   if (str == null || str.isEmpty) {
     return true;
   }
-  return str.codeUnits.every(isSpace);
-}
-
-bool isDigit(int c) {
-  return c >= 0x30 && c <= 0x39;
-}
-
-bool isEOL(int c) {
-  return c == 0x0D || c == 0x0A;
-}
-
-bool isLetter(int c) {
-  return (c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A);
-}
-
-bool isLetterOrDigit(int c) {
-  return isLetter(c) || isDigit(c);
-}
-
-bool isSpace(int c) => c == 0x20 || c == 0x09;
-
-bool isWhitespace(int c) {
-  return isSpace(c) || isEOL(c);
+  return str.codeUnits.every((c) => c.isSpace);
 }
 
 String? removeEnd(String? str, String? remove) {

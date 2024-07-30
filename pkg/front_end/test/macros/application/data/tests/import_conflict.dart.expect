@@ -23,7 +23,7 @@ static method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ functio
 
 constants  {
   #C1 = mac::ImportConflictMacro {}
-  #C2 = TypeLiteralConstant(core::int*)
-  #C3 = TypeLiteralConstant(FutureOr<math::Random*>*)
-  #C4 = TypeLiteralConstant(con::JsonCodec*)
+  #C2 = TypeLiteralConstant(core::int)
+  #C3 = TypeLiteralConstant(FutureOr<math::Random>)
+  #C4 = TypeLiteralConstant(con::JsonCodec)
 }

@@ -1,3 +1,39 @@
+# 4.2.5
+- Fixed DevTools URI not including a trailing '/' before the query parameters, which could prevent DevTools from loading properly.
+
+# 4.2.4+1
+- Added missing type to `Event` in `postEvent`.
+- [DAP] Instaces with both fields and getters of the same name will no longer show duplicates in `variables` responses.
+- `bin/dds.dart` now closes the `stderr` pipe after writing its JSON to the stream.
+
+# 4.2.3
+- Added missing await of `WebSocketChannel.ready` in `startDartDevelopmentService`.
+
+# 4.2.2
+- [DAP] Exceptions that occur while the debug adapter is connecting to the VM Service and configuring isolates will no longer cause the debug adapter to terminate. Instead, the errors are reporting via a `console` `OutputEvent` and the adapter will shut down gracefully.
+
+# 4.2.1
+- [DAP]: Fixed an issue where breakpoint `changed` events might contain incorrect location information when new isolates are created, causing breakpoints to appear to move in the editor.
+- [DAP]: For consistency with other values, automatic `toString()` invocations for debugger views no longer expand long strings and instead show truncated values. Full values continue to be returned for evaluation (`context=="repl"`) and when copying to the clipboard (`context=="clipboard"`).
+- [DAP]: Improved handling of sentinel responses when building `variables` responses. This prevents entire map/list requests from failing when only some values inside are sentinels.
+- [DAP] Set `requirePermissionToResume` and `requireUserPermissionToResume` for `onPauseStart` and `onPauseExit` so that DDS waits for DAP's permission before resuming the isolate.
+
+# 4.2.0
+- [DAP] All `OutputEvent`s are now scanned for stack frames to attach `source` metadata to. The [parseStackFrames] parameter for `sendOutput` is ignored and deprecated.
+
+# 4.1.0
+- Internal change: removed static method `DevToolsUtils.initializeAnalytics`
+and prepared DDS for using `unified_analytics` through the Dart Tooling Daemon.
+- Internal change: removed `analytics` parameter from the DevTools server `defaultHandler` method.
+- Updated `README.md` and added  contributing guide (`CONTRIBUTING.md`).
+- Updated `package:dds_service_extensions` constraint to ^2.0.0.
+- Determine default `requireUserPermissionToResume` values from the `pause_isolates_on_start` and `pause_isolates_on_exit` flags.
+- Indicate compatibility with `package:web_socket_channel` 2.x and 3.x
+- Indicate compatibility with `package:shelf_web_socket` 1.x and 2.x
+- Updated the `devtools_shared` dependency to version `^9.0.1`.
+- Remove the `package:unified_analytics` dependency.
+- Serve DevTools extensions from their absolute location.
+
 # 4.0.0
 - Updated DDS protocol to version 2.0.
 - Added `readyToResume` and `requireUserPermissionToResume` RPCs.

@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo1(core::int? x) → dynamic
+  ;
+static method foo2(core::String? x) → dynamic
+  ;
+static method foo3(core::bool? x, core::num y) → dynamic
+  ;
+static method bar1(core::int? x) → dynamic
+  ;
+static method bar2(core::int? x, core::bool b) → dynamic
+  ;
+static method bar3(core::int? x) → dynamic
+  ;
+static method bar4(core::String x, core::bool? y) → dynamic
+  ;
+static method bar5(core::int? x, core::num y) → dynamic
+  ;
+static method bar6(core::double? x, core::Symbol? y) → dynamic
+  ;
+static method bar7(core::num? x, core::double? y, core::bool b) → dynamic
+  ;
+static method bar8(core::num? x, core::double? y) → dynamic
+  ;

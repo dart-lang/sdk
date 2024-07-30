@@ -5,6 +5,8 @@
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_kind.dart';
 import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
+import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,9 +17,7 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.
@@ -151,14 +151,14 @@ class PubspecFixGenerator {
   }
 
   Future<void> _addMissingDependency(ErrorCode errorCode) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! YamlMap) {
       return;
     }
     var builder = ChangeBuilder(
         workspace: _NonDartChangeWorkspace(resourceProvider), eol: endOfLine);
 
-    final data = error.data as MissingDependencyData;
+    var data = error.data as MissingDependencyData;
     var addDeps = data.addDeps;
     var addDevDeps = data.addDevDeps;
     var removeDevDeps = data.removeDevDeps;
@@ -202,13 +202,14 @@ class PubspecFixGenerator {
         // Go through entries and remove each one.
         for (var dep in removeDevDeps) {
           MapEntry<dynamic, YamlNode>? currentEntry, nextEntry, prevEntry;
-          for (var entry in section.nodes.entries) {
+          var length = section.nodes.entries.length;
+          for (int i = 0; i < length; i++) {
+            var entry = section.nodes.entries.elementAt(i);
             if (entry.key.value == dep) {
               currentEntry = entry;
-              continue;
-            }
-            if (currentEntry != null) {
-              nextEntry = entry;
+              if (i + 1 < length) {
+                nextEntry = section.nodes.entries.elementAt(i + 1);
+              }
               break;
             }
             prevEntry = entry;
@@ -240,7 +241,17 @@ class PubspecFixGenerator {
             var endOffset = nextEntry == null
                 ? currentEntry.value.span.end.offset
                 : (nextEntry.key as YamlNode).span.start.offset;
-
+            // If entry in the middle of two other entries that are not to be
+            // removed, delete the line.
+            if (prevEntry != null &&
+                nextEntry != null &&
+                !removeDevDeps.contains(prevEntry.key.value) &&
+                !removeDevDeps.contains(nextEntry.key.value)) {
+              var line = (currentEntry.key as YamlNode).span.start.line;
+              startOffset = lineInfo.lineStarts[line];
+              var nextLine = (nextEntry.key as YamlNode).span.start.line;
+              endOffset = lineInfo.lineStarts[nextLine];
+            }
             if (edit == null) {
               edit = _Range(startOffset, endOffset);
             } else if (edit.endOffset > startOffset) {

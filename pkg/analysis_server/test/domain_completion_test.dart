@@ -31,14 +31,14 @@ class CompletionDomainHandlerGetSuggestionDetails2Test
     String expected, {
     bool printIfFailed = true,
   }) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     _SuggestionDetailsPrinter(
       resourceProvider: resourceProvider,
       fileDisplayMap: {testFile: 'testFile'},
       buffer: buffer,
       result: result,
     ).writeResult();
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       if (printIfFailed) {
@@ -147,7 +147,7 @@ completion: Test
 
     var request = CompletionGetSuggestionDetails2Params(
             testFile.path, 0, 'Random', '[foo]:bar')
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_PARAMETER);
@@ -159,7 +159,7 @@ completion: Test
 
     var request =
         CompletionGetSuggestionDetails2Params('foo', 0, 'Random', 'dart:math')
-            .toRequest('0');
+            .toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
@@ -206,10 +206,11 @@ completion: Test
       completionOffset,
       completion,
       libraryUri,
-    ).toRequest('0');
+    ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleSuccessfulRequest(request);
-    return CompletionGetSuggestionDetails2Result.fromResponse(response);
+    return CompletionGetSuggestionDetails2Result.fromResponse(response,
+        clientUriConverter: server.uriConverter);
   }
 
   Future<CompletionGetSuggestionDetails2Result> _getTestCodeDetails(
@@ -231,7 +232,7 @@ class CompletionDomainHandlerGetSuggestions2Test
     extends PubPackageAnalysisServerTest {
   printer.Configuration printerConfiguration = printer.Configuration(
     filter: (suggestion) {
-      final completion = suggestion.completion;
+      var completion = suggestion.completion;
       if (completion.startsWith('A0')) {
         return suggestion.isClass;
       }
@@ -248,13 +249,13 @@ class CompletionDomainHandlerGetSuggestions2Test
     String expected, {
     bool printIfFailed = true,
   }) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
       configuration: printerConfiguration,
       response: response,
     ).writeResponse();
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       if (printIfFailed) {
@@ -335,7 +336,7 @@ suggestions
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: AddContentOverlay('void f() {}'),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
 
     // The request should be aborted.
@@ -1811,6 +1812,10 @@ suggestions
     kind: class
     isNotImported: null
     libraryUri: dart:math
+  Random
+    kind: constructorInvocation
+    isNotImported: null
+    libraryUri: dart:math
 ''');
   }
 
@@ -2102,11 +2107,15 @@ suggestions
     kind: identifier
   |repository: |
     kind: identifier
+  |resolution: |
+    kind: identifier
   screenshots:
     kind: identifier
   |topics: |
     kind: identifier
   |version: |
+    kind: identifier
+  workspace:
     kind: identifier
 ''');
   }
@@ -2149,10 +2158,11 @@ suggestions
       path,
       completionOffset,
       maxResults,
-    ).toRequest('0');
+    ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleSuccessfulRequest(request);
-    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    var result = CompletionGetSuggestions2Result.fromResponse(response,
+        clientUriConverter: server.uriConverter);
 
     // Extract the internal request object.
     var dartRequest = server.completionState.currentRequest;
@@ -2184,7 +2194,7 @@ suggestions
       testFile.path,
       0,
       1 << 10,
-    ).toRequest(id);
+    ).toRequest(id, clientUriConverter: server.uriConverter);
     var futureResponse = handleRequest(request);
     return RequestWithFutureResponse(offset, request, futureResponse);
   }
@@ -2200,7 +2210,8 @@ class RequestWithFutureResponse {
   Future<CompletionResponseForTesting> toResponse() async {
     var response = await futureResponse;
     expect(response, isResponseSuccess(request.id));
-    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    var result = CompletionGetSuggestions2Result.fromResponse(response,
+        clientUriConverter: null);
     return CompletionResponseForTesting(
       requestOffset: offset,
       requestLocationName: null,
@@ -2245,7 +2256,7 @@ class _SuggestionDetailsPrinter {
   void _writeChange(SourceChange change) {
     _writelnWithIndent('change');
     _withIndent(() {
-      for (final fileEdit in change.edits) {
+      for (var fileEdit in change.edits) {
         _writeSourceFileEdit(fileEdit);
       }
     });
@@ -2260,17 +2271,17 @@ class _SuggestionDetailsPrinter {
     _writelnWithIndent('offset: ${edit.offset}');
     _writelnWithIndent('length: ${edit.length}');
 
-    final replacementStr = edit.replacement.replaceAll('\n', r'\n');
+    var replacementStr = edit.replacement.replaceAll('\n', r'\n');
     _writelnWithIndent('replacement: $replacementStr');
   }
 
   void _writeSourceFileEdit(SourceFileEdit fileEdit) {
-    final file = resourceProvider.getFile(fileEdit.file);
-    final fileStr = fileDisplayMap[file] ?? fail('No display name: $file');
+    var file = resourceProvider.getFile(fileEdit.file);
+    var fileStr = fileDisplayMap[file] ?? fail('No display name: $file');
     _writelnWithIndent(fileStr);
 
     _withIndent(() {
-      for (final edit in fileEdit.edits) {
+      for (var edit in fileEdit.edits) {
         _writeSourceEdit(edit);
       }
     });

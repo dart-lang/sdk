@@ -49,6 +49,9 @@ abstract class Feature {
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 
+  /// Feature information for null-aware elements.
+  static final null_aware_elements = ExperimentalFeatures.null_aware_elements;
+
   /// Feature information for patterns.
   static final patterns = ExperimentalFeatures.patterns;
 
@@ -83,6 +86,9 @@ abstract class Feature {
 
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;
+
+  /// Feature information for wildcard variables.
+  static final wildcard_variables = ExperimentalFeatures.wildcard_variables;
 
   /// If the feature may be enabled or disabled on the command line, the
   /// experimental flag that may be used to enable it.  Otherwise `null`.

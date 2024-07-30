@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,7 +31,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   static final Map<String, StackTrace> _isMoreTopChecked = {};
 
   void isBottom(DartType type) {
-    expect(typeSystem.isBottom(type), isTrue, reason: typeString(type));
+    expect(type.isBottom, isTrue, reason: typeString(type));
   }
 
   void isMoreBottom(DartType T, DartType S) {
@@ -55,7 +55,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   }
 
   void isNotBottom(DartType type) {
-    expect(typeSystem.isBottom(type), isFalse, reason: typeString(type));
+    expect(type.isBottom, isFalse, reason: typeString(type));
   }
 
   void isNotMoreBottom(DartType T, DartType S) {
@@ -396,7 +396,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   /// [TypeSystemImpl.isMoreBottom] can be used only for `BOTTOM` or `NULL`
   /// types. No need to check other types.
   void _assertIsBottomOrNull(DartType type) {
-    expect(typeSystem.isBottom(type) || typeSystem.isNull(type), isTrue,
+    expect(type.isBottom || typeSystem.isNull(type), isTrue,
         reason: typeString(type));
   }
 
@@ -1853,24 +1853,24 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     {
-      final T = typeParameter('T', bound: numNone);
-      final U = typeParameter('U', bound: numNone);
-      final T1 = functionTypeNone(
+      var T = typeParameter('T', bound: numNone);
+      var U = typeParameter('U', bound: numNone);
+      var T1 = functionTypeNone(
         returnType: typeParameterTypeNone(T),
         typeFormals: [T],
       );
-      final T2 = functionTypeNone(
+      var T2 = functionTypeNone(
         returnType: typeParameterTypeNone(U),
         typeFormals: [U],
       );
       {
-        final result = typeSystem.leastUpperBound(T1, T2);
-        final resultStr = typeString(result);
+        var result = typeSystem.leastUpperBound(T1, T2);
+        var resultStr = typeString(result);
         expect(resultStr, 'T Function<T extends num>()');
       }
       {
-        final result = typeSystem.leastUpperBound(T2, T1);
-        final resultStr = typeString(result);
+        var result = typeSystem.leastUpperBound(T2, T1);
+        var resultStr = typeString(result);
         expect(resultStr, 'U Function<U extends num>()');
       }
     }
@@ -2451,7 +2451,7 @@ class UpperBoundTest extends _BoundsTestBase {
     // extension type B(Object?) implements A {}
     // extension type C(Object?) implements A {}
 
-    final A_none = interfaceTypeNone(
+    var A_none = interfaceTypeNone(
       extensionType(
         'A',
         representationType: objectQuestion,
@@ -2523,7 +2523,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_extensionType_withTypeParameters_objectNone() {
-    final T = typeParameter('T');
+    var T = typeParameter('T');
 
     _checkLeastUpperBound(
       interfaceTypeNone(
@@ -2549,11 +2549,11 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_extensionType_withTypeParameters_withInterfaces() {
-    final T = typeParameter('T');
-    final T1 = typeParameter('T1', bound: stringNone);
-    final T2 = typeParameter('T2', bound: intNone);
+    var T = typeParameter('T');
+    var T1 = typeParameter('T1', bound: stringNone);
+    var T2 = typeParameter('T2', bound: intNone);
 
-    final E = extensionType(
+    var E = extensionType(
       'E',
       typeParameters: [T],
       representationType: typeParameterTypeNone(T),
@@ -3325,13 +3325,13 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
   }
 
   void _assertBottom(DartType type) {
-    if (!typeSystem.isBottom(type)) {
+    if (!type.isBottom) {
       fail('isBottom must be true: ${typeString(type)}');
     }
   }
 
   void _assertNotBottom(DartType type) {
-    if (typeSystem.isBottom(type)) {
+    if (type.isBottom) {
       fail('isBottom must be false: ${typeString(type)}');
     }
   }

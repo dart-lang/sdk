@@ -19,11 +19,11 @@ import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-import 'src/utilities/mock_packages.dart';
 import 'support/configuration_files.dart';
 import 'test_macros.dart';
 
@@ -66,6 +66,7 @@ class AbstractContextTest
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => [
         Feature.macros.enableString,
+        Feature.wildcard_variables.enableString,
       ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
@@ -105,7 +106,7 @@ class AbstractContextTest
   }
 
   void assertSourceChange(SourceChange sourceChange, String expected) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     _writeSourceChangeToBuffer(
       buffer: buffer,
       sourceChange: sourceChange,
@@ -114,7 +115,7 @@ class AbstractContextTest
   }
 
   void changeFile(File file) {
-    final path = file.path;
+    var path = file.path;
     driverFor(file).changeFile(path);
   }
 
@@ -180,16 +181,16 @@ class AbstractContextTest
   }
 
   Future<ParsedUnitResult> getParsedUnit(File file) async {
-    final path = file.path;
-    final session = await sessionFor(fileForContextSelection ?? file);
-    final result = session.getParsedUnit(path);
+    var path = file.path;
+    var session = await sessionFor(fileForContextSelection ?? file);
+    var result = session.getParsedUnit(path);
     return result as ParsedUnitResult;
   }
 
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
-    final path = file.path;
-    final session = await sessionFor(fileForContextSelection ?? file);
-    final result = await session.getResolvedUnit(path);
+    var path = file.path;
+    var session = await sessionFor(fileForContextSelection ?? file);
+    var result = await session.getResolvedUnit(path);
     return result as ResolvedUnitResult;
   }
 
@@ -199,7 +200,7 @@ class AbstractContextTest
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    final file = super.newFile(path, normalizeSource(content));
+    var file = super.newFile(path, normalizeSource(content));
     _addAnalyzedFileToDrivers(file);
     return file;
   }
@@ -268,7 +269,7 @@ class AbstractContextTest
   }
 
   void _addAnalyzedFileToDrivers(File file) {
-    final path = file.path;
+    var path = file.path;
     var collection = _analysisContextCollection;
     if (collection != null) {
       for (var analysisContext in collection.contexts) {
@@ -316,11 +317,11 @@ class AbstractContextTest
     required StringBuffer buffer,
     required SourceChange sourceChange,
   }) {
-    for (final fileEdit in sourceChange.edits) {
-      final file = getFile(fileEdit.file);
+    for (var fileEdit in sourceChange.edits) {
+      var file = getFile(fileEdit.file);
       buffer.writeln('>>>>>>>>>> ${file.posixPath}');
-      final current = file.readAsStringSync();
-      final updated = SourceEdit.applySequence(current, fileEdit.edits);
+      var current = file.readAsStringSync();
+      var updated = SourceEdit.applySequence(current, fileEdit.edits);
       buffer.write(updated);
     }
   }

@@ -8,10 +8,10 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -37,6 +37,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   );
 
   late MockServerChannel channel;
+  late ErrorNotifier errorNotifier;
   late LegacyAnalysisServer server;
 
   void setUp() {
@@ -49,6 +50,7 @@ class AnalysisServerTest with ResourceProviderMixin {
       root: sdkRoot,
     );
 
+    errorNotifier = ErrorNotifier();
     server = LegacyAnalysisServer(
         channel,
         resourceProvider,
@@ -56,7 +58,8 @@ class AnalysisServerTest with ResourceProviderMixin {
         DartSdkManager(sdkRoot.path),
         AnalyticsManager(NoOpAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
-        InstrumentationService.NULL_SERVICE);
+        errorNotifier);
+    errorNotifier.server = server;
   }
 
   /// See https://github.com/dart-lang/sdk/issues/50496
@@ -110,9 +113,9 @@ class X extends A with M {}
   Future<void> test_concurrentContextRebuilds() async {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = {ServerService.STATUS};
-    final projectRoot = convertPath('/foo');
-    final projectTestFile = convertPath('/foo/lib/test.dart');
-    final projectPackageConfigFile =
+    var projectRoot = convertPath('/foo');
+    var projectTestFile = convertPath('/foo/lib/test.dart');
+    var projectPackageConfigFile =
         convertPath('/foo/.dart_tool/package_config.json');
 
     // Create a file that references two packages, which will we write to
@@ -129,15 +132,16 @@ class X extends A with M {}
     // Ensure the packages and package_config exist.
     var fooLibFolder = _addSimplePackage('foo', '');
     var barLibFolder = _addSimplePackage('bar', '');
-    final config = PackageConfigFileBuilder();
+    var config = PackageConfigFileBuilder();
     writePackageConfig(projectPackageConfigFile, config);
 
     // Track diagnostics that arrive.
-    final errorsByFile = <String, List<AnalysisError>>{};
+    var errorsByFile = <String, List<AnalysisError>>{};
     channel.notifications
         .where((notification) => notification.event == 'analysis.errors')
         .listen((notification) {
-      final params = AnalysisErrorsParams.fromNotification(notification);
+      var params = AnalysisErrorsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       errorsByFile[params.file] = params.errors;
     });
 
@@ -172,6 +176,29 @@ class X extends A with M {}
     }
   }
 
+  Future<void> test_errorNotification_errorNotifier() async {
+    errorNotifier.logException(Exception('dummy exception'));
+
+    var errors = channel.notificationsReceived.where(
+        (notification) => notification.event == SERVER_NOTIFICATION_ERROR);
+    expect(
+      errors.single.params![SERVER_NOTIFICATION_ERROR_MESSAGE],
+      contains('dummy exception'),
+    );
+  }
+
+  Future<void> test_errorNotification_sendNotification() async {
+    server.sendServerErrorNotification(
+        'message', Exception('dummy exception'), null);
+
+    var errors = channel.notificationsReceived.where(
+        (notification) => notification.event == SERVER_NOTIFICATION_ERROR);
+    expect(
+      errors.single.params![SERVER_NOTIFICATION_ERROR_MESSAGE],
+      contains('dummy exception'),
+    );
+  }
+
   Future<void> test_serverStatusNotifications_hasFile() async {
     server.serverServices.add(ServerService.STATUS);
 
@@ -189,7 +216,8 @@ class A {}
     // At least one notification indicating analysis is in progress.
     expect(notifications.any((Notification notification) {
       if (notification.event == SERVER_NOTIFICATION_STATUS) {
-        var params = ServerStatusParams.fromNotification(notification);
+        var params = ServerStatusParams.fromNotification(notification,
+            clientUriConverter: server.uriConverter);
         var analysis = params.analysis;
         if (analysis != null) {
           return analysis.isAnalyzing;
@@ -200,7 +228,8 @@ class A {}
 
     // The last notification should indicate that analysis is complete.
     var notification = notifications[notifications.length - 1];
-    var params = ServerStatusParams.fromNotification(notification);
+    var params = ServerStatusParams.fromNotification(notification,
+        clientUriConverter: server.uriConverter);
     expect(params.analysis!.isAnalyzing, isFalse);
   }
 
@@ -219,7 +248,8 @@ class A {}
     // At least one notification indicating analysis is in progress.
     expect(notifications.any((Notification notification) {
       if (notification.event == SERVER_NOTIFICATION_STATUS) {
-        var params = ServerStatusParams.fromNotification(notification);
+        var params = ServerStatusParams.fromNotification(notification,
+            clientUriConverter: server.uriConverter);
         var analysis = params.analysis;
         if (analysis != null) {
           return analysis.isAnalyzing;
@@ -230,7 +260,8 @@ class A {}
 
     // The last notification should indicate that analysis is complete.
     var notification = notifications[notifications.length - 1];
-    var params = ServerStatusParams.fromNotification(notification);
+    var params = ServerStatusParams.fromNotification(notification,
+        clientUriConverter: server.uriConverter);
     expect(params.analysis!.isAnalyzing, isFalse);
   }
 
@@ -301,8 +332,8 @@ analyzer:
   ///
   /// Returns a [Folder] that represents the packages `lib` folder.
   Folder _addSimplePackage(String name, String content) {
-    final packagePath = '/packages/$name';
-    final file = newFile('$packagePath/lib/$name.dart', content);
+    var packagePath = '/packages/$name';
+    var file = newFile('$packagePath/lib/$name.dart', content);
     return file.parent;
   }
 }

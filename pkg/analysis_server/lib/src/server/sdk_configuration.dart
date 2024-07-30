@@ -30,22 +30,14 @@ class SdkConfiguration {
   /// is not found.
   SdkConfiguration.readFromSdk() {
     // <dart-sdk>/config/settings.json:
-    final sdkDir =
+    var sdkDir =
         Directory(path.dirname(path.dirname(Platform.resolvedExecutable)));
-    final configFile = File(path.join(sdkDir.path, 'config', 'settings.json'));
+    var configFile = File(path.join(sdkDir.path, 'config', 'settings.json'));
 
     if (configFile.existsSync()) {
       _readFromFile(configFile);
     }
   }
-
-  /// Whether analytics is forced on.
-  bool? get analyticsForceEnabled =>
-      _values['server.analytics.forceEnabled'] as bool?;
-
-  /// Return an override value for the analysis server's google analytics ID, or
-  /// `null` if the default value should be used.
-  String? get analyticsId => _values['server.analytics.id'] as String?;
 
   /// Whether crash reporting is forced on.
   bool? get crashReportingForceEnabled =>

@@ -216,7 +216,7 @@ void foo() {
   Future<void> test_method_oneParameter() async {
     await resolveTestCode('''
 final l = <int>[];
-var a = (x) => l.indexOf(x);
+var a = (int x) => l.indexOf(x);
 ''');
     await assertHasFix('''
 final l = <int>[];

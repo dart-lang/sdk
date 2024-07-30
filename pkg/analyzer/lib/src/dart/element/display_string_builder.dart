@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    show Variance;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/resolver/variance.dart';
 
 /// A class that builds a "display string" for [Element]s and [DartType]s.
 class ElementDisplayStringBuilder {
@@ -20,10 +21,14 @@ class ElementDisplayStringBuilder {
   /// Whether to allow a display string to be written in multiple lines.
   final bool _multiline;
 
+  /// Whether to write instantiated type alias when available.
+  final bool preferTypeAlias;
+
   ElementDisplayStringBuilder({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
     bool multiline = false,
+    required this.preferTypeAlias,
   })  : _withNullability = withNullability,
         _multiline = multiline;
 
@@ -178,6 +183,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeFunctionType(FunctionType type) {
+    if (_maybeWriteTypeAlias(type)) {
+      return;
+    }
+
     type = _uniqueTypeParameters(type);
 
     _writeType(type.returnType);
@@ -200,6 +209,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeInterfaceType(InterfaceType type) {
+    if (_maybeWriteTypeAlias(type)) {
+      return;
+    }
+
     _write(type.element.name);
     _writeTypeArguments(type.typeArguments);
     _writeNullability(type.nullabilitySuffix);
@@ -244,13 +257,17 @@ class ElementDisplayStringBuilder {
   }
 
   void writeRecordType(RecordType type) {
-    final positionalFields = type.positionalFields;
-    final namedFields = type.namedFields;
-    final fieldCount = positionalFields.length + namedFields.length;
+    if (_maybeWriteTypeAlias(type)) {
+      return;
+    }
+
+    var positionalFields = type.positionalFields;
+    var namedFields = type.namedFields;
+    var fieldCount = positionalFields.length + namedFields.length;
     _write('(');
 
     var index = 0;
-    for (final field in positionalFields) {
+    for (var field in positionalFields) {
       _writeType(field.type);
       if (index++ < fieldCount - 1) {
         _write(', ');
@@ -259,7 +276,7 @@ class ElementDisplayStringBuilder {
 
     if (namedFields.isNotEmpty) {
       _write('{');
-      for (final field in namedFields) {
+      for (var field in namedFields) {
         _writeType(field.type);
         _write(' ');
         _write(field.name);
@@ -280,6 +297,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeTypeAliasElement(TypeAliasElementImpl element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _write('typedef ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
@@ -297,7 +318,7 @@ class ElementDisplayStringBuilder {
     if (element is TypeParameterElementImpl) {
       var variance = element.variance;
       if (!element.isLegacyCovariant && variance != Variance.unrelated) {
-        _write(variance.toKeywordString());
+        _write(variance.keyword);
         _write(' ');
       }
     }
@@ -312,9 +333,9 @@ class ElementDisplayStringBuilder {
   }
 
   void writeTypeParameterType(TypeParameterTypeImpl type) {
-    final promotedBound = type.promotedBound;
+    var promotedBound = type.promotedBound;
     if (promotedBound != null) {
-      final hasSuffix = type.nullabilitySuffix != NullabilitySuffix.none;
+      var hasSuffix = type.nullabilitySuffix != NullabilitySuffix.none;
       if (hasSuffix) {
         _write('(');
       }
@@ -348,6 +369,18 @@ class ElementDisplayStringBuilder {
 
   void writeVoidType() {
     _write('void');
+  }
+
+  bool _maybeWriteTypeAlias(DartType type) {
+    if (preferTypeAlias) {
+      if (type.alias case var alias?) {
+        _write(alias.element.name);
+        _writeTypeArguments(alias.typeArguments);
+        _writeNullability(type.nullabilitySuffix);
+        return true;
+      }
+    }
+    return false;
   }
 
   void _write(String str) {

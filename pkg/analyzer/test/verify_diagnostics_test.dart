@@ -92,8 +92,13 @@ class DocumentationValidator {
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
 
+    // Need a way to specify the existance of files whose content is irrelevant.
+    'LintCode.always_use_package_imports',
     // Missing support for example files outside of `lib`.
     'LintCode.avoid_relative_lib_imports',
+    // The example isn't being recognized as a flutter app. We might need to
+    // build a pubspec.yaml when analyzing flutter code.
+    'LintCode.avoid_web_libraries_in_flutter',
     // Produces a CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY.
     'LintCode.control_flow_in_finally',
     // Missing support for creating an indirect dependency on a package.
@@ -113,8 +118,12 @@ class DocumentationValidator {
     'LintCode.package_names',
     // The lint does nothing.
     'LintCode.package_prefixed_library_names',
+    // Need a way to specify the existance of files whose content is irrelevant.
+    'LintCode.prefer_relative_imports',
     // Missing support for YAML files.
     'LintCode.secure_pubspec_urls',
+    // The test framework doesn't yet support lints in non-dart files.
+    'LintCode.sort_pub_dependencies',
     // Extra warning.
     'LintCode.recursive_getters',
 
@@ -146,6 +155,9 @@ class DocumentationValidator {
     'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
     'PubspecWarningCode.UNKNOWN_PLATFORM',
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
+    'PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST',
+    'PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING',
+    'PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY',
 
     // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
     'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
@@ -533,6 +545,6 @@ class _SnippetTest extends PubPackageResolutionTest {
       }
     }
     writeTestPackageConfig(packageConfigBuilder,
-        angularMeta: true, ffi: true, meta: true);
+        angularMeta: true, ffi: true, flutter: true, meta: true);
   }
 }

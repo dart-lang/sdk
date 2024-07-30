@@ -511,9 +511,9 @@ class DartUnitHighlightsComputer {
     SemanticTokenTypes? semanticTokenType,
     Set<SemanticTokenModifiers>? semanticTokenModifiers,
   }) {
-    final range = this.range;
+    var range = this.range;
     if (range != null) {
-      final end = offset + length;
+      var end = offset + length;
       // Skip token if it ends before the range of starts after the range.
       if (end < range.offset || offset > range.end) {
         return;
@@ -644,6 +644,20 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.augmentKeyword, HighlightRegionType.BUILT_IN);
     super.visitAugmentationImportDirective(node);
+  }
+
+  @override
+  void visitAugmentedExpression(AugmentedExpression node) {
+    computer._addRegion_token(
+        node.augmentedKeyword, HighlightRegionType.KEYWORD);
+    super.visitAugmentedExpression(node);
+  }
+
+  @override
+  void visitAugmentedInvocation(AugmentedInvocation node) {
+    computer._addRegion_token(
+        node.augmentedKeyword, HighlightRegionType.KEYWORD);
+    super.visitAugmentedInvocation(node);
   }
 
   @override
@@ -881,15 +895,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    // TODO(brianwilkerson): Uncomment the following lines when the token is
-    //  supported.
-    // computer._addRegion_token(
-    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.extensionKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.name, HighlightRegionType.EXTENSION);
-    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
     super.visitExtensionDeclaration(node);
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
+    super.visitExtensionOnClause(node);
   }
 
   @override
@@ -1015,7 +1032,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.propertyKeyword, HighlightRegionType.BUILT_IN);
 
-    final HighlightRegionType nameType;
+    HighlightRegionType nameType;
     if (node.isGetter) {
       nameType = HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION;
     } else if (node.isSetter) {
@@ -1060,7 +1077,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.typedefKeyword, HighlightRegionType.BUILT_IN);
 
-    final HighlightRegionType nameType;
+    HighlightRegionType nameType;
     if (node.functionType != null) {
       nameType = HighlightRegionType.FUNCTION_TYPE_ALIAS;
     } else {
@@ -1216,7 +1233,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.propertyKeyword, HighlightRegionType.BUILT_IN);
 
-    final HighlightRegionType nameType;
+    HighlightRegionType nameType;
     if (node.isGetter) {
       nameType = node.isStatic
           ? HighlightRegionType.STATIC_GETTER_DECLARATION
@@ -1246,8 +1263,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
+    super.visitMixinOnClause(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
-    if (node.importPrefix case final importPrefix?) {
+    if (node.importPrefix case var importPrefix?) {
       computer._addRegion_token(
         importPrefix.name,
         HighlightRegionType.IMPORT_PREFIX,
@@ -1298,12 +1321,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitOnClause(OnClause node) {
-    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
-    super.visitOnClause(node);
-  }
-
-  @override
   void visitPartDirective(PartDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.partKeyword, HighlightRegionType.BUILT_IN);
@@ -1320,7 +1337,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPatternFieldName(PatternFieldName node) {
-    final name = node.name;
+    var name = node.name;
     if (name != null) {
       computer._addRegion_token(
           node.name, HighlightRegionType.INSTANCE_GETTER_REFERENCE);
@@ -1339,7 +1356,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_RECORD);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
 
-    for (final field in node.fields) {
+    for (var field in node.fields) {
       if (field is NamedExpression) {
         computer._addRegion_token(
           field.name.label.token,
@@ -1354,7 +1371,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
-    for (final field in node.fields) {
+    for (var field in node.fields) {
       computer._addRegion_token(field.name, HighlightRegionType.FIELD);
     }
 
@@ -1438,7 +1455,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent != null) {
       computer._addIdentifierRegion(
         parent: parent,
@@ -1636,7 +1653,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addRegions_configurations(List<Configuration> configurations) {
-    for (final configuration in configurations) {
+    for (var configuration in configurations) {
       computer._addRegion_token(
           configuration.ifKeyword, HighlightRegionType.BUILT_IN,
           semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
@@ -1655,10 +1672,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addRegions_stringEscapes(SimpleStringLiteral node) {
-    final string = node.literal.lexeme;
-    final quote = analyzeQuote(string);
-    final startIndex = firstQuoteLength(string, quote);
-    final endIndex = string.length - lastQuoteLength(quote);
+    var string = node.literal.lexeme;
+    var quote = analyzeQuote(string);
+    var startIndex = firstQuoteLength(string, quote);
+    var endIndex = string.length - lastQuoteLength(quote);
     switch (quote) {
       case Quote.Single:
       case Quote.Double:
@@ -1666,7 +1683,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       case Quote.MultiLineDouble:
         _findEscapes(node, startIndex: startIndex, endIndex: endIndex,
             listener: (offset, end) {
-          final length = end - offset;
+          var length = end - offset;
           computer._addRegion(node.offset + offset, length,
               HighlightRegionType.VALID_STRING_ESCAPE);
         });
@@ -1687,9 +1704,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     required int endIndex,
     required void Function(int offset, int end) listener,
   }) {
-    final string = node.literal.lexeme;
-    final codeUnits = string.codeUnits;
-    final length = string.length;
+    var string = node.literal.lexeme;
+    var codeUnits = string.codeUnits;
+    var length = string.length;
 
     bool isBackslash(int i) => i <= length && codeUnits[i] == char.$BACKSLASH;
     bool isHexEscape(int i) => i <= length && codeUnits[i] == char.$x;
@@ -1711,27 +1728,27 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     for (var i = startIndex; i < endIndex;) {
       if (isBackslash(i)) {
-        final backslashOffset = i++;
+        var backslashOffset = i++;
         // All escaped characters are a single character except for:
         // `\uXXXX` or `\u{XX?X?X?X?X?}` for Unicode hex escape.
         // `\xXX` for hex escape.
         if (isHexEscape(i)) {
           // Expect exactly 2 hex digits.
-          final numDigits = numHexDigits(i + 1, min: 2, max: 2);
+          var numDigits = numHexDigits(i + 1, min: 2, max: 2);
           if (numDigits != null) {
             i += 1 + numDigits;
             listener(backslashOffset, i);
           }
         } else if (isUnicodeHexEscape(i) && isOpenBrace(i + 1)) {
           // Expect 1-6 hex digits followed by '}'.
-          final numDigits = numHexDigits(i + 2, min: 1, max: 6);
+          var numDigits = numHexDigits(i + 2, min: 1, max: 6);
           if (numDigits != null && isCloseBrace(i + 2 + numDigits)) {
             i += 2 + numDigits + 1;
             listener(backslashOffset, i);
           }
         } else if (isUnicodeHexEscape(i)) {
           // Expect exactly 4 hex digits.
-          final numDigits = numHexDigits(i + 1, min: 4, max: 4);
+          var numDigits = numHexDigits(i + 1, min: 4, max: 4);
           if (numDigits != null) {
             i += 1 + numDigits;
             listener(backslashOffset, i);

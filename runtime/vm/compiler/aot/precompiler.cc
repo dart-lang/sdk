@@ -1217,8 +1217,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     return;
   }
 
-  if (instance.ptr() == Object::sentinel().ptr() ||
-      instance.ptr() == Object::transition_sentinel().ptr()) {
+  if (instance.ptr() == Object::sentinel().ptr()) {
     return;
   }
 
@@ -1329,10 +1328,9 @@ void Precompiler::AddField(const Field& field) {
   fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.ptr()));
 
   if (field.is_static()) {
-    const Object& value =
-        Object::Handle(Z, IG->initial_field_table()->At(field.field_id()));
-    // Should not be in the middle of initialization while precompiling.
-    ASSERT(value.ptr() != Object::transition_sentinel().ptr());
+    auto field_table = field.is_shared() ? IG->shared_initial_field_table()
+                                         : IG->initial_field_table();
+    const Object& value = Object::Handle(Z, field_table->At(field.field_id()));
 
     if (value.ptr() != Object::sentinel().ptr() &&
         value.ptr() != Object::null()) {
@@ -1813,8 +1811,7 @@ static void AddNamesToFunctionsTable(Zone* zone,
     *mangled_name = function.name();
     *mangled_name =
         Function::CreateDynamicInvocationForwarderName(*mangled_name);
-    *dyn_function = function.GetDynamicInvocationForwarder(*mangled_name,
-                                                           /*allow_add=*/true);
+    *dyn_function = function.GetDynamicInvocationForwarder(*mangled_name);
   }
   *mangled_name = Function::CreateDynamicInvocationForwarderName(fname);
   AddNameToFunctionsTable(zone, table, *mangled_name, *dyn_function);
@@ -1888,6 +1885,7 @@ void Precompiler::CollectDynamicFunctionNames() {
     ASSERT(!farray.IsNull());
     if (farray.Length() == 1) {
       function ^= farray.At(0);
+      if (function.IsDynamicallyOverridden()) continue;
 
       // It looks like there is exactly one target for the given name. Though we
       // have to be careful: e.g. A name like `dyn:get:foo` might have a target
@@ -1910,9 +1908,8 @@ void Precompiler::CollectDynamicFunctionNames() {
     }
   }
 
-  farray ^= table.GetOrNull(Symbols::GetRuntimeType());
-
-  get_runtime_type_is_unique_ = !farray.IsNull() && (farray.Length() == 1);
+  function ^= functions_map.GetOrNull(Symbols::GetRuntimeType());
+  get_runtime_type_is_unique_ = !function.IsNull();
 
   if (FLAG_print_unique_targets) {
     UniqueFunctionsMap::Iterator unique_iter(&functions_map);
@@ -3517,12 +3514,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy,
                                    precompiler_);
 
-      if (function.ForceOptimize()) {
-        ASSERT(optimized());
-        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
-        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kAOT,
-                                                             &pass_state);
-      } else if (optimized()) {
+      if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         AotCallSpecializer call_specializer(precompiler_, flow_graph,

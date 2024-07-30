@@ -10,7 +10,7 @@ import 'dart:typed_data';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 const isJSBackend = const bool.fromEnvironment('dart.library.html');
 
@@ -156,15 +156,20 @@ void syncTests() {
   expect(confuse(fun) is JSFunction, true);
 
   // [JSExportedDartFunction] <-> [Function]
-  edf = (JSString a, JSString b) {
+  final dartFunction = (JSString a, JSString b) {
     return (a.toDart + b.toDart).toJS;
-  }.toJS;
+  };
+  edf = dartFunction.toJS;
   expect(doFun('foo'.toJS, 'bar'.toJS).toDart, 'foobar');
   expect(
       (edf.toDart as JSString Function(JSString, JSString))(
               'foo'.toJS, 'bar'.toJS)
           .toDart,
       'foobar');
+  Expect.equals(edf.toDart, dartFunction);
+  Expect.isTrue(identical(edf.toDart, dartFunction));
+  // Two wrappers should not be the same.
+  Expect.notEquals(edf, dartFunction.toJS);
   // Converting a non-function should throw.
   Expect.throws(() => ('foo'.toJS as JSExportedDartFunction).toDart);
 

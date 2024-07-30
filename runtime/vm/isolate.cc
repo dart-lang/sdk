@@ -351,6 +351,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
+      shared_initial_field_table_(new FieldTable(/*isolate=*/nullptr,
+                                                 /*isolate_group=*/nullptr)),
+      shared_field_table_(new FieldTable(/*isolate=*/nullptr, this)),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
@@ -403,6 +406,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
   heap_walk_class_table_ = class_table_ =
       new ClassTable(&class_table_allocator_);
   cached_class_table_table_.store(class_table_->table());
+  memset(&native_assets_api_, 0, sizeof(NativeAssetsApi));
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
@@ -422,7 +426,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
-  ASSERT(marking_stack_ == nullptr);
+  ASSERT(old_marking_stack_ == nullptr);
+  ASSERT(new_marking_stack_ == nullptr);
+  ASSERT(deferred_marking_stack_ == nullptr);
 
   if (obfuscation_map_ != nullptr) {
     for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
@@ -780,11 +786,37 @@ void IsolateGroup::ValidateClassTable() {
 }
 #endif  // DEBUG
 
+void IsolateGroup::RegisterSharedStaticField(const Field& field,
+                                             const Object& initial_value) {
+  const bool need_to_grow_backing_store =
+      shared_initial_field_table()->Register(field);
+  const intptr_t field_id = field.field_id();
+  shared_initial_field_table()->SetAt(field_id, initial_value.ptr());
+
+  if (need_to_grow_backing_store) {
+    // We have to stop other isolates from accessing shared isolate group
+    // field state, since we'll have to grow the backing store.
+    GcSafepointOperationScope scope(Thread::Current());
+    const bool need_to_grow_other_backing_store =
+        shared_field_table()->Register(field, field_id);
+    ASSERT(need_to_grow_other_backing_store);
+  } else {
+    const bool need_to_grow_other_backing_store =
+        shared_field_table()->Register(field, field_id);
+    ASSERT(!need_to_grow_other_backing_store);
+  }
+  shared_field_table()->SetAt(field_id, initial_value.ptr());
+}
+
 void IsolateGroup::RegisterStaticField(const Field& field,
                                        const Object& initial_value) {
   ASSERT(program_lock()->IsCurrentThreadWriter());
 
   ASSERT(field.is_static());
+  if (field.is_shared()) {
+    RegisterSharedStaticField(field, initial_value);
+    return;
+  }
   const bool need_to_grow_backing_store =
       initial_field_table()->Register(field);
   const intptr_t field_id = field.field_id();
@@ -820,16 +852,20 @@ void IsolateGroup::FreeStaticField(const Field& field) {
 #endif
 
   const intptr_t field_id = field.field_id();
-  initial_field_table()->Free(field_id);
-  ForEachIsolate([&](Isolate* isolate) {
-    auto field_table = isolate->field_table();
-    // The isolate might've just been created and is now participating in
-    // the reload request inside `IsolateGroup::RegisterIsolate()`.
-    // At that point it doesn't have the field table setup yet.
-    if (field_table->IsReadyToUse()) {
-      field_table->Free(field_id);
-    }
-  });
+  if (field.is_shared()) {
+    shared_field_table()->Free(field_id);
+  } else {
+    initial_field_table()->Free(field_id);
+    ForEachIsolate([&](Isolate* isolate) {
+      auto field_table = isolate->field_table();
+      // The isolate might've just been created and is now participating in
+      // the reload request inside `IsolateGroup::RegisterIsolate()`.
+      // At that point it doesn't have the field table setup yet.
+      if (field_table->IsReadyToUse()) {
+        field_table->Free(field_id);
+      }
+    });
+  }
 }
 
 Isolate* IsolateGroup::EnterTemporaryIsolate() {
@@ -898,6 +934,25 @@ void IsolateGroup::RehashConstants(Become* become) {
   Instance& old_value = Instance::Handle(zone);
   Instance& new_value = Instance::Handle(zone);
   Instance& deleted = Instance::Handle(zone);
+
+  if (become != nullptr) {
+    for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
+      Array* old_constants = old_constant_tables[cid];
+      if (old_constants == nullptr) continue;
+
+      cls = class_table()->At(cid);
+      CanonicalInstancesSet set(zone, old_constants->ptr());
+      CanonicalInstancesSet::Iterator it(&set);
+      while (it.MoveNext()) {
+        constant ^= set.GetKey(it.Current());
+        ASSERT(!constant.IsNull());
+        ASSERT(!constant.InVMIsolateHeap());
+        constant.ClearCanonical();
+      }
+      set.Release();
+    }
+  }
+
   for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
     Array* old_constants = old_constant_tables[cid];
     if (old_constants == nullptr) continue;
@@ -954,12 +1009,18 @@ void IsolateGroup::RehashConstants(Become* become) {
       }
     } else {
       while (it.MoveNext()) {
-        constant ^= set.GetKey(it.Current());
-        ASSERT(!constant.IsNull());
-        // Shape changes lose the canonical bit because they may result/ in
-        // merging constants. E.g., [x1, y1], [x1, y2] -> [x1].
-        DEBUG_ASSERT(constant.IsCanonical() || HasAttemptedReload());
-        cls.InsertCanonicalConstant(zone, constant);
+        old_value ^= set.GetKey(it.Current());
+        ASSERT(!old_value.IsNull());
+
+        if (become == nullptr) {
+          ASSERT(old_value.IsCanonical());
+          cls.InsertCanonicalConstant(zone, old_value);
+        } else {
+          new_value = old_value.Canonicalize(thread);
+          if (old_value.ptr() != new_value.ptr()) {
+            become->Add(old_value, new_value);
+          }
+        }
       }
     }
     set.Release();
@@ -1544,6 +1605,7 @@ void IsolateGroup::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FLAG
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
@@ -1554,6 +1616,7 @@ void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FIELD
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -1576,9 +1639,6 @@ void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
                       api_flags.isolate_flag, isolate_group_flags_));
 
   BOOL_ISOLATE_GROUP_FLAG_LIST(SET_FROM_FLAG)
-  // Needs to be called manually, otherwise we don't set the null_safety_set
-  // bit.
-  set_null_safety(api_flags.null_safety);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
@@ -1595,6 +1655,7 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FLAG
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -1607,6 +1668,7 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
 #undef INIT_FROM_FIELD
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -2753,10 +2815,14 @@ void Isolate::SetPrefixIsLoaded(const LibraryPrefix& prefix) {
 }
 
 void IsolateGroup::EnableIncrementalBarrier(
-    MarkingStack* marking_stack,
+    MarkingStack* old_marking_stack,
+    MarkingStack* new_marking_stack,
     MarkingStack* deferred_marking_stack) {
-  ASSERT(marking_stack_ == nullptr);
-  marking_stack_ = marking_stack;
+  ASSERT(old_marking_stack_ == nullptr);
+  old_marking_stack_ = old_marking_stack;
+  ASSERT(new_marking_stack_ == nullptr);
+  new_marking_stack_ = new_marking_stack;
+  ASSERT(deferred_marking_stack_ == nullptr);
   deferred_marking_stack_ = deferred_marking_stack;
   thread_registry()->AcquireMarkingStacks();
   ASSERT(Thread::Current()->is_marking());
@@ -2764,8 +2830,11 @@ void IsolateGroup::EnableIncrementalBarrier(
 
 void IsolateGroup::DisableIncrementalBarrier() {
   thread_registry()->ReleaseMarkingStacks();
-  ASSERT(marking_stack_ != nullptr);
-  marking_stack_ = nullptr;
+  ASSERT(old_marking_stack_ != nullptr);
+  old_marking_stack_ = nullptr;
+  ASSERT(new_marking_stack_ != nullptr);
+  new_marking_stack_ = nullptr;
+  ASSERT(deferred_marking_stack_ != nullptr);
   deferred_marking_stack_ = nullptr;
 }
 
@@ -2778,7 +2847,8 @@ void IsolateGroup::ForEachIsolate(
            (thread->task_kind() == Thread::kMutatorTask) ||
            (thread->task_kind() == Thread::kMarkerTask) ||
            (thread->task_kind() == Thread::kCompactorTask) ||
-           (thread->task_kind() == Thread::kScavengerTask));
+           (thread->task_kind() == Thread::kScavengerTask) ||
+           (thread->task_kind() == Thread::kIncrementalCompactorTask));
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
@@ -2861,6 +2931,8 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
+  shared_initial_field_table()->VisitObjectPointers(visitor);
+  shared_field_table()->VisitObjectPointers(visitor);
 
   // Visit the boxed_field_list_.
   // 'boxed_field_list_' access via mutator and background compilation threads

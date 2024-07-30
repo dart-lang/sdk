@@ -1,7 +1,0 @@
-library test;
-
-main() {}
-
-test() {}
-
-typedef num FunctionReturningNum();

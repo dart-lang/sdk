@@ -191,7 +191,7 @@ class ReplacedBy extends Change<_Data> {
         // class name.
         return _Data(range.token(identifier));
       }
-      final parent = node.parent;
+      var parent = node.parent;
       if (parent is ConstructorName) {
         var classNameToken = parent.type.name2;
         var constructorNameNode = parent.name;

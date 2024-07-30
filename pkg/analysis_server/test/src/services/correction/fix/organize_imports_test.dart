@@ -95,4 +95,50 @@ void f(Stream<String> args) {
 }
 ''');
   }
+
+  Future<void> test_organizePathImports_thatSpanTwoLines() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  static void m() {}
+}
+''');
+    newFile('$testPackageLibPath/a/b.dart', '''
+class B {
+  static void m() {}
+}
+''');
+    newFile('$testPackageLibPath/a/c.dart', '''
+class C {
+  static void m() {}
+}
+''');
+
+    await resolveTestCode('''
+import 'dart:async';
+import 'a/b.dart';
+import 'a.dart'
+  show A;
+import 'a/c.dart';
+
+void f(Stream<String> args) {
+  A.m();
+  B.m();
+  C.m();
+}
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+import 'a.dart'
+  show A;
+import 'a/b.dart';
+import 'a/c.dart';
+
+void f(Stream<String> args) {
+  A.m();
+  B.m();
+  C.m();
+}
+''');
+  }
 }

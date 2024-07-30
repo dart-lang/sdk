@@ -1013,10 +1013,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallAfterIf) {
 }
 
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
-  if (!TestCase::IsNNBD()) {
-    return;
-  }
-
   const char* kScript = R"(
     class A {
       late int x = int.parse('1');
@@ -1337,11 +1333,6 @@ main() {
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
   }));
-  if (!FLAG_sound_null_safety) {
-    RELEASE_ASSERT(cursor.TryMatch({
-        kMatchAndMoveCheckClass,
-    }));
-  }
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveUnbox,
       kMatchAndMoveBinaryDoubleOp,
@@ -1576,10 +1567,23 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DontDelayIntoLoop) {
 
 ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   const char* kScript = R"(
-    @pragma('vm:unsafe:no-interrupts')
-    void test() {
-      for (int i = 0; i < 10; i++) {
+    @pragma('vm:prefer-inline')
+    int bar(int n) {
+      print(''); // Side-effectful operation
+      var sum = 0;
+      for (int i = 0; i < n; i++) {
+        sum += i;
       }
+      return sum;
+    }
+
+    @pragma('vm:unsafe:no-interrupts')
+    int test() {
+      int result = 0;
+      for (int i = 0; i < 10; i++) {
+        result ^= bar(i);
+      }
+      return result;
     }
   )";
 
@@ -1591,6 +1595,32 @@ ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   for (auto block : flow_graph->postorder()) {
     for (auto instr : block->instructions()) {
       EXPECT_PROPERTY(instr, !it.IsCheckStackOverflow());
+    }
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma) {
+  const char* kScript = R"(
+    import 'dart:typed_data';
+
+    @pragma('vm:unsafe:no-bounds-checks')
+    int test(Uint8List list) {
+      int result = 0;
+      for (int i = 0; i < 10; i++) {
+        result = list[i];
+      }
+      return result;
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "test"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  auto flow_graph = pipeline.RunPasses({});
+  for (auto block : flow_graph->postorder()) {
+    for (auto instr : block->instructions()) {
+      EXPECT_PROPERTY(instr, !it.IsCheckBoundBase());
     }
   }
 }
@@ -1710,8 +1740,7 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
   auto* const kFunctionName = "unalignedUint16";
   auto* const kInvokeNoDeoptName = "no_deopt";
   auto* const kInvokeDeoptName = "deopt";
-  auto kScript = Utils::CStringUniquePtr(
-      OS::SCreate(nullptr, R"(
+  CStringUniquePtr kScript(OS::SCreate(nullptr, R"(
         import 'dart:_internal';
         import 'dart:typed_data';
 
@@ -1749,9 +1778,9 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
           return %s(1.0);
         }
             )",
-                  kFunctionName, kInvokeNoDeoptName, kFunctionName,
-                  kInvokeDeoptName, kFunctionName),
-      std::free);
+                                       kFunctionName, kInvokeNoDeoptName,
+                                       kFunctionName, kInvokeDeoptName,
+                                       kFunctionName));
 
   const auto& lib =
       Library::Handle(LoadTestScript(kScript.get(), NoopNativeLookup));
@@ -1786,7 +1815,6 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
       CompilerPass::kConstantPropagation,
       CompilerPass::kOptimisticallySpecializeSmiPhis,
       CompilerPass::kTypePropagation,
-      CompilerPass::kWidenSmiToInt32,
       CompilerPass::kSelectRepresentations,
       CompilerPass::kCSE,
       CompilerPass::kCanonicalize,
@@ -1933,9 +1961,8 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
 // Verifies that deoptimization at the hoisted BinarySmiOp
 // doesn't result in the infinite re-optimization loop.
 ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
-  auto kScript =
-      Utils::CStringUniquePtr(OS::SCreate(nullptr,
-                                          R"(
+  CStringUniquePtr kScript(OS::SCreate(nullptr,
+                                       R"(
         int n = int.parse('3');
         main() {
           int x = 0;
@@ -1947,8 +1974,7 @@ ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
           return x;
         }
       )",
-                                          static_cast<int>(kSmiBits + 1 - 10)),
-                              std::free);
+                                       static_cast<int>(kSmiBits + 1 - 10)));
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
@@ -1986,10 +2012,6 @@ ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
 // Verifies that deoptimization at the hoisted GuardFieldClass
 // doesn't result in the infinite re-optimization loop.
 ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress50245) {
-  if (!FLAG_sound_null_safety) {
-    return;
-  }
-
   const char* kScript = R"(
     class A {
       List<int> foo;

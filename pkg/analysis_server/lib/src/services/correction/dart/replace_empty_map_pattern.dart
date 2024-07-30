@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -12,19 +12,19 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
   final _Style _style;
 
-  /// Initialize a newly created correction producer to create an object pattern
-  /// that will match any map.
-  ReplaceEmptyMapPattern.any() : _style = _Style.any;
+  /// Initializes a newly created correction producer to create an object
+  /// pattern that will match any map.
+  ReplaceEmptyMapPattern.any({required super.context}) : _style = _Style.any;
 
-  /// Initialize a newly created correction producer to create an object pattern
-  /// that will match an empty map.
-  ReplaceEmptyMapPattern.empty() : _style = _Style.empty;
-
-  @override
-  bool get canBeAppliedInBulk => false;
+  /// Initializes a newly created correction producer to create an object
+  /// pattern that will match an empty map.
+  ReplaceEmptyMapPattern.empty({required super.context})
+      : _style = _Style.empty;
 
   @override
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => _style.fixKind;

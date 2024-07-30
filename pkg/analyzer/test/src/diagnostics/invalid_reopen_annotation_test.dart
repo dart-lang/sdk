@@ -30,7 +30,7 @@ base mixin M {}
 @reopen
 base class B with M {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 51, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 52, 6),
     ]);
   }
 
@@ -43,7 +43,7 @@ class A {}
 @reopen
 base class B extends A {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 46, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 47, 6),
     ]);
   }
 
@@ -56,7 +56,7 @@ base class A {}
 @reopen
 base class B extends A {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 51, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 52, 6),
     ]);
   }
 
@@ -91,7 +91,7 @@ sealed class A {}
 @reopen
 base class B extends A {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 53, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 54, 6),
     ]);
   }
 
@@ -104,7 +104,7 @@ final class A {}
 @reopen
 base mixin class B implements A {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 52, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 53, 6),
     ]);
   }
 
@@ -130,7 +130,7 @@ final class A {}
 @reopen
 final class B extends A {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 52, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 53, 6),
     ]);
   }
 
@@ -144,7 +144,7 @@ mixin M {}
 @reopen
 final class B = A with M;
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 63, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 64, 6),
     ]);
   }
 
@@ -155,7 +155,7 @@ import 'package:meta/meta.dart';
 @reopen
 class A {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 34, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 35, 6),
     ]);
   }
 
@@ -170,7 +170,7 @@ import 'lib.dart';
 @reopen
 class B implements A {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 53, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 54, 6),
     ]);
   }
 
@@ -194,7 +194,7 @@ base mixin M {}
 @reopen
 sealed class B with M {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 51, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 52, 6),
     ]);
   }
 
@@ -207,7 +207,7 @@ final class A {}
 @reopen
 sealed class B extends A {}
 ''', [
-      error(WarningCode.INVALID_REOPEN_ANNOTATION, 52, 7),
+      error(WarningCode.INVALID_REOPEN_ANNOTATION, 53, 6),
     ]);
   }
 }

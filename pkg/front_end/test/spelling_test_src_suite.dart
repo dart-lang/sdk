@@ -5,10 +5,8 @@
 import 'package:testing/testing.dart' show Chain;
 
 import 'fasta/suite_utils.dart';
-import 'spelling_test_base.dart';
-
 import 'spell_checking_utils.dart' as spell;
-
+import 'spelling_test_base.dart';
 import 'testing_utils.dart' show checkEnvironment;
 
 void main([List<String> arguments = const []]) => internalMain(createContext,

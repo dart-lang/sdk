@@ -8,6 +8,7 @@ import 'package:kernel/kernel.dart';
 
 import 'macro_serializer.dart';
 
+// Coverage-ignore(suite): Not run.
 /// [MacroSerializer] that uses blobs registered with the current [Isolate] to
 /// give access to precompiled macro [Component]s.
 ///

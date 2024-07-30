@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -11,11 +11,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveLate extends ResolvedCorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => true;
+  RemoveLate({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_LATE;
@@ -24,15 +24,26 @@ class RemoveLate extends ResolvedCorrectionProducer {
   FixKind get multiFixKind => DartFixKind.REMOVE_LATE_MULTI;
 
   _LateKeywordLocation? get _lateKeywordLocation {
-    final node = this.node;
-    if (node is Block) {
+    var node = this.node;
+    if (node is AwaitExpression) {
+      var parent = node.parent;
+      if (parent is VariableDeclaration) {
+        var lateKeyword = parent.parent?.beginToken;
+        if (lateKeyword != null && lateKeyword.keyword == Keyword.LATE) {
+          return _LateKeywordLocation(
+            lateKeyword: lateKeyword,
+            nextToken: lateKeyword.next!,
+          );
+        }
+      }
+    } else if (node is Block) {
       // The `late` token does not belong any node, so when we look for a
       // node that covers it, we find the enclosing `Block`. So, we iterate
       // over statements to find the actual declaration statement.
-      for (final statement in node.statements) {
+      for (var statement in node.statements) {
         if (statement is PatternVariableDeclarationStatement) {
-          final beginToken = statement.beginToken;
-          final lateKeyword = beginToken.previous;
+          var beginToken = statement.beginToken;
+          var lateKeyword = beginToken.previous;
           if (lateKeyword != null &&
               lateKeyword.keyword == Keyword.LATE &&
               lateKeyword.offset == selectionOffset &&
@@ -51,7 +62,7 @@ class RemoveLate extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final location = _lateKeywordLocation;
+    var location = _lateKeywordLocation;
     if (location != null) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(

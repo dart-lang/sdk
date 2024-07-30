@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -22,8 +21,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 class StaticTypeAnalyzer {
   /// The resolver driving the resolution and type analysis.
   final ResolverVisitor _resolver;
-
-  final InvocationInferenceHelper _inferenceHelper;
 
   /// The object providing access to the types defined by the language.
   late TypeProviderImpl _typeProvider;
@@ -38,8 +35,7 @@ class StaticTypeAnalyzer {
   /// [_resolver] based on the
   ///
   /// @param resolver the resolver driving this participant
-  StaticTypeAnalyzer(this._resolver)
-      : _inferenceHelper = _resolver.inferenceHelper {
+  StaticTypeAnalyzer(this._resolver) {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
@@ -48,7 +44,7 @@ class StaticTypeAnalyzer {
   /// The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
   /// `String`.</blockquote>
   void visitAdjacentStrings(covariant AdjacentStringsImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.stringType);
+    node.recordStaticType(_typeProvider.stringType, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.32: <blockquote>... the cast expression <i>e as T</i> ...
@@ -58,7 +54,7 @@ class StaticTypeAnalyzer {
   ///
   /// The static type of a cast expression <i>e as T</i> is <i>T</i>.</blockquote>
   void visitAsExpression(covariant AsExpressionImpl node) {
-    _inferenceHelper.recordStaticType(node, _getType(node.type));
+    node.recordStaticType(_getType(node.type), resolver: _resolver);
   }
 
   /// The Dart Language Specification, 16.29 (Await Expressions):
@@ -68,20 +64,20 @@ class StaticTypeAnalyzer {
   void visitAwaitExpression(covariant AwaitExpressionImpl node) {
     var resultType = node.expression.typeOrThrow;
     resultType = _typeSystem.flatten(resultType);
-    _inferenceHelper.recordStaticType(node, resultType);
+    node.recordStaticType(resultType, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.4: <blockquote>The static type of a boolean literal is
   /// bool.</blockquote>
   void visitBooleanLiteral(covariant BooleanLiteralImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
+    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.15.2: <blockquote>A cascaded method invocation expression
   /// of the form <i>e..suffix</i> is equivalent to the expression <i>(t) {t.suffix; return
   /// t;}(e)</i>.</blockquote>
   void visitCascadeExpression(covariant CascadeExpressionImpl node) {
-    _inferenceHelper.recordStaticType(node, node.target.typeOrThrow);
+    node.recordStaticType(node.target.typeOrThrow, resolver: _resolver);
   }
 
   void visitConditionalExpression(covariant ConditionalExpressionImpl node,
@@ -116,13 +112,13 @@ class StaticTypeAnalyzer {
       staticType = t;
     }
 
-    _inferenceHelper.recordStaticType(node, staticType);
+    node.recordStaticType(staticType, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.3: <blockquote>The static type of a literal double is
   /// double.</blockquote>
   void visitDoubleLiteral(covariant DoubleLiteralImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.doubleType);
+    node.recordStaticType(_typeProvider.doubleType, resolver: _resolver);
   }
 
   void visitExtensionOverride(ExtensionOverride node) {
@@ -162,7 +158,7 @@ class StaticTypeAnalyzer {
 
   void visitFunctionReference(covariant FunctionReferenceImpl node) {
     // TODO(paulberry): implement
-    node.staticType = _dynamicType;
+    node.setPseudoExpressionStaticType(_dynamicType);
   }
 
   /// <blockquote>
@@ -187,9 +183,9 @@ class StaticTypeAnalyzer {
             strictCasts: strictCasts) ||
         !_typeSystem.isAssignableTo(_typeProvider.doubleType, contextType,
             strictCasts: strictCasts)) {
-      _inferenceHelper.recordStaticType(node, _typeProvider.intType);
+      node.recordStaticType(_typeProvider.intType, resolver: _resolver);
     } else {
-      _inferenceHelper.recordStaticType(node, _typeProvider.doubleType);
+      node.recordStaticType(_typeProvider.doubleType, resolver: _resolver);
     }
   }
 
@@ -198,7 +194,7 @@ class StaticTypeAnalyzer {
   ///
   /// The static type of an is-expression is `bool`.</blockquote>
   void visitIsExpression(covariant IsExpressionImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
+    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
   void visitMethodInvocation(MethodInvocation node) {
@@ -207,37 +203,37 @@ class StaticTypeAnalyzer {
 
   void visitNamedExpression(covariant NamedExpressionImpl node) {
     Expression expression = node.expression;
-    _inferenceHelper.recordStaticType(node, expression.typeOrThrow);
+    node.recordStaticType(expression.typeOrThrow, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
   /// </blockquote>
   void visitNullLiteral(covariant NullLiteralImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.nullType);
+    node.recordStaticType(_typeProvider.nullType, resolver: _resolver);
   }
 
   void visitParenthesizedExpression(
       covariant ParenthesizedExpressionImpl node) {
     Expression expression = node.expression;
-    _inferenceHelper.recordStaticType(node, expression.typeOrThrow);
+    node.recordStaticType(expression.typeOrThrow, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
   /// bottom.</blockquote>
   void visitRethrowExpression(covariant RethrowExpressionImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.bottomType);
+    node.recordStaticType(_typeProvider.bottomType, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
   /// `String`.</blockquote>
   void visitSimpleStringLiteral(covariant SimpleStringLiteralImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.stringType);
+    node.recordStaticType(_typeProvider.stringType, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
   /// `String`.</blockquote>
   void visitStringInterpolation(covariant StringInterpolationImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.stringType);
+    node.recordStaticType(_typeProvider.stringType, resolver: _resolver);
   }
 
   void visitSuperExpression(covariant SuperExpressionImpl node) {
@@ -248,14 +244,14 @@ class StaticTypeAnalyzer {
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.
-      _inferenceHelper.recordStaticType(node, InvalidTypeImpl.instance);
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
     } else {
-      _inferenceHelper.recordStaticType(node, thisType);
+      node.recordStaticType(thisType, resolver: _resolver);
     }
   }
 
   void visitSymbolLiteral(covariant SymbolLiteralImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.symbolType);
+    node.recordStaticType(_typeProvider.symbolType, resolver: _resolver);
   }
 
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
@@ -267,16 +263,16 @@ class StaticTypeAnalyzer {
     if (thisType == null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.
-      _inferenceHelper.recordStaticType(node, _dynamicType);
+      node.recordStaticType(_dynamicType, resolver: _resolver);
     } else {
-      _inferenceHelper.recordStaticType(node, thisType);
+      node.recordStaticType(thisType, resolver: _resolver);
     }
   }
 
   /// The Dart Language Specification, 12.8: <blockquote>The static type of a throw expression is
   /// bottom.</blockquote>
   void visitThrowExpression(covariant ThrowExpressionImpl node) {
-    _inferenceHelper.recordStaticType(node, _typeProvider.bottomType);
+    node.recordStaticType(_typeProvider.bottomType, resolver: _resolver);
   }
 
   /// Return the type represented by the given type [annotation].

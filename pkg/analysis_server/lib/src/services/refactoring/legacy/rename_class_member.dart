@@ -307,7 +307,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.name.lexeme == name) {
-      final element = node.declaredElement;
+      var element = node.declaredElement;
       if (element is FunctionElement) {
         elements.add(element);
       }
@@ -319,7 +319,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.name?.lexeme == name) {
-      final element = node.declaredElement;
+      var element = node.declaredElement;
       if (element != null) {
         elements.add(element);
       }
@@ -331,7 +331,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name.lexeme == name) {
-      final element = node.declaredElement;
+      var element = node.declaredElement;
       if (element is LocalVariableElement) {
         elements.add(element);
       }
@@ -458,7 +458,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
 
   /// Fills [elements] with [Element]s to rename.
   Future<void> _prepareElements() async {
-    final element = this.element;
+    var element = this.element;
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {

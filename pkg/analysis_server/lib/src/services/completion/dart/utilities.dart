@@ -12,6 +12,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -30,8 +31,11 @@ Comparator<CompletionSuggestionBuilder> completionComparator = (a, b) {
   return b.relevance.compareTo(a.relevance);
 };
 
-String buildClosureParameters(FunctionType type,
-    {bool includeKeywords = true}) {
+String buildClosureParameters(
+  FunctionType type, {
+  required bool includeTypes,
+  required bool includeKeywords,
+}) {
   var buffer = StringBuffer();
   buffer.write('(');
 
@@ -50,6 +54,10 @@ String buildClosureParameters(FunctionType type,
     } else if (parameter.isOptionalPositional && !hasOptionalPositional) {
       hasOptionalPositional = true;
       buffer.write('[');
+    }
+    if (includeTypes) {
+      buffer.write(parameter.type);
+      buffer.write(' ');
     }
     var name = parameter.name;
     if (name.isEmpty) {
@@ -189,6 +197,20 @@ String getTypeString(DartType type) {
   }
 }
 
+/// Instantiates the given [InterfaceElement]
+InterfaceType instantiateInstanceElement(
+    InterfaceElement element, NeverType neverType) {
+  var typeParameters = element.typeParameters;
+  var typeArguments = const <DartType>[];
+  if (typeParameters.isNotEmpty) {
+    typeArguments = List.filled(typeParameters.length, neverType);
+  }
+  return element.instantiate(
+    typeArguments: typeArguments,
+    nullabilitySuffix: NullabilitySuffix.none,
+  );
+}
+
 /// Return name of the type of the given [identifier], or, if it unresolved, the
 /// name of its declared [declaredType].
 String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
@@ -203,7 +225,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     }
     type = element.returnType;
   } else if (element is TypeAliasElement) {
-    final aliasedType = element.aliasedType;
+    var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       type = aliasedType.returnType;
     } else {

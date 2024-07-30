@@ -9,8 +9,7 @@ import 'package:kernel/target/targets.dart'
     show ConstantsBackend, DartLibrarySupport, Target;
 import 'package:kernel/type_environment.dart';
 
-import 'package:front_end/src/base/nnbd_mode.dart';
-import 'package:front_end/src/fasta/kernel/constant_evaluator.dart'
+import 'package:front_end/src/kernel/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter, EvaluationMode, SimpleErrorReporter;
 
 import '../target_os.dart';
@@ -44,8 +43,7 @@ class VMConstantEvaluator extends ConstantEvaluator {
       this._pragmaParser,
       {bool enableTripleShift = false,
       bool enableAsserts = true,
-      bool errorOnUnevaluatedConstant = false,
-      EvaluationMode evaluationMode = EvaluationMode.weak})
+      bool errorOnUnevaluatedConstant = false})
       : _platformClass = typeEnvironment.coreTypes.platformClass,
         super(dartLibrarySupport, backend, component, environmentDefines,
             typeEnvironment, errorReporter,
@@ -55,18 +53,18 @@ class VMConstantEvaluator extends ConstantEvaluator {
             enableConstFunctions: true,
             enableAsserts: enableAsserts,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-            evaluationMode: evaluationMode) {
+            evaluationMode: EvaluationMode.strong) {
     // Only add Platform fields if the Platform class is part of the component
     // being evaluated.
     if (_targetOS != null && _platformClass != null) {
-      _constantFields['operatingSystem'] = StringConstant(_targetOS!.name);
+      _constantFields['operatingSystem'] = StringConstant(_targetOS.name);
       _constantFields['pathSeparator'] =
-          StringConstant(_targetOS!.pathSeparator);
+          StringConstant(_targetOS.pathSeparator);
     }
   }
 
   static VMConstantEvaluator create(
-      Target target, Component component, TargetOS? targetOS, NnbdMode nnbdMode,
+      Target target, Component component, TargetOS? targetOS,
       {bool evaluateAnnotations = true,
       bool enableTripleShift = false,
       bool enableConstructorTearOff = false,
@@ -96,8 +94,7 @@ class VMConstantEvaluator extends ConstantEvaluator {
         ConstantPragmaAnnotationParser(coreTypes, target),
         enableTripleShift: enableTripleShift,
         enableAsserts: enableAsserts,
-        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-        evaluationMode: EvaluationMode.fromNnbdMode(nnbdMode));
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
   }
 
   bool get _hasTargetOS => _targetOS != null;

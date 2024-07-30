@@ -7,4 +7,4 @@
 library;
 
 export 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show Keyword, Token, TokenType, LanguageVersionToken;
+    show CommentToken, Keyword, Token, TokenType, LanguageVersionToken;

@@ -4,31 +4,37 @@
 
 class DOMWindow {}
 
-class Window extends DOMWindow
-native "*Window" //# 28: syntax error
-{}
+class Window extends DOMWindow native "*Window" {}
+//                             ^^^^^^^^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.NATIVE_CLAUSE_IN_NON_SDK_CODE
+// [cfe] expect cfe to report an error here
 
-class Console
-native "=(typeof console == 'undefined' ? {} : console)" //# 29: syntax error
-{}
+class Console native "=(typeof console == 'undefined' ? {} : console)" {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.NATIVE_CLAUSE_IN_NON_SDK_CODE
+// [cfe] expect cfe to report an error here
 
-class NativeClass
-native "FooBar" //# 30: syntax error
-{}
+class NativeClass native "FooBar" {}
+//                ^^^^^^^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.NATIVE_CLAUSE_IN_NON_SDK_CODE
+// [cfe] expect cfe to report an error here
 
 abstract class Fisk {}
 
-class BoolImplementation implements Fisk
-native "Boolean" //# 31: syntax error
-{}
+class BoolImplementation implements Fisk native "Boolean" {}
+//                                       ^^^^^^^^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.NATIVE_CLAUSE_IN_NON_SDK_CODE
+// [cfe] expect cfe to report an error here
 
-class _JSON
-native 'JSON' //# 32: syntax error
-{}
+class _JSON native 'JSON' {}
+//          ^^^^^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.NATIVE_CLAUSE_IN_NON_SDK_CODE
+// [cfe] expect cfe to report an error here
 
-class ListFactory<E> implements List<E>
-native "Array" //# 33: syntax error
-{
+class ListFactory<E> implements List<E> native "Array" {
+//                                      ^^^^^^^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.NATIVE_CLAUSE_IN_NON_SDK_CODE
+// [cfe] expect cfe to report an error here
   noSuchMethod(_) => null; // Allow unimplemented methods
 }
 
@@ -45,4 +51,5 @@ main() {
     // Swallowing exceptions. Any error should be a compile-time error
     // which kills the current isolate.
   }
+  throw 'This test should fail to compile, not throw a run-time error.';
 }

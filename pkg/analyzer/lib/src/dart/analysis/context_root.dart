@@ -163,7 +163,7 @@ class ContextRootImpl implements ContextRoot {
       }
     }
 
-    for (final pattern in excludedGlobs) {
+    for (var pattern in excludedGlobs) {
       if (!pattern.matches(includedPath) && pattern.matches(path)) {
         return true;
       }
@@ -182,8 +182,8 @@ class LocatedGlob {
 
   bool matches(String path) {
     if (parent.contains(path)) {
-      final pathContext = parent.provider.pathContext;
-      final relativePath = pathContext.relative(path, from: parent.path);
+      var pathContext = parent.provider.pathContext;
+      var relativePath = pathContext.relative(path, from: parent.path);
       return glob.matches(relativePath);
     }
     return false;

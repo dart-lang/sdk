@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Fisk<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Fisk::T% x;
+  const constructor fisk(self::Fisk::T% x) → self::Fisk<self::Fisk::T%>
+    : self::Fisk::x = x, super core::Object::•()
+    ;
+}
+class Foo extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Foo> values = const <self::Foo>[self::Foo::bar, self::Foo::baz, self::Foo::cafebabe];
+  @self::hest
+  enum-element static const field self::Foo bar = const self::Foo::•(0, "bar");
+  @self::Fisk::fisk<core::int>(self::hest)
+  enum-element static const field self::Foo baz = const self::Foo::•(1, "baz");
+  enum-element static const field self::Foo cafebabe = const self::Foo::•(2, "cafebabe");
+  const synthetic constructor •(core::int #index, core::String #name) → self::Foo
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Foo.${this.{core::_Enum::_name}{core::String}}";
+}
+static const field core::int hest = 42;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///annotation_on_enum_values.dart:15:6 -> ListConstant(const <Foo>[const Foo{_Enum.index: 0, _Enum._name: "bar"}, const Foo{_Enum.index: 1, _Enum._name: "baz"}, const Foo{_Enum.index: 2, _Enum._name: "cafebabe"}])
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_on_enum_values.dart:16:4 -> IntConstant(42)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:17:3 -> InstanceConstant(const Foo{_Enum.index: 0, _Enum._name: "bar"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:18:4 -> InstanceConstant(const Fisk<int>{Fisk.x: 42})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:19:3 -> InstanceConstant(const Foo{_Enum.index: 1, _Enum._name: "baz"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:20:3 -> InstanceConstant(const Foo{_Enum.index: 2, _Enum._name: "cafebabe"})
+Extra constant evaluation: evaluated: 12, effectively constant: 6

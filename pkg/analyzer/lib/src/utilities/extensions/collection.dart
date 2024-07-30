@@ -10,41 +10,20 @@ extension IterableExtension<E> on Iterable<E> {
   /// Note, elements must be unique.
   Map<E, int> get asElementToIndexMap {
     return {
-      for (final (index, element) in indexed) element: index,
+      for (var (index, element) in indexed) element: index,
     };
   }
 
   /// Returns the fixed-length [List] with elements of `this`.
   List<E> toFixedList() {
-    var result = toList(growable: false);
-    if (result.isEmpty) {
+    if (isEmpty) {
       return const <Never>[];
     }
-    return result;
+    return toList(growable: false);
   }
 
   Iterable<E> whereNotType<U>() {
     return whereNot((element) => element is U);
-  }
-}
-
-extension IterableIterableExtension<T> on Iterable<Iterable<T>> {
-  /// Elements of each iterable in this iterable.
-  ///
-  /// At the moment of writing, this method is `2.75` times faster than
-  /// `expand((e) => e)`, and `3.5` faster than `flattened` from
-  /// `package:collection`.
-  List<T> get flattenedToList2 {
-    return [
-      for (final elements in this) ...elements,
-    ];
-  }
-
-  /// Elements of each iterable in this iterable.
-  Set<T> get flattenedToSet2 {
-    return {
-      for (final elements in this) ...elements,
-    };
   }
 }
 
@@ -54,7 +33,7 @@ extension IterableMapEntryExtension<K, V> on Iterable<MapEntry<K, V>> {
 
 extension ListExtension<E> on List<E> {
   Iterable<E> get withoutLast {
-    final length = this.length;
+    var length = this.length;
     return length > 0 ? take(length - 1) : Iterable.empty();
   }
 
@@ -91,7 +70,7 @@ extension ListExtension<E> on List<E> {
   }
 
   E? nextOrNull(E element) {
-    final index = indexOf(element);
+    var index = indexOf(element);
     if (index >= 0 && index < length - 1) {
       return this[index + 1];
     } else {

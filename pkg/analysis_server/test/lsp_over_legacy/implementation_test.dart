@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ImplementationTest extends LspOverLegacyTest {
   Future<void> test_implementations() async {
-    final content = '''
+    var content = '''
 abstract class Base {
   void f^();
 }
@@ -28,13 +28,13 @@ class Impl extends Base {
   void [!f!]() {}
 }
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    final results = await getImplementations(
+    var results = await getImplementations(
       testFileUri,
       code.position.position,
     );
-    final result = results.single;
+    var result = results.single;
 
     expect(result.uri, testFileUri);
     expect(result.range, code.range.range);

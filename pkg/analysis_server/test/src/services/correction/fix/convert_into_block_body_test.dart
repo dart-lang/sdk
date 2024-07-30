@@ -75,6 +75,37 @@ enum E {
 ''');
   }
 
+  test_extenstionTypeWithAbstractMember_getter() async {
+    await resolveTestCode('''
+extension type A(int it) {
+  int get g;
+}
+''');
+    await assertHasFix('''
+extension type A(int it) {
+  int get g {
+    // TODO: implement g
+    throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  test_extenstionTypeWithAbstractMember_method() async {
+    await resolveTestCode('''
+extension type A(int it) {
+  void f();
+}
+''');
+    await assertHasFix('''
+extension type A(int it) {
+  void f() {
+    // TODO: implement f
+  }
+}
+''');
+  }
+
   Future<void> test_function() async {
     await resolveTestCode('''
 void f();
@@ -128,6 +159,38 @@ class A {
 class A {
   void m() {
     // TODO: implement m
+  }
+}
+''');
+  }
+
+  Future<void> test_static_getter() async {
+    await resolveTestCode('''
+class C {
+  static int get g;
+}
+''');
+    await assertHasFix('''
+class C {
+  static int get g {
+    // TODO: implement g
+    throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_static_setter() async {
+    await resolveTestCode('''
+class C {
+  static set(int i);
+}
+''');
+    await assertHasFix('''
+class C {
+  static set(int i) {
+    // TODO: implement set
+    throw UnimplementedError();
   }
 }
 ''');

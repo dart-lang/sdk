@@ -1,0 +1,84 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/general/export_builtin_from_dill/main_lib1.dart: Error: 'Never' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.
+//
+// pkg/front_end/testcases/general/export_builtin_from_dill/main_lib1.dart: Error: 'dynamic' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.
+//
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib1.dart" as exported;
+import "org-dartlang-testcase:///main_lib2.dart" as lib2;
+import "org-dartlang-testcase:///main_lib3.dart" as lib3;
+import "org-dartlang-testcase:///main_lib4.dart" as lib4;
+
+static method test() → dynamic
+  ;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/export_builtin_from_dill/main_lib1.dart:6:1: Error: 'Never' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.
+// export 'main_lib3.dart';
+// ^
+//
+// pkg/front_end/testcases/general/export_builtin_from_dill/main_lib1.dart:6:1: Error: 'dynamic' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.
+// export 'main_lib3.dart';
+// ^
+//
+import self as self2;
+
+export "org-dartlang-testcase:///main_lib2.dart";
+export "org-dartlang-testcase:///main_lib3.dart";
+
+static const field dynamic _exports# = "{\"Never\":\"'Never' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.\",\"dynamic\":\"'dynamic' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.\"}";
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart:7:7: Error: Can't use 'dynamic' as a name here.
+// class dynamic {}
+//       ^^^^^^^
+//
+import self as self3;
+import "dart:core" as core;
+
+class Never extends core::Object {
+  synthetic constructor •() → self3::Never
+    ;
+}
+class dynamic extends core::Object {
+  synthetic constructor •() → self3::dynamic
+    ;
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart:7:7: Error: Can't use 'dynamic' as a name here.
+// class dynamic {}
+//       ^^^^^^^
+//
+import self as self4;
+import "dart:core" as core;
+
+class Never extends core::Object {
+  synthetic constructor •() → self4::Never
+    ;
+}
+class dynamic extends core::Object {
+  synthetic constructor •() → self4::dynamic
+    ;
+}
+
+library;
+import self as self5;
+import "main_lib2.dart" as self3;
+additionalExports = (self3::Never,
+  self3::dynamic)
+
+export "org-dartlang-testcase:///main_lib2.dart";

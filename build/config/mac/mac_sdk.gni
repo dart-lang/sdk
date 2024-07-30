@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import("//build/toolchain/goma.gni")
 import("//build/toolchain/rbe.gni")
 
 declare_args() {
@@ -18,7 +17,7 @@ declare_args() {
   # mac_sdk_min is used.
   mac_sdk_path = ""
 
-  mac_enable_relative_sdk_path = use_rbe || use_goma
+  mac_enable_relative_sdk_path = use_rbe
 }
 
 find_sdk_args = [
@@ -26,7 +25,7 @@ find_sdk_args = [
   mac_sdk_min,
 ]
 
-if (use_rbe || use_goma) {
+if (use_rbe) {
   find_sdk_args += [
     "--create_symlink_at",
 

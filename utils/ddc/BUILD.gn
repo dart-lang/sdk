@@ -26,8 +26,8 @@ application_snapshot("dartdevc") {
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
 
-  deps = [ ":ddc_platform" ]
-  inputs = [ sdk_outline_dill ]
+  training_deps = [ ":ddc_platform" ]
+  training_inputs = [ sdk_outline_dill ]
 }
 
 template("dart2js_compile") {

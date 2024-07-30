@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 void test2() {
-  String string = null;
+  String? string = null;
   if (string?.isNotEmpty) ;
 }
 
@@ -28,8 +26,8 @@ void checkFirstLineHasPosition(StackTrace stackTrace) {
       int firstColon = firstLine.lastIndexOf(':', secondColon - 1);
       String lineText = firstLine.substring(firstColon + 1, secondColon);
       String posText = firstLine.substring(secondColon + 1, lastParen);
-      int line = int.tryParse(lineText);
-      int pos = int.tryParse(posText);
+      int? line = int.tryParse(lineText);
+      int? pos = int.tryParse(posText);
       if (line != null && pos != null) {
         print('Found position $line:$pos');
         return;

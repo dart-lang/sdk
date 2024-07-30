@@ -17,6 +17,32 @@ class PreferTypingUninitializedVariablesTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_typing_uninitialized_variables';
 
+  test_field_augmented() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  var x;
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  augment var x;
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(42, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   test_field_final_noInitializer() async {
     await assertDiagnostics(r'''
 class C {
@@ -103,6 +129,28 @@ void f() {
 ''', [
       lint(52, 1),
     ]);
+  }
+
+  test_topLevelVariable_augmented() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+var x;
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment var x;
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(30, 1),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
   }
 
   test_topLevelVariable_var_initializer() async {

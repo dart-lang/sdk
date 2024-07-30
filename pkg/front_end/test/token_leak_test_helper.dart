@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
 import 'dart:core' as core;
+import 'dart:core';
+
 import 'token_leak_test_helper.dart' as self;
 
 core.String field = '';

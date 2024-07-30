@@ -107,7 +107,7 @@ Future<ProcessResult> markExecutable(String outputFile) {
 /// to static functions annotated with `@ResourceIdentifier` will be collected.
 Future<ProcessResult> generateKernelHelper({
   required String dartaotruntime,
-  required String sourceFile,
+  String? sourceFile,
   required String kernelFile,
   String? packages,
   List<String> defines = const [],
@@ -116,6 +116,8 @@ Future<ProcessResult> generateKernelHelper({
   List<String> extraGenKernelOptions = const [],
   String? nativeAssets,
   String? resourcesFile,
+  String? depFile,
+  bool enableAsserts = false,
   bool fromDill = false,
   bool aot = false,
   bool embedSources = false,
@@ -132,13 +134,15 @@ Future<ProcessResult> generateKernelHelper({
     if (aot) '--aot',
     if (!embedSources) '--no-embed-sources',
     if (!linkPlatform) '--no-link-platform',
+    if (enableAsserts) '--enable-asserts',
     ...defines.map((d) => '-D$d'),
     if (packages != null) '--packages=$packages',
     if (nativeAssets != null) '--native-assets=$nativeAssets',
     if (resourcesFile != null) '--resources-file=$resourcesFile',
+    if (depFile != null) '--depfile=$depFile',
     '--output=$kernelFile',
     ...extraGenKernelOptions,
-    sourceFile,
+    if (sourceFile != null) sourceFile,
   ];
   return Process.run(dartaotruntime, args);
 }
@@ -147,6 +151,7 @@ Future<ProcessResult> generateAotSnapshotHelper(
     String kernelFile,
     String snapshotFile,
     String? debugFile,
+    bool enableAsserts,
     List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-elf',
@@ -154,6 +159,7 @@ Future<ProcessResult> generateAotSnapshotHelper(
     if (debugFile != null) '--save-debugging-info=$debugFile',
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',
+    if (enableAsserts) '--enable-asserts',
     ...extraGenSnapshotOptions,
     kernelFile
   ]);

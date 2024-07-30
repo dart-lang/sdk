@@ -9,9 +9,11 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include <cinttypes>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -732,9 +734,9 @@ DART_EXPORT int64_t SumStruct9Uint8(Struct9Uint8 s9) {
   return s9.a0 + s9.a1 + s9.a2 + s9.a3 + s9.a4 + s9.a5 + s9.a6 + s9.a7 + s9.a8;
 }
 
-DART_EXPORT int64_t SumReturnStruct9Uint8(
-    Struct9Uint8 (*callback)(Struct9Uint8*),
-    Struct9Uint8* in) {
+DART_EXPORT int64_t
+SumReturnStruct9Uint8(Struct9Uint8 (*callback)(Struct9Uint8*),
+                      Struct9Uint8* in) {
   std::cout << "SumReturnStruct9Uint8 in (" << in->a0 << ", " << in->a1 << ", "
             << in->a2 << ", " << in->a3 << ", " << in->a4 << ", " << in->a5
             << ", " << in->a6 << ", " << in->a7 << ", " << in->a8 << ")\n";
@@ -848,9 +850,10 @@ DART_EXPORT Struct20BytesHomogeneousInt32Copy PassStructRecursive(
     Struct20BytesHomogeneousInt32Copy a0,
     Struct20BytesHomogeneousInt32Copy (*f)(int64_t,
                                            Struct20BytesHomogeneousInt32Copy)) {
-  std::cout << "PassStruct20BytesHomogeneousInt32x10" << "(" << recursionCounter
-            << ", (" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
-            << ", " << a0.a4 << "), " << reinterpret_cast<void*>(f) << ")\n";
+  std::cout << "PassStruct20BytesHomogeneousInt32x10"
+            << "(" << recursionCounter << ", (" << a0.a0 << ", " << a0.a1
+            << ", " << a0.a2 << ", " << a0.a3 << ", " << a0.a4 << "), "
+            << reinterpret_cast<void*>(f) << ")\n";
   a0.a0++;
   const int32_t a0_a0_saved = a0.a0;
 
@@ -880,8 +883,8 @@ struct Struct8BytesNestedIntCopy {
 };
 
 DART_EXPORT void CallbackWithStruct(void (*f)(Struct8BytesNestedIntCopy)) {
-  std::cout << "CallbackWithStruct" << "(" << reinterpret_cast<void*>(f)
-            << ")\n";
+  std::cout << "CallbackWithStruct"
+            << "(" << reinterpret_cast<void*>(f) << ")\n";
 
   Struct8BytesNestedIntCopy arg;
   arg.a0.a0 = 10;
@@ -898,7 +901,7 @@ DART_EXPORT void CallbackWithStruct(void (*f)(Struct8BytesNestedIntCopy)) {
 // Sanity test.
 DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
   const intptr_t result = add(10, 20);
-  std::cout << "result " << result << "\n";
+  printf("result %" PRIdPTR "\n", result);
   CHECK_EQ(result, 30);
   return 0;
 }
@@ -906,8 +909,8 @@ DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
 //// Following tests are copied from above, with the role of Dart and C++ code
 //// reversed.
 
-DART_EXPORT intptr_t TestIntComputation(
-    int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
+DART_EXPORT intptr_t
+TestIntComputation(int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
   const int64_t result = fn(125, 250, 500, 1000);
   std::cout << "result " << result << "\n";
   CHECK_EQ(result, 625);
@@ -916,8 +919,8 @@ DART_EXPORT intptr_t TestIntComputation(
   return 0;
 }
 
-DART_EXPORT intptr_t TestUintComputation(
-    uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
+DART_EXPORT intptr_t
+TestUintComputation(uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
   CHECK_EQ(0x8000000000000000LL, fn(0, 0, 0, 0x8000000000000000LL));
   CHECK_EQ(-1, (int64_t)fn(0, 0, 0, -1));
@@ -1270,7 +1273,8 @@ DART_EXPORT int64_t VariadicStructVarArgs(VarArgs a0, ...) {
   VarArgs a1 = va_arg(var_args, VarArgs);
   va_end(var_args);
 
-  std::cout << "VariadicStructVarArgs" << "(" << a0.a << ", " << a1.a << ")"
+  std::cout << "VariadicStructVarArgs"
+            << "(" << a0.a << ", " << a1.a << ")"
             << "\n";
 
   int64_t result = 0;
@@ -1329,6 +1333,11 @@ DART_EXPORT int32_t CallTwoPointerIntFunction(int32_t (*fn)(void*, void*),
                                               void* a,
                                               void* b) {
   return fn(a, b);
+}
+
+DART_EXPORT char TakeString(char* my_string) {
+  std::cout << "TakeString(" << my_string << ")\n";
+  return my_string[4];
 }
 
 }  // namespace dart

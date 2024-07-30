@@ -4,6 +4,8 @@ import "regress_54324_b.lib.dart" as lib;
 
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/regress_54324_b.lib.dart";
 
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/regress_54324_b.lib.dart::BazClass.run] [@vm.inferred-type.metadata=!? (skip check)] #C1.{lib::BazClass::run}(){() → void};
 }
@@ -16,6 +18,7 @@ import "dart:core" as core;
 
 class BazClass extends core::Object /*hasConstConstructor*/  {
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   @#C3
   method run() → void {

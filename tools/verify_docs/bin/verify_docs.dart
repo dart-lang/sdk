@@ -169,7 +169,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
 
   void _handleDocumentableNode(AnnotatedNode node) {
     final docComment = node.documentationComment;
-    if (docComment == null || !docComment.isDocumentation) {
+    if (docComment == null) {
       return;
     }
 

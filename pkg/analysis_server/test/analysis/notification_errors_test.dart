@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
@@ -29,10 +28,12 @@ class NotificationErrorsTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       filesErrors[getFile(decoded.file)] = decoded.errors;
     } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
-      var decoded = AnalysisFlushResultsParams.fromNotification(notification);
+      var decoded = AnalysisFlushResultsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       for (var file in decoded.files) {
         filesErrors[getFile(file)] = null;
       }
@@ -153,13 +154,13 @@ analyzer:
     // Although errors are not generated for dotfolders, their contents should
     // still be analyzed so that code that references them (for example
     // flutter_gen) should still be updated.
-    final configPath =
+    var configPath =
         join(testPackageRootPath, '.dart_tool/package_config.json');
-    final generatedProject = join(testPackageRootPath, '.dart_tool/foo');
-    final generatedFile = join(generatedProject, 'lib', 'foo.dart');
+    var generatedProject = join(testPackageRootPath, '.dart_tool/foo');
+    var generatedFile = join(generatedProject, 'lib', 'foo.dart');
 
     // Add the generated project into package_config.json.
-    final config = PackageConfigFileBuilder();
+    var config = PackageConfigFileBuilder();
     config.add(name: 'foo', rootPath: generatedProject);
     newFile(configPath, config.toContent(toUriStr: toUriStr));
 
@@ -243,7 +244,8 @@ transforms:
 
     // Send a getHover request for the file that will cause it to be read from disk.
     await handleSuccessfulRequest(
-      AnalysisGetHoverParams(brokenFile.path, 0).toRequest('0'),
+      AnalysisGetHoverParams(brokenFile.path, 0)
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -269,7 +271,8 @@ analyzer:
 
     // Triggering the file to be processed should still generate no errors.
     await handleSuccessfulRequest(
-      AnalysisGetHoverParams(excludedFile.path, 0).toRequest('0'),
+      AnalysisGetHoverParams(excludedFile.path, 0)
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -277,7 +280,8 @@ analyzer:
 
     // Opening the file should still generate no errors.
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams([excludedFile.path]).toRequest('0'),
+      AnalysisSetPriorityFilesParams([excludedFile.path])
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -320,7 +324,7 @@ linter:
 
     // Registry should only contain single lint rule.
     expect(lints, hasLength(1));
-    var lint = lints.first as LintRule;
+    var lint = lints.first;
     expect(lint.name, camelCaseTypesLintName);
 
     // Verify lint error result.
@@ -362,7 +366,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -383,7 +387,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -395,7 +399,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: RemoveContentOverlay(),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
 
     await waitForTasksFinished();
@@ -420,7 +424,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -437,7 +441,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: RemoveContentOverlay(),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);

@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:front_end/src/base/processed_options.dart';
-
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart';
 

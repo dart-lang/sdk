@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -22,19 +23,18 @@ class FormattingHandler
       DocumentFormattingParams.jsonHandler;
 
   Future<ErrorOr<List<TextEdit>?>> formatFile(String path) async {
-    final file = server.resourceProvider.getFile(path);
+    var file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(
           ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
     }
 
-    final result = await server.getParsedUnit(path);
+    var result = await server.getParsedUnit(path);
     if (result == null || result.errors.isNotEmpty) {
       return success(null);
     }
 
-    final lineLength =
-        server.lspClientConfiguration.forResource(path).lineLength;
+    var lineLength = server.lspClientConfiguration.forResource(path).lineLength;
     return generateEditsForFormatting(result, lineLength);
   }
 
@@ -45,14 +45,14 @@ class FormattingHandler
       return success(null);
     }
 
-    final path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) {
+    var path = pathOfDoc(params.textDocument);
+    return path.mapResult((path) async {
       if (!server.lspClientConfiguration.forResource(path).enableSdkFormatter) {
         // Because we now support formatting for just some WorkspaceFolders
         // we should silently do nothing for those that are disabled.
         return success(null);
       }
-      return formatFile(path);
+      return await formatFile(path);
     });
   }
 }

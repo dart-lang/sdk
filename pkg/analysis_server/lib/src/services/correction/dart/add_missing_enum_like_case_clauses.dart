@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -11,6 +11,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
+  AddMissingEnumLikeCaseClauses({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
@@ -20,7 +27,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SwitchStatement) {
       var expressionType = node.expression.staticType;
       if (expressionType is! InterfaceType) {
@@ -35,17 +42,15 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
 
       var statementIndent = utils.getLinePrefix(node.offset);
       var singleIndent = utils.oneIndent;
-      var location = utils.newCaseClauseAtEndLocation(
-        switchKeyword: node.switchKeyword,
-        leftBracket: node.leftBracket,
-        rightBracket: node.rightBracket,
-      );
 
       await builder.addDartFileEdit(file, (builder) {
         // TODO(brianwilkerson): Consider inserting the names in order into the
         //  switch statement.
-        builder.addInsertion(location.offset, (builder) {
-          builder.write(location.prefix);
+        builder.insertCaseClauseAtEnd(
+            switchKeyword: node.switchKeyword,
+            rightParenthesis: node.rightParenthesis,
+            leftBracket: node.leftBracket,
+            rightBracket: node.rightBracket, (builder) {
           for (var name in missingNames) {
             builder.write(statementIndent);
             builder.write(singleIndent);
@@ -63,7 +68,6 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
             builder.write(singleIndent);
             builder.writeln('break;');
           }
-          builder.write(location.suffix);
         });
       });
     }

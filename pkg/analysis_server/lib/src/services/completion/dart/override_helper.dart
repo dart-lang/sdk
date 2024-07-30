@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
@@ -41,17 +43,39 @@ class OverrideHelper {
       var element = interfaceMap[name];
       // Gracefully degrade if the overridden element has not been resolved.
       if (element != null) {
+        if (_hasNonVirtualAnnotation(element)) {
+          continue;
+        }
+
         var invokeSuper = interface.isSuperImplemented(name);
-        collector.addSuggestion(
-          OverrideSuggestion(
-            element: element,
-            shouldInvokeSuper: invokeSuper,
-            skipAt: skipAt,
-            replacementRange: replacementRange,
-          ),
-        );
+        var matcherScore = math.max(
+            math.max(state.matcher.score('override'),
+                state.matcher.score('operator')),
+            state.matcher.score(element.displayName));
+        if (matcherScore != -1) {
+          collector.addSuggestion(
+            OverrideSuggestion(
+              element: element,
+              shouldInvokeSuper: invokeSuper,
+              skipAt: skipAt,
+              replacementRange: replacementRange,
+              matcherScore: matcherScore,
+            ),
+          );
+        }
       }
     }
+  }
+
+  /// Checks if the [element] has the `@nonVirtual` annotation.
+  bool _hasNonVirtualAnnotation(ExecutableElement element) {
+    if (element is PropertyAccessorElement && element.isSynthetic) {
+      var variable = element.variable2;
+      if (variable != null && variable.hasNonVirtual) {
+        return true;
+      }
+    }
+    return element.hasNonVirtual;
   }
 
   /// Return the list of names that belong to the [interface] of a class, but

@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "vm/compiler/backend/range_analysis.h"  // For Range.
+#include "vm/compiler/backend/range_analysis.h"       // For Range.
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
@@ -472,6 +472,17 @@ Fragment BaseFlowGraphBuilder::LoadNativeField(
   return Fragment(load);
 }
 
+Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
+                                               bool calls_initializer) {
+  const InnerPointerAccess loads_inner_pointer =
+      native_field.representation() == kUntagged
+          ? (native_field.may_contain_inner_pointer()
+                 ? InnerPointerAccess::kMayBeInnerPointer
+                 : InnerPointerAccess::kCannotBeInnerPointer)
+          : InnerPointerAccess::kNotUntagged;
+  return LoadNativeField(native_field, loads_inner_pointer, calls_initializer);
+}
+
 Fragment BaseFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   ASSERT(!variable->is_captured());
   LoadLocalInstr* load = new (Z) LoadLocalInstr(*variable, InstructionSource());
@@ -511,11 +522,9 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
-  if (value->BindsToConstant()) {
-    emit_store_barrier = kNoStoreBarrier;
-  }
+  Value* instance = Pop();
   StoreFieldInstr* store = new (Z)
-      StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
+      StoreFieldInstr(slot, instance, value, emit_store_barrier,
                       stores_inner_pointer, InstructionSource(position), kind);
   return Fragment(store);
 }
@@ -1075,6 +1084,14 @@ Fragment BaseFlowGraphBuilder::CheckNullOptimized(
   return Fragment(check_null);
 }
 
+Fragment BaseFlowGraphBuilder::CheckNotDeeplyImmutable(
+    CheckWritableInstr::Kind kind) {
+  Value* value = Pop();
+  auto* check_writable = new (Z)
+      CheckWritableInstr(value, GetNextDeoptId(), InstructionSource(), kind);
+  return Fragment(check_writable);
+}
+
 void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
     GraphEntryInstr* graph_entry,
     FunctionEntryInstr* unchecked_entry) {
@@ -1254,6 +1271,7 @@ Fragment BaseFlowGraphBuilder::RecordCoverageImpl(TokenPosition position,
                                                   bool is_branch_coverage) {
   Fragment instructions;
   if (!SupportsCoverage()) return instructions;
+  if (!IG->coverage()) return instructions;
   if (!position.IsReal()) return instructions;
   if (is_branch_coverage && !IG->branch_coverage()) return instructions;
 
@@ -1268,22 +1286,38 @@ intptr_t BaseFlowGraphBuilder::GetCoverageIndexFor(intptr_t encoded_position) {
   if (coverage_array_.IsNull()) {
     // We have not yet created coverage_array, this is the first time we are
     // building the graph for this function. Collect coverage positions.
-    for (intptr_t i = 0; i < coverage_array_positions_.length(); i++) {
-      if (coverage_array_positions_.At(i) == encoded_position) {
-        return 2 * i + 1;
-      }
+    intptr_t value =
+        coverage_state_index_for_position_.Lookup(encoded_position);
+    if (value > 0) {
+      // Found.
+      return value;
     }
-    const auto index = 2 * coverage_array_positions_.length() + 1;
-    coverage_array_positions_.Add(encoded_position);
+    // Not found: Insert.
+    const auto index = 2 * coverage_state_index_for_position_.Length() + 1;
+    coverage_state_index_for_position_.Insert(encoded_position, index);
     return index;
   }
 
-  for (intptr_t i = 0; i < coverage_array_.Length(); i += 2) {
-    if (Smi::Value(static_cast<SmiPtr>(coverage_array_.At(i))) ==
-        encoded_position) {
-      return i + 1;
+  if (coverage_state_index_for_position_.IsEmpty()) {
+    // coverage_array was already created, but we don't want to search
+    // it linearly: Fill in the coverage_state_index_for_position_ to do
+    // fast lookups.
+    // TODO(jensj): If Length is small enough it's probably better to just do
+    // the linear search.
+    for (intptr_t i = 0; i < coverage_array_.Length(); i += 2) {
+      intptr_t key = Smi::Value(static_cast<SmiPtr>(coverage_array_.At(i)));
+      intptr_t value = i + 1;
+      coverage_state_index_for_position_.Insert(key, value);
     }
   }
+
+  intptr_t value = coverage_state_index_for_position_.Lookup(encoded_position);
+
+  if (value > 0) {
+    // Found.
+    return value;
+  }
+
   // Reaching here indicates that the graph is constructed in an unstable way.
   UNREACHABLE();
   return 1;
@@ -1294,20 +1328,24 @@ void BaseFlowGraphBuilder::FinalizeCoverageArray() {
     return;
   }
 
-  if (coverage_array_positions_.is_empty()) {
+  if (coverage_state_index_for_position_.IsEmpty()) {
     coverage_array_ = Array::empty_array().ptr();
     return;
   }
 
   coverage_array_ =
-      Array::New(coverage_array_positions_.length() * 2, Heap::kOld);
+      Array::New(coverage_state_index_for_position_.Length() * 2, Heap::kOld);
 
   Smi& value = Smi::Handle();
-  for (intptr_t i = 0; i < coverage_array_positions_.length(); i++) {
-    value = Smi::New(coverage_array_positions_[i]);
-    coverage_array_.SetAt(2 * i, value);
+  auto it = coverage_state_index_for_position_.GetIterator();
+  for (auto* p = it.Next(); p != nullptr; p = it.Next()) {
+    value = Smi::New(p->key);
+    // p->value is the index at which coverage state is stored, the
+    // full coverage entry begins at the previous index.
+    const intptr_t coverage_entry_index = p->value - 1;
+    coverage_array_.SetAt(coverage_entry_index, value);
     value = Smi::New(0);  // no coverage recorded.
-    coverage_array_.SetAt(2 * i + 1, value);
+    coverage_array_.SetAt(p->value, value);
   }
 }
 

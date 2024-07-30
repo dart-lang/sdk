@@ -227,6 +227,14 @@ base class _SecurityContext extends NativeFieldWrapperClass1
 
   bool get allowLegacyUnsafeRenegotiation => _allowLegacyUnsafeRenegotiation;
 
+  set minimumTlsProtocolVersion(TlsProtocolVersion version) {
+    _setMinimumProtocolVersion(version._version);
+  }
+
+  TlsProtocolVersion get minimumTlsProtocolVersion =>
+      TlsProtocolVersion._fromProtocolVersionConstant(
+          _getMinimumProtocolVersion());
+
   @pragma("vm:external-name", "SecurityContext_Allocate")
   external void _createNativeContext();
 
@@ -279,6 +287,10 @@ base class _SecurityContext extends NativeFieldWrapperClass1
   external void _trustBuiltinRoots();
   @pragma("vm:external-name", "SecurityContext_SetAllowTlsRenegotiation")
   external void _setAllowTlsRenegotiation(bool allow);
+  @pragma("vm:external-name", "SecurityContext_SetMinimumProtocolVersion")
+  external void _setMinimumProtocolVersion(int version);
+  @pragma("vm:external-name", "SecurityContext_GetMinimumProtocolVersion")
+  external int _getMinimumProtocolVersion();
 }
 
 /**

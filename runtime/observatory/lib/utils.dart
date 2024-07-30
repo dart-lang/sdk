@@ -289,8 +289,8 @@ class Task {
 
   Task(this.callback);
 
-  /// Queue [this] to run on the next Dart event queue pump. Does nothing
-  /// if [this] is already queued.
+  /// Queue this [Task] to run on the next Dart event queue pump. Does nothing
+  /// if this [Task] is already queued.
   queue() {
     if (_timer != null) {
       // Already scheduled.

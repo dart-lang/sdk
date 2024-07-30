@@ -143,6 +143,39 @@ void f(A a) {
     ]);
   }
 
+  test_constructor_result_assigned() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A();
+}
+
+void f() {
+  var bar = A();
+  print(bar);
+}
+''');
+  }
+
+  test_constructor_result_notUsed() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A();
+}
+
+void f() {
+  A();
+}
+''', [
+      error(WarningCode.UNUSED_RESULT, 80, 3),
+    ]);
+  }
+
   test_field_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -709,6 +742,39 @@ class A {
 void main() {
   var bar = A().foo(); // OK
   print(bar);
+}
+''');
+  }
+
+  test_method_result_assigned_wildcard_unused() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  var _ = A().foo();
+}
+''');
+  }
+
+  test_method_result_assigned_wildcard_unused_preWildcards() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  var _ = A().foo();
 }
 ''');
   }

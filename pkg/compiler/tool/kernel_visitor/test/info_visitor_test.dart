@@ -5,7 +5,7 @@
 import "dart:io";
 
 import "package:expect/expect.dart";
-import "package:expect/minitest.dart";
+import "package:expect/minitest.dart"; // ignore: deprecated_member_use
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import "package:kernel/kernel.dart";
 import "package:path/path.dart" as path;
@@ -87,7 +87,6 @@ void main() async {
   var result = await Process.run(Platform.resolvedExecutable, [
     compilePath,
     "--target=dartdevc",
-    "--nnbd-strong",
     "--platform=${ddcOutlinePath}",
     "-o=${dillPath}",
     testClassesPath

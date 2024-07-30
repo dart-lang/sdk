@@ -22,8 +22,8 @@ class FormatTest extends LspOverLegacyTest with LspEditHelpersMixin {
     newFile(testFilePath, content);
     await waitForTasksFinished();
 
-    final edits = await formatDocument(testFileUri);
-    final formattedContents = applyTextEdits(content, edits!);
+    var edits = await formatDocument(testFileUri);
+    var formattedContents = applyTextEdits(content, edits!);
     expect(formattedContents.trimRight(), equals(expectedContent));
   }
 
@@ -33,8 +33,8 @@ class FormatTest extends LspOverLegacyTest with LspEditHelpersMixin {
     newFile(testFilePath, content);
     await waitForTasksFinished();
 
-    final edits = await formatOnType(testFileUri, startOfDocPos, '}');
-    final formattedContents = applyTextEdits(content, edits!);
+    var edits = await formatOnType(testFileUri, startOfDocPos, '}');
+    var formattedContents = applyTextEdits(content, edits!);
     expect(formattedContents.trimRight(), equals(expectedContent));
   }
 
@@ -44,8 +44,8 @@ class FormatTest extends LspOverLegacyTest with LspEditHelpersMixin {
     newFile(testFilePath, content);
     await waitForTasksFinished();
 
-    final edits = await formatRange(testFileUri, entireRange(content));
-    final formattedContents = applyTextEdits(content, edits!);
+    var edits = await formatRange(testFileUri, entireRange(content));
+    var formattedContents = applyTextEdits(content, edits!);
     expect(formattedContents.trimRight(), equals(expectedContent));
   }
 }

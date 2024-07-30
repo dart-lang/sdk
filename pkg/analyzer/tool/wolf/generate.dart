@@ -339,7 +339,7 @@ class _TrivialEncoding extends _Encoding {
 }
 
 extension<T> on List<T> {
-  forEachSeparated(void Function() separator, void Function(T) callback) {
+  void forEachSeparated(void Function() separator, void Function(T) callback) {
     void Function()? nextSeparator;
     for (var item in this) {
       nextSeparator?.call();

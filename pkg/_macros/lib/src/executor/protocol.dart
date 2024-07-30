@@ -410,8 +410,8 @@ class ResolveTypeRequest extends IntrospectionRequest {
 
 /// A request to check if a type is exactly another type.
 class IsExactlyTypeRequest extends Request {
-  final RemoteInstanceImpl leftType;
-  final RemoteInstanceImpl rightType;
+  final RemoteInstance leftType;
+  final RemoteInstance rightType;
 
   IsExactlyTypeRequest(this.leftType, this.rightType,
       {required super.serializationZoneId});
@@ -435,8 +435,8 @@ class IsExactlyTypeRequest extends Request {
 
 /// A request to check if a type is exactly another type.
 class IsSubtypeOfRequest extends Request {
-  final RemoteInstanceImpl leftType;
-  final RemoteInstanceImpl rightType;
+  final RemoteInstance leftType;
+  final RemoteInstance rightType;
 
   IsSubtypeOfRequest(this.leftType, this.rightType,
       {required super.serializationZoneId});
@@ -453,6 +453,29 @@ class IsSubtypeOfRequest extends Request {
     serializer.addInt(MessageType.isSubtypeOfRequest.index);
     leftType.serialize(serializer);
     rightType.serialize(serializer);
+    super.serialize(serializer);
+  }
+}
+
+/// A request to check if a type is a subtype of the type defined by an
+/// identifier, and, if so, also obtain the matching instantiation.
+class AsInstanceOfRequest extends Request {
+  final RemoteInstance left;
+  final TypeDeclarationImpl right;
+  AsInstanceOfRequest(this.left, this.right,
+      {required super.serializationZoneId});
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again.
+  AsInstanceOfRequest.deserialize(super.deserializer, super.serializationZoneId)
+      : left = RemoteInstance.deserialize(deserializer),
+        right = RemoteInstance.deserialize(deserializer),
+        super.deserialize();
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addInt(MessageType.asInstanceOfRequest.index);
+    left.serialize(serializer);
+    right.serialize(serializer);
     super.serialize(serializer);
   }
 }
@@ -557,6 +580,10 @@ class DeclarationsOfRequest extends IntrospectionRequest {
   }
 }
 
+/// Signature of a function able to send requests and return a response using
+/// an arbitrary communication channel.
+typedef SendRequest = Future<Response> Function(Request request);
+
 /// The base class for the client side introspectors from any phase, as well as
 /// client side [StaticType]s.
 ///
@@ -570,7 +597,7 @@ base class ClientIntrospector {
 
   /// A function that can send a request and return a response using an
   /// arbitrary communication channel.
-  final Future<Response> Function(Request request) _sendRequest;
+  final SendRequest _sendRequest;
 
   ClientIntrospector(this._sendRequest,
       {required this.remoteInstance, required this.serializationZoneId});
@@ -596,6 +623,13 @@ final class ClientTypePhaseIntrospector extends ClientIntrospector
 final class ClientDeclarationPhaseIntrospector
     extends ClientTypePhaseIntrospector
     implements DeclarationPhaseIntrospector {
+  static final _constructorsCache =
+      Expando<Future<List<ConstructorDeclaration>>>();
+  static final _enumValuesCache = Expando<Future<List<EnumValueDeclaration>>>();
+  static final _fieldsCache = Expando<Future<List<FieldDeclaration>>>();
+  static final _methodsCache = Expando<Future<List<MethodDeclaration>>>();
+  static final _typeDeclarationCache = Expando<Future<TypeDeclaration>>();
+
   ClientDeclarationPhaseIntrospector(super._sendRequest,
       {required super.remoteInstance, required super.serializationZoneId});
 
@@ -604,64 +638,64 @@ final class ClientDeclarationPhaseIntrospector
     ResolveTypeRequest request = ResolveTypeRequest(
         typeAnnotation, remoteInstance,
         serializationZoneId: serializationZoneId);
-    RemoteInstanceImpl remoteType =
-        _handleResponse(await _sendRequest(request));
-    return switch (remoteType.kind) {
-      RemoteInstanceKind.namedStaticType => ClientNamedStaticTypeImpl(
-          _sendRequest,
-          remoteInstance: remoteType,
-          serializationZoneId: serializationZoneId),
-      RemoteInstanceKind.staticType => ClientStaticTypeImpl(_sendRequest,
-          remoteInstance: remoteType, serializationZoneId: serializationZoneId),
-      _ => throw StateError(
-          'Expected either a StaticType or NamedStaticType but got '
-          '${remoteType.kind}'),
-    };
+    StaticTypeImpl remoteType = _handleResponse(await _sendRequest(request));
+    return ClientStaticTypeImpl.ofRemote(
+      instance: remoteType,
+      serializationZoneId: serializationZoneId,
+      sendRequest: _sendRequest,
+    );
   }
 
   @override
-  Future<List<ConstructorDeclaration>> constructorsOf(
-      TypeDeclaration type) async {
-    TypeIntrospectorRequest request = TypeIntrospectorRequest(
-        type, remoteInstance, MessageType.constructorsOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await _sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
+  Future<List<ConstructorDeclaration>> constructorsOf(TypeDeclaration type) {
+    return _constructorsCache[type] ??= Future(() async {
+      final request = TypeIntrospectorRequest(
+          type, remoteInstance, MessageType.constructorsOfRequest,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<DeclarationList>(await _sendRequest(request))
+          .declarations
+          // TODO: Refactor so we can remove this cast
+          .cast();
+    });
   }
 
   @override
-  Future<List<EnumValueDeclaration>> valuesOf(EnumDeclaration enumType) async {
-    TypeIntrospectorRequest request = TypeIntrospectorRequest(
-        enumType, remoteInstance, MessageType.valuesOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await _sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
+  Future<List<EnumValueDeclaration>> valuesOf(EnumDeclaration type) {
+    return _enumValuesCache[type] ??= Future(() async {
+      final request = TypeIntrospectorRequest(
+          type, remoteInstance, MessageType.valuesOfRequest,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<DeclarationList>(await _sendRequest(request))
+          .declarations
+          // TODO: Refactor so we can remove this cast
+          .cast();
+    });
   }
 
   @override
-  Future<List<FieldDeclaration>> fieldsOf(TypeDeclaration type) async {
-    TypeIntrospectorRequest request = TypeIntrospectorRequest(
-        type, remoteInstance, MessageType.fieldsOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await _sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
+  Future<List<FieldDeclaration>> fieldsOf(TypeDeclaration type) {
+    return _fieldsCache[type] ??= Future(() async {
+      final request = TypeIntrospectorRequest(
+          type, remoteInstance, MessageType.fieldsOfRequest,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<DeclarationList>(await _sendRequest(request))
+          .declarations
+          // TODO: Refactor so we can remove this cast
+          .cast();
+    });
   }
 
   @override
-  Future<List<MethodDeclaration>> methodsOf(TypeDeclaration type) async {
-    TypeIntrospectorRequest request = TypeIntrospectorRequest(
-        type, remoteInstance, MessageType.methodsOfRequest,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await _sendRequest(request))
-        .declarations
-        // TODO: Refactor so we can remove this cast
-        .cast();
+  Future<List<MethodDeclaration>> methodsOf(TypeDeclaration type) {
+    return _methodsCache[type] ??= Future(() async {
+      final request = TypeIntrospectorRequest(
+          type, remoteInstance, MessageType.methodsOfRequest,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<DeclarationList>(await _sendRequest(request))
+          .declarations
+          // TODO: Refactor so we can remove this cast
+          .cast();
+    });
   }
 
   @override
@@ -677,10 +711,12 @@ final class ClientDeclarationPhaseIntrospector
 
   @override
   Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) async {
-    DeclarationOfRequest request = DeclarationOfRequest(
-        identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<TypeDeclaration>(await _sendRequest(request));
+    return _typeDeclarationCache[identifier] ??= Future(() async {
+      final request = DeclarationOfRequest(
+          identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
+          serializationZoneId: serializationZoneId);
+      return _handleResponse<TypeDeclaration>(await _sendRequest(request));
+    });
   }
 }
 
@@ -689,6 +725,28 @@ base class ClientStaticTypeImpl extends ClientIntrospector
     implements StaticType {
   ClientStaticTypeImpl(super._sendRequest,
       {required super.remoteInstance, required super.serializationZoneId});
+
+  factory ClientStaticTypeImpl.ofRemote({
+    required StaticTypeImpl instance,
+    required SendRequest sendRequest,
+    required int serializationZoneId,
+  }) {
+    RemoteInstanceImpl remoteInstance =
+        RemoteInstanceImpl(id: instance.id, kind: instance.kind);
+    return switch (instance.kind) {
+      RemoteInstanceKind.namedStaticType => ClientNamedStaticTypeImpl(
+          sendRequest,
+          staticType: instance as NamedStaticTypeImpl,
+          remoteInstance: remoteInstance,
+          serializationZoneId: serializationZoneId),
+      RemoteInstanceKind.staticType => ClientStaticTypeImpl(sendRequest,
+          remoteInstance: remoteInstance,
+          serializationZoneId: serializationZoneId),
+      _ => throw StateError(
+          'Expected either a StaticType or NamedStaticType but got '
+          '${instance.kind}'),
+    };
+  }
 
   @override
   Future<bool> isExactly(ClientStaticTypeImpl other) async {
@@ -705,13 +763,37 @@ base class ClientStaticTypeImpl extends ClientIntrospector
         serializationZoneId: serializationZoneId);
     return _handleResponse<BooleanValue>(await _sendRequest(request)).value;
   }
+
+  @override
+  Future<NamedStaticType?> asInstanceOf(TypeDeclaration declaration) async {
+    AsInstanceOfRequest request = AsInstanceOfRequest(
+        remoteInstance, declaration as TypeDeclarationImpl,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<NamedStaticType?>(await _sendRequest(request));
+  }
 }
 
 /// Named variant of the [ClientStaticTypeImpl].
 final class ClientNamedStaticTypeImpl extends ClientStaticTypeImpl
     implements NamedStaticType {
-  ClientNamedStaticTypeImpl(super.sendRequest,
-      {required super.remoteInstance, required super.serializationZoneId});
+  @override
+  final ParameterizedTypeDeclaration declaration;
+
+  @override
+  final List<StaticType> typeArguments;
+
+  ClientNamedStaticTypeImpl(
+    super.sendRequest, {
+    required NamedStaticTypeImpl staticType,
+    required super.serializationZoneId,
+    required super.remoteInstance,
+  })  : declaration = staticType.declaration,
+        typeArguments = staticType.typeArguments
+            .map((raw) => ClientStaticTypeImpl.ofRemote(
+                instance: raw,
+                sendRequest: sendRequest,
+                serializationZoneId: serializationZoneId))
+            .toList();
 }
 
 /// Client side implementation of a [DeclarationBuilder].
@@ -745,14 +827,6 @@ final class ClientDefinitionPhaseIntrospector
     return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations;
   }
-
-  @override
-  Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) async {
-    DeclarationOfRequest request = DeclarationOfRequest(
-        identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<TypeDeclaration>(await _sendRequest(request));
-  }
 }
 
 /// Either returns the actual response from [response], casted to [T], or throws
@@ -785,6 +859,7 @@ enum MessageType {
   inferTypeRequest,
   isExactlyTypeRequest,
   isSubtypeOfRequest,
+  asInstanceOfRequest,
   loadMacroRequest,
   remoteInstance,
   macroInstanceIdentifier,

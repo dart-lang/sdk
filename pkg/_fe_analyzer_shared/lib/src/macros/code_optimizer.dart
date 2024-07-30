@@ -279,12 +279,13 @@ class _Listener extends Listener {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token name) {
     declaredNames.add(name.lexeme);
   }
 
   @override
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     Token? prefixToken = token.previous;
     if (prefixToken == null || prefixToken.type != TokenType.IDENTIFIER) {
       return;

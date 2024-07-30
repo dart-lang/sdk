@@ -2007,14 +2007,13 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
 
   for (int i = 0; i < unit_count; i++) {
     intptr_t id = helper_->ReadUInt();
-    unit = LoadingUnit::New();
-    unit.set_id(id);
 
     intptr_t parent_id = helper_->ReadUInt();
     RELEASE_ASSERT(parent_id < id);
     parent ^= loading_units.At(parent_id);
     RELEASE_ASSERT(parent.IsNull() == (parent_id == 0));
-    unit.set_parent(parent);
+
+    unit = LoadingUnit::New(id, parent);
 
     intptr_t library_count = helper_->ReadUInt();
     uris = Array::New(library_count);
@@ -2739,7 +2738,6 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kIsExpression:
       ReadPosition();    // read position.
-      SkipFlags();       // read flags.
       SkipExpression();  // read operand.
       SkipDartType();    // read type.
       return;
@@ -3291,7 +3289,6 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
                                ConstantReader* constant_reader,
                                ActiveClass* active_class,
                                bool finalize,
-                               bool apply_canonical_type_erasure,
                                bool in_constant_context)
     : helper_(helper),
       constant_reader_(constant_reader),
@@ -3303,7 +3300,6 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
-      apply_canonical_type_erasure_(apply_canonical_type_erasure),
       in_constant_context_(in_constant_context) {}
 
 AbstractType& TypeTranslator::BuildType() {
@@ -3337,10 +3333,6 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kNeverType: {
       Nullability nullability = helper_->ReadNullability();
-      if (apply_canonical_type_erasure_ &&
-          nullability != Nullability::kNullable) {
-        nullability = Nullability::kLegacy;
-      }
       result_ = Type::Handle(Z, IG->object_store()->never_type())
                     .ToNullability(nullability, Heap::kOld);
       break;
@@ -3387,10 +3379,6 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   //   => We therefore ignore errors in `A` or `B`.
 
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
-
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
 
@@ -3423,9 +3411,6 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 
 void TypeTranslator::BuildFutureOrType() {
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
 
   const TypeArguments& type_arguments =
       TypeArguments::Handle(Z, TypeArguments::New(1));
@@ -3448,9 +3433,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
           ? active_class_->enclosing->NumTypeArguments()
           : 0;
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
   FunctionType& signature = FunctionType::ZoneHandle(
       Z, FunctionType::New(num_enclosing_type_arguments, nullability));
 
@@ -3539,10 +3521,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
 void TypeTranslator::BuildRecordType() {
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
-
   const intptr_t positional_count = helper_->ReadListLength();
   intptr_t named_count = 0;
   {
@@ -3600,10 +3578,6 @@ void TypeTranslator::BuildRecordType() {
 
 void TypeTranslator::BuildTypeParameterType() {
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
-
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
 
   // If the type is from a constant, the parameter index isn't offset by the
@@ -3877,9 +3851,7 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
         function.set_unboxed_integer_parameter_at(param_pos);
         break;
       case UnboxingInfoMetadata::kDouble:
-        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-          function.set_unboxed_double_parameter_at(param_pos);
-        }
+        function.set_unboxed_double_parameter_at(param_pos);
         break;
       case UnboxingInfoMetadata::kRecord:
         UNREACHABLE();
@@ -3901,9 +3873,7 @@ static void SetupUnboxingInfoOfReturnValue(
       function.set_unboxed_integer_return();
       break;
     case UnboxingInfoMetadata::kDouble:
-      if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-        function.set_unboxed_double_return();
-      }
+      function.set_unboxed_double_return();
       break;
     case UnboxingInfoMetadata::kRecord:
       function.set_unboxed_record_return();

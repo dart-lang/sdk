@@ -17,6 +17,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalExtensionMemberWithStaticDisallowed,
         messageJsInteropExternalMemberNotJSAnnotated,
+        messageJsInteropFunctionToJSNamedParameters,
         messageJsInteropFunctionToJSTypeParameters,
         messageJsInteropInvalidStaticClassMemberName,
         messageJsInteropNamedParameters,
@@ -44,7 +45,7 @@ import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 // Used for importing CFE utility functions for constructor tear-offs.
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show
         templateJsInteropExtensionTypeNotInterop,
         templateJsInteropFunctionToJSRequiresStaticType,
@@ -117,7 +118,7 @@ class JsInteropChecks extends RecursiveVisitor {
   // TODO(srujzs): Help migrate some of these away. Once we're done, we can
   // remove `dart:*` interop libraries from the check as they can be moved out
   // of `libraries.json`.
-  static const _allowedInteropLibrariesInDart2WasmPackages = [
+  static const allowedInteropLibrariesInDart2WasmPackages = [
     // Both these packages re-export other interop libraries
     'js',
     'js_util',
@@ -224,7 +225,7 @@ class JsInteropChecks extends RecursiveVisitor {
         !extensionIndex.isInteropExtensionType(node)) {
       _reporter.report(
           templateJsInteropExtensionTypeNotInterop.withArguments(
-              node.name, node.declaredRepresentationType, true),
+              node.name, node.declaredRepresentationType),
           node.fileOffset,
           node.name.length,
           node.fileUri);
@@ -553,7 +554,7 @@ class JsInteropChecks extends RecursiveVisitor {
         // `dart:ui`.
         final allowedToImport = uri.isScheme('dart') ||
             (uri.isScheme('package') &&
-                _allowedInteropLibrariesInDart2WasmPackages
+                allowedInteropLibrariesInDart2WasmPackages
                     .any((pkg) => uri.pathSegments.first == pkg)) ||
             _allowedUseOfDart2WasmDisallowedInteropLibrariesTestPatterns
                 .any((pattern) => uri.path.contains(pattern));
@@ -750,11 +751,14 @@ class JsInteropChecks extends RecursiveVisitor {
     final argument = node.arguments.positional.single;
     final functionType = argument.getStaticType(_staticTypeContext);
     if (functionType is! FunctionType) {
-      report(templateJsInteropFunctionToJSRequiresStaticType.withArguments(
-          functionType, true));
+      report(templateJsInteropFunctionToJSRequiresStaticType
+          .withArguments(functionType));
     } else {
       if (functionType.typeParameters.isNotEmpty) {
         report(messageJsInteropFunctionToJSTypeParameters);
+      }
+      if (functionType.namedParameters.isNotEmpty) {
+        report(messageJsInteropFunctionToJSNamedParameters);
       }
       _reportFunctionToJSInvocationIfNotAllowedFunctionType(functionType, node);
     }
@@ -1016,7 +1020,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (!_isAllowedExternalType(accessorType)) {
         _reporter.report(
             templateJsInteropStaticInteropExternalAccessorTypeViolation
-                .withArguments(accessorType, true),
+                .withArguments(accessorType),
             node.fileOffset,
             node.name.text.length,
             node.location?.file);

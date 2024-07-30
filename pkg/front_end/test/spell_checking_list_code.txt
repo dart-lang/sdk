@@ -137,6 +137,7 @@ bazel
 bb
 became
 beforehand
+begun
 behave
 believe
 belonging
@@ -145,6 +146,7 @@ benchmarked
 benchmarker
 benchmarking
 benchmarks
+beneath
 beta
 bf
 bi
@@ -175,6 +177,7 @@ bof
 bom
 bones
 bookkeeping
+bools
 bootstrap
 bother
 boundarykey
@@ -479,6 +482,7 @@ dirname
 dirtify
 dirtifying
 dirty
+disagrees
 disallow
 disambiguating
 disambiguation
@@ -519,6 +523,7 @@ dso
 dsos
 dst
 dummy
+dumping
 dupdate
 dyn
 dynamically
@@ -587,6 +592,7 @@ estimation
 et
 eval
 evar
+event's
 examines
 exceeds
 exchange
@@ -804,6 +810,7 @@ idle
 idn
 ids
 idx
+if's
 iff
 il
 illegally
@@ -846,6 +853,7 @@ influence
 influences
 informative
 infos
+infrastructure
 inhabit
 inhabits
 inhibit
@@ -863,6 +871,7 @@ inst
 instanceof
 instantiable
 instantiator
+instrument
 integrate
 intel
 intends
@@ -985,6 +994,7 @@ lift
 lifted
 lifter
 limiting
+limits
 linearized
 linebreak
 linter
@@ -1056,6 +1066,7 @@ mess
 meta
 metadata's
 metadatum
+method's
 mi
 migrate
 migrated
@@ -1168,6 +1179,7 @@ opens
 operate
 operating
 opt
+optimal
 optimizations
 opting
 opts
@@ -1348,6 +1360,7 @@ quad
 qualify
 quantified
 queries
+questions
 quick
 quit
 quiver
@@ -1382,6 +1395,7 @@ reachability
 react
 realign
 realise
+reanalyze
 reapplies
 reapply
 reapplying
@@ -1400,6 +1414,7 @@ recall
 recalls
 received
 receivers
+receives
 recheck
 reclaimed
 recognizing
@@ -1441,6 +1456,7 @@ rehash
 reified
 reindexed
 reinstate
+reinterpret
 reissued
 reject
 rejoin
@@ -1472,6 +1488,7 @@ replicated
 repo
 repositories
 reproduces
+repurpose
 repurposed
 repurposing
 requesting
@@ -1526,6 +1543,7 @@ rs
 rta
 runnable
 runtimes
+rvalue
 rvar
 s
 safer
@@ -1748,6 +1766,7 @@ superinterface
 superinterfaces
 supernode
 supers
+supplies
 suppose
 surfaced
 surprising
@@ -1837,10 +1856,12 @@ token's
 tokenize
 tokenized
 tokenizer
+tolerant
 tolerate
 tolerated
 tolerates
 toplevel
+topmost
 topological
 tops
 tostring
@@ -1869,6 +1890,7 @@ trips
 trivially
 truncated
 truncates
+truncation
 ts
 tty
 tuple

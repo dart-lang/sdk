@@ -5,7 +5,6 @@
 import("//build/config/sysroot.gni")  # Imports android/config.gni.
 import("//build/toolchain/ccache.gni")
 import("//build/toolchain/gcc_toolchain.gni")
-import("//build/toolchain/goma.gni")
 import("//build/toolchain/rbe.gni")
 
 # The Android GCC toolchains share most of the same parameters, so we have this
@@ -20,12 +19,7 @@ import("//build/toolchain/rbe.gni")
 #      Same as gcc_toolchain
 template("android_toolchain") {
   gcc_toolchain(target_name) {
-    if (use_goma) {
-      assert(!use_ccache, "Goma and ccache can't be used together.")
-      assembler_prefix = "$goma_dir/gomacc "
-      compiler_prefix = "$goma_dir/gomacc "
-      link_prefix = "$goma_dir/gomacc "
-    } else if (use_rbe) {
+    if (use_rbe) {
       compiler_args =
           rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
 

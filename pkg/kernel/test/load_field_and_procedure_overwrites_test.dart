@@ -59,7 +59,8 @@ void expect(dynamic actual, dynamic expected) {
 
 List<int> serialize(Library lib1) {
   Component component = new Component(libraries: [lib1])
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
+    ..setMainMethodAndMode(
+        null, false, NonNullableByDefaultCompiledMode.Strong);
   ByteSink sink = new ByteSink();
   new BinaryPrinter(sink).writeComponentFile(component);
   return sink.builder.takeBytes();

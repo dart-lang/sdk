@@ -20,6 +20,9 @@ class _ProcessUtils {
 /// This does not wait for any asynchronous operations to terminate nor execute
 /// `finally` blocks. Using [exit] is therefore very likely to lose data.
 ///
+/// Child processes are not explicitly terminated (but they may terminate
+/// themselves when they detect that their parent has exited).
+///
 /// While debugging, the VM will not respect the `--pause-isolates-on-exit`
 /// flag if [exit] is called as invoking this method causes the Dart VM
 /// process to shutdown immediately. To properly break on exit, consider
@@ -321,6 +324,18 @@ abstract interface class Process {
   /// shell. On Linux and OS X, `/bin/sh` is used, while
   /// `%WINDIR%\system32\cmd.exe` is used on Windows.
   ///
+  /// **NOTE**: On Windows, if [executable] is a batch file
+  /// ('*.bat' or '*.cmd'), it may be launched by the operating system in a
+  /// system shell regardless of the value of [runInShell]. This could result in
+  /// arguments being parsed according to shell rules. For example:
+  ///
+  /// ```
+  /// void main() async {
+  ///   // Will launch notepad.
+  ///   Process.start('test.bat', ['test&notepad.exe']);
+  /// }
+  /// ```
+  ///
   /// Users must read all data coming on the [stdout] and [stderr]
   /// streams of processes started with `Process.start`. If the user
   /// does not read all data on the streams the underlying system
@@ -335,7 +350,10 @@ abstract interface class Process {
   /// ```
   /// If [mode] is [ProcessStartMode.normal] (the default) a child
   /// process will be started with `stdin`, `stdout` and `stderr`
-  /// connected.
+  /// connected to its parent. The parent process will not exit so long as the
+  /// child is running, unless [exit] is called by the parent. If [exit] is
+  /// called by the parent then the parent will be terminated but the child
+  /// will continue running.
   ///
   /// If `mode` is [ProcessStartMode.detached] a detached process will
   /// be created. A detached process has no connection to its parent,
@@ -348,8 +366,8 @@ abstract interface class Process {
   /// process will be created where the `stdin`, `stdout` and `stderr`
   /// are connected. The creator can communicate with the child through
   /// these. The detached process will keep running even if these
-  /// communication channels are closed. The process' exit code will
-  /// not become available when it terminated.
+  /// communication channels are closed or the parent dies. The process'
+  /// exit code will not become available when it terminated.
   ///
   /// The default value for `mode` is `ProcessStartMode.normal`.
   external static Future<Process> start(
@@ -387,6 +405,18 @@ abstract interface class Process {
   /// If [runInShell] is true, the process will be spawned through a system
   /// shell. On Linux and OS X, `/bin/sh` is used, while
   /// `%WINDIR%\system32\cmd.exe` is used on Windows.
+  ///
+  /// **NOTE**: On Windows, if [executable] is a batch file
+  /// ('*.bat' or '*.cmd'), it may be launched by the operating system in a
+  /// system shell regardless of the value of [runInShell]. This could result in
+  /// arguments being parsed according to shell rules. For example:
+  ///
+  /// ```
+  /// void main() async {
+  ///   // Will launch notepad.
+  ///   await Process.run('test.bat', ['test&notepad.exe']);
+  /// }
+  /// ```
   ///
   /// The encoding used for decoding `stdout` and `stderr` into text is
   /// controlled through [stdoutEncoding] and [stderrEncoding]. The

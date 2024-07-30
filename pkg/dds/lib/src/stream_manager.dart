@@ -209,6 +209,7 @@ class StreamManager {
     streamNotify(stream, <String, dynamic>{
       'streamId': stream,
       'event': {
+        'type': 'Event',
         'kind': 'Extension',
         'timestamp': DateTime.now().millisecondsSinceEpoch,
         'extensionData': eventData,

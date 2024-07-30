@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -16,18 +17,17 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   final _Kind _kind;
 
-  RemoveTypeAnnotation.fixVarAndType() : _kind = _Kind.fixVarAndType;
+  RemoveTypeAnnotation.fixVarAndType({required super.context})
+      : _kind = _Kind.fixVarAndType;
 
-  RemoveTypeAnnotation.other() : _kind = _Kind.other;
+  RemoveTypeAnnotation.other({required super.context}) : _kind = _Kind.other;
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_TYPE_ANNOTATION;
@@ -169,7 +169,7 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   }
 
   Future<void> _varAndType(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
 
     Future<void> removeTypeAfterVar({
       required Token? varKeyword,

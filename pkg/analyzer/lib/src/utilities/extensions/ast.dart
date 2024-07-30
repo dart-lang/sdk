@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 extension AstNodeExtension on AstNode {
   /// Returns all tokens, from [beginToken] to [endToken] including.
@@ -22,6 +23,44 @@ extension AstNodeExtension on AstNode {
       }
     }
     return result;
+  }
+
+  /// The [ExecutableElement] of the enclosing executable [AstNode].
+  ExecutableElement? get enclosingExecutableElement {
+    for (var node in withParents) {
+      if (node is FunctionDeclaration) {
+        return node.declaredElement;
+      }
+      if (node is ConstructorDeclaration) {
+        return node.declaredElement;
+      }
+      if (node is MethodDeclaration) {
+        return node.declaredElement;
+      }
+    }
+    return null;
+  }
+
+  AstNode? get enclosingUnitChild {
+    for (var node in withParents) {
+      if (node.parent is CompilationUnit) {
+        return node;
+      }
+    }
+    return null;
+  }
+
+  /// This node and all its parents.
+  Iterable<AstNode> get withParents sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      var parent = current.parent;
+      if (parent == null) {
+        break;
+      }
+      current = parent;
+    }
   }
 
   /// Returns the comment token that covers the [offset].
@@ -104,7 +143,7 @@ extension AstNodeExtension on AstNode {
 
 extension AstNodeNullableExtension on AstNode? {
   List<ClassMember> get classMembers {
-    final self = this;
+    var self = this;
     return switch (self) {
       ClassDeclaration() => self.members,
       EnumDeclaration() => self.members,
@@ -112,6 +151,31 @@ extension AstNodeNullableExtension on AstNode? {
       ExtensionTypeDeclaration() => self.members,
       MixinDeclaration() => self.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
+  }
+}
+
+extension CompilationUnitExtension on CompilationUnit {
+  /// Whether this [CompilationUnit] is found in a "test" directory.
+  bool get inTestDir {
+    var declaredElement = this.declaredElement;
+    if (declaredElement == null) return false;
+    var pathContext = declaredElement.session.resourceProvider.pathContext;
+    var path = declaredElement.source.fullName;
+    return switch (pathContext.separator) {
+      '/' => const [
+          '/test/',
+          '/integration_test/',
+          '/test_driver/',
+          '/testing/',
+        ].any(path.contains),
+      r'\' => const [
+          r'\test\',
+          r'\integration_test\',
+          r'\test_driver\',
+          r'\testing\',
+        ].any(path.contains),
+      _ => false,
     };
   }
 }

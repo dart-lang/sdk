@@ -88,9 +88,7 @@ class TimerImpl : public ValueObject {
   explicit TimerImpl(int64_t elapsed)
       : total_(elapsed), max_contiguous_(elapsed) {}
 
-  int64_t ElapsedMicros() const {
-    return stop_ - start_;
-  }
+  int64_t ElapsedMicros() const { return stop_ - start_; }
 
   RelaxedAtomic<int64_t> start_;
   RelaxedAtomic<int64_t> stop_;

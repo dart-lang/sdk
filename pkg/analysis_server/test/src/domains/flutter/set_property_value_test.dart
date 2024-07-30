@@ -137,7 +137,8 @@ void f() {
   ) async {
     var response = await _setValueResponse(property, value);
     expect(response.error, isNull);
-    return FlutterSetWidgetPropertyValueResult.fromResponse(response);
+    return FlutterSetWidgetPropertyValueResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
   }
 
   Future<Response> _setValueResponse(
@@ -147,7 +148,7 @@ void f() {
     var request = FlutterSetWidgetPropertyValueParams(
       property.id,
       value: value,
-    ).toRequest('0');
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     return await handleSuccessfulRequest(request);
   }
 }

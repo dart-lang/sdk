@@ -13,6 +13,7 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:path/path.dart';
 
 /// The object used to coordinate the results of notifications from the analysis
@@ -20,6 +21,10 @@ import 'package:path/path.dart';
 abstract class AbstractNotificationManager {
   /// The identifier used to identify results from the server.
   static const String serverId = 'server';
+
+  /// The current URI converter used for translating URIs/Paths for the
+  /// server-client side of communication.
+  ClientUriConverter? uriConverter;
 
   /// The path context.
   final Context pathContext;
@@ -309,20 +314,21 @@ class NotificationManager extends AbstractNotificationManager {
   final ServerCommunicationChannel channel;
 
   /// Initialize a newly created notification manager.
-  NotificationManager(this.channel, Context pathContext) : super(pathContext);
+  NotificationManager(this.channel, super.pathContext);
 
   /// Sends errors for a file to the client.
   @override
   void sendAnalysisErrors(String filePath, List<AnalysisError> mergedErrors) {
-    channel.sendNotification(
-        server.AnalysisErrorsParams(filePath, mergedErrors).toNotification());
+    channel.sendNotification(server.AnalysisErrorsParams(filePath, mergedErrors)
+        .toNotification(clientUriConverter: uriConverter));
   }
 
   /// Sends folding regions for a file to the client.
   @override
   void sendFoldingRegions(String filePath, List<FoldingRegion> mergedFolding) {
     channel.sendNotification(
-        server.AnalysisFoldingParams(filePath, mergedFolding).toNotification());
+        server.AnalysisFoldingParams(filePath, mergedFolding)
+            .toNotification(clientUriConverter: uriConverter));
   }
 
   /// Sends highlight regions for a file to the client.
@@ -331,13 +337,14 @@ class NotificationManager extends AbstractNotificationManager {
       String filePath, List<HighlightRegion> mergedHighlights) {
     channel.sendNotification(
         server.AnalysisHighlightsParams(filePath, mergedHighlights)
-            .toNotification());
+            .toNotification(clientUriConverter: uriConverter));
   }
 
   /// Sends navigation regions for a file to the client.
   @override
   void sendNavigations(server.AnalysisNavigationParams mergedNavigations) {
-    channel.sendNotification(mergedNavigations.toNotification());
+    channel.sendNotification(
+        mergedNavigations.toNotification(clientUriConverter: uriConverter));
   }
 
   /// Sends occurrences for a file to the client.
@@ -345,7 +352,7 @@ class NotificationManager extends AbstractNotificationManager {
   void sendOccurrences(String filePath, List<Occurrences> mergedOccurrences) {
     channel.sendNotification(
         server.AnalysisOccurrencesParams(filePath, mergedOccurrences)
-            .toNotification());
+            .toNotification(clientUriConverter: uriConverter));
   }
 
   /// Sends outlines for a file to the client.
@@ -353,19 +360,22 @@ class NotificationManager extends AbstractNotificationManager {
   void sendOutlines(String filePath, List<Outline> mergedOutlines) {
     channel.sendNotification(server.AnalysisOutlineParams(
             filePath, server.FileKind.LIBRARY, mergedOutlines[0])
-        .toNotification());
+        .toNotification(clientUriConverter: uriConverter));
   }
 
   /// Sends plugin errors to the client.
   @override
   void sendPluginErrorNotification(plugin.Notification notification) {
-    var params = plugin.PluginErrorParams.fromNotification(notification);
+    var params = plugin.PluginErrorParams.fromNotification(
+      notification,
+      // No uriConverter here because it's from a plugin.
+    );
     // TODO(brianwilkerson): There is no indication for the client as to the
     // fact that the error came from a plugin, let alone which plugin it
     // came from. We should consider whether we really want to send them to
     // the client.
     channel.sendNotification(server.ServerErrorParams(
             params.isFatal, params.message, params.stackTrace)
-        .toNotification());
+        .toNotification(clientUriConverter: uriConverter));
   }
 }

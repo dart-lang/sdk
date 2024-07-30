@@ -108,6 +108,23 @@ class A extends String {}
     ]);
   }
 
+  test_class_String_inAugmentation() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment class A extends String {}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 50, 6),
+    ]);
+  }
+
   test_classTypeAlias_bool() async {
     await assertErrorsInCode(r'''
 class M {}

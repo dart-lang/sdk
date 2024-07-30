@@ -62,7 +62,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   }
 
   void _validateRules(YamlNode? rules, ErrorReporter reporter) {
-    final seenRules = <String>{};
+    var seenRules = <String>{};
 
     String? findIncompatibleRule(LintRule rule) {
       for (var incompatibleRule in rule.incompatibleRules) {
@@ -77,7 +77,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       var value = node.value;
       if (value == null) return;
 
-      final rule = getRegisteredLint(value as Object);
+      var rule = getRegisteredLint(value as Object);
       if (rule == null) {
         reporter.reportErrorForSpan(
             AnalysisOptionsWarningCode.UNDEFINED_LINT, node.span, [value]);
@@ -85,7 +85,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       }
 
       if (enabled) {
-        final incompatibleRule = findIncompatibleRule(rule);
+        var incompatibleRule = findIncompatibleRule(rule);
         if (incompatibleRule != null) {
           reporter.reportErrorForSpan(
               AnalysisOptionsWarningCode.INCOMPATIBLE_LINT,

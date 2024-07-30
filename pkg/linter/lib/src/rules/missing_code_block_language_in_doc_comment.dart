@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -18,6 +19,8 @@ specify the language used after the initial code fence.
 
 See [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md)
 for the list of languages supported by `dart doc`.
+To disable syntax highlighting or if no language is suitable,
+you can specify `none` as the language.
 
 **BAD:**
 ```dart
@@ -48,7 +51,7 @@ class MissingCodeBlockLanguageInDocComment extends LintRule {
             name: 'missing_code_block_language_in_doc_comment',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;
@@ -69,13 +72,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitComment(Comment node) {
     for (var codeBlock in node.codeBlocks) {
-      if (codeBlock.infoString == null) {
-        var openingCodeBlockFence = codeBlock.lines.first;
-        rule.reportLintForOffset(
-          openingCodeBlockFence.offset,
-          openingCodeBlockFence.length,
-        );
-      }
+      if (codeBlock.infoString != null) continue;
+      if (codeBlock.type != CodeBlockType.fenced) continue;
+
+      var openingCodeBlockFence = codeBlock.lines.first;
+      rule.reportLintForOffset(
+        openingCodeBlockFence.offset,
+        openingCodeBlockFence.length,
+      );
     }
   }
 }

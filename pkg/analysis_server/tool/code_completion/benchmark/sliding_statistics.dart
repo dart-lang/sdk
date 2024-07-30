@@ -16,7 +16,7 @@ class SlidingStatistics {
 
   int get max {
     var result = 0;
-    for (final value in _values) {
+    for (var value in _values) {
       if (value > result) {
         result = value;
       }
@@ -27,7 +27,7 @@ class SlidingStatistics {
   double get mean {
     assert(isReady);
     var sum = 0.0;
-    for (final value in _values) {
+    for (var value in _values) {
       sum += value;
     }
     return sum / _values.length;
@@ -35,7 +35,7 @@ class SlidingStatistics {
 
   int get min {
     var result = 1 << 20;
-    for (final value in _values) {
+    for (var value in _values) {
       if (value < result) {
         result = value;
       }
@@ -45,10 +45,10 @@ class SlidingStatistics {
 
   double get standardDeviation {
     assert(isReady);
-    final mean = this.mean;
+    var mean = this.mean;
     var sum = 0.0;
-    for (final value in _values) {
-      final diff = value - mean;
+    for (var value in _values) {
+      var diff = value - mean;
       sum += diff * diff;
     }
     return sqrt(sum / _values.length);

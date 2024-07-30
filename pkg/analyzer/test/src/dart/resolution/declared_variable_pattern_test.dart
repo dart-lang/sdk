@@ -26,7 +26,7 @@ void f(int x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: final
@@ -48,7 +48,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: final
@@ -70,7 +70,7 @@ void f() {
   final [a] = [0];
 }
 ''');
-    final node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -93,7 +93,7 @@ void f() {
   final [...a] = [0, 1, 2];
 }
 ''');
-    final node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -118,7 +118,7 @@ void f() {
   final {0: a} = {0: 1};
 }
 ''');
-    final node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -146,7 +146,7 @@ void f() {
   final int(sign: a) = 0;
 }
 ''');
-    final node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -177,7 +177,7 @@ void f() {
   final (a) = 0;
 }
 ''');
-    final node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
@@ -198,7 +198,7 @@ void f() {
   final (a,) = (0,);
 }
 ''');
-    final node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -226,7 +226,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   type: NamedType
@@ -251,7 +251,7 @@ void f<T>(T x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
     ]);
 
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -270,7 +270,7 @@ void f(int x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -289,7 +289,7 @@ void f(Never? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -308,7 +308,7 @@ void f(Null x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -330,7 +330,7 @@ void f(int x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -352,7 +352,7 @@ void f(num x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: DeclaredVariablePattern

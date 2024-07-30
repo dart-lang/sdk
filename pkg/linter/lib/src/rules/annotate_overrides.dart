@@ -51,14 +51,15 @@ class AnnotateOverrides extends LintRule {
       'annotate_overrides',
       "The member '{0}' overrides an inherited member but isn't annotated "
           "with '@override'.",
-      correctionMessage: "Try adding the '@override' annotation.");
+      correctionMessage: "Try adding the '@override' annotation.",
+      hasPublishedDocs: true);
 
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -89,6 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isAugmentation) return;
     if (node.isStatic) return;
     if (node.parent is ExtensionTypeDeclaration) return;
 
@@ -99,6 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isAugmentation) return;
     if (node.isStatic) return;
     if (node.parent is ExtensionTypeDeclaration) return;
 

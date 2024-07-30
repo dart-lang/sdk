@@ -140,7 +140,6 @@ class CommandLine {
 void fail(String message) {
   print(message);
   io.exitCode = 1;
-  return null;
 }
 
 Future<void> main(List<String> arguments) {

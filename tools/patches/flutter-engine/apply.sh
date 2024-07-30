@@ -7,7 +7,7 @@
 # This script updates the flutter engine DEPS file with the
 # Dart SDK dependencies.
 #
-# Usage: src/third_party/dart/tools/patches/flutter-engine/apply.sh
+# Usage: src/flutter/third_party/dart/tools/patches/flutter-engine/apply.sh
 # (run inside the root of a flutter engine checkout)
 
 set -e
@@ -35,12 +35,24 @@ if [ $need_runhooks = true ]; then
   # referencing.
   # Normally gclient sync would update the cache - but we are bypassing
   # it here.
-  git_cache=$(python3 -c 'import imp; config = imp.load_source("config", ".gclient"); print(getattr(config, "cache_dir", ""))')
+  git_cache=$(python3 -c '\
+import importlib.util
+import importlib.machinery
+
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname, filename, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+config = load_source("config", ".gclient");
+print(getattr(config, "cache_dir", ""))')
 
   # DEPS file might have been patched with new version of packages that
   # Dart SDK depends on. Get information about dependencies from the
   # DEPS file and forcefully update checkouts of those dependencies.
-  gclient revinfo --ignore-dep-type=cipd | grep 'src/third_party/dart/third_party' | while read -r line; do
+  gclient revinfo --ignore-dep-type=cipd | grep 'src/flutter/third_party/dart/third_party' | while read -r line; do
     # revinfo would produce lines in the following format:
     #     path: git-url@tag-or-hash
     # Where no spaces occur inside path, git-url or tag-or-hash.

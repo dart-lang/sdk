@@ -4,36 +4,36 @@ import "dart:core" as core;
 
 class A1 extends core::Object {
   final field core::Object? a;
-  constructor •({required core::Object? a}) → self::A1
+  constructor •({required final core::Object? a}) → self::A1
     : self::A1::a = a, super core::Object::•()
     ;
-  static method _#new#tearOff({required core::Object? a}) → self::A1
+  static method _#new#tearOff({required final core::Object? a}) → self::A1
     return new self::A1::•(a: a);
 }
 class B1 extends self::A1 {
-  constructor •({core::Object? a = #C1}) → self::B1
+  constructor •({final core::Object? a = #C1}) → self::B1
     : super self::A1::•(a: a) {}
-  static method _#new#tearOff({core::Object? a = #C1}) → self::B1
+  static method _#new#tearOff({final core::Object? a = #C1}) → self::B1
     return new self::B1::•(a: a);
 }
 class A2 extends core::Object {
   final field core::Object? a;
-  constructor •(core::Object? a) → self::A2
+  constructor •(final core::Object? a) → self::A2
     : self::A2::a = a, super core::Object::•()
     ;
-  static method _#new#tearOff(core::Object? a) → self::A2
+  static method _#new#tearOff(final core::Object? a) → self::A2
     return new self::A2::•(a);
 }
 class B2 extends self::A2 {
-  constructor •([core::Object? a = #C1]) → self::B2
+  constructor •([final core::Object? a = #C1]) → self::B2
     : super self::A2::•(a)
     ;
-  static method _#new#tearOff([core::Object? a = #C1]) → self::B2
+  static method _#new#tearOff([final core::Object? a = #C1]) → self::B2
     return new self::B2::•(a);
 }
 static method main() → void {
-  ({a: core::Object?}) → self::B1 f1 = #C2;
-  ([core::Object?]) → self::B2 f2 = #C3;
+  final ({a: core::Object?}) → self::B1 f1 = #C2;
+  final ([core::Object?]) → self::B2 f2 = #C3;
 }
 
 constants  {

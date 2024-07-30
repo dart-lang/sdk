@@ -29,6 +29,7 @@ main(List<String> args) async {
       ...args,
       '-a$arch',
       '-m$mode',
+      '--no-rbe',
       'offsets_extractor',
       'offsets_extractor_precompiled_runtime'
     ]);

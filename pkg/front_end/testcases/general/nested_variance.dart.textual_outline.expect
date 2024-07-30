@@ -1,8 +1,6 @@
-// @dart = 2.9
-
 typedef F<X> = void Function<Y extends X>();
 
-F<X> toF<X>(X x) => null;
+F<X> toF<X>(X x) => throw '';
 
 typedef Fcov<X> = X Function();
 
@@ -48,16 +46,41 @@ typedef FconCyclicCoBound<X extends Function(X)> = Function(X);
 
 typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
 
-class AcovCyclicCoBound<X extends FcovCyclicCoBound<Y>, Y extends Function(Y)> {}
+class AcovCyclicCoBound<X extends FcovCyclicCoBound<Y>,
+    Y extends Function(Y)> {}
 
-class AconCyclicCoBound<X extends FconCyclicCoBound<Y>, Y extends Function(Y)> {}
+class AconCyclicCoBound<X extends FconCyclicCoBound<Y>,
+    Y extends Function(Y)> {}
 
-class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {}
+class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>,
+    Y extends Function(Y)> {}
 
 class B<X> {}
 
-void testTypeAliasAsTypeArgument() {}
+void testTypeAliasAsTypeArgument(
+  Acov source1,
+  Acon source2,
+  Ainv source3,
+  AcovBound source4,
+  AconBound source5,
+  AinvBound source6,
+  AcovCyclicBound source7,
+  AconCyclicBound source8,
+  AcovCyclicCoBound source10,
+  AconCyclicCoBound source11,
+) {}
 
-void testNested() {}
+void testNested(
+  B<Acov> source1,
+  B<Acon> source2,
+  B<Ainv> source3,
+  B<AcovBound> source4,
+  B<AconBound> source5,
+  B<AinvBound> source6,
+  B<AcovCyclicBound> source7,
+  B<AconCyclicBound> source8,
+  B<AcovCyclicCoBound> source10,
+  B<AconCyclicCoBound> source11,
+) {}
 
 main() {}

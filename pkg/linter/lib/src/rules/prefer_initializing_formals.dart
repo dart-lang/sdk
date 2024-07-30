@@ -119,14 +119,15 @@ class PreferInitializingFormals extends LintRule {
   static const LintCode code = LintCode('prefer_initializing_formals',
       'Use an initializing formal to assign a parameter to a field.',
       correctionMessage:
-          "Try using an initialing formal ('this.{0}') to initialize the field.");
+          "Try using an initialing formal ('this.{0}') to initialize the field.",
+      hasPublishedDocs: true);
 
   PreferInitializingFormals()
       : super(
             name: 'prefer_initializing_formals',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

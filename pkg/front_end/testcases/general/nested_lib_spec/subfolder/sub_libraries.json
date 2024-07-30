@@ -3,10 +3,10 @@
     "include": [
       {
         "path": "../super1_libraries.json",
-        "target": "none"
+        "target": "vm"
       },
       { "path": "../../nested_lib_spec/super2_libraries.json",
-        "target": "none"
+        "target": "vm"
       }
     ],
     "libraries": {

@@ -41,7 +41,7 @@ class DartTypeArgumentsSignatureComputer {
     if (argumentList == null) {
       return null;
     }
-    final parent = argumentList.parent;
+    var parent = argumentList.parent;
     Element? element;
     if (parent is NamedType) {
       element = parent.element;
@@ -55,8 +55,8 @@ class DartTypeArgumentsSignatureComputer {
 
     _argumentList = argumentList;
 
-    final label = element.getDisplayString();
-    final documentation = DartUnitHoverComputer.computePreferredDocumentation(
+    var label = element.getDisplayString();
+    var documentation = DartUnitHoverComputer.computePreferredDocumentation(
         _dartdocInfo, element, documentationPreference);
 
     return _toSignatureHelp(
@@ -86,13 +86,13 @@ class DartTypeArgumentsSignatureComputer {
     String? documentation,
     List<TypeParameterElement> typeParameters,
   ) {
-    final parameters = typeParameters
+    var parameters = typeParameters
         .map((param) => lsp.ParameterInformation(
               label: param.getDisplayString(),
             ))
         .toList();
 
-    final signatures = [
+    var signatures = [
       lsp.SignatureInformation(
         label: label,
         documentation: documentation != null

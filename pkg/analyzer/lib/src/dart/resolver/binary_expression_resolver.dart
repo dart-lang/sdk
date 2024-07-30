@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -26,13 +25,11 @@ import 'package:analyzer/src/generated/super_context.dart';
 class BinaryExpressionResolver {
   final ResolverVisitor _resolver;
   final TypePropertyResolver _typePropertyResolver;
-  final InvocationInferenceHelper _inferenceHelper;
 
   BinaryExpressionResolver({
     required ResolverVisitor resolver,
   })  : _resolver = resolver,
-        _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper;
+        _typePropertyResolver = resolver.typePropertyResolver;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -209,7 +206,7 @@ class BinaryExpressionResolver {
       staticType = t;
     }
 
-    _inferenceHelper.recordStaticType(node, staticType);
+    node.recordStaticType(staticType, resolver: _resolver);
 
     _resolver.checkForArgumentTypeNotAssignableForArgument(right);
   }
@@ -238,7 +235,7 @@ class BinaryExpressionResolver {
     _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);
 
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
+    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
   void _resolveLogicalOr(BinaryExpressionImpl node) {
@@ -265,34 +262,14 @@ class BinaryExpressionResolver {
     _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '||', whyNotPromoted: rightWhyNotPromoted);
 
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
+    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
-  void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
-    node.leftOperand.accept(_resolver);
-    node.rightOperand.accept(_resolver);
-    _inferenceHelper.recordStaticType(node, InvalidTypeImpl.instance);
-  }
-
-  void _resolveUserDefinable(BinaryExpressionImpl node,
-      {required DartType contextType}) {
-    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
-    var left = _resolver.popRewrite()!;
-
-    if (left is SuperExpressionImpl) {
-      if (SuperContext.of(left) != SuperContext.valid) {
-        _resolver.analyzeExpression(
-          node.rightOperand,
-          InvalidTypeImpl.instance,
-        );
-        _resolver.popRewrite();
-        node.staticType = InvalidTypeImpl.instance;
-        return;
-      }
-    }
-
-    var operator = node.operator;
-    _resolveUserDefinableElement(node, operator.lexeme);
+  void _resolveRightOperand(
+    BinaryExpressionImpl node,
+    DartType contextType,
+  ) {
+    var left = node.leftOperand;
 
     var invokeType = node.staticInvokeType;
     DartType rightContextType;
@@ -313,6 +290,96 @@ class BinaryExpressionResolver {
     _resolveUserDefinableType(node);
     _resolver.checkForArgumentTypeNotAssignableForArgument(right,
         whyNotPromoted: whyNotPromoted);
+  }
+
+  void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
+    node.leftOperand.accept(_resolver);
+    node.rightOperand.accept(_resolver);
+    node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+  }
+
+  void _resolveUserDefinable(BinaryExpressionImpl node,
+      {required DartType contextType}) {
+    var left = node.leftOperand;
+
+    if (left is AugmentedExpressionImpl) {
+      _resolveUserDefinableAugmented(
+        node,
+        left: left,
+        contextType: contextType,
+      );
+      return;
+    }
+
+    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
+    left = _resolver.popRewrite()!;
+
+    if (left is SuperExpressionImpl) {
+      if (SuperContext.of(left) != SuperContext.valid) {
+        _resolver.analyzeExpression(
+          node.rightOperand,
+          InvalidTypeImpl.instance,
+        );
+        _resolver.popRewrite();
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        return;
+      }
+    }
+
+    var operator = node.operator;
+    _resolveUserDefinableElement(node, operator.lexeme);
+
+    _resolveRightOperand(node, contextType);
+  }
+
+  void _resolveUserDefinableAugmented(
+    BinaryExpressionImpl node, {
+    required AugmentedExpressionImpl left,
+    required DartType contextType,
+  }) {
+    var methodName = node.operator.lexeme;
+
+    var augmentation = _resolver.enclosingAugmentation!;
+    var augmentationTarget = augmentation.augmentationTarget;
+
+    // Unresolved by default.
+    left.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
+
+    switch (augmentationTarget) {
+      case MethodElement operatorElement:
+        left.element = operatorElement;
+        left.setPseudoExpressionStaticType(
+            _resolver.thisType ?? InvalidTypeImpl.instance);
+        if (operatorElement.name == methodName) {
+          node.staticElement = operatorElement;
+          node.staticInvokeType = operatorElement.type;
+        } else {
+          _errorReporter.atToken(
+            left.augmentedKeyword,
+            CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR,
+            arguments: [
+              methodName,
+            ],
+          );
+        }
+      case PropertyAccessorElement accessor:
+        left.element = accessor;
+        if (accessor.isGetter) {
+          left.setPseudoExpressionStaticType(accessor.returnType);
+          _resolveUserDefinableElement(node, methodName);
+        } else {
+          _errorReporter.atToken(
+            left.augmentedKeyword,
+            CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
+          );
+        }
+      case PropertyInducingElement property:
+        left.element = property;
+        left.setPseudoExpressionStaticType(property.type);
+        _resolveUserDefinableElement(node, methodName);
+    }
+
+    _resolveRightOperand(node, contextType);
   }
 
   void _resolveUserDefinableElement(
@@ -340,7 +407,6 @@ class BinaryExpressionResolver {
     }
 
     var leftType = leftOperand.typeOrThrow;
-    leftType = _typeSystem.resolveToBound(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.atNode(
@@ -385,7 +451,9 @@ class BinaryExpressionResolver {
     var leftOperand = node.leftOperand;
 
     DartType leftType;
-    if (leftOperand is ExtensionOverrideImpl) {
+    if (leftOperand is AugmentedExpressionImpl) {
+      leftType = leftOperand.typeOrThrow;
+    } else if (leftOperand is ExtensionOverrideImpl) {
       leftType = leftOperand.extendedType!;
     } else {
       leftType = leftOperand.typeOrThrow;
@@ -393,7 +461,7 @@ class BinaryExpressionResolver {
     }
 
     if (identical(leftType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
       return;
     }
 
@@ -414,6 +482,6 @@ class BinaryExpressionResolver {
         node.staticElement,
       );
     }
-    _inferenceHelper.recordStaticType(node, staticType);
+    node.recordStaticType(staticType, resolver: _resolver);
   }
 }

@@ -5,31 +5,31 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:vm/modular/transformations/type_casts_optimizer.dart'
+    as typeCastsOptimizer show transformAsExpression;
 
 import 'list_factory_specializer.dart';
 
-void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {
-  final transformer =
-      _WasmTransformer(coreTypes, hierarchy, diagnosticReporter);
+void transformLibraries(
+    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
+  final transformer = _WasmTransformer(coreTypes, hierarchy);
   libraries.forEach(transformer.visitLibrary);
 }
 
 void transformProcedure(
     Procedure procedure, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  final transformer = _WasmTransformer(coreTypes, hierarchy, null);
+  final transformer = _WasmTransformer(coreTypes, hierarchy);
   procedure.accept(transformer);
 }
 
 class _WasmTransformer extends Transformer {
   final TypeEnvironment env;
-  final DiagnosticReporter? diagnosticReporter;
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
+  final Set<VariableDeclaration> _implicitFinalVariables = {};
 
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
@@ -64,8 +64,7 @@ class _WasmTransformer extends Transformer {
 
   CoreTypes get coreTypes => env.coreTypes;
 
-  _WasmTransformer(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, this.diagnosticReporter)
+  _WasmTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy)
       : env = TypeEnvironment(coreTypes, hierarchy),
         _nonNullableTypeType = coreTypes.index
             .getClass('dart:core', '_Type')
@@ -110,9 +109,13 @@ class _WasmTransformer extends Transformer {
   defaultMember(Member node) {
     _currentMember = node;
     _cachedTypeContext = null;
+    _implicitFinalVariables.clear();
 
     final result = super.defaultMember(node);
 
+    for (final node in _implicitFinalVariables) {
+      node.isFinal = true;
+    }
     _currentMember = null;
     _cachedTypeContext = null;
     return result;
@@ -153,6 +156,20 @@ class _WasmTransformer extends Transformer {
   }
 
   @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    if (!node.isFinal) {
+      _implicitFinalVariables.add(node);
+    }
+    return super.visitVariableDeclaration(node);
+  }
+
+  @override
+  visitVariableSet(VariableSet node) {
+    _implicitFinalVariables.remove(node.variable);
+    return super.visitVariableSet(node);
+  }
+
+  @override
   TreeNode visitClass(Class cls) {
     // For every concrete class whose type parameters do not match the type
     // parameters of it's super class we embed a special virtual function
@@ -174,8 +191,7 @@ class _WasmTransformer extends Transformer {
           ),
           isExternal: true,
           isSynthetic: true,
-          fileUri: cls.fileUri)
-        ..isNonNullableByDefault = true;
+          fileUri: cls.fileUri);
       cls.addProcedure(getTypeArguments);
     }
     return super.visitClass(cls);
@@ -681,13 +697,14 @@ class _WasmTransformer extends Transformer {
 
   @override
   TreeNode visitFunctionNode(FunctionNode functionNode) {
+    final previousEnclosing = _enclosingIsAsyncStar;
     if (functionNode.dartAsyncMarker == AsyncMarker.AsyncStar) {
       _enclosingIsAsyncStar = true;
       functionNode = _lowerAsyncStar(functionNode) as FunctionNode;
-      _enclosingIsAsyncStar = false;
+      _enclosingIsAsyncStar = previousEnclosing;
       return super.visitFunctionNode(functionNode);
     } else {
-      bool previousEnclosing = _enclosingIsAsyncStar;
+      _enclosingIsAsyncStar = false;
       TreeNode result = super.visitFunctionNode(functionNode);
       _enclosingIsAsyncStar = previousEnclosing;
       return result;
@@ -704,6 +721,12 @@ class _WasmTransformer extends Transformer {
   visitFunctionTearOff(FunctionTearOff node) {
     node.transformChildren(this);
     return node.receiver;
+  }
+
+  @override
+  TreeNode visitAsExpression(AsExpression node) {
+    node.transformChildren(this);
+    return typeCastsOptimizer.transformAsExpression(node, typeContext);
   }
 }
 

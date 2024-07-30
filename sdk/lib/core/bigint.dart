@@ -539,7 +539,7 @@ abstract final class BigInt implements Comparable<BigInt> {
   /// ```
   String toString();
 
-  /// Converts [this] to a string representation in the given [radix].
+  /// Converts this [BigInt] to a string representation in the given [radix].
   ///
   /// In the string representation, lower-case letters are used for digits above
   /// '9', with 'a' being 10 an 'z' being 35.

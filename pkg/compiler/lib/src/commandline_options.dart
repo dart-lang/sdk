@@ -24,8 +24,7 @@ class Flags {
   static const String disableTypeInference = '--disable-type-inference';
   static const String disableRtiOptimization = '--disable-rti-optimization';
   static const String dumpInfo = '--dump-info';
-  static const String readDumpInfoData = '--read-dump-info-data';
-  static const String writeDumpInfoData = '--write-dump-info-data';
+  static const String dumpInfoDataUri = '--dump-info-data';
   static const String dumpDeferredGraph = '--dump-deferred-graph';
   static const String deferredLoadIdMapUri = '--deferred-load-ids';
   static const String dumpSsa = '--dump-ssa';
@@ -90,6 +89,9 @@ class Flags {
   static const String nativeNullAssertions = '--native-null-assertions';
   static const String noNativeNullAssertions = '--no-native-null-assertions';
 
+  static const String interopNullAssertions = '--interop-null-assertions';
+  static const String noInteropNullAssertions = '--no-interop-null-assertions';
+
   static const String noSourceMaps = '--no-source-maps';
 
   static const String omitLateNames = '--omit-late-names';
@@ -119,16 +121,10 @@ class Flags {
 
   static const String dillDependencies = '--dill-dependencies';
   static const String sources = '--sources';
-  static const String readData = '--read-data';
-  static const String writeData = '--write-data';
+  static const String globalInferenceUri = '--global-inference-data';
   static const String memoryMappedFiles = '--memory-map-files';
-  static const String noClosedWorldInData = '--no-closed-world-in-data';
-  static const String writeClosedWorld = '--write-closed-world';
-  static const String readClosedWorld = '--read-closed-world';
-  static const String readCodegen = '--read-codegen';
-  static const String writeCodegen = '--write-codegen';
-  static const String readModularAnalysis = '--read-modular-analysis';
-  static const String writeModularAnalysis = '--write-modular-analysis';
+  static const String closedWorldUri = '--closed-world-data';
+  static const String codegenUri = '--codegen-data';
   static const String codegenShard = '--codegen-shard';
   static const String codegenShards = '--codegen-shards';
   static const String cfeOnly = '--cfe-only';

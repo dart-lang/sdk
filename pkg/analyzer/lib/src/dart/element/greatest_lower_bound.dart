@@ -63,8 +63,8 @@ class GreatestLowerBoundHelper {
       return T1;
     }
 
-    var T1_isBottom = _typeSystem.isBottom(T1);
-    var T2_isBottom = _typeSystem.isBottom(T2);
+    var T1_isBottom = T1.isBottom;
+    var T2_isBottom = T2.isBottom;
 
     // DOWN(T1, T2) where BOTTOM(T1) and BOTTOM(T2)
     if (T1_isBottom && T2_isBottom) {
@@ -377,23 +377,23 @@ class GreatestLowerBoundHelper {
   }
 
   DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
-    final positional1 = T1.positionalFields;
-    final positional2 = T2.positionalFields;
+    var positional1 = T1.positionalFields;
+    var positional2 = T2.positionalFields;
     if (positional1.length != positional2.length) {
       return _typeSystem.typeProvider.neverType;
     }
 
-    final named1 = T1.namedFields;
-    final named2 = T2.namedFields;
+    var named1 = T1.namedFields;
+    var named2 = T2.namedFields;
     if (named1.length != named2.length) {
       return _typeSystem.typeProvider.neverType;
     }
 
-    final positionalFields = <RecordTypePositionalFieldImpl>[];
+    var positionalFields = <RecordTypePositionalFieldImpl>[];
     for (var i = 0; i < positional1.length; i++) {
-      final field1 = positional1[i];
-      final field2 = positional2[i];
-      final type = getGreatestLowerBound(field1.type, field2.type);
+      var field1 = positional1[i];
+      var field2 = positional2[i];
+      var type = getGreatestLowerBound(field1.type, field2.type);
       positionalFields.add(
         RecordTypePositionalFieldImpl(
           type: type,
@@ -401,14 +401,14 @@ class GreatestLowerBoundHelper {
       );
     }
 
-    final namedFields = <RecordTypeNamedFieldImpl>[];
+    var namedFields = <RecordTypeNamedFieldImpl>[];
     for (var i = 0; i < named1.length; i++) {
-      final field1 = named1[i];
-      final field2 = named2[i];
+      var field1 = named1[i];
+      var field2 = named2[i];
       if (field1.name != field2.name) {
         return _typeSystem.typeProvider.neverType;
       }
-      final type = getGreatestLowerBound(field1.type, field2.type);
+      var type = getGreatestLowerBound(field1.type, field2.type);
       namedFields.add(
         RecordTypeNamedFieldImpl(
           name: field1.name,

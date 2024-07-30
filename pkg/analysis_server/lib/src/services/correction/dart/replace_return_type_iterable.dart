@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -14,8 +14,15 @@ class ReplaceReturnTypeIterable extends ResolvedCorrectionProducer {
   /// The text for the type argument to 'Iterable'.
   String _typeArgument = '';
 
+  ReplaceReturnTypeIterable({required super.context});
+
   @override
-  List<Object>? get fixArguments => [_typeArgument];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_typeArgument];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_ITERABLE;

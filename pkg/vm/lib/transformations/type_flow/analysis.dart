@@ -150,7 +150,7 @@ abstract base class _Invocation extends _DependencyTracker
           (this.args == other.args);
 
   @override
-  int get hashCode => combineHashes(selector.hashCode, args.hashCode);
+  late final int hashCode = combineHashes(selector.hashCode, args.hashCode);
 
   @override
   String toString() => "_Invocation $selector $args";
@@ -158,7 +158,9 @@ abstract base class _Invocation extends _DependencyTracker
   /// Processes noSuchMethod() invocation and returns its result.
   /// Used if target is not found or number of arguments is incorrect.
   Type _processNoSuchMethod(Type receiver, TypeFlowAnalysis typeFlowAnalysis) {
-    tracePrint("Processing noSuchMethod for receiver $receiver");
+    if (kPrintTrace) {
+      tracePrint("Processing noSuchMethod for receiver $receiver");
+    }
 
     final nsmSelector = new InterfaceSelector(
         typeFlowAnalysis.hierarchyCache.objectNoSuchMethod,
@@ -167,7 +169,7 @@ abstract base class _Invocation extends _DependencyTracker
     final nsmArgs = new Args<Type>([
       receiver,
       typeFlowAnalysis.hierarchyCache.fromStaticType(
-          typeFlowAnalysis.coreTypes.invocationLegacyRawType, false)
+          typeFlowAnalysis.coreTypes.invocationNonNullableRawType, false)
     ]);
 
     final nsmInvocation =
@@ -247,9 +249,8 @@ abstract base class _Invocation extends _DependencyTracker
 final class _DirectInvocation extends _Invocation {
   _DirectInvocation(DirectSelector selector, Args<Type> args)
       : super(selector, args) {
-    if (!areArgumentsValidFor(selector.member)) {
-      throw 'Creating _DirectInvocation($selector, $args) with invalid args';
-    }
+    assert(areArgumentsValidFor(selector.member),
+        'Creating _DirectInvocation($selector, $args) with invalid args');
   }
 
   @override
@@ -468,7 +469,7 @@ final class _DispatchableInvocation extends _Invocation {
   }
 
   /// Marker for noSuchMethod() invocation in the map of invocation targets.
-  static final Member kNoSuchMethodMarker = new Procedure(
+  static final Member noSuchMethodMarker = new Procedure(
       new Name('noSuchMethod&&'), ProcedureKind.Method, new FunctionNode(null),
       fileUri: dummyUri);
 
@@ -485,6 +486,8 @@ final class _DispatchableInvocation extends _Invocation {
     // along with more accurate receiver types for each target.
     final targets = <Member, _ReceiverTypeBuilder>{};
     final selector = this.selector;
+    Type result = emptyType;
+    bool hasUnknownTargets = false;
     if (selector is FunctionSelector) {
       if (!_collectTargetsForFunctionCall(
           args.receiver, targets, typeFlowAnalysis)) {
@@ -493,19 +496,25 @@ final class _DispatchableInvocation extends _Invocation {
         return selector.staticResultType;
       }
     } else {
-      _collectTargetsForReceiverType(args.receiver, targets, typeFlowAnalysis);
+      if (!_collectTargetsForReceiverType(
+          args.receiver, targets, typeFlowAnalysis)) {
+        // Set of targets is not fully known at compilation time.
+        hasUnknownTargets = true;
+        _setPolymorphic();
+        result = typeFlowAnalysis.hierarchyCache
+            .fromStaticType(selector.staticReturnType, true);
+      }
     }
 
     // Calculate result as a union of results of direct invocations
     // corresponding to each target.
-    Type result = emptyType;
 
     if (targets.isEmpty) {
       tracePrint("No targets...");
     } else {
       if (targets.length == 1) {
         final target = targets.keys.single;
-        if (target != kNoSuchMethodMarker) {
+        if (!identical(target, noSuchMethodMarker) && !hasUnknownTargets) {
           _setMonomorphicTarget(target);
         } else {
           _setPolymorphic();
@@ -519,7 +528,7 @@ final class _DispatchableInvocation extends _Invocation {
         Type receiver = receiverTypeBuilder.toType();
         Type type;
 
-        if (target == kNoSuchMethodMarker) {
+        if (identical(target, noSuchMethodMarker)) {
           // Non-dynamic call-sites must hit NSM-forwarders in Dart 2.
           assert(selector is DynamicSelector);
           type = _processNoSuchMethod(receiver, typeFlowAnalysis);
@@ -581,7 +590,8 @@ final class _DispatchableInvocation extends _Invocation {
     return result;
   }
 
-  void _collectTargetsForReceiverType(
+  // Returns true if set of targets is known at compilation time.
+  bool _collectTargetsForReceiverType(
       Type receiver,
       Map<Member, _ReceiverTypeBuilder> targets,
       TypeFlowAnalysis typeFlowAnalysis) {
@@ -607,7 +617,11 @@ final class _DispatchableInvocation extends _Invocation {
       }
     }
 
+    ConeType? dynamicallyExtendableReceiver;
     if (receiver is ConeType) {
+      if (receiver.cls.hasDynamicallyExtendableSubtypes) {
+        dynamicallyExtendableReceiver = receiver;
+      }
       // Specialization of type cone will add dependency of the current
       // invocation to the receiver class. A new allocated class discovered
       // in the receiver cone will invalidate this invocation.
@@ -632,6 +646,13 @@ final class _DispatchableInvocation extends _Invocation {
     if (isNullableReceiver) {
       _collectTargetsForNull(targets, typeFlowAnalysis);
     }
+
+    if (dynamicallyExtendableReceiver != null) {
+      return _collectTargetsForDynamicallyExtendableType(
+          dynamicallyExtendableReceiver, targets, typeFlowAnalysis);
+    }
+
+    return true;
   }
 
   void _collectTargetsForNull(Map<Member, _ReceiverTypeBuilder> targets,
@@ -671,14 +692,14 @@ final class _DispatchableInvocation extends _Invocation {
       if (kPrintTrace) {
         tracePrint("Found non-trivial noSuchMethod for receiver $receiver");
       }
-      _getReceiverTypeBuilder(targets, kNoSuchMethodMarker)
+      _getReceiverTypeBuilder(targets, noSuchMethodMarker)
           .addConcreteType(receiver);
     } else if (selector is DynamicSelector) {
       if (kPrintTrace) {
         tracePrint(
             "Dynamic selector - adding noSuchMethod for receiver $receiver");
       }
-      _getReceiverTypeBuilder(targets, kNoSuchMethodMarker)
+      _getReceiverTypeBuilder(targets, noSuchMethodMarker)
           .addConcreteType(receiver);
     } else {
       if (kPrintTrace) {
@@ -712,7 +733,7 @@ final class _DispatchableInvocation extends _Invocation {
     // Conservatively include noSuchMethod if selector is not from Object,
     // as class might miss the implementation.
     if (!dynamicTargetSet.isObjectMember) {
-      _getReceiverTypeBuilder(targets, kNoSuchMethodMarker).addType(receiver);
+      _getReceiverTypeBuilder(targets, noSuchMethodMarker).addType(receiver);
     }
   }
 
@@ -733,6 +754,52 @@ final class _DispatchableInvocation extends _Invocation {
       return true;
     }
     return false;
+  }
+
+  bool _collectTargetsForDynamicallyExtendableType(
+      ConeType receiver,
+      Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
+    if (kPrintTrace) {
+      tracePrint(
+          "Collecting targets for dynamically extendable receiver $receiver");
+    }
+    final cls = receiver.cls as _TFClassImpl;
+    // Collect possible targets among dynamically extendable
+    // subtypes as they may have allocated subtypes at run time.
+    final receiverTypeBuilder = _ReceiverTypeBuilder();
+    receiverTypeBuilder.addType(receiver);
+    bool isDynamicallyOverridden = false;
+    for (final extendableSubtype in cls._dynamicallyExtendableSubtypes) {
+      Member? target = extendableSubtype.getDispatchTarget(selector);
+      if (target != null) {
+        if (areArgumentsValidFor(target)) {
+          if (kPrintTrace) {
+            tracePrint(
+                "Found target $target in a dynamically extendable subtype $extendableSubtype");
+          }
+          // Overwrite previously added receiver type builder.
+          targets[target] = receiverTypeBuilder;
+          isDynamicallyOverridden = isDynamicallyOverridden ||
+              typeFlowAnalysis.nativeCodeOracle
+                  .isDynamicallyOverriddenMember(target);
+        } else {
+          assert(selector is DynamicSelector);
+          _recordMismatchedDynamicInvocation(target, typeFlowAnalysis);
+        }
+      } else {
+        isDynamicallyOverridden = true;
+      }
+    }
+    if (selector is DynamicSelector) {
+      targets[noSuchMethodMarker] = receiverTypeBuilder;
+      isDynamicallyOverridden = true;
+    }
+    if (kPrintTrace) {
+      tracePrint(
+          "isDynamicallyOverridden = $isDynamicallyOverridden, isPrivate = ${selector.name.isPrivate}");
+    }
+    return !isDynamicallyOverridden || selector.name.isPrivate;
   }
 
   void _recordMismatchedDynamicInvocation(
@@ -1163,20 +1230,74 @@ class _DynamicTargetSet extends _DependencyTracker {
 class _TFClassImpl extends TFClass {
   final _TFClassImpl? superclass;
   final Set<_TFClassImpl> _allocatedSubtypes = new Set<_TFClassImpl>();
+  final Set<_TFClassImpl> _dynamicallyExtendableSubtypes =
+      new Set<_TFClassImpl>();
   late final Map<Name, Member> _dispatchTargetsSetters =
       _initDispatchTargets(true);
   late final Map<Name, Member> _dispatchTargetsNonSetters =
       _initDispatchTargets(false);
   final _DependencyTracker dependencyTracker = new _DependencyTracker();
 
-  /// Flag indicating if this class has a noSuchMethod() method not inherited
-  /// from Object.
-  /// Lazy initialized by ClassHierarchyCache.hasNonTrivialNoSuchMethod().
-  bool? hasNonTrivialNoSuchMethod;
+  // Flag indicating if this class has a noSuchMethod() method not inherited
+  // from Object.
+  // Lazy initialized by ClassHierarchyCache.hasNonTrivialNoSuchMethod().
+  static const int flagHasNonTrivialNoSuchMethod = 1 << 0;
+
+  // Flag indicating if flagHasNonTrivialNoSuchMethod was initialized.
+  static const int flagHasNonTrivialNoSuchMethodInitialized = 1 << 1;
+
+  // This class can be extended by a dynamically loaded class
+  // (unknown at compilation time).
+  static const int flagIsDynamicallyExtendable = 1 << 2;
+
+  // This class has a subtype which can be extended by a
+  // dynamically loaded class (unknown at compilation time).
+  static const int flagHasDynamicallyExtendableSubtypes = 1 << 3;
+
+  int _flags = 0;
 
   _TFClassImpl(int id, Class classNode, this.superclass,
       Set<TFClass> supertypes, RecordShape? recordShape)
       : super(id, classNode, supertypes, recordShape);
+
+  bool get hasNonTrivialNoSuchMethodInitialized =>
+      (_flags & flagHasNonTrivialNoSuchMethodInitialized) != 0;
+
+  bool get hasNonTrivialNoSuchMethod =>
+      (_flags & flagHasNonTrivialNoSuchMethod) != 0;
+
+  set hasNonTrivialNoSuchMethod(bool value) {
+    if (value) {
+      _flags = _flags |
+          flagHasNonTrivialNoSuchMethod |
+          flagHasNonTrivialNoSuchMethodInitialized;
+    } else {
+      _flags = (_flags & ~flagHasNonTrivialNoSuchMethod) |
+          flagHasNonTrivialNoSuchMethodInitialized;
+    }
+  }
+
+  bool get isDynamicallyExtendable =>
+      (_flags & flagIsDynamicallyExtendable) != 0;
+
+  set isDynamicallyExtendable(bool value) {
+    if (value) {
+      _flags |= flagIsDynamicallyExtendable;
+    } else {
+      _flags &= ~flagIsDynamicallyExtendable;
+    }
+  }
+
+  bool get hasDynamicallyExtendableSubtypes =>
+      (_flags & flagHasDynamicallyExtendableSubtypes) != 0;
+
+  set hasDynamicallyExtendableSubtypes(bool value) {
+    if (value) {
+      _flags |= flagHasDynamicallyExtendableSubtypes;
+    } else {
+      _flags &= ~flagHasDynamicallyExtendableSubtypes;
+    }
+  }
 
   Type? _specializedConeType;
   Type get specializedConeType =>
@@ -1357,7 +1478,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
       getTFClass(coreTypes.deprecatedNullClass);
 
   _ClassHierarchyCache(this._typeFlowAnalysis, this.genericInterfacesInfo,
-      super.coreTypes, super.target, super.soundNullSafety)
+      super.coreTypes, super.target)
       : objectNoSuchMethod =
             coreTypes.index.getProcedure('dart:core', 'Object', 'noSuchMethod');
 
@@ -1430,12 +1551,21 @@ class _ClassHierarchyCache extends TypeHierarchy {
     return cls._dispatchTargetsNonSetters[Name(name)] as Field;
   }
 
+  void addDynamicallyExtendableClass(_TFClassImpl cls) {
+    cls.isDynamicallyExtendable = true;
+    for (final supertype in cls.supertypes) {
+      final supertypeImpl = supertype as _TFClassImpl;
+      supertypeImpl.hasDynamicallyExtendableSubtypes = true;
+      supertypeImpl._dynamicallyExtendableSubtypes.add(cls);
+    }
+  }
+
   void seal() {
     _sealed = true;
   }
 
   @override
-  Type specializeTypeCone(TFClass baseClass, {bool allowWideCone = false}) {
+  Type specializeTypeCone(TFClass baseClass, {required bool allowWideCone}) {
     if (kPrintTrace) {
       tracePrint("specializeTypeCone for $baseClass");
     }
@@ -1475,17 +1605,17 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
   bool _hasWideCone(_TFClassImpl cls) =>
       cls._allocatedSubtypes.length >
-      _typeFlowAnalysis.config.maxAllocatedTypesInSetSpecialization;
+          _typeFlowAnalysis.config.maxAllocatedTypesInSetSpecialization ||
+      cls.hasDynamicallyExtendableSubtypes;
 
   bool hasNonTrivialNoSuchMethod(TFClass c) {
     final classImpl = c as _TFClassImpl;
-    bool? value = classImpl.hasNonTrivialNoSuchMethod;
-    if (value == null) {
-      classImpl.hasNonTrivialNoSuchMethod = value =
-          (classImpl._dispatchTargetsNonSetters[noSuchMethodName] !=
-              objectNoSuchMethod);
+    if (classImpl.hasNonTrivialNoSuchMethodInitialized) {
+      return classImpl.hasNonTrivialNoSuchMethod;
     }
-    return value;
+    return classImpl.hasNonTrivialNoSuchMethod =
+        (classImpl._dispatchTargetsNonSetters[noSuchMethodName] !=
+            objectNoSuchMethod);
   }
 
   _DynamicTargetSet getDynamicTargetSet(DynamicSelector selector) {
@@ -1752,8 +1882,8 @@ class TypeFlowAnalysis
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes, target) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
-    hierarchyCache = new _ClassHierarchyCache(this, _genericInterfacesInfo,
-        coreTypes, target, target.flags.soundNullSafety);
+    hierarchyCache = new _ClassHierarchyCache(
+        this, _genericInterfacesInfo, coreTypes, target);
     summaryCollector = new SummaryCollector(
         target,
         environment,
@@ -1876,6 +2006,8 @@ class TypeFlowAnalysis
 
   List<VariableDeclaration>? uncheckedParameters(Member member) =>
       _summaries[member]?.uncheckedParameters;
+
+  Type? resultType(Member member) => _summaries[member]?.resultType;
 
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 
@@ -2012,6 +2144,14 @@ class TypeFlowAnalysis
     final callMethod = closure.createCallMethod();
     _closureByCallMethod[callMethod] = closure;
     return callMethod;
+  }
+
+  @override
+  void addDynamicallyExtendableClass(Class c) {
+    if (kPrintDebug) {
+      debugPrint("ADD DYNAMICALLY EXTENDABLE CLASS: $c");
+    }
+    hierarchyCache.addDynamicallyExtendableClass(hierarchyCache.getTFClass(c));
   }
 
   /// ---- Implementation of [SharedVariableBuilder] interface. ----

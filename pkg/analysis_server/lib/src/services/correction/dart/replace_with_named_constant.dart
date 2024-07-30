@@ -2,28 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
+  ReplaceWithNamedConstant({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   FixKind get fixKind => DartFixKind.USE_NAMED_CONSTANTS;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic is AnalysisError) {
       String? correctionMessage = diagnostic.correctionMessage;
-      if(correctionMessage == null){
+      if (correctionMessage == null) {
         return;
       }
 
       String? correction = _getCorrection(correctionMessage);
-      if(correction == null){
+      if (correction == null) {
         return;
       }
 
@@ -33,11 +40,10 @@ class ReplaceWithNamedConstant extends ResolvedCorrectionProducer {
     }
   }
 
-
   static String? _getCorrection(String message) {
-    final match = RegExp(r"'(.*)'").firstMatch(message);
+    var match = RegExp(r"'(.*)'").firstMatch(message);
     if (match == null) {
-        return null;
+      return null;
     }
     return match.group(1);
   }

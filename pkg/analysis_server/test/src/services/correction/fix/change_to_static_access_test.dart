@@ -38,25 +38,6 @@ void f(A a) {
 ''');
   }
 
-  Future<void> test_method_extension() async {
-    await resolveTestCode('''
-extension E on int {
-  static void foo() {}
-}
-void f() {
-  0.foo();
-}
-''');
-    await assertHasFix('''
-extension E on int {
-  static void foo() {}
-}
-void f() {
-  E.foo();
-}
-''');
-  }
-
   Future<void> test_method_importType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

@@ -43,7 +43,6 @@ class ConstructorElementToInfer {
   /// For example given the type `class C<T> { C(T arg); }`, the generic
   /// function type is `<T>(T) -> C<T>`.
   FunctionType get asType {
-    var typeParameters = this.typeParameters;
     return typeParameters.isEmpty
         ? element.type
         : FunctionTypeImpl(
@@ -87,9 +86,6 @@ class InvocationInferenceHelper {
     var typeElement = typeName.element;
     if (typeElement is InterfaceElement) {
       var augmented = typeElement.augmented;
-      if (augmented == null) {
-        return null;
-      }
       typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName.name;
       if (constructorIdentifier == null) {
@@ -148,17 +144,6 @@ class InvocationInferenceHelper {
     return tearOffType;
   }
 
-  /// Record that the static type of the given node is the given type.
-  ///
-  /// @param expression the node whose type is to be recorded
-  /// @param type the static type of the node
-  void recordStaticType(ExpressionImpl expression, DartType type) {
-    expression.staticType = type;
-    if (_typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis.flow?.handleExit();
-    }
-  }
-
   /// Finish resolution of the [MethodInvocation].
   ///
   /// We have already found the invoked [ExecutableElement], and the [rawType]
@@ -178,6 +163,6 @@ class InvocationInferenceHelper {
       whyNotPromotedList: whyNotPromotedList,
     ).resolveInvocation(rawType: rawType);
 
-    recordStaticType(node, returnType);
+    node.recordStaticType(returnType, resolver: _resolver);
   }
 }

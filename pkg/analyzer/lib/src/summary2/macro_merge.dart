@@ -37,9 +37,13 @@ class MacroElementsMerger {
   });
 
   void perform({
-    required Function() updateConstants,
+    required void Function() updateConstants,
   }) {
-    _mergeClasses();
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/55931
+    // This is a fix for this specific issue, not a complete implementation.
+    _mergeClasses(isAugmentation: false);
+    _mergeClasses(isAugmentation: true);
+    _mergeExtensions();
     _mergeFunctions();
     _mergeUnitPropertyAccessors();
     _mergeUnitVariables();
@@ -47,24 +51,28 @@ class MacroElementsMerger {
     _rewriteImportPrefixes();
   }
 
-  void _mergeClasses() {
-    for (final partialUnit in partialUnits) {
-      final elementsToAdd = <ClassElementImpl>[];
-      for (final element in partialUnit.element.classes) {
-        final reference = element.reference!;
-        final containerRef = element.isAugmentation
-            ? unitReference.getChild('@classAugmentation')
-            : unitReference.getChild('@class');
-        final existingRef = containerRef[element.name];
-        if (existingRef == null) {
-          elementsToAdd.add(element);
-          containerRef.addChildReference(element.name, reference);
-        } else {
-          final existingElement = existingRef.element as ClassElementImpl;
-          if (existingElement.augmentation == element) {
-            existingElement.augmentation = null;
+  void _mergeClasses({
+    required bool isAugmentation,
+  }) {
+    for (var partialUnit in partialUnits) {
+      var elementsToAdd = <ClassElementImpl>[];
+      for (var element in partialUnit.element.classes) {
+        if (element.isAugmentation == isAugmentation) {
+          var reference = element.reference!;
+          var containerRef = element.isAugmentation
+              ? unitReference.getChild('@classAugmentation')
+              : unitReference.getChild('@class');
+          var existingRef = containerRef[element.name];
+          if (existingRef == null) {
+            elementsToAdd.add(element);
+            containerRef.addChildReference(element.name, reference);
+          } else {
+            var existingElement = existingRef.element as ClassElementImpl;
+            if (existingElement.augmentation == element) {
+              existingElement.augmentation = null;
+            }
+            _mergeInstanceChildren(existingRef, existingElement, element);
           }
-          _mergeInstanceChildren(existingRef, existingElement, element);
         }
       }
       unitElement.classes = [
@@ -74,20 +82,50 @@ class MacroElementsMerger {
     }
   }
 
+  void _mergeExtensions() {
+    for (var partialUnit in partialUnits) {
+      var elementsToAdd = <ExtensionElementImpl>[];
+      for (var element in partialUnit.element.extensions) {
+        var reference = element.reference!;
+        var containerRef = element.isAugmentation
+            ? unitReference.getChild('@extensionAugmentation')
+            : unitReference.getChild('@extension');
+        var name = element.name;
+        if (name != null) {
+          var existingRef = containerRef[name];
+          if (existingRef == null) {
+            elementsToAdd.add(element);
+            containerRef.addChildReference(name, reference);
+          } else {
+            var existingElement = existingRef.element as ExtensionElementImpl;
+            if (existingElement.augmentation == element) {
+              existingElement.augmentation = null;
+            }
+            _mergeInstanceChildren(existingRef, existingElement, element);
+          }
+        }
+      }
+      unitElement.extensions = [
+        ...unitElement.extensions,
+        ...elementsToAdd,
+      ].toFixedList();
+    }
+  }
+
   void _mergeFunctions() {
-    for (final partialUnit in partialUnits) {
-      final elementsToAdd = <FunctionElementImpl>[];
-      for (final element in partialUnit.element.functions) {
-        final reference = element.reference!;
-        final containerRef = element.isAugmentation
+    for (var partialUnit in partialUnits) {
+      var elementsToAdd = <FunctionElementImpl>[];
+      for (var element in partialUnit.element.functions) {
+        var reference = element.reference!;
+        var containerRef = element.isAugmentation
             ? unitReference.getChild('@functionAugmentation')
             : unitReference.getChild('@function');
-        final existingRef = containerRef[element.name];
+        var existingRef = containerRef[element.name];
         if (existingRef == null) {
           elementsToAdd.add(element);
           containerRef.addChildReference(element.name, reference);
         } else {
-          final existingElement = existingRef.element as FunctionElementImpl;
+          var existingElement = existingRef.element as FunctionElementImpl;
           if (existingElement.augmentation == element) {
             existingElement.augmentation = null;
           }
@@ -105,9 +143,9 @@ class MacroElementsMerger {
     InstanceElementImpl existingElement,
     InstanceElementImpl newElement,
   ) {
-    for (final element in newElement.fields) {
-      final reference = element.reference!;
-      final containerRef = element.isAugmentation
+    for (var element in newElement.fields) {
+      var reference = element.reference!;
+      var containerRef = element.isAugmentation
           ? existingRef.getChild('@fieldAugmentation')
           : existingRef.getChild('@field');
       containerRef.addChildReference(element.name, reference);
@@ -117,9 +155,9 @@ class MacroElementsMerger {
       ...newElement.fields,
     ].toFixedList();
 
-    for (final element in newElement.accessors) {
-      final reference = element.reference!;
-      final containerRef = element.isGetter
+    for (var element in newElement.accessors) {
+      var reference = element.reference!;
+      var containerRef = element.isGetter
           ? element.isAugmentation
               ? existingRef.getChild('@getterAugmentation')
               : existingRef.getChild('@getter')
@@ -133,9 +171,9 @@ class MacroElementsMerger {
       ...newElement.accessors,
     ].toFixedList();
 
-    for (final element in newElement.methods) {
-      final reference = element.reference!;
-      final containerRef = element.isAugmentation
+    for (var element in newElement.methods) {
+      var reference = element.reference!;
+      var containerRef = element.isAugmentation
           ? existingRef.getChild('@methodAugmentation')
           : existingRef.getChild('@method');
       containerRef.addChildReference(element.name, reference);
@@ -154,9 +192,9 @@ class MacroElementsMerger {
         ].toFixedList();
       }
 
-      for (final element in newElement.constructors) {
-        final reference = element.reference!;
-        final containerRef = element.isAugmentation
+      for (var element in newElement.constructors) {
+        var reference = element.reference!;
+        var containerRef = element.isAugmentation
             ? existingRef.getChild('@constructorAugmentation')
             : existingRef.getChild('@constructor');
         containerRef.addChildReference(element.name, reference);
@@ -169,10 +207,10 @@ class MacroElementsMerger {
   }
 
   void _mergeUnitPropertyAccessors() {
-    final containerRef = unitReference.getChild('@accessor');
-    for (final partialUnit in partialUnits) {
-      for (final element in partialUnit.element.accessors) {
-        final reference = element.reference!;
+    var containerRef = unitReference.getChild('@accessor');
+    for (var partialUnit in partialUnits) {
+      for (var element in partialUnit.element.accessors) {
+        var reference = element.reference!;
         containerRef.addChildReference(element.name, reference);
       }
       unitElement.accessors = [
@@ -183,10 +221,10 @@ class MacroElementsMerger {
   }
 
   void _mergeUnitVariables() {
-    final containerRef = unitReference.getChild('@topLevelVariable');
-    for (final partialUnit in partialUnits) {
-      for (final element in partialUnit.element.topLevelVariables) {
-        final reference = element.reference!;
+    var containerRef = unitReference.getChild('@topLevelVariable');
+    for (var partialUnit in partialUnits) {
+      for (var element in partialUnit.element.topLevelVariables) {
+        var reference = element.reference!;
         containerRef.addChildReference(element.name, reference);
       }
       unitElement.topLevelVariables = [
@@ -197,13 +235,13 @@ class MacroElementsMerger {
   }
 
   void _rewriteImportPrefixes() {
-    final uriToPartialPrefixes = <Uri, List<PrefixElementImpl>>{};
-    for (final partialUnit in partialUnits) {
-      for (final import in partialUnit.container.libraryImports) {
-        final prefix = import.prefix?.element;
-        final importedLibrary = import.importedLibrary;
+    var uriToPartialPrefixes = <Uri, List<PrefixElementImpl>>{};
+    for (var partialUnit in partialUnits) {
+      for (var import in partialUnit.container.libraryImports) {
+        var prefix = import.prefix?.element;
+        var importedLibrary = import.importedLibrary;
         if (prefix != null && importedLibrary != null) {
-          final uri = importedLibrary.source.uri;
+          var uri = importedLibrary.source.uri;
           (uriToPartialPrefixes[uri] ??= []).add(prefix);
         }
       }
@@ -211,16 +249,16 @@ class MacroElementsMerger {
 
     // The merged augmentation imports the same libraries, but with
     // different prefixes. Prepare the mapping.
-    final partialPrefixToMerged =
+    var partialPrefixToMerged =
         Map<PrefixElementImpl, PrefixElementImpl>.identity();
-    for (final import in augmentation.libraryImports) {
-      final prefix = import.prefix?.element;
-      final importedLibrary = import.importedLibrary;
+    for (var import in augmentation.libraryImports) {
+      var prefix = import.prefix?.element;
+      var importedLibrary = import.importedLibrary;
       if (prefix != null && importedLibrary != null) {
-        final uri = importedLibrary.source.uri;
-        final partialPrefixes = uriToPartialPrefixes[uri];
+        var uri = importedLibrary.source.uri;
+        var partialPrefixes = uriToPartialPrefixes[uri];
         if (partialPrefixes != null) {
-          for (final partialPrefix in partialPrefixes) {
+          for (var partialPrefix in partialPrefixes) {
             partialPrefixToMerged[partialPrefix] = prefix;
           }
         }
@@ -228,8 +266,8 @@ class MacroElementsMerger {
     }
 
     // Rewrite import prefixes in constants.
-    final visitor = _RewriteImportPrefixes(partialPrefixToMerged);
-    for (final partialUnit in partialUnits) {
+    var visitor = _RewriteImportPrefixes(partialPrefixToMerged);
+    for (var partialUnit in partialUnits) {
       partialUnit.node.accept(visitor);
     }
   }
@@ -310,8 +348,6 @@ class MacroUpdateConstantsForOptimizedCode {
       if (element.isAugmentation) continue;
 
       var augmented = element.augmented;
-      if (augmented == null) continue;
-
       var hasConst = augmented.constructors.any((e) => e.isConst);
       if (hasConst) {
         _namesOfConstClasses.add(element.name);
@@ -607,7 +643,7 @@ class _RewriteImportPrefixes extends ast.RecursiveAstVisitor<void> {
   @override
   void visitNamedType(covariant ast.NamedTypeImpl node) {
     if (node.importPrefix case var importPrefix?) {
-      final mergedPrefix = partialPrefixToMerged[importPrefix.element];
+      var mergedPrefix = partialPrefixToMerged[importPrefix.element];
       if (mergedPrefix != null) {
         node.importPrefix = ast.ImportPrefixReferenceImpl(
           name: StringToken(
@@ -625,7 +661,7 @@ class _RewriteImportPrefixes extends ast.RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(covariant ast.SimpleIdentifierImpl node) {
-    final mergedPrefix = partialPrefixToMerged[node.staticElement];
+    var mergedPrefix = partialPrefixToMerged[node.staticElement];
     if (mergedPrefix != null) {
       // The name may be different in the merged augmentation.
       node.token = StringToken(

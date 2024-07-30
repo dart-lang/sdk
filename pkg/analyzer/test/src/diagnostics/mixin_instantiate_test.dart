@@ -30,7 +30,7 @@ void f() {
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 45, 1),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -63,7 +63,7 @@ void f() {
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 29, 1),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

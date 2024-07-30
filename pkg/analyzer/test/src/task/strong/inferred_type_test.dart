@@ -1893,7 +1893,7 @@ void main() {
 
     List<ExpectedError> errors = [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 188, 4,
-          contextMessages: [message(dartAsyncFile, 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 589, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 226, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 239, 4),
       error(
@@ -1986,7 +1986,7 @@ void main() {
     await _assertErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "Future"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 589, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2015,7 +2015,7 @@ void main() {
     await _assertErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 589, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2044,7 +2044,7 @@ void main() {
     await _assertErrors(
         build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 589, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2074,7 +2074,7 @@ void main() {
         build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
         [
           error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-              contextMessages: [message(dartAsyncFile, 506, 4)]),
+              contextMessages: [message(dartAsyncFile, 589, 4)]),
           error(
               CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
           error(
@@ -2105,7 +2105,7 @@ void main() {
     await _assertErrors(
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 589, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2134,7 +2134,7 @@ void main() {
     await _assertErrors(
         build(declared: "Future", downwards: "Future", upwards: "Future"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-          contextMessages: [message(dartAsyncFile, 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 589, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
       error(
@@ -2248,7 +2248,7 @@ $declared foo() => new $declared<int>.value(1);
       build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
@@ -2262,7 +2262,7 @@ $declared foo() => new $declared<int>.value(1);
       build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 311, 2),
@@ -2277,7 +2277,7 @@ $declared foo() => new $declared<int>.value(1);
       build(declared: "Future", downwards: "Future", upwards: "Future"),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
@@ -2340,7 +2340,7 @@ $downwards<int> g3(bool x) async {
 
     await assertErrorsInCode(build(downwards: "Future", upwards: "Future"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 185, 4,
-          contextMessages: [message(dartAsyncFile, 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 589, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 236, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 464, 1),
@@ -2349,7 +2349,7 @@ $downwards<int> g3(bool x) async {
 
     await assertErrorsInCode(build(downwards: "Future", upwards: "MyFuture"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 185, 4,
-          contextMessages: [message(dartAsyncFile, 506, 4)]),
+          contextMessages: [message(dartAsyncFile, 589, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 236, 4),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 470, 1),
@@ -2394,7 +2394,7 @@ $downwards<List<int>> g3() async {
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
@@ -2412,7 +2412,7 @@ $downwards<List<int>> g3() async {
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
@@ -2429,7 +2429,7 @@ $downwards<List<int>> g3() async {
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(
@@ -2447,7 +2447,7 @@ $downwards<List<int>> g3() async {
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
-            contextMessages: [message(dartAsyncFile, 506, 4)]),
+            contextMessages: [message(dartAsyncFile, 589, 4)]),
         error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 225, 7),
         error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 238, 4),
         error(

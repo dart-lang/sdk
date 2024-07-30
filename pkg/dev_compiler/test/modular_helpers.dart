@@ -9,6 +9,8 @@ import 'package:modular_test/src/create_package_config.dart';
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/runner.dart';
+import 'package:modular_test/src/steps/macro_precompile_aot.dart';
+import 'package:modular_test/src/steps/util.dart';
 import 'package:modular_test/src/suite.dart';
 
 String packageConfigJsonPath = '.dart_tool/package_config.json';
@@ -34,7 +36,7 @@ class SourceToSummaryDillStep implements IOModularStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillId];
+  List<DataId> get dependencyDataNeeded => const [dillId, precompiledMacroId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
@@ -109,19 +111,26 @@ class SourceToSummaryDillStep implements IOModularStep {
       ...transitiveDependencies
           .where((m) => !m.isSdk)
           .expand((m) => ['--input-summary', '${toUri(m, dillId)}']),
+      ...transitiveDependencies
+          .where((m) => m.macroConstructors.isNotEmpty)
+          .expand((m) =>
+              ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};']),
       ...sources.expand((String uri) => ['--source', uri]),
       ...flags.expand((String flag) => ['--enable-experiment', flag]),
     ];
 
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
-    _checkExitCode(result, this, module);
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: source-to-dill on $module');
   }
+
+  @override
+  bool shouldExecute(Module module) => true;
 }
 
 class DDCStep implements IOModularStep {
@@ -137,7 +146,7 @@ class DDCStep implements IOModularStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillId];
+  List<DataId> get dependencyDataNeeded => const [dillId, precompiledMacroId];
 
   @override
   List<DataId> get moduleDataNeeded => const [dillId];
@@ -202,18 +211,25 @@ class DDCStep implements IOModularStep {
       ...transitiveDependencies
           .where((m) => !m.isSdk)
           .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}']),
+      ...transitiveDependencies
+          .where((m) => m.macroConstructors.isNotEmpty)
+          .expand((m) =>
+              ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};']),
       '-o',
       '$output',
     ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
-    _checkExitCode(result, this, module);
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: ddc on $module');
   }
+
+  @override
+  bool shouldExecute(Module module) => true;
 }
 
 class RunD8 implements IOModularStep {
@@ -263,10 +279,10 @@ class RunD8 implements IOModularStep {
         '${root.resolveUri(toUri(module, jsId)).toFilePath()}.wrapper.js';
     await File(wrapper).writeAsString(runjs);
     var d8Args = ['--module', wrapper];
-    var result = await _runProcess(
-        sdkRoot.resolve(_d8executable).toFilePath(), d8Args, root.toFilePath());
+    var result = await runProcess(sdkRoot.resolve(_d8executable).toFilePath(),
+        d8Args, root.toFilePath(), _options.verbose);
 
-    _checkExitCode(result, this, module);
+    checkExitCode(result, this, module, _options.verbose);
 
     await File.fromUri(root.resolveUri(toUri(module, txtId)))
         .writeAsString(result.stdout as String);
@@ -276,26 +292,9 @@ class RunD8 implements IOModularStep {
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: d8 on $module');
   }
-}
 
-void _checkExitCode(ProcessResult result, IOModularStep step, Module module) {
-  if (result.exitCode != 0 || _options.verbose) {
-    stdout.write(result.stdout);
-    stderr.write(result.stderr);
-  }
-  if (result.exitCode != 0) {
-    throw '${step.runtimeType} failed on $module:\n\n'
-        'stdout:\n${result.stdout}\n\n'
-        'stderr:\n${result.stderr}';
-  }
-}
-
-Future<ProcessResult> _runProcess(
-    String command, List<String> arguments, String workingDirectory) {
-  if (_options.verbose) {
-    print('command:\n$command ${arguments.join(' ')} from $workingDirectory');
-  }
-  return Process.run(command, arguments, workingDirectory: workingDirectory);
+  @override
+  bool shouldExecute(Module module) => true;
 }
 
 String get _d8executable {

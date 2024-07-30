@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:kernel/binary/tag.dart' show isValidSdkHash;
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
 
@@ -123,18 +124,33 @@ String _cachedKernelPath(String executable, String packageRoot) {
   );
 }
 
-/// Ensures that the Resident Frontend Compiler is running, starting it if
-/// necessary. Throws a [FrontendCompilerException] if starting the server
+/// Ensures that a Resident Frontend Compiler associated with [serverInfoFile]
+/// will be running at the point when the future returned by this function
+/// completes. Throws a [FrontendCompilerException] if starting the server
 /// fails.
 Future<void> ensureCompilationServerIsRunning(
   File serverInfoFile,
 ) async {
   if (serverInfoFile.existsSync()) {
-    return;
+    final residentCompilerInfo = ResidentCompilerInfo.fromFile(serverInfoFile);
+    if (residentCompilerInfo.sdkHash != null &&
+        isValidSdkHash(residentCompilerInfo.sdkHash!)) {
+      // There is already a Resident Frontend Compiler associated with
+      // [serverInfoFile] that is running and compatible with the Dart SDK that
+      // the user is currently using.
+      return;
+    } else {
+      log.stderr(
+        'The Dart SDK has been upgraded or downgraded since the Resident '
+        'Frontend Compiler was started, so the Resident Frontend Compiler will '
+        'now be restarted for compatibility reasons.',
+      );
+      await shutDownOrForgetResidentFrontendCompiler(serverInfoFile);
+    }
   }
   try {
     Directory(p.dirname(serverInfoFile.path)).createSync(recursive: true);
-    late final Process frontendServerProcess;
+    final Process frontendServerProcess;
     if (File(sdk.frontendServerAotSnapshot).existsSync()) {
       frontendServerProcess = await Process.start(
         sdk.dartAotRuntime,

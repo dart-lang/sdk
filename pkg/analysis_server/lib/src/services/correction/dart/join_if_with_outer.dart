@@ -3,15 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class JoinIfWithOuter extends ResolvedCorrectionProducer {
+  JoinIfWithOuter({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   AssistKind get assistKind => DartAssistKind.JOIN_IF_WITH_OUTER;
 
@@ -48,10 +55,10 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     var outerCondition = outerIfStatement.expression;
     var targetConditionSource = utils.getNodeText(targetCondition);
     var outerConditionSource = utils.getNodeText(outerCondition);
-    if (shouldWrapParenthesisBeforeAnd(targetCondition)) {
+    if (targetCondition.shouldWrapParenthesisBeforeAnd) {
       targetConditionSource = '($targetConditionSource)';
     }
-    if (shouldWrapParenthesisBeforeAnd(outerCondition)) {
+    if (outerCondition.shouldWrapParenthesisBeforeAnd) {
       outerConditionSource = '($outerConditionSource)';
     }
     var condition = '$outerConditionSource && $targetConditionSource';

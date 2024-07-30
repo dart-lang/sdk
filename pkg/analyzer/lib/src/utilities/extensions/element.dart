@@ -12,7 +12,7 @@ import 'package:meta/meta.dart';
 extension ElementExtension on Element {
   // TODO(scheglov): Maybe just add to `Element`?
   Element? get augmentation {
-    if (this case final AugmentableElement augmentable) {
+    if (this case AugmentableElement augmentable) {
       return augmentable.augmentation;
     }
     return null;
@@ -34,7 +34,7 @@ extension ElementExtension on Element {
 
   /// Whether the element is effectively [protected].
   bool get isProtected {
-    final self = this;
+    var self = this;
     if (self is PropertyAccessorElement &&
         self.enclosingElement is InterfaceElement) {
       if (self.hasProtected) {
@@ -68,7 +68,7 @@ extension ElementExtension on Element {
   }
 
   List<Element> get withAugmentations {
-    final result = <Element>[];
+    var result = <Element>[];
     Element? current = this;
     while (current != null) {
       result.add(current);

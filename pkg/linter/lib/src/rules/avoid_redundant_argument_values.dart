@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -51,7 +52,7 @@ class AvoidRedundantArgumentValues extends LintRule {
             name: 'avoid_redundant_argument_values',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -59,7 +60,7 @@ class AvoidRedundantArgumentValues extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addEnumConstantArguments(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addFunctionExpressionInvocation(this, visitor);
@@ -69,9 +70,8 @@ class AvoidRedundantArgumentValues extends LintRule {
 
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
-  final LinterContext context;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule);
 
   void check(ArgumentList argumentList) {
     var arguments = argumentList.arguments;
@@ -108,7 +108,7 @@ class _Visitor extends SimpleAstVisitor {
     //   rule.reportLint(arg);
     // } else ...
     if (value != null && value.hasKnownValue) {
-      var expressionValue = context.evaluateConstant(arg).value;
+      var expressionValue = arg.computeConstantValue().value;
       if ((expressionValue?.hasKnownValue ?? false) &&
           expressionValue == value) {
         rule.reportLint(arg);
@@ -135,15 +135,23 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     var redirectedConstructor = constructor?.redirectedConstructor;
-    while (redirectedConstructor?.redirectedConstructor != null) {
-      redirectedConstructor = redirectedConstructor?.redirectedConstructor;
-    }
-    if (redirectedConstructor == null) {
+    if (constructor == null || redirectedConstructor == null) {
       check(node.argumentList);
       return;
     }
 
-    var parameters = redirectedConstructor.parameters;
+    var visitedConstructors = {constructor};
+    while (redirectedConstructor != null) {
+      if (visitedConstructors.contains(redirectedConstructor)) {
+        // Cycle. Compile-time error.
+        return;
+      }
+      visitedConstructors.add(redirectedConstructor);
+      constructor = redirectedConstructor;
+      redirectedConstructor = redirectedConstructor.redirectedConstructor;
+    }
+
+    var parameters = constructor!.parameters;
 
     // If the constructor being called is a redirecting factory constructor, an
     // argument is redundant if it is equal to the default value of the

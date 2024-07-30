@@ -87,7 +87,7 @@ to a change being released in a dev channel release.
 
   * Very short summary of the intended change
 
-  * Link to the above mentioned issue
+  * Link to the above-mentioned issue
 
   * A request that developers may leave comments in the linked issue, if this
     breaking change poses a severe problem.
@@ -136,8 +136,8 @@ After the breaking change has been made, the person who made the change must:
 * Reply to the original announcement email, and make a note that the change is
   being implemented.
 
-If not approved, or if the requestor decides to not pursue the change, the
-requestor must:
+If not approved, or if the requester decides to not pursue the change, the
+requester must:
 
 * Reply to the original announcement email, and make a note that the change is
   has been rejected, with a quick summary of the rationale for that.

@@ -2,9 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._js_types;
+import 'dart:_error_utils';
+import 'dart:_internal';
+import 'dart:_js_helper' as js;
+import 'dart:_js_types';
+import 'dart:_object_helper';
+import 'dart:_string_helper';
+import 'dart:_wasm';
+import 'dart:js_interop';
 
-final class JSStringImpl implements String {
+abstract class StringUncheckedOperationsBase {
+  int _codeUnitAtUnchecked(int index);
+  String _substringUnchecked(int start, int end);
+}
+
+extension StringUncheckedOperations on String {
+  @pragma('wasm:prefer-inline')
+  int codeUnitAtUnchecked(int index) =>
+      unsafeCast<StringUncheckedOperationsBase>(this)
+          ._codeUnitAtUnchecked(index);
+
+  @pragma('wasm:prefer-inline')
+  String substringUnchecked(int start, int end) =>
+      unsafeCast<StringUncheckedOperationsBase>(this)
+          ._substringUnchecked(start, end);
+}
+
+final class JSStringImpl implements String, StringUncheckedOperationsBase {
   final WasmExternRef? _ref;
 
   JSStringImpl(this._ref);
@@ -12,9 +36,6 @@ final class JSStringImpl implements String {
   @pragma("wasm:prefer-inline")
   static String? box(WasmExternRef? ref) =>
       js.isDartNull(ref) ? null : JSStringImpl(ref);
-
-  @pragma("wasm:prefer-inline")
-  WasmExternRef? get toExternRef => _ref;
 
   @override
   @pragma("wasm:prefer-inline")
@@ -37,7 +58,8 @@ final class JSStringImpl implements String {
       final s = o.toString();
       final jsString =
           s is JSStringImpl ? js.JSValue.boxT<JSAny?>(s.toExternRef) : s.toJS;
-      array._setUnchecked(i, jsString);
+      // array._setUnchecked(i, jsString);
+      array[i] = jsString;
     }
     return JSStringImpl(
         js.JS<WasmExternRef?>("a => a.join('')", array.toExternRef));
@@ -51,6 +73,7 @@ final class JSStringImpl implements String {
     return _codeUnitAtUnchecked(index);
   }
 
+  @override
   @pragma("wasm:prefer-inline")
   int _codeUnitAtUnchecked(int index) {
     return _jsCharCodeAt(toExternRef, index);
@@ -87,7 +110,7 @@ final class JSStringImpl implements String {
 
     // TODO(joshualitt): Refactor `string_patch.dart` so we can directly
     // allocate a string of the right size.
-    return js.jsStringToDartString(toExternRef) + other;
+    return js.jsStringToDartString(this) + other;
   }
 
   @override
@@ -131,7 +154,7 @@ final class JSStringImpl implements String {
         return split(from).join(to);
       }
     } else if (from is js.JSSyntaxRegExp) {
-      return _replaceJS(js.regExpGetGlobalNative(from), to);
+      return _replaceJS(js.regExpGetGlobalNative(from), _escapeReplacement(to));
     } else {
       int startIndex = 0;
       StringBuffer result = StringBuffer();
@@ -236,7 +259,7 @@ final class JSStringImpl implements String {
     }
     if (from is js.JSSyntaxRegExp) {
       return startIndex == 0
-          ? _replaceJS(js.regExpGetNative(from), to)
+          ? _replaceJS(js.regExpGetNative(from), _escapeReplacement(to))
           : _replaceFirstRE(from, to, startIndex);
     }
     Iterator<Match> matches = from.allMatches(this, startIndex).iterator;
@@ -328,8 +351,14 @@ final class JSStringImpl implements String {
   String substring(int start, [int? end]) {
     end ??= length;
     RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
-    return JSStringImpl(_jsSubstring(toExternRef, start, end));
+    if (start == end) return "";
+    return _substringUnchecked(start, end);
   }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  String _substringUnchecked(int start, int end) =>
+      JSStringImpl(_jsSubstring(toExternRef, start, end));
 
   @override
   String toLowerCase() {
@@ -441,73 +470,96 @@ final class JSStringImpl implements String {
     return index;
   }
 
-  // dart2wasm can't use JavaScript trim directly,
-  // because JavaScript does not trim
-  // the NEXT LINE (NEL) character (0x85).
+  // dart2wasm can't use JavaScript trim directly, because JavaScript does not
+  // trim the NEXT LINE (NEL) character (0x85).
   @override
   String trim() {
-    // Start by doing JS trim. Then check if it leaves a NEL at
-    // either end of the string.
+    final length = this.length;
+    if (length == 0) return this;
+
+    // Start by doing JS trim. Then check if it leaves a NEL at either end of
+    // the string.
     final result =
         JSStringImpl(js.JS<WasmExternRef?>('s => s.trim()', toExternRef));
     final resultLength = result.length;
     if (resultLength == 0) return result;
-    int firstCode = result._codeUnitAtUnchecked(0);
+
+    // Check NEL on the left.
+    final int firstCode = result._codeUnitAtUnchecked(0);
     int startIndex = 0;
     if (firstCode == nelCodeUnit) {
       startIndex = _skipLeadingWhitespace(result, 1);
       if (startIndex == resultLength) return "";
     }
 
+    // Check NEL on the right.
     int endIndex = resultLength;
     // We know that there is at least one character that is non-whitespace.
     // Therefore we don't need to verify that endIndex > startIndex.
-    int lastCode = result.codeUnitAt(endIndex - 1);
+    final int lastCode = result.codeUnitAt(endIndex - 1);
     if (lastCode == nelCodeUnit) {
       endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
-    if (startIndex == 0 && endIndex == resultLength) return result;
-    return substring(startIndex, endIndex);
+
+    if (startIndex == 0 && endIndex == resultLength) {
+      return length == resultLength ? this : result;
+    }
+
+    return result.substring(startIndex, endIndex);
   }
 
   // dart2wasm can't use JavaScript trimLeft directly because it does not trim
-  // the NEXT LINE character (0x85).
+  // the NEXT LINE (NEL) character (0x85).
   @override
   String trimLeft() {
-    // Start by doing JS trim. Then check if it leaves a NEL at
-    // the beginning of the string.
+    final length = this.length;
+    if (length == 0) return this;
+
+    // Start by doing JS trim. Then check if it leaves a NEL at the beginning
+    // of the string.
     int startIndex = 0;
     final result =
         JSStringImpl(js.JS<WasmExternRef?>('s => s.trimLeft()', toExternRef));
     final resultLength = result.length;
     if (resultLength == 0) return result;
+
+    // Check NEL.
     int firstCode = result._codeUnitAtUnchecked(0);
     if (firstCode == nelCodeUnit) {
       startIndex = _skipLeadingWhitespace(result, 1);
     }
-    if (startIndex == 0) return result;
-    if (startIndex == resultLength) return "";
+
+    if (startIndex == 0) {
+      return resultLength == length ? this : result;
+    }
+
     return result.substring(startIndex);
   }
 
   // dart2wasm can't use JavaScript trimRight directly because it does not trim
-  // the NEXT LINE character (0x85).
+  // the NEXT LINE (NEL) character (0x85).
   @override
   String trimRight() {
+    final length = this.length;
+    if (length == 0) return this;
+
     // Start by doing JS trim. Then check if it leaves a NEL at the end of the
     // string.
     final result =
         JSStringImpl(js.JS<WasmExternRef?>('s => s.trimRight()', toExternRef));
     final resultLength = result.length;
+    if (resultLength == 0) return result;
+
     int endIndex = resultLength;
-    if (endIndex == 0) return result;
     int lastCode = result.codeUnitAt(endIndex - 1);
     if (lastCode == nelCodeUnit) {
       endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
 
-    if (endIndex == resultLength) return result;
-    if (endIndex == 0) return "";
+    if (endIndex == resultLength) {
+      return resultLength == length ? this : result;
+    }
+
     return result.substring(0, endIndex);
   }
 
@@ -606,10 +658,17 @@ final class JSStringImpl implements String {
     }
   }
 
-  /// This must be kept in sync with `StringBase.hashCode` in string_patch.dart.
-  /// TODO(joshualitt): Find some way to cache the hash code.
   @override
   int get hashCode {
+    int hash = getIdentityHashField(this);
+    if (hash != 0) return hash;
+    hash = _computeHashCode();
+    setIdentityHashField(this, hash);
+    return hash;
+  }
+
+  /// This must be kept in sync with `StringBase.hashCode` in string_patch.dart.
+  int _computeHashCode() {
     int hash = 0;
     final length = this.length;
     for (int i = 0; i < length; i++) {
@@ -621,7 +680,6 @@ final class JSStringImpl implements String {
   @override
   @pragma("wasm:prefer-inline")
   String operator [](int index) {
-    final length = this.length;
     IndexErrorUtils.checkAssumePositiveLength(index, length);
     return JSStringImpl(_jsFromCharCode(_codeUnitAtUnchecked(index)));
   }
@@ -673,7 +731,7 @@ final class JSStringImpl implements String {
   }
 
   @override
-  String toString() => js.stringify(toExternRef);
+  String toString() => this;
 
   int firstNonWhitespace() {
     final length = this.length;
@@ -697,17 +755,22 @@ final class JSStringImpl implements String {
   }
 }
 
+extension JSStringImplExt on JSStringImpl {
+  @pragma("wasm:prefer-inline")
+  WasmExternRef? get toExternRef => _ref;
+}
+
 String _matchString(Match match) => match[0]!;
 
 String _stringIdentity(String string) => string;
 
-@pragma("wasm:export", "\$jsStringToJSStringImpl")
-JSStringImpl _jsStringToJSStringImpl(WasmExternRef? string) =>
-    JSStringImpl(string);
-
-@pragma("wasm:export", "\$jsStringFromJSStringImpl")
-WasmExternRef? _jsStringFromJSStringImpl(JSStringImpl string) =>
-    string.toExternRef;
+String _escapeReplacement(String replacement) {
+  // The JavaScript `String.prototype.replace` method recognizes replacement
+  // patterns in the replacement string. Dart does not have that behavior, so
+  // the replacement patterns need to be escaped.
+  return JSStringImpl(js.JS<WasmExternRef>(
+      r'(s) => s.replace(/\$/g, "$$$$")', replacement.toJS.toExternRef));
+}
 
 bool _jsIdentical(WasmExternRef? ref1, WasmExternRef? ref2) =>
     js.JS<bool>('Object.is', ref1, ref2);

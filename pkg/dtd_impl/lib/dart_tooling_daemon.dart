@@ -19,32 +19,48 @@ import 'src/constants.dart';
 import 'src/dtd_client.dart';
 import 'src/dtd_client_manager.dart';
 import 'src/dtd_stream_manager.dart';
-import 'src/file_system_service.dart';
+import 'src/service/file_system_service.dart';
+import 'src/service/unified_analytics_service.dart';
 
 /// Contains all the flags and options used by the DTD argument parser.
 enum DartToolingDaemonOptions {
   // Used when executing a training run while generating an AppJIT snapshot as
   // part of an SDK build.
-  train(isFlag: true, negatable: false, hide: true),
-  machine(
-    isFlag: true,
+  train.flag(negatable: false, hide: true),
+  machine.flag(
     negatable: false,
     help: 'Sets output format to JSON for consumption in tools.',
   ),
-  unrestricted(
-    isFlag: true,
+  port.option(
+    defaultsTo: '0',
+    help: 'Sets the port to bind DTD to (0 for automatic port).',
+  ),
+  unrestricted.flag(
     negatable: false,
     help: 'Disables restrictions on services registered by DTD.',
+  ),
+  fakeAnalytics.flag(
+    negatable: false,
+    help: 'Uses fake analytics instances for the UnifiedAnalytics service.',
+    hide: true,
   );
 
-  const DartToolingDaemonOptions({
-    required this.isFlag,
+  const DartToolingDaemonOptions.flag({
     this.negatable = true,
     this.hide = false,
     this.help,
-  });
+  })  : _kind = _DartToolingDaemonOptionKind.flag,
+        defaultsTo = null;
 
-  final bool isFlag;
+  const DartToolingDaemonOptions.option({
+    this.defaultsTo,
+    this.help,
+  })  : _kind = _DartToolingDaemonOptionKind.option,
+        negatable = false,
+        hide = false;
+
+  final _DartToolingDaemonOptionKind _kind;
+  final String? defaultsTo;
   final bool negatable;
   final bool hide;
   final String? help;
@@ -55,19 +71,31 @@ enum DartToolingDaemonOptions {
   }) {
     final argParser = ArgParser(usageLineLength: usageLineLength);
     for (final entry in DartToolingDaemonOptions.values) {
-      if (entry.isFlag) {
-        argParser.addFlag(
-          entry.name,
-          negatable: entry.negatable,
-          hide: entry.hide,
-          help: entry.help,
-        );
-      } else {
-        throw UnimplementedError('Add support for options');
+      switch (entry._kind) {
+        case _DartToolingDaemonOptionKind.flag:
+          argParser.addFlag(
+            entry.name,
+            negatable: entry.negatable,
+            hide: entry.hide,
+            help: entry.help,
+          );
+        case _DartToolingDaemonOptionKind.option:
+          argParser.addOption(
+            entry.name,
+            hide: entry.hide,
+            help: entry.help,
+            defaultsTo: entry.defaultsTo,
+          );
       }
     }
     return argParser;
   }
+}
+
+/// The kind of command line argument.
+enum _DartToolingDaemonOptionKind {
+  flag,
+  option,
 }
 
 /// TODO(https://github.com/dart-lang/sdk/issues/54429): Add shutdown behavior.
@@ -79,6 +107,7 @@ class DartToolingDaemon {
     required bool unrestrictedMode,
     bool ipv6 = false,
     bool shouldLogRequests = false,
+    bool useFakeAnalytics = false,
   })  : _ipv6 = ipv6,
         _shouldLogRequests = shouldLogRequests {
     streamManager = DTDStreamManager(this);
@@ -87,6 +116,7 @@ class DartToolingDaemon {
       secret: secret,
       unrestrictedMode: unrestrictedMode,
     );
+    unifiedAnalyticsService = UnifiedAnalyticsService(fake: useFakeAnalytics);
   }
   static const _kSseHandlerPath = '\$debugHandler';
 
@@ -99,6 +129,9 @@ class DartToolingDaemon {
   late HttpServer _server;
   final bool _shouldLogRequests;
   late final FileSystemService fileSystemService;
+
+  /// Provides interaction with package:unified_analytics for DTD clients.
+  late final UnifiedAnalyticsService unifiedAnalyticsService;
 
   final String secret;
 
@@ -170,7 +203,6 @@ class DartToolingDaemon {
     List<String> args, {
     bool ipv6 = false,
     bool shouldLogRequests = false,
-    int port = 0,
     SendPort? sendPort,
   }) async {
     final argParser = DartToolingDaemonOptions.createArgParser();
@@ -181,6 +213,10 @@ class DartToolingDaemon {
     final machineMode = parsedArgs[DartToolingDaemonOptions.machine.name];
     final unrestrictedMode =
         parsedArgs[DartToolingDaemonOptions.unrestricted.name];
+    final useFakeAnalytics =
+        parsedArgs[DartToolingDaemonOptions.fakeAnalytics.name];
+    final port =
+        int.tryParse(parsedArgs[DartToolingDaemonOptions.port.name]) ?? 0;
 
     final secret = _generateSecret();
     final dtd = DartToolingDaemon._(
@@ -188,6 +224,7 @@ class DartToolingDaemon {
       unrestrictedMode: unrestrictedMode,
       ipv6: ipv6,
       shouldLogRequests: shouldLogRequests,
+      useFakeAnalytics: useFakeAnalytics,
     );
     await dtd._startService(port: port);
     if (machineMode) {
@@ -267,6 +304,7 @@ class DartToolingDaemon {
 
   void _registerInternalServiceMethods(DTDClient client) {
     fileSystemService.register(client);
+    unifiedAnalyticsService.register(client);
   }
 
   static String _generateSecret() {

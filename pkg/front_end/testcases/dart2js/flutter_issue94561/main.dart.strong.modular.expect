@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  mai::MyInt|a = 42;
+  core::print(mai::MyInt|a);
+  mai::MyInt|b = 87;
+  core::print(mai::MyInt|b);
+}

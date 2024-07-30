@@ -253,11 +253,14 @@ abstract interface class Future<T> {
   factory Future(FutureOr<T> computation()) {
     _Future<T> result = new _Future<T>();
     Timer.run(() {
+      FutureOr<T> computationResult;
       try {
-        result._complete(computation());
+        computationResult = computation();
       } catch (e, s) {
         _completeWithErrorCallback(result, e, s);
+        return;
       }
+      result._complete(computationResult);
     });
     return result;
   }
@@ -277,11 +280,14 @@ abstract interface class Future<T> {
   factory Future.microtask(FutureOr<T> computation()) {
     _Future<T> result = new _Future<T>();
     scheduleMicrotask(() {
+      FutureOr<T> computationResult;
       try {
-        result._complete(computation());
+        computationResult = computation();
       } catch (e, s) {
         _completeWithErrorCallback(result, e, s);
+        return;
       }
+      result._complete(computationResult);
     });
     return result;
   }
@@ -302,9 +308,9 @@ abstract interface class Future<T> {
   /// final result = await Future<int>.sync(() => 12);
   /// ```
   factory Future.sync(FutureOr<T> computation()) {
+    FutureOr<T> result;
     try {
-      var result = computation();
-      return result is Future<T> ? result : _Future<T>.value(result);
+      result = computation();
     } catch (error, stackTrace) {
       var future = new _Future<T>();
       AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
@@ -315,6 +321,7 @@ abstract interface class Future<T> {
       }
       return future;
     }
+    return result is Future<T> ? result : _Future<T>.value(result);
   }
 
   /// Creates a future completed with [value].
@@ -414,16 +421,19 @@ abstract interface class Future<T> {
       throw ArgumentError.value(
           null, "computation", "The type parameter is not nullable");
     }
-    _Future<T> result = new _Future<T>();
+    _Future<T> result = _Future<T>();
     new Timer(duration, () {
       if (computation == null) {
         result._complete(null as T);
       } else {
+        FutureOr<T> computationResult;
         try {
-          result._complete(computation());
+          computationResult = computation();
         } catch (e, s) {
           _completeWithErrorCallback(result, e, s);
+          return;
         }
+        result._complete(computationResult);
       }
     });
     return result;

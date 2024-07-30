@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Enum extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::a, self::Enum::b];
+  enum-element static const field self::Enum a = const self::Enum::•(0, "a");
+  enum-element static const field self::Enum b = const self::Enum::•(1, "b");
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+}
+static method returnImplicit() → core::String
+  ;
+static method returnExplicit() → core::String
+  ;
+static method returnMixed(core::bool b) → core::String
+  ;
+static method returnAsync1() → asy::Future<dynamic> async 
+  ;
+static method returnAsync2() → FutureOr<dynamic> async 
+  ;
+static method returnAsync3() → FutureOr<core::int> async 
+  ;
+static method returnAsync4() → FutureOr<core::int?> async 
+  ;
+static method returnAsync5() → dynamic async 
+  ;
+static method returnAsync6() → asy::Future<core::int?> async 
+  ;
+static method returnAsync7() → asy::Future<core::int?> async 
+  ;
+static method yieldSync() → core::Iterable<dynamic> sync* 
+  ;
+static method yieldAsync() → asy::Stream<dynamic> async* 
+  ;
+static method caseReturn1(self::Enum e) → self::Enum
+  ;
+static method caseReturn2(self::Enum e) → self::Enum
+  ;
+static method localFunctions() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///return_null.dart:43:6 -> ListConstant(const <Enum>[const Enum{_Enum.index: 0, _Enum._name: "a"}, const Enum{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///return_null.dart:43:13 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///return_null.dart:43:16 -> InstanceConstant(const Enum{_Enum.index: 1, _Enum._name: "b"})
+Extra constant evaluation: evaluated: 8, effectively constant: 3

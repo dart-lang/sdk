@@ -72,6 +72,27 @@ FLAG_LIST(PRODUCT_FLAG_MACRO,
 #undef PRECOMPILE_FLAG_MACRO
 #undef DEBUG_FLAG_MACRO
 
+#if defined(DART_PRECOMPILER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
+constexpr bool kDefaultTargetThreadSanitizer = true;
+#else
+constexpr bool kDefaultTargetThreadSanitizer = false;
+#endif
+DEFINE_FLAG(bool,
+            target_thread_sanitizer,
+            kDefaultTargetThreadSanitizer,
+            "Generate Dart code compatible with Thread Sanitizer");
+#if defined(TARGET_USES_MEMORY_SANITIZER)
+constexpr bool kDefaultTargetMemorySanitizer = true;
+#else
+constexpr bool kDefaultTargetMemorySanitizer = false;
+#endif
+DEFINE_FLAG(bool,
+            target_memory_sanitizer,
+            kDefaultTargetMemorySanitizer,
+            "Generate Dart code compatible with Memory Sanitizer");
+#endif
+
 bool Flags::initialized_ = false;
 
 // List of registered flags.
@@ -151,8 +172,7 @@ class Flag {
 
   // For kString, kOptionHandler, kFlagHandler flags this stores the copy
   // of the original flag value passed to SetFlagFromString
-  Utils::CStringUniquePtr string_value_ =
-      Utils::CreateCStringUniquePtr(nullptr);
+  CStringUniquePtr string_value_;
   union {
     void* addr_;
     bool* bool_ptr_;

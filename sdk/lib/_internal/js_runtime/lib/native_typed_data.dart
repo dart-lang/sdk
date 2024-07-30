@@ -168,7 +168,7 @@ final class NativeFloat32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
+  Float32x4List asUnmodifiableView() => _UnmodifiableFloat32x4ListView(this);
 
   Float32x4List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -242,7 +242,7 @@ final class NativeInt32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
+  Int32x4List asUnmodifiableView() => _UnmodifiableInt32x4ListView(this);
 
   Int32x4List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -310,7 +310,7 @@ final class NativeFloat64x2List extends Object
     _storage[(index * 2) + 1] = value.y;
   }
 
-  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
+  Float64x2List asUnmodifiableView() => _UnmodifiableFloat64x2ListView(this);
 
   Float64x2List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -420,7 +420,7 @@ final class NativeByteData extends NativeTypedData
 
   int get elementSizeInBytes => 1;
 
-  ByteData asUnmodifiableView() => UnmodifiableByteDataView(this);
+  ByteData asUnmodifiableView() => _UnmodifiableByteDataView(this);
 
   /// Returns the floating point number represented by the four bytes at
   /// the specified [byteOffset] in this object, in IEEE 754
@@ -768,7 +768,7 @@ final class NativeFloat32List extends NativeTypedArrayOfDouble
 
   Type get runtimeType => Float32List;
 
-  Float32List asUnmodifiableView() => UnmodifiableFloat32ListView(this);
+  Float32List asUnmodifiableView() => _UnmodifiableFloat32ListView(this);
 
   Float32List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -806,7 +806,7 @@ final class NativeFloat64List extends NativeTypedArrayOfDouble
 
   Type get runtimeType => Float64List;
 
-  Float64List asUnmodifiableView() => UnmodifiableFloat64ListView(this);
+  Float64List asUnmodifiableView() => _UnmodifiableFloat64ListView(this);
 
   Float64List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -849,7 +849,7 @@ final class NativeInt16List extends NativeTypedArrayOfInt
     return JS('int', '#[#]', this, index);
   }
 
-  Int16List asUnmodifiableView() => UnmodifiableInt16ListView(this);
+  Int16List asUnmodifiableView() => _UnmodifiableInt16ListView(this);
 
   Int16List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -892,7 +892,7 @@ final class NativeInt32List extends NativeTypedArrayOfInt
     return JS('int', '#[#]', this, index);
   }
 
-  Int32List asUnmodifiableView() => UnmodifiableInt32ListView(this);
+  Int32List asUnmodifiableView() => _UnmodifiableInt32ListView(this);
 
   Int32List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -935,7 +935,7 @@ final class NativeInt8List extends NativeTypedArrayOfInt
     return JS('int', '#[#]', this, index);
   }
 
-  Int8List asUnmodifiableView() => UnmodifiableInt8ListView(this);
+  Int8List asUnmodifiableView() => _UnmodifiableInt8ListView(this);
 
   Int8List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -981,7 +981,7 @@ final class NativeUint16List extends NativeTypedArrayOfInt
     return JS('JSUInt31', '#[#]', this, index);
   }
 
-  Uint16List asUnmodifiableView() => UnmodifiableUint16ListView(this);
+  Uint16List asUnmodifiableView() => _UnmodifiableUint16ListView(this);
 
   Uint16List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -1024,7 +1024,7 @@ final class NativeUint32List extends NativeTypedArrayOfInt
     return JS('JSUInt32', '#[#]', this, index);
   }
 
-  Uint32List asUnmodifiableView() => UnmodifiableUint32ListView(this);
+  Uint32List asUnmodifiableView() => _UnmodifiableUint32ListView(this);
 
   Uint32List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -1071,7 +1071,7 @@ final class NativeUint8ClampedList extends NativeTypedArrayOfInt
   }
 
   Uint8ClampedList asUnmodifiableView() =>
-      UnmodifiableUint8ClampedListView(this);
+      _UnmodifiableUint8ClampedListView(this);
 
   Uint8ClampedList sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -1128,7 +1128,7 @@ final class NativeUint8List extends NativeTypedArrayOfInt
     return JS('JSUInt31', '#[#]', this, index);
   }
 
-  Uint8List asUnmodifiableView() => UnmodifiableUint8ListView(this);
+  Uint8List asUnmodifiableView() => _UnmodifiableUint8ListView(this);
 
   Uint8List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -1317,7 +1317,7 @@ final class NativeFloat32x4 implements Float32x4 {
         _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
-  /// Returns a copy of [this] each lane being scaled by [s].
+  /// Returns a copy of this [Float32x4] each lane being scaled by [s].
   Float32x4 scale(double s) {
     double _x = s * x;
     double _y = s * y;
@@ -1335,7 +1335,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
+  /// Clamps this [Float32x4] to be in the range [lowerLimit]-[upperLimit].
   Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) {
     double _lx = lowerLimit.x;
     double _ly = lowerLimit.y;
@@ -1394,9 +1394,9 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Shuffle the lane values in [this] and [other]. The returned
-  /// Float32x4 will have XY lanes from [this] and ZW lanes from [other].
-  /// Uses the same [mask] as [shuffle].
+  /// Shuffle the lane values in this [Float32x4] and [other]. The returned
+  /// Float32x4 will have XY lanes from this [Float32x4] and ZW lanes from
+  /// [other]. Uses the same [mask] as [shuffle].
   Float32x4 shuffleMix(Float32x4 other, int mask) {
     if ((mask < 0) || (mask > 255)) {
       throw RangeError.range(mask, 0, 255, 'mask');
@@ -1417,31 +1417,31 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Copy [this] and replace the [x] lane.
+  /// Copy this [Float32x4] and replace the [x] lane.
   Float32x4 withX(double newX) {
     double _newX = _truncate(checkNum(newX));
     return NativeFloat32x4._truncated(_newX, y, z, w);
   }
 
-  /// Copy [this] and replace the [y] lane.
+  /// Copy this [Float32x4] and replace the [y] lane.
   Float32x4 withY(double newY) {
     double _newY = _truncate(checkNum(newY));
     return NativeFloat32x4._truncated(x, _newY, z, w);
   }
 
-  /// Copy [this] and replace the [z] lane.
+  /// Copy this [Float32x4] and replace the [z] lane.
   Float32x4 withZ(double newZ) {
     double _newZ = _truncate(checkNum(newZ));
     return NativeFloat32x4._truncated(x, y, _newZ, w);
   }
 
-  /// Copy [this] and replace the [w] lane.
+  /// Copy this [Float32x4] and replace the [w] lane.
   Float32x4 withW(double newW) {
     double _newW = _truncate(checkNum(newW));
     return NativeFloat32x4._truncated(x, y, z, _newW);
   }
 
-  /// Returns the lane-wise minimum value in [this] or [other].
+  /// Returns the lane-wise minimum value in this [Float32x4] or [other].
   Float32x4 min(Float32x4 other) {
     double _x = x < other.x ? x : other.x;
     double _y = y < other.y ? y : other.y;
@@ -1450,7 +1450,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Returns the lane-wise maximum value in [this] or [other].
+  /// Returns the lane-wise maximum value in this [Float32x4] or [other].
   Float32x4 max(Float32x4 other) {
     double _x = x > other.x ? x : other.x;
     double _y = y > other.y ? y : other.y;
@@ -1459,7 +1459,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Returns the square root of [this].
+  /// Returns the square root of this [Float32x4].
   Float32x4 sqrt() {
     double _x = Math.sqrt(x);
     double _y = Math.sqrt(y);
@@ -1468,7 +1468,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._doubles(_x, _y, _z, _w);
   }
 
-  /// Returns the reciprocal of [this].
+  /// Returns the reciprocal of this [Float32x4].
   Float32x4 reciprocal() {
     double _x = 1.0 / x;
     double _y = 1.0 / y;
@@ -1477,7 +1477,7 @@ final class NativeFloat32x4 implements Float32x4 {
     return NativeFloat32x4._doubles(_x, _y, _z, _w);
   }
 
-  /// Returns the square root of the reciprocal of [this].
+  /// Returns the square root of the reciprocal of this [Float32x4].
   Float32x4 reciprocalSqrt() {
     double _x = Math.sqrt(1.0 / x);
     double _y = Math.sqrt(1.0 / y);
@@ -1620,8 +1620,8 @@ final class NativeInt32x4 implements Int32x4 {
     return NativeInt32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Shuffle the lane values in [this] and [other]. The returned
-  /// Int32x4 will have XY lanes from [this] and ZW lanes from [other].
+  /// Shuffle the lane values in this [Int32x4] and [other]. The returned
+  /// Int32x4 will have XY lanes from this [Int32x4] and ZW lanes from [other].
   /// Uses the same [mask] as [shuffle].
   Int32x4 shuffleMix(Int32x4 other, int mask) {
     if ((mask < 0) || (mask > 255)) {
@@ -1643,25 +1643,25 @@ final class NativeInt32x4 implements Int32x4 {
     return NativeInt32x4._truncated(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new x value.
   Int32x4 withX(int x) {
     int _x = _truncate(checkNum(x));
     return NativeInt32x4._truncated(_x, y, z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new y value.
   Int32x4 withY(int y) {
     int _y = _truncate(checkNum(y));
     return NativeInt32x4._truncated(x, _y, z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new z value.
   Int32x4 withZ(int z) {
     int _z = _truncate(checkNum(z));
     return NativeInt32x4._truncated(x, y, _z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new w value.
   Int32x4 withW(int w) {
     int _w = _truncate(checkNum(w));
     return NativeInt32x4._truncated(x, y, z, _w);
@@ -1679,33 +1679,33 @@ final class NativeInt32x4 implements Int32x4 {
   /// Extracted w value. Returns `false` for 0, `true` for any other value.
   bool get flagW => w != 0;
 
-  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new x value.
   Int32x4 withFlagX(bool flagX) {
     int _x = flagX ? -1 : 0;
     return NativeInt32x4._truncated(_x, y, z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new y value.
   Int32x4 withFlagY(bool flagY) {
     int _y = flagY ? -1 : 0;
     return NativeInt32x4._truncated(x, _y, z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new z value.
   Int32x4 withFlagZ(bool flagZ) {
     int _z = flagZ ? -1 : 0;
     return NativeInt32x4._truncated(x, y, _z, w);
   }
 
-  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  /// Returns a new [Int32x4] copied from this [Int32x4] with a new w value.
   Int32x4 withFlagW(bool flagW) {
     int _w = flagW ? -1 : 0;
     return NativeInt32x4._truncated(x, y, z, _w);
   }
 
-  /// Merge [trueValue] and [falseValue] based on [this]' bit mask:
-  /// Select bit from [trueValue] when bit in [this] is on.
-  /// Select bit from [falseValue] when bit in [this] is off.
+  /// Merge [trueValue] and [falseValue] based on this [Int32x4] bit mask:
+  /// Select bit from [trueValue] when bit in this [Int32x4] is on.
+  /// Select bit from [falseValue] when bit in this [Int32x4] is off.
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue) {
     var floatList = NativeFloat32x4._list;
     var intView = NativeFloat32x4._uint32view;
@@ -1788,7 +1788,7 @@ final class NativeFloat64x2 implements Float64x2 {
     return NativeFloat64x2._doubles(x / other.x, y / other.y);
   }
 
-  /// Returns a copy of [this] each lane being scaled by [s].
+  /// Returns a copy of this [Float64x2] each lane being scaled by [s].
   Float64x2 scale(double s) {
     return NativeFloat64x2._doubles(x * s, y * s);
   }
@@ -1798,7 +1798,7 @@ final class NativeFloat64x2 implements Float64x2 {
     return NativeFloat64x2._doubles(x.abs(), y.abs());
   }
 
-  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
+  /// Clamps this [Float64x2] to be in the range [lowerLimit]-[upperLimit].
   Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) {
     double _lx = lowerLimit.x;
     double _ly = lowerLimit.y;
@@ -1824,31 +1824,33 @@ final class NativeFloat64x2 implements Float64x2 {
     return mx | my << 1;
   }
 
-  /// Returns a new [Float64x2] copied from [this] with a new x value.
+  /// Returns a new [Float64x2] copied from this [Float64x2] with a new x
+  /// value.
   Float64x2 withX(double x) {
     if (x is! num) throw ArgumentError(x);
     return NativeFloat64x2._doubles(x, y);
   }
 
-  /// Returns a new [Float64x2] copied from [this] with a new y value.
+  /// Returns a new [Float64x2] copied from this [Float64x2] with a new y
+  /// value.
   Float64x2 withY(double y) {
     if (y is! num) throw ArgumentError(y);
     return NativeFloat64x2._doubles(x, y);
   }
 
-  /// Returns the lane-wise minimum value in [this] or [other].
+  /// Returns the lane-wise minimum value in this [Float64x2] or [other].
   Float64x2 min(Float64x2 other) {
     return NativeFloat64x2._doubles(
         x < other.x ? x : other.x, y < other.y ? y : other.y);
   }
 
-  /// Returns the lane-wise maximum value in [this] or [other].
+  /// Returns the lane-wise maximum value in this [Float64x2] or [other].
   Float64x2 max(Float64x2 other) {
     return NativeFloat64x2._doubles(
         x > other.x ? x : other.x, y > other.y ? y : other.y);
   }
 
-  /// Returns the lane-wise square root of [this].
+  /// Returns the lane-wise square root of this [Float64x2].
   Float64x2 sqrt() {
     return NativeFloat64x2._doubles(Math.sqrt(x), Math.sqrt(y));
   }
@@ -1885,4 +1887,336 @@ int _checkValidRange(int start, int? end, int length) {
   }
   if (end == null) return length;
   return end;
+}
+
+/// A read-only view of a [ByteBuffer].
+final class _UnmodifiableByteBufferView implements ByteBuffer {
+  final ByteBuffer _data;
+
+  _UnmodifiableByteBufferView(ByteBuffer data) : _data = data;
+
+  int get lengthInBytes => _data.lengthInBytes;
+
+  Uint8List asUint8List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableUint8ListView(_data.asUint8List(offsetInBytes, length));
+
+  Int8List asInt8List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableInt8ListView(_data.asInt8List(offsetInBytes, length));
+
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableUint8ClampedListView(
+          _data.asUint8ClampedList(offsetInBytes, length));
+
+  Uint16List asUint16List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableUint16ListView(_data.asUint16List(offsetInBytes, length));
+
+  Int16List asInt16List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableInt16ListView(_data.asInt16List(offsetInBytes, length));
+
+  Uint32List asUint32List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableUint32ListView(_data.asUint32List(offsetInBytes, length));
+
+  Int32List asInt32List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableInt32ListView(_data.asInt32List(offsetInBytes, length));
+
+  Uint64List asUint64List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableUint64ListView(_data.asUint64List(offsetInBytes, length));
+
+  Int64List asInt64List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableInt64ListView(_data.asInt64List(offsetInBytes, length));
+
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableInt32x4ListView(_data.asInt32x4List(offsetInBytes, length));
+
+  Float32List asFloat32List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableFloat32ListView(_data.asFloat32List(offsetInBytes, length));
+
+  Float64List asFloat64List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableFloat64ListView(_data.asFloat64List(offsetInBytes, length));
+
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableFloat32x4ListView(
+          _data.asFloat32x4List(offsetInBytes, length));
+
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableFloat64x2ListView(
+          _data.asFloat64x2List(offsetInBytes, length));
+
+  ByteData asByteData([int offsetInBytes = 0, int? length]) =>
+      _UnmodifiableByteDataView(_data.asByteData(offsetInBytes, length));
+}
+
+/// A read-only view of a [ByteData].
+final class _UnmodifiableByteDataView implements ByteData {
+  final ByteData _data;
+
+  _UnmodifiableByteDataView(ByteData data) : _data = data;
+
+  ByteData asUnmodifiableView() => this;
+
+  int getInt8(int byteOffset) => _data.getInt8(byteOffset);
+
+  void setInt8(int byteOffset, int value) => _unsupported();
+
+  int getUint8(int byteOffset) => _data.getUint8(byteOffset);
+
+  void setUint8(int byteOffset, int value) => _unsupported();
+
+  int getInt16(int byteOffset, [Endian endian = Endian.big]) =>
+      _data.getInt16(byteOffset, endian);
+
+  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      _unsupported();
+
+  int getUint16(int byteOffset, [Endian endian = Endian.big]) =>
+      _data.getUint16(byteOffset, endian);
+
+  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      _unsupported();
+
+  int getInt32(int byteOffset, [Endian endian = Endian.big]) =>
+      _data.getInt32(byteOffset, endian);
+
+  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      _unsupported();
+
+  int getUint32(int byteOffset, [Endian endian = Endian.big]) =>
+      _data.getUint32(byteOffset, endian);
+
+  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      _unsupported();
+
+  int getInt64(int byteOffset, [Endian endian = Endian.big]) =>
+      _data.getInt64(byteOffset, endian);
+
+  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      _unsupported();
+
+  int getUint64(int byteOffset, [Endian endian = Endian.big]) =>
+      _data.getUint64(byteOffset, endian);
+
+  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      _unsupported();
+
+  double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
+      _data.getFloat32(byteOffset, endian);
+
+  void setFloat32(int byteOffset, double value, [Endian endian = Endian.big]) =>
+      _unsupported();
+
+  double getFloat64(int byteOffset, [Endian endian = Endian.big]) =>
+      _data.getFloat64(byteOffset, endian);
+
+  void setFloat64(int byteOffset, double value, [Endian endian = Endian.big]) =>
+      _unsupported();
+
+  int get elementSizeInBytes => _data.elementSizeInBytes;
+
+  int get offsetInBytes => _data.offsetInBytes;
+
+  int get lengthInBytes => _data.lengthInBytes;
+
+  ByteBuffer get buffer => _UnmodifiableByteBufferView(_data.buffer);
+
+  void _unsupported() {
+    throw UnsupportedError("An UnmodifiableByteDataView may not be modified");
+  }
+}
+
+mixin _UnmodifiableListMixin<N, L extends List<N>, TD extends TypedData> {
+  L get _list;
+  TD get _data => (_list as TD);
+
+  int get length => _list.length;
+
+  N operator [](int index) => _list[index];
+
+  int get elementSizeInBytes => _data.elementSizeInBytes;
+
+  int get offsetInBytes => _data.offsetInBytes;
+
+  int get lengthInBytes => _data.lengthInBytes;
+
+  ByteBuffer get buffer => _UnmodifiableByteBufferView(_data.buffer);
+
+  L _createList(int length);
+
+  L sublist(int start, [int? end]) {
+    // NNBD: Spurious error at `end`, `checkValidRange` is legacy.
+    int endIndex = RangeError.checkValidRange(start, end!, length);
+    int sublistLength = endIndex - start;
+    L result = _createList(sublistLength);
+    result.setRange(0, sublistLength, _list, start);
+    return result;
+  }
+}
+
+/// View of a [Uint8List] that disallows modification.
+final class _UnmodifiableUint8ListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint8List, Uint8List>
+    implements Uint8List {
+  final Uint8List _list;
+  _UnmodifiableUint8ListView(Uint8List list) : _list = list;
+
+  Uint8List asUnmodifiableView() => this;
+
+  Uint8List _createList(int length) => Uint8List(length);
+}
+
+/// View of a [Int8List] that disallows modification.
+final class _UnmodifiableInt8ListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Int8List, Int8List>
+    implements Int8List {
+  final Int8List _list;
+  _UnmodifiableInt8ListView(Int8List list) : _list = list;
+
+  Int8List asUnmodifiableView() => this;
+
+  Int8List _createList(int length) => Int8List(length);
+}
+
+/// View of a [Uint8ClampedList] that disallows modification.
+final class _UnmodifiableUint8ClampedListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint8ClampedList, Uint8ClampedList>
+    implements Uint8ClampedList {
+  final Uint8ClampedList _list;
+  _UnmodifiableUint8ClampedListView(Uint8ClampedList list) : _list = list;
+
+  Uint8ClampedList asUnmodifiableView() => this;
+
+  Uint8ClampedList _createList(int length) => Uint8ClampedList(length);
+}
+
+/// View of a [Uint16List] that disallows modification.
+final class _UnmodifiableUint16ListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint16List, Uint16List>
+    implements Uint16List {
+  final Uint16List _list;
+  _UnmodifiableUint16ListView(Uint16List list) : _list = list;
+
+  Uint16List asUnmodifiableView() => this;
+
+  Uint16List _createList(int length) => Uint16List(length);
+}
+
+/// View of a [Int16List] that disallows modification.
+final class _UnmodifiableInt16ListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Int16List, Int16List>
+    implements Int16List {
+  final Int16List _list;
+  _UnmodifiableInt16ListView(Int16List list) : _list = list;
+
+  Int16List asUnmodifiableView() => this;
+
+  Int16List _createList(int length) => Int16List(length);
+}
+
+/// View of a [Uint32List] that disallows modification.
+final class _UnmodifiableUint32ListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint32List, Uint32List>
+    implements Uint32List {
+  final Uint32List _list;
+  _UnmodifiableUint32ListView(Uint32List list) : _list = list;
+
+  Uint32List asUnmodifiableView() => this;
+
+  Uint32List _createList(int length) => Uint32List(length);
+}
+
+/// View of a [Int32List] that disallows modification.
+final class _UnmodifiableInt32ListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Int32List, Int32List>
+    implements Int32List {
+  final Int32List _list;
+  _UnmodifiableInt32ListView(Int32List list) : _list = list;
+
+  Int32List asUnmodifiableView() => this;
+
+  Int32List _createList(int length) => Int32List(length);
+}
+
+/// View of a [Uint64List] that disallows modification.
+final class _UnmodifiableUint64ListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Uint64List, Uint64List>
+    implements Uint64List {
+  final Uint64List _list;
+  _UnmodifiableUint64ListView(Uint64List list) : _list = list;
+
+  Uint64List asUnmodifiableView() => this;
+
+  Uint64List _createList(int length) => Uint64List(length);
+}
+
+/// View of a [Int64List] that disallows modification.
+final class _UnmodifiableInt64ListView extends UnmodifiableListBase<int>
+    with _UnmodifiableListMixin<int, Int64List, Int64List>
+    implements Int64List {
+  final Int64List _list;
+  _UnmodifiableInt64ListView(Int64List list) : _list = list;
+
+  Int64List asUnmodifiableView() => this;
+
+  Int64List _createList(int length) => Int64List(length);
+}
+
+/// View of a [Int32x4List] that disallows modification.
+final class _UnmodifiableInt32x4ListView extends UnmodifiableListBase<Int32x4>
+    with _UnmodifiableListMixin<Int32x4, Int32x4List, Int32x4List>
+    implements Int32x4List {
+  final Int32x4List _list;
+  _UnmodifiableInt32x4ListView(Int32x4List list) : _list = list;
+
+  Int32x4List asUnmodifiableView() => this;
+
+  Int32x4List _createList(int length) => Int32x4List(length);
+}
+
+/// View of a [Float32x4List] that disallows modification.
+final class _UnmodifiableFloat32x4ListView
+    extends UnmodifiableListBase<Float32x4>
+    with _UnmodifiableListMixin<Float32x4, Float32x4List, Float32x4List>
+    implements Float32x4List {
+  final Float32x4List _list;
+  _UnmodifiableFloat32x4ListView(Float32x4List list) : _list = list;
+
+  Float32x4List asUnmodifiableView() => this;
+
+  Float32x4List _createList(int length) => Float32x4List(length);
+}
+
+/// View of a [Float64x2List] that disallows modification.
+final class _UnmodifiableFloat64x2ListView
+    extends UnmodifiableListBase<Float64x2>
+    with _UnmodifiableListMixin<Float64x2, Float64x2List, Float64x2List>
+    implements Float64x2List {
+  final Float64x2List _list;
+  _UnmodifiableFloat64x2ListView(Float64x2List list) : _list = list;
+
+  Float64x2List asUnmodifiableView() => this;
+
+  Float64x2List _createList(int length) => Float64x2List(length);
+}
+
+/// View of a [Float32List] that disallows modification.
+final class _UnmodifiableFloat32ListView extends UnmodifiableListBase<double>
+    with _UnmodifiableListMixin<double, Float32List, Float32List>
+    implements Float32List {
+  final Float32List _list;
+  _UnmodifiableFloat32ListView(Float32List list) : _list = list;
+
+  Float32List asUnmodifiableView() => this;
+
+  Float32List _createList(int length) => Float32List(length);
+}
+
+/// View of a [Float64List] that disallows modification.
+final class _UnmodifiableFloat64ListView extends UnmodifiableListBase<double>
+    with _UnmodifiableListMixin<double, Float64List, Float64List>
+    implements Float64List {
+  final Float64List _list;
+  _UnmodifiableFloat64ListView(Float64List list) : _list = list;
+
+  Float64List asUnmodifiableView() => this;
+
+  Float64List _createList(int length) => Float64List(length);
 }

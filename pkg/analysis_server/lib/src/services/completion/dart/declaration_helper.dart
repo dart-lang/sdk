@@ -6,6 +6,8 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
+import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,6 +17,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -31,6 +34,9 @@ class DeclarationHelper {
 
   /// The suggestion collector to which suggestions will be added.
   final SuggestionCollector collector;
+
+  /// The state used to compute the candidate suggestions.
+  final CompletionState state;
 
   /// The offset of the completion location.
   final int offset;
@@ -68,6 +74,16 @@ class DeclarationHelper {
   /// Whether suggestions should be limited to only include types.
   final bool mustBeType;
 
+  /// Whether suggestions should exclude type names, e.g. include only
+  /// constructor invocations.
+  final bool excludeTypeNames;
+
+  /// Whether object patterns are allowed even when the context otherwise
+  /// requires a constant.
+  ///
+  /// Ignored when [mustBeConstant] is `false`.
+  final bool objectPatternAllowed;
+
   /// Whether suggestions should be tear-offs rather than invocations where
   /// possible.
   final bool preferNonInvocation;
@@ -88,6 +104,11 @@ class DeclarationHelper {
   /// The number of local variables that have already been suggested.
   int _variableDistance = 0;
 
+  /// The operations to be performed in the [NotImportedCompletionPass].
+  ///
+  /// The list will be empty if the pass does not need to be run.
+  List<NotImportedOperation> notImportedOperations = [];
+
   /// Initialize a newly created helper to add suggestions to the [collector]
   /// that are appropriate for the location at the [offset].
   ///
@@ -101,6 +122,7 @@ class DeclarationHelper {
   DeclarationHelper({
     required this.request,
     required this.collector,
+    required this.state,
     required this.offset,
     required this.mustBeAssignable,
     required this.mustBeConstant,
@@ -110,6 +132,8 @@ class DeclarationHelper {
     required this.mustBeNonVoid,
     required this.mustBeStatic,
     required this.mustBeType,
+    required this.excludeTypeNames,
+    required this.objectPatternAllowed,
     required this.preferNonInvocation,
     required this.suggestUnnamedAsNew,
     required this.skipImports,
@@ -124,9 +148,12 @@ class DeclarationHelper {
   /// Add any constructors that are visible within the current library.
   void addConstructorInvocations() {
     var library = request.libraryElement;
-    _addConstructors(library, null);
+    var importData = ImportData(
+        libraryUri: library.source.uri, prefix: null, isNotImported: false);
+    _addConstructors(library, importData);
     if (!skipImports) {
       _addImportedConstructors(library);
+      _recordOperation(ConstructorsOperation(declarationHelper: this));
     }
   }
 
@@ -134,7 +161,7 @@ class DeclarationHelper {
   void addConstructorNamesForElement({
     required InterfaceElement element,
   }) {
-    var constructors = element.augmented?.constructors ?? element.constructors;
+    var constructors = element.augmented.constructors;
     for (var constructor in constructors) {
       _suggestConstructor(
         constructor,
@@ -179,6 +206,21 @@ class DeclarationHelper {
         namespace: importElement.namespace,
         prefix: null,
       );
+
+      if (importElement.prefix case var importPrefix?) {
+        if (importPrefix is DeferredImportElementPrefix) {
+          var matcherScore = state.matcher.score('loadLibrary');
+          if (matcherScore != -1) {
+            collector.addSuggestion(
+              LoadLibraryFunctionSuggestion(
+                kind: CompletionSuggestionKind.INVOCATION,
+                element: importedLibrary.loadLibraryFunction,
+                matcherScore: matcherScore,
+              ),
+            );
+          }
+        }
+      }
     }
   }
 
@@ -223,7 +265,7 @@ class DeclarationHelper {
           !field.isSynthetic &&
           !fieldsToSkip.contains(field) &&
           (!(field.isFinal || field.isConst) || !field.hasInitializer)) {
-        _suggestField(field, containingElement);
+        _suggestField(field: field);
       }
     }
   }
@@ -267,7 +309,8 @@ class DeclarationHelper {
       }
 
       var prefixElement = importPrefix.element;
-      if (!visibilityTracker.isVisible(prefixElement)) {
+      if (!visibilityTracker.isVisible(
+          element: prefixElement, importData: null)) {
         continue;
       }
 
@@ -279,13 +322,16 @@ class DeclarationHelper {
       if (importedLibrary == null) {
         continue;
       }
-
-      collector.addSuggestion(
-        ImportPrefixSuggestion(
-          libraryElement: importedLibrary,
-          prefixElement: prefixElement,
-        ),
-      );
+      var matcherScore = state.matcher.score(prefixElement.displayName);
+      if (matcherScore != -1) {
+        collector.addSuggestion(
+          ImportPrefixSuggestion(
+            libraryElement: importedLibrary,
+            prefixElement: prefixElement,
+            matcherScore: matcherScore,
+          ),
+        );
+      }
     }
   }
 
@@ -349,11 +395,88 @@ class DeclarationHelper {
         if (!skipImports) {
           _addImportedDeclarations(library);
         }
+        _recordOperation(StaticMembersOperation(declarationHelper: this));
       }
     }
     if (topLevelMember != null && !mustBeStatic && !mustBeType) {
       _addInheritedMembers(topLevelMember);
     }
+  }
+
+  /// Add members from the given [ExtensionElement].
+  void addMembersFromExtensionElement(ExtensionElement extension,
+      {ImportData? importData}) {
+    var extendedType = extension.extendedType;
+    var referencingInterface =
+        (extendedType is InterfaceType) ? extendedType.element : null;
+    for (var method in extension.methods) {
+      if (!method.isStatic) {
+        _suggestMethod(
+            method: method,
+            importData: importData,
+            referencingInterface: referencingInterface);
+      }
+    }
+    for (var accessor in extension.accessors) {
+      if (!accessor.isStatic) {
+        _suggestProperty(
+            accessor: accessor,
+            importData: importData,
+            referencingInterface: referencingInterface);
+      }
+    }
+  }
+
+  /// Adds suggestions for any constructors that are visible within the not yet
+  /// imported [library].
+  void addNotImportedConstructors(LibraryElement library) {
+    var importData = ImportData(
+      libraryUri: library.source.uri,
+      prefix: null,
+      isNotImported: true,
+    );
+    _addConstructors(library, importData);
+  }
+
+  /// Add members from all the applicable extensions that are visible in the
+  /// not yet imported [library] that are applicable for the given [type].
+  void addNotImportedExtensionMethods(
+      {required LibraryElement library,
+      required InterfaceType type,
+      required Set<String> excludedGetters,
+      required bool includeMethods,
+      required bool includeSetters}) {
+    var applicableExtensions = library.accessibleExtensions.applicableTo(
+      targetLibrary: library,
+      // Ignore nullability, consistent with non-extension members.
+      targetType: type.isDartCoreNull
+          ? type
+          : library.typeSystem.promoteToNonNull(type),
+      strictCasts: false,
+    );
+    var importData = ImportData(
+        libraryUri: library.source.uri, prefix: null, isNotImported: true);
+    for (var instantiatedExtension in applicableExtensions) {
+      var extension = instantiatedExtension.extension;
+      if (extension.isVisibleIn(request.libraryElement)) {
+        addMembersFromExtensionElement(extension, importData: importData);
+      }
+    }
+  }
+
+  /// Adds suggestions for any top-level declarations that are visible within
+  /// the not yet imported [library].
+  void addNotImportedTopLevelDeclarations(LibraryElement library) {
+    var importData = ImportData(
+      libraryUri: library.source.uri,
+      prefix: null,
+      isNotImported: true,
+    );
+    _addExternalTopLevelDeclarations(
+      library: library,
+      namespace: library.exportNamespace,
+      importData: importData,
+    );
   }
 
   /// Add any parameters from the super constructor of the constructor
@@ -392,8 +515,7 @@ class DeclarationHelper {
       for (var superParameter in superConstructor.parameters) {
         if (superParameter.isNamed &&
             !specified.contains(superParameter.name)) {
-          collector
-              .addSuggestion(SuperParameterSuggestion(element: superParameter));
+          _suggestSuperParameter(superParameter);
         }
       }
     } else if (node.isPositional) {
@@ -403,8 +525,7 @@ class DeclarationHelper {
           .toList();
       if (indexOfThis >= 0 && indexOfThis < superPositionalList.length) {
         var superPositional = superPositionalList[indexOfThis];
-        collector
-            .addSuggestion(SuperParameterSuggestion(element: superPositional));
+        _suggestSuperParameter(superPositional);
       }
     }
   }
@@ -414,11 +535,8 @@ class DeclarationHelper {
   void addPossibleRedirectionsInLibrary(
       ConstructorElement redirectingConstructor, LibraryElement library) {
     var classElement =
-        redirectingConstructor.enclosingElement.augmented?.declaration;
-    var classType = classElement?.thisType;
-    if (classType == null) {
-      return;
-    }
+        redirectingConstructor.enclosingElement.augmented.declaration;
+    var classType = classElement.thisType;
     var typeSystem = library.typeSystem;
     for (var unit in library.units) {
       for (var classElement in unit.classes) {
@@ -451,35 +569,36 @@ class DeclarationHelper {
       case EnumElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: augmented?.accessors ?? element.accessors,
-            constructors: augmented?.constructors ?? element.constructors,
-            containingElement: element,
-            fields: augmented?.fields ?? element.fields,
-            methods: augmented?.methods ?? element.methods);
+          accessors: augmented.accessors,
+          constructors: augmented.constructors,
+          containingElement: element,
+          fields: augmented.fields,
+          methods: augmented.methods,
+        );
       case ExtensionElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: augmented?.accessors ?? element.accessors,
-            constructors: const [],
-            containingElement: element,
-            fields: augmented?.fields ?? element.fields,
-            methods: augmented?.methods ?? element.methods);
+          accessors: augmented.accessors,
+          constructors: const [],
+          containingElement: element,
+          fields: augmented.fields,
+          methods: augmented.methods,
+        );
       case InterfaceElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: augmented?.accessors ?? element.accessors,
-            constructors: augmented?.constructors ?? element.constructors,
-            containingElement: element,
-            fields: augmented?.fields ?? element.fields,
-            methods: augmented?.methods ?? element.methods);
+          accessors: augmented.accessors,
+          constructors: augmented.constructors,
+          containingElement: element,
+          fields: augmented.fields,
+          methods: augmented.methods,
+        );
     }
   }
 
   /// Adds suggestions for any constructors that are declared within the
   /// [library].
-  void _addConstructors(LibraryElement library, String? prefix) {
-    var importData = ImportData(
-        libraryUriStr: library.source.uri.toString(), prefix: prefix);
+  void _addConstructors(LibraryElement library, ImportData importData) {
     for (var unit in library.units) {
       // Mixins don't have constructors, so we don't need to enumerate them.
       for (var element in unit.classes) {
@@ -521,7 +640,7 @@ class DeclarationHelper {
     required String? prefix,
   }) {
     var importData = ImportData(
-        libraryUriStr: library.source.uri.toString(), prefix: prefix);
+        libraryUri: library.source.uri, prefix: prefix, isNotImported: false);
     for (var element in namespace.definedNames.values) {
       switch (element) {
         case ClassElement():
@@ -535,15 +654,72 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds suggestions for any top-level declarations that are visible within the
-  /// [library].
+  /// Adds suggestions for any top-level declarations that are visible within
+  /// the [library].
   void _addDeclarationsImportedFrom({
     required LibraryElement library,
     required Namespace namespace,
     required String? prefix,
   }) {
     var importData = ImportData(
-        libraryUriStr: library.source.uri.toString(), prefix: prefix);
+      libraryUri: library.source.uri,
+      prefix: prefix,
+      isNotImported: false,
+    );
+    _addExternalTopLevelDeclarations(
+      library: library,
+      namespace: namespace,
+      importData: importData,
+    );
+  }
+
+  /// Add members from all the applicable extensions that are visible for the
+  /// given [InterfaceType].
+  void _addExtensionMembers(
+      {required InterfaceType type,
+      required Set<String> excludedGetters,
+      required bool includeMethods,
+      required bool includeSetters}) {
+    var libraryElement = request.libraryElement;
+
+    var applicableExtensions = libraryElement.accessibleExtensions.applicableTo(
+      targetLibrary: libraryElement,
+      // Ignore nullability, consistent with non-extension members.
+      targetType: type.isDartCoreNull
+          ? type
+          : libraryElement.typeSystem.promoteToNonNull(type),
+      strictCasts: false,
+    );
+    for (var instantiatedExtension in applicableExtensions) {
+      var extension = instantiatedExtension.extension;
+      if (includeMethods) {
+        for (var method in extension.methods) {
+          if (!method.isStatic) {
+            _suggestMethod(method: method);
+          }
+        }
+      }
+      for (var accessor in extension.accessors) {
+        if (accessor.isGetter || includeSetters && accessor.isSetter) {
+          _suggestProperty(accessor: accessor);
+        }
+      }
+    }
+  }
+
+  /// Adds suggestions for any top-level declarations that are visible within
+  /// the [library].
+  ///
+  /// The [library] is a library other than the library in which completion is
+  /// being requested.
+  ///
+  /// The [namespace] is the export namespace of the [library].
+  ///
+  /// The [importData] indicates how the library is, or should be, imported.
+  void _addExternalTopLevelDeclarations(
+      {required LibraryElement library,
+      required Namespace namespace,
+      required ImportData importData}) {
     for (var element in namespace.definedNames.values) {
       switch (element) {
         case ClassElement():
@@ -551,22 +727,31 @@ class DeclarationHelper {
         case EnumElement():
           _suggestEnum(element, importData);
         case ExtensionElement():
-          _suggestExtension(element, importData);
+          if (!mustBeType) {
+            _suggestExtension(element, importData);
+          }
         case ExtensionTypeElement():
           _suggestExtensionType(element, importData);
         case FunctionElement():
-          _suggestTopLevelFunction(element, importData);
+          if (!mustBeType) {
+            _suggestTopLevelFunction(element, importData);
+          }
         case MixinElement():
           _suggestMixin(element, importData);
         case PropertyAccessorElement():
-          // Do not add synthetic setters, as these may prevent adding getters,
-          // they are both tracked with the same name in the [VisibilityTracker].
-          if (element.isSynthetic && element.isSetter) {
-            break;
+          if (!mustBeType) {
+            // Do not add synthetic setters, as these may prevent adding getters,
+            // they are both tracked with the same name in the
+            // [VisibilityTracker].
+            if (element.isSynthetic && element.isSetter) {
+              break;
+            }
+            _suggestTopLevelProperty(element, importData);
           }
-          _suggestTopLevelProperty(element, importData);
         case TopLevelVariableElement():
-          _suggestTopLevelVariable(element, importData);
+          if (!mustBeType) {
+            _suggestTopLevelVariable(element, importData);
+          }
         case TypeAliasElement():
           _suggestTypeAlias(element, importData);
       }
@@ -579,14 +764,14 @@ class DeclarationHelper {
     required RecordType type,
     required Set<String> excludedFields,
   }) {
-    for (final (index, field) in type.positionalFields.indexed) {
+    for (var (index, field) in type.positionalFields.indexed) {
       _suggestRecordField(
         field: field,
         name: '\$${index + 1}',
       );
     }
 
-    for (final field in type.namedFields) {
+    for (var field in type.namedFields) {
       if (!excludedFields.contains(field.name)) {
         _suggestRecordField(
           field: field,
@@ -596,7 +781,8 @@ class DeclarationHelper {
     }
   }
 
-  /// Adds suggestions for any constructors that are imported into the [library].
+  /// Adds suggestions for any constructors that are imported into the
+  /// [library].
   void _addImportedConstructors(LibraryElement library) {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
@@ -628,7 +814,12 @@ class DeclarationHelper {
           prefix: importElement.prefix?.element.name,
         );
         if (importedLibrary.isDartCore && mustBeType) {
-          collector.addSuggestion(NameSuggestion(name: 'Never'));
+          var name = 'Never';
+          var matcherScore = state.matcher.score(name);
+          if (matcherScore != -1) {
+            collector.addSuggestion(
+                NameSuggestion(name: name, matcherScore: matcherScore));
+          }
         }
       }
     }
@@ -636,26 +827,35 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the top-level [element].
   void _addImportedElement(Element element) {
-    var suggestion = switch (element) {
-      ClassElement() => ClassSuggestion(importData: null, element: element),
-      EnumElement() => EnumSuggestion(importData: null, element: element),
-      ExtensionElement() =>
-        ExtensionSuggestion(importData: null, element: element),
-      ExtensionTypeElement() =>
-        ExtensionTypeSuggestion(importData: null, element: element),
-      FunctionElement() => TopLevelFunctionSuggestion(
-          importData: null, element: element, kind: _executableSuggestionKind),
-      MixinElement() => MixinSuggestion(importData: null, element: element),
-      PropertyAccessorElement() =>
-        TopLevelPropertyAccessSuggestion(importData: null, element: element),
-      TopLevelVariableElement() =>
-        TopLevelVariableSuggestion(importData: null, element: element),
-      TypeAliasElement() =>
-        TypeAliasSuggestion(importData: null, element: element),
-      _ => null
-    };
-    if (suggestion != null) {
-      collector.addSuggestion(suggestion);
+    var matcherScore = state.matcher.score(element.displayName);
+    if (matcherScore != -1) {
+      var suggestion = switch (element) {
+        ClassElement() => ClassSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        EnumElement() => EnumSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        ExtensionElement() => ExtensionSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        ExtensionTypeElement() => ExtensionTypeSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        FunctionElement() => TopLevelFunctionSuggestion(
+            importData: null,
+            element: element,
+            kind: _executableSuggestionKind,
+            matcherScore: matcherScore),
+        MixinElement() => MixinSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        PropertyAccessorElement() => TopLevelPropertyAccessSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        TopLevelVariableElement() => TopLevelVariableSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        TypeAliasElement() => TypeAliasSuggestion(
+            importData: null, element: element, matcherScore: matcherScore),
+        _ => null
+      };
+      if (suggestion != null) {
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
@@ -672,26 +872,46 @@ class DeclarationHelper {
       GenericTypeAlias() => containingMember.declaredElement,
       _ => null,
     };
+    if (!mustBeStatic && element is ExtensionElement) {
+      var thisType = element.thisType;
+      if (thisType is InterfaceType) {
+        _addInstanceMembers(
+            type: thisType,
+            excludedGetters: {},
+            includeMethods: true,
+            includeSetters: true);
+      }
+      return;
+    }
     if (element is! InterfaceElement) {
       return;
     }
+    var referencingInterface = _referencingInterfaceFor(element);
     var members = request.inheritanceManager.getInheritedMap2(element);
     for (var member in members.values) {
       switch (member) {
         case MethodElement():
-          _suggestMethod(member, element);
+          _suggestMethod(
+            method: member,
+            referencingInterface: referencingInterface,
+          );
         case PropertyAccessorElement():
-          _suggestProperty(member, element);
+          _suggestProperty(
+            accessor: member,
+            referencingInterface: referencingInterface,
+          );
       }
     }
   }
 
   /// Adds completion suggestions for instance members of the given [type].
   ///
-  /// Suggestions will not be added for any getters whose named are in the set
-  /// of [excludedGetters]. Suggestions for methods will only be added if
-  /// [includeMethods] is `true`. Suggestions for setters will only be added if
-  /// [includeSetters] is `true`.
+  /// Suggestions will not be added for any getters whose names are in the set
+  /// of [excludedGetters].
+  ///
+  /// Suggestions for methods will only be added if [includeMethods] is `true`.
+  ///
+  /// Suggestions for setters will only be added if [includeSetters] is `true`.
   ///
   /// If [onlySuper] is `true`, only valid super members will be suggested.
   void _addInstanceMembers(
@@ -714,6 +934,7 @@ class DeclarationHelper {
             .add(rawMember);
       }
     }
+    var referencingInterface = _referencingInterfaceFor(type.element);
     for (var entry in membersByName.entries) {
       var members = entry.value;
       var rawMember = members.bestMember;
@@ -721,16 +942,19 @@ class DeclarationHelper {
         if (includeMethods) {
           // Exclude static methods when completion on an instance.
           var member = ExecutableMember.from2(rawMember, substitution);
-          _suggestMethod(member as MethodElement, member.enclosingElement,
-              ignoreVisibility: true);
+          _suggestMethod(
+            method: member as MethodElement,
+            referencingInterface: referencingInterface,
+          );
         }
       } else if (rawMember is PropertyAccessorElement) {
         if (rawMember.isGetter && !excludedGetters.contains(entry.key) ||
             includeSetters && rawMember.isSetter) {
           var member = ExecutableMember.from2(rawMember, substitution);
           _suggestProperty(
-              member as PropertyAccessorElement, member.enclosingElement,
-              ignoreVisibility: true);
+            accessor: member as PropertyAccessorElement,
+            referencingInterface: referencingInterface,
+          );
         }
       }
     }
@@ -738,6 +962,21 @@ class DeclarationHelper {
         type.allSupertypes.any((type) => type.isDartCoreFunction)) {
       _suggestFunctionCall(); // from builder
     }
+    // Add members from extensions. Members from extensions accessible in the
+    // same library as the completion location are suggested in this pass.
+    // Members from extensions that are not currently imported are suggested in
+    // the second pass.
+    _addExtensionMembers(
+        type: type,
+        excludedGetters: excludedGetters,
+        includeMethods: includeMethods,
+        includeSetters: includeSetters);
+    _recordOperation(InstanceExtensionMembersOperation(
+        declarationHelper: this,
+        type: type,
+        excludedGetters: excludedGetters,
+        includeMethods: includeMethods,
+        includeSetters: includeSetters));
   }
 
   /// Adds suggestions for any local declarations that are visible at the
@@ -790,7 +1029,7 @@ class DeclarationHelper {
         case FunctionDeclarationStatement():
           var functionElement = currentNode.functionDeclaration.declaredElement;
           if (functionElement != null) {
-            _suggestFunction(functionElement);
+            _suggestLocalFunction(functionElement);
           }
         case FunctionExpression():
           _visitParameterList(currentNode.parameters);
@@ -874,29 +1113,44 @@ class DeclarationHelper {
         includeSetters: true);
   }
 
-  /// Completion is inside the declaration with [element].
+  /// Completion is inside the declaration of the [element].
   void _addMembersOfEnclosingInstance(InstanceElement element) {
     var augmented = element.augmented;
+    var referencingInterface = _referencingInterfaceFor(element);
 
-    var accessors = augmented?.accessors ?? element.accessors;
-    for (var accessor in accessors) {
+    for (var accessor in augmented.accessors) {
       if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
-        _suggestProperty(accessor, element);
+        _suggestProperty(
+          accessor: accessor,
+          referencingInterface: referencingInterface,
+        );
       }
     }
 
-    var fields = augmented?.fields ?? element.fields;
-    for (var field in fields) {
+    for (var field in augmented.fields) {
       if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
-        _suggestField(field, element);
+        _suggestField(
+          field: field,
+          referencingInterface: referencingInterface,
+        );
       }
     }
 
-    var methods = augmented?.methods ?? element.methods;
-    for (var method in methods) {
+    for (var method in augmented.methods) {
       if (!mustBeStatic || method.isStatic) {
-        _suggestMethod(method, element);
+        _suggestMethod(
+          method: method,
+          referencingInterface: referencingInterface,
+        );
       }
+    }
+    var thisType = element.thisType;
+    if (thisType is InterfaceType) {
+      _addExtensionMembers(
+          type: thisType,
+          excludedGetters: {},
+          includeMethods: true,
+          includeSetters: true);
     }
   }
 
@@ -939,7 +1193,7 @@ class DeclarationHelper {
             _addMembersOfEnclosingInstance(element);
             var fieldElement = declaration.representation.fieldElement;
             if (fieldElement != null) {
-              _suggestField(fieldElement, element);
+              _suggestField(field: fieldElement);
             }
           }
           _suggestTypeParameters(element.typeParameters);
@@ -977,7 +1231,7 @@ class DeclarationHelper {
       if (accessor.isStatic &&
           !accessor.isSynthetic &&
           accessor.isVisibleIn(request.libraryElement)) {
-        _suggestProperty(accessor, containingElement);
+        _suggestProperty(accessor: accessor);
       }
     }
     for (var field in fields) {
@@ -986,11 +1240,19 @@ class DeclarationHelper {
               (containingElement is EnumElement && field.name == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
-          var suggestion = EnumConstantSuggestion(
-              importData: null, element: field, includeEnumName: false);
-          collector.addSuggestion(suggestion);
+          var enumElement = field.enclosingElement;
+          var matcherScore =
+              state.matcher.score('${enumElement.name}.${field.name}');
+          if (matcherScore != -1) {
+            var suggestion = EnumConstantSuggestion(
+                importData: null,
+                element: field,
+                includeEnumName: false,
+                matcherScore: matcherScore);
+            collector.addSuggestion(suggestion);
+          }
         } else {
-          _suggestField(field, containingElement);
+          _suggestField(field: field);
         }
       }
     }
@@ -1010,7 +1272,7 @@ class DeclarationHelper {
       }
       for (var method in methods) {
         if (method.isStatic && method.isVisibleIn(request.libraryElement)) {
-          _suggestMethod(method, containingElement);
+          _suggestMethod(method: method);
         }
       }
     }
@@ -1018,6 +1280,8 @@ class DeclarationHelper {
 
   /// Adds suggestions for any top-level declarations that are visible within
   /// the [library].
+  ///
+  /// The [library] is the library in which completion is being requested.
   void _addTopLevelDeclarations(LibraryElement library) {
     for (var unit in library.units) {
       for (var element in unit.classes) {
@@ -1124,10 +1388,29 @@ class DeclarationHelper {
   /// characters and nothing else.
   bool _isUnused(String identifier) => UnusedIdentifier.hasMatch(identifier);
 
+  /// Record that the given [operation] should be performed in the second pass.
+  void _recordOperation(NotImportedOperation operation) {
+    notImportedOperations.add(operation);
+  }
+
+  /// Returns the interface element for the type of `this` within the
+  /// declaration of the given class-like [element].
+  InterfaceElement? _referencingInterfaceFor(Element element) {
+    if (element is InterfaceElement) {
+      return element;
+    } else if (element is InstanceElement) {
+      var thisElement = element.thisType.element;
+      if (thisElement is InterfaceElement) {
+        return thisElement;
+      }
+    }
+    return null;
+  }
+
   /// Adds a suggestion for the class represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestClass(ClassElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeExtendable &&
               !element.isExtendableIn(request.libraryElement)) ||
           (mustBeImplementable &&
@@ -1135,17 +1418,21 @@ class DeclarationHelper {
           (mustBeMixable && !element.isMixableIn(request.libraryElement))) {
         return;
       }
-      if (!mustBeConstant) {
-        var suggestion =
-            ClassSuggestion(importData: importData, element: element);
-        collector.addSuggestion(suggestion);
+      if (!(mustBeConstant && !objectPatternAllowed) && !excludeTypeNames) {
+        var matcherScore = state.matcher.score(element.displayName);
+        if (matcherScore != -1) {
+          var suggestion = ClassSuggestion(
+              importData: importData,
+              element: element,
+              matcherScore: matcherScore);
+          collector.addSuggestion(suggestion);
+        }
       }
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-          _suggestConstructors(augmented.constructors, importData,
-              allowNonFactory: !element.isAbstract);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
+        _suggestConstructors(augmented.constructors, importData,
+            allowNonFactory: !element.isAbstract);
       }
     }
   }
@@ -1165,18 +1452,42 @@ class DeclarationHelper {
     if (!element.isVisibleIn(request.libraryElement)) {
       return;
     }
+    if (importData?.isNotImported ?? false) {
+      if (!visibilityTracker.isVisible(
+          element: element.enclosingElement, importData: importData)) {
+        // If the constructor is on a class from a not-yet-imported library and
+        // the class isn't visible, then we shouldn't suggest it.
+        //
+        // We could consider computing a prefix and updating the [importData] in
+        // order to avoid the collision, but we don't currently do that for any
+        // not-yet-imported elements (nor for imported elements that are
+        // shadowed by local declarations).
+        return;
+      }
+    } else {
+      // Add the class to the visibility tracker so that we will know later that
+      // any non-imported elements with the same name are not visible.
+      visibilityTracker.isVisible(
+          element: element.enclosingElement, importData: importData);
+    }
 
-    var isTearOff = preferNonInvocation || (mustBeConstant && !element.isConst);
+    // TODO(keertip): Compute the completion string.
+    var matcherScore = state.matcher.score(element.displayName);
+    if (matcherScore != -1) {
+      var isTearOff =
+          preferNonInvocation || (mustBeConstant && !element.isConst);
 
-    var suggestion = ConstructorSuggestion(
-      importData: importData,
-      element: element,
-      hasClassName: hasClassName,
-      isTearOff: isTearOff,
-      isRedirect: isConstructorRedirect,
-      suggestUnnamedAsNew: suggestUnnamedAsNew || isTearOff,
-    );
-    collector.addSuggestion(suggestion);
+      var suggestion = ConstructorSuggestion(
+        importData: importData,
+        element: element,
+        hasClassName: hasClassName,
+        isTearOff: isTearOff,
+        isRedirect: isConstructorRedirect,
+        suggestUnnamedAsNew: suggestUnnamedAsNew || isTearOff,
+        matcherScore: matcherScore,
+      );
+      collector.addSuggestion(suggestion);
+    }
   }
 
   /// Adds a suggestion for each of the [constructors].
@@ -1202,18 +1513,24 @@ class DeclarationHelper {
   /// Adds a suggestion for the enum represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestEnum(EnumElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var suggestion = EnumSuggestion(importData: importData, element: element);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = EnumSuggestion(
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
+
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-          _suggestConstructors(augmented.constructors, importData,
-              allowNonFactory: false);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
+        _suggestConstructors(augmented.constructors, importData,
+            allowNonFactory: false);
       }
     }
   }
@@ -1221,17 +1538,21 @@ class DeclarationHelper {
   /// Adds a suggestion for the extension represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestExtension(ExtensionElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var suggestion =
-          ExtensionSuggestion(importData: importData, element: element);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = ExtensionSuggestion(
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
       }
     }
   }
@@ -1240,143 +1561,200 @@ class DeclarationHelper {
   /// [prefix] is the prefix by which the element is imported.
   void _suggestExtensionType(
       ExtensionTypeElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var suggestion =
-          ExtensionTypeSuggestion(importData: importData, element: element);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = ExtensionTypeSuggestion(
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-          _suggestConstructors(augmented.constructors, importData);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
+        _suggestConstructors(augmented.constructors, importData);
       }
     }
   }
 
-  /// Adds a suggestion for the field represented by the [element] contained
-  /// in the [containingElement].
-  void _suggestField(FieldElement element, Element containingElement) {
-    if (visibilityTracker.isVisible(element)) {
-      if ((mustBeAssignable && element.setter == null) ||
-          (mustBeConstant && !element.isConst)) {
+  /// Adds a suggestion for the [field].
+  ///
+  /// The [referencingInterface] is used to compute the inheritance distance to
+  /// an instance member, and should not be provided for static members. If a
+  /// [referencingInterface] is provided, it should be the class in which
+  /// completion was requested.
+  void _suggestField(
+      {required FieldElement field, InterfaceElement? referencingInterface}) {
+    if (visibilityTracker.isVisible(element: field, importData: null)) {
+      if ((mustBeAssignable && field.setter == null) ||
+          (mustBeConstant && !field.isConst)) {
         return;
       }
-      var suggestion = FieldSuggestion(
-          element: element,
-          referencingClass:
-              (containingElement is ClassElement) ? containingElement : null);
-      collector.addSuggestion(suggestion);
-    }
-  }
-
-  /// Adds a suggestion for the local function represented by the [element].
-  void _suggestFunction(ExecutableElement element) {
-    if (element is FunctionElement && visibilityTracker.isVisible(element)) {
-      if (mustBeAssignable ||
-          mustBeConstant ||
-          (mustBeNonVoid && element.returnType is VoidType)) {
-        return;
+      var matcherScore = state.matcher.score(field.displayName);
+      if (matcherScore != -1) {
+        var suggestion = FieldSuggestion(
+            element: field,
+            matcherScore: matcherScore,
+            referencingInterface: referencingInterface);
+        collector.addSuggestion(suggestion);
       }
-      var suggestion = LocalFunctionSuggestion(
-          kind: _executableSuggestionKind, element: element);
-      collector.addSuggestion(suggestion);
     }
   }
 
   /// Adds a suggestion for the method `call` defined on the class `Function`.
   void _suggestFunctionCall() {
-    collector.addSuggestion(FunctionCall());
+    var matcherScore = state.matcher.score('call');
+    if (matcherScore != -1) {
+      collector.addSuggestion(FunctionCall(matcherScore: matcherScore));
+    }
   }
 
-  /// Adds a suggestion for the method represented by the [element] contained
-  /// in the [containingElement].
-  ///
-  /// If [ignoreVisibility] is `true` then the visibility tracker will not be
-  /// used to determine whether the element is shadowed. This should be used
-  /// when suggesting a member accessed through a target.
-  void _suggestMethod(MethodElement element, Element containingElement,
-      {bool ignoreVisibility = false}) {
-    if (visibilityTracker.isVisible(element)) {
+  /// Adds a suggestion for the local function represented by the [element].
+  void _suggestLocalFunction(ExecutableElement element) {
+    if (element is FunctionElement &&
+        visibilityTracker.isVisible(element: element, importData: null)) {
       if (mustBeAssignable ||
           mustBeConstant ||
           (mustBeNonVoid && element.returnType is VoidType)) {
         return;
       }
-      var suggestion = MethodSuggestion(
-          kind: _executableSuggestionKind,
-          element: element,
-          referencingClass:
-              (containingElement is ClassElement) ? containingElement : null);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = LocalFunctionSuggestion(
+            kind: _executableSuggestionKind,
+            element: element,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
+    }
+  }
+
+  /// Adds a suggestion for the [method].
+  ///
+  /// If [ignoreVisibility] is `true` then the visibility tracker will not be
+  /// used to determine whether the element is shadowed. This should be used
+  /// when suggesting a member accessed through a target.
+  ///
+  /// The [referencingInterface] is used to compute the inheritance distance to
+  /// an instance member, and should not be provided for static members. If a
+  /// [referencingInterface] is provided, it should be the class in which
+  /// completion was requested.
+  void _suggestMethod(
+      {required MethodElement method,
+      bool ignoreVisibility = false,
+      ImportData? importData,
+      InterfaceElement? referencingInterface}) {
+    if (ignoreVisibility ||
+        visibilityTracker.isVisible(element: method, importData: importData)) {
+      if (mustBeAssignable ||
+          mustBeConstant ||
+          (mustBeNonVoid && method.returnType is VoidType)) {
+        return;
+      }
+      var matcherScore = state.matcher.score(method.displayName);
+      if (matcherScore != -1) {
+        var suggestion = MethodSuggestion(
+            kind: _executableSuggestionKind,
+            element: method,
+            importData: importData,
+            matcherScore: matcherScore,
+            referencingInterface: referencingInterface);
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
   /// Adds a suggestion for the mixin represented by the [element]. The [prefix]
   /// is the prefix by which the element is imported.
   void _suggestMixin(MixinElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable ||
           (mustBeImplementable &&
               !element.isImplementableIn(request.libraryElement))) {
         return;
       }
-      var suggestion =
-          MixinSuggestion(importData: importData, element: element);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = MixinSuggestion(
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
       }
     }
   }
 
   /// Adds a suggestion for the parameter represented by the [element].
   void _suggestParameter(ParameterElement element) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: null)) {
       if (mustBeConstant || _isUnused(element.name)) {
         return;
       }
-      var suggestion = FormalParameterSuggestion(
-        element: element,
-        distance: _variableDistance++,
-      );
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = FormalParameterSuggestion(
+          element: element,
+          distance: _variableDistance++,
+          matcherScore: matcherScore,
+        );
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
-  /// Adds a suggestion for the getter or setter represented by the [element]
-  /// contained in the [containingElement].
+  /// Adds a suggestion for the getter or setter represented by the [accessor].
   ///
   /// If [ignoreVisibility] is `true` then the visibility tracker will not be
   /// used to determine whether the element is shadowed. This should be used
   /// when suggesting a member accessed through a target.
+  ///
+  /// The [referencingInterface] is used to compute the inheritance distance to
+  /// an instance member, and should not be provided for static members. If a
+  /// [referencingInterface] is provided, it should be the class in which
+  /// completion was requested.
   void _suggestProperty(
-      PropertyAccessorElement element, Element containingElement,
-      {bool ignoreVisibility = false}) {
-    if (ignoreVisibility || visibilityTracker.isVisible(element)) {
+      {required PropertyAccessorElement accessor,
+      bool ignoreVisibility = false,
+      ImportData? importData,
+      InterfaceElement? referencingInterface}) {
+    if (ignoreVisibility ||
+        visibilityTracker.isVisible(
+            element: accessor, importData: importData)) {
       if ((mustBeAssignable &&
-              element.isGetter &&
-              element.correspondingSetter == null) ||
+              accessor.isGetter &&
+              accessor.correspondingSetter == null) ||
           mustBeConstant ||
-          (mustBeNonVoid && element.returnType is VoidType)) {
+          (mustBeNonVoid && accessor.returnType is VoidType)) {
         return;
       }
-      var suggestion = PropertyAccessSuggestion(
-          element: element,
-          referencingClass:
-              (containingElement is ClassElement) ? containingElement : null);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(accessor.displayName);
+      if (matcherScore != -1) {
+        var suggestion = PropertyAccessSuggestion(
+            element: accessor,
+            importData: importData,
+            matcherScore: matcherScore,
+            referencingInterface: referencingInterface);
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
   /// Adds a suggestion for the record type [field] with the given [name].
   void _suggestRecordField(
       {required RecordTypeField field, required String name}) {
-    collector.addSuggestion(RecordFieldSuggestion(field: field, name: name));
+    var matcherScore = state.matcher.score(name);
+    if (matcherScore != -1) {
+      collector.addSuggestion(RecordFieldSuggestion(
+          field: field, name: name, matcherScore: matcherScore));
+    }
   }
 
   /// Adds a suggestion for the enum constant represented by the [element].
@@ -1387,18 +1765,30 @@ class DeclarationHelper {
         (mustBeConstant && !element.isConst)) {
       return;
     }
-    final contextType = request.contextType;
+    var contextType = request.contextType;
     if (contextType != null &&
         request.libraryElement.typeSystem
             .isSubtypeOf(element.type, contextType)) {
       if (element.isEnumConstant) {
-        var suggestion =
-            EnumConstantSuggestion(importData: importData, element: element);
-        collector.addSuggestion(suggestion);
+        var enumElement = element.enclosingElement;
+        var matcherScore = state.matcher
+            .score('${enumElement.displayName}.${element.displayName}');
+        if (matcherScore != -1) {
+          var suggestion = EnumConstantSuggestion(
+              importData: importData,
+              element: element,
+              matcherScore: matcherScore);
+          collector.addSuggestion(suggestion);
+        }
       } else {
-        var suggestion =
-            StaticFieldSuggestion(importData: importData, element: element);
-        collector.addSuggestion(suggestion);
+        var matcherScore = state.matcher.score(element.displayName);
+        if (matcherScore != -1) {
+          var suggestion = StaticFieldSuggestion(
+              importData: importData,
+              element: element,
+              matcherScore: matcherScore);
+          collector.addSuggestion(suggestion);
+        }
       }
     }
   }
@@ -1412,22 +1802,35 @@ class DeclarationHelper {
     }
   }
 
+  /// Adds a suggestion for a parameter that is in the super constructor.
+  void _suggestSuperParameter(ParameterElement element) {
+    var matcherScore = state.matcher.score(element.displayName);
+    if (matcherScore != -1) {
+      collector.addSuggestion(SuperParameterSuggestion(
+          element: element, matcherScore: matcherScore));
+    }
+  }
+
   /// Adds a suggestion for the function represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestTopLevelFunction(
       FunctionElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeAssignable ||
           mustBeConstant ||
           (mustBeNonVoid && element.returnType is VoidType) ||
           mustBeType) {
         return;
       }
-      var suggestion = TopLevelFunctionSuggestion(
-          importData: importData,
-          element: element,
-          kind: _executableSuggestionKind);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = TopLevelFunctionSuggestion(
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore,
+            kind: _executableSuggestionKind);
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
@@ -1435,7 +1838,7 @@ class DeclarationHelper {
   /// The [prefix] is the prefix by which the element is imported.
   void _suggestTopLevelProperty(
       PropertyAccessorElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeAssignable &&
               element.isGetter &&
               element.correspondingSetter == null) ||
@@ -1444,9 +1847,14 @@ class DeclarationHelper {
           mustBeType) {
         return;
       }
-      var suggestion = TopLevelPropertyAccessSuggestion(
-          importData: importData, element: element);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = TopLevelPropertyAccessSuggestion(
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
@@ -1454,25 +1862,35 @@ class DeclarationHelper {
   /// The [prefix] is the prefix by which the element is imported.
   void _suggestTopLevelVariable(
       TopLevelVariableElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeAssignable && element.setter == null) ||
           mustBeConstant && !element.isConst ||
           mustBeType) {
         return;
       }
-      var suggestion =
-          TopLevelVariableSuggestion(importData: importData, element: element);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = TopLevelVariableSuggestion(
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
   /// Adds a suggestion for the type alias represented by the [element]. The
   /// [prefix] is the prefix by which the element is imported.
   void _suggestTypeAlias(TypeAliasElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element)) {
-      var suggestion =
-          TypeAliasSuggestion(importData: importData, element: element);
-      collector.addSuggestion(suggestion);
+    if (visibilityTracker.isVisible(element: element, importData: importData)) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = TypeAliasSuggestion(
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
       if (!mustBeType) {
         _addConstructorsForAliasedElement(element, importData);
       }
@@ -1481,9 +1899,13 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the type parameter represented by the [element].
   void _suggestTypeParameter(TypeParameterElement element) {
-    if (visibilityTracker.isVisible(element)) {
-      var suggestion = TypeParameterSuggestion(element: element);
-      collector.addSuggestion(suggestion);
+    if (visibilityTracker.isVisible(element: element, importData: null)) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = TypeParameterSuggestion(
+            element: element, matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
@@ -1496,13 +1918,18 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the local variable represented by the [element].
   void _suggestVariable(LocalVariableElement element) {
-    if (visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element: element, importData: null)) {
       if (mustBeConstant && !element.isConst) {
         return;
       }
-      var suggestion = LocalVariableSuggestion(
-          element: element, distance: _variableDistance++);
-      collector.addSuggestion(suggestion);
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = LocalVariableSuggestion(
+            element: element,
+            distance: _variableDistance++,
+            matcherScore: matcherScore);
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 
@@ -1680,7 +2107,7 @@ class DeclarationHelper {
             if (name.isNotEmpty) {
               var declaredElement = declaration.declaredElement;
               if (declaredElement != null) {
-                _suggestFunction(declaredElement);
+                _suggestLocalFunction(declaredElement);
               }
             }
           }
@@ -1759,10 +2186,11 @@ extension on Element {
   /// An element is visible if it's declared in the [referencingLibrary] or if
   /// the name is not private.
   bool isVisibleIn(LibraryElement referencingLibrary) {
-    final name = this.name;
-    return name == null ||
-        library == referencingLibrary ||
-        !Identifier.isPrivateName(name);
+    if (library == referencingLibrary) {
+      return true;
+    }
+    var name = this.name;
+    return name != null && !Identifier.isPrivateName(name);
   }
 }
 

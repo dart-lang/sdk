@@ -186,7 +186,7 @@ class ConstantEvaluationEngine {
           constant.source,
         );
         var constantVisitor = ConstantVisitor(this, library, errorReporter);
-        final result = evaluateAndFormatErrorsInConstructorCall(
+        var result = evaluateAndFormatErrorsInConstructorCall(
             library,
             constNode,
             element.returnType.typeArguments,
@@ -359,16 +359,16 @@ class ConstantEvaluationEngine {
     // If we found an evaluation exception, report a context message linking to
     // where the exception was found.
     if (result.isRuntimeException) {
-      final formattedMessage =
+      var formattedMessage =
           formatList(result.errorCode.problemMessage, result.arguments);
-      final contextMessage = DiagnosticMessageImpl(
+      var contextMessage = DiagnosticMessageImpl(
         filePath: library.source.fullName,
         length: result.length,
         message: "The exception is '$formattedMessage' and occurs here.",
         offset: result.offset,
         url: null,
       );
-      final errorNode = configuration.errorNode(node);
+      var errorNode = configuration.errorNode(node);
       result = InvalidConstant.forEntity(
           errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
           contextMessages: [...result.contextMessages, contextMessage]);
@@ -827,7 +827,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    final constructorElement = node.constructorName.staticElement?.declaration
+    var constructorElement = node.constructorName.staticElement?.declaration
         .ifTypeOrNull<ConstructorElementImpl>();
     if (constructorElement == null) {
       return InvalidConstant.forEntity(
@@ -1641,6 +1641,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant? _evaluatePropertyAccess(DartObjectImpl targetResult,
       SimpleIdentifier identifier, AstNode errorNode) {
     var propertyElement = identifier.staticElement;
+    if (propertyElement is PropertyAccessorElement &&
+        propertyElement.isGetter &&
+        propertyElement.isStatic) {
+      return null;
+    }
+
     var propertyContainer = propertyElement?.enclosingElement;
     switch (propertyContainer) {
       case ExtensionElement():
@@ -1715,8 +1721,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         switch (evaluationResult) {
           case null:
             // The constant value isn't computed yet, or there is an error while
-            // computing. We will mark it and determine whether or not to continue
-            // the evaluation upstream.
+            // computing. We will mark it and determine whether or not to
+            // continue the evaluation upstream.
             return InvalidConstant.genericError(errorNode, isUnresolved: true);
           case DartObjectImpl():
             if (identifier == null) {
@@ -1850,6 +1856,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             return CompileTimeErrorCode
                 .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY;
           }
+        } else if (current is RecordLiteral) {
+          return CompileTimeErrorCode
+              .NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY;
         } else if (current is SetOrMapLiteral) {
           return CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY;
         } else if (current is SpreadElement) {
@@ -2511,8 +2520,8 @@ class _InstanceCreationEvaluator {
     }
 
     var definingType = this.definingType;
-    if (definingType.element case final ExtensionTypeElement element) {
-      final representation = _fieldMap[element.representation.name];
+    if (definingType.element case ExtensionTypeElement element) {
+      var representation = _fieldMap[element.representation.name];
       if (representation != null) {
         return representation;
       }
@@ -2533,7 +2542,7 @@ class _InstanceCreationEvaluator {
           StringToken(TokenType.STRING, parameter.name, -1),
         )
           ..staticElement = parameter
-          ..staticType = parameter.type;
+          ..setPseudoExpressionStaticType(parameter.type);
         if (parameter.isPositional) {
           superArguments.insert(positionalIndex++, value);
         } else {
@@ -2546,7 +2555,7 @@ class _InstanceCreationEvaluator {
                 colon: StringToken(TokenType.COLON, ':', -1),
               ),
               expression: value,
-            )..staticType = value.typeOrThrow,
+            )..setPseudoExpressionStaticType(value.typeOrThrow),
           );
         }
       }
@@ -2744,11 +2753,31 @@ class _InstanceCreationEvaluator {
           case DartObjectImpl():
             if (!evaluationResult.isBool ||
                 evaluationResult.toBoolValue() == false) {
+              InvalidConstant? invalidConstant;
+
+              // Adds the assert message if we are able to evaluate it.
+              if (initializer.message case var message?) {
+                var messageConstant =
+                    _initializerVisitor.evaluateConstant(message);
+                if (messageConstant is DartObjectImpl) {
+                  if (messageConstant.toStringValue() case var assertMessage?) {
+                    invalidConstant = InvalidConstant.forEntity(
+                        initializer,
+                        CompileTimeErrorCode
+                            .CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE,
+                        arguments: [assertMessage],
+                        isRuntimeException: true);
+                  }
+                }
+              }
+
+              invalidConstant ??= InvalidConstant.forEntity(initializer,
+                  CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE,
+                  isRuntimeException: true);
               return _InitializersEvaluationResult(
-                  InvalidConstant.forEntity(initializer,
-                      CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE,
-                      isRuntimeException: true),
-                  evaluationIsComplete: true);
+                invalidConstant,
+                evaluationIsComplete: true,
+              );
             }
           case InvalidConstant(isRuntimeException: false):
             // Add additional information to the error in the assert initializer
@@ -3116,7 +3145,7 @@ class _InstanceCreationEvaluator {
 
 extension on NamedType {
   bool get isTypeLiteralInConstantPattern {
-    final parent = this.parent;
+    var parent = this.parent;
     return parent is TypeLiteral && parent.parent?.parent is ConstantPattern;
   }
 }

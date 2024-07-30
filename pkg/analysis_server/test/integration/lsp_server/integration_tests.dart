@@ -52,8 +52,8 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   @override
   Future<T> expectSuccessfulResponseTo<T, R>(
       RequestMessage request, T Function(R) fromJson) async {
-    final resp = await sendRequestToServer(request);
-    final error = resp.error;
+    var resp = await sendRequestToServer(request);
+    var error = resp.error;
     if (error != null) {
       throw error;
     } else if (T == Null) {
@@ -103,8 +103,8 @@ abstract class AbstractLspAnalysisServerIntegrationTest
 
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
-    final completer = Completer<ResponseMessage>();
-    final id = request.id.map((number) => number,
+    var completer = Completer<ResponseMessage>();
+    var id = request.id.map((number) => number,
         (string) => throw 'String IDs not supported in tests');
     _completers[id] = completer;
 
@@ -131,15 +131,15 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     analysisOptionsUri = Uri.file(analysisOptionsPath);
 
-    final client = LspServerClient(instrumentationService);
+    var client = LspServerClient(instrumentationService);
     this.client = client;
     await client.start(dartSdkPath: dartSdkPath, vmArgs: vmArgs);
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
-        final id = message.id!.map((number) => number,
+        var id = message.id!.map((number) => number,
             (string) => throw 'String IDs not supported in tests');
 
-        final completer = _completers[id];
+        var completer = _completers[id];
         if (completer == null) {
           throw 'Response with ID $id was unexpected';
         } else {
@@ -218,18 +218,18 @@ class LspServerClient {
       serverPath = normalize(join(
           dartSdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
     } else {
-      final rootDir =
+      var rootDir =
           findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
       serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     }
 
-    final arguments = [
+    var arguments = [
       ...?vmArgs,
       serverPath,
       '--lsp',
       '--suppress-analytics',
     ];
-    final process = await Process.start(
+    var process = await Process.start(
       dartBinary,
       arguments,
       environment: {PubCommand.disablePubCommandEnvironmentKey: 'true'},
@@ -244,11 +244,11 @@ class LspServerClient {
     // If the server writes to stderr, fail tests with a more useful message
     // (rather than having the test just hang waiting for a response).
     process.stderr.listen((data) {
-      final message = String.fromCharCodes(data);
+      var message = String.fromCharCodes(data);
       throw 'Analysis Server wrote to stderr:\n\n$message';
     });
 
-    final inputStream = _extractDevToolsLine(process.stdout);
+    var inputStream = _extractDevToolsLine(process.stdout);
 
     channel = LspByteStreamServerChannel(inputStream, process.stdin,
         instrumentationService ?? InstrumentationService.NULL_SERVICE)
@@ -259,7 +259,7 @@ class LspServerClient {
   /// line, completes [devToolsLine] with it, and excludes it from the sink.
   /// Otherwise, and after the first line, passes data to the sink.
   Stream<List<int>> _extractDevToolsLine(Stream<List<int>> input) {
-    final buffer = <int>[];
+    var buffer = <int>[];
     return input.transform(
       StreamTransformer.fromHandlers(
         handleData: (bytes, sink) {
@@ -267,11 +267,11 @@ class LspServerClient {
             sink.add(bytes);
           } else {
             buffer.addAll(bytes);
-            final lineFeedIndex = buffer.indexOf(0x0A);
+            var lineFeedIndex = buffer.indexOf(0x0A);
             if (lineFeedIndex != -1) {
               _firstLineChecked = true;
-              final lineBytes = buffer.sublist(0, lineFeedIndex);
-              final line = utf8.decode(lineBytes);
+              var lineBytes = buffer.sublist(0, lineFeedIndex);
+              var line = utf8.decode(lineBytes);
               if (line.startsWith('The Dart DevTools')) {
                 _devToolsLineCompleter.complete(line);
                 sink.add(buffer.sublist(lineFeedIndex + 1));

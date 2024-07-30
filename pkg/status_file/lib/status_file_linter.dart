@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:status_file/canonical_status_file.dart';
+import 'package:status_file/status_file_entries_file_checker.dart';
 
 class LintingError {
   final int lineNumber;
@@ -18,7 +19,8 @@ class LintingError {
 }
 
 /// Main function to check a status file for linting errors.
-List<LintingError> lint(StatusFile file, {checkForDisjunctions = false}) {
+List<LintingError> lint(StatusFile file,
+    {bool checkForDisjunctions = false, required bool checkForNonExisting}) {
   var errors = <LintingError>[];
   for (var section in file.sections) {
     errors
@@ -28,6 +30,9 @@ List<LintingError> lint(StatusFile file, {checkForDisjunctions = false}) {
       ..addAll(lintSectionEntryDuplicates(section));
     if (checkForDisjunctions) {
       errors.addAll(lintDisjunctionsInHeader(section));
+    }
+    if (checkForNonExisting) {
+      errors.addAll(lintEntryExists(file, section));
     }
   }
   errors.addAll(lintSectionHeaderOrdering(file.sections));
@@ -112,6 +117,20 @@ Iterable<LintingError> lintAlphabeticalOrderingOfPaths(StatusSection section) {
     ];
   }
   return [];
+}
+
+/// Checks that entries actually represent existing files.
+Iterable<LintingError> lintEntryExists(StatusFile file, StatusSection section) {
+  Uri statusFileUri = Uri.base.resolveUri(Uri.file(file.path));
+  List<LintingError> errors = [];
+  for (var entry in section.entries.whereType<StatusEntry>()) {
+    if (isNonExistingEntry(statusFileUri, entry)) {
+      errors.add(
+          LintingError(entry.lineNumber, "This path doesn't seem to exist."));
+    }
+  }
+
+  return errors;
 }
 
 /// Checks that each section expression have been normalized.

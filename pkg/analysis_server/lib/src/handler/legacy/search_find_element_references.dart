@@ -20,9 +20,9 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    final searchEngine = server.searchEngine;
-    var params =
-        protocol.SearchFindElementReferencesParams.fromRequest(request);
+    var searchEngine = server.searchEngine;
+    var params = protocol.SearchFindElementReferencesParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);

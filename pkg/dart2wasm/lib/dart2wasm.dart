@@ -47,13 +47,6 @@ final List<Option> options = [
   Flag("omit-implicit-checks",
       (o, value) => o.translatorOptions.omitImplicitTypeChecks = value,
       defaultsTo: _d.translatorOptions.omitImplicitTypeChecks),
-  // TODO(http://dartbug.com/54675): Deprecate & Remove this one.
-  Flag("omit-type-checks", (o, value) {
-    o.translatorOptions.omitImplicitTypeChecks = value;
-    o.translatorOptions.omitExplicitTypeChecks = value;
-  },
-      defaultsTo: _d.translatorOptions.omitImplicitTypeChecks &&
-          _d.translatorOptions.omitExplicitTypeChecks),
   Flag("omit-bounds-checks", (o, value) {
     o.translatorOptions.omitBoundsChecks = value;
   }, defaultsTo: _d.translatorOptions.omitBoundsChecks),
@@ -62,13 +55,14 @@ final List<Option> options = [
   Flag("verify-type-checks",
       (o, value) => o.translatorOptions.verifyTypeChecks = value,
       defaultsTo: _d.translatorOptions.verifyTypeChecks),
+  Flag("enable-experimental-wasm-interop",
+      (o, value) => o.translatorOptions.enableExperimentalWasmInterop = value,
+      defaultsTo: _d.translatorOptions.enableExperimentalWasmInterop),
   IntOption(
       "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),
   IntOption("shared-memory-max-pages",
       (o, value) => o.translatorOptions.sharedMemoryMaxPages = value),
-  UriOption("dart-sdk", (o, value) => o.sdkPath = value,
-      defaultsTo: "${_d.sdkPath}"),
   UriOption("packages", (o, value) => o.packagesPath = value),
   UriOption("libraries-spec", (o, value) => o.librariesSpecPath = value),
   UriOption("platform", (o, value) => o.platformPath = value),
@@ -100,6 +94,10 @@ final List<Option> options = [
   Flag("enable-experimental-ffi",
       (o, value) => o.translatorOptions.enableExperimentalFfi = value,
       defaultsTo: _d.translatorOptions.enableExperimentalFfi),
+  // Use same flag with dart2js for disabling source maps.
+  Flag("no-source-maps",
+      (o, value) => o.translatorOptions.generateSourceMaps = !value,
+      defaultsTo: !_d.translatorOptions.generateSourceMaps),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
@@ -148,6 +146,11 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
       if (results.wasParsed(arg.name)) {
         arg.applyToOptions(compilerOptions, results[arg.name]);
       }
+    }
+    if ((compilerOptions.librariesSpecPath == null) ==
+        (compilerOptions.platformPath == null)) {
+      print('Either --libraries-spec or --platform has to be supplied.');
+      usage();
     }
     return compilerOptions;
   } catch (e, s) {

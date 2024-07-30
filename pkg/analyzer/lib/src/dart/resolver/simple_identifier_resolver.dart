@@ -10,21 +10,18 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 
 class SimpleIdentifierResolver with ScopeHelpers {
   final ResolverVisitor _resolver;
 
-  final InvocationInferenceHelper _inferenceHelper;
-
   var _currentAlreadyResolved = false;
 
-  SimpleIdentifierResolver(this._resolver)
-      : _inferenceHelper = _resolver.inferenceHelper;
+  SimpleIdentifierResolver(this._resolver);
 
   @override
   ErrorReporter get errorReporter => _resolver.errorReporter;
@@ -33,6 +30,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
   void resolve(SimpleIdentifierImpl node, {required DartType contextType}) {
     if (node.inDeclarationContext()) {
+      inferenceLogWriter?.recordExpressionWithNoType(node);
       return;
     }
 
@@ -109,7 +107,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   }
 
   void _reportDeprecatedExportUse(SimpleIdentifierImpl node) {
-    final scopeLookupResult = node.scopeLookupResult;
+    var scopeLookupResult = node.scopeLookupResult;
     if (scopeLookupResult != null) {
       reportDeprecatedExportUseGetter(
         scopeLookupResult: scopeLookupResult,
@@ -171,25 +169,25 @@ class SimpleIdentifierResolver with ScopeHelpers {
       hasWrite: hasWrite,
     );
 
-    final callFunctionType = result.functionTypeCallType;
+    var callFunctionType = result.functionTypeCallType;
     if (callFunctionType != null) {
-      final staticType = _resolver.inferenceHelper
+      var staticType = _resolver.inferenceHelper
           .inferTearOff(node, node, callFunctionType, contextType: contextType);
-      _inferenceHelper.recordStaticType(node, staticType);
+      node.recordStaticType(staticType, resolver: _resolver);
       _currentAlreadyResolved = true;
       return null;
     }
 
-    final recordField = result.recordField;
+    var recordField = result.recordField;
     if (recordField != null) {
-      _inferenceHelper.recordStaticType(node, recordField.type);
+      node.recordStaticType(recordField.type, resolver: _resolver);
       _currentAlreadyResolved = true;
       return null;
     }
 
     var element = hasRead ? result.readElement : result.writeElement;
 
-    var enclosingClass = _resolver.enclosingClass;
+    var enclosingClass = _resolver.enclosingClass?.augmented.declaration;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
       errorReporter.atNode(
@@ -237,19 +235,24 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     if (element is ExtensionElement) {
       _setExtensionIdentifierType(node);
+      inferenceLogWriter?.recordExpressionWithNoType(node);
       return;
     }
 
     DartType staticType = InvalidTypeImpl.instance;
     if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
-        node.staticType = _typeProvider.typeType;
+        node.recordStaticType(_typeProvider.typeType, resolver: _resolver);
+      } else {
+        inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return;
     } else if (element is TypeAliasElement) {
       if (_isExpressionIdentifier(node) ||
           element.aliasedType is! InterfaceType) {
-        node.staticType = _typeProvider.typeType;
+        node.recordStaticType(_typeProvider.typeType, resolver: _resolver);
+      } else {
+        inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return;
     } else if (element is MethodElement) {
@@ -267,6 +270,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       var parent = node.parent;
       if (parent is PrefixedIdentifier && parent.prefix == node ||
           parent is MethodInvocation && parent.target == node) {
+        inferenceLogWriter?.recordExpressionWithNoType(node);
         return;
       }
       staticType = InvalidTypeImpl.instance;
@@ -288,7 +292,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       staticType = _resolver.inferenceHelper
           .inferTearOff(node, node, staticType, contextType: contextType);
     }
-    _inferenceHelper.recordStaticType(node, staticType);
+    node.recordStaticType(staticType, resolver: _resolver);
   }
 
   // TODO(scheglov): this is duplicate
@@ -318,10 +322,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
     );
 
     if (node is PrefixedIdentifierImpl) {
-      node.identifier.staticType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
+      node.identifier.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
+      node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     } else if (node is SimpleIdentifier) {
-      node.staticType = DynamicTypeImpl.instance;
+      node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     }
   }
 

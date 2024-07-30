@@ -24,6 +24,46 @@ class AvoidRenamingMethodParametersTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_renaming_method_parameters';
 
+  @FailingTest(
+      reason: 'lint is limited to methods',
+      issue: 'https://github.com/dart-lang/linter/issues/4891')
+  test_augmentedFunction() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+void f(int p) {}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment void f(int q) {}
+''', [
+      lint(41, 1),
+    ]);
+  }
+
+  test_augmentedMethod() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  void m(int p) {}
+}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  augment void m(int q) {}
+  augment void m(int q) {} 
+}
+''', [
+      lint(66, 1), // Only the first augmentation gets linted.
+    ]);
+  }
+
   test_enumMixingIn() async {
     await assertDiagnostics(r'''
 mixin class C {

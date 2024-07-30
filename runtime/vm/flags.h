@@ -159,6 +159,22 @@ FLAG_LIST(PRODUCT_FLAG_MACRO,
 #undef PRODUCT_FLAG_MACRO
 #undef PRECOMPILE_FLAG_MACRO
 
+#if defined(DART_PRECOMPILER)
+DECLARE_FLAG(bool, target_thread_sanitizer);
+DECLARE_FLAG(bool, target_memory_sanitizer);
+#else
+#if defined(USING_THREAD_SANITIZER)
+constexpr bool FLAG_target_thread_sanitizer = true;
+#else
+constexpr bool FLAG_target_thread_sanitizer = false;
+#endif
+#if defined(USING_MEMORY_SANITIZER)
+constexpr bool FLAG_target_memory_sanitizer = true;
+#else
+constexpr bool FLAG_target_memory_sanitizer = false;
+#endif
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_FLAGS_H_

@@ -50,7 +50,7 @@ f() {
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 98, 1),
     ]);
 
-    final node = findNode.propertyAccess('0.a');
+    var node = findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -62,6 +62,36 @@ PropertyAccess
     staticElement: <null>
     staticType: InvalidType
   staticType: InvalidType
+''');
+  }
+
+  test_getter_getterStatic() async {
+    await assertNoErrorsInCode('''
+extension E1 on int {
+  void get a => 1;
+}
+
+extension E2 on int {
+  static void get a => 2;
+}
+
+f() {
+  0.a;
+}
+''');
+
+    var node = findNode.propertyAccess('0.a');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    staticElement: self::@extension::E1::@getter::a
+    staticType: void
+  staticType: void
 ''');
   }
 
@@ -82,7 +112,7 @@ f() {
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 91, 1),
     ]);
 
-    final node = findNode.propertyAccess('0.a');
+    var node = findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -114,7 +144,7 @@ f() {
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 96, 1),
     ]);
 
-    final node = findNode.propertyAccess('0.a');
+    var node = findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -196,7 +226,7 @@ f() {
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 88, 1),
     ]);
 
-    final node = findNode.methodInvocation('0.a()');
+    var node = findNode.methodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: IntegerLiteral

@@ -47,7 +47,7 @@ class PreferAssertsWithMessage extends LintRule {
             name: 'prefer_asserts_with_message',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

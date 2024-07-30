@@ -220,6 +220,9 @@ class KernelLoader : public ValueObject {
                                         const Function& parent_function,
                                         const Object& closure_owner);
 
+  static void index_programs(kernel::Reader* reader,
+                             GrowableArray<intptr_t>* subprogram_file_starts);
+
  private:
   // Pragma bits
   using HasPragma = BitField<uint32_t, bool, 0, 1>;
@@ -232,6 +235,11 @@ class KernelLoader : public ValueObject {
       BitField<uint32_t, bool, IsolateUnsendablePragma::kNextBit, 1>;
   using FfiNativePragma =
       BitField<uint32_t, bool, DeeplyImmutablePragma::kNextBit, 1>;
+  using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit, 1>;
+  using DynModuleExtendablePragma =
+      BitField<uint32_t, bool, SharedPragma::kNextBit, 1>;
+  using DynModuleCanBeOverriddenPragma =
+      BitField<uint32_t, bool, DynModuleExtendablePragma::kNextBit, 1>;
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
@@ -279,8 +287,6 @@ class KernelLoader : public ValueObject {
 
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
-  static void index_programs(kernel::Reader* reader,
-                             GrowableArray<intptr_t>* subprogram_file_starts);
   void walk_incremental_kernel(BitVector* modified_libs,
                                bool* is_empty_program,
                                intptr_t* p_num_classes,

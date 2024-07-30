@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:collection/collection.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -144,7 +144,8 @@ void _simplifyConstConditionals(ir.Component component, CompilerOptions options,
           evaluationMode: options.useLegacySubtyping
               ? fe.EvaluationMode.weak
               : fe.EvaluationMode.strong,
-          shouldNotInline: shouldNotInline)
+          shouldNotInline: shouldNotInline,
+          removeAsserts: !options.enableUserAssertions)
       .run();
 }
 
@@ -402,7 +403,7 @@ Future<Output?> run(Input input) async {
   ir.Component? component;
   fe.InitializedCompilerState? initializedCompilerState =
       input.initializedCompilerState;
-  if (options.stage.shouldLoadFromDill) {
+  if (options.shouldLoadFromDill) {
     _LoadFromKernelResult result =
         await _loadFromKernel(options, compilerInput, targetName, reporter);
     component = result.component;

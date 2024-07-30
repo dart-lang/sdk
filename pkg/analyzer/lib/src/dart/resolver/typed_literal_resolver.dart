@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -103,7 +104,9 @@ class TypedLiteralResolver {
 
     node.typeArguments?.accept(_resolver);
     _resolveElements(node.elements, context);
-    _resolveListLiteral2(inferrer, node, contextType: contextType);
+    var staticType =
+        _resolveListLiteral2(inferrer, node, contextType: contextType);
+    node.recordStaticType(staticType, resolver: _resolver);
   }
 
   void resolveSetOrMapLiteral(SetOrMapLiteral node,
@@ -413,6 +416,7 @@ class TypedLiteralResolver {
       {required DartType contextType}) {
     var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
+    inferenceLogWriter?.enterGenericInference(typeParameters, element.thisType);
 
     return _typeSystem.setupGenericTypeInference(
       typeParameters: typeParameters,
@@ -420,7 +424,7 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       errorReporter: _errorReporter,
-      errorNode: node,
+      errorEntity: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
@@ -473,6 +477,8 @@ class TypedLiteralResolver {
   GenericInferrer _inferMapTypeDownwards(
       SetOrMapLiteral node, DartType contextType) {
     var element = _typeProvider.mapElement;
+    inferenceLogWriter?.enterGenericInference(
+        element.typeParameters, element.thisType);
     return _typeSystem.setupGenericTypeInference(
       typeParameters: element.typeParameters,
       declaredReturnType: element.thisType,
@@ -487,8 +493,11 @@ class TypedLiteralResolver {
     );
   }
 
+  /// Ends generic inference if it's in progress.
   DartType _inferSetOrMapLiteralType(GenericInferrer? inferrer,
       _LiteralResolution literalResolution, SetOrMapLiteral literal) {
+    inferenceLogWriter?.assertGenericInferenceState(
+        inProgress: inferrer != null);
     var literalImpl = literal as SetOrMapLiteralImpl;
     var contextType = literalImpl.contextType;
     literalImpl.contextType = null; // Not needed anymore.
@@ -552,6 +561,9 @@ class TypedLiteralResolver {
     // ambiguity.  We don't want to make an arbitrary decision at this point
     // because it will interfere with future type inference (see
     // dartbug.com/36210), so we return a type of `dynamic`.
+    if (inferrer != null) {
+      inferenceLogWriter?.exitGenericInference(failed: true);
+    }
     if (mustBeAMap && mustBeASet) {
       _errorReporter.atNode(
         literal,
@@ -569,6 +581,8 @@ class TypedLiteralResolver {
   GenericInferrer _inferSetTypeDownwards(
       SetOrMapLiteral node, DartType contextType) {
     var element = _typeProvider.setElement;
+    inferenceLogWriter?.enterGenericInference(
+        element.typeParameters, element.thisType);
     return _typeSystem.setupGenericTypeInference(
       typeParameters: element.typeParameters,
       declaredReturnType: element.thisType,
@@ -591,7 +605,7 @@ class TypedLiteralResolver {
     }
   }
 
-  void _resolveListLiteral2(GenericInferrer? inferrer, ListLiteralImpl node,
+  DartType _resolveListLiteral2(GenericInferrer? inferrer, ListLiteralImpl node,
       {required DartType contextType}) {
     var typeArguments = node.typeArguments?.arguments;
 
@@ -601,11 +615,10 @@ class TypedLiteralResolver {
       if (typeArguments.length == 1) {
         elementType = typeArguments[0].typeOrThrow;
       }
-      node.staticType = _typeProvider.listElement.instantiate(
+      return _typeProvider.listElement.instantiate(
         typeArguments: fixedTypeList(elementType),
         nullabilitySuffix: NullabilitySuffix.none,
       );
-      return;
     }
 
     DartType listDynamicType = _typeProvider.listType(_dynamicType);
@@ -617,17 +630,19 @@ class TypedLiteralResolver {
     if (inferred != listDynamicType) {
       // TODO(brianwilkerson): Determine whether we need to make the inferred
       //  type non-nullable here or whether it will already be non-nullable.
-      node.staticType = inferred!;
-      return;
+      return inferred!;
     }
 
     // If we have no type arguments and couldn't infer any, use dynamic.
-    node.staticType = listDynamicType;
+    return listDynamicType;
   }
 
+  /// Ends generic inference if inferrer != null.
   void _resolveSetOrMapLiteral2(GenericInferrer? inferrer,
       _LiteralResolution literalResolution, SetOrMapLiteralImpl node,
       {required DartType contextType}) {
+    inferenceLogWriter?.assertGenericInferenceState(
+        inProgress: inferrer != null);
     var typeArguments = node.typeArguments?.arguments;
 
     // If we have type arguments, use them.
@@ -635,21 +650,27 @@ class TypedLiteralResolver {
     //  ResolverVisitor._fromTypeArguments
     if (typeArguments != null) {
       if (typeArguments.length == 1) {
+        inferenceLogWriter?.assertGenericInferenceState(inProgress: false);
         node.becomeSet();
         var elementType = typeArguments[0].typeOrThrow;
-        node.staticType = _typeProvider.setElement.instantiate(
-          typeArguments: fixedTypeList(elementType),
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
+        node.recordStaticType(
+            _typeProvider.setElement.instantiate(
+              typeArguments: fixedTypeList(elementType),
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
+            resolver: _resolver);
         return;
       } else if (typeArguments.length == 2) {
+        inferenceLogWriter?.assertGenericInferenceState(inProgress: false);
         node.becomeMap();
         var keyType = typeArguments[0].typeOrThrow;
         var valueType = typeArguments[1].typeOrThrow;
-        node.staticType = _typeProvider.mapElement.instantiate(
-          typeArguments: fixedTypeList(keyType, valueType),
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
+        node.recordStaticType(
+            _typeProvider.mapElement.instantiate(
+              typeArguments: fixedTypeList(keyType, valueType),
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
+            resolver: _resolver);
         return;
       }
       // If we get here, then a nonsense number of type arguments were provided,
@@ -683,14 +704,17 @@ class TypedLiteralResolver {
     // TODO(brianwilkerson): Decide whether the literalType needs to be made
     //  non-nullable here or whether that will have happened in
     //  _inferSetOrMapLiteralType.
-    node.staticType = literalType;
+    node.recordStaticType(literalType, resolver: _resolver);
   }
 
+  /// Ends generic inference if it's in progress
   DartType _toMapType(
       GenericInferrer? inferrer,
       _LiteralResolution literalResolution,
       SetOrMapLiteral node,
       List<_InferredCollectionElementTypeInformation> inferredTypes) {
+    inferenceLogWriter?.assertGenericInferenceState(
+        inProgress: inferrer != null);
     DartType dynamicType = _typeProvider.dynamicType;
 
     var element = _typeProvider.mapElement;
@@ -715,6 +739,9 @@ class TypedLiteralResolver {
 
     if (inferrer == null ||
         literalResolution.kind == _LiteralResolutionKind.set) {
+      if (inferrer != null) {
+        inferenceLogWriter?.exitGenericInference(aborted: true);
+      }
       inferrer = _inferMapTypeDownwards(node, UnknownInferredType.instance);
     }
     inferrer.constrainArguments(
@@ -723,17 +750,21 @@ class TypedLiteralResolver {
       nodeForTesting: node,
     );
     var typeArguments = inferrer.chooseFinalTypes();
+    inferenceLogWriter?.assertGenericInferenceState(inProgress: false);
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
+  /// Ends generic inference if it's in progress.
   DartType _toSetType(
       GenericInferrer? inferrer,
       _LiteralResolution literalResolution,
       SetOrMapLiteral node,
       List<_InferredCollectionElementTypeInformation> inferredTypes) {
+    inferenceLogWriter?.assertGenericInferenceState(
+        inProgress: inferrer != null);
     DartType dynamicType = _typeProvider.dynamicType;
 
     var element = _typeProvider.setElement;
@@ -752,6 +783,9 @@ class TypedLiteralResolver {
 
     if (inferrer == null ||
         literalResolution.kind == _LiteralResolutionKind.map) {
+      if (inferrer != null) {
+        inferenceLogWriter?.exitGenericInference(aborted: true);
+      }
       inferrer = _inferSetTypeDownwards(node, UnknownInferredType.instance);
     }
     inferrer.constrainArguments(
@@ -759,6 +793,7 @@ class TypedLiteralResolver {
         argumentTypes: argumentTypes,
         nodeForTesting: node);
     var typeArguments = inferrer.chooseFinalTypes();
+    inferenceLogWriter?.assertGenericInferenceState(inProgress: false);
     return element.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: NullabilitySuffix.none);

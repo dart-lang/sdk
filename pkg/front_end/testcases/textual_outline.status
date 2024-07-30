@@ -17,7 +17,7 @@ extension_types/issue53625: FormatterCrash
 extension_types/representation: FormatterCrash
 general/base_class_declaration: FormatterCrash
 general/constants/non_const_constructor: FormatterCrash
-general/constants/various2: FormatterCrash
+general/constants/various: FormatterCrash
 general/enum_super_constructor: FormatterCrash
 general/extension_type_declaration_disabled: FormatterCrash
 general/final_class_declaration: FormatterCrash
@@ -35,6 +35,7 @@ general/records_opt_out: FormatterCrash
 general/sealed_class_declaration: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
+records/record_type_unsupported: FormatterCrash
 regress/issue_30994: FormatterCrash
 regress/issue_31198: FormatterCrash
 super_parameters/opt_out: FormatterCrash

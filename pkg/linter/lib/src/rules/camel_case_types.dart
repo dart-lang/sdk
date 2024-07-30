@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../utils.dart';
 
 const _desc = r'Name types using UpperCamelCase.';
@@ -38,14 +39,15 @@ class CamelCaseTypes extends LintRule {
   static const LintCode code = LintCode('camel_case_types',
       "The type name '{0}' isn't an UpperCamelCase identifier.",
       correctionMessage:
-          'Try changing the name to follow the UpperCamelCase style.');
+          'Try changing the name to follow the UpperCamelCase style.',
+      hasPublishedDocs: true);
 
   CamelCaseTypes()
       : super(
             name: 'camel_case_types',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -78,8 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    // Don't lint augmentations.
-    if (node.augmentKeyword != null) return;
+    if (node.isAugmentation) return;
 
     check(node.name);
   }
@@ -91,13 +92,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    // TODO(pq): don't lint augmentations, https://github.com/dart-lang/linter/issues/4881
+    if (node.isAugmentation) return;
+
     check(node.name);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    // TODO(pq): don't lint augmented augmentations, https://github.com/dart-lang/linter/issues/4881
+    if (node.isAugmentation) return;
+
     check(node.name);
   }
 
@@ -113,8 +116,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    // Don't lint augmentations.
-    if (node.augmentKeyword != null) return;
+    if (node.isAugmentation) return;
 
     check(node.name);
   }

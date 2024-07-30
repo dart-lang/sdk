@@ -28,7 +28,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -80,7 +80,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -154,7 +154,7 @@ class A {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -202,7 +202,7 @@ void f(Object? x, bool Function() a) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -255,7 +255,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -345,7 +345,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -437,7 +437,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -569,7 +569,7 @@ void f(Object? x) {
           1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -666,7 +666,7 @@ void f(Object? x) {
           1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -763,7 +763,7 @@ void f(Object? x) {
           1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -858,7 +858,7 @@ void f(Object? x) {
           1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -934,7 +934,7 @@ void f(Object? x) {
           1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1008,7 +1008,7 @@ void f(Object? x) {
           81, 1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1080,7 +1080,7 @@ void f(Object? x) {
           86, 1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1141,7 +1141,7 @@ void f(Object? x) {
           81, 1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1226,7 +1226,7 @@ void f(Object? x) {
           1),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1312,7 +1312,7 @@ void f(Object? x) {
       error(WarningCode.DEAD_CODE, 56, 8),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1384,7 +1384,7 @@ void f(Object? x) {
           contextMessages: [message(testFile, 62, 1)]),
     ]);
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1459,7 +1459,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1520,7 +1520,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1570,7 +1570,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1616,7 +1616,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchStatement('switch');
+    var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch

@@ -20,7 +20,7 @@ void f() {
   (_) = 0;
 }
 ''');
-    final node = findNode.singlePatternAssignment.pattern;
+    var node = findNode.singlePatternAssignment.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
@@ -38,7 +38,7 @@ void f() {
   var (int _) = 0;
 }
 ''');
-    final node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
@@ -60,7 +60,7 @@ void f() {
   var (_) = 0;
 }
 ''');
-    final node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
@@ -78,7 +78,7 @@ void f(x) {
   if (x case int _) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 WildcardPattern
   type: NamedType
@@ -96,7 +96,7 @@ void f(x) {
   if (x case final int _) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 WildcardPattern
   keyword: final
@@ -115,7 +115,7 @@ void f(x) {
   if (x case _) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 WildcardPattern
   name: _
@@ -129,7 +129,7 @@ void f(x) {
   if (x case final _) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 WildcardPattern
   keyword: final

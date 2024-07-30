@@ -10,7 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 
-const _desc = r'Use `isNotEmpty` for Iterables and Maps.';
+const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
 const _details = r'''
 **PREFER** `x.isNotEmpty` to `!x.isEmpty` for `Iterable` and `Map` instances.
@@ -37,14 +37,15 @@ if (todo.isNotEmpty) {
 class PreferIsNotEmpty extends LintRule {
   static const LintCode code = LintCode('prefer_is_not_empty',
       "Use 'isNotEmpty' rather than negating the result of 'isEmpty'.",
-      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.");
+      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
+      hasPublishedDocs: true);
 
   PreferIsNotEmpty()
       : super(
             name: 'prefer_is_not_empty',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

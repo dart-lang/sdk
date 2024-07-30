@@ -96,7 +96,7 @@ void f(List<int> x, num a) {
   [a] = x;
 }
 ''');
-    final node = findNode.singlePatternAssignment;
+    var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ListPattern
@@ -129,7 +129,7 @@ void f(int foo) {
   A(:foo) = A();
 }
 ''');
-    final node = findNode.singlePatternAssignment;
+    var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ObjectPattern
@@ -172,7 +172,7 @@ void f(int x, num a) {
   (a) = x;
 }
 ''');
-    final node = findNode.singlePatternAssignment;
+    var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ParenthesizedPattern
@@ -201,7 +201,7 @@ void f(int a) {
 
 T g<T>() => throw 0;
 ''');
-    final node = findNode.singlePatternAssignment;
+    var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ParenthesizedPattern
@@ -236,7 +236,7 @@ void f(({int foo}) x, num a) {
   (foo: a,) = x;
 }
 ''');
-    final node = findNode.singlePatternAssignment;
+    var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: RecordPattern
@@ -269,7 +269,7 @@ void f(int a) {
   (:a) = (a: 0);
 }
 ''');
-    final node = findNode.singlePatternAssignment;
+    var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: RecordPattern
@@ -312,7 +312,7 @@ void f((int,) x, num a) {
   (a,) = x;
 }
 ''');
-    final node = findNode.singlePatternAssignment;
+    var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: RecordPattern
@@ -390,7 +390,7 @@ void f(num a) {
   a;
 }
 ''');
-    final node = findNode.simple('a;');
+    var node = findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a

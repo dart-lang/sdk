@@ -17,45 +17,45 @@ main() {
 @reflectiveTest
 class ElementDisplayStringTest extends AbstractTypeSystemTest {
   void test_class() {
-    final classA = class_(
+    var classA = class_(
       name: 'A',
       isAbstract: true,
       superType: stringNone,
       typeParameters: [typeParameter('T')],
     );
 
-    final displayString = classA.getDisplayString();
+    var displayString = classA.getDisplayString();
     expect(displayString, 'abstract class A<T> extends String');
   }
 
   void test_extension_named() {
-    final element = extension(
+    var element = extension(
       name: 'StringExtension',
       extendedType: stringNone,
     );
 
-    final displayString = element.getDisplayString();
+    var displayString = element.getDisplayString();
     expect(displayString, 'extension StringExtension on String');
   }
 
   void test_extension_unnamed() {
-    final element = extension(
+    var element = extension(
       extendedType: stringNone,
     );
 
-    final displayString = element.getDisplayString();
+    var displayString = element.getDisplayString();
     expect(displayString, 'extension on String');
   }
 
   void test_extensionType() {
-    final element = extensionType(
+    var element = extensionType(
       'MyString',
       representationType: stringNone,
       interfaces: [stringNone],
       typeParameters: [typeParameter('T')],
     );
 
-    final displayString = element.getDisplayString();
+    var displayString = element.getDisplayString();
     expect(
       displayString,
       'extension type MyString<T>(String it) implements String',
@@ -63,7 +63,7 @@ class ElementDisplayStringTest extends AbstractTypeSystemTest {
   }
 
   void test_longMethod() {
-    final methodA = method(
+    var methodA = method(
       'longMethodName',
       stringQuestion,
       parameters: [
@@ -74,11 +74,11 @@ class ElementDisplayStringTest extends AbstractTypeSystemTest {
       ],
     );
 
-    final singleLine = methodA.getDisplayString();
+    var singleLine = methodA.getDisplayString();
     expect(singleLine, '''
 String? longMethodName(String? aaa, [String? bbb = 'a', String? ccc])''');
 
-    final multiLine = methodA.getDisplayString(
+    var multiLine = methodA.getDisplayString(
       multiline: true,
     );
     expect(multiLine, '''
@@ -92,7 +92,7 @@ String? longMethodName(
   void test_longMethod_functionType() {
     // Function types are always kept on one line, even nested within multiline
     // signatures.
-    final methodA = method(
+    var methodA = method(
       'longMethodName',
       stringQuestion,
       parameters: [
@@ -111,11 +111,11 @@ String? longMethodName(
       ],
     );
 
-    final singleLine = methodA.getDisplayString();
+    var singleLine = methodA.getDisplayString();
     expect(singleLine, '''
 String? longMethodName(String? aaa, [String? Function(String?, String?, String?) bbb, String? ccc])''');
 
-    final multiLine = methodA.getDisplayString(
+    var multiLine = methodA.getDisplayString(
       multiline: true,
     );
     expect(multiLine, '''
@@ -127,7 +127,7 @@ String? longMethodName(
   }
 
   void test_property_getter() {
-    final getterA = PropertyAccessorElementImpl.forVariable(
+    var getterA = PropertyAccessorElementImpl.forVariable(
         TopLevelVariableElementImpl('a', 0))
       ..isGetter = true
       ..returnType = stringNone;
@@ -136,7 +136,7 @@ String? longMethodName(
   }
 
   void test_property_setter() {
-    final setterA = PropertyAccessorElementImpl.forVariable(
+    var setterA = PropertyAccessorElementImpl.forVariable(
         TopLevelVariableElementImpl('a', 0))
       ..isSetter = true
       ..returnType = voidNone
@@ -151,7 +151,7 @@ String? longMethodName(
   }
 
   void test_shortMethod() {
-    final methodA = method(
+    var methodA = method(
       'm',
       stringQuestion,
       parameters: [
@@ -160,10 +160,10 @@ String? longMethodName(
       ],
     );
 
-    final singleLine = methodA.getDisplayString();
+    var singleLine = methodA.getDisplayString();
     expect(singleLine, 'String? m(String? a, [String? b])');
 
-    final multiLine = methodA.getDisplayString(
+    var multiLine = methodA.getDisplayString(
       multiline: true,
     );
     // The signature is short enough that it remains on one line even for

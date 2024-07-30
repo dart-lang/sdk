@@ -72,6 +72,7 @@ class Page {
     kVMIsolate = 1 << 3,
     kNew = 1 << 4,
     kEvacuationCandidate = 1 << 5,
+    kNeverEvacuate = 1 << 6,
   };
   bool is_executable() const { return (flags_ & kExecutable) != 0; }
   bool is_large() const { return (flags_ & kLarge) != 0; }
@@ -81,6 +82,21 @@ class Page {
   bool is_old() const { return !is_new(); }
   bool is_evacuation_candidate() const {
     return (flags_ & kEvacuationCandidate) != 0;
+  }
+  void set_evacuation_candidate(bool value) {
+    if (value) {
+      flags_ |= kEvacuationCandidate;
+    } else {
+      flags_ &= ~kEvacuationCandidate;
+    }
+  }
+  bool is_never_evacuate() const { return (flags_ & kNeverEvacuate) != 0; }
+  void set_never_evacuate(bool value) {
+    if (value) {
+      flags_ |= kNeverEvacuate;
+    } else {
+      flags_ &= ~kNeverEvacuate;
+    }
   }
 
   Page* next() const { return next_; }
@@ -104,6 +120,11 @@ class Page {
     return top_;
   }
   intptr_t used() const { return object_end() - object_start(); }
+
+  intptr_t live_bytes() const { return live_bytes_; }
+  void set_live_bytes(intptr_t value) { live_bytes_ = value; }
+  void add_live_bytes(intptr_t value) { live_bytes_ += value; }
+  void sub_live_bytes(intptr_t value) { live_bytes_ -= value; }
 
   ForwardingPage* forwarding_page() const { return forwarding_page_; }
   void RegisterUnwindingRecords();
@@ -142,14 +163,16 @@ class Page {
     ASSERT(obj->IsHeapObject());
     return reinterpret_cast<Page*>(static_cast<uword>(obj) & kPageMask);
   }
-
-  // Warning: This does not work for addresses on image pages or on large pages.
   static Page* Of(uword addr) {
     return reinterpret_cast<Page*>(addr & kPageMask);
+  }
+  static Page* Of(void* addr) {
+    return reinterpret_cast<Page*>(reinterpret_cast<uword>(addr) & kPageMask);
   }
 
   // 1 card = 32 slots.
   static constexpr intptr_t kSlotsPerCardLog2 = 5;
+  static constexpr intptr_t kSlotsPerCard = 1 << kSlotsPerCardLog2;
   static constexpr intptr_t kBytesPerCardLog2 =
       kCompressedWordSizeLog2 + kSlotsPerCardLog2;
 
@@ -173,23 +196,18 @@ class Page {
     return IsCardRemembered(reinterpret_cast<uword>(slot));
   }
 #endif
-  void VisitRememberedCards(ObjectPointerVisitor* visitor);
+  void VisitRememberedCards(PredicateObjectPointerVisitor* visitor,
+                            bool only_marked = false);
   void ResetProgressBar();
 
-  Thread* owner() const {
-    return owner_;
-  }
+  Thread* owner() const { return owner_; }
 
   // Remember the limit to which objects have been copied.
-  void RecordSurvivors() {
-    survivor_end_ = object_end();
-  }
+  void RecordSurvivors() { survivor_end_ = object_end(); }
 
   // Move survivor end to the end of the to_ space, making all surviving
   // objects candidates for promotion next time.
-  void EarlyTenure() {
-    survivor_end_ = end_;
-  }
+  void EarlyTenure() { survivor_end_ = end_; }
 
   uword promo_candidate_words() const {
     return (survivor_end_ - object_start()) / kWordSize;
@@ -250,12 +268,8 @@ class Page {
     top_ -= size;
   }
 
-  bool IsSurvivor(uword raw_addr) const {
-    return raw_addr < survivor_end_;
-  }
-  bool IsResolved() const {
-    return top_ == resolved_top_;
-  }
+  bool IsSurvivor(uword raw_addr) const { return raw_addr < survivor_end_; }
+  bool IsResolved() const { return top_ == resolved_top_; }
 
  private:
   void RememberCard(uword slot) {
@@ -273,7 +287,8 @@ class Page {
     intptr_t word_offset = index >> kBitsPerWordLog2;
     intptr_t bit_offset = index & (kBitsPerWord - 1);
     uword bit_mask = static_cast<uword>(1) << bit_offset;
-    card_table_[word_offset] |= bit_mask;
+    reinterpret_cast<std::atomic<uword>*>(&card_table_[word_offset])
+        ->fetch_or(bit_mask, std::memory_order_relaxed);
   }
   bool IsCardRemembered(uword slot) {
     ASSERT(Contains(slot));
@@ -326,7 +341,10 @@ class Page {
   // value meets the allocation top. Called "SCAN" in the original Cheney paper.
   uword resolved_top_;
 
-  friend class CheckStoreBufferVisitor;
+  RelaxedAtomic<intptr_t> live_bytes_;
+
+  friend class CheckStoreBufferScavengeVisitor;
+  friend class CheckStoreBufferEvacuateVisitor;
   friend class GCCompactor;
   friend class PageSpace;
   template <bool>
@@ -337,6 +355,10 @@ class Page {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Page);
 };
+
+static constexpr intptr_t kSlotsPerInterruptCheck = KB;
+static constexpr intptr_t kCardsPerInterruptCheck =
+    kSlotsPerInterruptCheck / Page::kSlotsPerCard;
 
 }  // namespace dart
 

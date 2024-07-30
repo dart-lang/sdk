@@ -24,7 +24,7 @@ mixin ExtendsClauseTestCases on AbstractCompletionDriverTest {
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
-        final completion = suggestion.completion;
+        var completion = suggestion.completion;
         return completion.contains('Foo');
       },
     );

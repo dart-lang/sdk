@@ -21,19 +21,19 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem, MemoryFileSystemEntity;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
+import 'package:front_end/src/base/incremental_serializer.dart'
+    show IncrementalSerializer;
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
+import 'package:front_end/src/codes/cfe_codes.dart'
+    show DiagnosticMessageFromJson, FormattedMessage;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
-    show DiagnosticMessageFromJson, FormattedMessage;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
-import 'package:front_end/src/fasta/incremental_serializer.dart'
-    show IncrementalSerializer;
-import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+import 'package:front_end/src/kernel/utils.dart' show ByteSink;
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
@@ -74,6 +74,7 @@ import "incremental_utils.dart" as util;
 import 'test_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
 import 'utils/io_utils.dart' show computeRepoDir;
+import 'utils/symbolic_language_versions.dart';
 import 'utils/values.dart';
 
 void main([List<String> arguments = const []]) => internalMain(createContext,
@@ -137,10 +138,10 @@ class NewWorldTestProperties {
       'incrementalSerialization', BoolValue(),
       defaultValue: false);
 
-  static const String nnbdMode_strong = 'strong';
+  static const String nnbdMode_weak = 'weak';
 
   static const Property<String?> nnbdMode =
-      Property.optional('nnbdMode', StringValue(options: {nnbdMode_strong}));
+      Property.optional('nnbdMode', StringValue(options: {nnbdMode_weak}));
 
   static const String target_none = 'none';
   static const String target_dartdevc = 'dartdevc';
@@ -187,10 +188,10 @@ class WorldProperties {
   static const Property<String?> experiments =
       Property.optional("experiments", StringValue());
 
-  static const String nnbdMode_strong = 'strong';
+  static const String nnbdMode_weak = 'weak';
 
   static const Property<String?> nnbdMode =
-      Property.optional("nnbdMode", StringValue(options: {nnbdMode_strong}));
+      Property.optional("nnbdMode", StringValue(options: {nnbdMode_weak}));
 
   static const Property<List<String>> entry = Property.required(
       'entry', ListValue(StringValue(), supportSingleton: true));
@@ -312,6 +313,19 @@ class WorldProperties {
   static const Property<bool> allowDuplicateWarnings = Property.optional(
       'allowDuplicateWarnings', BoolValue(),
       defaultValue: true);
+
+  /// If `true`, the expect files will contain a print of all errors.
+  static const Property<bool> printErrorsInExpect = Property.optional(
+      'printErrorsInExpect', BoolValue(),
+      defaultValue: false);
+
+  /// If `true`, the just compiled world will be "rejected", i.e.
+  /// not saved as the latest component and the previous non-rejected compile
+  /// (i.e. the one saved in the latest component) will be relinked, mimicking
+  /// a reject via the frontend server. At least for now all checking after this
+  /// point will be skipped.
+  static const Property<bool> reject =
+      Property.optional('reject', BoolValue(), defaultValue: false);
 }
 
 /// Yaml properties for an [ExpressionCompilation] with a [World].
@@ -601,9 +615,9 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           incrementalSerialization:
               NewWorldTestProperties.incrementalSerialization.read(map, keys),
           nnbdMode: NewWorldTestProperties.nnbdMode.read(map, keys) ==
-                  NewWorldTestProperties.nnbdMode_strong
-              ? NnbdMode.Strong
-              : NnbdMode.Weak,
+                  NewWorldTestProperties.nnbdMode_weak
+              ? NnbdMode.Weak
+              : NnbdMode.Strong,
           modules: NewWorldTestProperties.modules.read(map, keys),
           targetName: NewWorldTestProperties.target.read(map, keys),
         ).newWorldTest();
@@ -682,11 +696,13 @@ Future<Map<String, List<int>>> createModules(
     Target target,
     Target originalTarget,
     String sdkSummary,
-    {required bool trackNeededDillLibraries}) async {
+    {required bool trackNeededDillLibraries,
+    required Uri checkoutRoot}) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummaryUri = base.resolve(sdkSummary);
 
-  TestMemoryFileSystem fs = new TestMemoryFileSystem(base);
+  TestMemoryFileSystem fs =
+      new TestMemoryFileSystem(base, holePunchBase: checkoutRoot);
   fs.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
 
   // Setup all sources
@@ -755,14 +771,6 @@ Future<Map<String, List<int>>> createModules(
   }
 
   return moduleResult;
-}
-
-String doStringReplacements(String input) {
-  Version enableNonNullableVersion =
-      ExperimentalFlag.nonNullable.experimentEnabledVersion;
-  String output = input.replaceAll("%NNBD_VERSION_MARKER%",
-      "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
-  return output;
 }
 
 class ExpressionCompilation {
@@ -834,6 +842,8 @@ class World {
   final bool incrementalSerializationDoesWork;
   final bool allowDuplicateErrors;
   final bool allowDuplicateWarnings;
+  final bool printErrorsInExpect;
+  final bool reject;
 
   /// The expected result of the advanced invalidation.
   final AdvancedInvalidationResult advancedInvalidation;
@@ -897,6 +907,8 @@ class World {
     required this.checkConstantCoverageReferences,
     required this.allowDuplicateErrors,
     required this.allowDuplicateWarnings,
+    required this.printErrorsInExpect,
+    required this.reject,
   });
 
   static World create(Map world) {
@@ -1012,6 +1024,11 @@ class World {
     bool allowDuplicateWarnings =
         WorldProperties.allowDuplicateWarnings.read(world, keys);
 
+    bool printErrorsInExpect =
+        WorldProperties.printErrorsInExpect.read(world, keys);
+
+    bool reject = WorldProperties.reject.read(world, keys);
+
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for World: $keys";
     }
@@ -1059,6 +1076,8 @@ class World {
       checkConstantCoverageReferences: checkConstantCoverageReferences,
       allowDuplicateErrors: allowDuplicateErrors,
       allowDuplicateWarnings: allowDuplicateWarnings,
+      printErrorsInExpect: printErrorsInExpect,
+      reject: reject,
     );
   }
 }
@@ -1097,7 +1116,11 @@ class NewWorldTest {
   });
 
   Future<Result<TestData>> newWorldTest() async {
-    final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
+    final Uri platformBinariesRoot =
+        computePlatformBinariesLocation(forceBuildDir: true);
+
+    // This is somewhat of a hack but will do for now.
+    final Uri checkoutRoot = data.loadedFrom.resolve("../../../../");
 
     TestTargetFlags targetFlags = new TestTargetFlags(
         forceLateLoweringsForTesting:
@@ -1129,12 +1152,12 @@ class NewWorldTest {
     final Uri base = Uri.parse("org-dartlang-test:///");
     final Uri sdkSummaryUri = base.resolve(sdkSummary);
     final Uri initializeFrom = base.resolve("initializeFrom.dill");
-    Uri platformUri = sdkRoot.resolve(sdkSummary);
+    Uri platformUri = platformBinariesRoot.resolve(sdkSummary);
     final List<int> sdkSummaryData =
         await new File.fromUri(platformUri).readAsBytes();
 
     List<int>? newestWholeComponentData;
-    MemoryFileSystem? fs;
+    TestMemoryFileSystem? fs;
     Map<String, String?>? sourceFiles;
     CompilerOptions? options;
     TestIncrementalCompiler? compiler;
@@ -1146,7 +1169,7 @@ class NewWorldTest {
     if (modules != null) {
       moduleData = await createModules(
           modules!, sdkSummaryData, target, originalTarget, sdkSummary,
-          trackNeededDillLibraries: false);
+          checkoutRoot: checkoutRoot, trackNeededDillLibraries: false);
       sdk = newestWholeComponent = new Component();
       new BinaryBuilder(sdkSummaryData,
               filename: null, disableLazyReading: false)
@@ -1193,7 +1216,7 @@ class NewWorldTest {
       }
 
       if (!world.updateWorldType) {
-        fs = new TestMemoryFileSystem(base);
+        fs = new TestMemoryFileSystem(base, holePunchBase: checkoutRoot);
       }
       fs!.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
       bool expectInitializeFromDill = false;
@@ -1220,7 +1243,7 @@ class NewWorldTest {
           packagesUri = uri;
         }
         if (world.enableStringReplacement) {
-          data = doStringReplacements(data);
+          data = replaceMarkersWithVersions(data);
         }
         fs.entityForUri(uri).writeAsStringSync(data);
       }
@@ -1256,8 +1279,8 @@ class NewWorldTest {
         if (world.nnbdModeString != null) {
           String nnbdMode = world.nnbdModeString!;
           switch (nnbdMode) {
-            case WorldProperties.nnbdMode_strong:
-              options.nnbdMode = NnbdMode.Strong;
+            case WorldProperties.nnbdMode_weak:
+              options.nnbdMode = NnbdMode.Weak;
               break;
             default:
               throw "Not supported nnbd mode: $nnbdMode";
@@ -1427,7 +1450,8 @@ class NewWorldTest {
       }
 
       util.postProcessComponent(component!);
-      String actualSerialized = componentToStringSdkFiltered(component!);
+      String actualSerialized = componentToStringSdkFiltered(component!,
+          printErrors: world.printErrorsInExpect ? formattedErrors : null);
       print("*****\n\ncomponent:\n"
           "${actualSerialized}\n\n\n");
       result = checkExpectFile(data, worldNum, "", context, actualSerialized);
@@ -1443,8 +1467,26 @@ class NewWorldTest {
         }
       }
 
-      newestWholeComponentData = util.postProcess(component!);
-      newestWholeComponent = component;
+      if (world.reject) {
+        util.postProcess(component!);
+
+        // Reject: We keep the original "newest whole component" and also
+        // reject/relink it.
+        // This mimics what happens when e.g. flutter "reject"s a compile.
+        newestWholeComponent?.relink();
+
+        // Add errors or assert will trigger in later worlds.
+        worldErrors.add(formattedErrors.toSet());
+
+        // But otherwise skip other stuff - e.g. doing a leak check will find a
+        // leak because we (on purpose) have two of the same library at the same
+        // time.
+        continue;
+      } else {
+        // Save it.
+        newestWholeComponentData = util.postProcess(component!);
+        newestWholeComponent = component;
+      }
 
       if (world.checkConstantCoverageReferences) {
         Result<TestData>? result = checkConstantCoverageReferences(
@@ -1638,8 +1680,9 @@ class NewWorldTest {
             gotError, formattedErrors, gotWarning, formattedWarnings);
         if (result != null) return result;
         List<int> thisWholeComponent = util.postProcess(component2!);
-        print("*****\n\ncomponent2:\n"
-            "${componentToStringSdkFiltered(component2!)}\n\n\n");
+        String component2String = componentToStringSdkFiltered(component2!,
+            printErrors: world.printErrorsInExpect ? formattedErrors : null);
+        print("*****\n\ncomponent2:\n$component2String\n\n\n");
         checkIsEqual(newestWholeComponentData, thisWholeComponent);
         checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
             prevFormattedWarnings, formattedWarnings);
@@ -1759,8 +1802,9 @@ class NewWorldTest {
         print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
         List<int> thisWholeComponent = util.postProcess(component3!);
-        print("*****\n\ncomponent3:\n"
-            "${componentToStringSdkFiltered(component3!)}\n\n\n");
+        String component3String = componentToStringSdkFiltered(component3!,
+            printErrors: world.printErrorsInExpect ? formattedErrors : null);
+        print("*****\n\ncomponent3:\n$component3String\n\n\n");
         if (world.compareWithFromScratch) {
           checkIsEqual(newestWholeComponentData, thisWholeComponent);
         }
@@ -1881,21 +1925,6 @@ Result? checkNNBDSettings(Component component) {
   if (mode == NonNullableByDefaultCompiledMode.Invalid) return null;
   for (Library lib in component.libraries) {
     if (mode == lib.nonNullableByDefaultCompiledMode) continue;
-
-    if (mode == NonNullableByDefaultCompiledMode.Agnostic) {
-      // Component says agnostic but the library isn't => Error!
-      return new Result(
-          null,
-          NNBDModeMismatch,
-          "Component mode was agnostic but ${lib.importUri} had mode "
-          "${lib.nonNullableByDefaultCompiledMode}.");
-    }
-
-    // Agnostic can be mixed with everything.
-    if (lib.nonNullableByDefaultCompiledMode ==
-        NonNullableByDefaultCompiledMode.Agnostic) {
-      continue;
-    }
 
     if (mode == NonNullableByDefaultCompiledMode.Strong ||
         lib.nonNullableByDefaultCompiledMode ==
@@ -2388,13 +2417,18 @@ String nodeToString(TreeNode node) {
   return '$buffer';
 }
 
-String componentToStringSdkFiltered(Component component) {
+String componentToStringSdkFiltered(Component component,
+    {required final Set<String>? printErrors}) {
   Component c = new Component();
   List<Uri> dartUris = <Uri>[];
   for (Library lib in component.libraries) {
     if (lib.importUri.isScheme("dart")) {
       dartUris.add(lib.importUri);
     } else {
+      if (lib.fileUri.isScheme("holePunch")) {
+        // Skip this.
+        continue;
+      }
       c.libraries.add(lib);
     }
   }
@@ -2412,6 +2446,26 @@ String componentToStringSdkFiltered(Component component) {
     s.writeln("And ${dartUris.length} platform libraries:");
     for (Uri uri in dartUris) {
       s.writeln(" - $uri");
+    }
+  }
+
+  if (printErrors != null && printErrors.isNotEmpty) {
+    s.writeln("");
+    s.writeln("A total of ${printErrors.length} errors:");
+    for (String error in printErrors) {
+      // Make the error more readable if it's a json.
+      Map<String, dynamic>? decoded;
+      try {
+        decoded = jsonDecode(error);
+      } catch (_) {}
+      if (decoded != null && decoded["plainTextFormatted"] is List) {
+        List plainTextFormatted = decoded["plainTextFormatted"] as List;
+        if (plainTextFormatted.isNotEmpty &&
+            plainTextFormatted.first is String) {
+          error = plainTextFormatted.first;
+        }
+      }
+      s.writeln(" - $error");
     }
   }
 
@@ -2501,7 +2555,6 @@ CompilerOptions getOptions({Target? target, String? sdkSummary}) {
   sdkSummary ??= 'vm_platform_strong.dill';
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   CompilerOptions options = new CompilerOptions()
-    ..sdkRoot = sdkRoot
     ..target = target
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
@@ -2764,8 +2817,7 @@ void doSimulateTransformer(Component c) {
         getterReference: lib.reference.canonicalName
             ?.getChildFromFieldGetterWithName(fieldName)
             .reference,
-        fileUri: lib.fileUri)
-      ..isNonNullableByDefault = lib.isNonNullableByDefault;
+        fileUri: lib.fileUri);
     lib.addField(field);
     for (Class c in lib.classes) {
       if (c.fields
@@ -2783,18 +2835,30 @@ void doSimulateTransformer(Component c) {
           getterReference: c.reference.canonicalName
               ?.getChildFromFieldGetterWithName(fieldName)
               .reference,
-          fileUri: c.fileUri)
-        ..isNonNullableByDefault = lib.isNonNullableByDefault;
+          fileUri: c.fileUri);
       c.addField(field);
     }
   }
 }
 
 class TestMemoryFileSystem extends MemoryFileSystem {
-  TestMemoryFileSystem(Uri currentDirectory) : super(currentDirectory);
+  Uri holePunchBase;
+
+  TestMemoryFileSystem(Uri currentDirectory, {required this.holePunchBase})
+      : super(currentDirectory);
 
   @override
   MemoryFileSystemEntity entityForUri(Uri uri) {
+    if (uri.isScheme("holePunch")) {
+      // "Copy" the file into the memory file system.
+      Uri holePunchResolved = holePunchBase.resolve(uri.path);
+      File f = new File.fromUri(holePunchResolved);
+      MemoryFileSystemEntity entity = super.entityForUri(uri);
+      if (f.existsSync()) {
+        entity.writeAsBytesSync(f.readAsBytesSync());
+      }
+      return entity;
+    }
     // Try to "sanitize" the uri as a real file system does, namely
     // "a/b.dart" and "a//b.dart" returns the same file.
     if (uri.pathSegments.contains("")) {

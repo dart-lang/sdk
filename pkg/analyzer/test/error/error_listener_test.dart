@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class RecordingErrorListenerTest {
   test_orderedAsReported() {
-    final listener = RecordingErrorListener();
+    var listener = RecordingErrorListener();
     listener.onError(_MockAnalysisError(expectedIndex: 0, hashCode: 1));
     listener.onError(_MockAnalysisError(expectedIndex: 1, hashCode: 10));
     listener.onError(_MockAnalysisError(expectedIndex: 2, hashCode: -50));

@@ -70,14 +70,15 @@ void someFunction() {
 
 class CollectionMethodsUnrelatedType extends LintRule {
   static const LintCode code = LintCode('collection_methods_unrelated_type',
-      "The argument type '{0}' isn't related to '{1}'.");
+      "The argument type '{0}' isn't related to '{1}'.",
+      hasPublishedDocs: true);
 
   CollectionMethodsUnrelatedType()
       : super(
             name: 'collection_methods_unrelated_type',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;
@@ -344,7 +345,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (parent is EnumDeclaration) {
         return parent.declaredElement?.thisType;
       } else if (parent is ExtensionDeclaration) {
-        return parent.extendedType.type;
+        return parent.onClause?.extendedType.type;
       }
     }
     return null;

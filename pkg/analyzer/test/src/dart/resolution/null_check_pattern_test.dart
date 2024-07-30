@@ -23,7 +23,7 @@ void f(int? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 NullCheckPattern
   pattern: DeclaredVariablePattern
@@ -48,7 +48,7 @@ void f(int? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 NullCheckPattern
   pattern: DeclaredVariablePattern
@@ -72,7 +72,7 @@ void f(int? x) {
           CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 24, 2),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

@@ -45,8 +45,6 @@ suggestions
     kind: keyword
   final
     kind: keyword
-  v01
-    kind: topLevelVariable
   var
     kind: keyword
 ''');
@@ -80,8 +78,6 @@ suggestions
     kind: keyword
   final
     kind: keyword
-  v01
-    kind: topLevelVariable
   var
     kind: keyword
 ''');
@@ -115,8 +111,6 @@ suggestions
     kind: keyword
   final
     kind: keyword
-  v01
-    kind: topLevelVariable
   var
     kind: keyword
 ''');
@@ -150,8 +144,6 @@ suggestions
     kind: keyword
   final
     kind: keyword
-  v01
-    kind: topLevelVariable
   var
     kind: keyword
 ''');

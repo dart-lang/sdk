@@ -8,6 +8,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../tool/lsp_spec/matchers.dart';
 import '../../utils/lsp_protocol_extensions.dart';
 import '../../utils/test_code_extensions.dart';
 import '../server_abstract.dart';
@@ -38,8 +39,6 @@ abstract class AbstractAugmentationCodeLensTest
   /// The title of the [Command] in the [CodeLens]es being tested.
   String get codeLensTitle;
 
-  String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
-
   /// The range in [sourceUri] that the CodeLens should appear for.
   Range get sourceRange;
 
@@ -54,11 +53,21 @@ abstract class AbstractAugmentationCodeLensTest
 
   /// Expects a CodeLens in [sourceUri] at [sourceRange] with the title
   /// [codeLensTitle] that navigates to [targetRange] in [targetUri].
-  Future<void> expectNavigationCodeLens() async {
+  Future<void> expectNavigationCodeLens({
+    Uri? sourceUri,
+    Range? sourceRange,
+    Uri? targetUri,
+    Range? targetRange,
+  }) async {
+    sourceUri ??= this.sourceUri;
+    sourceRange ??= this.sourceRange;
+    targetUri ??= this.targetUri;
+    targetRange ??= this.targetRange;
+
     var documentCodeLenses = (await getCodeLens(sourceUri)) ?? [];
     var matchingCodeLenses = documentCodeLenses.where((codeLens) =>
         codeLens.command?.title == codeLensTitle &&
-        codeLens.range.containsPosition(sourceRange.start));
+        codeLens.range.containsPosition(sourceRange!.start));
 
     if (matchingCodeLenses.isEmpty) {
       var debugText = documentCodeLenses
@@ -94,9 +103,9 @@ abstract class AbstractAugmentationCodeLensTest
     );
   }
 
-  /// Expects no CodeLens in [sourceUri] with the title [codeLensTitle].
-  Future<void> expectNoCodeLenses() async {
-    var documentCodeLenses = (await getCodeLens(sourceUri)) ?? [];
+  /// Expects no CodeLens in [uri]/[sourceUri] with the title [codeLensTitle].
+  Future<void> expectNoCodeLenses([Uri? uri]) async {
+    var documentCodeLenses = (await getCodeLens(uri ?? sourceUri)) ?? [];
     var matchingCodeLenses = documentCodeLenses
         .where((codeLens) => codeLens.command?.title == codeLensTitle);
     expect(matchingCodeLenses, isEmpty);
@@ -104,7 +113,7 @@ abstract class AbstractAugmentationCodeLensTest
 
   void setAugmentationContent(String content) {
     augmentationCode = TestCode.parse('''
-library augment 'main.dart';
+augment library 'main.dart';
 
 $content
 ''');
@@ -187,7 +196,6 @@ augment class A {
     await expectNavigationCodeLens();
   }
 
-  @failingTest // "augment enum" is currently an error?
   test_available_enum() async {
     setLibraryContent(r'''
 enum [!A!] {
@@ -204,7 +212,6 @@ augment enum [!A!] {
     await expectNavigationCodeLens();
   }
 
-  @failingTest // "augment enum" is currently an error?
   test_available_enum_member() async {
     setLibraryContent(r'''
 enum A {
@@ -231,6 +238,16 @@ augment void [!f!]() {}
 
     await initialize();
     await expectNavigationCodeLens();
+  }
+
+  test_error_nonExistentFile() async {
+    await initialize();
+
+    await expectLater(
+      expectNoCodeLenses(nonExistentFileUri),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'File does not exist')),
+    );
   }
 
   test_unavailable_disabledEntirely() async {
@@ -294,6 +311,57 @@ class AugmentationCodeLensTest extends AbstractAugmentationCodeLensTest {
 
   @override
   Uri get targetUri => mainFileAugmentationUri;
+
+  test_available_class_augmentationOf_augmentationOf_declarationInAugmentationFile() async {
+    setLibraryContent(r'');
+    setAugmentationContent(r'''
+class A {}
+augment class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[0].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[1].range,
+    );
+  }
+
+  test_available_class_augmentationOf_augmentationOf_declarationInLibraryFile() async {
+    setLibraryContent(r'''
+class A {}
+''');
+    setAugmentationContent(r'''
+augment class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[0].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[1].range,
+    );
+  }
+
+  test_available_class_augmentationOf_declarationInAugmentationFile() async {
+    setLibraryContent('');
+    setAugmentationContent(r'''
+class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[0].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[1].range,
+    );
+  }
 }
 
 /// Run all tests from [AbstractAugmentationCodeLensTest] looking for
@@ -319,4 +387,55 @@ class AugmentedCodeLensTest extends AbstractAugmentationCodeLensTest {
 
   @override
   Uri get targetUri => mainFileUri;
+
+  test_available_class_augmentationOf_augmentationOf_declarationInAugmentationFile() async {
+    setLibraryContent(r'');
+    setAugmentationContent(r'''
+class A {}
+augment class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[1].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[0].range,
+    );
+  }
+
+  test_available_class_augmentationOf_augmentationOf_declarationInLibraryFile() async {
+    setLibraryContent(r'''
+class A {}
+''');
+    setAugmentationContent(r'''
+augment class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[1].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[0].range,
+    );
+  }
+
+  test_available_class_augmentationOf_declarationInAugmentationFile() async {
+    setLibraryContent('');
+    setAugmentationContent(r'''
+class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[1].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[0].range,
+    );
+  }
 }

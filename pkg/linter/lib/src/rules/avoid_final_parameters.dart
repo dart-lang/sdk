@@ -7,13 +7,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Avoid final for parameter declarations.';
+const _desc = r'Avoid `final` for parameter declarations.';
 
 const _details = r'''
-**AVOID** declaring parameters as final.
+**AVOID** declaring parameters as `final`.
 
-Declaring parameters as final can lead to unnecessarily verbose code, especially
-when using the "parameter_assignments" rule.
+Declaring parameters as `final` can lead to unnecessarily verbose code,
+especially when using the "parameter_assignments" rule.
 
 **BAD:**
 ```dart
@@ -61,7 +61,7 @@ class AvoidFinalParameters extends LintRule {
             name: 'avoid_final_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<String> get incompatibleRules => const ['prefer_final_parameters'];

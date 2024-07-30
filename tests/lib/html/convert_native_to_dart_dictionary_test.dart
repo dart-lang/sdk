@@ -4,7 +4,7 @@
 
 import 'dart:html_common';
 import 'package:expect/expect.dart';
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 var obj = {
   'val1': 'hello',

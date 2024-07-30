@@ -18,6 +18,7 @@ import 'package:analyzer/src/pubspec/validators/flutter_validator.dart';
 import 'package:analyzer/src/pubspec/validators/name_validator.dart';
 import 'package:analyzer/src/pubspec/validators/platforms_validator.dart';
 import 'package:analyzer/src/pubspec/validators/screenshot_validator.dart';
+import 'package:analyzer/src/pubspec/validators/workspace_validator.dart';
 import 'package:yaml/yaml.dart';
 
 /// List of [PubspecValidator] implementations.
@@ -28,6 +29,7 @@ const _pubspecValidators = <PubspecValidator>[
   nameValidator,
   screenshotsValidator,
   platformsValidator,
+  workspaceValidator,
 ];
 
 /// Validate pubspec with given [contents].
@@ -42,26 +44,24 @@ List<AnalysisError> validatePubspec({
   required ResourceProvider provider,
   AnalysisOptions? analysisOptions,
 }) {
-  final recorder = RecordingErrorListener();
+  var recorder = RecordingErrorListener();
   ErrorReporter reporter = ErrorReporter(recorder, source);
-  final ctx = PubspecValidationContext._(
+  var ctx = PubspecValidationContext._(
     contents: contents,
     source: source,
     reporter: reporter,
     provider: provider,
   );
 
-  for (final validator in _pubspecValidators) {
+  for (var validator in _pubspecValidators) {
     validator(ctx);
   }
   if (analysisOptions != null && analysisOptions.lint) {
     var visitors = <LintRule, PubspecVisitor>{};
     for (var linter in analysisOptions.lintRules) {
-      if (linter is LintRule) {
-        var visitor = linter.getPubspecVisitor();
-        if (visitor != null) {
-          visitors[linter] = visitor;
-        }
+      var visitor = linter.getPubspecVisitor();
+      if (visitor != null) {
+        visitors[linter] = visitor;
       }
     }
     if (visitors.isNotEmpty) {
@@ -72,8 +72,8 @@ List<AnalysisError> validatePubspec({
       }
     }
   }
-  final lineInfo = LineInfo.fromContent(source.contents.data);
-  final ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
+  var lineInfo = LineInfo.fromContent(source.contents.data);
+  var ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
 
   return recorder.errors.where((error) => !ignoreInfo.ignored(error)).toList();
 }
@@ -120,6 +120,9 @@ final class PubspecField {
 
   /// The name of the field whose value is the version of the package.
   static const String VERSION_FIELD = 'version';
+
+  /// The name of the field whose value defines a workspace for the repository.
+  static const String WORKSPACE_FIELD = 'workspace';
 }
 
 /// Context given to function that implement [PubspecValidator].
@@ -161,7 +164,7 @@ final class PubspecValidationContext {
     List<DiagnosticMessage>? messages,
     Object? data,
   ]) {
-    final span = node.span;
+    var span = node.span;
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,

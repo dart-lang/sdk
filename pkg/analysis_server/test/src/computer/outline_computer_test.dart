@@ -411,7 +411,7 @@ class C {
 }
 ''');
     var unitOutline = await _computeOutline('''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class C {
   String f = '';

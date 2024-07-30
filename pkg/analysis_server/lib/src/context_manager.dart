@@ -14,6 +14,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -324,7 +325,7 @@ class ContextManagerImpl implements ContextManager {
     if (_watchersPaused) {
       throw StateError('Watchers are already paused');
     }
-    for (final subscription in watcherSubscriptions) {
+    for (var subscription in watcherSubscriptions) {
       subscription.pause();
     }
     _watchersPaused = true;
@@ -341,7 +342,7 @@ class ContextManagerImpl implements ContextManager {
     if (!_watchersPaused) {
       throw StateError('Watchers are not paused');
     }
-    for (final subscription in watcherSubscriptions) {
+    for (var subscription in watcherSubscriptions) {
       subscription.resume();
     }
     _watchersPaused = false;
@@ -376,7 +377,7 @@ class ContextManagerImpl implements ContextManager {
       var sdkVersionConstraint =
           (package is PubPackage) ? package.sdkVersionConstraint : null;
       var errors = analyzeAnalysisOptions(
-        file.createSource(),
+        FileSource(file),
         content,
         driver.sourceFactory,
         driver.currentSession.analysisContext.contextRoot.root.path,
@@ -399,7 +400,8 @@ class ContextManagerImpl implements ContextManager {
     try {
       var file = resourceProvider.getFile(path);
       var content = file.readAsStringSync();
-      var validator = ManifestValidator(file.createSource());
+      var source = FileSource(file);
+      var validator = ManifestValidator(source);
       var lineInfo = LineInfo.fromContent(content);
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var errors =
@@ -439,7 +441,7 @@ class ContextManagerImpl implements ContextManager {
       var errorListener = RecordingErrorListener();
       var errorReporter = ErrorReporter(
         errorListener,
-        file.createSource(),
+        FileSource(file),
       );
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
@@ -468,7 +470,7 @@ class ContextManagerImpl implements ContextManager {
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var errors = validatePubspec(
         contents: node,
-        source: resourceProvider.getFile(path).createSource(),
+        source: FileSource(file),
         provider: resourceProvider,
         analysisOptions: analysisOptions,
       );
@@ -580,8 +582,8 @@ class ContextManagerImpl implements ContextManager {
           var rootFolder = analysisContext.contextRoot.root;
           driverMap[rootFolder] = driver;
 
-          for (final included in analysisContext.contextRoot.included) {
-            final watcher = included.watch();
+          for (var included in analysisContext.contextRoot.included) {
+            var watcher = included.watch();
             watchers.add(watcher);
             watcherSubscriptions.add(
               watcher.changes.listen(
@@ -602,6 +604,8 @@ class ContextManagerImpl implements ContextManager {
               _analyzeAndroidManifestXml(driver, file);
             } else if (file_paths.isDart(pathContext, file)) {
               driver.addFile(file);
+            } else if (file_paths.isPubspecYaml(pathContext, file)) {
+              _analyzePubspecYaml(driver, file);
             }
           }
 
@@ -618,13 +622,6 @@ class ContextManagerImpl implements ContextManager {
               .getChildAssumingFolder(file_paths.fixDataYamlFolder);
           if (fixDataFolder.exists) {
             _analyzeFixDataFolder(driver, fixDataFolder, packageName);
-          }
-
-          var pubspecFile =
-              rootFolder.getChildAssumingFile(file_paths.pubspecYaml);
-          if (pubspecFile.exists &&
-              analysisContext.contextRoot.isAnalyzed(pubspecFile.path)) {
-            _analyzePubspecYaml(driver, pubspecFile.path);
           }
         }
 
@@ -649,7 +646,7 @@ class ContextManagerImpl implements ContextManager {
       // Create temporary watchers before we start the context build so we can
       // tell if any files were modified while waiting for the "real" watchers to
       // become ready and start the process again.
-      final temporaryWatchers = includedPaths
+      var temporaryWatchers = includedPaths
           .map((path) => resourceProvider.getResource(path))
           .map((resource) => resource.watch())
           .toList();
@@ -657,7 +654,7 @@ class ContextManagerImpl implements ContextManager {
       // If any watcher picks up an important change while we're running the
       // rest of this method, we will need to start again.
       var needsBuild = true;
-      final temporaryWatcherSubscriptions = temporaryWatchers
+      var temporaryWatcherSubscriptions = temporaryWatchers
           .map((watcher) => watcher.changes.listen(
                 (event) {
                   if (shouldRestartBuild(event.path)) {
@@ -727,15 +724,15 @@ class ContextManagerImpl implements ContextManager {
   }
 
   Future<void> _destroyAnalysisContexts() async {
-    for (final subscription in watcherSubscriptions) {
+    for (var subscription in watcherSubscriptions) {
       await subscription.cancel();
     }
     watcherSubscriptions.clear();
 
-    final collection = _collection;
+    var collection = _collection;
     _collection = null;
     if (collection != null) {
-      for (final analysisContext in collection.contexts) {
+      for (var analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
       }
       await collection.dispose();
@@ -750,7 +747,7 @@ class ContextManagerImpl implements ContextManager {
   /// to creation/modification of files that were generated by Blaze.
   void _handleBlazeSearchInfo(
       Folder folder, String workspace, BlazeSearchInfo info) {
-    final blazeWatcherService = this.blazeWatcherService;
+    var blazeWatcherService = this.blazeWatcherService;
     if (blazeWatcherService == null) {
       return;
     }
@@ -797,7 +794,7 @@ class ContextManagerImpl implements ContextManager {
 
     _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
 
-    final isPubspec = file_paths.isPubspecYaml(pathContext, path);
+    var isPubspec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isBlazeBuild(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
@@ -875,8 +872,8 @@ class ContextManagerImpl implements ContextManager {
         excludedPaths.length != this.excludedPaths.length) {
       return false;
     }
-    final existingIncludedSet = this.includedPaths.toSet();
-    final existingExcludedSet = this.excludedPaths.toSet();
+    var existingIncludedSet = this.includedPaths.toSet();
+    var existingExcludedSet = this.excludedPaths.toSet();
 
     return existingIncludedSet.containsAll(includedPaths) &&
         existingExcludedSet.containsAll(excludedPaths);
@@ -975,7 +972,7 @@ class _CancellingTaskQueue {
     // Chain the new task onto the end of any existing one, so the new
     // task never starts until the previous (cancelled) one finishes (which
     // may be by aborting early because of the cancellation signal).
-    final token = _cancellationToken = CancelableToken();
+    var token = _cancellationToken = CancelableToken();
     _complete = _complete
         .then((_) => performTask(token))
         .then((_) => _clearTokenIfCurrent(token));

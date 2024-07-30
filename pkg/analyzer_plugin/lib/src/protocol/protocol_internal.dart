@@ -10,14 +10,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:path/path.dart' as path;
-
-/// This can be set by server (or tests) to change into URI mode for all legacy
-/// protocol JSON.
-///
-// TODO(dantup): Consider replacing this global with encoders being passed to
-//  toJson/fromJson methods.
-var clientUriConverter = ClientUriConverter.noop(path.context);
 
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();
@@ -226,43 +218,55 @@ RefactoringProblemSeverity? maxRefactoringProblemSeverity(
 
 /// Create a [RefactoringFeedback] corresponding the given [kind].
 RefactoringFeedback refactoringFeedbackFromJson(
-    JsonDecoder jsonDecoder, String jsonPath, Object? json, Map feedbackJson) {
+    JsonDecoder jsonDecoder, String jsonPath, Object? json, Map feedbackJson,
+    {ClientUriConverter? clientUriConverter}) {
   var kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-    return InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
-    return InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.RENAME) {
-    return RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return RenameFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   throw StateError('Unexpected refactoring kind');
 }
 
 /// Create a [RefactoringOptions] corresponding the given [kind].
 RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object? json, RefactoringKind kind) {
+    String jsonPath, Object? json, RefactoringKind kind,
+    {ClientUriConverter? clientUriConverter}) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
-    return InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+    return InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.MOVE_FILE) {
-    return MoveFileOptions.fromJson(jsonDecoder, jsonPath, json);
+    return MoveFileOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.RENAME) {
-    return RenameOptions.fromJson(jsonDecoder, jsonPath, json);
+    return RenameOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   throw StateError('Unexpected refactoring kind');
 }

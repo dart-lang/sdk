@@ -10,9 +10,9 @@ class C extends iss::B {
     : super iss::B::•()
     ;
   no-such-method-forwarder get _#A#x() → core::int?
-    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
   no-such-method-forwarder set _#A#x(core::int? value) → void
-    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 static method main() → dynamic {
   new self::C::•();
@@ -42,8 +42,8 @@ class B extends core::Object implements iss::A {
 
 constants  {
   #C1 = #org-dartlang-testcase:///issue41436c.dart::_#A#x
-  #C2 = <core::Type*>[]
+  #C2 = <core::Type>[]
   #C3 = <dynamic>[]
-  #C4 = <core::Symbol*, dynamic>{}
+  #C4 = <core::Symbol, dynamic>{}
   #C5 = #org-dartlang-testcase:///issue41436c.dart::_#A#x=
 }

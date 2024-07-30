@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class SelectionRangeTest extends AbstractLspAnalysisServerTest {
   Future<void> test_multiple() async {
-    final content = '''
+    var content = '''
 class Foo {
   void a() { /*1*/ }
   void b() { /*2*/ }
@@ -32,17 +32,17 @@ class Foo {
 
     await initialize();
     await openFile(mainFileUri, content);
-    final lineInfo = LineInfo.fromContent(content);
+    var lineInfo = LineInfo.fromContent(content);
 
     // Send a request for two positions.
-    final regions = await getSelectionRanges(mainFileUri, [
+    var regions = await getSelectionRanges(mainFileUri, [
       positionFromOffset(content.indexOf('/*1*/'), content),
       positionFromOffset(content.indexOf('/*2*/'), content),
     ]);
     expect(regions!.length, equals(2));
-    final firstTexts =
+    var firstTexts =
         _getSelectionRangeText(lineInfo, content, regions[0]).toList();
-    final secondTexts =
+    var secondTexts =
         _getSelectionRangeText(lineInfo, content, regions[1]).toList();
 
     expect(
@@ -62,7 +62,7 @@ class Foo {
   }
 
   Future<void> test_single() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 class Foo<T> {
   void a(String b) {
     print((1 ^+ 2) * 3);
@@ -72,15 +72,15 @@ class Foo<T> {
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    final lineInfo = LineInfo.fromContent(code.code);
+    var lineInfo = LineInfo.fromContent(code.code);
 
     // The returned List corresponds to the input list of positions, and not
     // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
-    final regions =
+    var regions =
         await getSelectionRanges(mainFileUri, [code.position.position]);
     expect(regions!.length, equals(1)); // Only one position was sent.
-    final regionTexts =
+    var regionTexts =
         _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
 
     expect(
@@ -101,17 +101,17 @@ class Foo<T> {
   Iterable<String> _getSelectionRangeText(
       LineInfo lineInfo, String content, SelectionRange range) sync* {
     yield _rangeOfText(lineInfo, content, range.range);
-    final parent = range.parent;
+    var parent = range.parent;
     if (parent != null) {
       yield* _getSelectionRangeText(lineInfo, content, parent);
     }
   }
 
   String _rangeOfText(LineInfo lineInfo, String content, Range range) {
-    final startPos = range.start;
-    final endPos = range.end;
-    final start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
-    final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
+    var startPos = range.start;
+    var endPos = range.end;
+    var start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
+    var end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
     return content.substring(start, end);
   }
 }

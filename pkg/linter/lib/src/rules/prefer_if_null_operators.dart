@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Prefer using if null operators.';
+const _desc = r'Prefer using `??` operators.';
 
 const _details = r'''
-**PREFER** using if null operators instead of null checks in conditional
+**PREFER** using `??` operators instead of `null` checks and conditional
 expressions.
 
 **BAD:**
@@ -29,14 +29,15 @@ v = a ?? b;
 class PreferIfNullOperators extends LintRule {
   static const LintCode code = LintCode('prefer_if_null_operators',
       "Use the '??' operator rather than '?:' when testing for 'null'.",
-      correctionMessage: "Try rewriting the code to use '??'.");
+      correctionMessage: "Try rewriting the code to use '??'.",
+      hasPublishedDocs: true);
 
   PreferIfNullOperators()
       : super(
             name: 'prefer_if_null_operators',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

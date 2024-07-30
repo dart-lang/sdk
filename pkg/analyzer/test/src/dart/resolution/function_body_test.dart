@@ -123,8 +123,8 @@ void f() {
   Future<void> _assertFormalParameter(String code, bool expected) async {
     await assertNoErrorsInCode(code);
 
-    final body = findNode.singleFunctionBody;
-    final element = findElement.parameter('x');
+    var body = findNode.singleFunctionBody;
+    var element = findElement.parameter('x');
     expect(body.isPotentiallyMutatedInScope(element), expected);
   }
 
@@ -132,8 +132,8 @@ void f() {
   Future<void> _assertLocalVariable(String code, bool expected) async {
     await assertNoErrorsInCode(code);
 
-    final body = findNode.singleFunctionBody;
-    final element = findElement.localVar('v');
+    var body = findNode.singleFunctionBody;
+    var element = findElement.localVar('v');
     expect(body.isPotentiallyMutatedInScope(element), expected);
   }
 }

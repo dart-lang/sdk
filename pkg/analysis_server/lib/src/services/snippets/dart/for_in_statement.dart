@@ -18,9 +18,9 @@ class ForInStatement extends DartSnippetProducer {
 
   @override
   Future<Snippet> compute() async {
-    final builder = ChangeBuilder(session: request.analysisSession);
-    final indent = utils.getLinePrefix(request.offset);
-    final varOrFinal = codeStyleOptions.makeLocalsFinal ? 'final' : 'var';
+    var builder = ChangeBuilder(session: request.analysisSession);
+    var indent = utils.getLinePrefix(request.offset);
+    var varOrFinal = codeStyleOptions.makeLocalsFinal ? 'final' : 'var';
 
     await builder.addDartFileEdit(request.filePath, (builder) {
       builder.addReplacement(request.replacementRange, (builder) {

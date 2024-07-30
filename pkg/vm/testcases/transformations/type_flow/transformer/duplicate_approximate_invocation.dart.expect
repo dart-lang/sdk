@@ -7,6 +7,7 @@ class _FieldSet extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::bool]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   get foo1() → core::bool
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1;
@@ -20,10 +21,12 @@ abstract class Message extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=#lib::_FieldSet]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
   get _fieldSet() → self::_FieldSet
     return [@vm.direct-call.metadata=#lib::Message.__fieldSet] [@vm.inferred-type.metadata=#lib::_FieldSet?] this.{self::Message::__fieldSet}{self::_FieldSet?}!;
 
+  [@vm.inferred-return-type.metadata=dart.core::bool]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]
   get foo1() → core::bool
     return [@vm.direct-call.metadata=#lib::_FieldSet.foo1] [@vm.inferred-type.metadata=dart.core::bool] [@vm.direct-call.metadata=#lib::Message._fieldSet] [@vm.inferred-type.metadata=#lib::_FieldSet] this.{self::Message::_fieldSet}{self::_FieldSet}.{self::_FieldSet::foo1}{core::bool};
@@ -59,6 +62,8 @@ static field core::List<self::Message> buf = [@vm.inferred-type.metadata=dart.co
 
 [@vm.inferred-type.metadata=!]
 static field self::Message anyMessage = [@vm.inferred-type.metadata=!] [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Message>] self::buf.{core::List::[]}(0){(core::int) → self::Message};
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method allocateClasses() → dynamic {
   new self::C1::•();
   new self::C2::•();
@@ -66,19 +71,27 @@ static method allocateClasses() → dynamic {
   new self::C4::•();
   new self::C5::•();
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method use1([@vm.inferred-arg-type.metadata=!] self::Message msg) → dynamic {
   if([@vm.direct-call.metadata=#lib::Message.foo1] [@vm.inferred-type.metadata=dart.core::bool] msg.{self::Message::foo1}{core::bool}) {
     core::print("OK");
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method use2([@vm.inferred-arg-type.metadata=#lib::C5] self::Message msg) → dynamic {
   if([@vm.direct-call.metadata=#lib::Message.foo1] [@vm.inferred-type.metadata=dart.core::bool] msg.{self::Message::foo1}{core::bool}) {
     core::print("OK");
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method triggerInvalidation() → dynamic {
   [@vm.direct-call.metadata=#lib::Message.__fieldSet] [@vm.inferred-type.metadata=!? (skip check)] new self::C1::•().{self::Message::__fieldSet} = new self::_FieldSet::•();
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main(core::List<core::String> args) → dynamic {
   self::allocateClasses();
   self::use1([@vm.inferred-type.metadata=!] self::anyMessage);

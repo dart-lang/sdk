@@ -52,7 +52,6 @@ namespace dart {
   V(TryOptimizePatterns)                                                       \
   V(TypePropagation)                                                           \
   V(UseTableDispatch)                                                          \
-  V(WidenSmiToInt32)                                                           \
   V(EliminateWriteBarriers)                                                    \
   V(TestILSerialization)                                                       \
   V(LoweringAfterCodeMotionDisabled)                                           \
@@ -162,27 +161,26 @@ class CompilerPass {
 
   static void RunInliningPipeline(PipelineMode mode, CompilerPassState* state);
 
-  static void RunForceOptimizedInliningPipeline(CompilerPassState* state);
   // RunPipeline(WithPasses) may have the side effect of changing the FlowGraph
   // stored in the CompilerPassState. However, existing callers may depend on
   // the old invariant that the FlowGraph stored in the CompilerPassState was
   // always updated, never entirely replaced.
   //
+  // By default pipeline assumes that input graph is not in SSA form yet and
+  // will invoke |ComputeSSA| pass on it. |ComputeSSA| is not idempotent and
+  // will crash if invoked on a graph which is already in SSA form. To avoid
+  // that you can set |compute_ssa| to |false|.
+  //
   // To make sure callers are updated properly, these methods also return
   // the final FlowGraph and we add a check that callers use this result.
   DART_WARN_UNUSED_RESULT
-  static FlowGraph* RunPipeline(PipelineMode mode, CompilerPassState* state);
+  static FlowGraph* RunPipeline(PipelineMode mode,
+                                CompilerPassState* state,
+                                bool compute_ssa = true);
   DART_WARN_UNUSED_RESULT
   static FlowGraph* RunPipelineWithPasses(
       CompilerPassState* state,
       std::initializer_list<CompilerPass::Id> passes);
-
-  // Pipeline which is used for "force-optimized" functions.
-  //
-  // Must not include speculative or inter-procedural optimizations.
-  DART_WARN_UNUSED_RESULT
-  static FlowGraph* RunForceOptimizedPipeline(PipelineMode mode,
-                                              CompilerPassState* state);
 
  protected:
   // This function executes the pass. If it returns true then

@@ -406,9 +406,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (library.isUnsupported) {
       flags.add('isUnsupported');
     }
-    if (!library.isNonNullableByDefault) {
-      flags.add('isLegacy');
-    }
     if (flags.isNotEmpty) {
       writeWord('/*${flags.join(',')}*/');
     }
@@ -777,8 +774,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         return 'async';
       case AsyncMarker.AsyncStar:
         return 'async*';
-      default:
-        return '<Invalid async marker: $marker>';
     }
   }
 
@@ -1092,14 +1087,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeExpression(initializer);
     }
     List<String> features = <String>[];
-    if (node.enclosingLibrary.isNonNullableByDefault !=
-        node.isNonNullableByDefault) {
-      if (node.isNonNullableByDefault) {
-        features.add("isNonNullableByDefault");
-      } else {
-        features.add("isLegacy");
-      }
-    }
     Class? enclosingClass = node.enclosingClass;
     if ((enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||
@@ -1146,14 +1133,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
     writeWord(procedureKindToString(node.kind));
     List<String> features = <String>[];
-    if (node.enclosingLibrary.isNonNullableByDefault !=
-        node.isNonNullableByDefault) {
-      if (node.isNonNullableByDefault) {
-        features.add("isNonNullableByDefault");
-      } else {
-        features.add("isLegacy");
-      }
-    }
     Class? enclosingClass = node.enclosingClass;
     if ((enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||
@@ -1200,13 +1179,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isSynthetic, 'synthetic');
     writeWord('constructor');
     List<String> features = <String>[];
-    if (node.enclosingLibrary.isNonNullableByDefault !=
-        node.isNonNullableByDefault) {
-      if (node.isNonNullableByDefault) {
-        features.add("isNonNullableByDefault");
-      } else {
-        features.add("isLegacy");
-      }
+    if (node.enclosingClass.fileUri != node.fileUri) {
+      features.add(" from ${node.fileUri} ");
     }
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
@@ -1431,6 +1405,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('typedef');
+    if (node.enclosingLibrary.fileUri != node.fileUri) {
+      writeWord("/* from ${node.fileUri} */");
+    }
     writeWord(node.name);
     writeTypeParameterList(node.typeParameters);
     writeSpaced('=');
@@ -1744,16 +1721,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitFileUriExpression(FileUriExpression node) {
-    if (node is FileUriConstantExpression) {
-      writeWord('/* from ${node.fileUri} */');
-    }
+    writeWord('/* from ${node.fileUri} */');
     writeExpression(node.expression);
   }
 
   @override
   void visitIsExpression(IsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
-    writeSpaced(!node.isForNonNullableByDefault ? 'is{ForLegacy}' : 'is');
+    writeSpaced('is');
     writeType(node.type);
   }
 
@@ -1769,9 +1744,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
     if (node.isForDynamic) {
       flags.add('ForDynamic');
-    }
-    if (!node.isForNonNullableByDefault) {
-      flags.add('ForLegacy');
     }
     if (node.isUnchecked) {
       flags.add('Unchecked');
@@ -2463,6 +2435,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
+    writeModifier(node.variable.isWildcard, 'wildcard');
     writeFunction(node.function, name: getVariableName(node.variable));
   }
 
@@ -2480,6 +2453,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isConst, 'const');
     writeModifier(node.isSynthesized && node.name != null, 'synthesized');
     writeModifier(node.isHoisted, 'hoisted');
+    writeModifier(node.isWildcard, 'wildcard');
     bool hasImplicitInitializer = node.initializer is NullLiteral ||
         (node.initializer is ConstantExpression &&
             (node.initializer as ConstantExpression).constant is NullConstant);
@@ -2754,12 +2728,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeAnnotationList(node.annotations, separateLines: false);
     if (node.variance != Variance.covariant) {
-      writeWord(const <String>[
-        "unrelated",
-        "covariant",
-        "contravariant",
-        "invariant"
-      ][node.variance]);
+      writeWord(node.variance.name);
     }
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
@@ -2773,12 +2742,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitStructuralParameter(StructuralParameter node) {
     if (node.variance != Variance.covariant) {
-      writeWord(const <String>[
-        "unrelated",
-        "covariant",
-        "contravariant",
-        "invariant"
-      ][node.variance]);
+      writeWord(node.variance.name);
     }
     writeWord(getStructuralParameterName(node));
     writeSpaced('extends');

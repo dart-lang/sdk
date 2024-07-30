@@ -26,7 +26,6 @@ void testDoesNotExist() {
         exception.message);
   } else if (Platform.isMacOS) {
     Expect.contains('libdoesnotexist1234.dylib', exception.message);
-    Expect.containsOneOf(
-        ['no such file', 'image not found'], exception.message);
+    Expect.containsAny(['no such file', 'image not found'], exception.message);
   }
 }

@@ -63,6 +63,8 @@ LiteralEntryInfo computeLiteralEntry(Token token) {
     return new ForCondition();
   } else if (optional('...', next) || optional('...?', next)) {
     return spreadOperator;
+  } else if (optional('?', next)) {
+    return nullAwareEntry;
   }
   return simpleEntry;
 }

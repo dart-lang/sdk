@@ -428,6 +428,26 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
   return callNSM(errorMessage);
 }
 
+/// Given a Dart function [f] that was wrapped in a `Function.toJS` call, and
+/// the corresponding [args] used to call it, validates that the arity and types
+/// of [args] are correct.
+///
+/// Returns null if it's valid call and a [noSuchMethod] invocation with the
+/// specific error otherwise.
+validateFunctionToJSArgs(f, List args) {
+  var errorMessage = _argumentErrors(
+      JS<Object>('', '#[#]', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME)),
+      args,
+      null);
+  if (errorMessage != null) {
+    return noSuchMethod(
+        f,
+        InvocationImpl(JS('', 'f.name'), args,
+            isMethod: true, failureMessage: errorMessage));
+  }
+  return null;
+}
+
 dcall(f, args, [@undefined named]) => _checkAndCall(
     f, null, JS('', 'void 0'), null, args, named, JS('', 'f.name'));
 
@@ -1166,6 +1186,21 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
   }
   return ${defineProperty(to, name, desc)};
 })()''');
+
+/// Checks for null or undefined and returns [val].
+///
+/// Throws a [TypeError] when [val] is null or undefined and the option for
+/// these checks has been enabled by [jsInteropNonNullAsserts].
+///
+/// Called from generated code when the compiler detects a non-static JavaScript
+/// interop API access that is typed to be non-nullable.
+Object? jsInteropNullCheck(Object? val) {
+  if (_jsInteropNonNullAsserts && val == null) {
+    throw TypeErrorImpl('Unexpected null value encountered from a '
+        'JavaScript Interop API typed as non-nullable.');
+  }
+  return val;
+}
 
 checkNativeNonNull(dynamic variable) {
   if (_nativeNonNullAsserts && variable == null) {

@@ -6,17 +6,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
-const _desc = r'Do not use BuildContexts across async gaps.';
+const _desc = r'Do not use `BuildContext` across asynchronous gaps.';
 
 const _details = r'''
-**DON'T** use BuildContext across asynchronous gaps.
+**DON'T** use `BuildContext` across asynchronous gaps.
 
 Storing `BuildContext` for later usage can easily lead to difficult to diagnose
 crashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of
@@ -180,8 +183,6 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   /// Whether a check on an unrelated 'mounted' property has been seen.
   bool hasUnrelatedMountedCheck = false;
 
-  AsyncStateVisitor();
-
   /// Cache the async state between [node] and some reference node.
   ///
   /// Caching an async state is only valid when [node] is the parent of the
@@ -261,7 +262,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
         (AsyncState.mountedCheck, _) => AsyncState.mountedCheck,
         (AsyncState.notMountedCheck, _) => AsyncState.notMountedCheck,
       };
-    } else if (node.isOr) {
+    }
+    if (node.isOr) {
       var leftGuardState = node.leftOperand.accept(this);
       var rightGuardState = node.rightOperand.accept(this);
       return switch ((leftGuardState, rightGuardState)) {
@@ -277,6 +279,49 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
         // Otherwise it's just uninteresting.
         (_, _) => null,
       };
+    }
+
+    if (node.isEqual) {
+      var leftGuardState = node.leftOperand.accept(this);
+      var rightGuardState = node.rightOperand.accept(this);
+      if (leftGuardState == AsyncState.asynchronous ||
+          rightGuardState == AsyncState.asynchronous) {
+        return AsyncState.asynchronous;
+      }
+      if (leftGuardState == AsyncState.mountedCheck ||
+          leftGuardState == AsyncState.notMountedCheck) {
+        var rightConstantValue = node.rightOperand.constantBoolValue;
+        if (rightConstantValue == null) return null;
+        return _constantEquality(leftGuardState, constant: rightConstantValue);
+      }
+      if (rightGuardState == AsyncState.mountedCheck ||
+          rightGuardState == AsyncState.notMountedCheck) {
+        var leftConstantValue = node.leftOperand.constantBoolValue;
+        if (leftConstantValue == null) return null;
+        return _constantEquality(rightGuardState, constant: leftConstantValue);
+      }
+      return null;
+    }
+    if (node.isNotEqual) {
+      var leftGuardState = node.leftOperand.accept(this);
+      var rightGuardState = node.rightOperand.accept(this);
+      if (leftGuardState == AsyncState.asynchronous ||
+          rightGuardState == AsyncState.asynchronous) {
+        return AsyncState.asynchronous;
+      }
+      if (leftGuardState == AsyncState.mountedCheck ||
+          leftGuardState == AsyncState.notMountedCheck) {
+        var rightConstantValue = node.rightOperand.constantBoolValue;
+        if (rightConstantValue == null) return null;
+        return _constantEquality(leftGuardState, constant: !rightConstantValue);
+      }
+      if (rightGuardState == AsyncState.mountedCheck ||
+          rightGuardState == AsyncState.notMountedCheck) {
+        var leftConstantValue = node.leftOperand.constantBoolValue;
+        if (leftConstantValue == null) return null;
+        return _constantEquality(rightGuardState, constant: !leftConstantValue);
+      }
+      return null;
     } else {
       // Outside of a binary logical operation, a mounted check cannot guard a
       // later expression, so only check for asynchronous code.
@@ -688,6 +733,18 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
     }
   }
 
+  /// Returns an [AsyncState] representing [state] or its opposite, based on
+  /// equality with [constant].
+  AsyncState? _constantEquality(AsyncState? state, {required bool constant}) =>
+      switch ((state, constant)) {
+        // Representing `context.mounted == true`, etc.
+        (AsyncState.mountedCheck, true) => AsyncState.mountedCheck,
+        (AsyncState.notMountedCheck, true) => AsyncState.notMountedCheck,
+        (AsyncState.mountedCheck, false) => AsyncState.notMountedCheck,
+        (AsyncState.notMountedCheck, false) => AsyncState.mountedCheck,
+        _ => null,
+      };
+
   /// Walks backwards through [nodes] looking for "interesting" async states,
   /// determining the async state of [nodes], with respect to [_reference].
   ///
@@ -867,6 +924,32 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   }
 }
 
+/// Function with callback parameters that should be "protected."
+///
+/// Any callback passed as a [positional] argument or [named] argument to such
+/// a function must have a mounted guard check for any references to
+/// BuildContext.
+class ProtectedFunction {
+  final String library;
+
+  /// The name of the target type of the function (for instance methods) or the
+  /// defining element (for constructors and static methods).
+  final String? type;
+
+  /// The name of the function. Can be `null` to represent an unnamed
+  /// constructor.
+  final String? name;
+
+  /// The list of positional parameters that are protected.
+  final List<int> positional;
+
+  /// The list of named parameters that are protected.
+  final List<String> named;
+
+  const ProtectedFunction(this.library, this.type, this.name,
+      {this.positional = const <int>[], this.named = const <String>[]});
+}
+
 class UseBuildContextSynchronously extends LintRule {
   static const LintCode asyncUseCode = LintCode(
     'use_build_context_synchronously',
@@ -875,6 +958,7 @@ class UseBuildContextSynchronously extends LintRule {
         "Try rewriting the code to not use the 'BuildContext', or guard the "
         "use with a 'mounted' check.",
     uniqueName: 'LintCode.use_build_context_synchronously_async_use',
+    hasPublishedDocs: true,
   );
 
   static const LintCode wrongMountedCode = LintCode(
@@ -885,6 +969,7 @@ class UseBuildContextSynchronously extends LintRule {
         "Guard a 'State.context' use with a 'mounted' check on the State, and "
         "other BuildContext use with a 'mounted' check on the BuildContext.",
     uniqueName: 'LintCode.use_build_context_synchronously_wrong_mounted',
+    hasPublishedDocs: true,
   );
 
   UseBuildContextSynchronously()
@@ -892,7 +977,7 @@ class UseBuildContextSynchronously extends LintRule {
           name: 'use_build_context_synchronously',
           description: _desc,
           details: _details,
-          group: Group.errors,
+          categories: {Category.errors},
           state: State.stable(since: Version(3, 2, 0)),
         );
 
@@ -902,8 +987,8 @@ class UseBuildContextSynchronously extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var unit = context.currentUnit.unit;
-    if (!context.inTestDir(unit)) {
+    var unit = context.definingUnit.unit;
+    if (!unit.inTestDir) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);
@@ -915,6 +1000,83 @@ class UseBuildContextSynchronously extends LintRule {
 
 class _Visitor extends SimpleAstVisitor {
   static const mountedName = 'mounted';
+
+  static const protectedConstructors = [
+    // Future constructors.
+    // Protect the unnamed constructor as both `Future()` and `Future.new()`.
+    ProtectedFunction('dart.async', 'Future', null, positional: [0]),
+    ProtectedFunction('dart.async', 'Future', 'new', positional: [0]),
+    ProtectedFunction('dart.async', 'Future', 'delayed', positional: [1]),
+    ProtectedFunction('dart.async', 'Future', 'microtask', positional: [0]),
+
+    // Stream constructors.
+    ProtectedFunction('dart.async', 'Stream', 'eventTransformed',
+        positional: [1]),
+    ProtectedFunction('dart.async', 'Stream', 'multi', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'periodic', positional: [1]),
+
+    // StreamController constructors.
+    ProtectedFunction('dart.async', 'StreamController', null,
+        named: ['onListen', 'onPause', 'onResume', 'onCancel']),
+    ProtectedFunction('dart.async', 'StreamController', 'new',
+        named: ['onListen', 'onPause', 'onResume', 'onCancel']),
+    ProtectedFunction('dart.async', 'StreamController', 'broadcast',
+        named: ['onListen', 'onCancel']),
+  ];
+
+  static const protectedInstanceMethods = [
+    // Future instance methods.
+    ProtectedFunction('dart.async', 'Future', 'catchError',
+        positional: [0], named: ['test']),
+    ProtectedFunction('dart.async', 'Future', 'onError',
+        positional: [0], named: ['test']),
+    ProtectedFunction('dart.async', 'Future', 'then',
+        positional: [0], named: ['onError']),
+    ProtectedFunction('dart.async', 'Future', 'timeout', named: ['onTimeout']),
+    ProtectedFunction('dart.async', 'Future', 'whenComplete', positional: [0]),
+
+    // Stream instance methods.
+    ProtectedFunction('dart.async', 'Stream', 'any', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'asBroadcastStream',
+        named: ['onListen', 'onCancel']),
+    ProtectedFunction('dart.async', 'Stream', 'asyncExpand', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'asyncMap', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'distinct', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'expand', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'firstWhere',
+        positional: [0], named: ['orElse']),
+    ProtectedFunction('dart.async', 'Stream', 'fold', positional: [1]),
+    ProtectedFunction('dart.async', 'Stream', 'forEach', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'handleError',
+        positional: [0], named: ['test']),
+    ProtectedFunction('dart.async', 'Stream', 'lastWhere',
+        positional: [0], named: ['orElse']),
+    ProtectedFunction('dart.async', 'Stream', 'listen',
+        positional: [0], named: ['onError', 'onDone']),
+    ProtectedFunction('dart.async', 'Stream', 'map', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'reduce', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'singleWhere',
+        positional: [0], named: ['orElse']),
+    ProtectedFunction('dart.async', 'Stream', 'skipWhile', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'takeWhile', positional: [0]),
+    ProtectedFunction('dart.async', 'Stream', 'timeout', named: ['onTimeout']),
+    ProtectedFunction('dart.async', 'Stream', 'where', positional: [0]),
+
+    // StreamSubscription instance methods.
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onData',
+        positional: [0]),
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onDone',
+        positional: [0]),
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onError',
+        positional: [0]),
+  ];
+
+  static const protectedStaticMethods = [
+    // Future static methods.
+    ProtectedFunction('dart.async', 'Future', 'doWhile', positional: [0]),
+    ProtectedFunction('dart.async', 'Future', 'forEach', positional: [1]),
+    ProtectedFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
+  ];
 
   final LintRule rule;
 
@@ -933,9 +1095,8 @@ class _Visitor extends SimpleAstVisitor {
       if (parent == null) break;
 
       var asyncState = asyncStateTracker.asyncStateFor(child, mountedElement);
-      if (asyncState.isGuarded) {
-        return;
-      }
+      if (asyncState.isGuarded) return;
+
       if (asyncState == AsyncState.asynchronous) {
         var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
             ? UseBuildContextSynchronously.wrongMountedCode
@@ -945,6 +1106,136 @@ class _Visitor extends SimpleAstVisitor {
       }
 
       child = parent;
+    }
+
+    if (child is FunctionBody) {
+      var parent = child.parent;
+      var grandparent = parent?.parent;
+      if (parent is! FunctionExpression) {
+        return;
+      }
+
+      if (grandparent is NamedExpression) {
+        // Given a FunctionBody in a named argument, like
+        // `future.catchError(test: (_) {...})`, we step up once more to the
+        // argument list.
+        grandparent = grandparent.parent;
+      }
+      if (grandparent is ArgumentList) {
+        if (grandparent.parent case InstanceCreationExpression invocation) {
+          checkConstructorCallback(invocation, parent, node);
+        }
+
+        if (grandparent.parent case MethodInvocation invocation) {
+          checkMethodCallback(invocation, parent, node);
+        }
+      }
+    }
+  }
+
+  /// Checks whether [invocation] involves a [callback] argument for a protected
+  /// constructor.
+  ///
+  /// The code inside a callback argument for a protected constructor must not
+  /// contain any references to a `BuildContext` without a guarding mounted
+  /// check.
+  void checkConstructorCallback(
+    InstanceCreationExpression invocation,
+    FunctionExpression callback,
+    Expression errorNode,
+  ) {
+    var staticType = invocation.staticType;
+    if (staticType == null) return;
+    var arguments = invocation.argumentList.arguments;
+    var positionalArguments =
+        arguments.where((a) => a is! NamedExpression).toList();
+    var namedArguments = arguments.whereType<NamedExpression>().toList();
+    for (var constructor in protectedConstructors) {
+      if (invocation.constructorName.name?.name == constructor.name &&
+          staticType.isSameAs(constructor.type, constructor.library)) {
+        checkPositionalArguments(
+            constructor.positional, positionalArguments, callback, errorNode);
+        checkNamedArguments(
+            constructor.named, namedArguments, callback, errorNode);
+      }
+    }
+  }
+
+  /// Checks whether [invocation] involves a [callback] argument for a protected
+  /// instance or static method.
+  ///
+  /// The code inside a callback argument for a protected method must not
+  /// contain any references to a `BuildContext` without a guarding mounted
+  /// check.
+  void checkMethodCallback(
+    MethodInvocation invocation,
+    FunctionExpression callback,
+    Expression errorNode,
+  ) {
+    var arguments = invocation.argumentList.arguments;
+    var positionalArguments =
+        arguments.where((a) => a is! NamedExpression).toList();
+    var namedArguments = arguments.whereType<NamedExpression>().toList();
+
+    var target = invocation.realTarget;
+    var targetElement = target is Identifier ? target.staticElement : null;
+    if (targetElement is ClassElement) {
+      // Static function called; `target` is the class.
+      for (var method in protectedStaticMethods) {
+        if (invocation.methodName.name == method.name &&
+            targetElement.name == method.type) {
+          checkPositionalArguments(
+              method.positional, positionalArguments, callback, errorNode);
+          checkNamedArguments(
+              method.named, namedArguments, callback, errorNode);
+        }
+      }
+    } else {
+      var staticType = target?.staticType;
+      if (staticType == null) return;
+      for (var method in protectedInstanceMethods) {
+        if (invocation.methodName.name == method.name &&
+            staticType.element?.name == method.type) {
+          checkPositionalArguments(
+              method.positional, positionalArguments, callback, errorNode);
+          checkNamedArguments(
+              method.named, namedArguments, callback, errorNode);
+        }
+      }
+    }
+  }
+
+  /// Checks whether [callback] is one of the [namedArguments] for one of the
+  /// protected argument [names] for a protected function.
+  void checkNamedArguments(
+      List<String> names,
+      List<NamedExpression> namedArguments,
+      Expression callback,
+      Expression errorNode) {
+    for (var named in names) {
+      var argument =
+          namedArguments.firstWhereOrNull((a) => a.name.label.name == named);
+      if (argument == null) continue;
+      if (callback == argument.expression) {
+        rule.reportLint(errorNode,
+            errorCode: UseBuildContextSynchronously.asyncUseCode);
+      }
+    }
+  }
+
+  /// Checks whether [callback] is one of the [positionalArguments] for one of
+  /// the protected argument [positions] for a protected function.
+  void checkPositionalArguments(
+      List<int> positions,
+      List<Expression> positionalArguments,
+      Expression callback,
+      Expression errorNode) {
+    for (var position in positions) {
+      if (positionalArguments.length > position &&
+          callback == positionalArguments[position]) {
+        rule.reportLint(errorNode,
+            errorCode: UseBuildContextSynchronously.asyncUseCode);
+      }
     }
   }
 
@@ -1036,6 +1327,8 @@ extension on PrefixExpression {
 
 extension on BinaryExpression {
   bool get isAnd => operator.type == TokenType.AMPERSAND_AMPERSAND;
+  bool get isEqual => operator.type == TokenType.EQ_EQ;
+  bool get isNotEqual => operator.type == TokenType.BANG_EQ;
   bool get isOr => operator.type == TokenType.BAR_BAR;
 }
 
@@ -1098,6 +1391,10 @@ extension on Statement {
   }
 }
 
+extension on Expression {
+  bool? get constantBoolValue => computeConstantValue().value?.toBoolValue();
+}
+
 @visibleForTesting
 extension ElementExtension on Element {
   /// The `mounted` getter which is associated with `this`, if this static
@@ -1112,7 +1409,7 @@ extension ElementExtension on Element {
         // This object can only be guarded by async gaps with a mounted
         // check on the State.
         return enclosingElement.augmented
-            ?.lookUpGetter(name: 'mounted', library: enclosingElement.library);
+            .lookUpGetter(name: 'mounted', library: enclosingElement.library);
       }
     }
 
@@ -1124,7 +1421,7 @@ extension ElementExtension on Element {
         ?.element;
     if (buildContextElement is InterfaceElement) {
       return buildContextElement.augmented
-          ?.lookUpGetter(name: 'mounted', library: buildContextElement.library);
+          .lookUpGetter(name: 'mounted', library: buildContextElement.library);
     }
 
     return null;

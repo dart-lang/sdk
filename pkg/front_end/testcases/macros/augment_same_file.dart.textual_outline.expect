@@ -1,0 +1,5 @@
+import augment 'augment_same_file_lib.dart';
+
+main() {}
+
+expectEquals(x, y) {}

@@ -125,7 +125,7 @@ extension DartPatternExtension on DartPattern {
   }
 
   DartType? get requiredType {
-    final self = this;
+    var self = this;
     if (self is DeclaredVariablePattern) {
       return self.type?.typeOrThrow;
     } else if (self is ListPattern) {
@@ -194,7 +194,7 @@ extension IdentifierExtension on Identifier {
   }
 
   SimpleIdentifier get simpleName {
-    final self = this;
+    var self = this;
     if (self is SimpleIdentifier) {
       return self;
     } else {
@@ -220,7 +220,7 @@ extension IdentifierImplExtension on IdentifierImpl {
     required TypeArgumentListImpl? typeArguments,
     required Token? question,
   }) {
-    final self = this;
+    var self = this;
     if (self is PrefixedIdentifierImpl) {
       return NamedTypeImpl(
         importPrefix: ImportPrefixReferenceImpl(
@@ -271,7 +271,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
 
 extension NamedTypeExtension on NamedType {
   String get qualifiedName {
-    final importPrefix = this.importPrefix;
+    var importPrefix = this.importPrefix;
     if (importPrefix != null) {
       return '${importPrefix.name.lexeme}.${name2.lexeme}';
     } else {
@@ -315,7 +315,7 @@ extension TypeAnnotationExtension on TypeAnnotation {
   /// be already resolved. Every such expression must have the type set,
   /// at least `dynamic`.
   DartType get typeOrThrow {
-    final type = this.type;
+    var type = this.type;
     if (type == null) {
       throw StateError('No type: $this');
     }

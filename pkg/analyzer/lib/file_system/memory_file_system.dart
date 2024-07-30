@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
@@ -354,6 +354,7 @@ class _MemoryFile extends _MemoryResource implements File {
     return destination;
   }
 
+  @Deprecated('Get Source instances from analysis results')
   @override
   Source createSource([Uri? uri]) {
     uri ??= provider.pathContext.toUri(path);
@@ -622,8 +623,8 @@ abstract class _MemoryResource implements Resource {
   /// watcher.
   @override
   ResourceWatcher watch() {
-    final streamController = StreamController<WatchEvent>.broadcast();
-    final ready = Completer<void>();
+    var streamController = StreamController<WatchEvent>.broadcast();
+    var ready = Completer<void>();
 
     /// A helper that sets up the watcher that may be called synchronously
     /// or delayed, depending on the value of
@@ -644,7 +645,7 @@ abstract class _MemoryResource implements Resource {
       }
     }
 
-    final delayWatcherInitialization = provider.delayWatcherInitialization;
+    var delayWatcherInitialization = provider.delayWatcherInitialization;
     if (delayWatcherInitialization != null) {
       // Wrap this inside onListen so that (like the real watcher) it will only
       // fire after a listener is attached.

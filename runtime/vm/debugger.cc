@@ -2277,14 +2277,15 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
   }
 }
 
-void Debugger::FindCompiledFunctions(
+ErrorPtr Debugger::FindAndCompileMatchingFunctions(
     const GrowableHandlePtrArray<const Script>& scripts,
     TokenPosition start_pos,
     TokenPosition end_pos,
-    GrowableObjectArray* code_function_list) {
+    GrowableObjectArray& code_function_list) const {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   Script& script = Script::Handle(zone);
+  Object& ensure_has_code_result = Object::Handle(zone);
   for (intptr_t i = 0; i < scripts.length(); ++i) {
     script = scripts.At(i).ptr();
     ClosureFunctionsCache::ForAllClosureFunctions(
@@ -2292,18 +2293,27 @@ void Debugger::FindCompiledFunctions(
           ASSERT(!function.IsNull());
           if ((function.token_pos() == start_pos) &&
               (function.end_token_pos() == end_pos) &&
-              (function.script() == script.ptr())) {
-            if (function.is_debuggable() && function.HasCode()) {
-              code_function_list->Add(function);
+              (function.script() == script.ptr()) && function.is_debuggable()) {
+            // If we've found a matching function, ensure it's compiled so
+            // the breakpoint currently being set can be resolved immediately.
+            ensure_has_code_result = function.EnsureHasCodeNoThrow();
+            if (ensure_has_code_result.IsError()) {
+              return false;  // Stop iterating.
             }
+            code_function_list.Add(function);
             ASSERT(!function.HasImplicitClosureFunction());
           }
-          return true;  // Continue iteration.
+          return true;  // Continue iterating.
         });
+    if (ensure_has_code_result.IsError()) {
+      return Error::Cast(ensure_has_code_result).ptr();
+    }
 
     Class& cls = Class::Handle(zone);
-    Function& function = Function::Handle(zone);
     Array& functions = Array::Handle(zone);
+    Function& function = Function::Handle(zone);
+    Array& fields = Array::Handle(zone);
+    Field& field = Field::Handle(zone);
 
     const ClassTable& class_table = *isolate_->group()->class_table();
     const intptr_t num_classes = class_table.NumCids();
@@ -2331,24 +2341,62 @@ void Debugger::FindCompiledFunctions(
             function ^= functions.At(pos);
             ASSERT(!function.IsNull());
             bool function_added = false;
-            if (function.is_debuggable() && function.HasCode() &&
-                function.token_pos() == start_pos &&
+            if (function.is_debuggable() && function.token_pos() == start_pos &&
                 function.end_token_pos() == end_pos &&
                 function.script() == script.ptr()) {
-              code_function_list->Add(function);
+              // If we've found a matching function, ensure it's compiled so
+              // the breakpoint currently being set can be resolved immediately.
+              ensure_has_code_result = function.EnsureHasCodeNoThrow();
+              if (ensure_has_code_result.IsError()) {
+                return Error::Cast(ensure_has_code_result).ptr();
+              }
+              code_function_list.Add(function);
               function_added = true;
             }
             if (function_added && function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              if (function.is_debuggable() && function.HasCode()) {
-                code_function_list->Add(function);
+              if (function.is_debuggable()) {
+                // Ensure that the implicit closure function is compiled so the
+                // breakpoint currently being set can be resolved immediately.
+                ensure_has_code_result = function.EnsureHasCodeNoThrow();
+                if (ensure_has_code_result.IsError()) {
+                  return Error::Cast(ensure_has_code_result).ptr();
+                }
+                code_function_list.Add(function);
               }
+            }
+          }
+        }
+        fields = cls.fields();
+        if (!fields.IsNull()) {
+          const intptr_t num_fields = fields.Length();
+          for (intptr_t pos = 0; pos < num_fields; pos++) {
+            field ^= fields.At(pos);
+            ASSERT(!field.IsNull());
+            if (field.Script() != script.ptr()) {
+              continue;
+            }
+            if (!field.has_nontrivial_initializer()) {
+              continue;
+            }
+            function = field.EnsureInitializerFunction();
+            ASSERT(!function.IsNull());
+            if (function.is_debuggable() && function.HasCode() &&
+                function.token_pos() == start_pos &&
+                function.end_token_pos() == end_pos &&
+                function.script() == script.ptr()) {
+              ensure_has_code_result = function.EnsureHasCodeNoThrow();
+              if (ensure_has_code_result.IsError()) {
+                return Error::Cast(ensure_has_code_result).ptr();
+              }
+              code_function_list.Add(function);
             }
           }
         }
       }
     }
   }
+  return Error::null();
 }
 
 static void UpdateBestFit(Function* best_fit, const Function& func) {
@@ -2362,10 +2410,11 @@ static void UpdateBestFit(Function* best_fit, const Function& func) {
   }
 }
 
-// Returns true if a best fit is found. A best fit can either be a function
-// or a field. If it is a function, then the best fit function is returned
-// in |best_fit|. If a best fit is a field, it means that a latent
-// breakpoint can be set in the range |token_pos| to |last_token_pos|.
+// If a best fit function is found, stores that function in |best_fit| and
+// returns |true|.
+// Note that in some cases, there may be a closure that is a better fit that the
+// function returned in |best_fit|, because |FindBestFit| is only able to detect
+// that closure if the function containing it has already been compiled.
 bool Debugger::FindBestFit(const Script& script,
                            TokenPosition token_pos,
                            TokenPosition last_token_pos,
@@ -2408,7 +2457,8 @@ bool Debugger::FindBestFit(const Script& script,
 
     const String& script_url = String::Handle(zone, script.url());
     ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& fun) {
-      if (FunctionOverlaps(fun, script_url, token_pos, last_token_pos)) {
+      if (fun.script() == script.ptr() &&
+          FunctionOverlaps(fun, script_url, token_pos, last_token_pos)) {
         // Select the inner most closure.
         UpdateBestFit(best_fit, fun);
       }
@@ -2459,9 +2509,11 @@ bool Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
-          if (IsImplicitFunction(function)) {
-            // Implicit functions do not have a user specifiable source
-            // location.
+          if (IsImplicitFunction(function) || function.is_synthetic() ||
+              !function.is_debuggable()) {
+            // We skip implicit functions and synthetic functions because they
+            // do not have user specifiable source locations. We also skip
+            // functions marked as undebuggable.
             continue;
           }
           if (FunctionOverlaps(function, script_url, token_pos,
@@ -2475,11 +2527,8 @@ bool Debugger::FindBestFit(const Script& script,
           }
         }
       }
-      // If none of the functions in the class contain token_pos, then we
-      // check if it falls within a function literal initializer of a field
-      // that has not been initialized yet. If the field (and hence the
-      // function literal initializer) has already been initialized, then
-      // it would have been found above in the object store as a closure.
+      // If none of the functions in the class contain token_pos, then we check
+      // if it falls within a function literal initializer of a field.
       fields = cls.fields();
       if (!fields.IsNull()) {
         const intptr_t num_fields = fields.Length();
@@ -2500,6 +2549,7 @@ bool Debugger::FindBestFit(const Script& script,
           end = field.end_token_pos();
           if (token_pos.IsWithin(start, end) ||
               start.IsWithin(token_pos, last_token_pos)) {
+            *best_fit = field.EnsureInitializerFunction();
             return true;
           }
         }
@@ -2578,49 +2628,74 @@ static TokenPosition FindExactTokenPosition(const Script& script,
                                             intptr_t column_number);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
-                                            TokenPosition token_pos,
-                                            TokenPosition last_token_pos,
-                                            intptr_t requested_line,
-                                            intptr_t requested_column,
-                                            const Function& function) {
+ErrorPtr Debugger::SetBreakpoint(
+    const Script& script,
+    TokenPosition token_pos,
+    TokenPosition last_token_pos,
+    intptr_t requested_line,
+    intptr_t requested_column,
+    const Function& function,
+    BreakpointLocation** result_breakpoint_location) {
   GrowableHandlePtrArray<const Script> scripts(Thread::Current()->zone(), 1);
   scripts.Add(script);
   return SetBreakpoint(scripts, token_pos, last_token_pos, requested_line,
-                       requested_column, function);
+                       requested_column, function, result_breakpoint_location);
 }
 
-BreakpointLocation* Debugger::SetBreakpoint(
+ErrorPtr Debugger::SetBreakpoint(
     const GrowableHandlePtrArray<const Script>& scripts,
     TokenPosition token_pos,
     TokenPosition last_token_pos,
     intptr_t requested_line,
     intptr_t requested_column,
-    const Function& function) {
+    const Function& function,
+    BreakpointLocation** result_breakpoint_location) {
+  ASSERT(scripts.length() > 0);
+  ASSERT(result_breakpoint_location != nullptr);
   Function& func = Function::Handle();
   const Script& script = scripts.At(0);
   if (function.IsNull()) {
     if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
-      return nullptr;
+      return Object::no_debuggable_code_error().ptr();
     }
-    // If func was not set (still Null), the best fit is a field.
+    ASSERT(!func.IsNull());
+    // There may be closures that were not considered by the first call to
+    // |FindBestFit| because the functions containing them were not yet
+    // compiled. So, we must recursively compile functions until we converge
+    // at a true best fit function.
+    Function& tmp = Function::Handle();
+    Object& ensure_has_code_result = Object::Handle();
+    do {
+      ensure_has_code_result = func.EnsureHasCodeNoThrow();
+      if (ensure_has_code_result.IsError()) {
+        return Error::Cast(ensure_has_code_result).ptr();
+      }
+      tmp = func.ptr();
+      FindBestFit(script, token_pos, last_token_pos, &func);
+      ASSERT(!func.IsNull());
+    } while (tmp.ptr() != func.ptr());
   } else {
     func = function.ptr();
     if (!func.token_pos().IsReal()) {
-      return nullptr;  // Missing source positions?
+      // Missing source positions?
+      return Object::no_debuggable_code_error().ptr();
     }
   }
 
   if (!func.IsNull()) {
-    // There may be more than one function object for a given function
-    // in source code. There may be implicit closure functions, and
-    // there may be copies of mixin functions. Collect all compiled
-    // functions whose source code range matches exactly the best fit
-    // function we found.
+    // There may be more than one function object for a given function in source
+    // code. There may be implicit closure functions, and there may be copies of
+    // mixin functions. Compile and collect all functions whose source code
+    // range matches exactly the best fit function we found. We compile all of
+    // theses functions eagerly so that the breakpoint currently being set can
+    // be resolved immediately.
     GrowableObjectArray& code_functions =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
-    FindCompiledFunctions(scripts, func.token_pos(), func.end_token_pos(),
-                          &code_functions);
+    const Error& error = Error::Handle(FindAndCompileMatchingFunctions(
+        scripts, func.token_pos(), func.end_token_pos(), code_functions));
+    if (!error.IsNull()) {
+      return error.ptr();
+    }
 
     if (code_functions.Length() > 0) {
       // One or more function object containing this breakpoint location
@@ -2644,38 +2719,14 @@ BreakpointLocation* Debugger::SetBreakpoint(
                                  exact_token_pos, code_functions);
       });
       if (loc != nullptr) {
-        return loc;
+        *result_breakpoint_location = loc;
+        return Error::null();
       }
     }
   }
-  // There is either an uncompiled function, or an uncompiled function literal
-  // initializer of a field at |token_pos|. Hence, Register an unresolved
-  // breakpoint.
-  if (FLAG_verbose_debug) {
-    intptr_t line_number = -1;
-    intptr_t column_number = -1;
-    script.GetTokenLocation(token_pos, &line_number, &column_number);
-    if (func.IsNull()) {
-      OS::PrintErr(
-          "Registering pending breakpoint for "
-          "an uncompiled function literal at line %" Pd " col %" Pd "\n",
-          line_number, column_number);
-    } else {
-      OS::PrintErr(
-          "Registering pending breakpoint for "
-          "uncompiled function '%s' at line %" Pd " col %" Pd "\n",
-          func.ToFullyQualifiedCString(), line_number, column_number);
-    }
-  }
-  const String& script_url = String::Handle(script.url());
-  BreakpointLocation* loc = GetBreakpointLocation(
-      script_url, token_pos, requested_line, requested_column);
-  if (loc == nullptr) {
-    loc = new BreakpointLocation(this, scripts, token_pos, last_token_pos,
-                                 requested_line, requested_column);
-    RegisterBreakpointLocation(loc);
-  }
-  return loc;
+  // There is no debuggable code at all at |token_pos|, so we leave
+  // |*result_breakpoint_location| as null.
+  return Error::null();
 }
 
 // Synchronize the enabled/disabled state of all code breakpoints
@@ -2696,38 +2747,54 @@ void GroupDebugger::SyncBreakpointLocation(BreakpointLocation* loc) {
   }
 }
 
-Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
-                                           bool single_shot) {
+ErrorPtr Debugger::SetBreakpointAtEntry(const Function& target_function,
+                                        bool single_shot,
+                                        Breakpoint** result_breakpoint) {
   ASSERT(!target_function.IsNull());
+  ASSERT(result_breakpoint != nullptr);
   if (!target_function.is_debuggable()) {
-    return nullptr;
+    return Object::no_debuggable_code_error().ptr();
   }
   const Script& script = Script::Handle(target_function.script());
-  BreakpointLocation* bpt_location = SetBreakpoint(
+  BreakpointLocation* bpt_location = nullptr;
+  const Error& error = Error::Handle(SetBreakpoint(
       script, target_function.token_pos(), target_function.end_token_pos(), -1,
-      -1 /* no requested line/col */, target_function);
-  if (bpt_location == nullptr) {
-    return nullptr;
+      -1 /* no requested line/col */, target_function, &bpt_location));
+  if (!error.IsNull()) {
+    return error.ptr();
   }
 
+  ASSERT(bpt_location != nullptr);
   if (single_shot) {
-    return bpt_location->AddSingleShot(this);
+    *result_breakpoint = bpt_location->AddSingleShot(this);
   } else {
-    return bpt_location->AddRepeated(this);
+    *result_breakpoint = bpt_location->AddRepeated(this);
   }
+  return Error::null();
 }
 
-Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
-                                                bool single_shot) {
+ErrorPtr Debugger::SetBreakpointAtActivation(const Instance& closure,
+                                             bool single_shot,
+                                             Breakpoint** result_breakpoint) {
+  ASSERT(result_breakpoint != nullptr);
+
   if (!closure.IsClosure()) {
-    return nullptr;
+    return Object::no_debuggable_code_error().ptr();
   }
   const Function& func = Function::Handle(Closure::Cast(closure).function());
   const Script& script = Script::Handle(func.script());
-  BreakpointLocation* bpt_location =
+  BreakpointLocation* bpt_location = nullptr;
+  const Error& error = Error::Handle(
       SetBreakpoint(script, func.token_pos(), func.end_token_pos(), -1,
-                    -1 /* no line/col */, func);
-  return bpt_location->AddBreakpoint(this, Closure::Cast(closure), single_shot);
+                    -1 /* no line/col */, func, &bpt_location));
+  if (!error.IsNull()) {
+    return error.ptr();
+  }
+
+  ASSERT(bpt_location != nullptr);
+  *result_breakpoint =
+      bpt_location->AddBreakpoint(this, Closure::Cast(closure), single_shot);
+  return Error::null();
 }
 
 Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
@@ -2783,41 +2850,35 @@ void Debugger::ResumptionBreakpoint() {
   }
 }
 
-Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
-                                          intptr_t line_number) {
+ErrorPtr Debugger::SetBreakpointAtLineCol(const String& script_url,
+                                          intptr_t line_number,
+                                          intptr_t column_number,
+                                          Breakpoint** result_breakpoint) {
   // Prevent future tests from calling this function in the wrong
   // execution state.  If you hit this assert, consider using
   // Dart_SetBreakpoint instead.
   ASSERT(Thread::Current()->execution_state() == Thread::kThreadInVM);
+  ASSERT(result_breakpoint != nullptr);
 
-  BreakpointLocation* loc =
-      BreakpointLocationAtLineCol(script_url, line_number, -1 /* no column */);
-  if (loc != nullptr) {
-    return loc->AddRepeated(this);
+  BreakpointLocation* loc = nullptr;
+  const Error& error = Error::Handle(BreakpointLocationAtLineCol(
+      script_url, line_number, column_number, &loc));
+  if (!error.IsNull()) {
+    return error.ptr();
   }
-  return nullptr;
+
+  ASSERT(loc != nullptr);
+  *result_breakpoint = loc->AddRepeated(this);
+  return Error::null();
 }
 
-Breakpoint* Debugger::SetBreakpointAtLineCol(const String& script_url,
-                                             intptr_t line_number,
-                                             intptr_t column_number) {
-  // Prevent future tests from calling this function in the wrong
-  // execution state.  If you hit this assert, consider using
-  // Dart_SetBreakpoint instead.
-  ASSERT(Thread::Current()->execution_state() == Thread::kThreadInVM);
-
-  BreakpointLocation* loc =
-      BreakpointLocationAtLineCol(script_url, line_number, column_number);
-  if (loc != nullptr) {
-    return loc->AddRepeated(this);
-  }
-  return nullptr;
-}
-
-BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
+ErrorPtr Debugger::BreakpointLocationAtLineCol(
     const String& script_url,
     intptr_t line_number,
-    intptr_t column_number) {
+    intptr_t column_number,
+    BreakpointLocation** result_breakpoint_location) {
+  ASSERT(result_breakpoint_location != nullptr);
+
   Zone* zone = Thread::Current()->zone();
   Library& lib = Library::Handle(zone);
   GrowableHandlePtrArray<const Script> scripts(zone, 1);
@@ -2849,7 +2910,8 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
           "line %" Pd " col %" Pd "\n",
           script_url.ToCString(), line_number, column_number);
     }
-    return latent_bpt;
+    *result_breakpoint_location = latent_bpt;
+    return Error::null();
   }
   TokenPosition first_token_idx = TokenPosition::kNoSource;
   TokenPosition last_token_idx = TokenPosition::kNoSource;
@@ -2862,28 +2924,41 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
       OS::PrintErr("Script '%s' does not contain line number %" Pd "\n",
                    script_url.ToCString(), line_number);
     }
-    return nullptr;
+    return Object::no_debuggable_code_error().ptr();
   } else if (!last_token_idx.IsReal()) {
     // Line does not contain any tokens.
     if (FLAG_verbose_debug) {
       OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
                    script_url.ToCString());
     }
-    return nullptr;
+    return Object::no_debuggable_code_error().ptr();
   }
 
-  BreakpointLocation* loc = nullptr;
   ASSERT(first_token_idx <= last_token_idx);
-  while ((loc == nullptr) && (first_token_idx <= last_token_idx)) {
-    loc = SetBreakpoint(scripts, first_token_idx, last_token_idx, line_number,
-                        column_number, Function::Handle());
+  Error& error = Error::Handle();
+  while ((*result_breakpoint_location == nullptr) &&
+         (first_token_idx <= last_token_idx)) {
+    error = SetBreakpoint(scripts, first_token_idx, last_token_idx, line_number,
+                          column_number, Function::Handle(),
+                          result_breakpoint_location);
+    if (!error.IsNull() &&
+        error.ptr() != Object::no_debuggable_code_error().ptr()) {
+      // We do not return an error immediately if |SetBreakpoint| returns
+      // |Object::no_debuggable_code_error().ptr()|, because there is a chance
+      // that |SetBreakpoint| will succeed if called again after
+      // |first_token_idx| is advanced.
+      return error.ptr();
+    }
     first_token_idx = first_token_idx.Next();
   }
-  if ((loc == nullptr) && FLAG_verbose_debug) {
-    OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
-                 script_url.ToCString());
+  if (*result_breakpoint_location == nullptr) {
+    if (FLAG_verbose_debug) {
+      OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
+                   script_url.ToCString());
+    }
+    return Object::no_debuggable_code_error().ptr();
   }
-  return loc;
+  return Error::null();
 }
 
 // Return innermost closure contained in 'function' that contains
@@ -4148,7 +4223,23 @@ void Debugger::AsyncStepInto(const Closure& awaiter) {
         Object::Handle(zone, suspend_state.function_data());
     SetBreakpointAtResumption(function_data);
   } else {
-    SetBreakpointAtActivation(awaiter, /*single_shot=*/true);
+    const Error& error = Error::Handle(
+        SetBreakpointAtActivation(awaiter, /*single_shot=*/true, nullptr));
+    // This method cannot be called while responding to a Service RPC, so we
+    // know that the top error handler is an exit frame.
+    DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());
+    if (!error.IsNull()) {
+      if (error.ptr() == Object::out_of_memory_error().ptr()) {
+        Exceptions::ThrowOOM();
+        UNREACHABLE();
+      }
+      if (error.IsLanguageError()) {
+        Exceptions::ThrowCompileTimeError(LanguageError::Cast(error));
+        UNREACHABLE();
+      }
+      Exceptions::PropagateError(Error::Cast(error));
+      UNREACHABLE();
+    }
   }
   Continue();
 }

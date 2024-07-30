@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -78,7 +81,7 @@ class PackageConfigFileUriResolver extends ResourceUriResolver {
     }
     var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(uri);
+      return FileSource(file, uri);
     }
     return null;
   }
@@ -136,7 +139,7 @@ class PackageConfigPackageUriResolver extends UriResolver {
     var file = _workspace.builtFile(
         _workspace._builtPackageSourcePath(filePath), packageName);
     if (file != null && file.exists) {
-      return file.createSource(uri);
+      return FileSource(file, uri);
     }
     return basicResolverSource;
   }
@@ -261,10 +264,10 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     var context = provider.pathContext;
     assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
     try {
-      final package = findPackageFor(filePath);
+      var package = findPackageFor(filePath);
       if (package is PubPackage) {
-        final relativePath = context.relative(filePath, from: package.root);
-        final file = builtFile(relativePath, package._name ?? '');
+        var relativePath = context.relative(filePath, from: package.root);
+        var file = builtFile(relativePath, package._name ?? '');
         if (file!.exists) {
           return file;
         }
@@ -367,9 +370,9 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   /// Check if `/home/workspace/third_party/dart/my/pubspec.yaml`
   /// If so, we are in a Blaze workspace, and should not create Pub.
   static bool _isInThirdPartyDart(File pubspec) {
-    final path = pubspec.path;
-    final pathContext = pubspec.provider.pathContext;
-    final pathComponents = pathContext.split(path);
+    var path = pubspec.path;
+    var pathContext = pubspec.provider.pathContext;
+    var pathComponents = pathContext.split(path);
     return pathComponents.length > 4 &&
         pathComponents[pathComponents.length - 3] == 'dart' &&
         pathComponents[pathComponents.length - 4] == 'third_party';
@@ -393,9 +396,11 @@ class PubPackage extends WorkspacePackage {
 
   final String? _name;
 
-  final String? _pubspecContent;
+  final String? pubspecContent;
 
-  final Pubspec? _pubspec;
+  final Pubspec? pubspec;
+
+  final File pubspecFile;
 
   VersionConstraint? _sdkVersionConstraint;
 
@@ -410,15 +415,12 @@ class PubPackage extends WorkspacePackage {
     var pubspecContent = pubspecFile.readAsStringSync();
     var pubspec = Pubspec.parse(pubspecContent);
     var packageName = pubspec.name?.value.text;
-    return PubPackage._(root, workspace, pubspecContent, pubspec, packageName);
+    return PubPackage._(
+        root, workspace, pubspecContent, pubspecFile, pubspec, packageName);
   }
 
-  PubPackage._(this.root, this.workspace, this._pubspecContent, this._pubspec,
-      this._name);
-
-  Pubspec? get pubspec => _pubspec;
-
-  String? get pubspecContent => _pubspecContent;
+  PubPackage._(this.root, this.workspace, this.pubspecContent, this.pubspecFile,
+      this.pubspec, this._name);
 
   /// The version range for the SDK specified for this package , or `null` if
   /// it is ill-formatted or not set.
@@ -426,7 +428,7 @@ class PubPackage extends WorkspacePackage {
     if (!_parsedSdkConstraint) {
       _parsedSdkConstraint = true;
 
-      var sdkValue = _pubspec?.environment?.sdk?.value.text;
+      var sdkValue = pubspec?.environment?.sdk?.value.text;
       if (sdkValue != null) {
         try {
           _sdkVersionConstraint = VersionConstraint.parse(sdkValue);

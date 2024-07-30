@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -31,7 +32,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker? _labelTracker;
 
-  DeadCodeVerifier(this._errorReporter);
+  /// Whether the `wildcard_variables` feature is enabled.
+  final bool _wildCardVariablesEnabled;
+
+  DeadCodeVerifier(this._errorReporter, LibraryElement library)
+      : _wildCardVariablesEnabled =
+            library.featureSet.isEnabled(Feature.wildcard_variables);
 
   @override
   void visitBreakStatement(BreakStatement node) {
@@ -45,7 +51,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    final exportElement = node.element;
+    var exportElement = node.element;
     if (exportElement != null) {
       // The element is null when the URI is invalid.
       LibraryElement? library = exportElement.exportedLibrary;
@@ -59,8 +65,21 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    var element = node.declaredElement;
+    // TODO(pq): ask the FunctionElement once implemented
+    if (_wildCardVariablesEnabled &&
+        element is FunctionElement &&
+        element.isLocal &&
+        element.name == '_') {
+      _errorReporter.atNode(node, WarningCode.DEAD_CODE);
+    }
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
-    final importElement = node.element;
+    var importElement = node.element;
     if (importElement != null) {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a nonexistent file.
@@ -177,101 +196,119 @@ class NullSafetyDeadCodeVerifier {
   /// the current dead code interval.
   void flowEnd(AstNode node) {
     var firstDeadNode = _firstDeadNode;
-    if (firstDeadNode != null) {
-      if (!_containsFirstDeadNode(node)) {
-        return;
-      }
-
-      if (node is SwitchMember && node == firstDeadNode) {
-        _errorReporter.atToken(
-          node.keyword,
-          WarningCode.DEAD_CODE,
-        );
-        _firstDeadNode = null;
-        return;
-      }
-
-      var parent = firstDeadNode.parent;
-      if (parent is Assertion && identical(firstDeadNode, parent.message)) {
-        // Don't report "dead code" for the message part of an assert statement,
-        // because this causes nuisance warnings for redundant `!= null`
-        // asserts.
-      } else {
-        var offset = firstDeadNode.offset;
-        // We know that [node] is the first dead node, or contains it.
-        // So, technically the code interval ends at the end of [node].
-        // But we trim it to the last statement for presentation purposes.
-        if (node != firstDeadNode) {
-          if (node is FunctionDeclaration) {
-            node = node.functionExpression.body;
-          }
-          if (node is FunctionExpression) {
-            node = node.body;
-          }
-          if (node is MethodDeclaration) {
-            node = node.body;
-          }
-          if (node is BlockFunctionBody) {
-            node = node.block;
-          }
-          if (node is Block && node.statements.isNotEmpty) {
-            node = node.statements.last;
-          }
-          if (node is SwitchMember && node.statements.isNotEmpty) {
-            node = node.statements.last;
-          }
-        } else if (parent is BinaryExpression && node == parent.rightOperand) {
-          offset = parent.operator.offset;
-        }
-        if (parent is DoStatement) {
-          var doOffset = parent.doKeyword.offset;
-          var doEnd = parent.doKeyword.end;
-          var whileOffset = parent.whileKeyword.offset;
-          var whileEnd = parent.semicolon.end;
-          var body = parent.body;
-          if (body is Block) {
-            doEnd = body.leftBracket.end;
-            whileOffset = body.rightBracket.offset;
-          }
-          _errorReporter.atOffset(
-            offset: doOffset,
-            length: doEnd - doOffset,
-            errorCode: WarningCode.DEAD_CODE,
-          );
-          _errorReporter.atOffset(
-            offset: whileOffset,
-            length: whileEnd - whileOffset,
-            errorCode: WarningCode.DEAD_CODE,
-          );
-          offset = parent.semicolon.next!.offset;
-          if (parent.hasBreakStatement) {
-            offset = node.end;
-          }
-        } else if (parent is ForParts) {
-          node = parent.updaters.last;
-        } else if (parent is ForStatement) {
-          _reportForUpdaters(parent);
-        } else if (parent is Block) {
-          var grandParent = parent.parent;
-          if (grandParent is ForStatement) {
-            _reportForUpdaters(grandParent);
-          }
-        } else if (parent is LogicalOrPattern && node == parent.rightOperand) {
-          offset = parent.operator.offset;
-        }
-
-        var length = node.end - offset;
-        if (length > 0) {
-          _errorReporter.atOffset(
-            offset: offset,
-            length: length,
-            errorCode: WarningCode.DEAD_CODE,
-          );
-        }
-      }
-
-      _firstDeadNode = null;
+    if (firstDeadNode == null) {
+      return;
     }
+
+    if (!_containsFirstDeadNode(node)) {
+      return;
+    }
+
+    if (node is SwitchMember && node == firstDeadNode) {
+      _errorReporter.atToken(
+        node.keyword,
+        WarningCode.DEAD_CODE,
+      );
+      _firstDeadNode = null;
+      return;
+    }
+
+    var parent = firstDeadNode.parent;
+    if (parent is Assertion && identical(firstDeadNode, parent.message)) {
+      // Don't report "dead code" for the message part of an assert statement,
+      // because this causes nuisance warnings for redundant `!= null`
+      // asserts.
+    } else if (parent is ConstructorDeclaration &&
+        firstDeadNode is EmptyFunctionBody) {
+      // Don't report "dead code" for an unreachable, but syntacically required,
+      // semicolon that follows one or more constructor initializers.
+    } else if (parent is ConstructorDeclaration &&
+        firstDeadNode is BlockFunctionBody &&
+        firstDeadNode.block.statements.isEmpty) {
+      // Don't report "dead code" for an unreachable, but empty block body that
+      // follows one or more constructor initializers.
+    } else {
+      var offset = firstDeadNode.offset;
+      // We know that [node] is the first dead node, or contains it.
+      // So, technically the code interval ends at the end of [node].
+      // But we trim it to the last statement for presentation purposes.
+      if (node != firstDeadNode) {
+        if (node is FunctionDeclaration) {
+          node = node.functionExpression.body;
+        }
+        if (node is FunctionExpression) {
+          node = node.body;
+        }
+        if (node is MethodDeclaration) {
+          node = node.body;
+        }
+        if (node is BlockFunctionBody) {
+          node = node.block;
+        }
+        if (node is Block && node.statements.isNotEmpty) {
+          node = node.statements.last;
+        }
+        if (node is SwitchMember && node.statements.isNotEmpty) {
+          node = node.statements.last;
+        }
+      } else if (parent is BinaryExpression && node == parent.rightOperand) {
+        offset = parent.operator.offset;
+      }
+      if (parent is ConstructorInitializer) {
+        _errorReporter.atOffset(
+          offset: parent.offset,
+          length: parent.end - parent.offset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+        offset = node.end;
+      } else if (parent is DoStatement) {
+        var doOffset = parent.doKeyword.offset;
+        var doEnd = parent.doKeyword.end;
+        var whileOffset = parent.whileKeyword.offset;
+        var whileEnd = parent.semicolon.end;
+        var body = parent.body;
+        if (body is Block) {
+          doEnd = body.leftBracket.end;
+          whileOffset = body.rightBracket.offset;
+        }
+        _errorReporter.atOffset(
+          offset: doOffset,
+          length: doEnd - doOffset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+        _errorReporter.atOffset(
+          offset: whileOffset,
+          length: whileEnd - whileOffset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+        offset = parent.semicolon.next!.offset;
+        if (parent.hasBreakStatement) {
+          offset = node.end;
+        }
+      } else if (parent is ForParts) {
+        node = parent.updaters.last;
+      } else if (parent is ForStatement) {
+        _reportForUpdaters(parent);
+      } else if (parent is Block) {
+        var grandParent = parent.parent;
+        if (grandParent is ForStatement) {
+          _reportForUpdaters(grandParent);
+        }
+      } else if (parent is LogicalOrPattern && node == parent.rightOperand) {
+        offset = parent.operator.offset;
+      }
+
+      var length = node.end - offset;
+      if (length > 0) {
+        _errorReporter.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+      }
+    }
+
+    _firstDeadNode = null;
   }
 
   void tryStatementEnter(TryStatement node) {
@@ -525,6 +562,11 @@ class _LabelTracker {
       }
     }
   }
+}
+
+extension on FunctionElement {
+  bool get isLocal =>
+      enclosingElement is FunctionElement || enclosingElement is MethodElement;
 }
 
 extension DoStatementExtension on DoStatement {

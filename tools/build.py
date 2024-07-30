@@ -43,17 +43,12 @@ def BuildOptions():
 
     other_group.add_argument("-j",
                              type=int,
-                             help='Ninja -j option for Goma/RBE builds.',
+                             help='Ninja -j option for RBE builds.',
                              default=200 if sys.platform == 'win32' else 1000)
     other_group.add_argument("-l",
                              type=int,
-                             help='Ninja -l option for Goma/RBE builds.',
+                             help='Ninja -l option for RBE builds.',
                              default=64)
-    other_group.add_argument("--no-start-goma",
-                             help="Don't try to start goma",
-                             default=False,
-                             dest='no_start_rbe',
-                             action='store_true')
     other_group.add_argument("--no-start-rbe",
                              help="Don't try to start rbe",
                              default=False,
@@ -124,10 +119,6 @@ def NotifyBuildDone(build_config, success, start):
         # Ignore return code, if this command fails, it doesn't matter.
         os.system(command)
 
-def UseGoma(out_dir):
-    args_gn = os.path.join(out_dir, 'args.gn')
-    return 'use_goma = true' in open(args_gn, 'r').read()
-
 
 def UseRBE(out_dir):
     args_gn = os.path.join(out_dir, 'args.gn')
@@ -136,52 +127,37 @@ def UseRBE(out_dir):
 
 # Try to start RBE, but don't bail out if we can't. Instead print an error
 # message, and let the build fail with its own error messages as well.
-rbe_started = None
+rbe_started = False
 bootstrap_path = None
 
 
-def StartRBE(out_dir, use_goma, env):
+def StartRBE(out_dir, env):
     global rbe_started, bootstrap_path
-    rbe = 'goma' if use_goma else 'rbe'
-    if rbe_started:
-        if rbe_started != rbe:
-            print(f'Cannot mix RBE and Goma')
+    if not rbe_started:
+        rbe_dir = 'buildtools/reclient'
+        with open(os.path.join(out_dir, 'args.gn'), 'r') as fp:
+            for line in fp:
+                if 'rbe_dir' in line:
+                    words = line.split()
+                    rbe_dir = words[2][1:-1]  # rbe_dir = "/path/to/rbe"
+        bootstrap_path = os.path.join(rbe_dir, 'bootstrap')
+        bootstrap_command = [bootstrap_path]
+        process = subprocess.Popen(bootstrap_command, env=env)
+        process.wait()
+        if process.returncode != 0:
+            print('Failed to start RBE')
             return False
-        return True
-    args_gn_path = os.path.join(out_dir, 'args.gn')
-    rbe_dir = None if use_goma else 'buildtools/reclient'
-    with open(args_gn_path, 'r') as fp:
-        for line in fp:
-            if ('goma_dir' if use_goma else 'rbe_dir') in line:
-                words = line.split()
-                rbe_dir = words[2][1:-1]  # rbe_dir = "/path/to/rbe"
-    if not rbe_dir:
-        print(f'Could not find {rbe} for {out_dir}')
-        return False
-    if not os.path.exists(rbe_dir) or not os.path.isdir(rbe_dir):
-        print(f'Could not find {rbe} at {rbe_dir}')
-        return False
-    bootstrap = 'goma_ctl.py' if use_goma else 'bootstrap'
-    bootstrap_path = os.path.join(rbe_dir, bootstrap)
-    bootstrap_command = [bootstrap_path]
-    if use_goma:
-        bootstrap_command = ['python3', bootstrap_path, 'ensure_start']
-    process = subprocess.Popen(bootstrap_command, env=env)
-    process.wait()
-    if process.returncode != 0:
-        print(f"Failed to start {rbe}")
-        return False
-    rbe_started = rbe
+        rbe_started = True
     return True
 
 
 def StopRBE(env):
     global rbe_started, bootstrap_path
-    if rbe_started != 'rbe':
-        return
-    bootstrap_command = [bootstrap_path, '--shutdown']
-    process = subprocess.Popen(bootstrap_command, env=env)
-    process.wait()
+    if rbe_started:
+        bootstrap_command = [bootstrap_path, '--shutdown']
+        process = subprocess.Popen(bootstrap_command, env=env)
+        process.wait()
+        rbe_started = False
 
 
 # Returns a tuple (build_config, command to run, whether rbe is used)
@@ -192,10 +168,8 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
     command = ['buildtools/ninja/ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
-    use_rbe = UseRBE(out_dir)
-    use_goma = UseGoma(out_dir)
-    if use_rbe or use_goma:
-        if options.no_start_rbe or StartRBE(out_dir, use_goma, env):
+    if UseRBE(out_dir):
+        if options.no_start_rbe or StartRBE(out_dir, env):
             using_rbe = True
             command += [('-j%s' % str(options.j))]
             command += [('-l%s' % str(options.l))]
@@ -338,10 +312,11 @@ def Main():
 
     exit_code = Build(configs, env, options)
 
+    endtime = time.time()
+
     StopRBE(env)
 
     if exit_code == 0:
-        endtime = time.time()
         print("The build took %.3f seconds" % (endtime - starttime))
     return exit_code
 

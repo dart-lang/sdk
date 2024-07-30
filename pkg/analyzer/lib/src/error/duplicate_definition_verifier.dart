@@ -9,6 +9,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -16,6 +18,7 @@ import 'package:analyzer/src/error/codes.dart';
 class DuplicateDefinitionVerifier {
   final InheritanceManager3 _inheritanceManager;
   final LibraryElement _currentLibrary;
+  final CompilationUnitElementImpl _currentUnit;
   final ErrorReporter _errorReporter;
   final DuplicationDefinitionContext context;
 
@@ -24,6 +27,7 @@ class DuplicateDefinitionVerifier {
   DuplicateDefinitionVerifier(
     this._inheritanceManager,
     this._currentLibrary,
+    this._currentUnit,
     this._errorReporter,
     this.context,
   );
@@ -33,6 +37,8 @@ class DuplicateDefinitionVerifier {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null && stackTraceParameter != null) {
+      var element = exceptionParameter.declaredElement;
+      if (element != null && element.isWildcardVariable) return;
       String exceptionName = exceptionParameter.name.lexeme;
       if (exceptionName == stackTraceParameter.name.lexeme) {
         _errorReporter.reportError(_diagnosticFactory
@@ -52,8 +58,10 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void checkEnum(EnumDeclaration node) {
-    var enumElement = node.declaredElement!;
-    var enumName = enumElement.name;
+    var fragment = node.declaredElement!;
+    var augmented = fragment.augmented;
+    var declarationElement = augmented.declaration;
+    var declarationName = declarationElement.name;
 
     var constructorNames = <String>{};
     var instanceGetters = <String, Element>{};
@@ -69,7 +77,7 @@ class DuplicateDefinitionVerifier {
 
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
-        if (member.returnType.name == enumElement.name) {
+        if (member.returnType.name == declarationElement.name) {
           var name = member.declaredElement!.name;
           if (!constructorNames.add(name)) {
             if (name.isEmpty) {
@@ -110,7 +118,7 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    if (enumName == 'values') {
+    if (declarationName == 'values') {
       _errorReporter.atToken(
         node.name,
         CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
@@ -118,7 +126,7 @@ class DuplicateDefinitionVerifier {
     }
 
     for (var constant in node.constants) {
-      if (constant.name.lexeme == enumName) {
+      if (constant.name.lexeme == declarationName) {
         _errorReporter.atToken(
           constant.name,
           CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
@@ -127,30 +135,30 @@ class DuplicateDefinitionVerifier {
     }
 
     _checkConflictingConstructorAndStatic(
-      interfaceElement: enumElement,
+      interfaceElement: declarationElement,
       staticGetters: staticGetters,
       staticSetters: staticSetters,
     );
 
-    for (var accessor in enumElement.accessors) {
+    for (var accessor in fragment.accessors) {
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
-        var instance = _getInterfaceMember(enumElement, baseName);
+        var instance = _getInterfaceMember(declarationElement, baseName);
         if (instance != null && baseName != 'values') {
           _errorReporter.atElement(
             accessor,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-            arguments: [enumName, baseName, enumName],
+            arguments: [declarationName, baseName, declarationName],
           );
         }
       } else {
-        var inherited = _getInheritedMember(enumElement, baseName);
+        var inherited = _getInheritedMember(declarationElement, baseName);
         if (inherited is MethodElement) {
           _errorReporter.atElement(
             accessor,
             CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
             arguments: [
-              enumElement.displayName,
+              declarationElement.displayName,
               baseName,
               inherited.enclosingElement.displayName,
             ],
@@ -159,25 +167,28 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    for (var method in enumElement.methods) {
+    for (var method in fragment.methods) {
+      if (method.source != _currentUnit.source) {
+        continue;
+      }
       var baseName = method.displayName;
       if (method.isStatic) {
-        var instance = _getInterfaceMember(enumElement, baseName);
+        var instance = _getInterfaceMember(declarationElement, baseName);
         if (instance != null) {
           _errorReporter.atElement(
             method,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-            arguments: [enumName, baseName, enumName],
+            arguments: [declarationName, baseName, declarationName],
           );
         }
       } else {
-        var inherited = _getInheritedMember(enumElement, baseName);
+        var inherited = _getInheritedMember(declarationElement, baseName);
         if (inherited is PropertyAccessorElement) {
           _errorReporter.atElement(
             method,
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
             arguments: [
-              enumElement.displayName,
+              declarationElement.displayName,
               baseName,
               inherited.enclosingElement.displayName,
             ],
@@ -253,11 +264,9 @@ class DuplicateDefinitionVerifier {
     ExtensionTypeDeclaration node,
     ExtensionTypeElement element,
   ) {
-    final declarationElement = element.augmented?.declaration;
-    if (declarationElement == null) return;
-
-    final primaryConstructorName = element.constructors.first.name;
-    final representationGetter = element.representation.getter!;
+    var declarationElement = element.augmented.declaration;
+    var primaryConstructorName = element.constructors.first.name;
+    var representationGetter = element.representation.getter!;
     _getElementContext(declarationElement)
       ..constructorNames.add(primaryConstructorName)
       ..instanceGetters[representationGetter.name] = representationGetter;
@@ -342,7 +351,7 @@ class DuplicateDefinitionVerifier {
       for (ClassElement class_ in element.classes) {
         definedGetters[class_.name] = class_;
       }
-      for (final type in element.enums) {
+      for (var type in element.enums) {
         definedGetters[type.name] = type;
       }
       for (FunctionElement function in element.functions) {
@@ -359,7 +368,7 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    for (final importElement in _currentLibrary.libraryImports) {
+    for (var importElement in _currentLibrary.libraryImports) {
       var prefix = importElement.prefix?.element;
       if (prefix != null) {
         definedGetters[prefix.name] = prefix;
@@ -368,7 +377,7 @@ class DuplicateDefinitionVerifier {
     CompilationUnitElement element = node.declaredElement!;
     if (element != _currentLibrary.definingCompilationUnit) {
       addWithoutChecking(_currentLibrary.definingCompilationUnit);
-      for (final unitElement in _currentLibrary.units) {
+      for (var unitElement in _currentLibrary.units) {
         if (element == unitElement) {
           break;
         }
@@ -396,15 +405,13 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(InterfaceElement element, List<ClassMember> members) {
-    final declarationElement = element.augmented?.declaration;
-    if (declarationElement == null) return;
-
-    final elementContext = _getElementContext(declarationElement);
-    final constructorNames = elementContext.constructorNames;
-    final instanceGetters = elementContext.instanceGetters;
-    final instanceSetters = elementContext.instanceSetters;
-    final staticGetters = elementContext.staticGetters;
-    final staticSetters = elementContext.staticSetters;
+    var declarationElement = element.augmented.declaration;
+    var elementContext = _getElementContext(declarationElement);
+    var constructorNames = elementContext.constructorNames;
+    var instanceGetters = elementContext.instanceGetters;
+    var instanceSetters = elementContext.instanceSetters;
+    var staticGetters = elementContext.staticGetters;
+    var staticSetters = elementContext.staticSetters;
 
     for (ClassMember member in members) {
       switch (member) {
@@ -463,7 +470,7 @@ class DuplicateDefinitionVerifier {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
           for (VariableDeclaration field in member.fields.variables) {
-            final identifier = field.name;
+            var identifier = field.name;
             String name = identifier.lexeme;
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
@@ -478,7 +485,7 @@ class DuplicateDefinitionVerifier {
         }
       } else if (member is MethodDeclaration) {
         if (member.isStatic) {
-          final identifier = member.name;
+          var identifier = member.name;
           String name = identifier.lexeme;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
@@ -535,7 +542,7 @@ class DuplicateDefinitionVerifier {
   void _checkDuplicateIdentifier(
       Map<String, Element> getterScope, Token identifier,
       {required Element element, Map<String, Element>? setterScope}) {
-    if (identifier.isSynthetic) {
+    if (identifier.isSynthetic || element.isWildcardVariable) {
       return;
     }
 
@@ -545,6 +552,8 @@ class DuplicateDefinitionVerifier {
       case FieldElement _:
         if (element.isAugmentation) return;
       case InstanceElement _:
+        if (element.isAugmentation) return;
+      case TypeAliasElement _:
         if (element.isAugmentation) return;
       case TopLevelVariableElement _:
         if (element.isAugmentation) return;

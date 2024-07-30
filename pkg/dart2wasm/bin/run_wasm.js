@@ -16,7 +16,7 @@
 // $> export JSC_useWebAssemblyTypedFunctionReferences=1
 // $> export JSC_useWebAssemblyExtendedConstantExpressions=1
 // $> export JSC_useWebAssemblyGC=1
-// $> jsc run_wasm.js -- <dart_module>.ms <dart_module>.wasm  \
+// $> jsc run_wasm.js -- <dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
 //       [-- Dart commandline arguments...]
 //
 // Run as follows on JSShell:
@@ -62,6 +62,14 @@ if (isD8) {
   //
   // (see also dart2js's `sdk/**/js_runtime/lib/preambles/d8.js`)
   delete performance.measure;
+}
+
+var args =  (isD8 || isJSC) ? arguments : scriptArgs;
+var dartArgs = [];
+const argsSplit = args.indexOf("--");
+if (argsSplit != -1) {
+  dartArgs = args.slice(argsSplit + 1);
+  args = args.slice(0, argsSplit);
 }
 
 // d8's `setTimeout` doesn't work as expected (it doesn't wait before calling
@@ -126,9 +134,11 @@ if (isD8) {
   var zeroTimerQueue = [];
 
   function addTimer(f, ms) {
+    ms = Math.max(0, ms);
     var id = timerIdCounter++;
     // A callback can be scheduled at most once.
-    console.assert(f.$timerId === undefined);
+    // (console.assert is only available on D8)
+    if (isD8) console.assert(f.$timerId === undefined);
     f.$timerId = id;
     timerIds[id] = f;
     if (ms == 0 && !isNextTimerDue()) {
@@ -284,6 +294,7 @@ if (isD8) {
   }
 
   function addInterval(f, ms) {
+    ms = Math.max(0, ms);
     var id = timerIdCounter++;
     function repeat() {
       // Reactivate with the same id.
@@ -345,6 +356,9 @@ if (isD8) {
   self.clearInterval = cancelTimer;
   self.queueMicrotask = addTask;
 
+  self.location = {}
+  self.location.href = 'file://' + args[wasmArg];
+
   // Signals `Stopwatch._initTicker` to use `Date.now` to get ticks instead of
   // `performance.now`, as it's not available in d8.
   self.dartUseDateNowForTicks = true;
@@ -354,14 +368,6 @@ if (isD8) {
 // unfortunately d8 does not return a failed error code if an unhandled
 // exception occurs asynchronously in an ES module.
 const main = async () => {
-    var args =  (isD8 || isJSC) ? arguments : scriptArgs;
-    var dartArgs = [];
-    const argsSplit = args.indexOf("--");
-    if (argsSplit != -1) {
-        dartArgs = args.slice(argsSplit + 1);
-        args = args.slice(0, argsSplit);
-    }
-
     const dart2wasm = await import(args[jsRuntimeArg]);
 
     /// Returns whether the `js-string` built-in is supported.

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // dart2jsOptions=--omit-implicit-checks
-// dart2wasmOptions=--omit-implicit-checks
+// dart2wasmOptions=--extra-compiler-option=--omit-implicit-checks
 
 import 'package:expect/expect.dart';
 import 'package:expect/config.dart';
@@ -36,7 +36,7 @@ void testCovariantMethodCheck() {
 }
 
 void testDynamicCall() {
-  final dynamic a = kTrue ? (String a) => 'closure($a)' : A();
+  final dynamic a = kTrue ? (List a) => 'closure($a)' : A();
   Expect.equals('closure(B)', a(B()));
 }
 

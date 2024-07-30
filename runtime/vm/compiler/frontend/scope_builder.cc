@@ -300,7 +300,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       if (is_setter) {
         if (CompilerState::Current().is_aot()) {
           const intptr_t kernel_offset = field.kernel_offset();
-          const InferredTypeMetadata parameter_type =
+          const InferredTypeMetadata inferred_field_type =
               inferred_type_metadata_helper_.GetInferredType(kernel_offset);
           result_->setter_value = MakeVariable(
               TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -308,7 +308,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
               AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)),
               LocalVariable::kNoKernelOffset, /*is_late=*/false,
               /*inferred_type=*/nullptr,
-              /*inferred_arg_type=*/&parameter_type);
+              /*inferred_arg_type=*/field.is_covariant()
+                  ? nullptr
+                  : &inferred_field_type);
         } else {
           result_->setter_value = MakeVariable(
               TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -360,6 +362,12 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
       const auto& target = Function::ZoneHandle(Z, function.ForwardingTarget());
       ASSERT(!target.IsNull());
+
+      if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function) &&
+          FlowGraphBuilder::IsExpressionTempVarUsedInRecognizedMethodFlowGraph(
+              function)) {
+        needs_expr_temp_ = true;
+      }
 
       if (helper_.PeekTag() == kField) {
         // Create [this] variable.
@@ -856,7 +864,6 @@ void ScopeBuilder::VisitExpression() {
     case kIsExpression:
       needs_expr_temp_ = true;
       helper_.ReadPosition();  // read position.
-      helper_.ReadFlags();     // read flags.
       VisitExpression();       // read operand.
       VisitDartType();         // read type.
       return;

@@ -2,13 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - investigate)
-wasm/*: Skip # dart:_wasm is currently behind a Dart SDK build flag.
 
 [ $arch == simarm ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $compiler == dart2wasm ]
-async/stream_periodic3_test: Skip # Flaky, issue 50901
 fix_data_tests/*: SkipByDesign
 html/*: SkipByDesign # dart:html not supported on dart2wasm
 isolate/*: SkipByDesign
@@ -28,9 +26,11 @@ js/static_interop_test/disallowed_interop_libraries_test: SkipByDesign # Only ch
 developer/timeline_test: Skip # Not supported
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
+[ $runtime != chrome ]
+js/static_interop_test/import/import_trustedscripturl_test: SkipByDesign # Trusted Types are only supported in Chrome currently.
+
 [ $runtime == d8 ]
 js/export/static_interop_mock/proto_test: SkipByDesign # Uses dart:html.
-js/js_util/javascriptobject_extensions_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/constants_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/futurevaluetype_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/import/import_test: SkipByDesign # TODO(srujzs): This test uses the file system to load a module. Since the test runner doesn't start an HTTP server for d8, I don't think this is supported.
@@ -61,13 +61,15 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 [ $csp ]
 html/js_interop_constructor_name/*: SkipByDesign # Issue 42085.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
+js/call_field_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/call_getter_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/call_method_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/extends_test/extends_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/extends_test/extends_with_es6_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/is_check_and_as_cast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/async_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/implicit_downcast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/js_util/javascriptobject_extensions_test.dart: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/jsify_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/operator_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/promise_reject_null_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
@@ -76,18 +78,19 @@ js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows inj
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
+js/static_interop_test/call_getter_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/call_method_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_extension_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_static_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/static_interop_test/extension_type/external_static_member_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_extension_members_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/static_interop_test/external_static_member_lowerings_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/isa/functional_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/isa/library_renaming_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_proxy_or_ref_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/js_function_arity_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_function_conversions_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_typed_array_test: SkipByDesign # CSP policy disallows injected JS code
 js/static_interop_test/jsobject_type_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
@@ -145,12 +148,9 @@ isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate_test: Skip # Isolate.spawnUri
-isolate/detect_nullsafety_1_test: Skip # Tests Source, Kernel, appJIT modes
-isolate/detect_nullsafety_2_test: Skip # Tests Source, Kernel, appJIT modes
 isolate/error_at_spawnuri_test: Skip # Isolate.spawnUri
 isolate/error_exit_at_spawnuri_test: Skip # Isolate.spawnUri
 isolate/exit_at_spawnuri_test: Skip # Isolate.spawnUri
-isolate/illegal_msg_function_test: Skip # Isolate.spawnUri
 isolate/illegal_msg_mirror_test: Skip # Isolate.spawnUri
 isolate/isolate_complex_messages_test: Skip # Isolate.spawnUri
 isolate/issue_21398_parent_isolate1_test: Skip # Isolate.spawnUri
@@ -163,12 +163,6 @@ isolate/message_test: Skip # Isolate.spawnUri
 isolate/mint_maker_test: Skip # Isolate.spawnUri
 isolate/nested_spawn2_test: Skip # Isolate.spawnUri
 isolate/nested_spawn_test: Skip # Isolate.spawnUri
-isolate/nnbd_spawn_autodetect_1_test: Skip # Tests Source, Kernel, appJIT modes
-isolate/nnbd_spawn_autodetect_2_test: Skip # Tests Source, Kernel, appJIT modes
-isolate/nnbd_spawnuri_autodetect_1_test: Skip # Uses Isolate.spawnUri
-isolate/nnbd_spawnuri_autodetect_2_test: Skip # Uses Isolate.spawnUri
-isolate/nnbd_spawnuri_autodetect_3_test: Skip # Uses Isolate.spawnUri
-isolate/nnbd_spawnuri_autodetect_4_test: Skip # Uses Isolate.spawnUri
 isolate/no_package_test: Skip # Isolate.spawnUri
 isolate/package_config_test: Skip # Isolate.spawnUri
 isolate/raw_port_test: Skip # Isolate.spawnUri

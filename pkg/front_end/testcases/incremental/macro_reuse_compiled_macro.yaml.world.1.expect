@@ -1,0 +1,79 @@
+main = main::main;
+library from "org-dartlang-test:///impl/declare_count0_macro.dart" as dec {
+
+  import "package:macros/macros.dart";
+
+  macro class DeclareCount0 extends dart.core::Object implements #lib1::ClassDeclarationsMacro /*hasConstConstructor*/  {
+    const constructor •() → dec::DeclareCount0
+      : super dart.core::Object::•()
+      ;
+    @#C1
+    method buildDeclarationsForClass(#lib1::ClassDeclaration clazz, #lib1::MemberDeclarationBuilder builder) → dart.async::Future<void> async /* emittedValueType= void */ {
+      builder.{#lib1::MemberDeclarationBuilder::declareInType}(new #lib1::DeclarationCode::fromString("int get count => 0;")){(#lib1::DeclarationCode) → void};
+    }
+  }
+}
+library from "org-dartlang-test:///impl/declare_count1_macro.dart" as dec2 {
+
+  import "package:macros/macros.dart";
+  import "org-dartlang-test:///impl/declare_count0_macro.dart";
+
+  @#C2
+  macro class DeclareCount1 extends dart.core::Object implements #lib1::ClassDeclarationsMacro /*hasConstConstructor*/  {
+    const constructor •() → dec2::DeclareCount1
+      : super dart.core::Object::•()
+      ;
+    get /* from dart-macro+org-dartlang-test:///impl/declare_count1_macro.dart */ count() → dart.core::int
+      return 0;
+    @#C1
+    method buildDeclarationsForClass(#lib1::ClassDeclaration clazz, #lib1::MemberDeclarationBuilder builder) → dart.async::Future<void> async /* emittedValueType= void */ {
+      builder.{#lib1::MemberDeclarationBuilder::declareInType}(new #lib1::DeclarationCode::fromString("int get count => ${this.{dec2::DeclareCount1::count}{dart.core::int}.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}};")){(#lib1::DeclarationCode) → void};
+    }
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///impl/declare_count1_macro.dart";
+
+  @#C3
+  class A extends dart.core::Object {
+    synthetic constructor •() → main::A
+      : super dart.core::Object::•()
+      ;
+    get /* from dart-macro+org-dartlang-test:///main.dart */ count() → dart.core::int
+      return 1;
+  }
+  static method main() → void {
+    dart.core::print(new main::A::•().{main::A::count}{dart.core::int});
+  }
+}
+constants  {
+  #C1 = dart.core::_Override {}
+  #C2 = dec::DeclareCount0 {}
+  #C3 = dec2::DeclareCount1 {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///main.dart:
+- DeclareCount1. (from org-dartlang-test:///impl/declare_count1_macro.dart:7:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+org-dartlang-test:///impl/declare_count1_macro.dart:
+- DeclareCount0. (from org-dartlang-test:///impl/declare_count0_macro.dart:4:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+holepunch:pkg/_macros/lib/src/api/builders.dart:
+- Deprecated. (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+holepunch:pkg/_macros/lib/src/api/code.dart:
+- CodeKind. (from holepunch:pkg/_macros/lib/src/api/code.dart:474:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+holepunch:pkg/_macros/lib/src/api/diagnostic.dart:
+- Severity. (from holepunch:pkg/_macros/lib/src/api/diagnostic.dart:93:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+

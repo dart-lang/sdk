@@ -32,7 +32,7 @@ class FakeTypesBuilder extends TypesBuilder {
   int _classIdCounter = 0;
 
   FakeTypesBuilder(CoreTypes coreTypes, Target target)
-      : super(coreTypes, target, /*soundNullSafety=*/ true);
+      : super(coreTypes, target);
 
   @override
   TFClass getTFClass(Class c) =>
@@ -74,6 +74,9 @@ class FakeEntryPointsListener implements EntryPointsListener {
 
   @override
   Procedure getClosureCallMethod(Closure closure) => closure.createCallMethod();
+
+  @override
+  void addDynamicallyExtendableClass(Class c) {}
 }
 
 class FakeSharedVariable implements SharedVariable {

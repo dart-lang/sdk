@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// An enumeration of lint names.
-class LintNames {
+abstract final class LintNames {
   static const String always_declare_return_types =
       'always_declare_return_types';
   static const String always_put_control_body_on_new_line =
@@ -157,6 +157,8 @@ class LintNames {
   static const String type_literal_in_constant_pattern =
       'type_literal_in_constant_pattern';
   static const String unawaited_futures = 'unawaited_futures';
+  static const String unnecessary_await_in_return =
+      'unnecessary_await_in_return';
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';
   static const String unnecessary_breaks = 'unnecessary_breaks';

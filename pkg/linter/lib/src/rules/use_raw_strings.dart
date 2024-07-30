@@ -35,7 +35,7 @@ class UseRawStrings extends LintRule {
             name: 'use_raw_strings',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

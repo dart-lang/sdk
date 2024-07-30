@@ -196,6 +196,11 @@ abstract class AnalysisServer {
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final OverlayResourceProvider resourceProvider;
 
+  /// The [ClientUriConverter] to use to convert between URIs/Paths when
+  /// communicating with the client.
+  late ClientUriConverter _uriConverter =
+      ClientUriConverter.noop(resourceProvider.pathContext);
+
   /// The next modification stamp for a changed file in the [resourceProvider].
   ///
   /// This value is increased each time it is used and used instead of real
@@ -262,7 +267,7 @@ abstract class AnalysisServer {
     if (baseResourceProvider is PhysicalResourceProvider) {
       processRunner ??= ProcessRunner();
     }
-    final pubCommand = processRunner != null &&
+    var pubCommand = processRunner != null &&
             Platform.environment[PubCommand.disablePubCommandEnvironmentKey] ==
                 null
         ? PubCommand(
@@ -294,11 +299,11 @@ abstract class AnalysisServer {
         sink = FileStringSink(path);
       }
     }
-    final requestStatistics = this.requestStatistics;
+    var requestStatistics = this.requestStatistics;
     if (requestStatistics != null) {
       sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
     }
-    final analysisPerformanceLogger =
+    var analysisPerformanceLogger =
         this.analysisPerformanceLogger = PerformanceLog(sink);
 
     byteStore = createByteStore(resourceProvider);
@@ -338,7 +343,7 @@ abstract class AnalysisServer {
     if (dartFixPromptManager != null) {
       _dartFixPrompt = dartFixPromptManager;
     } else {
-      final promptPreferences =
+      var promptPreferences =
           UserPromptPreferences(resourceProvider, instrumentationService);
       _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
     }
@@ -412,20 +417,15 @@ abstract class AnalysisServer {
     return DateTime.now().difference(start);
   }
 
-  /// Gets the converter to change incoming client URIs into analyzer file
-  /// references (and back).
-  ///
-  /// Currently backed by a global for use by toJson/fromJson in the legacy
-  /// protocol classes.
-  ClientUriConverter get uriConverter => analyzer_plugin.clientUriConverter;
+  /// The [ClientUriConverter] to use to convert between URIs/Paths when
+  /// communicating with the client.
+  ClientUriConverter get uriConverter => _uriConverter;
 
-  /// Sets the converter to change incoming client URIs into analyzer file
-  /// references (and back).
-  ///
-  /// Currently backed by a global for use by toJson/fromJson in the legacy
-  /// protocol classes.
-  set uriConverter(ClientUriConverter converter) =>
-      analyzer_plugin.clientUriConverter = converter;
+  /// Sets the [ClientUriConverter] to use to convert between URIs/Paths when
+  /// communicating with the client.
+  set uriConverter(ClientUriConverter value) {
+    notificationManager.uriConverter = _uriConverter = value;
+  }
 
   /// Returns the function for sending prompts to the user and collecting button
   /// presses.
@@ -470,7 +470,7 @@ abstract class AnalysisServer {
   /// Checks that all [sessions] are still consistent, throwing
   /// [InconsistentAnalysisException] if not.
   void checkConsistency(List<AnalysisSessionImpl> sessions) {
-    for (final session in sessions) {
+    for (var session in sessions) {
       session.checkConsistency();
     }
   }
@@ -618,21 +618,22 @@ abstract class AnalysisServer {
   /// This method supports non-Dart files but uses the current content of the
   /// file which may not be the latest analyzed version of the file if it was
   /// recently modified, so using the LineInfo from an analyzed result may be
-  /// preferable.
+  /// preferable. This method exists mainly to support plugins which do not
+  /// provide us a matching [LineInfo] for the content they used.
   LineInfo? getLineInfo(String path) {
     try {
-      // First try to get from the File if it's an analyzed Dart file.
-      final result = getAnalysisDriver(path)?.getFileSync(path);
+      // First try from the overlay because it may be more up-to-date than
+      // the file state.
+      var content = resourceProvider.getFile(path).readAsStringSync();
+      return LineInfo.fromContent(content);
+    } on FileSystemException {
+      // If the file does not exist or cannot be read, try the file state
+      // because this could be something like a macro-generated file.
+      var result = getAnalysisDriver(path)?.getFileSync(path);
       if (result is FileResult) {
         return result.lineInfo;
       }
 
-      // Fall back to reading from the resource provider.
-      final content = resourceProvider.getFile(path).readAsStringSync();
-      return LineInfo.fromContent(content);
-    } on FileSystemException {
-      // If the file does not exist or cannot be read, return null to allow
-      // the caller to decide how to handle this.
       return null;
     }
   }
@@ -974,10 +975,17 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void applyFileRemoved(String file) {
-    // If the removed file doesn't have an overlay, we need to flush any
-    // previous diagnostics.
-    if (!resourceProvider.hasOverlay(file) && filesToFlush.remove(file)) {
-      flushResults([file]);
+    // If the removed file doesn't have an overlay, we need to clear any
+    // previous results.
+    if (!resourceProvider.hasOverlay(file)) {
+      // Clear the cached errors in the the notification manager so we don't
+      // re-send stale results if a plugin sends an update and we merge it with
+      // previous results.
+      analysisServer.notificationManager.errors.clearResultsForFile(file);
+
+      if (filesToFlush.remove(file)) {
+        flushResults([file]);
+      }
     }
   }
 
@@ -999,18 +1007,6 @@ abstract class CommonServerContextManagerCallbacks
     var path = result.path;
     filesToFlush.add(path);
 
-    if (result is AnalysisResultWithErrors) {
-      if (analysisServer.isAnalyzed(path)) {
-        final serverErrors = server.doAnalysisError_listFromEngine(result);
-        recordAnalysisErrors(path, serverErrors);
-      }
-    }
-
-    if (result is ResolvedUnitResult) {
-      analysisServer.filesResolvedSinceLastIdle.add(path);
-      handleResolvedUnitResult(result);
-    }
-
     // If this is a virtual file and the client supports URIs, we need to notify
     // that it's been updated.
     var lspUri = analysisServer.uriConverter.toClientUri(result.path);
@@ -1026,6 +1022,18 @@ abstract class CommonServerContextManagerCallbacks
         jsonrpc: lsp.jsonRpcVersion,
       );
       analysisServer.sendLspNotification(message);
+    }
+
+    if (result is AnalysisResultWithErrors) {
+      if (analysisServer.isAnalyzed(path)) {
+        var serverErrors = server.doAnalysisError_listFromEngine(result);
+        recordAnalysisErrors(path, serverErrors);
+      }
+    }
+
+    if (result is ResolvedUnitResult) {
+      analysisServer.filesResolvedSinceLastIdle.add(path);
+      handleResolvedUnitResult(result);
     }
   }
 

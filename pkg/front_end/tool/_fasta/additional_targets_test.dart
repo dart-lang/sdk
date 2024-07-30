@@ -5,7 +5,7 @@
 library fasta.tool.additional_targets_test;
 
 import 'package:front_end/src/base/command_line_options.dart';
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show MessageCode, messageFastaUsageLong;
 import 'package:kernel/target/targets.dart' show targets;
 

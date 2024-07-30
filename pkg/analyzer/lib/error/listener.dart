@@ -4,17 +4,19 @@
 
 import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, ConstructorDeclaration;
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-/// An object that listen for [AnalysisError]s being produced by the analysis
+/// An object that listens for [AnalysisError]s being produced by the analysis
 /// engine.
 abstract class AnalysisErrorListener {
   /// An error listener that ignores errors that are reported to it.
@@ -79,6 +81,25 @@ class ErrorReporter {
       errorCode: errorCode,
       offset: nonSynthetic.nameOffset,
       length: nonSynthetic.nameLength,
+      arguments: arguments,
+      contextMessages: contextMessages,
+      data: data,
+    );
+  }
+
+  /// Report an error with the given [errorCode] and [arguments].
+  /// The [entity] is used to compute the location of the error.
+  void atEntity(
+    SyntacticEntity entity,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    atOffset(
+      errorCode: errorCode,
+      offset: entity.offset,
+      length: entity.length,
       arguments: arguments,
       contextMessages: contextMessages,
       data: data,
@@ -320,8 +341,10 @@ class ErrorReporter {
     Map<String, List<_TypeToConvert>> typeGroups = {};
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
-      if (argument is DartType) {
-        String displayName = argument.getDisplayString();
+      if (argument is TypeImpl) {
+        String displayName = argument.getDisplayString(
+          preferTypeAlias: true,
+        );
         List<_TypeToConvert> types =
             typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);
         types.add(_TypeToConvert(i, argument, displayName));

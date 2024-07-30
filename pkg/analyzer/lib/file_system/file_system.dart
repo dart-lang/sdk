@@ -8,8 +8,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
-export 'package:analyzer/src/file_system/file_system.dart';
-
 /// [File]s are leaf [Resource]s which contain data.
 abstract class File implements Resource {
   /// Watch for changes to this file.
@@ -33,6 +31,7 @@ abstract class File implements Resource {
   File copyTo(Folder parentFolder);
 
   /// Create a new [Source] instance that serves this file.
+  @Deprecated('Get Source instances from analysis results')
   Source createSource([Uri? uri]);
 
   /// Synchronously read the entire file contents as a list of bytes.

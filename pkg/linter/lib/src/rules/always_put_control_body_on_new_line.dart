@@ -52,14 +52,15 @@ when the Dart formatter is used.
 class AlwaysPutControlBodyOnNewLine extends LintRule {
   static const LintCode code = LintCode('always_put_control_body_on_new_line',
       'Statement should be on a separate line.',
-      correctionMessage: 'Try moving the statement to a new line.');
+      correctionMessage: 'Try moving the statement to a new line.',
+      hasPublishedDocs: true);
 
   AlwaysPutControlBodyOnNewLine()
       : super(
             name: 'always_put_control_body_on_new_line',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

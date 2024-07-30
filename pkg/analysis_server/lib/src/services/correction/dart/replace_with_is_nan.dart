@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -12,11 +12,12 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithIsNan extends ResolvedCorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => false;
+  ReplaceWithIsNan({required super.context});
 
   @override
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_IS_NAN;
@@ -34,7 +35,7 @@ class ReplaceWithIsNan extends ResolvedCorrectionProducer {
         rightOperand.identifier.name == 'nan';
 
     var expression = isRightNan ? leftOperand : rightOperand;
-    final needsParentheses = expression is PostfixExpression ||
+    var needsParentheses = expression is PostfixExpression ||
         expression.precedence < Precedence.postfix;
 
     var prefix = '${needsBang ? '!' : ''}${needsParentheses ? '(' : ''}';

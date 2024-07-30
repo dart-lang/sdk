@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/create_getter.dart'
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -16,8 +17,15 @@ class CreateField extends CreateFieldOrGetter {
   /// The name of the field to be created.
   String _fieldName = '';
 
+  CreateField({required super.context});
+
   @override
-  List<Object> get fixArguments => [_fieldName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_fieldName];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_FIELD;
@@ -65,7 +73,7 @@ class CreateField extends CreateFieldOrGetter {
     if (targetElement.library.isInSdk) {
       return;
     }
-    // Prepare target ClassDeclaration.
+    // Prepare target `ClassDeclaration`.
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetElement);
     if (targetDeclarationResult == null) {
@@ -75,59 +83,54 @@ class CreateField extends CreateFieldOrGetter {
     if (targetNode is! CompilationUnitMember) {
       return;
     }
-    if (!(targetNode is ClassDeclaration || targetNode is MixinDeclaration)) {
+    if (!(targetNode is ClassDeclaration ||
+        targetNode is EnumDeclaration ||
+        targetNode is MixinDeclaration)) {
       return;
     }
-    // prepare location
-    var targetUnit = targetDeclarationResult.resolvedUnit;
-    if (targetUnit == null) {
-      return;
-    }
-    var targetLocation =
-        CorrectionUtils(targetUnit).prepareNewFieldLocation(targetNode);
-    if (targetLocation == null) {
-      return;
-    }
-    // build field source
+    // Build field source.
     var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
-        builder.writeFieldDeclaration(_fieldName,
-            isStatic: staticModifier,
-            nameGroupName: 'NAME',
-            type: fieldType,
-            typeGroupName: 'TYPE');
-        builder.write(targetLocation.suffix);
+      builder.insertField(targetNode, (builder) {
+        builder.writeFieldDeclaration(
+          _fieldName,
+          isFinal: targetNode is EnumDeclaration,
+          isStatic: staticModifier,
+          nameGroupName: 'NAME',
+          type: fieldType,
+          typeGroupName: 'TYPE',
+        );
       });
     });
   }
 
   Future<void> _proposeFromFieldFormalParameter(
       ChangeBuilder builder, FieldFormalParameter parameter) async {
-    var targetClassNode = parameter.thisOrAncestorOfType<ClassDeclaration>();
-    if (targetClassNode == null) {
+    var constructor = parameter.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor == null) {
+      return;
+    }
+    var container = constructor.thisOrAncestorOfType<CompilationUnitMember>();
+    if (container == null) {
+      return;
+    }
+    if (container is! ClassDeclaration && container is! EnumDeclaration) {
       return;
     }
 
     _fieldName = parameter.name.lexeme;
 
-    var targetLocation = utils.prepareNewFieldLocation(targetClassNode);
-    if (targetLocation == null) {
-      return;
-    }
-
-    //
     // Add proposal.
-    //
     await builder.addDartFileEdit(file, (builder) {
-      var fieldType = parameter.type?.type;
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
-        builder.writeFieldDeclaration(_fieldName,
-            nameGroupName: 'NAME', type: fieldType, typeGroupName: 'TYPE');
-        builder.write(targetLocation.suffix);
+      builder.insertField(container, (builder) {
+        builder.writeFieldDeclaration(
+          _fieldName,
+          isFinal: constructor.constKeyword != null,
+          nameGroupName: 'NAME',
+          type: parameter.declaredElement?.type,
+          typeGroupName: 'TYPE',
+        );
       });
     });
   }
@@ -138,22 +141,18 @@ class CreateField extends CreateFieldOrGetter {
       return;
     }
     _fieldName = nameNode.name;
-    // prepare target Expression
-    Expression? target;
-    {
-      var nameParent = nameNode.parent;
-      if (nameParent is PrefixedIdentifier) {
-        target = nameParent.prefix;
-      } else if (nameParent is PropertyAccess) {
-        target = nameParent.realTarget;
-      }
-    }
-    // prepare target ClassElement
+    // Prepare target `Expression`.
+    var target = switch (nameNode.parent) {
+      PrefixedIdentifier(:var prefix) => prefix,
+      PropertyAccess(:var realTarget) => realTarget,
+      _ => null,
+    };
+    // Prepare target `ClassElement`.
     var staticModifier = false;
     InterfaceElement? targetClassElement;
     if (target != null) {
       targetClassElement = getTargetInterfaceElement(target);
-      // maybe static
+      // Maybe static.
       if (target is Identifier) {
         var targetIdentifier = target;
         var targetElement = targetIdentifier.staticElement;
@@ -168,6 +167,14 @@ class CreateField extends CreateFieldOrGetter {
     }
 
     var fieldTypeNode = climbPropertyAccess(nameNode);
+    var fieldTypeParent = fieldTypeNode.parent;
+    if (targetClassElement is EnumElement &&
+        fieldTypeParent is AssignmentExpression &&
+        fieldTypeNode == fieldTypeParent.leftHandSide) {
+      // Any field on an enum must be final; creating a final field does not
+      // make sense when seen in an assignment expression.
+      return;
+    }
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
 
     await _addDeclaration(

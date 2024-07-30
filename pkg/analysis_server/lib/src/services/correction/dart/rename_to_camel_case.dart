@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,14 +17,14 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   /// The camel-case version of the name.
   String _newName = '';
 
-  @override
-  bool get canBeAppliedInBulk => true;
+  RenameToCamelCase({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
-  List<Object> get fixArguments => [_newName];
+  List<String> get fixArguments => [_newName];
 
   @override
   FixKind get fixKind => DartFixKind.RENAME_TO_CAMEL_CASE;
@@ -36,7 +36,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Token? nameToken;
     Element? element;
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleFormalParameter) {
       nameToken = node.name;
       element = node.declaredElement;
@@ -95,7 +95,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
     }
 
     // Compute the change.
-    final sourceRanges = {
+    var sourceRanges = {
       range.token(nameToken),
       ...references.map(range.node),
     };

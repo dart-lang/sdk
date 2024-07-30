@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analyzer/dart/analysis/session.dart';
@@ -39,10 +40,11 @@ class LspOverLegacyHandler extends LegacyHandler {
   @override
   Future<void> handle() async {
     server.initializeLsp();
-    final params = LspHandleParams.fromRequest(request);
-    final lspMessageJson = params.lspMessage;
-    final reporter = LspJsonReporter();
-    final lspMessage = lspMessageJson is Map<String, Object?> &&
+    var params = LspHandleParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
+    var lspMessageJson = params.lspMessage;
+    var reporter = LspJsonReporter();
+    var lspMessage = lspMessageJson is Map<String, Object?> &&
             RequestMessage.canParse(lspMessageJson, reporter)
         ? RequestMessage.fromJson({
             // Pass across any clientRequestTime from the envelope so that we
@@ -57,16 +59,15 @@ class LspOverLegacyHandler extends LegacyHandler {
           request: lspMessage, startTime: DateTime.now());
       await handleRequest(lspMessage);
     } else {
-      final message =
-          "The 'lspMessage' parameter was not a valid LSP request:\n"
+      var message = "The 'lspMessage' parameter was not a valid LSP request:\n"
           "${reporter.errors.join('\n')}";
-      final error = RequestError(RequestErrorCode.INVALID_PARAMETER, message);
+      var error = RequestError(RequestErrorCode.INVALID_PARAMETER, message);
       sendResponse(Response(request.id, error: error));
     }
   }
 
   Future<void> handleRequest(RequestMessage message) async {
-    final messageInfo = lsp.MessageInfo(
+    var messageInfo = lsp.MessageInfo(
       performance: performance,
       timeSinceRequest: request.timeSinceRequest,
     );
@@ -81,15 +82,15 @@ class LspOverLegacyHandler extends LegacyHandler {
         'Document was modified before operation completed',
       );
     } catch (e) {
-      final errorMessage =
+      var errorMessage =
           'An error occurred while handling ${message.method} request: $e';
       result = error(ServerErrorCodes.UnhandledError, errorMessage);
     }
 
-    final lspResponse = ResponseMessage(
+    var lspResponse = ResponseMessage(
       id: message.id,
-      error: result.isError ? result.error : null,
-      result: !result.isError ? result.result : null,
+      error: result.errorOrNull,
+      result: result.resultOrNull,
       jsonrpc: jsonRpcVersion,
     );
 

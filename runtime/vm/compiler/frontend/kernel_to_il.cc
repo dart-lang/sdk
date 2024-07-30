@@ -94,8 +94,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       try_catch_block_(nullptr),
       try_finally_block_(nullptr),
       catch_block_(nullptr),
-      prepend_type_arguments_(Function::ZoneHandle(zone_)),
-      throw_new_null_assertion_(Function::ZoneHandle(zone_)) {
+      prepend_type_arguments_(Function::ZoneHandle(zone_)) {
   const auto& info = KernelProgramInfo::Handle(
       Z, parsed_function->function().KernelProgramInfo());
   H.InitFromKernelProgramInfo(info);
@@ -366,6 +365,7 @@ Fragment FlowGraphBuilder::InstanceCall(
     const CallSiteAttributesMetadata* call_site_attrs,
     bool receiver_is_not_smi,
     bool is_call_on_this) {
+  Fragment instructions = RecordCoverage(position);
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   InputsArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
@@ -392,13 +392,12 @@ Fragment FlowGraphBuilder::InstanceCall(
   }
   call->set_receiver_is_not_smi(receiver_is_not_smi);
   Push(call);
+  instructions <<= call;
   if (result_type != nullptr && result_type->IsConstant()) {
-    Fragment instructions(call);
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
-    return instructions;
   }
-  return Fragment(call);
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::FfiCall(
@@ -417,7 +416,7 @@ Fragment FlowGraphBuilder::FfiCall(
   return body;
 }
 
-Fragment FlowGraphBuilder::CallRuntimeEntry(
+Fragment FlowGraphBuilder::CallLeafRuntimeEntry(
     const RuntimeEntry& entry,
     Representation return_representation,
     const ZoneGrowableArray<Representation>& argument_representations) {
@@ -428,7 +427,7 @@ Fragment FlowGraphBuilder::CallRuntimeEntry(
 
   const intptr_t num_arguments = argument_representations.length() + 1;
   InputsArray arguments = GetArguments(num_arguments);
-  auto* const call = CCallInstr::Make(
+  auto* const call = LeafRuntimeCallInstr::Make(
       Z, return_representation, argument_representations, std::move(arguments));
   Push(call);
   body <<= call;
@@ -630,6 +629,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const InferredTypeMetadata* result_type,
                                       intptr_t type_args_count,
                                       bool use_unchecked_entry) {
+  Fragment instructions = RecordCoverage(position);
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
   InputsArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z) StaticCallInstr(
@@ -640,13 +640,12 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
   Push(call);
+  instructions <<= call;
   if (result_type != nullptr && result_type->IsConstant()) {
-    Fragment instructions(call);
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
-    return instructions;
   }
-  return Fragment(call);
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::CachableIdempotentCall(TokenPosition position,
@@ -868,6 +867,36 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   return body;
 }
 
+static bool CanUnboxElements(classid_t cid) {
+  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
+    case kUnboxedInt32x4:
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+      return FlowGraphCompiler::SupportsUnboxedSimd128();
+    default:
+      return true;
+  }
+}
+
+const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
+  auto& state = thread->compiler_state();
+  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
+    case kUnboxedFloat:
+      return state.TypedListGetFloat32();
+    case kUnboxedDouble:
+      return state.TypedListGetFloat64();
+    case kUnboxedInt32x4:
+      return state.TypedListGetInt32x4();
+    case kUnboxedFloat32x4:
+      return state.TypedListGetFloat32x4();
+    case kUnboxedFloat64x2:
+      return state.TypedListGetFloat64x2();
+    default:
+      UNREACHABLE();
+      return Object::null_function();
+  }
+}
+
 #define LOAD_NATIVE_FIELD(V)                                                   \
   V(ByteDataViewLength, TypedDataBase_length)                                  \
   V(ByteDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                  \
@@ -928,6 +957,17 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
+#define TYPED_DATA_GET_INDEXED_CASES(clazz)                                    \
+  case MethodRecognizer::k##clazz##ArrayGetIndexed:                            \
+    FALL_THROUGH;                                                              \
+  case MethodRecognizer::kExternal##clazz##ArrayGetIndexed:                    \
+    FALL_THROUGH;                                                              \
+  case MethodRecognizer::k##clazz##ArrayViewGetIndexed:                        \
+    FALL_THROUGH;
+    DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_INDEXED_CASES)
+#undef TYPED_DATA_GET_INDEXED_CASES
+    case MethodRecognizer::kObjectArrayGetIndexed:
+    case MethodRecognizer::kGrowableArrayGetIndexed:
     case MethodRecognizer::kRecord_fieldAt:
     case MethodRecognizer::kRecord_fieldNames:
     case MethodRecognizer::kRecord_numFields:
@@ -1057,6 +1097,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
     case MethodRecognizer::kFinalizerEntry_allocate:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
+    case MethodRecognizer::kCheckNotDeeplyImmutable:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseCodeUnitAt:
     case MethodRecognizer::kStringBaseLength:
@@ -1082,6 +1123,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       return true;
     case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoubleRem:
     case MethodRecognizer::kDoubleRoundToDouble:
     case MethodRecognizer::kDoubleTruncateToDouble:
     case MethodRecognizer::kDoubleFloorToDouble:
@@ -1097,18 +1139,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kMathExp:
     case MethodRecognizer::kMathLog:
     case MethodRecognizer::kMathSqrt:
-      return FlowGraphCompiler::SupportsUnboxedDoubles();
-    case MethodRecognizer::kDoubleCeilToInt:
-    case MethodRecognizer::kDoubleFloorToInt:
-      if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-#if defined(TARGET_ARCH_X64)
-      return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
-#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
-    defined(TARGET_ARCH_RISCV64)
       return true;
-#else
-      return false;
-#endif
     default:
       return false;
   }
@@ -1142,8 +1173,69 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
 
+  if (function.IsDynamicInvocationForwarder()) {
+    body += BuildDefaultTypeHandling(function);
+    BuildTypeArgumentTypeChecks(
+        TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds, &body);
+    BuildArgumentTypeChecks(&body, &body, nullptr);
+  }
+
   const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
+#define TYPED_DATA_GET_INDEXED_CASES(clazz)                                    \
+  case MethodRecognizer::k##clazz##ArrayGetIndexed:                            \
+    FALL_THROUGH;                                                              \
+  case MethodRecognizer::kExternal##clazz##ArrayGetIndexed:                    \
+    FALL_THROUGH;                                                              \
+  case MethodRecognizer::k##clazz##ArrayViewGetIndexed:                        \
+    FALL_THROUGH;
+    DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_INDEXED_CASES)
+#undef TYPED_DATA_GET_INDEXED_CASES
+    case MethodRecognizer::kObjectArrayGetIndexed:
+    case MethodRecognizer::kGrowableArrayGetIndexed: {
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
+      const Representation elem_rep =
+          RepresentationUtils::RepresentationOfArrayElement(array_cid);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::GetLengthFieldForArrayCid(array_cid));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += GenericCheckBound();
+      LocalVariable* safe_index = MakeTemporary();
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      if (IsTypedDataBaseClassId(array_cid) && !CanUnboxElements(array_cid)) {
+        const auto& native_function =
+            TypedListGetNativeFunction(thread_, array_cid);
+        body += LoadLocal(safe_index);
+        body += UnboxTruncate(kUnboxedIntPtr);
+        body += IntConstant(Utils::ShiftForPowerOfTwo(
+            RepresentationUtils::ValueSize(elem_rep)));
+        body += BinaryIntegerOp(Token::kSHL, kUnboxedIntPtr,
+                                /*is_truncating=*/true);
+        body += StaticCall(TokenPosition::kNoSource, native_function, 2,
+                           ICData::kNoRebind);
+      } else {
+        if (kind == MethodRecognizer::kGrowableArrayGetIndexed) {
+          body += LoadNativeField(Slot::GrowableObjectArray_data());
+          array_cid = kArrayCid;
+        } else if (IsExternalTypedDataClassId(array_cid)) {
+          body += LoadNativeField(Slot::PointerBase_data(),
+                                  InnerPointerAccess::kCannotBeInnerPointer);
+        }
+        body += LoadLocal(safe_index);
+        body +=
+            LoadIndexed(array_cid,
+                        /*index_scale=*/
+                        compiler::target::Instance::ElementSizeFor(array_cid),
+                        /*index_unboxed=*/
+                        GenericCheckBoundInstr::UseUnboxedRepresentation());
+        if (elem_rep == kUnboxedFloat) {
+          body += FloatToDouble();
+        }
+      }
+      body += DropTempsPreserveTop(1);  // Drop [safe_index], keep result.
+      break;
+    }
     case MethodRecognizer::kRecord_fieldAt:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1153,8 +1245,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kRecord_fieldNames:
       body += LoadObjectStore();
-      body += RawLoadField(
-          compiler::target::ObjectStore::record_field_names_offset());
+      body += LoadNativeField(Slot::ObjectStore_record_field_names());
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::Record_shape());
       body += IntConstant(compiler::target::RecordShape::kFieldNamesIndexShift);
@@ -1626,7 +1717,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Bool::False());
 #else
       body += LoadServiceExtensionStream();
-      body += RawLoadField(compiler::target::StreamInfo::enabled_offset());
+      body += LoadNativeField(Slot::StreamInfo_enabled());
       // StreamInfo::enabled_ is a std::atomic<intptr_t>. This is effectively
       // relaxed order access, which is acceptable for this use case.
       body += IntToBool();
@@ -1713,13 +1804,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadIndexed(kIntPtrCid);
       body += Box(kUnboxedIntPtr);
     } break;
-    case MethodRecognizer::kDoubleToInteger:
-    case MethodRecognizer::kDoubleCeilToInt:
-    case MethodRecognizer::kDoubleFloorToInt: {
+    case MethodRecognizer::kDoubleToInteger: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += DoubleToInteger(kind);
     } break;
     case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoubleRem:
     case MethodRecognizer::kDoubleRoundToDouble:
     case MethodRecognizer::kDoubleTruncateToDouble:
     case MethodRecognizer::kDoubleFloorToDouble:
@@ -1737,27 +1827,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       for (intptr_t i = 0, n = function.NumParameters(); i < n; ++i) {
         body += LoadLocal(parsed_function_->RawParameterVariable(i));
       }
-      if (!CompilerState::Current().is_aot() &&
-          TargetCPUFeatures::double_truncate_round_supported() &&
-          ((kind == MethodRecognizer::kDoubleTruncateToDouble) ||
-           (kind == MethodRecognizer::kDoubleFloorToDouble) ||
-           (kind == MethodRecognizer::kDoubleCeilToDouble))) {
-        switch (kind) {
-          case MethodRecognizer::kDoubleTruncateToDouble:
-            body += UnaryDoubleOp(Token::kTRUNCATE);
-            break;
-          case MethodRecognizer::kDoubleFloorToDouble:
-            body += UnaryDoubleOp(Token::kFLOOR);
-            break;
-          case MethodRecognizer::kDoubleCeilToDouble:
-            body += UnaryDoubleOp(Token::kCEILING);
-            break;
-          default:
-            UNREACHABLE();
-        }
-      } else {
-        body += InvokeMathCFunction(kind, function.NumParameters());
-      }
+      body += InvokeMathCFunction(kind, function.NumParameters());
     } break;
     case MethodRecognizer::kMathSqrt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1774,13 +1844,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += LoadIsolate();
-      body += RawLoadField(compiler::target::Isolate::finalizers_offset());
+      body += LoadNativeField(Slot::Isolate_finalizers());
       break;
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadIsolate();
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += RawStoreField(compiler::target::Isolate::finalizers_offset());
+      body += StoreNativeField(Slot::Isolate_finalizers());
       body += NullConstant();
       break;
     case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
@@ -1833,6 +1903,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::FinalizerEntry_external_size());
       body += Box(kUnboxedInt64);
+      break;
+    case MethodRecognizer::kCheckNotDeeplyImmutable:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += CheckNotDeeplyImmutable(
+          CheckWritableInstr::kDeeplyImmutableAttachNativeFinalizer);
+      body += NullConstant();
       break;
 #define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \
@@ -1949,40 +2026,6 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += DropTemporary(&unboxed_offset_in_bytes);
 
   return body;
-}
-
-static bool CanUnboxElements(classid_t cid) {
-  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-    case kUnboxedDouble:
-      return FlowGraphCompiler::SupportsUnboxedDoubles();
-    case kUnboxedInt32x4:
-    case kUnboxedFloat32x4:
-    case kUnboxedFloat64x2:
-      return FlowGraphCompiler::SupportsUnboxedSimd128();
-    default:
-      return true;
-  }
-}
-
-static const Function& TypedListGetNativeFunction(Thread* thread,
-                                                  classid_t cid) {
-  auto& state = thread->compiler_state();
-  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-      return state.TypedListGetFloat32();
-    case kUnboxedDouble:
-      return state.TypedListGetFloat64();
-    case kUnboxedInt32x4:
-      return state.TypedListGetInt32x4();
-    case kUnboxedFloat32x4:
-      return state.TypedListGetFloat32x4();
-    case kUnboxedFloat64x2:
-      return state.TypedListGetFloat64x2();
-    default:
-      UNREACHABLE();
-      return Object::null_function();
-  }
 }
 
 Fragment FlowGraphBuilder::BuildTypedListGet(const Function& function,
@@ -2153,7 +2196,7 @@ Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
   arg_reps->Add(size_rep);
   // memmove(dest, src, n)
   call_memmove +=
-      CallRuntimeEntry(kMemoryMoveRuntimeEntry, kUntagged, *arg_reps);
+      CallLeafRuntimeEntry(kMemoryMoveRuntimeEntry, kUntagged, *arg_reps);
   // The returned address is unused.
   call_memmove += Drop();
   call_memmove += DropTemporary(&length_in_bytes);
@@ -2623,16 +2666,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   const int kTypeArgsLen = 0;
   ArgumentsDescriptor two_arguments(
       Array::Handle(Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, 2)));
-  Function& no_such_method =
-      Function::ZoneHandle(Z, Resolver::ResolveDynamicForReceiverClass(
-                                  Class::Handle(Z, function.Owner()),
-                                  Symbols::NoSuchMethod(), two_arguments));
+  Function& no_such_method = Function::ZoneHandle(
+      Z, Resolver::ResolveDynamicForReceiverClass(
+             Class::Handle(Z, function.Owner()), Symbols::NoSuchMethod(),
+             two_arguments, /*allow_add=*/true));
   if (no_such_method.IsNull()) {
     // If noSuchMethod is not found on the receiver class, call
     // Object.noSuchMethod.
     no_such_method = Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(Z, IG->object_store()->object_class()),
-        Symbols::NoSuchMethod(), two_arguments);
+        Symbols::NoSuchMethod(), two_arguments, /*allow_add=*/true);
   }
   body += StaticCall(TokenPosition::kMinSource, no_such_method,
                      /* argument_count = */ 2, ICData::kNSMDispatch);
@@ -2851,9 +2894,6 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
     const ClosureCallInfo& info,
     Fragment set,
     Fragment not_set) {
-  // Required named arguments only exist if null_safety is enabled.
-  if (!IG->use_strict_null_safety_checks()) return not_set;
-
   Fragment check_required;
   // We calculate the index to dereference in the parameter names array.
   check_required += LoadLocal(info.vars->current_param_index);
@@ -3025,10 +3065,6 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   // When no named arguments are provided, we just need to check for possible
   // required named arguments.
   if (info.descriptor.NamedCount() == 0) {
-    // No work to do if there are no possible required named parameters.
-    if (!IG->use_strict_null_safety_checks()) {
-      return Fragment();
-    }
     // If the below changes, we can no longer assume that flag slots existing
     // means there are required parameters.
     static_assert(compiler::target::kNumParameterFlags == 1,
@@ -4293,7 +4329,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
                               AssertAssignableInstr::kParameterCheck,
                               field.token_pos());
     }
-    body += BuildNullAssertions();
     if (field.is_late()) {
       if (is_method) {
         body += Drop();
@@ -4371,6 +4406,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   }
   if (target.IsMethodExtractor()) {
     return BuildGraphOfMethodExtractor(target);
+  }
+  if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function)) {
+    return BuildGraphOfRecognizedMethod(function);
   }
 
   graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, osr_id_);
@@ -4528,22 +4566,6 @@ Fragment FlowGraphBuilder::LoadIndexedTypedDataUnboxed(
   return fragment;
 }
 
-Fragment FlowGraphBuilder::RawLoadField(int32_t offset) {
-  Fragment code;
-  code += UnboxedIntConstant(offset, kUnboxedIntPtr);
-  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
-  return code;
-}
-
-Fragment FlowGraphBuilder::RawStoreField(int32_t offset) {
-  Fragment code;
-  Value* value = Pop();
-  Value* base = Pop();
-  auto* instr = new (Z) RawStoreFieldInstr(base, value, offset);
-  code <<= instr;
-  return code;
-}
-
 Fragment FlowGraphBuilder::UnhandledException() {
   const auto class_table = thread_->isolate_group()->class_table();
   ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
@@ -4591,29 +4613,28 @@ Fragment FlowGraphBuilder::LoadThread() {
 Fragment FlowGraphBuilder::LoadIsolate() {
   Fragment body;
   body += LoadThread();
-  body += LoadUntagged(compiler::target::Thread::isolate_offset());
+  body += LoadNativeField(Slot::Thread_isolate());
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadIsolateGroup() {
   Fragment body;
   body += LoadThread();
-  body += LoadUntagged(compiler::target::Thread::isolate_group_offset());
+  body += LoadNativeField(Slot::Thread_isolate_group());
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadObjectStore() {
   Fragment body;
   body += LoadIsolateGroup();
-  body += LoadUntagged(compiler::target::IsolateGroup::object_store_offset());
+  body += LoadNativeField(Slot::IsolateGroup_object_store());
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadServiceExtensionStream() {
   Fragment body;
   body += LoadThread();
-  body +=
-      LoadUntagged(compiler::target::Thread::service_extension_stream_offset());
+  body += LoadNativeField(Slot::Thread_service_extension_stream());
   return body;
 }
 
@@ -5123,10 +5144,10 @@ Fragment FlowGraphBuilder::FfiCallbackConvertCompoundReturnToNative(
 Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index) {
-  ASSERT(!marshaller.IsCompound(arg_index));
+  ASSERT(!marshaller.IsCompoundCType(arg_index));
 
   Fragment body;
-  if (marshaller.IsPointer(arg_index)) {
+  if (marshaller.IsPointerPointer(arg_index)) {
     Class& result_class =
         Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
     // This class might only be instantiated as a return type of ffi calls.
@@ -5153,10 +5174,14 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
                              StoreFieldInstr::Kind::kInitializing);
     body += DropTemporary(&address);  // address
     body += LoadLocal(result);
-  } else if (marshaller.IsHandle(arg_index)) {
+  } else if (marshaller.IsTypedDataPointer(arg_index)) {
+    UNREACHABLE();  // Only supported for FFI call arguments.
+  } else if (marshaller.IsCompoundPointer(arg_index)) {
+    UNREACHABLE();  // Only supported for FFI call arguments.
+  } else if (marshaller.IsHandleCType(arg_index)) {
     // The top of the stack is a Dart_Handle, so retrieve the tagged pointer
     // out of it.
-    body += RawLoadField(compiler::target::LocalHandle::ptr_offset());
+    body += LoadNativeField(Slot::LocalHandle_ptr());
   } else if (marshaller.IsVoid(arg_index)) {
     // Ignore whatever value was being returned and return null.
     ASSERT_EQUAL(arg_index, compiler::ffi::kResultIndex);
@@ -5180,15 +5205,24 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
 
 Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     const compiler::ffi::BaseMarshaller& marshaller,
-    intptr_t arg_index) {
-  ASSERT(!marshaller.IsCompound(arg_index));
+    intptr_t arg_index,
+    LocalVariable* variable) {
+  ASSERT(!marshaller.IsCompoundCType(arg_index));
 
   Fragment body;
-  if (marshaller.IsPointer(arg_index)) {
+  if (marshaller.IsPointerPointer(arg_index)) {
     // This can only be Pointer, so it is safe to load the data field.
     body += LoadNativeField(Slot::PointerBase_data(),
                             InnerPointerAccess::kCannotBeInnerPointer);
-  } else if (marshaller.IsHandle(arg_index)) {
+  } else if (marshaller.IsTypedDataPointer(arg_index)) {
+    // Nothing to do. Unwrap in `FfiCallInstr::EmitNativeCode`.
+  } else if (marshaller.IsCompoundPointer(arg_index)) {
+    ASSERT(variable != nullptr);
+    body += LoadTypedDataBaseFromCompound();
+    body += LoadLocal(variable);  // User-defined struct.
+    body += LoadOffsetInBytesFromCompound();
+    body += UnboxTruncate(kUnboxedWord);
+  } else if (marshaller.IsHandleCType(arg_index)) {
     // FfiCallInstr specifies all handle locations as Stack, and will pass a
     // pointer to the stack slot as the native handle argument. Therefore the
     // only handles that need wrapping are function results.
@@ -5200,18 +5234,20 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 
     // Get a reference to the top handle scope.
     body += LoadThread();
-    body += LoadUntagged(compiler::target::Thread::api_top_scope_offset());
+    body += LoadNativeField(Slot::Thread_api_top_scope());
     arg_reps->Add(kUntagged);
 
     // Allocate a new handle in the top handle scope.
-    body += CallRuntimeEntry(kAllocateHandleRuntimeEntry, kUntagged, *arg_reps);
+    body +=
+        CallLeafRuntimeEntry(kAllocateHandleRuntimeEntry, kUntagged, *arg_reps);
 
     LocalVariable* handle = MakeTemporary("handle");
 
     // Store the object address into the handle.
     body += LoadLocal(handle);
     body += LoadLocal(object);
-    body += RawStoreField(compiler::target::LocalHandle::ptr_offset());
+    body += StoreNativeField(Slot::LocalHandle_ptr(),
+                             StoreFieldInstr::Kind::kInitializing);
 
     body += DropTempsPreserveTop(1);  // Drop object.
   } else if (marshaller.IsVoid(arg_index)) {
@@ -5373,7 +5409,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
   // catch our own null errors.
   const intptr_t num_args = marshaller.num_args();
   for (intptr_t i = 0; i < num_args; i++) {
-    if (marshaller.IsHandle(i)) {
+    if (marshaller.IsHandleCType(i)) {
       continue;
     }
     body += LoadLocal(parsed_function_->ParameterVariable(
@@ -5408,8 +5444,8 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
     body += LoadThread();  // argument.
     arg_reps->Add(kUntagged);
 
-    body +=
-        CallRuntimeEntry(kEnterHandleScopeRuntimeEntry, kUntagged, *arg_reps);
+    body += CallLeafRuntimeEntry(kEnterHandleScopeRuntimeEntry, kUntagged,
+                                 *arg_reps);
   }
 
   // Allocate typed data before FfiCall and pass it in to ffi call if needed.
@@ -5423,7 +5459,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
 
   // Unbox and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    if (marshaller.IsCompound(i)) {
+    if (marshaller.IsCompoundCType(i)) {
       body += FfiCallConvertCompoundArgumentToNative(
           parsed_function_->ParameterVariable(first_argument_parameter_offset +
                                               i),
@@ -5434,8 +5470,11 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
       // FfiCallInstr specifies all handle locations as Stack, and will pass a
       // pointer to the stack slot as the native handle argument.
       // Therefore we do not need to wrap handles.
-      if (!marshaller.IsHandle(i)) {
-        body += FfiConvertPrimitiveToNative(marshaller, i);
+      if (!marshaller.IsHandleCType(i)) {
+        body += FfiConvertPrimitiveToNative(
+            marshaller, i,
+            parsed_function_->ParameterVariable(
+                first_argument_parameter_offset + i));
       }
     }
   }
@@ -5459,7 +5498,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
     body += DropTemporary(&def);
   }
 
-  if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
+  if (marshaller.IsCompoundCType(compiler::ffi::kResultIndex)) {
     body += FfiCallConvertCompoundReturnToDart(marshaller,
                                                compiler::ffi::kResultIndex);
   } else {
@@ -5474,8 +5513,8 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
     code += LoadThread();  // argument.
     arg_reps->Add(kUntagged);
 
-    code +=
-        CallRuntimeEntry(kExitHandleScopeRuntimeEntry, kUntagged, *arg_reps);
+    code += CallLeafRuntimeEntry(kExitHandleScopeRuntimeEntry, kUntagged,
+                                 *arg_reps);
     code += Drop();
     return code;
   };
@@ -5528,7 +5567,7 @@ Fragment FlowGraphBuilder::LoadNativeArg(
     defs->Add(def);
   }
 
-  if (marshaller.IsCompound(arg_index)) {
+  if (marshaller.IsCompoundCType(arg_index)) {
     fragment +=
         FfiCallbackConvertCompoundArgumentToDart(marshaller, arg_index, defs);
   } else {
@@ -5574,7 +5613,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
     body += LoadThread();
     body +=
         LoadUntagged(compiler::target::Thread::unboxed_runtime_arg_offset());
-    body += RawLoadField(compiler::target::PersistentHandle::ptr_offset());
+    body += LoadNativeField(Slot::PersistentHandle_ptr());
     closure = MakeTemporary();
   }
 
@@ -5608,13 +5647,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
                        ICData::kNoRebind);
   }
 
-  if (!marshaller.IsHandle(compiler::ffi::kResultIndex)) {
+  if (!marshaller.IsVoid(compiler::ffi::kResultIndex) &&
+      !marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
     body += CheckNullOptimized(
         String::ZoneHandle(Z, Symbols::New(H.thread(), "return_value")),
         CheckNullInstr::kArgumentError);
   }
 
-  if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
+  if (marshaller.IsCompoundCType(compiler::ffi::kResultIndex)) {
     body += FfiCallbackConvertCompoundReturnToNative(
         marshaller, compiler::ffi::kResultIndex);
   } else {
@@ -5637,16 +5677,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
     // The exceptional return is always null -- return nullptr instead.
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     catch_body += UnboxedIntConstant(0, kUnboxedIntPtr);
-  } else if (marshaller.IsPointer(compiler::ffi::kResultIndex)) {
+  } else if (marshaller.IsPointerPointer(compiler::ffi::kResultIndex)) {
     // The exceptional return is always null -- return nullptr instead.
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     catch_body += UnboxedIntConstant(0, kUnboxedAddress);
     catch_body += ConvertUnboxedToUntagged();
-  } else if (marshaller.IsHandle(compiler::ffi::kResultIndex)) {
+  } else if (marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
     catch_body += UnhandledException();
     catch_body +=
         FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
-  } else if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
+  } else if (marshaller.IsCompoundCType(compiler::ffi::kResultIndex)) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     // Manufacture empty result.
     const intptr_t size =
@@ -5758,72 +5798,6 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
   try_catch_block_ = try_catch_block;
   SetCurrentTryIndex(try_catch_block == nullptr ? kInvalidTryIndex
                                                 : try_catch_block->try_index());
-}
-
-Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
-  Fragment code;
-  if (!variable->static_type().NeedsNullAssertion()) {
-    return code;
-  }
-
-  TargetEntryInstr* then;
-  TargetEntryInstr* otherwise;
-
-  code += LoadLocal(variable);
-  code += NullConstant();
-  code += BranchIfEqual(&then, &otherwise);
-
-  const Script& script =
-      Script::Handle(Z, parsed_function_->function().script());
-  intptr_t line = -1;
-  intptr_t column = -1;
-  script.GetTokenLocation(variable->token_pos(), &line, &column);
-
-  // Build equivalent of `throw _AssertionError._throwNewNullAssertion(name)`
-  // expression. We build throw (even through _throwNewNullAssertion already
-  // throws) because call is not a valid last instruction for the block.
-  // Blocks can only terminate with explicit control flow instructions
-  // (Branch, Goto, Return or Throw).
-  Fragment null_code(then);
-  null_code += Constant(variable->name());
-  null_code += IntConstant(line);
-  null_code += IntConstant(column);
-  null_code += StaticCall(variable->token_pos(),
-                          ThrowNewNullAssertionFunction(), 3, ICData::kStatic);
-  null_code += ThrowException(TokenPosition::kNoSource);
-  null_code += Drop();
-
-  return Fragment(code.entry, otherwise);
-}
-
-Fragment FlowGraphBuilder::BuildNullAssertions() {
-  Fragment code;
-  if (IG->null_safety() || !IG->asserts() || !FLAG_null_assertions) {
-    return code;
-  }
-
-  const Function& dart_function = parsed_function_->function();
-  for (intptr_t i = dart_function.NumImplicitParameters(),
-                n = dart_function.NumParameters();
-       i < n; ++i) {
-    LocalVariable* variable = parsed_function_->ParameterVariable(i);
-    code += NullAssertion(variable);
-  }
-  return code;
-}
-
-const Function& FlowGraphBuilder::ThrowNewNullAssertionFunction() {
-  if (throw_new_null_assertion_.IsNull()) {
-    const Class& klass = Class::ZoneHandle(
-        Z, Library::LookupCoreClass(Symbols::AssertionError()));
-    ASSERT(!klass.IsNull());
-    const auto& error = klass.EnsureIsFinalized(H.thread());
-    ASSERT(error == Error::null());
-    throw_new_null_assertion_ = klass.LookupStaticFunctionAllowPrivate(
-        Symbols::ThrowNewNullAssertion());
-    ASSERT(!throw_new_null_assertion_.IsNull());
-  }
-  return throw_new_null_assertion_;
 }
 
 const Function& FlowGraphBuilder::PrependTypeArgumentsFunction() {

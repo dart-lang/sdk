@@ -6,6 +6,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 
 final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
@@ -82,7 +83,7 @@ List<String> getVariableNameSuggestionsForText(
     var sb = StringBuffer();
     for (var i = 0; i < text.length; i++) {
       var c = text.codeUnitAt(i);
-      if (isLetter(c) || isWhitespace(c)) {
+      if (c.isLetter || c.isWhitespace) {
         sb.writeCharCode(c);
       }
     }

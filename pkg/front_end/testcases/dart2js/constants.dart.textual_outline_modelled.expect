@@ -1,0 +1,24 @@
+T id<T>(T t) => t;
+
+class Class<T> {
+  const Class(this.field);
+  final T field;
+}
+
+const instance = const Class<int>(0);
+
+const int Function(int) partialInstantiation = id;
+
+const listConcatenation = <int>[...listLiteral];
+
+const listLiteral = <int>[0];
+
+const mapConcatenation = <int, String>{...mapLiteral};
+
+const mapLiteral = <int, String>{0: 'foo'};
+
+const setConcatenation = <int>{...setLiteral};
+
+const setLiteral = <int>{0};
+
+main() {}

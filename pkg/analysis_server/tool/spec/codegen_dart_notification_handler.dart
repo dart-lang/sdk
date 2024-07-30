@@ -65,7 +65,7 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
 
   void emitNotificationHandler() {
     var visitor = _NotificationVisitor(api)..visitApi();
-    final notifications = visitor.notificationConstants;
+    var notifications = visitor.notificationConstants;
     notifications.sort((n1, n2) => n1.constName.compareTo(n2.constName));
 
     writeln('''

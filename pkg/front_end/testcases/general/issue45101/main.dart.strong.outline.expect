@@ -1,0 +1,35 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:_internal";
+
+class _ArraySize<T extends core::Object? = dynamic> extends core::Object implements self2::Array<self2::_ArraySize::T%> /*hasConstConstructor*/  { // from org-dartlang-testcase:///patch_lib.dart
+  final field core::int foo;
+  const constructor •(core::int foo) → self2::_ArraySize<self2::_ArraySize::T%>
+    : self2::_ArraySize::foo = foo, super core::Object::•()
+    ;
+}
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ const core::pragma::_("vm:entry-point")
+class Array<T extends core::Object? = dynamic> extends core::Object {
+  @_in::patch
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>(core::int foo) → self2::Array<self2::Array::•::T%> /* redirection-target: self2::_ArraySize::•<self2::Array::•::T%>*/
+    return new self2::_ArraySize::•<self2::Array::•::T%>(foo);
+}
+
+
+Extra constant evaluation status:
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:9:1 -> InstanceConstant(const pragma{pragma.name: "vm:entry-point", pragma.options: null})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:4 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 6, effectively constant: 3

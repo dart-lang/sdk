@@ -33,5 +33,7 @@ bool get isVmAotConfiguration => _configuration.compiler == Compiler.dartkp;
 
 bool get isVmConfiguration => isVmJitConfiguration || isVmAotConfiguration;
 
+bool get isBrowserConfiguration => _configuration.runtime.isBrowser;
+
 bool get isWebConfiguration =>
     isDart2jsConfiguration || isDart2WasmConfiguration || isDdcConfiguration;

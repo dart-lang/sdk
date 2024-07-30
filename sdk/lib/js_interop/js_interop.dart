@@ -274,6 +274,8 @@ extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
 /// used directly without any conversions. When compiling to Wasm, an internal
 /// Wasm function is used to convert the Dart object to an opaque JavaScript
 /// value, which can later be converted back using another internal function.
+/// The underlying representation type is nullable, meaning a non-nullable
+/// [ExternalDartReference] may be `null`.
 ///
 /// This interface is a faster alternative to [JSBoxedDartObject] by not
 /// wrapping the Dart object with a JavaScript object. However, unlike
@@ -290,9 +292,9 @@ extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
 /// [ExternalDartReference].
 ///
 /// See [ObjectToExternalDartReference.toExternalReference] to allow an
-/// arbitrary [Object] to be passed to JavaScript.
-extension type ExternalDartReference._(
-    ExternalDartReferenceRepType _externalDartReference) implements Object {}
+/// arbitrary value of type [T] to be passed to JavaScript.
+extension type ExternalDartReference<T extends Object?>._(
+    ExternalDartReferenceRepType<T> _externalDartReference) {}
 
 /// JS type equivalent for `undefined` for interop member return types.
 ///
@@ -380,8 +382,8 @@ extension JSAnyUtilityExtension on JSAny? {
   /// Whether this <code>[JSAny]?</code> is an instance of the JavaScript type
   /// that is declared by [T].
   ///
-  /// This method uses a combination of null, `typeof`, and `instanceof` checks
-  /// in order to do this check. Use this instead of `is` checks.
+  /// This method uses a combination of `null`, `typeof`, and `instanceof`
+  /// checks in order to do this check. Use this instead of `is` checks.
   ///
   /// If [T] is a primitive JS type like [JSString], this uses a `typeof` check
   /// that corresponds to that primitive type like `typeofEquals('string')`.
@@ -405,7 +407,7 @@ extension JSAnyUtilityExtension on JSAny? {
   /// `JSTypedArray`. As `TypedArray` does not exist as a property in
   /// JavaScript, this does some prototype checking to make `isA<JSTypedArray>`
   /// do the right thing. The other exception is `JSAny`. If you do a
-  /// `isA<JSAny>` check, it will only do a null-check.
+  /// `isA<JSAny>` check, it will only do a `null` check.
   ///
   /// Using this method with a [T] that has an object literal constructor will
   /// result in an error as you likely want to use [JSObject] instead.
@@ -475,7 +477,8 @@ extension JSFunctionUtilExtension on JSFunction {
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   /// The Dart [Function] that this [JSExportedDartFunction] wrapped.
   ///
-  /// Must be a wrapped Dart [Function].
+  /// Must be a function that was wrapped with
+  /// [FunctionToJSExportedDartFunction.toJS].
   external Function get toDart;
 }
 
@@ -488,6 +491,15 @@ extension FunctionToJSExportedDartFunction on Function {
   /// compile. See
   /// https://dart.dev/interop/js-interop/js-types#requirements-on-external-declarations-and-function-tojs
   /// for more details on what types are allowed.
+  ///
+  /// The max number of arguments that are passed to this [Function] from the
+  /// wrapper JavaScript function is determined by this [Function]'s static
+  /// type. Any extra arguments passed to the JavaScript function after the max
+  /// number of arguments are discarded like they are with regular JavaScript
+  /// functions.
+  ///
+  /// Calling this on the same [Function] again will always result in a new
+  /// JavaScript function.
   external JSExportedDartFunction get toJS;
 }
 
@@ -517,25 +529,27 @@ extension ObjectToJSBoxedDartObject on Object {
   external JSBoxedDartObject get toJSBox;
 }
 
-/// Conversions from [ExternalDartReference] to [Object].
-extension ExternalDartReferenceToObject on ExternalDartReference {
-  /// The Dart [Object] that this [ExternalDartReference] refers to.
+/// Conversions from [ExternalDartReference] to the value of type [T].
+extension ExternalDartReferenceToObject<T extends Object?>
+    on ExternalDartReference<T> {
+  /// The Dart value of type [T] that this [ExternalDartReference] refers to.
   ///
   /// When compiling to JavaScript, a Dart object is a JavaScript object, and
   /// therefore this directly returns the Dart object. When compiling to Wasm,
   /// an internal Wasm function is used to convert the opaque JavaScript value
   /// to the original Dart object.
-  external Object get toDartObject;
+  external T get toDartObject;
 }
 
-/// Conversions from [Object] to [ExternalDartReference].
-extension ObjectToExternalDartReference on Object {
-  /// An opaque reference to this [Object] which can be passed to JavaScript.
+/// Conversions from a value of type [T] to [ExternalDartReference].
+extension ObjectToExternalDartReference<T extends Object?> on T {
+  /// An opaque reference to this value of type [T] which can be passed to
+  /// JavaScript.
   ///
   /// When compiling to JavaScript, a Dart object is a JavaScript object, and
   /// therefore this directly returns the Dart object. When compiling to Wasm,
   /// an internal Wasm function is used to convert the Dart object to an opaque
-  /// JavaScript value.
+  /// JavaScript value. If this value is `null`, returns `null`.
   ///
   /// A value of type [ExternalDartReference] should be treated as completely
   /// opaque. It can only be passed around as-is or converted back using
@@ -546,7 +560,7 @@ extension ObjectToExternalDartReference on Object {
   /// guaranteed to be equal. Therefore, `==` will always return true between
   /// such [ExternalDartReference]s. However, like JS types, `identical` between
   /// such values may return different results depending on the compiler.
-  external ExternalDartReference get toExternalReference;
+  external ExternalDartReference<T> get toExternalReference;
 }
 
 /// Conversions from [JSPromise] to [Future].
@@ -1084,71 +1098,69 @@ extension StringToJSString on String {
 extension JSAnyOperatorExtension on JSAny? {
   // Arithmetic operators.
 
-  /// The result of <code>[this] + [any]</code> in JavaScript.
+  /// The result of <code>`this` + [any]</code> in JavaScript.
   external JSAny add(JSAny? any);
 
-  /// The result of <code>[this] - [any]</code> in JavaScript.
+  /// The result of <code>`this` - [any]</code> in JavaScript.
   external JSAny subtract(JSAny? any);
 
-  /// The result of <code>[this] * [any]</code> in JavaScript.
+  /// The result of <code>`this` * [any]</code> in JavaScript.
   external JSAny multiply(JSAny? any);
 
-  /// The result of <code>[this] / [any]</code> in JavaScript.
+  /// The result of <code>`this` / [any]</code> in JavaScript.
   external JSAny divide(JSAny? any);
 
-  /// The result of <code>[this] % [any]</code> in JavaScript.
+  /// The result of <code>`this` % [any]</code> in JavaScript.
   external JSAny modulo(JSAny? any);
 
-  /// The result of <code>[this] ** [any]</code> in JavaScript.
+  /// The result of <code>`this` ** [any]</code> in JavaScript.
   external JSAny exponentiate(JSAny? any);
 
   // Comparison operators.
 
-  /// The result of <code>[this] > [any]</code> in JavaScript.
+  /// The result of <code>`this` > [any]</code> in JavaScript.
   external JSBoolean greaterThan(JSAny? any);
 
-  /// The result of <code>[this] >= [any]</code> in JavaScript.
+  /// The result of <code>`this` >= [any]</code> in JavaScript.
   external JSBoolean greaterThanOrEqualTo(JSAny? any);
 
-  /// The result of <code>[this] < [any]</code> in JavaScript.
+  /// The result of <code>`this` < [any]</code> in JavaScript.
   external JSBoolean lessThan(JSAny? any);
 
-  /// The result of <code>[this] <= [any]</code> in JavaScript.
+  /// The result of <code>`this` <= [any]</code> in JavaScript.
   external JSBoolean lessThanOrEqualTo(JSAny? any);
 
-  /// The result of <code>[this] == [any]</code> in JavaScript.
+  /// The result of <code>`this` == [any]</code> in JavaScript.
   external JSBoolean equals(JSAny? any);
 
-  /// The result of <code>[this] != [any]</code> in JavaScript.
+  /// The result of <code>`this` != [any]</code> in JavaScript.
   external JSBoolean notEquals(JSAny? any);
 
-  /// The result of <code>[this] === [any]</code> in JavaScript.
+  /// The result of <code>`this` === [any]</code> in JavaScript.
   external JSBoolean strictEquals(JSAny? any);
 
-  /// The result of <code>[this] !== [any]</code> in JavaScript.
+  /// The result of <code>`this` !== [any]</code> in JavaScript.
   external JSBoolean strictNotEquals(JSAny? any);
 
   // Bitwise operators.
 
-  /// The result of <code>[this] >>> [any]</code> in JavaScript.
+  /// The result of <code>`this` >>> [any]</code> in JavaScript.
   // TODO(srujzs): This should return `num` or `double` instead.
   external JSNumber unsignedRightShift(JSAny? any);
 
   // Logical operators.
 
-  /// The result of <code>[this] && [any]</code> in JavaScript.
+  /// The result of <code>`this` && [any]</code> in JavaScript.
   external JSAny? and(JSAny? any);
 
-  /// The result of <code>[this] || [any]</code> in JavaScript.
+  /// The result of <code>`this` || [any]</code> in JavaScript.
   external JSAny? or(JSAny? any);
 
-  /// The result of <code>![this]</code> in JavaScript.
-  // TODO(srujzs): Change this to JSBoolean to be consistent.
-  external bool get not;
+  /// The result of <code>!`this`</code> in JavaScript.
+  external JSBoolean get not;
 
-  /// The result of <code>!![this]</code> in JavaScript.
-  // TODO(srujzs): Change this to JSBoolean to be consistent.
-  external bool get isTruthy;
+  /// The result of <code>!!`this`</code> in JavaScript.
+  external JSBoolean get isTruthy;
 }
 
 /// The global scope that is used to find user-declared interop members.
@@ -1195,4 +1207,4 @@ external JSObject createJSInteropWrapper<T extends Object>(T dartObject);
 ///
 /// Returns a [JSPromise] that resolves to a [JSObject] that's the module
 /// namespace object.
-external JSPromise<JSObject> importModule(String moduleName);
+external JSPromise<JSObject> importModule(JSAny moduleName);

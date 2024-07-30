@@ -114,6 +114,7 @@ Page* Page::Allocate(intptr_t size, uword flags) {
   result->end_ = 0;
   result->survivor_end_ = 0;
   result->resolved_top_ = 0;
+  result->live_bytes_ = 0;
 
   if ((flags & kNew) != 0) {
     uword top = result->object_start();
@@ -171,7 +172,8 @@ void Page::Deallocate() {
 }
 
 void Page::VisitObjects(ObjectVisitor* visitor) const {
-  ASSERT(Thread::Current()->OwnsGCSafepoint());
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kIncrementalCompactorTask));
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -207,9 +209,11 @@ void Page::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(obj_addr == end_addr);
 }
 
-void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
+void Page::VisitRememberedCards(PredicateObjectPointerVisitor* visitor,
+                                bool only_marked) {
   ASSERT(Thread::Current()->OwnsGCSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kScavengerTask));
+         (Thread::Current()->task_kind() == Thread::kScavengerTask) ||
+         (Thread::Current()->task_kind() == Thread::kIncrementalCompactorTask));
   NoSafepointScope no_safepoint;
 
   if (card_table_ == nullptr) {
@@ -218,8 +222,9 @@ void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
 
   ArrayPtr obj =
       static_cast<ArrayPtr>(UntaggedObject::FromAddr(object_start()));
-  ASSERT(obj->IsArray());
+  ASSERT(obj->IsArray() || obj->IsImmutableArray());
   ASSERT(obj->untag()->IsCardRemembered());
+  if (only_marked && !obj->untag()->IsMarked()) return;
   CompressedObjectPtr* obj_from = obj->untag()->from();
   CompressedObjectPtr* obj_to =
       obj->untag()->to(Smi::Value(obj->untag()->length()));
@@ -258,15 +263,9 @@ void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
         card_to = obj_to;
       }
 
-      visitor->VisitCompressedPointers(heap_base, card_from, card_to);
+      bool has_new_target = visitor->PredicateVisitCompressedPointers(
+          heap_base, card_from, card_to);
 
-      bool has_new_target = false;
-      for (CompressedObjectPtr* slot = card_from; slot <= card_to; slot++) {
-        if ((*slot)->IsNewObjectMayBeSmi()) {
-          has_new_target = true;
-          break;
-        }
-      }
       if (!has_new_target) {
         cell ^= bit_mask;
       }

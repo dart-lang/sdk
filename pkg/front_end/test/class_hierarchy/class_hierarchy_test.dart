@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/kernel/hierarchy/extension_type_members.dart';
+import 'package:front_end/src/kernel/hierarchy/class_member.dart';
+import 'package:front_end/src/kernel/hierarchy/extension_type_members.dart';
+import 'package:front_end/src/kernel/hierarchy/hierarchy_builder.dart';
+import 'package:front_end/src/kernel/hierarchy/hierarchy_node.dart';
+import 'package:front_end/src/kernel/hierarchy/members_builder.dart';
+import 'package:front_end/src/kernel/hierarchy/members_node.dart';
+import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:front_end/src/fasta/kernel/hierarchy/class_member.dart';
-import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart';
-import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart';
-import 'package:front_end/src/fasta/kernel/hierarchy/members_builder.dart';
-import 'package:front_end/src/fasta/kernel/hierarchy/members_node.dart';
-import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -25,12 +25,8 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const ClassHierarchyDataComputer(), [
-        const CfeTestConfig(cfeWithNnbdMarker, 'cfe',
-            explicitExperimentalFlags: const {
-              ExperimentalFlag.inlineClass: true
-            })
-      ]));
+      runTest:
+          runTestFor(const ClassHierarchyDataComputer(), [defaultCfeConfig]));
 }
 
 class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
@@ -447,15 +443,8 @@ String procedureType(Procedure procedure) {
     return typeToText(procedure.function.positionalParameters.single.type,
         TypeRepresentation.analyzerNonNullableByDefault);
   } else {
-    Nullability functionTypeNullability;
-    if (procedure.enclosingLibrary.isNonNullableByDefault) {
-      functionTypeNullability = procedure.enclosingLibrary.nonNullable;
-    } else {
-      // We don't create a member signature when the member is just
-      // a substitution. We should still take the nullability to be
-      // legacy, though.
-      functionTypeNullability = procedure.enclosingLibrary.nonNullable;
-    }
+    Nullability functionTypeNullability =
+        procedure.enclosingLibrary.nonNullable;
     return typeToText(
         procedure.function.computeThisFunctionType(functionTypeNullability),
         TypeRepresentation.analyzerNonNullableByDefault);

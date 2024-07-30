@@ -41,7 +41,7 @@ class NoLiteralBoolComparisons extends LintRule {
           name: 'no_literal_bool_comparisons',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

@@ -43,21 +43,21 @@ class ListFactorySpecializer {
         _listGenerateFactory =
             coreTypes.index.getProcedure('dart:core', 'List', 'generate'),
         _growableListFactory =
-            coreTypes.index.getProcedure('dart:core', '_GrowableList', ''),
+            coreTypes.index.getProcedure('dart:_list', 'GrowableList', ''),
         _growableListEmptyFactory =
-            coreTypes.index.getProcedure('dart:core', '_GrowableList', 'empty'),
+            coreTypes.index.getProcedure('dart:_list', 'GrowableList', 'empty'),
         _growableListFilledFactory = coreTypes.index
-            .getProcedure('dart:core', '_GrowableList', 'filled'),
+            .getProcedure('dart:_list', 'GrowableList', 'filled'),
         _growableListGenerateFactory = coreTypes.index
-            .getProcedure('dart:core', '_GrowableList', 'generate'),
-        _fixedListFactory =
-            coreTypes.index.getProcedure('dart:core', '_List', ''),
-        _fixedListEmptyFactory =
-            coreTypes.index.getProcedure('dart:core', '_List', 'empty'),
-        _fixedListFilledFactory =
-            coreTypes.index.getProcedure('dart:core', '_List', 'filled'),
-        _fixedListGenerateFactory =
-            coreTypes.index.getProcedure('dart:core', '_List', 'generate') {
+            .getProcedure('dart:_list', 'GrowableList', 'generate'),
+        _fixedListFactory = coreTypes.index
+            .getProcedure('dart:_list', 'ModifiableFixedLengthList', ''),
+        _fixedListEmptyFactory = coreTypes.index
+            .getProcedure('dart:_list', 'ModifiableFixedLengthList', 'empty'),
+        _fixedListFilledFactory = coreTypes.index
+            .getProcedure('dart:_list', 'ModifiableFixedLengthList', 'filled'),
+        _fixedListGenerateFactory = coreTypes.index.getProcedure(
+            'dart:_list', 'ModifiableFixedLengthList', 'generate') {
     _transformers[_listFilledFactory] = _transformListFilledFactory;
     _transformers[_listEmptyFactory] = _transformListEmptyFactory;
     _transformers[_listGenerateFactory] = _transformListGenerateFactory;
@@ -203,7 +203,11 @@ bool _isNullConstant(Expression value) {
 Expression _unwrapFinalVariableGet(Expression expr) {
   if (expr is VariableGet) {
     final variable = expr.variable;
-    if (variable.isFinal) {
+    // This optimization does not apply to parameters because they
+    // get their value set by the caller and their initializers
+    // are default values rather than true initializers.
+    final parent = variable.parent;
+    if (variable.isFinal && parent is! FunctionNode) {
       final initializer = variable.initializer;
       if (initializer != null) {
         return initializer;

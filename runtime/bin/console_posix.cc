@@ -18,11 +18,9 @@
 namespace dart {
 namespace bin {
 
-void Console::SaveConfig() {
-}
+void Console::SaveConfig() {}
 
-void Console::RestoreConfig() {
-}
+void Console::RestoreConfig() {}
 
 }  // namespace bin
 }  // namespace dart

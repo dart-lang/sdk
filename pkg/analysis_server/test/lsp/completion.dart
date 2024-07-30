@@ -28,7 +28,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     bool openCloseFile = true,
     bool expectNoAdditionalItems = false,
   }) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     // If verifyInsertReplaceRanges is true, we need both expected contents.
     assert(verifyInsertReplaceRanges == false ||
         (expectedContent != null && expectedContentIfInserting != null));
@@ -49,7 +49,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
       await closeFile(fileUri);
     }
 
-    final sortedResults = completionResults
+    var sortedResults = completionResults
         // Filter to those we expect (unless `expectNoAdditionalItems` which
         // indicates the test wants to ensure no additional unmatched items)
         .where((r) =>
@@ -63,7 +63,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     // Check the edits apply correctly.
     if (applyEditsFor != null) {
       var item = completionResults.singleWhere((c) => c.label == applyEditsFor);
-      final insertFormat = item.insertTextFormat;
+      var insertFormat = item.insertTextFormat;
 
       if (resolve) {
         item = await resolveCompletion(item);
@@ -81,7 +81,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
             withCaret(updatedContent, insertFormat), equals(expectedContent));
 
         // Inserting.
-        final inserted = applyTextEdits(
+        var inserted = applyTextEdits(
           code.code,
           [textEditForInsert(item.textEdit!)],
         );

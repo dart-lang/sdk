@@ -145,6 +145,7 @@ class _Builder {
       {List<Span>? spans}) {
     Map<Identifier, List<(Key, DeclarationCode)>> mergedTypeResults = {};
     Map<Identifier, List<(Key, DeclarationCode)>> mergedEntryResults = {};
+    Map<Identifier, (Key, NamedTypeAnnotationCode)> mergedExtendsResults = {};
     Map<Identifier, List<(Key, TypeAnnotationCode)>> mergedInterfaceResults =
         {};
     Map<Identifier, List<(Key, TypeAnnotationCode)>> mergedMixinResults = {};
@@ -164,6 +165,15 @@ class _Builder {
         mergedEntryResults.update(
             identifier, (enumValues) => enumValues..addAll(values),
             ifAbsent: () => values.toList());
+      });
+      result.extendsTypeAugmentations.forEach((identifier, value) {
+        mergedExtendsResults.update(
+            identifier,
+            (existing) => throw StateError(
+                'A class cannot extend multiple classes, ${identifier.name} '
+                'tried to extend both ${existing.$2.name.name} and '
+                '${value.name.name}.'),
+            ifAbsent: () => (IdentifierKey.superclass(key, identifier), value));
       });
       result.interfaceAugmentations.forEach((identifier, value) {
         int index = 0;
@@ -192,6 +202,7 @@ class _Builder {
     }
     final Set<Identifier> mergedAugmentedTypes = {
       ...mergedEntryResults.keys,
+      ...mergedExtendsResults.keys,
       ...mergedInterfaceResults.keys,
       ...mergedMixinResults.keys,
       ...mergedTypeResults.keys,
@@ -222,8 +233,34 @@ class _Builder {
       ];
       // Has the effect of adding a space after the keywords
       if (keywords.isNotEmpty) keywords.add('');
+
+      var hasTypeParams = typeDeclaration is ParameterizedTypeDeclaration &&
+          typeDeclaration.typeParameters.isNotEmpty;
       _writeDirectiveStringPart(TypeDeclarationContentKey.declaration(key),
-          'augment ${keywords.join(' ')}$declarationKind ${type.name} ');
+          'augment ${keywords.join(' ')}$declarationKind ${type.name}${hasTypeParams ? '' : ' '}');
+
+      if (hasTypeParams) {
+        var typeParameters = typeDeclaration.typeParameters;
+        _writeDirectiveStringPart(
+            TypeDeclarationContentKey.typeParametersStart(key), '<');
+        for (var param in typeParameters) {
+          _buildCode(
+              key,
+              param == typeParameters.first
+                  ? param.code
+                  : RawCode.fromParts([', ', param.code]));
+        }
+        _writeDirectiveStringPart(
+            TypeDeclarationContentKey.typeParametersEnd(key), '> ');
+      }
+
+      if (mergedExtendsResults[type] case (var superclassKey, var superclass)) {
+        Key fixedKey = TypeDeclarationContentKey.superclass(key);
+        int index = 0;
+        _buildString(fixedKey, index++, 'extends ');
+        _buildCode(superclassKey, superclass);
+        _buildString(fixedKey, index++, ' ');
+      }
 
       if (mergedMixinResults[type] case var mixins? when mixins.isNotEmpty) {
         Key mixinsKey = TypeDeclarationContentKey.mixins(key);
@@ -302,7 +339,7 @@ class _Builder {
     }
 
     addText(const LibraryAugmentKey(),
-        'library augment \'$_augmentedLibraryUri\';\n\n');
+        'augment library \'$_augmentedLibraryUri\';\n\n');
     for (_AppliedPart<_Part> appliedPart in _importParts) {
       addText(appliedPart.key, appliedPart.part.text);
     }

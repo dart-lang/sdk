@@ -675,6 +675,54 @@ void main() {
       });
     }
   });
+
+  group('static types can be serialized and deserialized', () {
+    for (var mode in [SerializationMode.byteData, SerializationMode.json]) {
+      group('with mode $mode', () {
+        test('named static type', () async {
+          final staticType = NamedStaticTypeImpl(
+            RemoteInstance.uniqueId,
+            declaration: ClassDeclarationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier:
+                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
+              library: Fixtures.library,
+              metadata: [],
+              interfaces: [],
+              hasAbstract: false,
+              hasBase: false,
+              hasExternal: false,
+              hasFinal: false,
+              hasInterface: false,
+              hasMixin: false,
+              hasSealed: false,
+              mixins: [],
+              superclass: null,
+              typeParameters: [
+                TypeParameterDeclarationImpl(
+                  id: RemoteInstance.uniqueId,
+                  identifier:
+                      IdentifierImpl(id: RemoteInstance.uniqueId, name: 'T'),
+                  library: Fixtures.library,
+                  metadata: const [],
+                  bound: null,
+                ),
+              ],
+            ),
+            typeArguments: [
+              NamedStaticTypeImpl(
+                RemoteInstance.uniqueId,
+                declaration: Fixtures.stringClass,
+                typeArguments: const [],
+              ),
+            ],
+          );
+          expectSerializationEquality<NamedStaticTypeImpl>(
+              staticType, mode, RemoteInstance.deserialize);
+        });
+      });
+    }
+  });
 }
 
 /// Serializes [serializable] in server mode, then deserializes it in client
@@ -706,6 +754,8 @@ void expectSerializationEquality<T extends Serializable>(T serializable,
             MacroExceptionImpl() => deepEqualsMacroException(deserialized),
             MetadataAnnotation() =>
               deepEqualsMetadataAnnotation(deserialized as MetadataAnnotation),
+            NamedStaticTypeImpl() =>
+              deepEqualsStaticType(deserialized as NamedStaticTypeImpl),
             _ =>
               throw UnsupportedError('Unsupported object type $deserialized'),
           });

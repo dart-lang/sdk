@@ -1,7 +1,0 @@
-void useAddAll() {}
-
-void useAddAllNullable() {}
-
-main() {}
-
-void expect(Map map1, Map map2) {}

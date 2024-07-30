@@ -135,37 +135,6 @@ class FlowGraphInliner : ValueObject {
     return speculative_policy_;
   }
 
-  struct ExactnessInfo {
-    const bool is_exact;
-    bool emit_exactness_guard;
-  };
-
-  static bool TryReplaceInstanceCallWithInline(
-      FlowGraph* flow_graph,
-      ForwardInstructionIterator* iterator,
-      InstanceCallInstr* call,
-      SpeculativeInliningPolicy* policy);
-
-  static bool TryReplaceStaticCallWithInline(
-      FlowGraph* flow_graph,
-      ForwardInstructionIterator* iterator,
-      StaticCallInstr* call,
-      SpeculativeInliningPolicy* policy);
-
-  static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
-                                        intptr_t receiver_cid,
-                                        const Function& target,
-                                        Definition* call,
-                                        Definition* receiver,
-                                        const InstructionSource& source,
-                                        const ICData* ic_data,
-                                        GraphEntryInstr* graph_entry,
-                                        FunctionEntryInstr** entry,
-                                        Instruction** last,
-                                        Definition** result,
-                                        SpeculativeInliningPolicy* policy,
-                                        ExactnessInfo* exactness = nullptr);
-
  private:
   friend class CallSiteInliner;
 

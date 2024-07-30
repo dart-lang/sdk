@@ -159,11 +159,8 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
 
 // Unit test case to verify stack frame iteration.
 TEST_CASE(ValidateStackFrameIteration) {
-  const char* nullable_tag = TestCase::NullableTag();
   // clang-format off
-  auto kScriptChars = Utils::CStringUniquePtr(
-      OS::SCreate(
-          nullptr,
+  const char* kScriptChars =
           "class StackFrame {"
           "  @pragma('vm:external-name', 'StackFrame_equals')\n"
           "  external static equals(var obj1, var obj2);\n"
@@ -176,21 +173,21 @@ TEST_CASE(ValidateStackFrameIteration) {
           "} "
           "class First {"
           "  First() { }"
-          "  int%s method1(int%s param) {"
+          "  int? method1(int? param) {"
           "    if (param == 1) {"
           "      param = method2(200);"
           "    } else {"
           "      param = method2(100);"
           "    }"
           "  }"
-          "  int%s method2(int param) {"
+          "  int? method2(int param) {"
           "    if (param == 200) {"
           "      First.staticmethod(this, param);"
           "    } else {"
           "      First.staticmethod(this, 10);"
           "    }"
           "  }"
-          "  static int%s staticmethod(First obj, int param) {"
+          "  static int? staticmethod(First obj, int param) {"
           "    if (param == 10) {"
           "      obj.method3(10);"
           "    } else {"
@@ -211,7 +208,7 @@ TEST_CASE(ValidateStackFrameIteration) {
           "}"
           "class Second {"
           "  Second() { }"
-          "  int%s method1(int%s param) {"
+          "  int? method1(int? param) {"
           "    if (param == 1) {"
           "      param = method2(200);"
           "    } else {"
@@ -220,10 +217,10 @@ TEST_CASE(ValidateStackFrameIteration) {
           "      param = obj.method1(2);"
           "    }"
           "  }"
-          "  int%s method2(int param) {"
+          "  int? method2(int param) {"
           "    Second.staticmethod(this, param);"
           "  }"
-          "  static int%s staticmethod(Second obj, int param) {"
+          "  static int? staticmethod(Second obj, int param) {"
           "    obj.method3(10);"
           "  }"
           "  method3(int param) {"
@@ -243,103 +240,54 @@ TEST_CASE(ValidateStackFrameIteration) {
           "    obj.method1(1);"
           "    obj.method1(2);"
           "  }"
-          "}",
-          nullable_tag, nullable_tag, nullable_tag, nullable_tag, nullable_tag,
-          nullable_tag, nullable_tag, nullable_tag),
-      std::free);
+          "}";
   // clang-format on
   Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars.get(),
-      reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
+      kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
   EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, nullptr));
 }
 
 // Unit test case to verify stack frame iteration.
 TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
-  const char* kScriptChars;
-  // The true stack depends on which strategy we are using for noSuchMethod. The
-  // stacktrace as seen by Dart is the same either way because dispatcher
-  // methods are marked invisible.
-  if (FLAG_lazy_dispatchers) {
-    kScriptChars =
-        "class StackFrame {"
-        "  @pragma('vm:external-name', 'StackFrame_equals')\n"
-        "  external static equals(var obj1, var obj2);\n"
-        "  @pragma('vm:external-name', 'StackFrame_frameCount')\n"
-        "  external static int frameCount();\n"
-        "  @pragma('vm:external-name', 'StackFrame_dartFrameCount')\n"
-        "  external static int dartFrameCount();\n"
-        "  @pragma('vm:external-name', 'StackFrame_validateFrame')\n"
-        "  external static validateFrame(int index, String name);"
-        "} "
-        "class StackFrame2Test {"
-        "  StackFrame2Test() {}"
-        "  noSuchMethod(Invocation im) {"
-        "    /* We should have 6 general frames and 4 dart frames as follows:"
-        "     * exit frame"
-        "     * dart frame corresponding to StackFrame.frameCount"
-        "     * dart frame corresponding to StackFrame2Test.noSuchMethod"
-        "     * frame for instance function invocation stub calling "
-        "noSuchMethod"
-        "     * dart frame corresponding to StackFrame2Test.testMain"
-        "     * entry frame"
-        "     */"
-        "    StackFrame.equals(6, StackFrame.frameCount());"
-        "    StackFrame.equals(4, StackFrame.dartFrameCount());"
-        "    StackFrame.validateFrame(0, \"StackFrame_validateFrame\");"
-        "    StackFrame.validateFrame(1, \"StackFrame2Test_noSuchMethod\");"
-        "    StackFrame.validateFrame(2, \"StackFrame2Test_foo\");"
-        "    StackFrame.validateFrame(3, \"StackFrame2Test_testMain\");"
-        "    return 5;"
-        "  }"
-        "  static testMain() {"
-        "    /* Declare |obj| dynamic so that noSuchMethod can be"
-        "     * called in strong mode. */"
-        "    dynamic obj = new StackFrame2Test();"
-        "    StackFrame.equals(5, obj.foo(101, 202));"
-        "  }"
-        "}";
-  } else {
-    kScriptChars =
-        "class StackFrame {"
-        "  @pragma('vm:external-name', 'StackFrame_equals')\n"
-        "  external static equals(var obj1, var obj2);\n"
-        "  @pragma('vm:external-name', 'StackFrame_frameCount')\n"
-        "  external static int frameCount();\n"
-        "  @pragma('vm:external-name', 'StackFrame_dartFrameCount')\n"
-        "  external static int dartFrameCount();\n"
-        "  @pragma('vm:external-name', 'StackFrame_validateFrame')\n"
-        "  external static validateFrame(int index, String name);"
-        "} "
-        "class StackFrame2Test {"
-        "  StackFrame2Test() {}"
-        "  noSuchMethod(Invocation im) {"
-        "    /* We should have 8 general frames and 3 dart frames as follows:"
-        "     * exit frame"
-        "     * dart frame corresponding to StackFrame.frameCount"
-        "     * dart frame corresponding to StackFrame2Test.noSuchMethod"
-        "     * entry frame"
-        "     * exit frame (call to runtime NoSuchMethodFromCallStub)"
-        "     * IC stub"
-        "     * dart frame corresponding to StackFrame2Test.testMain"
-        "     * entry frame"
-        "     */"
-        "    StackFrame.equals(8, StackFrame.frameCount());"
-        "    StackFrame.equals(3, StackFrame.dartFrameCount());"
-        "    StackFrame.validateFrame(0, \"StackFrame_validateFrame\");"
-        "    StackFrame.validateFrame(1, \"StackFrame2Test_noSuchMethod\");"
-        "    StackFrame.validateFrame(2, \"StackFrame2Test_testMain\");"
-        "    return 5;"
-        "  }"
-        "  static testMain() {"
-        "    /* Declare |obj| dynamic so that noSuchMethod can be"
-        "     * called in strong mode. */"
-        "    dynamic obj = new StackFrame2Test();"
-        "    StackFrame.equals(5, obj.foo(101, 202));"
-        "  }"
-        "}";
-  }
+  const char* const kScriptChars =
+      "class StackFrame {"
+      "  @pragma('vm:external-name', 'StackFrame_equals')\n"
+      "  external static equals(var obj1, var obj2);\n"
+      "  @pragma('vm:external-name', 'StackFrame_frameCount')\n"
+      "  external static int frameCount();\n"
+      "  @pragma('vm:external-name', 'StackFrame_dartFrameCount')\n"
+      "  external static int dartFrameCount();\n"
+      "  @pragma('vm:external-name', 'StackFrame_validateFrame')\n"
+      "  external static validateFrame(int index, String name);"
+      "} "
+      "class StackFrame2Test {"
+      "  StackFrame2Test() {}"
+      "  noSuchMethod(Invocation im) {"
+      "    /* We should have 6 general frames and 4 dart frames as follows:"
+      "     * exit frame"
+      "     * dart frame corresponding to StackFrame.frameCount"
+      "     * dart frame corresponding to StackFrame2Test.noSuchMethod"
+      "     * frame for instance function invocation stub calling "
+      "noSuchMethod"
+      "     * dart frame corresponding to StackFrame2Test.testMain"
+      "     * entry frame"
+      "     */"
+      "    StackFrame.equals(6, StackFrame.frameCount());"
+      "    StackFrame.equals(4, StackFrame.dartFrameCount());"
+      "    StackFrame.validateFrame(0, \"StackFrame_validateFrame\");"
+      "    StackFrame.validateFrame(1, \"StackFrame2Test_noSuchMethod\");"
+      "    StackFrame.validateFrame(2, \"StackFrame2Test_foo\");"
+      "    StackFrame.validateFrame(3, \"StackFrame2Test_testMain\");"
+      "    return 5;"
+      "  }"
+      "  static testMain() {"
+      "    /* Declare |obj| dynamic so that noSuchMethod can be"
+      "     * called in strong mode. */"
+      "    dynamic obj = new StackFrame2Test();"
+      "    StackFrame.equals(5, obj.foo(101, 202));"
+      "  }"
+      "}";
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrame2Test"));

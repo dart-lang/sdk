@@ -60,7 +60,7 @@ main() {
         h.run([
           listLiteral(elementType: 'int', [
             ifCaseElement(
-              expr('Object').checkSchema('?'),
+              expr('Object').checkSchema('_'),
               intLiteral(0).pattern,
               intLiteral(1).checkSchema('int'),
             ).checkIR('if(expression: expr(Object), pattern: '
@@ -357,7 +357,7 @@ main() {
 
       test('scrutinee expression schema', () {
         h.run([
-          switchExpr(expr('int').checkSchema('?'), [
+          switchExpr(expr('int').checkSchema('_'), [
             default_.thenExpr(intLiteral(0)),
           ]).inTypeSchema('num'),
         ]);
@@ -638,7 +638,7 @@ main() {
         var x = Var('x');
         h.run([
           ifCase(
-            expr('int').checkSchema('?'),
+            expr('int').checkSchema('_'),
             x.pattern(type: 'num'),
             [],
           ).checkIR('ifCase(expr(int), '
@@ -682,7 +682,7 @@ main() {
         var x = Var('x');
         h.run([
           ifCase(
-            expr('num').checkSchema('?'),
+            expr('num').checkSchema('_'),
             x.pattern(type: 'int'),
             [],
           ).checkIR('ifCase(expr(num), '
@@ -831,7 +831,7 @@ main() {
       test('const pattern', () {
         h.run([
           switch_(
-            expr('int').checkSchema('?'),
+            expr('int').checkSchema('_'),
             [
               intLiteral(0).pattern.then([
                 break_(),
@@ -848,7 +848,7 @@ main() {
           var x = Var('x');
           h.run([
             switch_(
-              expr('int').checkSchema('?'),
+              expr('int').checkSchema('_'),
               [
                 x.pattern().then([
                   break_(),
@@ -864,7 +864,7 @@ main() {
           var x = Var('x');
           h.run([
             switch_(
-              expr('int').checkSchema('?'),
+              expr('int').checkSchema('_'),
               [
                 x.pattern(type: 'num').then([
                   break_(),
@@ -880,7 +880,7 @@ main() {
       test('scrutinee expression schema', () {
         h.run([
           switch_(
-            expr('int').checkSchema('?'),
+            expr('int').checkSchema('_'),
             [
               intLiteral(0).pattern.then([
                 break_(),
@@ -1701,7 +1701,7 @@ main() {
       test('initialized, untyped', () {
         var x = Var('x');
         h.run([
-          declare(x, initializer: expr('int').checkSchema('?'))
+          declare(x, initializer: expr('int').checkSchema('_'))
               .checkIR('match(expr(int), '
                   'varPattern(x, matchedType: int, staticType: int))'),
         ]);
@@ -1767,7 +1767,7 @@ main() {
             var x = Var('x');
             h.run([
               patternForIn(x.pattern(),
-                      expr('List<int>').checkSchema('Iterable<?>'), [])
+                      expr('List<int>').checkSchema('Iterable<_>'), [])
                   .checkIR('forEach(expr(List<int>), varPattern(x, '
                       'matchedType: int, staticType: int), block())'),
             ]);
@@ -1862,7 +1862,7 @@ main() {
             h.run([
               patternForIn(
                 x.pattern(),
-                expr('Stream<int>').checkSchema('Stream<?>'),
+                expr('Stream<int>').checkSchema('Stream<_>'),
                 [],
                 hasAwait: true,
               ).checkIR('forEach(expr(Stream<int>), varPattern(x, '
@@ -1957,7 +1957,7 @@ main() {
       test('Type schema', () {
         var x = Var('x');
         h.run([
-          match(x.pattern().as_('int'), expr('num').checkSchema('?')).checkIR(
+          match(x.pattern().as_('int'), expr('num').checkSchema('_')).checkIR(
               'match(expr(num), castPattern(varPattern(x, '
               'matchedType: int, staticType: int), int, matchedType: num))'),
         ]);
@@ -2082,7 +2082,7 @@ main() {
             h.run([
               match(
                 mapPattern([])..errorId = 'PATTERN',
-                expr('dynamic').checkSchema('Map<?, ?>'),
+                expr('dynamic').checkSchema('Map<_, _>'),
               ),
             ], expectedErrors: {
               'emptyMapPattern(pattern: PATTERN)',
@@ -2098,7 +2098,7 @@ main() {
                   mapPatternEntry(expr('bool'), x.pattern(type: 'int?')),
                   mapPatternEntry(expr('bool'), y.pattern(type: 'num')),
                 ]),
-                expr('dynamic').checkSchema('Map<?, int>'),
+                expr('dynamic').checkSchema('Map<_, int>'),
               ),
             ]);
           });
@@ -2155,7 +2155,7 @@ main() {
               expr('dynamic'),
               mapPattern([
                 mapPatternEntry(
-                  expr('Object').checkSchema('?'),
+                  expr('Object').checkSchema('_'),
                   x.pattern(),
                 ),
               ]),
@@ -2174,7 +2174,7 @@ main() {
               expr('error'),
               mapPattern([
                 mapPatternEntry(
-                  expr('Object').checkSchema('?'),
+                  expr('Object').checkSchema('_'),
                   x.pattern(),
                 ),
               ]),
@@ -2193,7 +2193,7 @@ main() {
               expr('String'),
               mapPattern([
                 mapPatternEntry(
-                  expr('Object').checkSchema('?'),
+                  expr('Object').checkSchema('_'),
                   x.pattern(),
                 ),
               ]),
@@ -2367,7 +2367,7 @@ main() {
         group('Implicit element type:', () {
           test('No elements', () {
             h.run([
-              match(listPattern([]), expr('dynamic').checkSchema('List<?>')),
+              match(listPattern([]), expr('dynamic').checkSchema('List<_>')),
             ]);
           });
 
@@ -2404,7 +2404,7 @@ main() {
                         x.pattern(type: 'String')..errorId = 'VAR(x)',
                       )
                     ]),
-                    expr('List<int>').checkSchema('List<?>'),
+                    expr('List<int>').checkSchema('List<_>'),
                   )..errorId = 'CONTEXT',
                 ], expectedErrors: {
                   'patternTypeMismatchInIrrefutableContext('
@@ -2418,7 +2418,7 @@ main() {
                 h.run([
                   match(
                     listPattern([restPattern()]),
-                    expr('dynamic').checkSchema('List<?>'),
+                    expr('dynamic').checkSchema('List<_>'),
                   ),
                 ]);
               });
@@ -2741,7 +2741,7 @@ main() {
           (match(
             wildcard(type: 'int?').or(wildcard(type: 'double?'))
               ..errorId = 'PATTERN',
-            nullLiteral.checkSchema('?'),
+            nullLiteral.checkSchema('_'),
           )..errorId = 'CONTEXT'),
         ], expectedErrors: {
           'refutablePatternInIrrefutableContext(pattern: PATTERN, '
@@ -3058,7 +3058,7 @@ main() {
         var x = Var('x');
         h.run([
           (match(x.pattern(type: 'int').nullCheck..errorId = 'PATTERN',
-              expr('int').checkSchema('?'))
+              expr('int').checkSchema('_'))
             ..errorId = 'CONTEXT'),
         ], expectedErrors: {
           'refutablePatternInIrrefutableContext(pattern: PATTERN, '
@@ -3148,7 +3148,7 @@ main() {
           h.addSuperInterfaces('A', (_) => [Type('Object')]);
           h.run([
             ifCase(
-              expr('A<int>').checkSchema('?'),
+              expr('A<int>').checkSchema('_'),
               objectPattern(
                 requiredType: 'B',
                 fields: [
@@ -3165,7 +3165,7 @@ main() {
         test('dynamic type', () {
           h.run([
             ifCase(
-              expr('int').checkSchema('?'),
+              expr('int').checkSchema('_'),
               objectPattern(
                 requiredType: 'dynamic',
                 fields: [
@@ -3182,7 +3182,7 @@ main() {
         test('error type', () {
           h.run([
             ifCase(
-              expr('int').checkSchema('?'),
+              expr('int').checkSchema('_'),
               objectPattern(
                 requiredType: 'error',
                 fields: [
@@ -3199,7 +3199,7 @@ main() {
         test('Never type', () {
           h.run([
             ifCase(
-              expr('int').checkSchema('?'),
+              expr('int').checkSchema('_'),
               objectPattern(
                 requiredType: 'Never',
                 fields: [
@@ -3361,7 +3361,7 @@ main() {
           test('refutable', () {
             h.run([
               ifCase(
-                expr('dynamic').checkSchema('?'),
+                expr('dynamic').checkSchema('_'),
                 recordPattern([
                   Var('a').pattern(type: 'int').recordField(),
                   Var('b').pattern().recordField(),
@@ -3381,7 +3381,7 @@ main() {
           test('refutable', () {
             h.run([
               ifCase(
-                expr('error').checkSchema('?'),
+                expr('error').checkSchema('_'),
                 recordPattern([
                   Var('a').pattern(type: 'int').recordField(),
                   Var('b').pattern().recordField(),
@@ -3406,7 +3406,7 @@ main() {
                     Var('a').pattern(type: 'int').recordField(),
                     Var('b').pattern().recordField(),
                   ]),
-                  expr('(int, String)').checkSchema('(int, ?)'),
+                  expr('(int, String)').checkSchema('(int, _)'),
                 ).checkIR(
                     'match(expr((int, String)), recordPattern(varPattern(a, '
                     'matchedType: int, staticType: int), varPattern(b, '
@@ -3426,7 +3426,7 @@ main() {
                     Var('b').pattern().recordField(),
                   ])
                     ..errorId = 'PATTERN',
-                  expr('(int,)').checkSchema('(int, ?)'),
+                  expr('(int,)').checkSchema('(int, _)'),
                 )..errorId = 'CONTEXT')
                     .checkIR('match(expr((int,)), recordPattern(varPattern(a, '
                         'matchedType: Object?, staticType: int), '
@@ -3446,7 +3446,7 @@ main() {
               test('too few', () {
                 h.run([
                   ifCase(
-                    expr('(int,)').checkSchema('?'),
+                    expr('(int,)').checkSchema('_'),
                     recordPattern([
                       Var('a').pattern().recordField(),
                       Var('b').pattern().recordField(),
@@ -3463,7 +3463,7 @@ main() {
               test('too many', () {
                 h.run([
                   ifCase(
-                    expr('(int, String)').checkSchema('?'),
+                    expr('(int, String)').checkSchema('_'),
                     recordPattern([
                       Var('a').pattern().recordField(),
                     ]),
@@ -3483,7 +3483,7 @@ main() {
             h.addSuperInterfaces('X', (_) => [Type('Object')]);
             h.run([
               ifCase(
-                expr('X').checkSchema('?'),
+                expr('X').checkSchema('_'),
                 recordPattern([
                   Var('a').pattern(type: 'int').recordField(),
                   Var('b').pattern().recordField(),
@@ -3503,7 +3503,7 @@ main() {
           test('refutable', () {
             h.run([
               ifCase(
-                expr('dynamic').checkSchema('?'),
+                expr('dynamic').checkSchema('_'),
                 recordPattern([
                   Var('a').pattern(type: 'int').recordField('a'),
                   Var('b').pattern().recordField('b'),
@@ -3526,7 +3526,7 @@ main() {
                     Var('a').pattern(type: 'int').recordField('a'),
                     Var('b').pattern().recordField('b'),
                   ]),
-                  expr('({int a, String b})').checkSchema('({int a, ? b})'),
+                  expr('({int a, String b})').checkSchema('({int a, _ b})'),
                 ).checkIR('match(expr(({int a, String b})), '
                     'recordPattern(varPattern(a, matchedType: int, '
                     'staticType: int), varPattern(b, matchedType: String, '
@@ -3545,7 +3545,7 @@ main() {
                     Var('b').pattern().recordField('b'),
                   ])
                     ..errorId = 'PATTERN',
-                  expr('({int a})').checkSchema('({int a, ? b})'),
+                  expr('({int a})').checkSchema('({int a, _ b})'),
                 )..errorId = 'CONTEXT')
                     .checkIR('match(expr(({int a})), '
                         'recordPattern(varPattern(a, matchedType: Object?, '
@@ -3565,7 +3565,7 @@ main() {
               test('too few', () {
                 h.run([
                   ifCase(
-                    expr('({int a})').checkSchema('?'),
+                    expr('({int a})').checkSchema('_'),
                     recordPattern([
                       Var('a').pattern().recordField('a'),
                       Var('b').pattern().recordField('b'),
@@ -3582,7 +3582,7 @@ main() {
               test('too many', () {
                 h.run([
                   ifCase(
-                    expr('({int a, String b})').checkSchema('?'),
+                    expr('({int a, String b})').checkSchema('_'),
                     recordPattern([
                       Var('a').pattern().recordField('a'),
                     ]),
@@ -3602,7 +3602,7 @@ main() {
             h.addSuperInterfaces('X', (_) => [Type('Object')]);
             h.run([
               ifCase(
-                expr('X').checkSchema('?'),
+                expr('X').checkSchema('_'),
                 recordPattern([
                   Var('a').pattern(type: 'int').recordField('a'),
                   Var('b').pattern().recordField('b'),
@@ -3643,7 +3643,7 @@ main() {
           (match(
             relationalPattern('>', intLiteral(0).checkSchema('num'))
               ..errorId = 'PATTERN',
-            intLiteral(1).checkSchema('?'),
+            intLiteral(1).checkSchema('_'),
           )..errorId = 'CONTEXT')
               .checkIR('match(1, >(0, matchedType: int))'),
         ], expectedErrors: {
@@ -3655,10 +3655,10 @@ main() {
         h.addMember('C', '>', null);
         h.run([
           ifCase(
-            expr('C').checkSchema('?'),
+            expr('C').checkSchema('_'),
             relationalPattern(
               '>',
-              intLiteral(0).checkSchema('?'),
+              intLiteral(0).checkSchema('_'),
             ),
             [],
           ).checkIR('ifCase(expr(C), >(0, matchedType: C), '
@@ -3669,7 +3669,7 @@ main() {
         test('int >=', () {
           h.run([
             ifCase(
-              expr('int').checkSchema('?'),
+              expr('int').checkSchema('_'),
               relationalPattern('>=', intLiteral(0).checkSchema('num')),
               [],
             ).checkIR('ifCase(expr(int), >=(0, matchedType: '
@@ -3679,7 +3679,7 @@ main() {
         test('Object == nullable', () {
           h.run([
             ifCase(
-              expr('Object').checkSchema('?'),
+              expr('Object').checkSchema('_'),
               relationalPattern('==', expr('int?').checkSchema('Object?')),
               [],
             ).checkIR('ifCase(expr(Object), ==(expr(int?), '
@@ -3689,7 +3689,7 @@ main() {
         test('Object != nullable', () {
           h.run([
             ifCase(
-              expr('Object').checkSchema('?'),
+              expr('Object').checkSchema('_'),
               relationalPattern('!=', expr('int?').checkSchema('Object?')),
               [],
             ).checkIR('ifCase(expr(Object), !=(expr(int?), '
@@ -3701,7 +3701,7 @@ main() {
           test('basic', () {
             h.run([
               ifCase(
-                expr('int').checkSchema('?'),
+                expr('int').checkSchema('_'),
                 relationalPattern('>', expr('String'))..errorId = 'PATTERN',
                 [],
               ).checkIR('ifCase(expr(int), >(expr(String), '
@@ -3823,7 +3823,7 @@ main() {
           h.addMember('A', '>', 'int Function(Object)');
           h.run([
             ifCase(
-              expr('A').checkSchema('?'),
+              expr('A').checkSchema('_'),
               relationalPattern(
                 '>',
                 expr('String').checkSchema('Object'),

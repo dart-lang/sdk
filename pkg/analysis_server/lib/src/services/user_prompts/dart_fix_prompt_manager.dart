@@ -17,8 +17,8 @@ import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
@@ -243,13 +243,15 @@ class DartFixPromptManager {
       NotCancelableToken(),
     );
 
-    if (result.isError) {
-      unawaited(userPromptSender(
-        MessageType.error,
-        "Failed to execute '$command': ${result.error.message}",
-        [],
-      ));
-    }
+    result.ifError(
+      (error) {
+        unawaited(userPromptSender(
+          MessageType.error,
+          "Failed to execute '$command': ${error.message}",
+          [],
+        ));
+      },
+    );
   }
 
   /// Performs a check to see if "dart fix" may be able to fix diagnostics in

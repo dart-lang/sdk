@@ -4,8 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,6 +18,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
+  FlutterConvertToStatelessWidget({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   AssistKind get assistKind =>
       DartAssistKind.FLUTTER_CONVERT_TO_STATELESS_WIDGET;
@@ -37,7 +44,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     // Must be a StatefulWidget subclass.
     var widgetClassElement = widgetClass.declaredElement!;
     var superType = widgetClassElement.supertype;
-    if (superType == null || !Flutter.isExactlyStatefulWidgetType(superType)) {
+    if (superType == null || !superType.isExactlyStatefulWidgetType) {
       return;
     }
 
@@ -124,10 +131,8 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
       return SourceEdit.applySequence(text, visitor.edits.reversed);
     }
 
-    var statelessWidgetClass = await sessionHelper.getClass(
-      Flutter.widgetsUri,
-      'StatelessWidget',
-    );
+    var statelessWidgetClass =
+        await sessionHelper.getFlutterClass('StatelessWidget');
     if (statelessWidgetClass == null) {
       return;
     }
@@ -252,14 +257,14 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
   static bool _isState(ClassElement widgetClassElement, DartType? type) {
     if (type is! InterfaceType) return false;
 
-    final firstArgument = type.typeArguments.singleOrNull;
+    var firstArgument = type.typeArguments.singleOrNull;
     if (firstArgument is! InterfaceType ||
         firstArgument.element != widgetClassElement) {
       return false;
     }
 
     var classElement = type.element;
-    return classElement is ClassElement && Flutter.isExactState(classElement);
+    return classElement is ClassElement && classElement.isExactState;
   }
 }
 
@@ -367,7 +372,7 @@ class _StatelessVerifier extends RecursiveAstVisitor<void> {
     if (methodElement is ClassMemberElement) {
       var classElement = methodElement.enclosingElement;
       if (classElement is ClassElement &&
-          Flutter.isExactState(classElement) &&
+          classElement.isExactState &&
           !FlutterConvertToStatelessWidget._isDefaultOverride(
               node.thisOrAncestorOfType<MethodDeclaration>())) {
         canBeStateless = false;
@@ -388,7 +393,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     super.visitInstanceCreationExpression(node);
-    final type = node.staticType;
+    var type = node.staticType;
     if (type is! InterfaceType || type.element != stateClassElement) {
       return;
     }

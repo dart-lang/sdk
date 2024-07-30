@@ -4,13 +4,14 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 
 abstract class AbstractFixAllInWorkspaceCommandHandler
     extends SimpleEditCommandHandler {

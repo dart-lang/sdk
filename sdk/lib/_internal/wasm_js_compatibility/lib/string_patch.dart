@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show EfficientLengthIterable, patch, unsafeCast;
+import 'dart:_internal' show EfficientLengthIterable, patch;
 import 'dart:_js_helper' as js;
 import 'dart:_js_types';
+import 'dart:_string';
 import 'dart:_wasm';
 import 'dart:js_interop';
 import 'dart:typed_data';
@@ -33,8 +34,7 @@ class String {
     // `String.fromCharCode.apply`.
     final charCodesLength = (end ?? length) - start;
     final typedArrayLength = charCodesLength * 2;
-    final JSUint32ArrayImpl list =
-        unsafeCast<JSUint32ArrayImpl>(Uint32List(typedArrayLength));
+    final list = JSUint32ArrayImpl(typedArrayLength);
     int index = 0; // index in `list`.
     end ??= start + charCodesLength;
     for (int i = start; i < end; i++) {

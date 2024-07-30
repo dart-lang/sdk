@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
+import '../extensions.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
@@ -50,14 +50,15 @@ class AvoidRenamingMethodParameters extends LintRule {
       'avoid_renaming_method_parameters',
       "The parameter name '{0}' doesn't match the name '{1}' in the overridden "
           'method.',
-      correctionMessage: "Try changing the name to '{1}'.");
+      correctionMessage: "Try changing the name to '{1}'.",
+      hasPublishedDocs: true);
 
   AvoidRenamingMethodParameters()
       : super(
             name: 'avoid_renaming_method_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => parameterCode;
@@ -65,9 +66,7 @@ class AvoidRenamingMethodParameters extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!isInLibDir(context.currentUnit.unit, context.package)) {
-      return;
-    }
+    if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
@@ -100,6 +99,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var parentMethod = classElement.lookUpInheritedMethod(
         node.name.lexeme, classElement.library);
+
+    // If it's not an inherited method, check for an augmentation.
+    if (parentMethod == null && node.isAugmentation) {
+      var element = node.declaredElement;
+      // Note that we only require an augmentation to conform to the previous
+      // declaration/augmentation in the chain.
+      var target = element?.augmentationTarget;
+      if (target is MethodElement) {
+        parentMethod = target;
+      }
+    }
 
     if (parentMethod == null) return;
 

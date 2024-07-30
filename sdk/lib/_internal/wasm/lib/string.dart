@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart._string;
-
 import "dart:_internal"
     show
         CodeUnits,
@@ -13,31 +11,38 @@ import "dart:_internal"
         unsafeCast,
         WasmStringBase;
 
-import 'dart:_js_helper' show JS, jsStringToDartString;
-import 'dart:_js_types' show JSStringImpl;
+import 'dart:_js_helper' show JS, jsStringFromDartString, jsStringToDartString;
+import 'dart:_string';
 import 'dart:_object_helper';
 import 'dart:_string_helper';
+import 'dart:_typed_data';
 import 'dart:_wasm';
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
-/// Static function for `OneByteString._setAt` to avoid making `_setAt` public,
-/// which would allow calling it in dynamic invocations.
-@pragma('wasm:prefer-inline')
-void writeIntoOneByteString(OneByteString s, int index, int codePoint) =>
-    s._setAt(index, codePoint);
+extension OneByteStringUncheckedOperations on OneByteString {
+  @pragma('wasm:prefer-inline')
+  int codeUnitAtUnchecked(int index) => _codeUnitAtUnchecked(index);
 
-/// Static function for `OneByteString._codeUnitAtUnchecked` to avoid making
-/// `_codeUnitAtUnchecked` public, which would allow calling it in dynamic
-/// invocations.
-@pragma('wasm:prefer-inline')
-int oneByteStringCodeUnitAtUnchecked(OneByteString s, int index) =>
-    s._codeUnitAtUnchecked(index);
+  @pragma('wasm:prefer-inline')
+  String substringUnchecked(int start, int end) =>
+      _substringUnchecked(start, end);
 
-/// Same as `writeIntoOneByteString`, but for `TwoByteString`.
-@pragma('wasm:prefer-inline')
-void writeIntoTwoByteString(TwoByteString s, int index, int codePoint) =>
-    s._setAt(index, codePoint);
+  @pragma('wasm:prefer-inline')
+  void setUnchecked(int index, int codePoint) => _setAt(index, codePoint);
+}
+
+extension TwoByteStringUncheckedOperations on TwoByteString {
+  @pragma('wasm:prefer-inline')
+  int codeUnitAtUnchecked(int index) => _codeUnitAtUnchecked(index);
+
+  @pragma('wasm:prefer-inline')
+  String substringUnchecked(int start, int end) =>
+      _substringUnchecked(start, end);
+
+  @pragma('wasm:prefer-inline')
+  void setUnchecked(int index, int codePoint) => _setAt(index, codePoint);
+}
 
 /// Static function for `OneByteString._array` to avoid making `_array` public.
 @pragma('wasm:prefer-inline')
@@ -52,6 +57,47 @@ void copyRangeFromUint8ListToOneByteString(
   }
 }
 
+@pragma("wasm:prefer-inline")
+OneByteString createOneByteStringFromCharacters(
+        U8List bytes, int start, int end) =>
+    createOneByteStringFromCharactersArray(bytes.data, start, end);
+
+/// Create a [OneByteString] with the [array] contents in the range from
+/// [start] to [end] (exclusive).
+@pragma("wasm:prefer-inline")
+OneByteString createOneByteStringFromCharactersArray(
+    WasmArray<WasmI8> array, int start, int end) {
+  final len = end - start;
+  final s = OneByteString.withLength(len);
+  s._array.copy(0, array, start, len);
+  return s;
+}
+
+/// Same as [createOneByteStringFromCharactersArray], but the one-byte
+/// character array is an `i16 array` instead of `i8 array`.
+@pragma("wasm:prefer-inline")
+OneByteString createOneByteStringFromTwoByteCharactersArray(
+    WasmArray<WasmI16> array, int start, int end) {
+  final len = end - start;
+  final s = OneByteString.withLength(len);
+  for (int i = 0; i < len; i += 1) {
+    final i16 = array.readUnsigned(start + i);
+    s._array.write(i, i16);
+  }
+  return s;
+}
+
+/// Create a [TwoByteString] with the [array] contents in the range from
+/// [start] to [end] (exclusive).
+@pragma("wasm:prefer-inline")
+TwoByteString createTwoByteStringFromCharactersArray(
+    WasmArray<WasmI16> array, int start, int end) {
+  final len = end - start;
+  final s = TwoByteString.withLength(len);
+  s._array.copy(0, array, start, len);
+  return s;
+}
+
 extension OneByteStringUnsafeExtensions on String {
   @pragma('wasm:prefer-inline')
   int oneByteStringCodeUnitAtUnchecked(int index) =>
@@ -61,17 +107,20 @@ extension OneByteStringUnsafeExtensions on String {
 const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 
-String _toUpperCase(String string) => JS<String>(
-    "s => stringToDartString(stringFromDartString(s).toUpperCase())", string);
+String _toUpperCase(String string) =>
+    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
+        "s => s.toUpperCase()", jsStringFromDartString(string).toExternRef)));
 
-String _toLowerCase(String string) => JS<String>(
-    "s => stringToDartString(stringFromDartString(s).toLowerCase())", string);
+String _toLowerCase(String string) =>
+    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
+        "s => s.toLowerCase()", jsStringFromDartString(string).toExternRef)));
 
 /**
  * [StringBase] contains common methods used by concrete String
  * implementations, e.g., OneByteString.
  */
-abstract final class StringBase extends WasmStringBase {
+abstract final class StringBase extends WasmStringBase
+    implements StringUncheckedOperationsBase {
   bool _isWhitespace(int codeUnit);
 
   // Constants used by replaceAll encoding of string slices between matches.
@@ -96,10 +145,10 @@ abstract final class StringBase extends WasmStringBase {
   static const int _maxUnsignedSmiBits = 63;
 
   int get hashCode {
-    int hash = getHash(this);
+    int hash = getIdentityHashField(this);
     if (hash != 0) return hash;
     hash = _computeHashCode();
-    setHash(this, hash);
+    setIdentityHashField(this, hash);
     return hash;
   }
 
@@ -171,7 +220,8 @@ abstract final class StringBase extends WasmStringBase {
       bits |= nonBmpCode | 0x10000;
       multiCodeUnitChars += 1;
     }
-    if (bits < 0 || bits > 0xFFFFF) {
+    // bits < 0 || bits > 0xFFFFF
+    if (bits.gtU(0xFFFFF)) {
       throw ArgumentError(typedCharCodes);
     }
     if (multiCodeUnitChars == 0) {
@@ -227,7 +277,8 @@ abstract final class StringBase extends WasmStringBase {
           ..add(0xDC00 | (nonBmpChar & 0x3FF));
       }
     }
-    if (bits < 0 || bits > 0xFFFFF) {
+    // bits < 0 || bits > 0xFFFFF
+    if (bits.gtU(0xFFFFF)) {
       throw ArgumentError(charCodes);
     }
     List<int> charCodeList = makeListFixedLength<int>(list);
@@ -345,7 +396,8 @@ abstract final class StringBase extends WasmStringBase {
   }
 
   bool startsWith(Pattern pattern, [int index = 0]) {
-    if ((index < 0) || (index > this.length)) {
+    // index < 0 || index > length
+    if (index.gtU(length)) {
       throw RangeError.range(index, 0, this.length);
     }
     if (pattern is String) {
@@ -355,7 +407,8 @@ abstract final class StringBase extends WasmStringBase {
   }
 
   int indexOf(Pattern pattern, [int start = 0]) {
-    if ((start < 0) || (start > this.length)) {
+    // start < 0 || start > length
+    if (start.gtU(length)) {
       throw RangeError.range(start, 0, this.length, "start");
     }
     if (pattern is String) {
@@ -380,7 +433,8 @@ abstract final class StringBase extends WasmStringBase {
   int lastIndexOf(Pattern pattern, [int? start]) {
     if (start == null) {
       start = this.length;
-    } else if (start < 0 || start > this.length) {
+    } else if (start.gtU(length)) {
+      // start < 0 || start > length
       throw RangeError.range(start, 0, this.length);
     }
     if (pattern is String) {
@@ -469,7 +523,7 @@ abstract final class StringBase extends WasmStringBase {
     final len = this.length;
     int first = 0;
     for (; first < len; first++) {
-      if (!_isWhitespace(this.codeUnitAt(first))) {
+      if (!_isWhitespace(codeUnitAtUnchecked(first))) {
         break;
       }
     }
@@ -479,7 +533,7 @@ abstract final class StringBase extends WasmStringBase {
   int lastNonWhitespace() {
     int last = this.length - 1;
     for (; last >= 0; last--) {
-      if (!_isWhitespace(this.codeUnitAt(last))) {
+      if (!_isWhitespace(codeUnitAtUnchecked(last))) {
         break;
       }
     }
@@ -574,8 +628,9 @@ abstract final class StringBase extends WasmStringBase {
 
   bool contains(Pattern pattern, [int startIndex = 0]) {
     if (pattern is String) {
-      if (startIndex < 0 || startIndex > this.length) {
-        throw RangeError.range(startIndex, 0, this.length);
+      // startIndex < 0 || startIndex > length
+      if (startIndex.gtU(length)) {
+        throw RangeError.range(startIndex, 0, length);
       }
       return indexOf(pattern, startIndex) >= 0;
     }
@@ -891,7 +946,7 @@ abstract final class StringBase extends WasmStringBase {
       final value = values[i];
       var stringValue = value is String ? value : value.toString();
       if (stringValue is JSStringImpl) {
-        stringValue = jsStringToDartString(stringValue.toExternRef);
+        stringValue = jsStringToDartString(stringValue);
       }
       values[i] = stringValue;
       isOneByteString = isOneByteString && stringValue is OneByteString;
@@ -901,6 +956,53 @@ abstract final class StringBase extends WasmStringBase {
       return OneByteString._concatAll(values, totalLength);
     }
     return StringBase._concatAllFallback(values, totalLength);
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate1(Object? value) {
+    return value is String ? value : value.toString();
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate2(Object? value1, Object? value2) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
+    if (string1 is OneByteString && string2 is OneByteString) {
+      return OneByteString._concat2(string1, string2);
+    }
+    return StringBase._interpolate(
+        WasmArray<Object?>.literal([string1, string2]));
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate3(Object? value1, Object? value2, Object? value3) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
+    final String string3 = value3 is String ? value3 : value3.toString();
+    if (string1 is OneByteString &&
+        string2 is OneByteString &&
+        string3 is OneByteString) {
+      return OneByteString._concat3(string1, string2, string3);
+    }
+    return StringBase._interpolate(
+        WasmArray<Object?>.literal([string1, string2, string3]));
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate4(
+      Object? value1, Object? value2, Object? value3, Object? value4) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
+    final String string3 = value3 is String ? value3 : value3.toString();
+    final String string4 = value4 is String ? value4 : value4.toString();
+    if (string1 is OneByteString &&
+        string2 is OneByteString &&
+        string3 is OneByteString &&
+        string4 is OneByteString) {
+      return OneByteString._concat4(string1, string2, string3, string4);
+    }
+    return StringBase._interpolate(
+        WasmArray<Object?>.literal([string1, string2, string3, string4]));
   }
 
   @pragma('wasm:entry-point')
@@ -914,14 +1016,16 @@ abstract final class StringBase extends WasmStringBase {
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
-    if (start < 0 || start > string.length) {
+    // start < 0 || start > string.length
+    if (start.gtU(string.length)) {
       throw RangeError.range(start, 0, string.length, "start");
     }
     return StringAllMatchesIterable(string, this, start);
   }
 
   Match? matchAsPrefix(String string, [int start = 0]) {
-    if (start < 0 || start > string.length) {
+    // start < 0 || start > string.length
+    if (start.gtU(string.length)) {
       throw RangeError.range(start, 0, string.length);
     }
     if (start + this.length > string.length) return null;
@@ -1005,7 +1109,7 @@ abstract final class StringBase extends WasmStringBase {
     for (int i = start; i < end; i++) {
       String stringValue = strings[i];
       if (stringValue is JSStringImpl) {
-        stringValue = jsStringToDartString(stringValue.toExternRef);
+        stringValue = jsStringToDartString(stringValue);
         strings[i] = stringValue;
       }
       isOneByteString = isOneByteString && stringValue is OneByteString;
@@ -1078,12 +1182,13 @@ final class OneByteString extends StringBase {
     return StringBase._operatorEqualsFallback(this, other);
   }
 
+  @override
   @pragma('wasm:prefer-inline')
   int _codeUnitAtUnchecked(int index) => _array.readUnsigned(index);
 
   @override
   int codeUnitAt(int index) {
-    if (WasmI64.fromInt(length).leU(WasmI64.fromInt(index))) {
+    if (index.geU(length)) {
       throw IndexError.withLength(index, length);
     }
     return _codeUnitAtUnchecked(index);
@@ -1136,6 +1241,64 @@ final class OneByteString extends StringBase {
       resultBytes.copy(resultOffset, bytes, 0, bytes.length);
       resultOffset += bytes.length;
     }
+    return result;
+  }
+
+  static OneByteString _concat2(OneByteString string1, OneByteString string2) {
+    final bytes1 = string1._array;
+    final bytes2 = string2._array;
+
+    final result = OneByteString.withLength(bytes1.length + bytes2.length);
+    final resultBytes = result._array;
+
+    int resultOffset = 0;
+    resultBytes.copy(resultOffset, bytes1, 0, bytes1.length);
+    resultOffset += bytes1.length;
+    resultBytes.copy(resultOffset, bytes2, 0, bytes2.length);
+
+    return result;
+  }
+
+  static OneByteString _concat3(
+      OneByteString string1, OneByteString string2, OneByteString string3) {
+    final bytes1 = string1._array;
+    final bytes2 = string2._array;
+    final bytes3 = string3._array;
+
+    final result =
+        OneByteString.withLength(bytes1.length + bytes2.length + bytes3.length);
+    final resultBytes = result._array;
+
+    int resultOffset = 0;
+    resultBytes.copy(resultOffset, bytes1, 0, bytes1.length);
+    resultOffset += bytes1.length;
+    resultBytes.copy(resultOffset, bytes2, 0, bytes2.length);
+    resultOffset += bytes2.length;
+    resultBytes.copy(resultOffset, bytes3, 0, bytes3.length);
+
+    return result;
+  }
+
+  static OneByteString _concat4(OneByteString string1, OneByteString string2,
+      OneByteString string3, OneByteString string4) {
+    final bytes1 = string1._array;
+    final bytes2 = string2._array;
+    final bytes3 = string3._array;
+    final bytes4 = string4._array;
+
+    final result = OneByteString.withLength(
+        bytes1.length + bytes2.length + bytes3.length + bytes4.length);
+    final resultBytes = result._array;
+
+    int resultOffset = 0;
+    resultBytes.copy(resultOffset, bytes1, 0, bytes1.length);
+    resultOffset += bytes1.length;
+    resultBytes.copy(resultOffset, bytes2, 0, bytes2.length);
+    resultOffset += bytes2.length;
+    resultBytes.copy(resultOffset, bytes3, 0, bytes3.length);
+    resultOffset += bytes3.length;
+    resultBytes.copy(resultOffset, bytes4, 0, bytes4.length);
+
     return result;
   }
 
@@ -1456,11 +1619,15 @@ final class TwoByteString extends StringBase {
 
   @override
   int codeUnitAt(int index) {
-    if (WasmI64.fromInt(length).leU(WasmI64.fromInt(index))) {
+    if (index.geU(length)) {
       throw IndexError.withLength(index, length);
     }
-    return _array.readUnsigned(index);
+    return _codeUnitAtUnchecked(index);
   }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  int _codeUnitAtUnchecked(int index) => _array.readUnsigned(index);
 
   @override
   int get length => _array.length;
@@ -1478,36 +1645,4 @@ final class TwoByteString extends StringBase {
     result._array.copy(offset, _array, 0, length);
     return offset + length;
   }
-}
-
-// String accessors used to perform Dart<->JS string conversion
-
-@pragma("wasm:export", "\$stringLength")
-double _stringLength(String string) {
-  return string.length.toDouble();
-}
-
-@pragma("wasm:export", "\$stringRead")
-double _stringRead(String string, double index) {
-  return string.codeUnitAt(index.toInt()).toDouble();
-}
-
-@pragma("wasm:export", "\$stringAllocate1")
-OneByteString _stringAllocate1(double length) {
-  return OneByteString.withLength(length.toInt());
-}
-
-@pragma("wasm:export", "\$stringWrite1")
-void _stringWrite1(OneByteString string, double index, double codePoint) {
-  writeIntoOneByteString(string, index.toInt(), codePoint.toInt());
-}
-
-@pragma("wasm:export", "\$stringAllocate2")
-TwoByteString _stringAllocate2(double length) {
-  return TwoByteString.withLength(length.toInt());
-}
-
-@pragma("wasm:export", "\$stringWrite2")
-void _stringWrite2(TwoByteString string, double index, double codePoint) {
-  writeIntoTwoByteString(string, index.toInt(), codePoint.toInt());
 }

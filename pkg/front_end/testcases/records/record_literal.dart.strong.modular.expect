@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    (0, {a: this});
+  }
+}
+static method method() → dynamic {
+  #C1;
+  (0, 1);
+  (0, {b: 1});
+  ({a: 0, b: 1});
+  let final core::int #t1 = 0 in (1, {a: #t1});
+  #C4;
+}
+static method sorting() → dynamic {
+  ({a: 0, b: 1, c: 2, d: 3});
+  let final core::int #t2 = 0 in let final core::int #t3 = 1 in let final core::int #t4 = 2 in ({a: #t2, b: #t3, c: 3, d: #t4});
+  let final core::int #t5 = 0 in let final core::int #t6 = 1 in let final core::int #t7 = 2 in ({a: #t5, b: #t7, c: 3, d: #t6});
+  let final core::int #t8 = 0 in let final core::int #t9 = 1 in let final core::int #t10 = 2 in ({a: #t9, b: #t10, c: 3, d: #t8});
+  (0, 1, 2, {a: 3, b: 4, c: 5});
+  let final core::int #t11 = 0 in let final core::int #t12 = 1 in let final core::int #t13 = 2 in (#t11, #t12, 3, {a: #t13, b: 4, c: 5});
+  let final core::int #t14 = 0 in let final core::int #t15 = 1 in let final core::int #t16 = 2 in let final core::int #t17 = 3 in (#t14, #t15, 4, {a: #t16, b: #t17, c: 5});
+  let final core::int #t18 = 0 in let final core::int #t19 = 1 in let final core::int #t20 = 2 in let final core::int #t21 = 3 in let final core::int #t22 = 4 in (#t18, #t19, 5, {a: #t20, b: #t21, c: #t22});
+  let final core::int #t23 = 0 in let final core::int #t24 = 1 in let final core::int #t25 = 2 in (#t23, #t25, 3, {a: #t24, b: 4, c: 5});
+  let final core::int #t26 = 0 in let final core::int #t27 = 1 in let final core::int #t28 = 2 in (#t27, #t28, 3, {a: #t26, b: 4, c: 5});
+}
+
+constants  {
+  #C1 = ()
+  #C2 = TypeLiteralConstant(core::int)
+  #C3 = TypeLiteralConstant(core::String)
+  #C4 = (#C2, #C3)
+}

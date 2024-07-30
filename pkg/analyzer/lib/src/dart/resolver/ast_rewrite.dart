@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -26,9 +25,7 @@ import 'package:analyzer/src/error/codes.dart';
 class AstRewriter {
   final ErrorReporter _errorReporter;
 
-  final TypeProvider _typeProvider;
-
-  AstRewriter(this._errorReporter, this._typeProvider);
+  AstRewriter(this._errorReporter);
 
   /// Possibly rewrites [node] as a [MethodInvocation] with a
   /// [FunctionReference] target.
@@ -44,8 +41,8 @@ class AstRewriter {
       // Either `new` or `const` has been specified.
       return node;
     }
-    final typeNode = node.constructorName.type;
-    final importPrefix = typeNode.importPrefix;
+    var typeNode = node.constructorName.type;
+    var importPrefix = typeNode.importPrefix;
     if (importPrefix == null) {
       var element = nameScope.lookup(typeNode.name2.lexeme).getter;
       if (element is FunctionElement ||
@@ -64,10 +61,10 @@ class AstRewriter {
         );
       }
     } else {
-      final prefixName = importPrefix.name.lexeme;
-      final prefixElement = nameScope.lookup(prefixName).getter;
+      var prefixName = importPrefix.name.lexeme;
+      var prefixElement = nameScope.lookup(prefixName).getter;
       if (prefixElement is PrefixElement) {
-        final prefixedName = typeNode.name2.lexeme;
+        var prefixedName = typeNode.name2.lexeme;
         var element = prefixElement.scope.lookup(prefixedName).getter;
         if (element is FunctionElement) {
           return _toMethodInvocationOfFunctionReference(
@@ -123,7 +120,7 @@ class AstRewriter {
   /// Possibly rewrites [node] as an [ExtensionOverride] or as an
   /// [InstanceCreationExpression].
   AstNode methodInvocation(Scope nameScope, MethodInvocationImpl node) {
-    final methodName = node.methodName;
+    var methodName = node.methodName;
     if (methodName.isSynthetic) {
       // This isn't a constructor invocation because the method name is
       // synthetic.
@@ -282,7 +279,7 @@ class AstRewriter {
     var prefix = node.prefix;
     var prefixElement = nameScope.lookup(prefix.name).getter;
     if (parent is ConstantPattern && prefixElement is PrefixElement) {
-      final element = prefixElement.scope.lookup(node.identifier.name).getter;
+      var element = prefixElement.scope.lookup(node.identifier.name).getter;
       if (element is TypeDefiningElement) {
         return _toPatternTypeLiteral(parent, node);
       }
@@ -412,9 +409,9 @@ class AstRewriter {
   }
 
   AstNode simpleIdentifier(Scope nameScope, SimpleIdentifierImpl node) {
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is ConstantPattern) {
-      final element = nameScope.lookup(node.name).getter;
+      var element = nameScope.lookup(node.name).getter;
       if (element is TypeDefiningElement) {
         return _toPatternTypeLiteral(parent, node);
       }
@@ -430,10 +427,6 @@ class AstRewriter {
     required InterfaceElement classElement,
   }) {
     var augmented = classElement.augmented;
-    if (augmented == null) {
-      return node;
-    }
-
     var constructorElement = augmented.getNamedConstructor(
       constructorIdentifier.name,
     );
@@ -600,12 +593,8 @@ class AstRewriter {
     required SimpleIdentifierImpl constructorIdentifier,
     required InterfaceElement classElement,
   }) {
-    var augmented = classElement.augmented;
-    if (augmented == null) {
-      return node;
-    }
-
     var name = constructorIdentifier.name;
+    var augmented = classElement.augmented;
     var constructorElement = augmented.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
@@ -656,7 +645,6 @@ class AstRewriter {
     var typeLiteral = TypeLiteralImpl(
       typeName: typeName,
     );
-    typeLiteral.staticType = _typeProvider.typeType;
     var methodInvocation = MethodInvocationImpl(
       target: typeLiteral,
       operator: node.constructorName.period,
@@ -697,13 +685,12 @@ class AstRewriter {
     ConstantPattern parent,
     IdentifierImpl node,
   ) {
-    final result = TypeLiteralImpl(
+    var result = TypeLiteralImpl(
       typeName: node.toNamedType(
         typeArguments: null,
         question: null,
       ),
     );
-    result.staticType = _typeProvider.typeType;
     NodeReplacer.replace(node, result, parent: parent);
     return result;
   }

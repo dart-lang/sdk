@@ -1,16 +1,18 @@
-// @dart = 2.9
-
 class Class {
-  int field;
+  int? field;
 }
 
 expect(expected, actual) {}
 
 extension Extension on Class {
-  int get property => field;
-  int method() => field;
+  int? get property => field;
+  int? method() => field;
   testImplicitThis() {}
-  void set property(int value) {}
+  void set property(int? value) {}
 }
 
 main() {}
+
+test1(Class? c) {}
+
+test2(Class? c) {}

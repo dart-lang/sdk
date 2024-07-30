@@ -29,9 +29,9 @@ class ElementNameUnion {
     }
 
     var index = 1;
-    final codeUnits = name.codeUnits;
+    var codeUnits = name.codeUnits;
     for (var i = 0; i < codeUnits.length; i++) {
-      final char = codeUnits[i];
+      var char = codeUnits[i];
       if (0x41 <= char && char <= 0x5A) {
         mask[index++] |= 1 << (char - 0x41);
       } else if (0x61 <= char && char <= 0x7A) {
@@ -44,8 +44,8 @@ class ElementNameUnion {
     }
 
     // Update the length.
-    final length = index - 1;
-    final maxLength = mask[0];
+    var length = index - 1;
+    var maxLength = mask[0];
     if (maxLength < length) {
       mask[0] = length;
     }
@@ -60,15 +60,15 @@ class ElementNameUnion {
   /// characters are ignored.
   bool contains(String pattern) {
     // If overflow, then contains any name.
-    final maxLength = mask[0];
+    var maxLength = mask[0];
     if (maxLength >= _maxLength) {
       return true;
     }
 
     var index = 1;
     for (var i = 0; i < pattern.length; i++) {
-      final patternChar = pattern.codeUnitAt(i);
-      final int patternMask;
+      var patternChar = pattern.codeUnitAt(i);
+      int patternMask;
       if (0x41 <= patternChar && patternChar <= 0x5A) {
         patternMask = 1 << (patternChar - 0x41);
       } else if (0x61 <= patternChar && patternChar <= 0x7A) {
@@ -80,7 +80,7 @@ class ElementNameUnion {
         if (index > maxLength) {
           return false;
         }
-        final indexMask = mask[index++];
+        var indexMask = mask[index++];
         if ((indexMask & patternMask) != 0) {
           break;
         }
@@ -91,7 +91,7 @@ class ElementNameUnion {
   }
 
   static ElementNameUnion forLibrary(LibraryElement libraryElement) {
-    final result = ElementNameUnion.empty();
+    var result = ElementNameUnion.empty();
     libraryElement.accept(
       _ElementVisitor(result),
     );
@@ -106,12 +106,12 @@ class _ElementVisitor extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    final enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement;
     if (enclosing is CompilationUnitElement ||
         element is FieldElement ||
         element is MethodElement ||
         element is PropertyAccessorElement) {
-      final name = element.name;
+      var name = element.name;
       if (name != null) {
         union.add(name);
       }

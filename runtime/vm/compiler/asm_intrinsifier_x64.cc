@@ -1282,23 +1282,12 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ LoadAbstractTypeNullability(RCX, RCX);
   __ LoadAbstractTypeNullability(RDX, RDX);
   __ cmpq(RCX, RDX);
-  __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
-  // Fall through to equal case if nullability is strictly equal.
+  __ j(NOT_EQUAL, &not_equal, Assembler::kNearJump);
+  // Fall through to equal case if nullability is equal.
 
   __ Bind(&equal);
   __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
   __ ret();
-
-  // At this point the nullabilities are different, so they can only be
-  // syntactically equivalent if they're both either kNonNullable or kLegacy.
-  // These are the two largest values of the enum, so we can just do a < check.
-  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
-         target::Nullability::kNonNullable < target::Nullability::kLegacy);
-  __ Bind(&check_legacy);
-  __ cmpq(RCX, Immediate(target::Nullability::kNonNullable));
-  __ j(LESS, &not_equal, Assembler::kNearJump);
-  __ cmpq(RDX, Immediate(target::Nullability::kNonNullable));
-  __ j(GREATER_EQUAL, &equal, Assembler::kNearJump);
 
   __ Bind(&not_equal);
   __ LoadObject(RAX, CastHandle<Object>(FalseObject()));
@@ -1628,7 +1617,7 @@ static void TryAllocateString(Assembler* assembler,
     __ movq(RDI, length_reg);
   }
   Label pop_and_fail, not_zero_length;
-  __ pushq(RDI);                          // Preserve length.
+  __ pushq(RDI);  // Preserve length.
   if (cid == kOneByteStringCid) {
     // Untag length.
     __ SmiUntag(RDI);

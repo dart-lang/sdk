@@ -36,14 +36,15 @@ class MyPublicWidget extends StatelessWidget {
 class UseKeyInWidgetConstructors extends LintRule {
   static const LintCode code = LintCode('use_key_in_widget_constructors',
       "Constructors for public widgets should have a named 'key' parameter.",
-      correctionMessage: 'Try adding a named parameter to the constructor.');
+      correctionMessage: 'Try adding a named parameter to the constructor.',
+      hasPublishedDocs: true);
 
   UseKeyInWidgetConstructors()
       : super(
             name: 'use_key_in_widget_constructors',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -68,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement != null &&
         classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
-        classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
+        classElement.allConstructors.where((e) => !e.isSynthetic).isEmpty) {
       rule.reportLintForToken(node.name);
     }
     super.visitClassDeclaration(node);
@@ -76,6 +77,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.isAugmentation) return;
+
     var constructorElement = node.declaredElement;
     if (constructorElement == null) {
       return;

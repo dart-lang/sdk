@@ -29,14 +29,15 @@ class AvoidSingleCascadeInExpressionStatements extends LintRule {
   static const LintCode code = LintCode(
       'avoid_single_cascade_in_expression_statements',
       'Unnecessary cascade expression.',
-      correctionMessage: "Try using the operator '{0}'.");
+      correctionMessage: "Try using the operator '{0}'.",
+      hasPublishedDocs: true);
 
   AvoidSingleCascadeInExpressionStatements()
       : super(
             name: 'avoid_single_cascade_in_expression_statements',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

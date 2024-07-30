@@ -33,8 +33,7 @@ Library parseLibrary(Uri uri, String text,
   fileUri ??= uri;
   environment ??= new TypeParserEnvironment(uri, fileUri);
   Library library =
-      new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."))
-        ..isNonNullableByDefault = true;
+      new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."));
   List<ParsedType> types = type_parser.parse(text);
   for (ParsedType type in types) {
     if (type is ParsedClass) {
@@ -79,21 +78,17 @@ class Env {
 
   late TypeParserEnvironment _libraryEnvironment;
 
-  final bool isNonNullableByDefault;
-
-  Env(String source, {required this.isNonNullableByDefault}) {
+  Env(String source) {
     Uri libraryUri = Uri.parse('memory:main.dart');
     Uri coreUri = Uri.parse("dart:core");
     TypeParserEnvironment coreEnvironment =
         new TypeParserEnvironment(coreUri, coreUri);
     Library coreLibrary =
-        parseLibrary(coreUri, mockSdk, environment: coreEnvironment)
-          ..isNonNullableByDefault = isNonNullableByDefault;
+        parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
     _libraryEnvironment = new TypeParserEnvironment(libraryUri, libraryUri)
         ._extend(coreEnvironment._declarations);
     Library library =
-        parseLibrary(libraryUri, source, environment: _libraryEnvironment)
-          ..isNonNullableByDefault = isNonNullableByDefault;
+        parseLibrary(libraryUri, source, environment: _libraryEnvironment);
     library.name = "lib";
     component = new Component(libraries: <Library>[coreLibrary, library]);
     coreTypes = new CoreTypes(component);
@@ -628,8 +623,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
           ..defaultType = type;
       }
     }
-    List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass,
-        isNonNullableByDefault: true);
+    List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass);
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].defaultType = defaultTypes[i];
     }
@@ -697,8 +691,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
                     typeParameters[i])));
     List<DartType> defaultTypes = calculateBounds(
         freshTypeParametersFromStructuralParameters.freshTypeParameters,
-        objectClass,
-        isNonNullableByDefault: true);
+        objectClass);
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].defaultType =
           substitution.substituteType(defaultTypes[i]);

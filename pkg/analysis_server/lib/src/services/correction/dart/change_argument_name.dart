@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -15,6 +15,8 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   /// The maximum Levenshtein distance between the existing name and a possible
   /// replacement before the replacement is deemed to not be worth offering.
   static const _maxDistance = 4;
+
+  ChangeArgumentName({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -37,7 +39,8 @@ class ChangeArgumentName extends MultiCorrectionProducer {
       if (distance <= _maxDistance) {
         // TODO(brianwilkerson): Create a way to use the distance as part of the
         //  computation of the priority (so that closer names sort first).
-        producers.add(_ChangeName(currentNameNode, proposedName));
+        producers
+            .add(_ChangeName(currentNameNode, proposedName, context: context));
       }
     }
     return producers;
@@ -55,7 +58,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   }
 
   _NamedExpressionContext? _getNamedParameterNames() {
-    final node = this.node;
+    var node = this.node;
     var namedExpression = node.parent?.parent;
     if (node is SimpleIdentifier &&
         namedExpression is NamedExpression &&
@@ -82,10 +85,15 @@ class _ChangeName extends ResolvedCorrectionProducer {
   /// The name to which the argument name will be changed.
   final String _proposedName;
 
-  _ChangeName(this._argumentName, this._proposedName);
+  _ChangeName(this._argumentName, this._proposedName, {required super.context});
 
   @override
-  List<Object> get fixArguments => [_proposedName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_proposedName];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_ARGUMENT_NAME;

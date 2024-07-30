@@ -15,15 +15,23 @@ class C extends core::Object implements self::A {
 
 [@vm.inferred-type.metadata=!]
 static field self::A obj = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("2") =={core::num::==}{(core::Object) → core::bool} 2 ?{self::A} new self::C::•() : new self::A::•();
+
+[@vm.inferred-return-type.metadata=!]
 static method getObj() → self::A
   return [@vm.inferred-type.metadata=!] self::obj;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test1() → void {
   self::A x = [@vm.inferred-type.metadata=!] self::getObj();
   ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test2() → void {
   ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method test3() → void {
   {
     return;
@@ -31,11 +39,14 @@ static method test3() → void {
   throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
 }
 
+[@vm.inferred-return-type.metadata=dart.core::_Smi]
 [@vm.unboxing-info.metadata=()->i]
 static method test4() → dynamic
   return block {
     [@vm.inferred-type.metadata=!] self::getObj();
   } =>4;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::test1();
   let final self::A #t1 = [@vm.inferred-type.metadata=!] self::obj in self::test2();

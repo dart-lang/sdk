@@ -1,0 +1,103 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:30:5: Error: The method 'foo' isn't defined for the class 'Never?'.
+// Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+//   y.foo(); // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:31:5: Error: The getter 'bar' isn't defined for the class 'Never?'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
+//   y.bar; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:32:5: Error: The setter 'baz' isn't defined for the class 'Never?'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
+//   y.baz = 42; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:33:4: Error: The method 'call' isn't defined for the class 'Never?'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//   y(); // Error.
+//    ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:34:4: Error: The operator '+' isn't defined for the class 'Never?'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//   y++; // Error.
+//    ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:35:5: Error: The operator '+' isn't defined for the class 'Never?'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//   y += 1; // Error.
+//     ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:36:4: Error: The operator '[]' isn't defined for the class 'Never?'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
+//   y[42]; // Error.
+//    ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:37:4: Error: The operator '[]=' isn't defined for the class 'Never?'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
+//   y[42] = 42; // Error.
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo(Never x, Never? y) → dynamic {
+  core::String local0 = y.{core::Object::toString}{<object>}.(){() → core::String};
+  core::int local1 = y.{core::Object::hashCode}{<object>}.{core::int};
+  x{Never}.foo();
+  x{Never}.bar;
+  x.{Never}baz = 42;
+  x{Never}.call();
+  x{Never}.[](42);
+  x{Never}.[]=(42, 42);
+  x = x{Never}.+(1);
+  x = x{Never}.+(1);
+  let final Never? #t1 = y in #t1 == null ?{Null} null : #t1{Never}{Never}.foo();
+  let final Never? #t2 = y in #t2 == null ?{Null} null : #t2{Never}{Never}.bar;
+  let final Never? #t3 = y in #t3 == null ?{core::int?} null : #t3{Never}.{Never}baz = 42;
+  let final Never? #t4 = y in #t4 == null ?{Null} null : #t4{Never}{Never}.call();
+  let final Never? #t5 = y in #t5 == null ?{Null} null : #t5{Never}{Never}.[](42);
+  let final Never? #t6 = y in #t6 == null ?{core::int?} null : #t6{Never}{Never}.[]=(42, 42);
+  let final Never #t7 = x in #t7 == null ?{Null} null : #t7{Never}.foo();
+  let final Never #t8 = x in #t8 == null ?{Null} null : #t8{Never}.bar;
+  let final Never #t9 = x in #t9 == null ?{core::int?} null : #t9.{Never}baz = 42;
+  let final Never #t10 = x in #t10 == null ?{Null} null : #t10{Never}.[](42);
+  let final Never #t11 = x in #t11 == null ?{core::int?} null : #t11{Never}.[]=(42, 42);
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:5: Error: The method 'foo' isn't defined for the class 'Never?'.
+Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+  y.foo(); // Error.
+    ^^^" in y{<unresolved>}.foo();
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:5: Error: The getter 'bar' isn't defined for the class 'Never?'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
+  y.bar; // Error.
+    ^^^" in y{<unresolved>}.bar;
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:32:5: Error: The setter 'baz' isn't defined for the class 'Never?'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
+  y.baz = 42; // Error.
+    ^^^" in y.{<unresolved>}baz = 42;
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:33:4: Error: The method 'call' isn't defined for the class 'Never?'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  y(); // Error.
+   ^" in y{<unresolved>}.call();
+  y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:34:4: Error: The operator '+' isn't defined for the class 'Never?'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+  y++; // Error.
+   ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic} Never?;
+  y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:35:5: Error: The operator '+' isn't defined for the class 'Never?'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+  y += 1; // Error.
+    ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic} Never?;
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:36:4: Error: The operator '[]' isn't defined for the class 'Never?'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
+  y[42]; // Error.
+   ^" in y{<unresolved>}.[](42);
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:37:4: Error: The operator '[]=' isn't defined for the class 'Never?'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
+  y[42] = 42; // Error.
+   ^" in y{<unresolved>}.[]=(42, 42);
+}
+static method main() → dynamic {}

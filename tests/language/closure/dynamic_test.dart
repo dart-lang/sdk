@@ -4,9 +4,6 @@
 //
 // Test that dynamic invocation of closures works as expected, including
 // appropriate type checks.
-//
-// VMOptions=--lazy-dispatchers
-// VMOptions=--no-lazy-dispatchers
 
 import 'package:expect/expect.dart';
 

@@ -16,16 +16,15 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticStringToken;
-import 'package:front_end/src/fasta/command_line_reporting.dart'
+import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
-import 'package:front_end/src/fasta/messages.dart' show Message;
-import 'package:front_end/src/fasta/source/diet_parser.dart'
+import 'package:front_end/src/base/messages.dart' show Message;
+import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
-import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
+import 'package:front_end/src/source/stack_listener_impl.dart'
     show offsetForToken;
-import 'package:front_end/src/fasta/util/parser_ast.dart' show getAST;
-import 'package:front_end/src/fasta/util/parser_ast_helper.dart'
-    show ParserAstNode;
+import 'package:front_end/src/util/parser_ast.dart' show getAST;
+import 'package:front_end/src/util/parser_ast_helper.dart' show ParserAstNode;
 import 'package:kernel/ast.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;

@@ -1,0 +1,89 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+@#C3
+@#C5
+abstract class A extends core::Object {
+  @#C7
+  @#C5
+  field core::Object? ifield1 = null;
+  field core::Object? _ifield2 = null;
+  @#C5
+  static field core::Object? sfield3 = null;
+  static field core::Object? _sfield4 = null;
+  @#C5
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  constructor _() → self::A
+    : super core::Object::•()
+    ;
+  @#C5
+  static factory factory1() → self::A /* redirection-target: self::B::• */
+    return new self::B::•();
+  @#C5
+  static factory factory2() → self::A
+    return new self::B::•();
+  static factory _factory3() → self::A
+    return new self::B::•();
+  @#C7
+  @#C5
+  method imethod1() → void {}
+  @#C7
+  @#C5
+  abstract method imethod2() → void;
+  method _imethod3() → void {}
+  @#C5
+  static method smethod4() → void {}
+}
+@#C5
+class B extends self::A {
+  @#C5
+  field core::Object? ifield5 = null;
+  field core::Object? _ifield6 = null;
+  @#C5
+  constructor •() → self::B
+    : super self::A::•()
+    ;
+  @#C5
+  method imethod2() → void {}
+  @#C5
+  method imethod5() → void {}
+  method _imethod6() → void {}
+  @#C5
+  static method smethod7() → void {}
+}
+class _C extends core::Object {
+  field core::Object? ifield7 = null;
+  static field core::Object? _sfield8 = null;
+  synthetic constructor •() → self::_C
+    : super core::Object::•()
+    ;
+  method imethod8() → void {}
+  static method smethod9() → void {}
+}
+@#C5
+class D extends core::Object {
+  @#C5
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  @#C5
+  method build() → void {}
+}
+@#C5
+static field core::Object? sfield9;
+static field core::Object? _sfield10;
+@#C5
+static method smethod10() → void {}
+static method _smethod11() → void {}
+constants  {
+  #C1 = "dyn-module:extendable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dyn-module:callable"
+  #C5 = core::pragma {name:#C4, options:#C2}
+  #C6 = "dyn-module:can-be-overridden"
+  #C7 = core::pragma {name:#C6, options:#C2}
+}

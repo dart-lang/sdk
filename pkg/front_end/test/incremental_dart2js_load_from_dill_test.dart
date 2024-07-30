@@ -5,13 +5,10 @@
 import 'dart:io' show Directory, File;
 
 import 'package:expect/expect.dart' show Expect;
-
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
 import 'package:kernel/ast.dart';
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/src/equivalence.dart';
 import 'package:kernel/target/targets.dart';
 

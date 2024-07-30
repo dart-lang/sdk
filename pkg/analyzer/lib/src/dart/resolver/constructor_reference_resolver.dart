@@ -30,7 +30,7 @@ class ConstructorReferenceResolver {
     node.constructorName.accept(_resolver);
     var element = node.constructorName.staticElement;
     if (element != null && !element.isFactory) {
-      final enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isAbstract) {
         _resolver.errorReporter.atNode(
           node,
@@ -52,7 +52,7 @@ class ConstructorReferenceResolver {
       // to avoid reporting redundant errors.
       var enclosingElement = node.constructorName.type.element;
       if (enclosingElement is TypeAliasElement) {
-        final aliasedType = enclosingElement.aliasedType;
+        var aliasedType = enclosingElement.aliasedType;
         enclosingElement =
             aliasedType is InterfaceType ? aliasedType.element : null;
       }
@@ -129,17 +129,17 @@ class ConstructorReferenceResolver {
 
         constructorName.staticElement = constructorElement.declaration;
         constructorName.name?.staticElement = constructorElement.declaration;
-        node.staticType = inferred;
+        node.recordStaticType(inferred, resolver: _resolver);
         // The NamedType child of `constructorName` doesn't have a static type.
         constructorName.type.type = null;
       }
     } else {
       var constructorElement = constructorName.staticElement;
-      if (constructorElement == null) {
-        node.staticType = InvalidTypeImpl.instance;
-      } else {
-        node.staticType = constructorElement.type;
-      }
+      node.recordStaticType(
+          constructorElement == null
+              ? InvalidTypeImpl.instance
+              : constructorElement.type,
+          resolver: _resolver);
       // The NamedType child of `constructorName` doesn't have a static type.
       constructorName.type.type = null;
     }

@@ -1,9 +1,0 @@
-// @dart = 2.9
-
-import 'exhaustiveness_lib.dart';
-
-expect(expected, actual) {}
-
-main() {}
-
-throws(void Function() f) {}

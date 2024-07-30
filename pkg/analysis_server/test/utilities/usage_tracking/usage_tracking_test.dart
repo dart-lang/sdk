@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 void main() {
   group('parseAutoSnapshottingConfig', () {
     test('parses correct config', () {
-      final config = parseAutoSnapshottingConfig(_argsWithSnapshotting)!;
+      var config = parseAutoSnapshottingConfig(_argsWithSnapshotting)!;
       expect(config.thresholdMb, 200);
       expect(config.increaseMb, 100);
       expect(config.directory, '/Users/polinach/Downloads/analyzer_snapshots');
@@ -16,12 +16,12 @@ void main() {
     });
 
     test('returns null for no config', () {
-      final config = parseAutoSnapshottingConfig(_argsNoSnapshotting);
+      var config = parseAutoSnapshottingConfig(_argsNoSnapshotting);
       expect(config, null);
     });
 
     test('throws for wrong config', () {
-      final wrongAutosnapshottingArg = 'autosnapshotting--wrong-configuration';
+      var wrongAutosnapshottingArg = 'autosnapshotting--wrong-configuration';
       expect(
         () => parseAutoSnapshottingConfig(
             [wrongAutosnapshottingArg, 'some other arg']),

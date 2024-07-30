@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -15,15 +15,22 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class MakeFieldNotFinal extends ResolvedCorrectionProducer {
   String _fieldName = '';
 
+  MakeFieldNotFinal({required super.context});
+
   @override
-  List<Object> get fixArguments => [_fieldName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_fieldName];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_FIELD_NOT_FINAL;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier) {
       return;
     }

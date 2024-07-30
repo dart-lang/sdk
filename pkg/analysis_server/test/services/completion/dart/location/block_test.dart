@@ -1582,11 +1582,11 @@ suggestions
 
   Future<void>
       test_afterLeftBrace_beforeRightBrace_macroGenerated_generatedClass() async {
-    addMacros([declareInLibraryMacro()]);
+    addMacros([declareTypesPhaseMacro()]);
     await computeSuggestions('''
 import 'macros.dart';
 
-@DeclareInLibrary('class C0 {}')
+@DeclareTypesPhase('C0', 'class C0 {}')
 class C {}
 
 void f() {

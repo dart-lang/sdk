@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Prefer using null aware operators.';
+const _desc = r'Prefer using `null`-aware operators.';
 
 const _details = r'''
-**PREFER** using null aware operators instead of null checks in conditional
+**PREFER** using `null`-aware operators instead of `null` checks in conditional
 expressions.
 
 **BAD:**
@@ -31,14 +31,15 @@ class PreferNullAwareOperators extends LintRule {
       'prefer_null_aware_operators',
       "Use the null-aware operator '?.' rather than an explicit 'null' "
           'comparison.',
-      correctionMessage: "Try using '?.'.");
+      correctionMessage: "Try using '?.'.",
+      hasPublishedDocs: true);
 
   PreferNullAwareOperators()
       : super(
             name: 'prefer_null_aware_operators',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

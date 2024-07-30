@@ -289,7 +289,8 @@
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
   FIELD(Thread, lazy_deopt_from_throw_stub_offset)                             \
   FIELD(Thread, lazy_specialize_type_test_stub_offset)                         \
-  FIELD(Thread, marking_stack_block_offset)                                    \
+  FIELD(Thread, old_marking_stack_block_offset)                                \
+  FIELD(Thread, new_marking_stack_block_offset)                                \
   FIELD(Thread, megamorphic_call_checked_entry_offset)                         \
   FIELD(Thread, switchable_call_miss_entry_offset)                             \
   FIELD(Thread, switchable_call_miss_stub_offset)                              \
@@ -315,6 +316,7 @@
   FIELD(Thread, resume_pc_offset)                                              \
   FIELD(Thread, saved_shadow_call_stack_offset)                                \
   FIELD(Thread, safepoint_state_offset)                                        \
+  FIELD(Thread, shared_field_table_values_offset)                              \
   FIELD(Thread, slow_type_test_stub_offset)                                    \
   FIELD(Thread, slow_type_test_entry_point_offset)                             \
   FIELD(Thread, stack_limit_offset)                                            \
@@ -436,6 +438,7 @@
   SIZEOF(Instructions, UnalignedHeaderSize, UntaggedInstructions)              \
   SIZEOF(InstructionsSection, UnalignedHeaderSize,                             \
          UntaggedInstructionsSection)                                          \
+  FIELD(InstructionsSection, HeaderSize)                                       \
   SIZEOF(InstructionsTable, InstanceSize, UntaggedInstructionsTable)           \
   SIZEOF(Int32x4, InstanceSize, UntaggedInt32x4)                               \
   SIZEOF(Integer, InstanceSize, UntaggedInteger)                               \

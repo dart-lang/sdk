@@ -327,7 +327,6 @@ class LateLowering {
           fileUri: fileUri,
           fieldReference: field.fieldReference)
         ..fileOffset = fileOffset
-        ..isNonNullableByDefault = true
         // TODO(fishythefish,srujzs,johnniwinther): Also mark the getter/setter
         //  as extension/extension type members.
         ..isExtensionMember = field.isExtensionMember
@@ -347,8 +346,7 @@ class LateLowering {
           isStatic: true,
           fileUri: fileUri,
           reference: field.getterReference)
-        ..fileOffset = fileOffset
-        ..isNonNullableByDefault = true;
+        ..fileOffset = fileOffset;
 
       VariableDeclaration setterValue =
           VariableDeclaration('value', type: type, isSynthesized: true)
@@ -374,8 +372,7 @@ class LateLowering {
           isStatic: true,
           fileUri: fileUri,
           reference: field.setterReference)
-        ..fileOffset = fileOffset
-        ..isNonNullableByDefault = true;
+        ..fileOffset = fileOffset;
 
       TreeNode parent = field.parent!;
       if (parent is Class) {
@@ -419,7 +416,6 @@ class LateLowering {
         fileUri: fileUri,
         fieldReference: field.fieldReference)
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault = true
       ..isInternalImplementation = true;
     InstanceGet fieldRead() => InstanceGet(InstanceAccessKind.Instance,
         ThisExpression()..fileOffset = fileOffset, mangledName,
@@ -538,8 +534,7 @@ class LateLowering {
     Procedure getter = Procedure(name, ProcedureKind.Getter,
         FunctionNode(getterBody(), returnType: type)..fileOffset = fileOffset,
         fileUri: fileUri, reference: field.getterReference)
-      ..fileOffset = fileOffset
-      ..isNonNullableByDefault = true;
+      ..fileOffset = fileOffset;
     // The initializer is copied from [field] to [getter] so we copy the
     // transformer flags to reflect whether the getter contains super calls.
     getter.transformerFlags = field.transformerFlags;
@@ -596,8 +591,7 @@ class LateLowering {
             ..fileOffset = fileOffset,
           fileUri: fileUri,
           reference: field.setterReference)
-        ..fileOffset = fileOffset
-        ..isNonNullableByDefault = true;
+        ..fileOffset = fileOffset;
       _copyAnnotations(setter, field);
       enclosingClass.addProcedure(setter);
     }

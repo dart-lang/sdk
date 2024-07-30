@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 // Test that the dart:html API does not leak native jsdom methods:
 //   appendChild operation.

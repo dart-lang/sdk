@@ -708,15 +708,13 @@ ISOLATE_UNIT_TEST_CASE(SerializeEmptyByteArray) {
 
 VM_UNIT_TEST_CASE(FullSnapshot) {
   // clang-format off
-  auto kScriptChars = Utils::CStringUniquePtr(
-      OS::SCreate(
-          nullptr,
+  const char* kScriptChars =
           "class Fields  {\n"
           "  Fields(int i, int j) : fld1 = i, fld2 = j {}\n"
           "  int fld1;\n"
           "  final int fld2;\n"
           "  final int bigint_fld = 0xfffffffffff;\n"
-          "  static int%s fld3;\n"
+          "  static int? fld3;\n"
           "  static const int smi_sfld = 10;\n"
           "  static const int bigint_sfld = 0xfffffffffff;\n"
           "}\n"
@@ -732,9 +730,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
           "    Expect.equals(true, obj.bigint_fld == 0xfffffffffff);\n"
           "    return obj;\n"
           "  }\n"
-          "}\n",
-          TestCase::NullableTag()),
-      std::free);
+          "}\n";
   // clang-format on
   Dart_Handle result;
 
@@ -747,7 +743,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     TestIsolateScope __test_isolate__;
 
     // Create a test library and Load up a test script in it.
-    TestCase::LoadTestScript(kScriptChars.get(), nullptr);
+    TestCase::LoadTestScript(kScriptChars, nullptr);
 
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
@@ -2044,62 +2040,6 @@ TEST_CASE(IsKernelNegative) {
 
   uint8_t buffer[4] = {0, 0, 0, 0};
   EXPECT(!Dart_IsKernel(buffer, ARRAY_SIZE(buffer)));
-}
-
-VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
-  const char* kScriptChars =
-      "class Generic<T> {\n"
-      "  const Generic();\n"
-      "  static const Generic<int> g = const Generic<int>();\n"
-      "  static testMain() => g.runtimeType;\n"
-      "}\n";
-
-  // Start an Isolate, load and execute a script and check if legacy erasure is
-  // required, preventing to write a full snapshot.
-  {
-    TestIsolateScope __test_isolate__;
-
-    // Create a test library and Load up a test script in it.
-    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-    EXPECT_VALID(lib);
-
-    Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
-    ASSERT(isolate == __test_isolate__.isolate());
-    TransitionNativeToVM transition(thread);
-    StackZone zone(thread);
-    HandleScope scope(thread);
-
-    Dart_Handle result = Api::CheckAndFinalizePendingClasses(thread);
-    Dart_Handle cls;
-    {
-      TransitionVMToNative to_native(thread);
-      EXPECT_VALID(result);
-
-      // Invoke a function so that the constant is evaluated.
-      cls = Dart_GetClass(TestCase::lib(), NewString("Generic"));
-      result = Dart_Invoke(cls, NewString("testMain"), 0, nullptr);
-      EXPECT_VALID(result);
-    }
-    // Verify that legacy erasure is required in strong mode.
-    Type& type = Type::Handle();
-    type ^= Api::UnwrapHandle(cls);  // Dart_GetClass actually returns a Type.
-    const Class& clazz = Class::Handle(type.type_class());
-    const bool required =
-        clazz.RequireCanonicalTypeErasureOfConstants(zone.GetZone());
-    EXPECT(required == isolate->group()->null_safety());
-
-    // Verify that snapshot writing succeeds if erasure is not required.
-    if (!required) {
-      // Write snapshot with object content.
-      MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
-      FullSnapshotWriter writer(
-          Snapshot::kFullCore, /*vm_snapshot_data=*/nullptr,
-          &isolate_snapshot_data,
-          /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
-      writer.WriteFullSnapshot();
-    }
-  }
 }
 
 }  // namespace dart

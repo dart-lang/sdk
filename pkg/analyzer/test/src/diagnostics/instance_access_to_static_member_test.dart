@@ -34,98 +34,6 @@ f(C c) {
     );
   }
 
-  test_extension_getter() async {
-    await assertErrorsInCode('''
-class C {}
-
-extension E on C {
-  static int get a => 0;
-}
-
-C g(C c) => C();
-f(C c) {
-  g(c).a;
-}
-''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 92, 1,
-          correctionContains: "extension 'E'"),
-    ]);
-    assertElement(
-      findNode.simple('a;'),
-      findElement.getter('a'),
-    );
-  }
-
-  test_extension_getter_unnamed() async {
-    await assertErrorsInCode('''
-class C {}
-
-extension on C {
-  static int get a => 0;
-}
-
-C g(C c) => C();
-f(C c) {
-  g(c).a;
-}
-''', [
-      error(
-          CompileTimeErrorCode
-              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
-          90,
-          1),
-    ]);
-    assertElement(
-      findNode.simple('a;'),
-      findElement.getter('a'),
-    );
-  }
-
-  test_extension_method() async {
-    await assertErrorsInCode('''
-class C {}
-
-extension E on C {
-  static void a() {}
-}
-
-f(C c) {
-  c.a();
-}
-''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1,
-          correctionContains: "extension 'E'"),
-    ]);
-    assertElement(
-      findNode.methodInvocation('a();'),
-      findElement.method('a'),
-    );
-  }
-
-  test_extension_method_unnamed() async {
-    await assertErrorsInCode('''
-class C {}
-
-extension on C {
-  static void a() {}
-}
-
-f(C c) {
-  c.a();
-}
-''', [
-      error(
-          CompileTimeErrorCode
-              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
-          66,
-          1),
-    ]);
-    assertElement(
-      findNode.methodInvocation('a();'),
-      findElement.method('a'),
-    );
-  }
-
   test_extension_referring_to_class_member() async {
     await assertErrorsInCode('''
 class C {
@@ -143,49 +51,6 @@ test(int i) {
       error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 71, 1,
           correctionContains: "class 'C'"),
     ]);
-  }
-
-  test_extension_setter() async {
-    await assertErrorsInCode('''
-class C {}
-
-extension E on C {
-  static set a(int v) {}
-}
-
-f(C c) {
-  c.a = 2;
-}
-''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 72, 1),
-    ]);
-
-    assertResolvedNodeText(findNode.assignment('a ='), r'''
-AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: c
-      staticElement: self::@function::f::@parameter::c
-      staticType: C
-    period: .
-    identifier: SimpleIdentifier
-      token: a
-      staticElement: <null>
-      staticType: null
-    staticElement: <null>
-    staticType: null
-  operator: =
-  rightHandSide: IntegerLiteral
-    literal: 2
-    parameter: self::@extension::E::@setter::a::@parameter::v
-    staticType: int
-  readElement: <null>
-  readType: null
-  writeElement: self::@extension::E::@setter::a
-  writeType: int
-  staticElement: <null>
-  staticType: int
-''');
   }
 
   test_method_reference() async {
@@ -211,25 +76,7 @@ f(int a) {
   a.m<int>;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 57, 1,
-          correctionContains: "extension 'E'"),
-    ]);
-  }
-
-  test_method_reference_extension_unnamed() async {
-    await assertErrorsInCode(r'''
-extension on int {
-  static m<T>() {}
-}
-f(int a) {
-  a.m<int>;
-}
-''', [
-      error(
-          CompileTimeErrorCode
-              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
-          55,
-          1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 57, 1),
     ]);
   }
 

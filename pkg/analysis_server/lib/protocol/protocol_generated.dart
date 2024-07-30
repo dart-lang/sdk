@@ -10,8 +10,7 @@ import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
-    show clientUriConverter;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// analysis.analyzedFiles params
@@ -28,7 +27,8 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   AnalysisAnalyzedFilesParams(this.directories);
 
   factory AnalysisAnalyzedFilesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> directories;
@@ -36,8 +36,10 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
         directories = jsonDecoder.decodeList(
             '$jsonPath.directories',
             json['directories'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'directories');
       }
@@ -49,26 +51,32 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   }
 
   factory AnalysisAnalyzedFilesParams.fromNotification(
-      Notification notification) {
+      Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisAnalyzedFilesParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['directories'] = directories
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.analyzedFiles', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification('analysis.analyzedFiles',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -107,13 +115,15 @@ class AnalysisClosingLabelsParams implements HasToJson {
   AnalysisClosingLabelsParams(this.file, this.labels);
 
   factory AnalysisClosingLabelsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -122,8 +132,9 @@ class AnalysisClosingLabelsParams implements HasToJson {
         labels = jsonDecoder.decodeList(
             '$jsonPath.labels',
             json['labels'],
-            (String jsonPath, Object? json) =>
-                ClosingLabel.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ClosingLabel.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'labels');
       }
@@ -135,26 +146,33 @@ class AnalysisClosingLabelsParams implements HasToJson {
   }
 
   factory AnalysisClosingLabelsParams.fromNotification(
-      Notification notification) {
+      Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisClosingLabelsParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['labels'] =
-        labels.map((ClosingLabel value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['labels'] = labels
+        .map((ClosingLabel value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.closingLabels', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification('analysis.closingLabels',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -192,13 +210,15 @@ class AnalysisErrorFixes implements HasToJson {
       : fixes = fixes ?? <SourceChange>[];
 
   factory AnalysisErrorFixes.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       AnalysisError error;
       if (json.containsKey('error')) {
         error = AnalysisError.fromJson(
-            jsonDecoder, '$jsonPath.error', json['error']);
+            jsonDecoder, '$jsonPath.error', json['error'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'error');
       }
@@ -207,8 +227,9 @@ class AnalysisErrorFixes implements HasToJson {
         fixes = jsonDecoder.decodeList(
             '$jsonPath.fixes',
             json['fixes'],
-            (String jsonPath, Object? json) =>
-                SourceChange.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SourceChange.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
       }
@@ -219,16 +240,19 @@ class AnalysisErrorFixes implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['error'] = error.toJson();
-    result['fixes'] =
-        fixes.map((SourceChange value) => value.toJson()).toList();
+    result['error'] = error.toJson(clientUriConverter: clientUriConverter);
+    result['fixes'] = fixes
+        .map((SourceChange value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -265,13 +289,15 @@ class AnalysisErrorsParams implements HasToJson {
   AnalysisErrorsParams(this.file, this.errors);
 
   factory AnalysisErrorsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -280,8 +306,9 @@ class AnalysisErrorsParams implements HasToJson {
         errors = jsonDecoder.decodeList(
             '$jsonPath.errors',
             json['errors'],
-            (String jsonPath, Object? json) =>
-                AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => AnalysisError.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'errors');
       }
@@ -291,26 +318,33 @@ class AnalysisErrorsParams implements HasToJson {
     }
   }
 
-  factory AnalysisErrorsParams.fromNotification(Notification notification) {
+  factory AnalysisErrorsParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisErrorsParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['errors'] =
-        errors.map((AnalysisError value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['errors'] = errors
+        .map((AnalysisError value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.errors', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.errors', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -343,7 +377,8 @@ class AnalysisFlushResultsParams implements HasToJson {
   AnalysisFlushResultsParams(this.files);
 
   factory AnalysisFlushResultsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> files;
@@ -351,8 +386,10 @@ class AnalysisFlushResultsParams implements HasToJson {
         files = jsonDecoder.decodeList(
             '$jsonPath.files',
             json['files'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -363,27 +400,32 @@ class AnalysisFlushResultsParams implements HasToJson {
     }
   }
 
-  factory AnalysisFlushResultsParams.fromNotification(
-      Notification notification) {
+  factory AnalysisFlushResultsParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisFlushResultsParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['files'] = files
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.flushResults', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification('analysis.flushResults',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -415,13 +457,15 @@ class AnalysisFoldingParams implements HasToJson {
   AnalysisFoldingParams(this.file, this.regions);
 
   factory AnalysisFoldingParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -430,8 +474,9 @@ class AnalysisFoldingParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             '$jsonPath.regions',
             json['regions'],
-            (String jsonPath, Object? json) =>
-                FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => FoldingRegion.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
       }
@@ -441,26 +486,33 @@ class AnalysisFoldingParams implements HasToJson {
     }
   }
 
-  factory AnalysisFoldingParams.fromNotification(Notification notification) {
+  factory AnalysisFoldingParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisFoldingParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['regions'] =
-        regions.map((FoldingRegion value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['regions'] = regions
+        .map((FoldingRegion value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.folding', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.folding', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -493,13 +545,15 @@ class AnalysisGetErrorsParams implements RequestParams {
   AnalysisGetErrorsParams(this.file);
 
   factory AnalysisGetErrorsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -509,25 +563,30 @@ class AnalysisGetErrorsParams implements RequestParams {
     }
   }
 
-  factory AnalysisGetErrorsParams.fromRequest(Request request) {
+  factory AnalysisGetErrorsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetErrorsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.getErrors', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.getErrors',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -555,7 +614,8 @@ class AnalysisGetErrorsResult implements ResponseResult {
   AnalysisGetErrorsResult(this.errors);
 
   factory AnalysisGetErrorsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<AnalysisError> errors;
@@ -563,8 +623,9 @@ class AnalysisGetErrorsResult implements ResponseResult {
         errors = jsonDecoder.decodeList(
             '$jsonPath.errors',
             json['errors'],
-            (String jsonPath, Object? json) =>
-                AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => AnalysisError.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'errors');
       }
@@ -574,28 +635,34 @@ class AnalysisGetErrorsResult implements ResponseResult {
     }
   }
 
-  factory AnalysisGetErrorsResult.fromResponse(Response response) {
+  factory AnalysisGetErrorsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetErrorsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['errors'] =
-        errors.map((AnalysisError value) => value.toJson()).toList();
+    result['errors'] = errors
+        .map((AnalysisError value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -628,13 +695,15 @@ class AnalysisGetHoverParams implements RequestParams {
   AnalysisGetHoverParams(this.file, this.offset);
 
   factory AnalysisGetHoverParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -650,26 +719,31 @@ class AnalysisGetHoverParams implements RequestParams {
     }
   }
 
-  factory AnalysisGetHoverParams.fromRequest(Request request) {
+  factory AnalysisGetHoverParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetHoverParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.getHover', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.getHover',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -704,7 +778,8 @@ class AnalysisGetHoverResult implements ResponseResult {
   AnalysisGetHoverResult(this.hovers);
 
   factory AnalysisGetHoverResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<HoverInformation> hovers;
@@ -712,8 +787,9 @@ class AnalysisGetHoverResult implements ResponseResult {
         hovers = jsonDecoder.decodeList(
             '$jsonPath.hovers',
             json['hovers'],
-            (String jsonPath, Object? json) =>
-                HoverInformation.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => HoverInformation.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'hovers');
       }
@@ -723,28 +799,34 @@ class AnalysisGetHoverResult implements ResponseResult {
     }
   }
 
-  factory AnalysisGetHoverResult.fromResponse(Response response) {
+  factory AnalysisGetHoverResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetHoverResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['hovers'] =
-        hovers.map((HoverInformation value) => value.toJson()).toList();
+    result['hovers'] = hovers
+        .map((HoverInformation value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -781,13 +863,15 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   AnalysisGetImportedElementsParams(this.file, this.offset, this.length);
 
   factory AnalysisGetImportedElementsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -810,27 +894,32 @@ class AnalysisGetImportedElementsParams implements RequestParams {
     }
   }
 
-  factory AnalysisGetImportedElementsParams.fromRequest(Request request) {
+  factory AnalysisGetImportedElementsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetImportedElementsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['length'] = length;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.getImportedElements', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.getImportedElements',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -865,7 +954,8 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   AnalysisGetImportedElementsResult(this.elements);
 
   factory AnalysisGetImportedElementsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<ImportedElements> elements;
@@ -873,8 +963,9 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
         elements = jsonDecoder.decodeList(
             '$jsonPath.elements',
             json['elements'],
-            (String jsonPath, Object? json) =>
-                ImportedElements.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ImportedElements.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'elements');
       }
@@ -885,28 +976,34 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
     }
   }
 
-  factory AnalysisGetImportedElementsResult.fromResponse(Response response) {
+  factory AnalysisGetImportedElementsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetImportedElementsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['elements'] =
-        elements.map((ImportedElements value) => value.toJson()).toList();
+    result['elements'] = elements
+        .map((ImportedElements value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -926,10 +1023,13 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Request toRequest(String id) {
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Request(id, 'analysis.getLibraryDependencies');
   }
 
@@ -961,7 +1061,8 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   AnalysisGetLibraryDependenciesResult(this.libraries, this.packageMap);
 
   factory AnalysisGetLibraryDependenciesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> libraries;
@@ -969,8 +1070,10 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
         libraries = jsonDecoder.decodeList(
             '$jsonPath.libraries',
             json['libraries'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'libraries');
       }
@@ -985,9 +1088,9 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
                             jsonPath,
                             json,
                             (String jsonPath, Object? json) =>
-                                clientUriConverter.fromClientFilePath(
-                                    jsonDecoder.decodeString(
-                                        jsonPath, json)))));
+                                clientUriConverter?.fromClientFilePath(
+                                    jsonDecoder.decodeString(jsonPath, json)) ??
+                                jsonDecoder.decodeString(jsonPath, json))));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'packageMap');
       }
@@ -998,35 +1101,40 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
     }
   }
 
-  factory AnalysisGetLibraryDependenciesResult.fromResponse(Response response) {
+  factory AnalysisGetLibraryDependenciesResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetLibraryDependenciesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['libraries'] = libraries
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     result['packageMap'] = mapMap(packageMap,
         valueCallback: (Map<String, List<String>> value) => mapMap(value,
             valueCallback: (List<String> value) => value
                 .map((String value) =>
-                    clientUriConverter.toClientFilePath(value))
+                    clientUriConverter?.toClientFilePath(value) ?? value)
                 .toList()));
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1077,13 +1185,15 @@ class AnalysisGetNavigationParams implements RequestParams {
   AnalysisGetNavigationParams(this.file, this.offset, this.length);
 
   factory AnalysisGetNavigationParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1106,27 +1216,32 @@ class AnalysisGetNavigationParams implements RequestParams {
     }
   }
 
-  factory AnalysisGetNavigationParams.fromRequest(Request request) {
+  factory AnalysisGetNavigationParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetNavigationParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['length'] = length;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.getNavigation', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.getNavigation',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1170,7 +1285,8 @@ class AnalysisGetNavigationResult implements ResponseResult {
   AnalysisGetNavigationResult(this.files, this.targets, this.regions);
 
   factory AnalysisGetNavigationResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> files;
@@ -1178,8 +1294,10 @@ class AnalysisGetNavigationResult implements ResponseResult {
         files = jsonDecoder.decodeList(
             '$jsonPath.files',
             json['files'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -1188,8 +1306,9 @@ class AnalysisGetNavigationResult implements ResponseResult {
         targets = jsonDecoder.decodeList(
             '$jsonPath.targets',
             json['targets'],
-            (String jsonPath, Object? json) =>
-                NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => NavigationTarget.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'targets');
       }
@@ -1198,8 +1317,9 @@ class AnalysisGetNavigationResult implements ResponseResult {
         regions = jsonDecoder.decodeList(
             '$jsonPath.regions',
             json['regions'],
-            (String jsonPath, Object? json) =>
-                NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => NavigationRegion.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
       }
@@ -1210,33 +1330,42 @@ class AnalysisGetNavigationResult implements ResponseResult {
     }
   }
 
-  factory AnalysisGetNavigationResult.fromResponse(Response response) {
+  factory AnalysisGetNavigationResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetNavigationResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['files'] = files
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
-    result['targets'] =
-        targets.map((NavigationTarget value) => value.toJson()).toList();
-    result['regions'] =
-        regions.map((NavigationRegion value) => value.toJson()).toList();
+    result['targets'] = targets
+        .map((NavigationTarget value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
+    result['regions'] = regions
+        .map((NavigationRegion value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1272,13 +1401,15 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   AnalysisGetReachableSourcesParams(this.file);
 
   factory AnalysisGetReachableSourcesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1289,25 +1420,30 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
     }
   }
 
-  factory AnalysisGetReachableSourcesParams.fromRequest(Request request) {
+  factory AnalysisGetReachableSourcesParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetReachableSourcesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.getReachableSources', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.getReachableSources',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1341,7 +1477,8 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   AnalysisGetReachableSourcesResult(this.sources);
 
   factory AnalysisGetReachableSourcesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Map<String, List<String>> sources;
@@ -1359,27 +1496,31 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
     }
   }
 
-  factory AnalysisGetReachableSourcesResult.fromResponse(Response response) {
+  factory AnalysisGetReachableSourcesResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetReachableSourcesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['sources'] = sources;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1415,13 +1556,15 @@ class AnalysisGetSignatureParams implements RequestParams {
   AnalysisGetSignatureParams(this.file, this.offset);
 
   factory AnalysisGetSignatureParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1438,26 +1581,31 @@ class AnalysisGetSignatureParams implements RequestParams {
     }
   }
 
-  factory AnalysisGetSignatureParams.fromRequest(Request request) {
+  factory AnalysisGetSignatureParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetSignatureParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.getSignature', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.getSignature',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1501,7 +1649,8 @@ class AnalysisGetSignatureResult implements ResponseResult {
   AnalysisGetSignatureResult(this.name, this.parameters, {this.dartdoc});
 
   factory AnalysisGetSignatureResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -1515,8 +1664,9 @@ class AnalysisGetSignatureResult implements ResponseResult {
         parameters = jsonDecoder.decodeList(
             '$jsonPath.parameters',
             json['parameters'],
-            (String jsonPath, Object? json) =>
-                ParameterInfo.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ParameterInfo.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'parameters');
       }
@@ -1532,19 +1682,24 @@ class AnalysisGetSignatureResult implements ResponseResult {
     }
   }
 
-  factory AnalysisGetSignatureResult.fromResponse(Response response) {
+  factory AnalysisGetSignatureResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisGetSignatureResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
-    result['parameters'] =
-        parameters.map((ParameterInfo value) => value.toJson()).toList();
+    result['parameters'] = parameters
+        .map((ParameterInfo value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     var dartdoc = this.dartdoc;
     if (dartdoc != null) {
       result['dartdoc'] = dartdoc;
@@ -1553,12 +1708,13 @@ class AnalysisGetSignatureResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1601,13 +1757,15 @@ class AnalysisHighlightsParams implements HasToJson {
   AnalysisHighlightsParams(this.file, this.regions);
 
   factory AnalysisHighlightsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1616,8 +1774,9 @@ class AnalysisHighlightsParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             '$jsonPath.regions',
             json['regions'],
-            (String jsonPath, Object? json) =>
-                HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => HighlightRegion.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
       }
@@ -1627,26 +1786,33 @@ class AnalysisHighlightsParams implements HasToJson {
     }
   }
 
-  factory AnalysisHighlightsParams.fromNotification(Notification notification) {
+  factory AnalysisHighlightsParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisHighlightsParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['regions'] =
-        regions.map((HighlightRegion value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['regions'] = regions
+        .map((HighlightRegion value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.highlights', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.highlights', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1687,13 +1853,15 @@ class AnalysisImplementedParams implements HasToJson {
   AnalysisImplementedParams(this.file, this.classes, this.members);
 
   factory AnalysisImplementedParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1702,8 +1870,9 @@ class AnalysisImplementedParams implements HasToJson {
         classes = jsonDecoder.decodeList(
             '$jsonPath.classes',
             json['classes'],
-            (String jsonPath, Object? json) =>
-                ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ImplementedClass.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'classes');
       }
@@ -1712,8 +1881,9 @@ class AnalysisImplementedParams implements HasToJson {
         members = jsonDecoder.decodeList(
             '$jsonPath.members',
             json['members'],
-            (String jsonPath, Object? json) =>
-                ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ImplementedMember.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'members');
       }
@@ -1723,29 +1893,37 @@ class AnalysisImplementedParams implements HasToJson {
     }
   }
 
-  factory AnalysisImplementedParams.fromNotification(
-      Notification notification) {
+  factory AnalysisImplementedParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisImplementedParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['classes'] =
-        classes.map((ImplementedClass value) => value.toJson()).toList();
-    result['members'] =
-        members.map((ImplementedMember value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['classes'] = classes
+        .map((ImplementedClass value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
+    result['members'] = members
+        .map((ImplementedMember value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.implemented', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.implemented', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1795,13 +1973,15 @@ class AnalysisInvalidateParams implements HasToJson {
   AnalysisInvalidateParams(this.file, this.offset, this.length, this.delta);
 
   factory AnalysisInvalidateParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1829,27 +2009,32 @@ class AnalysisInvalidateParams implements HasToJson {
     }
   }
 
-  factory AnalysisInvalidateParams.fromNotification(Notification notification) {
+  factory AnalysisInvalidateParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisInvalidateParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['length'] = length;
     result['delta'] = delta;
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.invalidate', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.invalidate', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1905,13 +2090,15 @@ class AnalysisNavigationParams implements HasToJson {
   AnalysisNavigationParams(this.file, this.regions, this.targets, this.files);
 
   factory AnalysisNavigationParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -1920,8 +2107,9 @@ class AnalysisNavigationParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             '$jsonPath.regions',
             json['regions'],
-            (String jsonPath, Object? json) =>
-                NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => NavigationRegion.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
       }
@@ -1930,8 +2118,9 @@ class AnalysisNavigationParams implements HasToJson {
         targets = jsonDecoder.decodeList(
             '$jsonPath.targets',
             json['targets'],
-            (String jsonPath, Object? json) =>
-                NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => NavigationTarget.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'targets');
       }
@@ -1940,8 +2129,10 @@ class AnalysisNavigationParams implements HasToJson {
         files = jsonDecoder.decodeList(
             '$jsonPath.files',
             json['files'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -1951,31 +2142,41 @@ class AnalysisNavigationParams implements HasToJson {
     }
   }
 
-  factory AnalysisNavigationParams.fromNotification(Notification notification) {
+  factory AnalysisNavigationParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisNavigationParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['regions'] =
-        regions.map((NavigationRegion value) => value.toJson()).toList();
-    result['targets'] =
-        targets.map((NavigationTarget value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['regions'] = regions
+        .map((NavigationRegion value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
+    result['targets'] = targets
+        .map((NavigationTarget value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     result['files'] = files
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.navigation', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.navigation', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2017,13 +2218,15 @@ class AnalysisOccurrencesParams implements HasToJson {
   AnalysisOccurrencesParams(this.file, this.occurrences);
 
   factory AnalysisOccurrencesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -2032,8 +2235,9 @@ class AnalysisOccurrencesParams implements HasToJson {
         occurrences = jsonDecoder.decodeList(
             '$jsonPath.occurrences',
             json['occurrences'],
-            (String jsonPath, Object? json) =>
-                Occurrences.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => Occurrences.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'occurrences');
       }
@@ -2043,27 +2247,33 @@ class AnalysisOccurrencesParams implements HasToJson {
     }
   }
 
-  factory AnalysisOccurrencesParams.fromNotification(
-      Notification notification) {
+  factory AnalysisOccurrencesParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisOccurrencesParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['occurrences'] =
-        occurrences.map((Occurrences value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['occurrences'] = occurrences
+        .map((Occurrences value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.occurrences', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.occurrences', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2141,7 +2351,8 @@ class AnalysisOptions implements HasToJson {
       this.generateLints});
 
   factory AnalysisOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool? enableAsync;
@@ -2194,7 +2405,8 @@ class AnalysisOptions implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var enableAsync = this.enableAsync;
     if (enableAsync != null) {
@@ -2228,7 +2440,7 @@ class AnalysisOptions implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2286,19 +2498,22 @@ class AnalysisOutlineParams implements HasToJson {
   AnalysisOutlineParams(this.file, this.kind, this.outline, {this.libraryName});
 
   factory AnalysisOutlineParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       FileKind kind;
       if (json.containsKey('kind')) {
-        kind = FileKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
+        kind = FileKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -2309,8 +2524,9 @@ class AnalysisOutlineParams implements HasToJson {
       }
       Outline outline;
       if (json.containsKey('outline')) {
-        outline =
-            Outline.fromJson(jsonDecoder, '$jsonPath.outline', json['outline']);
+        outline = Outline.fromJson(
+            jsonDecoder, '$jsonPath.outline', json['outline'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'outline');
       }
@@ -2321,30 +2537,35 @@ class AnalysisOutlineParams implements HasToJson {
     }
   }
 
-  factory AnalysisOutlineParams.fromNotification(Notification notification) {
+  factory AnalysisOutlineParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisOutlineParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['kind'] = kind.toJson();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     var libraryName = this.libraryName;
     if (libraryName != null) {
       result['libraryName'] = libraryName;
     }
-    result['outline'] = outline.toJson();
+    result['outline'] = outline.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.outline', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.outline', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2384,13 +2605,15 @@ class AnalysisOverridesParams implements HasToJson {
   AnalysisOverridesParams(this.file, this.overrides);
 
   factory AnalysisOverridesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -2399,8 +2622,9 @@ class AnalysisOverridesParams implements HasToJson {
         overrides = jsonDecoder.decodeList(
             '$jsonPath.overrides',
             json['overrides'],
-            (String jsonPath, Object? json) =>
-                Override.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => Override.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'overrides');
       }
@@ -2410,26 +2634,33 @@ class AnalysisOverridesParams implements HasToJson {
     }
   }
 
-  factory AnalysisOverridesParams.fromNotification(Notification notification) {
+  factory AnalysisOverridesParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisOverridesParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['overrides'] =
-        overrides.map((Override value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['overrides'] = overrides
+        .map((Override value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('analysis.overrides', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'analysis.overrides', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2453,10 +2684,13 @@ class AnalysisOverridesParams implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisReanalyzeParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Request toRequest(String id) {
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Request(id, 'analysis.reanalyze');
   }
 
@@ -2472,10 +2706,13 @@ class AnalysisReanalyzeParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisReanalyzeResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -2566,7 +2803,8 @@ class AnalysisService implements Enum {
   }
 
   factory AnalysisService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return AnalysisService(json);
@@ -2580,7 +2818,7 @@ class AnalysisService implements Enum {
   @override
   String toString() => 'AnalysisService.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// analysis.setAnalysisRoots params
@@ -2618,7 +2856,8 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
       {this.packageRoots});
 
   factory AnalysisSetAnalysisRootsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> included;
@@ -2626,8 +2865,10 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
         included = jsonDecoder.decodeList(
             '$jsonPath.included',
             json['included'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included');
       }
@@ -2636,8 +2877,10 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
         excluded = jsonDecoder.decodeList(
             '$jsonPath.excluded',
             json['excluded'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'excluded');
       }
@@ -2645,10 +2888,14 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
       if (json.containsKey('packageRoots')) {
         packageRoots = jsonDecoder.decodeMap(
             '$jsonPath.packageRoots', json['packageRoots'],
-            keyDecoder: (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)),
-            valueDecoder: (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            keyDecoder: (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json),
+            valueDecoder: (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       }
       return AnalysisSetAnalysisRootsParams(included, excluded,
           packageRoots: packageRoots);
@@ -2658,38 +2905,45 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
     }
   }
 
-  factory AnalysisSetAnalysisRootsParams.fromRequest(Request request) {
+  factory AnalysisSetAnalysisRootsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisSetAnalysisRootsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['included'] = included
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     result['excluded'] = excluded
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     var packageRoots = this.packageRoots;
     if (packageRoots != null) {
       result['packageRoots'] = mapMap(packageRoots,
           keyCallback: (String value) =>
-              clientUriConverter.toClientFilePath(value),
+              clientUriConverter?.toClientFilePath(value) ?? value,
           valueCallback: (String value) =>
-              clientUriConverter.toClientFilePath(value));
+              clientUriConverter?.toClientFilePath(value) ?? value);
     }
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.setAnalysisRoots', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.setAnalysisRoots',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2716,10 +2970,13 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -2744,7 +3001,8 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   AnalysisSetGeneralSubscriptionsParams(this.subscriptions);
 
   factory AnalysisSetGeneralSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<GeneralAnalysisService> subscriptions;
@@ -2752,8 +3010,9 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeList(
             '$jsonPath.subscriptions',
             json['subscriptions'],
-            (String jsonPath, Object? json) =>
-                GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => GeneralAnalysisService.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
       }
@@ -2764,27 +3023,33 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
     }
   }
 
-  factory AnalysisSetGeneralSubscriptionsParams.fromRequest(Request request) {
+  factory AnalysisSetGeneralSubscriptionsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisSetGeneralSubscriptionsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['subscriptions'] = subscriptions
-        .map((GeneralAnalysisService value) => value.toJson())
+        .map((GeneralAnalysisService value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.setGeneralSubscriptions', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.setGeneralSubscriptions',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2804,10 +3069,13 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -2832,7 +3100,8 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   AnalysisSetPriorityFilesParams(this.files);
 
   factory AnalysisSetPriorityFilesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> files;
@@ -2840,8 +3109,10 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
         files = jsonDecoder.decodeList(
             '$jsonPath.files',
             json['files'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -2852,27 +3123,33 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
     }
   }
 
-  factory AnalysisSetPriorityFilesParams.fromRequest(Request request) {
+  factory AnalysisSetPriorityFilesParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisSetPriorityFilesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['files'] = files
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.setPriorityFiles', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.setPriorityFiles',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2891,10 +3168,13 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -2920,7 +3200,8 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   AnalysisSetSubscriptionsParams(this.subscriptions);
 
   factory AnalysisSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
@@ -2928,14 +3209,16 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeMap(
             '$jsonPath.subscriptions', json['subscriptions'],
             keyDecoder: (String jsonPath, Object? json) =>
-                AnalysisService.fromJson(jsonDecoder, jsonPath, json),
+                AnalysisService.fromJson(jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter),
             valueDecoder: (String jsonPath, Object? json) =>
                 jsonDecoder.decodeList(
                     jsonPath,
                     json,
                     (String jsonPath, Object? json) =>
-                        clientUriConverter.fromClientFilePath(
-                            jsonDecoder.decodeString(jsonPath, json))));
+                        clientUriConverter?.fromClientFilePath(
+                            jsonDecoder.decodeString(jsonPath, json)) ??
+                        jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
       }
@@ -2946,29 +3229,36 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
     }
   }
 
-  factory AnalysisSetSubscriptionsParams.fromRequest(Request request) {
+  factory AnalysisSetSubscriptionsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisSetSubscriptionsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['subscriptions'] = mapMap(subscriptions,
-        keyCallback: (AnalysisService value) => value.toJson(),
+        keyCallback: (AnalysisService value) =>
+            value.toJson(clientUriConverter: clientUriConverter),
         valueCallback: (List<String> value) => value
-            .map((String value) => clientUriConverter.toClientFilePath(value))
+            .map((String value) =>
+                clientUriConverter?.toClientFilePath(value) ?? value)
             .toList());
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.setSubscriptions', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.setSubscriptions',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2992,10 +3282,13 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -3025,7 +3318,8 @@ class AnalysisStatus implements HasToJson {
   AnalysisStatus(this.isAnalyzing, {this.analysisTarget});
 
   factory AnalysisStatus.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool isAnalyzing;
@@ -3047,7 +3341,8 @@ class AnalysisStatus implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['isAnalyzing'] = isAnalyzing;
     var analysisTarget = this.analysisTarget;
@@ -3058,7 +3353,7 @@ class AnalysisStatus implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3091,23 +3386,28 @@ class AnalysisUpdateContentParams implements RequestParams {
   AnalysisUpdateContentParams(this.files);
 
   factory AnalysisUpdateContentParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Map<String, Object> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeMap('$jsonPath.files', json['files'],
-            keyDecoder: (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)),
+            keyDecoder: (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json),
             valueDecoder: (String jsonPath, Object? json) =>
                 jsonDecoder.decodeUnion(jsonPath, json, 'type', {
                   'add': (String jsonPath, Object? json) =>
-                      AddContentOverlay.fromJson(jsonDecoder, jsonPath, json),
+                      AddContentOverlay.fromJson(jsonDecoder, jsonPath, json,
+                          clientUriConverter: clientUriConverter),
                   'change': (String jsonPath, Object? json) =>
-                      ChangeContentOverlay.fromJson(
-                          jsonDecoder, jsonPath, json),
+                      ChangeContentOverlay.fromJson(jsonDecoder, jsonPath, json,
+                          clientUriConverter: clientUriConverter),
                   'remove': (String jsonPath, Object? json) =>
-                      RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)
+                      RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json,
+                          clientUriConverter: clientUriConverter)
                 }));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
@@ -3119,28 +3419,33 @@ class AnalysisUpdateContentParams implements RequestParams {
     }
   }
 
-  factory AnalysisUpdateContentParams.fromRequest(Request request) {
+  factory AnalysisUpdateContentParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisUpdateContentParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['files'] = mapMap(files,
         keyCallback: (String value) =>
-            clientUriConverter.toClientFilePath(value),
+            clientUriConverter?.toClientFilePath(value) ?? value,
         valueCallback: (Object value) => (value as dynamic).toJson());
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.updateContent', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.updateContent',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3164,7 +3469,8 @@ class AnalysisUpdateContentResult implements ResponseResult {
   AnalysisUpdateContentResult();
 
   factory AnalysisUpdateContentResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       return AnalysisUpdateContentResult();
@@ -3174,26 +3480,30 @@ class AnalysisUpdateContentResult implements ResponseResult {
     }
   }
 
-  factory AnalysisUpdateContentResult.fromResponse(Response response) {
+  factory AnalysisUpdateContentResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisUpdateContentResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3221,13 +3531,15 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   AnalysisUpdateOptionsParams(this.options);
 
   factory AnalysisUpdateOptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       AnalysisOptions options;
       if (json.containsKey('options')) {
         options = AnalysisOptions.fromJson(
-            jsonDecoder, '$jsonPath.options', json['options']);
+            jsonDecoder, '$jsonPath.options', json['options'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'options');
       }
@@ -3238,25 +3550,30 @@ class AnalysisUpdateOptionsParams implements RequestParams {
     }
   }
 
-  factory AnalysisUpdateOptionsParams.fromRequest(Request request) {
+  factory AnalysisUpdateOptionsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalysisUpdateOptionsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['options'] = options.toJson();
+    result['options'] = options.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analysis.updateOptions', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analysis.updateOptions',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3275,10 +3592,13 @@ class AnalysisUpdateOptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -3303,7 +3623,8 @@ class AnalyticsEnableParams implements RequestParams {
   AnalyticsEnableParams(this.value);
 
   factory AnalyticsEnableParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool value;
@@ -3318,25 +3639,30 @@ class AnalyticsEnableParams implements RequestParams {
     }
   }
 
-  factory AnalyticsEnableParams.fromRequest(Request request) {
+  factory AnalyticsEnableParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalyticsEnableParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['value'] = value;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analytics.enable', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(
+        id, 'analytics.enable', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3355,10 +3681,13 @@ class AnalyticsEnableParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -3374,10 +3703,13 @@ class AnalyticsEnableResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Request toRequest(String id) {
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Request(id, 'analytics.isEnabled');
   }
 
@@ -3402,7 +3734,8 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   AnalyticsIsEnabledResult(this.enabled);
 
   factory AnalyticsIsEnabledResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool enabled;
@@ -3417,27 +3750,31 @@ class AnalyticsIsEnabledResult implements ResponseResult {
     }
   }
 
-  factory AnalyticsIsEnabledResult.fromResponse(Response response) {
+  factory AnalyticsIsEnabledResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalyticsIsEnabledResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['enabled'] = enabled;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3465,7 +3802,8 @@ class AnalyticsSendEventParams implements RequestParams {
   AnalyticsSendEventParams(this.action);
 
   factory AnalyticsSendEventParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String action;
@@ -3480,25 +3818,30 @@ class AnalyticsSendEventParams implements RequestParams {
     }
   }
 
-  factory AnalyticsSendEventParams.fromRequest(Request request) {
+  factory AnalyticsSendEventParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalyticsSendEventParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['action'] = action;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analytics.sendEvent', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analytics.sendEvent',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3517,10 +3860,13 @@ class AnalyticsSendEventParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -3549,7 +3895,8 @@ class AnalyticsSendTimingParams implements RequestParams {
   AnalyticsSendTimingParams(this.event, this.millis);
 
   factory AnalyticsSendTimingParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String event;
@@ -3570,13 +3917,16 @@ class AnalyticsSendTimingParams implements RequestParams {
     }
   }
 
-  factory AnalyticsSendTimingParams.fromRequest(Request request) {
+  factory AnalyticsSendTimingParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return AnalyticsSendTimingParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['event'] = event;
     result['millis'] = millis;
@@ -3584,12 +3934,14 @@ class AnalyticsSendTimingParams implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'analytics.sendTiming', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'analytics.sendTiming',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3611,10 +3963,13 @@ class AnalyticsSendTimingParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -3643,13 +3998,15 @@ class BulkFix implements HasToJson {
   BulkFix(this.path, this.fixes);
 
   factory BulkFix.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String path;
       if (json.containsKey('path')) {
-        path = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.path', json['path']));
+        path = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.path', json['path'])) ??
+            jsonDecoder.decodeString('$jsonPath.path', json['path']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'path');
       }
@@ -3658,8 +4015,9 @@ class BulkFix implements HasToJson {
         fixes = jsonDecoder.decodeList(
             '$jsonPath.fixes',
             json['fixes'],
-            (String jsonPath, Object? json) =>
-                BulkFixDetail.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => BulkFixDetail.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
       }
@@ -3670,16 +4028,19 @@ class BulkFix implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['path'] = clientUriConverter.toClientFilePath(path);
-    result['fixes'] =
-        fixes.map((BulkFixDetail value) => value.toJson()).toList();
+    result['path'] = clientUriConverter?.toClientFilePath(path) ?? path;
+    result['fixes'] = fixes
+        .map((BulkFixDetail value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3717,7 +4078,8 @@ class BulkFixDetail implements HasToJson {
   BulkFixDetail(this.code, this.occurrences);
 
   factory BulkFixDetail.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String code;
@@ -3740,7 +4102,8 @@ class BulkFixDetail implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['code'] = code;
     result['occurrences'] = occurrences;
@@ -3748,7 +4111,7 @@ class BulkFixDetail implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3788,7 +4151,8 @@ class ClosingLabel implements HasToJson {
   ClosingLabel(this.offset, this.length, this.label);
 
   factory ClosingLabel.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -3816,7 +4180,8 @@ class ClosingLabel implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
@@ -3825,7 +4190,7 @@ class ClosingLabel implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3890,7 +4255,8 @@ class CompletionCaseMatchingMode implements Enum {
   }
 
   factory CompletionCaseMatchingMode.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return CompletionCaseMatchingMode(json);
@@ -3904,7 +4270,7 @@ class CompletionCaseMatchingMode implements Enum {
   @override
   String toString() => 'CompletionCaseMatchingMode.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// completion.existingImports params
@@ -3925,20 +4291,23 @@ class CompletionExistingImportsParams implements HasToJson {
   CompletionExistingImportsParams(this.file, this.imports);
 
   factory CompletionExistingImportsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       ExistingImports imports;
       if (json.containsKey('imports')) {
         imports = ExistingImports.fromJson(
-            jsonDecoder, '$jsonPath.imports', json['imports']);
+            jsonDecoder, '$jsonPath.imports', json['imports'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'imports');
       }
@@ -3950,25 +4319,30 @@ class CompletionExistingImportsParams implements HasToJson {
   }
 
   factory CompletionExistingImportsParams.fromNotification(
-      Notification notification) {
+      Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return CompletionExistingImportsParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['imports'] = imports.toJson();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['imports'] = imports.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('completion.existingImports', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification('completion.existingImports',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4016,13 +4390,15 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
       this.file, this.offset, this.completion, this.libraryUri);
 
   factory CompletionGetSuggestionDetails2Params.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -4054,15 +4430,18 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
     }
   }
 
-  factory CompletionGetSuggestionDetails2Params.fromRequest(Request request) {
+  factory CompletionGetSuggestionDetails2Params.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return CompletionGetSuggestionDetails2Params.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['completion'] = completion;
     result['libraryUri'] = libraryUri;
@@ -4070,12 +4449,14 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'completion.getSuggestionDetails2', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'completion.getSuggestionDetails2',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4119,7 +4500,8 @@ class CompletionGetSuggestionDetails2Result implements ResponseResult {
   CompletionGetSuggestionDetails2Result(this.completion, this.change);
 
   factory CompletionGetSuggestionDetails2Result.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String completion;
@@ -4132,7 +4514,8 @@ class CompletionGetSuggestionDetails2Result implements ResponseResult {
       SourceChange change;
       if (json.containsKey('change')) {
         change = SourceChange.fromJson(
-            jsonDecoder, '$jsonPath.change', json['change']);
+            jsonDecoder, '$jsonPath.change', json['change'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'change');
       }
@@ -4143,29 +4526,32 @@ class CompletionGetSuggestionDetails2Result implements ResponseResult {
     }
   }
 
-  factory CompletionGetSuggestionDetails2Result.fromResponse(
-      Response response) {
+  factory CompletionGetSuggestionDetails2Result.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return CompletionGetSuggestionDetails2Result.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['completion'] = completion;
-    result['change'] = change.toJson();
+    result['change'] = change.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4230,13 +4616,15 @@ class CompletionGetSuggestions2Params implements RequestParams {
       this.timeout});
 
   factory CompletionGetSuggestions2Params.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -4258,12 +4646,14 @@ class CompletionGetSuggestions2Params implements RequestParams {
         completionCaseMatchingMode = CompletionCaseMatchingMode.fromJson(
             jsonDecoder,
             '$jsonPath.completionCaseMatchingMode',
-            json['completionCaseMatchingMode']);
+            json['completionCaseMatchingMode'],
+            clientUriConverter: clientUriConverter);
       }
       CompletionMode? completionMode;
       if (json.containsKey('completionMode')) {
         completionMode = CompletionMode.fromJson(
-            jsonDecoder, '$jsonPath.completionMode', json['completionMode']);
+            jsonDecoder, '$jsonPath.completionMode', json['completionMode'],
+            clientUriConverter: clientUriConverter);
       }
       int? invocationCount;
       if (json.containsKey('invocationCount')) {
@@ -4285,25 +4675,29 @@ class CompletionGetSuggestions2Params implements RequestParams {
     }
   }
 
-  factory CompletionGetSuggestions2Params.fromRequest(Request request) {
+  factory CompletionGetSuggestions2Params.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return CompletionGetSuggestions2Params.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['maxResults'] = maxResults;
     var completionCaseMatchingMode = this.completionCaseMatchingMode;
     if (completionCaseMatchingMode != null) {
-      result['completionCaseMatchingMode'] =
-          completionCaseMatchingMode.toJson();
+      result['completionCaseMatchingMode'] = completionCaseMatchingMode.toJson(
+          clientUriConverter: clientUriConverter);
     }
     var completionMode = this.completionMode;
     if (completionMode != null) {
-      result['completionMode'] = completionMode.toJson();
+      result['completionMode'] =
+          completionMode.toJson(clientUriConverter: clientUriConverter);
     }
     var invocationCount = this.invocationCount;
     if (invocationCount != null) {
@@ -4317,12 +4711,14 @@ class CompletionGetSuggestions2Params implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'completion.getSuggestions2', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'completion.getSuggestions2',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4393,7 +4789,8 @@ class CompletionGetSuggestions2Result implements ResponseResult {
       this.replacementLength, this.suggestions, this.isIncomplete);
 
   factory CompletionGetSuggestions2Result.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int replacementOffset;
@@ -4415,8 +4812,9 @@ class CompletionGetSuggestions2Result implements ResponseResult {
         suggestions = jsonDecoder.decodeList(
             '$jsonPath.suggestions',
             json['suggestions'],
-            (String jsonPath, Object? json) =>
-                CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => CompletionSuggestion.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'suggestions');
       }
@@ -4435,32 +4833,37 @@ class CompletionGetSuggestions2Result implements ResponseResult {
     }
   }
 
-  factory CompletionGetSuggestions2Result.fromResponse(Response response) {
+  factory CompletionGetSuggestions2Result.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return CompletionGetSuggestions2Result.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['replacementOffset'] = replacementOffset;
     result['replacementLength'] = replacementLength;
     result['suggestions'] = suggestions
-        .map((CompletionSuggestion value) => value.toJson())
+        .map((CompletionSuggestion value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     result['isIncomplete'] = isIncomplete;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4518,7 +4921,8 @@ class CompletionMode implements Enum {
   }
 
   factory CompletionMode.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return CompletionMode(json);
@@ -4532,7 +4936,7 @@ class CompletionMode implements Enum {
   @override
   String toString() => 'CompletionMode.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// completion.registerLibraryPaths params
@@ -4552,7 +4956,8 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   CompletionRegisterLibraryPathsParams(this.paths);
 
   factory CompletionRegisterLibraryPathsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<LibraryPathSet> paths;
@@ -4560,8 +4965,9 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
         paths = jsonDecoder.decodeList(
             '$jsonPath.paths',
             json['paths'],
-            (String jsonPath, Object? json) =>
-                LibraryPathSet.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => LibraryPathSet.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'paths');
       }
@@ -4572,26 +4978,33 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
     }
   }
 
-  factory CompletionRegisterLibraryPathsParams.fromRequest(Request request) {
+  factory CompletionRegisterLibraryPathsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return CompletionRegisterLibraryPathsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['paths'] =
-        paths.map((LibraryPathSet value) => value.toJson()).toList();
+    result['paths'] = paths
+        .map((LibraryPathSet value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'completion.registerLibraryPaths', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'completion.registerLibraryPaths',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4611,10 +5024,13 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -4656,7 +5072,8 @@ class ContextData implements HasToJson {
       this.workItemQueueLength, this.cacheEntryExceptions);
 
   factory ContextData.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -4703,7 +5120,8 @@ class ContextData implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
     result['explicitFileCount'] = explicitFileCount;
@@ -4714,7 +5132,7 @@ class ContextData implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4792,10 +5210,13 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Request toRequest(String id) {
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Request(id, 'diagnostic.getDiagnostics');
   }
 
@@ -4820,7 +5241,8 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   DiagnosticGetDiagnosticsResult(this.contexts);
 
   factory DiagnosticGetDiagnosticsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<ContextData> contexts;
@@ -4828,8 +5250,9 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
         contexts = jsonDecoder.decodeList(
             '$jsonPath.contexts',
             json['contexts'],
-            (String jsonPath, Object? json) =>
-                ContextData.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ContextData.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'contexts');
       }
@@ -4840,28 +5263,34 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
     }
   }
 
-  factory DiagnosticGetDiagnosticsResult.fromResponse(Response response) {
+  factory DiagnosticGetDiagnosticsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return DiagnosticGetDiagnosticsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['contexts'] =
-        contexts.map((ContextData value) => value.toJson()).toList();
+    result['contexts'] = contexts
+        .map((ContextData value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4881,10 +5310,13 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Request toRequest(String id) {
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Request(id, 'diagnostic.getServerPort');
   }
 
@@ -4909,7 +5341,8 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   DiagnosticGetServerPortResult(this.port);
 
   factory DiagnosticGetServerPortResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int port;
@@ -4925,27 +5358,31 @@ class DiagnosticGetServerPortResult implements ResponseResult {
     }
   }
 
-  factory DiagnosticGetServerPortResult.fromResponse(Response response) {
+  factory DiagnosticGetServerPortResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return DiagnosticGetServerPortResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['port'] = port;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5004,7 +5441,8 @@ class EditBulkFixesParams implements RequestParams {
       {this.inTestMode, this.updatePubspec, this.codes});
 
   factory EditBulkFixesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> included;
@@ -5012,8 +5450,10 @@ class EditBulkFixesParams implements RequestParams {
         included = jsonDecoder.decodeList(
             '$jsonPath.included',
             json['included'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included');
       }
@@ -5039,16 +5479,20 @@ class EditBulkFixesParams implements RequestParams {
     }
   }
 
-  factory EditBulkFixesParams.fromRequest(Request request) {
+  factory EditBulkFixesParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditBulkFixesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['included'] = included
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     var inTestMode = this.inTestMode;
     if (inTestMode != null) {
@@ -5066,12 +5510,14 @@ class EditBulkFixesParams implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.bulkFixes', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(
+        id, 'edit.bulkFixes', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5116,7 +5562,8 @@ class EditBulkFixesResult implements ResponseResult {
   EditBulkFixesResult(this.message, this.edits, this.details);
 
   factory EditBulkFixesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String message;
@@ -5131,8 +5578,9 @@ class EditBulkFixesResult implements ResponseResult {
         edits = jsonDecoder.decodeList(
             '$jsonPath.edits',
             json['edits'],
-            (String jsonPath, Object? json) =>
-                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SourceFileEdit.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
@@ -5141,8 +5589,9 @@ class EditBulkFixesResult implements ResponseResult {
         details = jsonDecoder.decodeList(
             '$jsonPath.details',
             json['details'],
-            (String jsonPath, Object? json) =>
-                BulkFix.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => BulkFix.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'details');
       }
@@ -5152,30 +5601,39 @@ class EditBulkFixesResult implements ResponseResult {
     }
   }
 
-  factory EditBulkFixesResult.fromResponse(Response response) {
+  factory EditBulkFixesResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditBulkFixesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['message'] = message;
-    result['edits'] =
-        edits.map((SourceFileEdit value) => value.toJson()).toList();
-    result['details'] = details.map((BulkFix value) => value.toJson()).toList();
+    result['edits'] = edits
+        .map((SourceFileEdit value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
+    result['details'] = details
+        .map((BulkFix value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5210,7 +5668,8 @@ class EditFormatIfEnabledParams implements RequestParams {
   EditFormatIfEnabledParams(this.directories);
 
   factory EditFormatIfEnabledParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> directories;
@@ -5218,8 +5677,10 @@ class EditFormatIfEnabledParams implements RequestParams {
         directories = jsonDecoder.decodeList(
             '$jsonPath.directories',
             json['directories'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'directories');
       }
@@ -5229,27 +5690,33 @@ class EditFormatIfEnabledParams implements RequestParams {
     }
   }
 
-  factory EditFormatIfEnabledParams.fromRequest(Request request) {
+  factory EditFormatIfEnabledParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditFormatIfEnabledParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['directories'] = directories
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.formatIfEnabled', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'edit.formatIfEnabled',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5280,7 +5747,8 @@ class EditFormatIfEnabledResult implements ResponseResult {
   EditFormatIfEnabledResult(this.edits);
 
   factory EditFormatIfEnabledResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<SourceFileEdit> edits;
@@ -5288,8 +5756,9 @@ class EditFormatIfEnabledResult implements ResponseResult {
         edits = jsonDecoder.decodeList(
             '$jsonPath.edits',
             json['edits'],
-            (String jsonPath, Object? json) =>
-                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SourceFileEdit.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
@@ -5299,28 +5768,34 @@ class EditFormatIfEnabledResult implements ResponseResult {
     }
   }
 
-  factory EditFormatIfEnabledResult.fromResponse(Response response) {
+  factory EditFormatIfEnabledResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditFormatIfEnabledResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['edits'] =
-        edits.map((SourceFileEdit value) => value.toJson()).toList();
+    result['edits'] = edits
+        .map((SourceFileEdit value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5362,13 +5837,15 @@ class EditFormatParams implements RequestParams {
       {this.lineLength});
 
   factory EditFormatParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5398,15 +5875,18 @@ class EditFormatParams implements RequestParams {
     }
   }
 
-  factory EditFormatParams.fromRequest(Request request) {
+  factory EditFormatParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditFormatParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['selectionOffset'] = selectionOffset;
     result['selectionLength'] = selectionLength;
     var lineLength = this.lineLength;
@@ -5417,12 +5897,14 @@ class EditFormatParams implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.format', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(
+        id, 'edit.format', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5467,7 +5949,8 @@ class EditFormatResult implements ResponseResult {
   EditFormatResult(this.edits, this.selectionOffset, this.selectionLength);
 
   factory EditFormatResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<SourceEdit> edits;
@@ -5475,8 +5958,9 @@ class EditFormatResult implements ResponseResult {
         edits = jsonDecoder.decodeList(
             '$jsonPath.edits',
             json['edits'],
-            (String jsonPath, Object? json) =>
-                SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SourceEdit.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
@@ -5500,29 +5984,36 @@ class EditFormatResult implements ResponseResult {
     }
   }
 
-  factory EditFormatResult.fromResponse(Response response) {
+  factory EditFormatResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditFormatResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();
+    result['edits'] = edits
+        .map((SourceEdit value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     result['selectionOffset'] = selectionOffset;
     result['selectionLength'] = selectionLength;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5565,13 +6056,15 @@ class EditGetAssistsParams implements RequestParams {
   EditGetAssistsParams(this.file, this.offset, this.length);
 
   factory EditGetAssistsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5593,27 +6086,32 @@ class EditGetAssistsParams implements RequestParams {
     }
   }
 
-  factory EditGetAssistsParams.fromRequest(Request request) {
+  factory EditGetAssistsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetAssistsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['length'] = length;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.getAssists', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(
+        id, 'edit.getAssists', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5647,7 +6145,8 @@ class EditGetAssistsResult implements ResponseResult {
   EditGetAssistsResult(this.assists);
 
   factory EditGetAssistsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<SourceChange> assists;
@@ -5655,8 +6154,9 @@ class EditGetAssistsResult implements ResponseResult {
         assists = jsonDecoder.decodeList(
             '$jsonPath.assists',
             json['assists'],
-            (String jsonPath, Object? json) =>
-                SourceChange.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SourceChange.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'assists');
       }
@@ -5666,28 +6166,34 @@ class EditGetAssistsResult implements ResponseResult {
     }
   }
 
-  factory EditGetAssistsResult.fromResponse(Response response) {
+  factory EditGetAssistsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetAssistsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['assists'] =
-        assists.map((SourceChange value) => value.toJson()).toList();
+    result['assists'] = assists
+        .map((SourceChange value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5724,13 +6230,15 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   EditGetAvailableRefactoringsParams(this.file, this.offset, this.length);
 
   factory EditGetAvailableRefactoringsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5753,27 +6261,32 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
     }
   }
 
-  factory EditGetAvailableRefactoringsParams.fromRequest(Request request) {
+  factory EditGetAvailableRefactoringsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetAvailableRefactoringsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['length'] = length;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.getAvailableRefactorings', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'edit.getAvailableRefactorings',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5807,7 +6320,8 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   EditGetAvailableRefactoringsResult(this.kinds);
 
   factory EditGetAvailableRefactoringsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<RefactoringKind> kinds;
@@ -5815,8 +6329,9 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
         kinds = jsonDecoder.decodeList(
             '$jsonPath.kinds',
             json['kinds'],
-            (String jsonPath, Object? json) =>
-                RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => RefactoringKind.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kinds');
       }
@@ -5827,28 +6342,34 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
     }
   }
 
-  factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
+  factory EditGetAvailableRefactoringsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetAvailableRefactoringsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kinds'] =
-        kinds.map((RefactoringKind value) => value.toJson()).toList();
+    result['kinds'] = kinds
+        .map((RefactoringKind value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5881,13 +6402,15 @@ class EditGetFixesParams implements RequestParams {
   EditGetFixesParams(this.file, this.offset);
 
   factory EditGetFixesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -5903,26 +6426,31 @@ class EditGetFixesParams implements RequestParams {
     }
   }
 
-  factory EditGetFixesParams.fromRequest(Request request) {
+  factory EditGetFixesParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetFixesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.getFixes', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(
+        id, 'edit.getFixes', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -5953,7 +6481,8 @@ class EditGetFixesResult implements ResponseResult {
   EditGetFixesResult(this.fixes);
 
   factory EditGetFixesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
@@ -5961,8 +6490,9 @@ class EditGetFixesResult implements ResponseResult {
         fixes = jsonDecoder.decodeList(
             '$jsonPath.fixes',
             json['fixes'],
-            (String jsonPath, Object? json) =>
-                AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => AnalysisErrorFixes.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
       }
@@ -5972,28 +6502,34 @@ class EditGetFixesResult implements ResponseResult {
     }
   }
 
-  factory EditGetFixesResult.fromResponse(Response response) {
+  factory EditGetFixesResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetFixesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['fixes'] =
-        fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
+    result['fixes'] = fixes
+        .map((AnalysisErrorFixes value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6031,13 +6567,15 @@ class EditGetPostfixCompletionParams implements RequestParams {
   EditGetPostfixCompletionParams(this.file, this.key, this.offset);
 
   factory EditGetPostfixCompletionParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6060,27 +6598,32 @@ class EditGetPostfixCompletionParams implements RequestParams {
     }
   }
 
-  factory EditGetPostfixCompletionParams.fromRequest(Request request) {
+  factory EditGetPostfixCompletionParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetPostfixCompletionParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['key'] = key;
     result['offset'] = offset;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.getPostfixCompletion', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'edit.getPostfixCompletion',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6112,13 +6655,15 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   EditGetPostfixCompletionResult(this.change);
 
   factory EditGetPostfixCompletionResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       SourceChange change;
       if (json.containsKey('change')) {
         change = SourceChange.fromJson(
-            jsonDecoder, '$jsonPath.change', json['change']);
+            jsonDecoder, '$jsonPath.change', json['change'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'change');
       }
@@ -6129,27 +6674,31 @@ class EditGetPostfixCompletionResult implements ResponseResult {
     }
   }
 
-  factory EditGetPostfixCompletionResult.fromResponse(Response response) {
+  factory EditGetPostfixCompletionResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetPostfixCompletionResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['change'] = change.toJson();
+    result['change'] = change.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6204,20 +6753,23 @@ class EditGetRefactoringParams implements RequestParams {
       {this.options});
 
   factory EditGetRefactoringParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       RefactoringKind kind;
       if (json.containsKey('kind')) {
         kind = RefactoringKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6243,7 +6795,8 @@ class EditGetRefactoringParams implements RequestParams {
       RefactoringOptions? options;
       if (json.containsKey('options')) {
         options = RefactoringOptions.fromJson(
-            jsonDecoder, '$jsonPath.options', json['options'], kind);
+            jsonDecoder, '$jsonPath.options', json['options'], kind,
+            clientUriConverter: clientUriConverter);
       }
       return EditGetRefactoringParams(kind, file, offset, length, validateOnly,
           options: options);
@@ -6252,35 +6805,41 @@ class EditGetRefactoringParams implements RequestParams {
     }
   }
 
-  factory EditGetRefactoringParams.fromRequest(Request request) {
+  factory EditGetRefactoringParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     var params = EditGetRefactoringParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
     REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;
     return params;
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kind'] = kind.toJson();
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['length'] = length;
     result['validateOnly'] = validateOnly;
     var options = this.options;
     if (options != null) {
-      result['options'] = options.toJson();
+      result['options'] =
+          options.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.getRefactoring', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'edit.getRefactoring',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6360,7 +6919,8 @@ class EditGetRefactoringResult implements ResponseResult {
       {this.feedback, this.change, this.potentialEdits});
 
   factory EditGetRefactoringResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
@@ -6368,8 +6928,9 @@ class EditGetRefactoringResult implements ResponseResult {
         initialProblems = jsonDecoder.decodeList(
             '$jsonPath.initialProblems',
             json['initialProblems'],
-            (String jsonPath, Object? json) =>
-                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => RefactoringProblem.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'initialProblems');
       }
@@ -6378,8 +6939,9 @@ class EditGetRefactoringResult implements ResponseResult {
         optionsProblems = jsonDecoder.decodeList(
             '$jsonPath.optionsProblems',
             json['optionsProblems'],
-            (String jsonPath, Object? json) =>
-                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => RefactoringProblem.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'optionsProblems');
       }
@@ -6388,20 +6950,23 @@ class EditGetRefactoringResult implements ResponseResult {
         finalProblems = jsonDecoder.decodeList(
             '$jsonPath.finalProblems',
             json['finalProblems'],
-            (String jsonPath, Object? json) =>
-                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => RefactoringProblem.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'finalProblems');
       }
       RefactoringFeedback? feedback;
       if (json.containsKey('feedback')) {
         feedback = RefactoringFeedback.fromJson(
-            jsonDecoder, '$jsonPath.feedback', json['feedback'], json);
+            jsonDecoder, '$jsonPath.feedback', json['feedback'], json,
+            clientUriConverter: clientUriConverter);
       }
       SourceChange? change;
       if (json.containsKey('change')) {
         change = SourceChange.fromJson(
-            jsonDecoder, '$jsonPath.change', json['change']);
+            jsonDecoder, '$jsonPath.change', json['change'],
+            clientUriConverter: clientUriConverter);
       }
       List<String>? potentialEdits;
       if (json.containsKey('potentialEdits')) {
@@ -6416,32 +6981,39 @@ class EditGetRefactoringResult implements ResponseResult {
     }
   }
 
-  factory EditGetRefactoringResult.fromResponse(Response response) {
+  factory EditGetRefactoringResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetRefactoringResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['initialProblems'] = initialProblems
-        .map((RefactoringProblem value) => value.toJson())
+        .map((RefactoringProblem value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     result['optionsProblems'] = optionsProblems
-        .map((RefactoringProblem value) => value.toJson())
+        .map((RefactoringProblem value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     result['finalProblems'] = finalProblems
-        .map((RefactoringProblem value) => value.toJson())
+        .map((RefactoringProblem value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     var feedback = this.feedback;
     if (feedback != null) {
-      result['feedback'] = feedback.toJson();
+      result['feedback'] =
+          feedback.toJson(clientUriConverter: clientUriConverter);
     }
     var change = this.change;
     if (change != null) {
-      result['change'] = change.toJson();
+      result['change'] = change.toJson(clientUriConverter: clientUriConverter);
     }
     var potentialEdits = this.potentialEdits;
     if (potentialEdits != null) {
@@ -6451,12 +7023,13 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6504,13 +7077,15 @@ class EditGetStatementCompletionParams implements RequestParams {
   EditGetStatementCompletionParams(this.file, this.offset);
 
   factory EditGetStatementCompletionParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6527,26 +7102,31 @@ class EditGetStatementCompletionParams implements RequestParams {
     }
   }
 
-  factory EditGetStatementCompletionParams.fromRequest(Request request) {
+  factory EditGetStatementCompletionParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetStatementCompletionParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.getStatementCompletion', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'edit.getStatementCompletion',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6582,13 +7162,15 @@ class EditGetStatementCompletionResult implements ResponseResult {
   EditGetStatementCompletionResult(this.change, this.whitespaceOnly);
 
   factory EditGetStatementCompletionResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       SourceChange change;
       if (json.containsKey('change')) {
         change = SourceChange.fromJson(
-            jsonDecoder, '$jsonPath.change', json['change']);
+            jsonDecoder, '$jsonPath.change', json['change'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'change');
       }
@@ -6606,28 +7188,32 @@ class EditGetStatementCompletionResult implements ResponseResult {
     }
   }
 
-  factory EditGetStatementCompletionResult.fromResponse(Response response) {
+  factory EditGetStatementCompletionResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditGetStatementCompletionResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['change'] = change.toJson();
+    result['change'] = change.toJson(clientUriConverter: clientUriConverter);
     result['whitespaceOnly'] = whitespaceOnly;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6669,13 +7255,15 @@ class EditImportElementsParams implements RequestParams {
   EditImportElementsParams(this.file, this.elements, {this.offset});
 
   factory EditImportElementsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6684,8 +7272,9 @@ class EditImportElementsParams implements RequestParams {
         elements = jsonDecoder.decodeList(
             '$jsonPath.elements',
             json['elements'],
-            (String jsonPath, Object? json) =>
-                ImportedElements.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ImportedElements.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'elements');
       }
@@ -6699,17 +7288,22 @@ class EditImportElementsParams implements RequestParams {
     }
   }
 
-  factory EditImportElementsParams.fromRequest(Request request) {
+  factory EditImportElementsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditImportElementsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['elements'] =
-        elements.map((ImportedElements value) => value.toJson()).toList();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['elements'] = elements
+        .map((ImportedElements value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     var offset = this.offset;
     if (offset != null) {
       result['offset'] = offset;
@@ -6718,12 +7312,14 @@ class EditImportElementsParams implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.importElements', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'edit.importElements',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6763,13 +7359,15 @@ class EditImportElementsResult implements ResponseResult {
   EditImportElementsResult({this.edit});
 
   factory EditImportElementsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       SourceFileEdit? edit;
       if (json.containsKey('edit')) {
         edit = SourceFileEdit.fromJson(
-            jsonDecoder, '$jsonPath.edit', json['edit']);
+            jsonDecoder, '$jsonPath.edit', json['edit'],
+            clientUriConverter: clientUriConverter);
       }
       return EditImportElementsResult(edit: edit);
     } else {
@@ -6777,30 +7375,34 @@ class EditImportElementsResult implements ResponseResult {
     }
   }
 
-  factory EditImportElementsResult.fromResponse(Response response) {
+  factory EditImportElementsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditImportElementsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var edit = this.edit;
     if (edit != null) {
-      result['edit'] = edit.toJson();
+      result['edit'] = edit.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6837,13 +7439,15 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   EditIsPostfixCompletionApplicableParams(this.file, this.key, this.offset);
 
   factory EditIsPostfixCompletionApplicableParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -6866,27 +7470,32 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
     }
   }
 
-  factory EditIsPostfixCompletionApplicableParams.fromRequest(Request request) {
+  factory EditIsPostfixCompletionApplicableParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditIsPostfixCompletionApplicableParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['key'] = key;
     result['offset'] = offset;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.isPostfixCompletionApplicable', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'edit.isPostfixCompletionApplicable',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6918,7 +7527,8 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   EditIsPostfixCompletionApplicableResult(this.value);
 
   factory EditIsPostfixCompletionApplicableResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool value;
@@ -6935,27 +7545,31 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   }
 
   factory EditIsPostfixCompletionApplicableResult.fromResponse(
-      Response response) {
+      Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditIsPostfixCompletionApplicableResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['value'] = value;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -6974,10 +7588,13 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Request toRequest(String id) {
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Request(id, 'edit.listPostfixCompletionTemplates');
   }
 
@@ -7002,7 +7619,8 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   EditListPostfixCompletionTemplatesResult(this.templates);
 
   factory EditListPostfixCompletionTemplatesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<PostfixTemplateDescriptor> templates;
@@ -7011,8 +7629,8 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
             '$jsonPath.templates',
             json['templates'],
             (String jsonPath, Object? json) =>
-                PostfixTemplateDescriptor.fromJson(
-                    jsonDecoder, jsonPath, json));
+                PostfixTemplateDescriptor.fromJson(jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'templates');
       }
@@ -7024,29 +7642,34 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   }
 
   factory EditListPostfixCompletionTemplatesResult.fromResponse(
-      Response response) {
+      Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditListPostfixCompletionTemplatesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['templates'] = templates
-        .map((PostfixTemplateDescriptor value) => value.toJson())
+        .map((PostfixTemplateDescriptor value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7075,13 +7698,15 @@ class EditOrganizeDirectivesParams implements RequestParams {
   EditOrganizeDirectivesParams(this.file);
 
   factory EditOrganizeDirectivesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -7092,25 +7717,30 @@ class EditOrganizeDirectivesParams implements RequestParams {
     }
   }
 
-  factory EditOrganizeDirectivesParams.fromRequest(Request request) {
+  factory EditOrganizeDirectivesParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditOrganizeDirectivesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.organizeDirectives', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'edit.organizeDirectives',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7139,13 +7769,15 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   EditOrganizeDirectivesResult(this.edit);
 
   factory EditOrganizeDirectivesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       SourceFileEdit edit;
       if (json.containsKey('edit')) {
         edit = SourceFileEdit.fromJson(
-            jsonDecoder, '$jsonPath.edit', json['edit']);
+            jsonDecoder, '$jsonPath.edit', json['edit'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edit');
       }
@@ -7156,27 +7788,31 @@ class EditOrganizeDirectivesResult implements ResponseResult {
     }
   }
 
-  factory EditOrganizeDirectivesResult.fromResponse(Response response) {
+  factory EditOrganizeDirectivesResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditOrganizeDirectivesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['edit'] = edit.toJson();
+    result['edit'] = edit.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7204,13 +7840,15 @@ class EditSortMembersParams implements RequestParams {
   EditSortMembersParams(this.file);
 
   factory EditSortMembersParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -7220,25 +7858,30 @@ class EditSortMembersParams implements RequestParams {
     }
   }
 
-  factory EditSortMembersParams.fromRequest(Request request) {
+  factory EditSortMembersParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditSortMembersParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'edit.sortMembers', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(
+        id, 'edit.sortMembers', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7267,13 +7910,15 @@ class EditSortMembersResult implements ResponseResult {
   EditSortMembersResult(this.edit);
 
   factory EditSortMembersResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       SourceFileEdit edit;
       if (json.containsKey('edit')) {
         edit = SourceFileEdit.fromJson(
-            jsonDecoder, '$jsonPath.edit', json['edit']);
+            jsonDecoder, '$jsonPath.edit', json['edit'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edit');
       }
@@ -7283,27 +7928,31 @@ class EditSortMembersResult implements ResponseResult {
     }
   }
 
-  factory EditSortMembersResult.fromResponse(Response response) {
+  factory EditSortMembersResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return EditSortMembersResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['edit'] = edit.toJson();
+    result['edit'] = edit.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7380,7 +8029,8 @@ class ElementDeclaration implements HasToJson {
       {this.className, this.mixinName, this.parameters});
 
   factory ElementDeclaration.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -7391,8 +8041,8 @@ class ElementDeclaration implements HasToJson {
       }
       ElementKind kind;
       if (json.containsKey('kind')) {
-        kind =
-            ElementKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
+        kind = ElementKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -7459,10 +8109,11 @@ class ElementDeclaration implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['fileIndex'] = fileIndex;
     result['offset'] = offset;
     result['line'] = line;
@@ -7485,7 +8136,7 @@ class ElementDeclaration implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7539,20 +8190,23 @@ class ExecutableFile implements HasToJson {
   ExecutableFile(this.file, this.kind);
 
   factory ExecutableFile.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       ExecutableKind kind;
       if (json.containsKey('kind')) {
         kind = ExecutableKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -7563,15 +8217,16 @@ class ExecutableFile implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['kind'] = kind.toJson();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7636,7 +8291,8 @@ class ExecutableKind implements Enum {
   }
 
   factory ExecutableKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return ExecutableKind(json);
@@ -7650,7 +8306,7 @@ class ExecutableKind implements Enum {
   @override
   String toString() => 'ExecutableKind.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// execution.createContext params
@@ -7668,13 +8324,16 @@ class ExecutionCreateContextParams implements RequestParams {
   ExecutionCreateContextParams(this.contextRoot);
 
   factory ExecutionCreateContextParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String contextRoot;
       if (json.containsKey('contextRoot')) {
-        contextRoot = clientUriConverter.fromClientFilePath(jsonDecoder
-            .decodeString('$jsonPath.contextRoot', json['contextRoot']));
+        contextRoot = clientUriConverter?.fromClientFilePath(jsonDecoder
+                .decodeString('$jsonPath.contextRoot', json['contextRoot'])) ??
+            jsonDecoder.decodeString(
+                '$jsonPath.contextRoot', json['contextRoot']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'contextRoot');
       }
@@ -7685,25 +8344,31 @@ class ExecutionCreateContextParams implements RequestParams {
     }
   }
 
-  factory ExecutionCreateContextParams.fromRequest(Request request) {
+  factory ExecutionCreateContextParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionCreateContextParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['contextRoot'] = clientUriConverter.toClientFilePath(contextRoot);
+    result['contextRoot'] =
+        clientUriConverter?.toClientFilePath(contextRoot) ?? contextRoot;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'execution.createContext', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'execution.createContext',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7731,7 +8396,8 @@ class ExecutionCreateContextResult implements ResponseResult {
   ExecutionCreateContextResult(this.id);
 
   factory ExecutionCreateContextResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -7747,27 +8413,31 @@ class ExecutionCreateContextResult implements ResponseResult {
     }
   }
 
-  factory ExecutionCreateContextResult.fromResponse(Response response) {
+  factory ExecutionCreateContextResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionCreateContextResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7795,7 +8465,8 @@ class ExecutionDeleteContextParams implements RequestParams {
   ExecutionDeleteContextParams(this.id);
 
   factory ExecutionDeleteContextParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -7811,25 +8482,30 @@ class ExecutionDeleteContextParams implements RequestParams {
     }
   }
 
-  factory ExecutionDeleteContextParams.fromRequest(Request request) {
+  factory ExecutionDeleteContextParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionDeleteContextParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'execution.deleteContext', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'execution.deleteContext',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -7848,10 +8524,13 @@ class ExecutionDeleteContextParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -7911,7 +8590,8 @@ class ExecutionGetSuggestionsParams implements RequestParams {
       {this.expressions});
 
   factory ExecutionGetSuggestionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String code;
@@ -7928,8 +8608,10 @@ class ExecutionGetSuggestionsParams implements RequestParams {
       }
       String contextFile;
       if (json.containsKey('contextFile')) {
-        contextFile = clientUriConverter.fromClientFilePath(jsonDecoder
-            .decodeString('$jsonPath.contextFile', json['contextFile']));
+        contextFile = clientUriConverter?.fromClientFilePath(jsonDecoder
+                .decodeString('$jsonPath.contextFile', json['contextFile'])) ??
+            jsonDecoder.decodeString(
+                '$jsonPath.contextFile', json['contextFile']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'contextFile');
       }
@@ -7946,8 +8628,8 @@ class ExecutionGetSuggestionsParams implements RequestParams {
             '$jsonPath.variables',
             json['variables'],
             (String jsonPath, Object? json) =>
-                RuntimeCompletionVariable.fromJson(
-                    jsonDecoder, jsonPath, json));
+                RuntimeCompletionVariable.fromJson(jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'variables');
       }
@@ -7958,7 +8640,8 @@ class ExecutionGetSuggestionsParams implements RequestParams {
             json['expressions'],
             (String jsonPath, Object? json) =>
                 RuntimeCompletionExpression.fromJson(
-                    jsonDecoder, jsonPath, json));
+                    jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       }
       return ExecutionGetSuggestionsParams(
           code, offset, contextFile, contextOffset, variables,
@@ -7969,37 +8652,45 @@ class ExecutionGetSuggestionsParams implements RequestParams {
     }
   }
 
-  factory ExecutionGetSuggestionsParams.fromRequest(Request request) {
+  factory ExecutionGetSuggestionsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionGetSuggestionsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['code'] = code;
     result['offset'] = offset;
-    result['contextFile'] = clientUriConverter.toClientFilePath(contextFile);
+    result['contextFile'] =
+        clientUriConverter?.toClientFilePath(contextFile) ?? contextFile;
     result['contextOffset'] = contextOffset;
     result['variables'] = variables
-        .map((RuntimeCompletionVariable value) => value.toJson())
+        .map((RuntimeCompletionVariable value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     var expressions = this.expressions;
     if (expressions != null) {
       result['expressions'] = expressions
-          .map((RuntimeCompletionExpression value) => value.toJson())
+          .map((RuntimeCompletionExpression value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'execution.getSuggestions', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'execution.getSuggestions',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8061,7 +8752,8 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   ExecutionGetSuggestionsResult({this.suggestions, this.expressions});
 
   factory ExecutionGetSuggestionsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<CompletionSuggestion>? suggestions;
@@ -8069,8 +8761,9 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
         suggestions = jsonDecoder.decodeList(
             '$jsonPath.suggestions',
             json['suggestions'],
-            (String jsonPath, Object? json) =>
-                CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => CompletionSuggestion.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       }
       List<RuntimeCompletionExpression>? expressions;
       if (json.containsKey('expressions')) {
@@ -8079,7 +8772,8 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
             json['expressions'],
             (String jsonPath, Object? json) =>
                 RuntimeCompletionExpression.fromJson(
-                    jsonDecoder, jsonPath, json));
+                    jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       }
       return ExecutionGetSuggestionsResult(
           suggestions: suggestions, expressions: expressions);
@@ -8089,38 +8783,44 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
     }
   }
 
-  factory ExecutionGetSuggestionsResult.fromResponse(Response response) {
+  factory ExecutionGetSuggestionsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionGetSuggestionsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var suggestions = this.suggestions;
     if (suggestions != null) {
       result['suggestions'] = suggestions
-          .map((CompletionSuggestion value) => value.toJson())
+          .map((CompletionSuggestion value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     var expressions = this.expressions;
     if (expressions != null) {
       result['expressions'] = expressions
-          .map((RuntimeCompletionExpression value) => value.toJson())
+          .map((RuntimeCompletionExpression value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8168,28 +8868,33 @@ class ExecutionLaunchDataParams implements HasToJson {
   ExecutionLaunchDataParams(this.file, {this.kind, this.referencedFiles});
 
   factory ExecutionLaunchDataParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       ExecutableKind? kind;
       if (json.containsKey('kind')) {
         kind = ExecutableKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       }
       List<String>? referencedFiles;
       if (json.containsKey('referencedFiles')) {
         referencedFiles = jsonDecoder.decodeList(
             '$jsonPath.referencedFiles',
             json['referencedFiles'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       }
       return ExecutionLaunchDataParams(file,
           kind: kind, referencedFiles: referencedFiles);
@@ -8198,35 +8903,40 @@ class ExecutionLaunchDataParams implements HasToJson {
     }
   }
 
-  factory ExecutionLaunchDataParams.fromNotification(
-      Notification notification) {
+  factory ExecutionLaunchDataParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionLaunchDataParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     var kind = this.kind;
     if (kind != null) {
-      result['kind'] = kind.toJson();
+      result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     }
     var referencedFiles = this.referencedFiles;
     if (referencedFiles != null) {
       result['referencedFiles'] = referencedFiles
-          .map((String value) => clientUriConverter.toClientFilePath(value))
+          .map((String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value)
           .toList();
     }
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('execution.launchData', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'execution.launchData', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8269,7 +8979,8 @@ class ExecutionMapUriParams implements RequestParams {
   ExecutionMapUriParams(this.id, {this.file, this.uri});
 
   factory ExecutionMapUriParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -8280,8 +8991,9 @@ class ExecutionMapUriParams implements RequestParams {
       }
       String? file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       }
       String? uri;
       if (json.containsKey('uri')) {
@@ -8293,18 +9005,21 @@ class ExecutionMapUriParams implements RequestParams {
     }
   }
 
-  factory ExecutionMapUriParams.fromRequest(Request request) {
+  factory ExecutionMapUriParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionMapUriParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
     var file = this.file;
     if (file != null) {
-      result['file'] = clientUriConverter.toClientFilePath(file);
+      result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     }
     var uri = this.uri;
     if (uri != null) {
@@ -8314,12 +9029,14 @@ class ExecutionMapUriParams implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'execution.mapUri', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(
+        id, 'execution.mapUri', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8357,13 +9074,15 @@ class ExecutionMapUriResult implements ResponseResult {
   ExecutionMapUriResult({this.file, this.uri});
 
   factory ExecutionMapUriResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String? file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       }
       String? uri;
       if (json.containsKey('uri')) {
@@ -8375,19 +9094,22 @@ class ExecutionMapUriResult implements ResponseResult {
     }
   }
 
-  factory ExecutionMapUriResult.fromResponse(Response response) {
+  factory ExecutionMapUriResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionMapUriResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var file = this.file;
     if (file != null) {
-      result['file'] = clientUriConverter.toClientFilePath(file);
+      result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     }
     var uri = this.uri;
     if (uri != null) {
@@ -8397,12 +9119,13 @@ class ExecutionMapUriResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8446,7 +9169,8 @@ class ExecutionService implements Enum {
   }
 
   factory ExecutionService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return ExecutionService(json);
@@ -8460,7 +9184,7 @@ class ExecutionService implements Enum {
   @override
   String toString() => 'ExecutionService.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// execution.setSubscriptions params
@@ -8477,7 +9201,8 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   ExecutionSetSubscriptionsParams(this.subscriptions);
 
   factory ExecutionSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<ExecutionService> subscriptions;
@@ -8485,8 +9210,9 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeList(
             '$jsonPath.subscriptions',
             json['subscriptions'],
-            (String jsonPath, Object? json) =>
-                ExecutionService.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ExecutionService.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
       }
@@ -8497,26 +9223,33 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
     }
   }
 
-  factory ExecutionSetSubscriptionsParams.fromRequest(Request request) {
+  factory ExecutionSetSubscriptionsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExecutionSetSubscriptionsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['subscriptions'] =
-        subscriptions.map((ExecutionService value) => value.toJson()).toList();
+    result['subscriptions'] = subscriptions
+        .map((ExecutionService value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'execution.setSubscriptions', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'execution.setSubscriptions',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8536,10 +9269,13 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -8569,7 +9305,8 @@ class ExistingImport implements HasToJson {
   ExistingImport(this.uri, this.elements);
 
   factory ExistingImport.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int uri;
@@ -8592,7 +9329,8 @@ class ExistingImport implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['uri'] = uri;
     result['elements'] = elements;
@@ -8600,7 +9338,7 @@ class ExistingImport implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8636,13 +9374,15 @@ class ExistingImports implements HasToJson {
   ExistingImports(this.elements, this.imports);
 
   factory ExistingImports.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       ImportedElementSet elements;
       if (json.containsKey('elements')) {
         elements = ImportedElementSet.fromJson(
-            jsonDecoder, '$jsonPath.elements', json['elements']);
+            jsonDecoder, '$jsonPath.elements', json['elements'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'elements');
       }
@@ -8651,8 +9391,9 @@ class ExistingImports implements HasToJson {
         imports = jsonDecoder.decodeList(
             '$jsonPath.imports',
             json['imports'],
-            (String jsonPath, Object? json) =>
-                ExistingImport.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ExistingImport.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'imports');
       }
@@ -8663,16 +9404,20 @@ class ExistingImports implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['elements'] = elements.toJson();
-    result['imports'] =
-        imports.map((ExistingImport value) => value.toJson()).toList();
+    result['elements'] =
+        elements.toJson(clientUriConverter: clientUriConverter);
+    result['imports'] = imports
+        .map((ExistingImport value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8728,7 +9473,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
       {this.coveringExpressionOffsets, this.coveringExpressionLengths});
 
   factory ExtractLocalVariableFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<int>? coveringExpressionOffsets;
@@ -8776,7 +9522,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var coveringExpressionOffsets = this.coveringExpressionOffsets;
     if (coveringExpressionOffsets != null) {
@@ -8793,7 +9540,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8840,7 +9587,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   ExtractLocalVariableOptions(this.name, this.extractAll);
 
   factory ExtractLocalVariableOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -8864,13 +9612,16 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 
   factory ExtractLocalVariableOptions.fromRefactoringParams(
-      EditGetRefactoringParams refactoringParams, Request request) {
+      EditGetRefactoringParams refactoringParams, Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExtractLocalVariableOptions.fromJson(
-        RequestDecoder(request), 'options', refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
     result['extractAll'] = extractAll;
@@ -8878,7 +9629,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -8945,7 +9696,8 @@ class ExtractMethodFeedback extends RefactoringFeedback {
       this.canCreateGetter, this.parameters, this.offsets, this.lengths);
 
   factory ExtractMethodFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -8987,8 +9739,8 @@ class ExtractMethodFeedback extends RefactoringFeedback {
             '$jsonPath.parameters',
             json['parameters'],
             (String jsonPath, Object? json) =>
-                RefactoringMethodParameter.fromJson(
-                    jsonDecoder, jsonPath, json));
+                RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'parameters');
       }
@@ -9014,7 +9766,8 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
@@ -9022,7 +9775,8 @@ class ExtractMethodFeedback extends RefactoringFeedback {
     result['names'] = names;
     result['canCreateGetter'] = canCreateGetter;
     result['parameters'] = parameters
-        .map((RefactoringMethodParameter value) => value.toJson())
+        .map((RefactoringMethodParameter value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     result['offsets'] = offsets;
     result['lengths'] = lengths;
@@ -9030,7 +9784,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -9107,7 +9861,8 @@ class ExtractMethodOptions extends RefactoringOptions {
       this.parameters, this.extractAll);
 
   factory ExtractMethodOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String returnType;
@@ -9136,8 +9891,8 @@ class ExtractMethodOptions extends RefactoringOptions {
             '$jsonPath.parameters',
             json['parameters'],
             (String jsonPath, Object? json) =>
-                RefactoringMethodParameter.fromJson(
-                    jsonDecoder, jsonPath, json));
+                RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'parameters');
       }
@@ -9156,26 +9911,30 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 
   factory ExtractMethodOptions.fromRefactoringParams(
-      EditGetRefactoringParams refactoringParams, Request request) {
+      EditGetRefactoringParams refactoringParams, Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExtractMethodOptions.fromJson(
-        RequestDecoder(request), 'options', refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['returnType'] = returnType;
     result['createGetter'] = createGetter;
     result['name'] = name;
     result['parameters'] = parameters
-        .map((RefactoringMethodParameter value) => value.toJson())
+        .map((RefactoringMethodParameter value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     result['extractAll'] = extractAll;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -9213,7 +9972,8 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   ExtractWidgetFeedback();
 
   factory ExtractWidgetFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       return ExtractWidgetFeedback();
@@ -9223,13 +9983,14 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -9257,7 +10018,8 @@ class ExtractWidgetOptions extends RefactoringOptions {
   ExtractWidgetOptions(this.name);
 
   factory ExtractWidgetOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -9273,20 +10035,23 @@ class ExtractWidgetOptions extends RefactoringOptions {
   }
 
   factory ExtractWidgetOptions.fromRefactoringParams(
-      EditGetRefactoringParams refactoringParams, Request request) {
+      EditGetRefactoringParams refactoringParams, Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ExtractWidgetOptions.fromJson(
-        RequestDecoder(request), 'options', refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -9332,7 +10097,8 @@ class FileKind implements Enum {
   }
 
   factory FileKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return FileKind(json);
@@ -9346,7 +10112,7 @@ class FileKind implements Enum {
   @override
   String toString() => 'FileKind.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// flutter.getWidgetDescription params
@@ -9367,13 +10133,15 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   FlutterGetWidgetDescriptionParams(this.file, this.offset);
 
   factory FlutterGetWidgetDescriptionParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -9390,26 +10158,31 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
     }
   }
 
-  factory FlutterGetWidgetDescriptionParams.fromRequest(Request request) {
+  factory FlutterGetWidgetDescriptionParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return FlutterGetWidgetDescriptionParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'flutter.getWidgetDescription', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'flutter.getWidgetDescription',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -9443,7 +10216,8 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   FlutterGetWidgetDescriptionResult(this.properties);
 
   factory FlutterGetWidgetDescriptionResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<FlutterWidgetProperty> properties;
@@ -9451,8 +10225,9 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
         properties = jsonDecoder.decodeList(
             '$jsonPath.properties',
             json['properties'],
-            (String jsonPath, Object? json) =>
-                FlutterWidgetProperty.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => FlutterWidgetProperty.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'properties');
       }
@@ -9463,29 +10238,34 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
     }
   }
 
-  factory FlutterGetWidgetDescriptionResult.fromResponse(Response response) {
+  factory FlutterGetWidgetDescriptionResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return FlutterGetWidgetDescriptionResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['properties'] = properties
-        .map((FlutterWidgetProperty value) => value.toJson())
+        .map((FlutterWidgetProperty value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -9577,13 +10357,15 @@ class FlutterOutline implements HasToJson {
       this.children});
 
   factory FlutterOutline.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       FlutterOutlineKind kind;
       if (json.containsKey('kind')) {
         kind = FlutterOutlineKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -9620,15 +10402,17 @@ class FlutterOutline implements HasToJson {
       Element? dartElement;
       if (json.containsKey('dartElement')) {
         dartElement = Element.fromJson(
-            jsonDecoder, '$jsonPath.dartElement', json['dartElement']);
+            jsonDecoder, '$jsonPath.dartElement', json['dartElement'],
+            clientUriConverter: clientUriConverter);
       }
       List<FlutterOutlineAttribute>? attributes;
       if (json.containsKey('attributes')) {
         attributes = jsonDecoder.decodeList(
             '$jsonPath.attributes',
             json['attributes'],
-            (String jsonPath, Object? json) =>
-                FlutterOutlineAttribute.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => FlutterOutlineAttribute.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       }
       String? className;
       if (json.containsKey('className')) {
@@ -9650,8 +10434,9 @@ class FlutterOutline implements HasToJson {
         children = jsonDecoder.decodeList(
             '$jsonPath.children',
             json['children'],
-            (String jsonPath, Object? json) =>
-                FlutterOutline.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => FlutterOutline.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       }
       return FlutterOutline(kind, offset, length, codeOffset, codeLength,
           label: label,
@@ -9667,9 +10452,10 @@ class FlutterOutline implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['offset'] = offset;
     result['length'] = length;
     result['codeOffset'] = codeOffset;
@@ -9680,12 +10466,14 @@ class FlutterOutline implements HasToJson {
     }
     var dartElement = this.dartElement;
     if (dartElement != null) {
-      result['dartElement'] = dartElement.toJson();
+      result['dartElement'] =
+          dartElement.toJson(clientUriConverter: clientUriConverter);
     }
     var attributes = this.attributes;
     if (attributes != null) {
       result['attributes'] = attributes
-          .map((FlutterOutlineAttribute value) => value.toJson())
+          .map((FlutterOutlineAttribute value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     var className = this.className;
@@ -9702,14 +10490,16 @@ class FlutterOutline implements HasToJson {
     }
     var children = this.children;
     if (children != null) {
-      result['children'] =
-          children.map((FlutterOutline value) => value.toJson()).toList();
+      result['children'] = children
+          .map((FlutterOutline value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
+          .toList();
     }
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -9803,7 +10593,8 @@ class FlutterOutlineAttribute implements HasToJson {
       this.valueLocation});
 
   factory FlutterOutlineAttribute.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -9836,12 +10627,14 @@ class FlutterOutlineAttribute implements HasToJson {
       Location? nameLocation;
       if (json.containsKey('nameLocation')) {
         nameLocation = Location.fromJson(
-            jsonDecoder, '$jsonPath.nameLocation', json['nameLocation']);
+            jsonDecoder, '$jsonPath.nameLocation', json['nameLocation'],
+            clientUriConverter: clientUriConverter);
       }
       Location? valueLocation;
       if (json.containsKey('valueLocation')) {
         valueLocation = Location.fromJson(
-            jsonDecoder, '$jsonPath.valueLocation', json['valueLocation']);
+            jsonDecoder, '$jsonPath.valueLocation', json['valueLocation'],
+            clientUriConverter: clientUriConverter);
       }
       return FlutterOutlineAttribute(name, label,
           literalValueBoolean: literalValueBoolean,
@@ -9855,7 +10648,8 @@ class FlutterOutlineAttribute implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
     result['label'] = label;
@@ -9873,17 +10667,19 @@ class FlutterOutlineAttribute implements HasToJson {
     }
     var nameLocation = this.nameLocation;
     if (nameLocation != null) {
-      result['nameLocation'] = nameLocation.toJson();
+      result['nameLocation'] =
+          nameLocation.toJson(clientUriConverter: clientUriConverter);
     }
     var valueLocation = this.valueLocation;
     if (valueLocation != null) {
-      result['valueLocation'] = valueLocation.toJson();
+      result['valueLocation'] =
+          valueLocation.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -9982,7 +10778,8 @@ class FlutterOutlineKind implements Enum {
   }
 
   factory FlutterOutlineKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return FlutterOutlineKind(json);
@@ -9996,7 +10793,7 @@ class FlutterOutlineKind implements Enum {
   @override
   String toString() => 'FlutterOutlineKind.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// flutter.outline params
@@ -10017,20 +10814,23 @@ class FlutterOutlineParams implements HasToJson {
   FlutterOutlineParams(this.file, this.outline);
 
   factory FlutterOutlineParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       FlutterOutline outline;
       if (json.containsKey('outline')) {
         outline = FlutterOutline.fromJson(
-            jsonDecoder, '$jsonPath.outline', json['outline']);
+            jsonDecoder, '$jsonPath.outline', json['outline'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'outline');
       }
@@ -10040,25 +10840,30 @@ class FlutterOutlineParams implements HasToJson {
     }
   }
 
-  factory FlutterOutlineParams.fromNotification(Notification notification) {
+  factory FlutterOutlineParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return FlutterOutlineParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
-    result['outline'] = outline.toJson();
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
+    result['outline'] = outline.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('flutter.outline', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'flutter.outline', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -10102,7 +10907,8 @@ class FlutterService implements Enum {
   }
 
   factory FlutterService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return FlutterService(json);
@@ -10116,7 +10922,7 @@ class FlutterService implements Enum {
   @override
   String toString() => 'FlutterService.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// flutter.setSubscriptions params
@@ -10134,7 +10940,8 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   FlutterSetSubscriptionsParams(this.subscriptions);
 
   factory FlutterSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Map<FlutterService, List<String>> subscriptions;
@@ -10142,14 +10949,16 @@ class FlutterSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeMap(
             '$jsonPath.subscriptions', json['subscriptions'],
             keyDecoder: (String jsonPath, Object? json) =>
-                FlutterService.fromJson(jsonDecoder, jsonPath, json),
+                FlutterService.fromJson(jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter),
             valueDecoder: (String jsonPath, Object? json) =>
                 jsonDecoder.decodeList(
                     jsonPath,
                     json,
                     (String jsonPath, Object? json) =>
-                        clientUriConverter.fromClientFilePath(
-                            jsonDecoder.decodeString(jsonPath, json))));
+                        clientUriConverter?.fromClientFilePath(
+                            jsonDecoder.decodeString(jsonPath, json)) ??
+                        jsonDecoder.decodeString(jsonPath, json)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
       }
@@ -10160,29 +10969,36 @@ class FlutterSetSubscriptionsParams implements RequestParams {
     }
   }
 
-  factory FlutterSetSubscriptionsParams.fromRequest(Request request) {
+  factory FlutterSetSubscriptionsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return FlutterSetSubscriptionsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['subscriptions'] = mapMap(subscriptions,
-        keyCallback: (FlutterService value) => value.toJson(),
+        keyCallback: (FlutterService value) =>
+            value.toJson(clientUriConverter: clientUriConverter),
         valueCallback: (List<String> value) => value
-            .map((String value) => clientUriConverter.toClientFilePath(value))
+            .map((String value) =>
+                clientUriConverter?.toClientFilePath(value) ?? value)
             .toList());
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'flutter.setSubscriptions', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'flutter.setSubscriptions',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -10206,10 +11022,13 @@ class FlutterSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -10250,7 +11069,8 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   FlutterSetWidgetPropertyValueParams(this.id, {this.value});
 
   factory FlutterSetWidgetPropertyValueParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int id;
@@ -10262,7 +11082,8 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
       FlutterWidgetPropertyValue? value;
       if (json.containsKey('value')) {
         value = FlutterWidgetPropertyValue.fromJson(
-            jsonDecoder, '$jsonPath.value', json['value']);
+            jsonDecoder, '$jsonPath.value', json['value'],
+            clientUriConverter: clientUriConverter);
       }
       return FlutterSetWidgetPropertyValueParams(id, value: value);
     } else {
@@ -10271,29 +11092,34 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
     }
   }
 
-  factory FlutterSetWidgetPropertyValueParams.fromRequest(Request request) {
+  factory FlutterSetWidgetPropertyValueParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return FlutterSetWidgetPropertyValueParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
     var value = this.value;
     if (value != null) {
-      result['value'] = value.toJson();
+      result['value'] = value.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'flutter.setWidgetPropertyValue', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'flutter.setWidgetPropertyValue',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -10324,13 +11150,15 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   FlutterSetWidgetPropertyValueResult(this.change);
 
   factory FlutterSetWidgetPropertyValueResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       SourceChange change;
       if (json.containsKey('change')) {
         change = SourceChange.fromJson(
-            jsonDecoder, '$jsonPath.change', json['change']);
+            jsonDecoder, '$jsonPath.change', json['change'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'change');
       }
@@ -10341,27 +11169,31 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
     }
   }
 
-  factory FlutterSetWidgetPropertyValueResult.fromResponse(Response response) {
+  factory FlutterSetWidgetPropertyValueResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return FlutterSetWidgetPropertyValueResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['change'] = change.toJson();
+    result['change'] = change.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -10442,7 +11274,8 @@ class FlutterWidgetProperty implements HasToJson {
       this.value});
 
   factory FlutterWidgetProperty.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String? documentation;
@@ -10486,18 +11319,21 @@ class FlutterWidgetProperty implements HasToJson {
         children = jsonDecoder.decodeList(
             '$jsonPath.children',
             json['children'],
-            (String jsonPath, Object? json) =>
-                FlutterWidgetProperty.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => FlutterWidgetProperty.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       }
       FlutterWidgetPropertyEditor? editor;
       if (json.containsKey('editor')) {
         editor = FlutterWidgetPropertyEditor.fromJson(
-            jsonDecoder, '$jsonPath.editor', json['editor']);
+            jsonDecoder, '$jsonPath.editor', json['editor'],
+            clientUriConverter: clientUriConverter);
       }
       FlutterWidgetPropertyValue? value;
       if (json.containsKey('value')) {
         value = FlutterWidgetPropertyValue.fromJson(
-            jsonDecoder, '$jsonPath.value', json['value']);
+            jsonDecoder, '$jsonPath.value', json['value'],
+            clientUriConverter: clientUriConverter);
       }
       return FlutterWidgetProperty(id, isRequired, isSafeToUpdate, name,
           documentation: documentation,
@@ -10511,7 +11347,8 @@ class FlutterWidgetProperty implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var documentation = this.documentation;
     if (documentation != null) {
@@ -10528,22 +11365,23 @@ class FlutterWidgetProperty implements HasToJson {
     var children = this.children;
     if (children != null) {
       result['children'] = children
-          .map((FlutterWidgetProperty value) => value.toJson())
+          .map((FlutterWidgetProperty value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     var editor = this.editor;
     if (editor != null) {
-      result['editor'] = editor.toJson();
+      result['editor'] = editor.toJson(clientUriConverter: clientUriConverter);
     }
     var value = this.value;
     if (value != null) {
-      result['value'] = value.toJson();
+      result['value'] = value.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -10592,13 +11430,15 @@ class FlutterWidgetPropertyEditor implements HasToJson {
   FlutterWidgetPropertyEditor(this.kind, {this.enumItems});
 
   factory FlutterWidgetPropertyEditor.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       FlutterWidgetPropertyEditorKind kind;
       if (json.containsKey('kind')) {
         kind = FlutterWidgetPropertyEditorKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -10609,7 +11449,8 @@ class FlutterWidgetPropertyEditor implements HasToJson {
             json['enumItems'],
             (String jsonPath, Object? json) =>
                 FlutterWidgetPropertyValueEnumItem.fromJson(
-                    jsonDecoder, jsonPath, json));
+                    jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       }
       return FlutterWidgetPropertyEditor(kind, enumItems: enumItems);
     } else {
@@ -10618,20 +11459,22 @@ class FlutterWidgetPropertyEditor implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     var enumItems = this.enumItems;
     if (enumItems != null) {
       result['enumItems'] = enumItems
-          .map((FlutterWidgetPropertyValueEnumItem value) => value.toJson())
+          .map((FlutterWidgetPropertyValueEnumItem value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -10729,7 +11572,8 @@ class FlutterWidgetPropertyEditorKind implements Enum {
   }
 
   factory FlutterWidgetPropertyEditorKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return FlutterWidgetPropertyEditorKind(json);
@@ -10744,7 +11588,7 @@ class FlutterWidgetPropertyEditorKind implements Enum {
   @override
   String toString() => 'FlutterWidgetPropertyEditorKind.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// FlutterWidgetPropertyValue
@@ -10782,7 +11626,8 @@ class FlutterWidgetPropertyValue implements HasToJson {
       this.expression});
 
   factory FlutterWidgetPropertyValue.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool? boolValue;
@@ -10808,7 +11653,8 @@ class FlutterWidgetPropertyValue implements HasToJson {
       FlutterWidgetPropertyValueEnumItem? enumValue;
       if (json.containsKey('enumValue')) {
         enumValue = FlutterWidgetPropertyValueEnumItem.fromJson(
-            jsonDecoder, '$jsonPath.enumValue', json['enumValue']);
+            jsonDecoder, '$jsonPath.enumValue', json['enumValue'],
+            clientUriConverter: clientUriConverter);
       }
       String? expression;
       if (json.containsKey('expression')) {
@@ -10828,7 +11674,8 @@ class FlutterWidgetPropertyValue implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var boolValue = this.boolValue;
     if (boolValue != null) {
@@ -10848,7 +11695,8 @@ class FlutterWidgetPropertyValue implements HasToJson {
     }
     var enumValue = this.enumValue;
     if (enumValue != null) {
-      result['enumValue'] = enumValue.toJson();
+      result['enumValue'] =
+          enumValue.toJson(clientUriConverter: clientUriConverter);
     }
     var expression = this.expression;
     if (expression != null) {
@@ -10858,7 +11706,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -10916,7 +11764,8 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
       {this.documentation});
 
   factory FlutterWidgetPropertyValueEnumItem.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String libraryUri;
@@ -10953,7 +11802,8 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['libraryUri'] = libraryUri;
     result['className'] = className;
@@ -10966,7 +11816,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11018,7 +11868,8 @@ class GeneralAnalysisService implements Enum {
   }
 
   factory GeneralAnalysisService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return GeneralAnalysisService(json);
@@ -11032,7 +11883,7 @@ class GeneralAnalysisService implements Enum {
   @override
   String toString() => 'GeneralAnalysisService.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// HoverInformation
@@ -11123,7 +11974,8 @@ class HoverInformation implements HasToJson {
       this.staticType});
 
   factory HoverInformation.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -11206,7 +12058,8 @@ class HoverInformation implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
@@ -11254,7 +12107,7 @@ class HoverInformation implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11310,7 +12163,8 @@ class ImplementedClass implements HasToJson {
   ImplementedClass(this.offset, this.length);
 
   factory ImplementedClass.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -11332,7 +12186,8 @@ class ImplementedClass implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
@@ -11340,7 +12195,7 @@ class ImplementedClass implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11375,7 +12230,8 @@ class ImplementedMember implements HasToJson {
   ImplementedMember(this.offset, this.length);
 
   factory ImplementedMember.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -11397,7 +12253,8 @@ class ImplementedMember implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
@@ -11405,7 +12262,7 @@ class ImplementedMember implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11444,7 +12301,8 @@ class ImportedElementSet implements HasToJson {
   ImportedElementSet(this.strings, this.uris, this.names);
 
   factory ImportedElementSet.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> strings;
@@ -11475,7 +12333,8 @@ class ImportedElementSet implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['strings'] = strings;
     result['uris'] = uris;
@@ -11484,7 +12343,7 @@ class ImportedElementSet implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11528,13 +12387,15 @@ class ImportedElements implements HasToJson {
   ImportedElements(this.path, this.prefix, this.elements);
 
   factory ImportedElements.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String path;
       if (json.containsKey('path')) {
-        path = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.path', json['path']));
+        path = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.path', json['path'])) ??
+            jsonDecoder.decodeString('$jsonPath.path', json['path']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'path');
       }
@@ -11558,16 +12419,17 @@ class ImportedElements implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['path'] = clientUriConverter.toClientFilePath(path);
+    result['path'] = clientUriConverter?.toClientFilePath(path) ?? path;
     result['prefix'] = prefix;
     result['elements'] = elements;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11605,7 +12467,8 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   InlineLocalVariableFeedback(this.name, this.occurrences);
 
   factory InlineLocalVariableFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -11629,7 +12492,8 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
     result['occurrences'] = occurrences;
@@ -11637,7 +12501,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11690,7 +12554,8 @@ class InlineMethodFeedback extends RefactoringFeedback {
   InlineMethodFeedback(this.methodName, this.isDeclaration, {this.className});
 
   factory InlineMethodFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String? className;
@@ -11720,7 +12585,8 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var className = this.className;
     if (className != null) {
@@ -11732,7 +12598,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11772,7 +12638,8 @@ class InlineMethodOptions extends RefactoringOptions {
   InlineMethodOptions(this.deleteSource, this.inlineAll);
 
   factory InlineMethodOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool deleteSource;
@@ -11796,13 +12663,16 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 
   factory InlineMethodOptions.fromRefactoringParams(
-      EditGetRefactoringParams refactoringParams, Request request) {
+      EditGetRefactoringParams refactoringParams, Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return InlineMethodOptions.fromJson(
-        RequestDecoder(request), 'options', refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['deleteSource'] = deleteSource;
     result['inlineAll'] = inlineAll;
@@ -11810,7 +12680,7 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11848,13 +12718,15 @@ class LibraryPathSet implements HasToJson {
   LibraryPathSet(this.scope, this.libraryPaths);
 
   factory LibraryPathSet.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String scope;
       if (json.containsKey('scope')) {
-        scope = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.scope', json['scope']));
+        scope = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.scope', json['scope'])) ??
+            jsonDecoder.decodeString('$jsonPath.scope', json['scope']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'scope');
       }
@@ -11863,8 +12735,10 @@ class LibraryPathSet implements HasToJson {
         libraryPaths = jsonDecoder.decodeList(
             '$jsonPath.libraryPaths',
             json['libraryPaths'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'libraryPaths');
       }
@@ -11875,17 +12749,19 @@ class LibraryPathSet implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['scope'] = clientUriConverter.toClientFilePath(scope);
+    result['scope'] = clientUriConverter?.toClientFilePath(scope) ?? scope;
     result['libraryPaths'] = libraryPaths
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11918,7 +12794,8 @@ class LspHandleParams implements RequestParams {
   LspHandleParams(this.lspMessage);
 
   factory LspHandleParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Object lspMessage;
@@ -11933,25 +12810,30 @@ class LspHandleParams implements RequestParams {
     }
   }
 
-  factory LspHandleParams.fromRequest(Request request) {
+  factory LspHandleParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return LspHandleParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['lspMessage'] = lspMessage;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'lsp.handle', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(
+        id, 'lsp.handle', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -11979,7 +12861,8 @@ class LspHandleResult implements ResponseResult {
   LspHandleResult(this.lspResponse);
 
   factory LspHandleResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Object lspResponse;
@@ -11994,27 +12877,31 @@ class LspHandleResult implements ResponseResult {
     }
   }
 
-  factory LspHandleResult.fromResponse(Response response) {
+  factory LspHandleResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return LspHandleResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['lspResponse'] = lspResponse;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12042,7 +12929,8 @@ class LspNotificationParams implements HasToJson {
   LspNotificationParams(this.lspNotification);
 
   factory LspNotificationParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Object lspNotification;
@@ -12057,24 +12945,29 @@ class LspNotificationParams implements HasToJson {
     }
   }
 
-  factory LspNotificationParams.fromNotification(Notification notification) {
+  factory LspNotificationParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return LspNotificationParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['lspNotification'] = lspNotification;
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('lsp.notification', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'lsp.notification', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12103,7 +12996,8 @@ class MessageAction implements HasToJson {
   MessageAction(this.label);
 
   factory MessageAction.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String label;
@@ -12119,14 +13013,15 @@ class MessageAction implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['label'] = label;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12191,7 +13086,8 @@ class MessageType implements Enum {
   }
 
   factory MessageType.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return MessageType(json);
@@ -12205,7 +13101,7 @@ class MessageType implements Enum {
   @override
   String toString() => 'MessageType.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// moveFile feedback
@@ -12233,13 +13129,15 @@ class MoveFileOptions extends RefactoringOptions {
   MoveFileOptions(this.newFile);
 
   factory MoveFileOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String newFile;
       if (json.containsKey('newFile')) {
-        newFile = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.newFile', json['newFile']));
+        newFile = clientUriConverter?.fromClientFilePath(jsonDecoder
+                .decodeString('$jsonPath.newFile', json['newFile'])) ??
+            jsonDecoder.decodeString('$jsonPath.newFile', json['newFile']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'newFile');
       }
@@ -12250,20 +13148,24 @@ class MoveFileOptions extends RefactoringOptions {
   }
 
   factory MoveFileOptions.fromRefactoringParams(
-      EditGetRefactoringParams refactoringParams, Request request) {
+      EditGetRefactoringParams refactoringParams, Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return MoveFileOptions.fromJson(
-        RequestDecoder(request), 'options', refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['newFile'] = clientUriConverter.toClientFilePath(newFile);
+    result['newFile'] =
+        clientUriConverter?.toClientFilePath(newFile) ?? newFile;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12295,13 +13197,15 @@ class OverriddenMember implements HasToJson {
   OverriddenMember(this.element, this.className);
 
   factory OverriddenMember.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Element element;
       if (json.containsKey('element')) {
-        element =
-            Element.fromJson(jsonDecoder, '$jsonPath.element', json['element']);
+        element = Element.fromJson(
+            jsonDecoder, '$jsonPath.element', json['element'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'element');
       }
@@ -12319,15 +13223,16 @@ class OverriddenMember implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['element'] = element.toJson();
+    result['element'] = element.toJson(clientUriConverter: clientUriConverter);
     result['className'] = className;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12375,7 +13280,8 @@ class Override implements HasToJson {
       {this.superclassMember, this.interfaceMembers});
 
   factory Override.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -12392,16 +13298,18 @@ class Override implements HasToJson {
       }
       OverriddenMember? superclassMember;
       if (json.containsKey('superclassMember')) {
-        superclassMember = OverriddenMember.fromJson(jsonDecoder,
-            '$jsonPath.superclassMember', json['superclassMember']);
+        superclassMember = OverriddenMember.fromJson(
+            jsonDecoder, '$jsonPath.superclassMember', json['superclassMember'],
+            clientUriConverter: clientUriConverter);
       }
       List<OverriddenMember>? interfaceMembers;
       if (json.containsKey('interfaceMembers')) {
         interfaceMembers = jsonDecoder.decodeList(
             '$jsonPath.interfaceMembers',
             json['interfaceMembers'],
-            (String jsonPath, Object? json) =>
-                OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => OverriddenMember.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       }
       return Override(offset, length,
           superclassMember: superclassMember,
@@ -12412,25 +13320,28 @@ class Override implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     var superclassMember = this.superclassMember;
     if (superclassMember != null) {
-      result['superclassMember'] = superclassMember.toJson();
+      result['superclassMember'] =
+          superclassMember.toJson(clientUriConverter: clientUriConverter);
     }
     var interfaceMembers = this.interfaceMembers;
     if (interfaceMembers != null) {
       result['interfaceMembers'] = interfaceMembers
-          .map((OverriddenMember value) => value.toJson())
+          .map((OverriddenMember value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12476,7 +13387,8 @@ class PostfixTemplateDescriptor implements HasToJson {
   PostfixTemplateDescriptor(this.name, this.key, this.example);
 
   factory PostfixTemplateDescriptor.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -12505,7 +13417,8 @@ class PostfixTemplateDescriptor implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
     result['key'] = key;
@@ -12514,7 +13427,7 @@ class PostfixTemplateDescriptor implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12547,7 +13460,8 @@ class PubStatus implements HasToJson {
   PubStatus(this.isListingPackageDirs);
 
   factory PubStatus.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool isListingPackageDirs;
@@ -12564,14 +13478,15 @@ class PubStatus implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['isListingPackageDirs'] = isListingPackageDirs;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12595,19 +13510,22 @@ class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
   static RefactoringFeedback? fromJson(JsonDecoder jsonDecoder, String jsonPath,
-      Object? json, Map<Object?, Object?> responseJson) {
+      Object? json, Map<Object?, Object?> responseJson,
+      {required ClientUriConverter? clientUriConverter}) {
     return refactoringFeedbackFromJson(
-        jsonDecoder, jsonPath, json, responseJson);
+        jsonDecoder, jsonPath, json, responseJson,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12631,18 +13549,21 @@ class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
   static RefactoringOptions? fromJson(JsonDecoder jsonDecoder, String jsonPath,
-      Object? json, RefactoringKind kind) {
-    return refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
+      Object? json, RefactoringKind kind,
+      {required ClientUriConverter? clientUriConverter}) {
+    return refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12684,7 +13605,8 @@ class RenameFeedback extends RefactoringFeedback {
   RenameFeedback(this.offset, this.length, this.elementKindName, this.oldName);
 
   factory RenameFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -12720,7 +13642,8 @@ class RenameFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
@@ -12730,7 +13653,7 @@ class RenameFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12766,7 +13689,8 @@ class RenameOptions extends RefactoringOptions {
   RenameOptions(this.newName);
 
   factory RenameOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String newName;
@@ -12783,20 +13707,23 @@ class RenameOptions extends RefactoringOptions {
   }
 
   factory RenameOptions.fromRefactoringParams(
-      EditGetRefactoringParams refactoringParams, Request request) {
+      EditGetRefactoringParams refactoringParams, Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return RenameOptions.fromJson(
-        RequestDecoder(request), 'options', refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['newName'] = newName;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -12833,13 +13760,15 @@ class RequestError implements HasToJson {
   RequestError(this.code, this.message, {this.stackTrace});
 
   factory RequestError.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       RequestErrorCode code;
       if (json.containsKey('code')) {
         code = RequestErrorCode.fromJson(
-            jsonDecoder, '$jsonPath.code', json['code']);
+            jsonDecoder, '$jsonPath.code', json['code'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'code');
       }
@@ -12862,9 +13791,10 @@ class RequestError implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['code'] = code.toJson();
+    result['code'] = code.toJson(clientUriConverter: clientUriConverter);
     result['message'] = message;
     var stackTrace = this.stackTrace;
     if (stackTrace != null) {
@@ -12874,7 +13804,7 @@ class RequestError implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -13217,7 +14147,8 @@ class RequestErrorCode implements Enum {
   }
 
   factory RequestErrorCode.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return RequestErrorCode(json);
@@ -13231,7 +14162,7 @@ class RequestErrorCode implements Enum {
   @override
   String toString() => 'RequestErrorCode.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// RuntimeCompletionExpression
@@ -13258,7 +14189,8 @@ class RuntimeCompletionExpression implements HasToJson {
   RuntimeCompletionExpression(this.offset, this.length, {this.type});
 
   factory RuntimeCompletionExpression.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -13276,7 +14208,8 @@ class RuntimeCompletionExpression implements HasToJson {
       RuntimeCompletionExpressionType? type;
       if (json.containsKey('type')) {
         type = RuntimeCompletionExpressionType.fromJson(
-            jsonDecoder, '$jsonPath.type', json['type']);
+            jsonDecoder, '$jsonPath.type', json['type'],
+            clientUriConverter: clientUriConverter);
       }
       return RuntimeCompletionExpression(offset, length, type: type);
     } else {
@@ -13285,19 +14218,20 @@ class RuntimeCompletionExpression implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     var type = this.type;
     if (type != null) {
-      result['type'] = type.toJson();
+      result['type'] = type.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -13370,18 +14304,22 @@ class RuntimeCompletionExpressionType implements HasToJson {
       this.parameterNames});
 
   factory RuntimeCompletionExpressionType.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String? libraryPath;
       if (json.containsKey('libraryPath')) {
-        libraryPath = clientUriConverter.fromClientFilePath(jsonDecoder
-            .decodeString('$jsonPath.libraryPath', json['libraryPath']));
+        libraryPath = clientUriConverter?.fromClientFilePath(jsonDecoder
+                .decodeString('$jsonPath.libraryPath', json['libraryPath'])) ??
+            jsonDecoder.decodeString(
+                '$jsonPath.libraryPath', json['libraryPath']);
       }
       RuntimeCompletionExpressionTypeKind kind;
       if (json.containsKey('kind')) {
         kind = RuntimeCompletionExpressionTypeKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -13396,12 +14334,14 @@ class RuntimeCompletionExpressionType implements HasToJson {
             json['typeArguments'],
             (String jsonPath, Object? json) =>
                 RuntimeCompletionExpressionType.fromJson(
-                    jsonDecoder, jsonPath, json));
+                    jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       }
       RuntimeCompletionExpressionType? returnType;
       if (json.containsKey('returnType')) {
         returnType = RuntimeCompletionExpressionType.fromJson(
-            jsonDecoder, '$jsonPath.returnType', json['returnType']);
+            jsonDecoder, '$jsonPath.returnType', json['returnType'],
+            clientUriConverter: clientUriConverter);
       }
       List<RuntimeCompletionExpressionType>? parameterTypes;
       if (json.containsKey('parameterTypes')) {
@@ -13410,7 +14350,8 @@ class RuntimeCompletionExpressionType implements HasToJson {
             json['parameterTypes'],
             (String jsonPath, Object? json) =>
                 RuntimeCompletionExpressionType.fromJson(
-                    jsonDecoder, jsonPath, json));
+                    jsonDecoder, jsonPath, json,
+                    clientUriConverter: clientUriConverter));
       }
       List<String>? parameterNames;
       if (json.containsKey('parameterNames')) {
@@ -13431,13 +14372,15 @@ class RuntimeCompletionExpressionType implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var libraryPath = this.libraryPath;
     if (libraryPath != null) {
-      result['libraryPath'] = clientUriConverter.toClientFilePath(libraryPath);
+      result['libraryPath'] =
+          clientUriConverter?.toClientFilePath(libraryPath) ?? libraryPath;
     }
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     var name = this.name;
     if (name != null) {
       result['name'] = name;
@@ -13445,17 +14388,20 @@ class RuntimeCompletionExpressionType implements HasToJson {
     var typeArguments = this.typeArguments;
     if (typeArguments != null) {
       result['typeArguments'] = typeArguments
-          .map((RuntimeCompletionExpressionType value) => value.toJson())
+          .map((RuntimeCompletionExpressionType value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     var returnType = this.returnType;
     if (returnType != null) {
-      result['returnType'] = returnType.toJson();
+      result['returnType'] =
+          returnType.toJson(clientUriConverter: clientUriConverter);
     }
     var parameterTypes = this.parameterTypes;
     if (parameterTypes != null) {
       result['parameterTypes'] = parameterTypes
-          .map((RuntimeCompletionExpressionType value) => value.toJson())
+          .map((RuntimeCompletionExpressionType value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     var parameterNames = this.parameterNames;
@@ -13466,7 +14412,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -13546,7 +14492,8 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
   }
 
   factory RuntimeCompletionExpressionTypeKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return RuntimeCompletionExpressionTypeKind(json);
@@ -13561,7 +14508,7 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
   @override
   String toString() => 'RuntimeCompletionExpressionTypeKind.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// RuntimeCompletionVariable
@@ -13584,7 +14531,8 @@ class RuntimeCompletionVariable implements HasToJson {
   RuntimeCompletionVariable(this.name, this.type);
 
   factory RuntimeCompletionVariable.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -13596,7 +14544,8 @@ class RuntimeCompletionVariable implements HasToJson {
       RuntimeCompletionExpressionType type;
       if (json.containsKey('type')) {
         type = RuntimeCompletionExpressionType.fromJson(
-            jsonDecoder, '$jsonPath.type', json['type']);
+            jsonDecoder, '$jsonPath.type', json['type'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'type');
       }
@@ -13607,15 +14556,16 @@ class RuntimeCompletionVariable implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
-    result['type'] = type.toJson();
+    result['type'] = type.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -13657,13 +14607,15 @@ class SearchFindElementReferencesParams implements RequestParams {
       this.file, this.offset, this.includePotential);
 
   factory SearchFindElementReferencesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -13687,27 +14639,32 @@ class SearchFindElementReferencesParams implements RequestParams {
     }
   }
 
-  factory SearchFindElementReferencesParams.fromRequest(Request request) {
+  factory SearchFindElementReferencesParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchFindElementReferencesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['includePotential'] = includePotential;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'search.findElementReferences', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'search.findElementReferences',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -13751,7 +14708,8 @@ class SearchFindElementReferencesResult implements ResponseResult {
   SearchFindElementReferencesResult({this.id, this.element});
 
   factory SearchFindElementReferencesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String? id;
@@ -13760,8 +14718,9 @@ class SearchFindElementReferencesResult implements ResponseResult {
       }
       Element? element;
       if (json.containsKey('element')) {
-        element =
-            Element.fromJson(jsonDecoder, '$jsonPath.element', json['element']);
+        element = Element.fromJson(
+            jsonDecoder, '$jsonPath.element', json['element'],
+            clientUriConverter: clientUriConverter);
       }
       return SearchFindElementReferencesResult(id: id, element: element);
     } else {
@@ -13770,15 +14729,18 @@ class SearchFindElementReferencesResult implements ResponseResult {
     }
   }
 
-  factory SearchFindElementReferencesResult.fromResponse(Response response) {
+  factory SearchFindElementReferencesResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchFindElementReferencesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var id = this.id;
     if (id != null) {
@@ -13786,18 +14748,20 @@ class SearchFindElementReferencesResult implements ResponseResult {
     }
     var element = this.element;
     if (element != null) {
-      result['element'] = element.toJson();
+      result['element'] =
+          element.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -13828,7 +14792,8 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   SearchFindMemberDeclarationsParams(this.name);
 
   factory SearchFindMemberDeclarationsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -13844,25 +14809,30 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
     }
   }
 
-  factory SearchFindMemberDeclarationsParams.fromRequest(Request request) {
+  factory SearchFindMemberDeclarationsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchFindMemberDeclarationsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'search.findMemberDeclarations', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'search.findMemberDeclarations',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -13890,7 +14860,8 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   SearchFindMemberDeclarationsResult(this.id);
 
   factory SearchFindMemberDeclarationsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -13906,27 +14877,31 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
     }
   }
 
-  factory SearchFindMemberDeclarationsResult.fromResponse(Response response) {
+  factory SearchFindMemberDeclarationsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchFindMemberDeclarationsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -13954,7 +14929,8 @@ class SearchFindMemberReferencesParams implements RequestParams {
   SearchFindMemberReferencesParams(this.name);
 
   factory SearchFindMemberReferencesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -13970,25 +14946,30 @@ class SearchFindMemberReferencesParams implements RequestParams {
     }
   }
 
-  factory SearchFindMemberReferencesParams.fromRequest(Request request) {
+  factory SearchFindMemberReferencesParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchFindMemberReferencesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['name'] = name;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'search.findMemberReferences', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'search.findMemberReferences',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14016,7 +14997,8 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   SearchFindMemberReferencesResult(this.id);
 
   factory SearchFindMemberReferencesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -14032,27 +15014,31 @@ class SearchFindMemberReferencesResult implements ResponseResult {
     }
   }
 
-  factory SearchFindMemberReferencesResult.fromResponse(Response response) {
+  factory SearchFindMemberReferencesResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchFindMemberReferencesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14081,7 +15067,8 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   SearchFindTopLevelDeclarationsParams(this.pattern);
 
   factory SearchFindTopLevelDeclarationsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String pattern;
@@ -14098,25 +15085,30 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
     }
   }
 
-  factory SearchFindTopLevelDeclarationsParams.fromRequest(Request request) {
+  factory SearchFindTopLevelDeclarationsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchFindTopLevelDeclarationsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['pattern'] = pattern;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'search.findTopLevelDeclarations', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'search.findTopLevelDeclarations',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14144,7 +15136,8 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   SearchFindTopLevelDeclarationsResult(this.id);
 
   factory SearchFindTopLevelDeclarationsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -14160,27 +15153,31 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
     }
   }
 
-  factory SearchFindTopLevelDeclarationsResult.fromResponse(Response response) {
+  factory SearchFindTopLevelDeclarationsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchFindTopLevelDeclarationsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14220,13 +15217,15 @@ class SearchGetElementDeclarationsParams implements RequestParams {
       {this.file, this.pattern, this.maxResults});
 
   factory SearchGetElementDeclarationsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String? file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       }
       String? pattern;
       if (json.containsKey('pattern')) {
@@ -14246,17 +15245,20 @@ class SearchGetElementDeclarationsParams implements RequestParams {
     }
   }
 
-  factory SearchGetElementDeclarationsParams.fromRequest(Request request) {
+  factory SearchGetElementDeclarationsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchGetElementDeclarationsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var file = this.file;
     if (file != null) {
-      result['file'] = clientUriConverter.toClientFilePath(file);
+      result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     }
     var pattern = this.pattern;
     if (pattern != null) {
@@ -14270,12 +15272,14 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'search.getElementDeclarations', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'search.getElementDeclarations',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14313,7 +15317,8 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   SearchGetElementDeclarationsResult(this.declarations, this.files);
 
   factory SearchGetElementDeclarationsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<ElementDeclaration> declarations;
@@ -14321,8 +15326,9 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
         declarations = jsonDecoder.decodeList(
             '$jsonPath.declarations',
             json['declarations'],
-            (String jsonPath, Object? json) =>
-                ElementDeclaration.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ElementDeclaration.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'declarations');
       }
@@ -14331,8 +15337,10 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
         files = jsonDecoder.decodeList(
             '$jsonPath.files',
             json['files'],
-            (String jsonPath, Object? json) => clientUriConverter
-                .fromClientFilePath(jsonDecoder.decodeString(jsonPath, json)));
+            (String jsonPath, Object? json) =>
+                clientUriConverter?.fromClientFilePath(
+                    jsonDecoder.decodeString(jsonPath, json)) ??
+                jsonDecoder.decodeString(jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files');
       }
@@ -14343,31 +15351,38 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
     }
   }
 
-  factory SearchGetElementDeclarationsResult.fromResponse(Response response) {
+  factory SearchGetElementDeclarationsResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchGetElementDeclarationsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['declarations'] =
-        declarations.map((ElementDeclaration value) => value.toJson()).toList();
+    result['declarations'] = declarations
+        .map((ElementDeclaration value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     result['files'] = files
-        .map((String value) => clientUriConverter.toClientFilePath(value))
+        .map((String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value)
         .toList();
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14410,13 +15425,15 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   SearchGetTypeHierarchyParams(this.file, this.offset, {this.superOnly});
 
   factory SearchGetTypeHierarchyParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -14438,15 +15455,18 @@ class SearchGetTypeHierarchyParams implements RequestParams {
     }
   }
 
-  factory SearchGetTypeHierarchyParams.fromRequest(Request request) {
+  factory SearchGetTypeHierarchyParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchGetTypeHierarchyParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     var superOnly = this.superOnly;
     if (superOnly != null) {
@@ -14456,12 +15476,14 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'search.getTypeHierarchy', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'search.getTypeHierarchy',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14503,7 +15525,8 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   SearchGetTypeHierarchyResult({this.hierarchyItems});
 
   factory SearchGetTypeHierarchyResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<TypeHierarchyItem>? hierarchyItems;
@@ -14511,8 +15534,9 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
         hierarchyItems = jsonDecoder.decodeList(
             '$jsonPath.hierarchyItems',
             json['hierarchyItems'],
-            (String jsonPath, Object? json) =>
-                TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => TypeHierarchyItem.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       }
       return SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
     } else {
@@ -14521,32 +15545,37 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
     }
   }
 
-  factory SearchGetTypeHierarchyResult.fromResponse(Response response) {
+  factory SearchGetTypeHierarchyResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchGetTypeHierarchyResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var hierarchyItems = this.hierarchyItems;
     if (hierarchyItems != null) {
       result['hierarchyItems'] = hierarchyItems
-          .map((TypeHierarchyItem value) => value.toJson())
+          .map((TypeHierarchyItem value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14592,20 +15621,23 @@ class SearchResult implements HasToJson {
   SearchResult(this.location, this.kind, this.isPotential, this.path);
 
   factory SearchResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Location location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
-            jsonDecoder, '$jsonPath.location', json['location']);
+            jsonDecoder, '$jsonPath.location', json['location'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'location');
       }
       SearchResultKind kind;
       if (json.containsKey('kind')) {
         kind = SearchResultKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -14621,8 +15653,9 @@ class SearchResult implements HasToJson {
         path = jsonDecoder.decodeList(
             '$jsonPath.path',
             json['path'],
-            (String jsonPath, Object? json) =>
-                Element.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => Element.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'path');
       }
@@ -14633,17 +15666,22 @@ class SearchResult implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['location'] = location.toJson();
-    result['kind'] = kind.toJson();
+    result['location'] =
+        location.toJson(clientUriConverter: clientUriConverter);
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['isPotential'] = isPotential;
-    result['path'] = path.map((Element value) => value.toJson()).toList();
+    result['path'] = path
+        .map((Element value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14738,7 +15776,8 @@ class SearchResultKind implements Enum {
   }
 
   factory SearchResultKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return SearchResultKind(json);
@@ -14752,7 +15791,7 @@ class SearchResultKind implements Enum {
   @override
   String toString() => 'SearchResultKind.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// search.results params
@@ -14778,7 +15817,8 @@ class SearchResultsParams implements HasToJson {
   SearchResultsParams(this.id, this.results, this.isLast);
 
   factory SearchResultsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -14792,8 +15832,9 @@ class SearchResultsParams implements HasToJson {
         results = jsonDecoder.decodeList(
             '$jsonPath.results',
             json['results'],
-            (String jsonPath, Object? json) =>
-                SearchResult.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SearchResult.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'results');
       }
@@ -14809,27 +15850,34 @@ class SearchResultsParams implements HasToJson {
     }
   }
 
-  factory SearchResultsParams.fromNotification(Notification notification) {
+  factory SearchResultsParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return SearchResultsParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
-    result['results'] =
-        results.map((SearchResult value) => value.toJson()).toList();
+    result['results'] = results
+        .map((SearchResult value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     result['isLast'] = isLast;
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('search.results', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'search.results', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14864,7 +15912,8 @@ class ServerCancelRequestParams implements RequestParams {
   ServerCancelRequestParams(this.id);
 
   factory ServerCancelRequestParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -14879,25 +15928,30 @@ class ServerCancelRequestParams implements RequestParams {
     }
   }
 
-  factory ServerCancelRequestParams.fromRequest(Request request) {
+  factory ServerCancelRequestParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerCancelRequestParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'server.cancelRequest', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'server.cancelRequest',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -14916,10 +15970,13 @@ class ServerCancelRequestParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ServerCancelRequestResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -14948,7 +16005,8 @@ class ServerConnectedParams implements HasToJson {
   ServerConnectedParams(this.version, this.pid);
 
   factory ServerConnectedParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String version;
@@ -14970,25 +16028,30 @@ class ServerConnectedParams implements HasToJson {
     }
   }
 
-  factory ServerConnectedParams.fromNotification(Notification notification) {
+  factory ServerConnectedParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerConnectedParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['version'] = version;
     result['pid'] = pid;
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('server.connected', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'server.connected', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15029,7 +16092,8 @@ class ServerErrorParams implements HasToJson {
   ServerErrorParams(this.isFatal, this.message, this.stackTrace);
 
   factory ServerErrorParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       bool isFatal;
@@ -15058,13 +16122,16 @@ class ServerErrorParams implements HasToJson {
     }
   }
 
-  factory ServerErrorParams.fromNotification(Notification notification) {
+  factory ServerErrorParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerErrorParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['isFatal'] = isFatal;
     result['message'] = message;
@@ -15072,12 +16139,14 @@ class ServerErrorParams implements HasToJson {
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('server.error', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'server.error', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15102,10 +16171,13 @@ class ServerErrorParams implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Request toRequest(String id) {
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Request(id, 'server.getVersion');
   }
 
@@ -15130,7 +16202,8 @@ class ServerGetVersionResult implements ResponseResult {
   ServerGetVersionResult(this.version);
 
   factory ServerGetVersionResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String version;
@@ -15146,27 +16219,31 @@ class ServerGetVersionResult implements ResponseResult {
     }
   }
 
-  factory ServerGetVersionResult.fromResponse(Response response) {
+  factory ServerGetVersionResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerGetVersionResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['version'] = version;
     return result;
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15205,7 +16282,8 @@ class ServerLogEntry implements HasToJson {
   ServerLogEntry(this.time, this.kind, this.data);
 
   factory ServerLogEntry.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int time;
@@ -15217,7 +16295,8 @@ class ServerLogEntry implements HasToJson {
       ServerLogEntryKind kind;
       if (json.containsKey('kind')) {
         kind = ServerLogEntryKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -15234,16 +16313,17 @@ class ServerLogEntry implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['time'] = time;
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['data'] = data;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15331,7 +16411,8 @@ class ServerLogEntryKind implements Enum {
   }
 
   factory ServerLogEntryKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return ServerLogEntryKind(json);
@@ -15345,7 +16426,7 @@ class ServerLogEntryKind implements Enum {
   @override
   String toString() => 'ServerLogEntryKind.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// server.log params
@@ -15361,13 +16442,15 @@ class ServerLogParams implements HasToJson {
   ServerLogParams(this.entry);
 
   factory ServerLogParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       ServerLogEntry entry;
       if (json.containsKey('entry')) {
         entry = ServerLogEntry.fromJson(
-            jsonDecoder, '$jsonPath.entry', json['entry']);
+            jsonDecoder, '$jsonPath.entry', json['entry'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'entry');
       }
@@ -15377,24 +16460,29 @@ class ServerLogParams implements HasToJson {
     }
   }
 
-  factory ServerLogParams.fromNotification(Notification notification) {
+  factory ServerLogParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerLogParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['entry'] = entry.toJson();
+    result['entry'] = entry.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('server.log', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'server.log', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15422,7 +16510,8 @@ class ServerOpenUrlRequestParams implements RequestParams {
   ServerOpenUrlRequestParams(this.url);
 
   factory ServerOpenUrlRequestParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String url;
@@ -15438,25 +16527,30 @@ class ServerOpenUrlRequestParams implements RequestParams {
     }
   }
 
-  factory ServerOpenUrlRequestParams.fromRequest(Request request) {
+  factory ServerOpenUrlRequestParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerOpenUrlRequestParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['url'] = url;
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'server.openUrlRequest', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'server.openUrlRequest',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15475,10 +16569,13 @@ class ServerOpenUrlRequestParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ServerOpenUrlRequestResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -15521,7 +16618,8 @@ class ServerService implements Enum {
   }
 
   factory ServerService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return ServerService(json);
@@ -15535,7 +16633,7 @@ class ServerService implements Enum {
   @override
   String toString() => 'ServerService.$name';
 
-  String toJson() => name;
+  String toJson({required ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// server.setClientCapabilities params
@@ -15578,7 +16676,8 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   ServerSetClientCapabilitiesParams(this.requests, {this.supportsUris});
 
   factory ServerSetClientCapabilitiesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<String> requests;
@@ -15601,13 +16700,16 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
     }
   }
 
-  factory ServerSetClientCapabilitiesParams.fromRequest(Request request) {
+  factory ServerSetClientCapabilitiesParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerSetClientCapabilitiesParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['requests'] = requests;
     var supportsUris = this.supportsUris;
@@ -15618,12 +16720,14 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'server.setClientCapabilities', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'server.setClientCapabilities',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15647,10 +16751,13 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetClientCapabilitiesResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -15675,7 +16782,8 @@ class ServerSetSubscriptionsParams implements RequestParams {
   ServerSetSubscriptionsParams(this.subscriptions);
 
   factory ServerSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<ServerService> subscriptions;
@@ -15683,8 +16791,9 @@ class ServerSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeList(
             '$jsonPath.subscriptions',
             json['subscriptions'],
-            (String jsonPath, Object? json) =>
-                ServerService.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => ServerService.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
       }
@@ -15695,26 +16804,33 @@ class ServerSetSubscriptionsParams implements RequestParams {
     }
   }
 
-  factory ServerSetSubscriptionsParams.fromRequest(Request request) {
+  factory ServerSetSubscriptionsParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerSetSubscriptionsParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['subscriptions'] =
-        subscriptions.map((ServerService value) => value.toJson()).toList();
+    result['subscriptions'] = subscriptions
+        .map((ServerService value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'server.setSubscriptions', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'server.setSubscriptions',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15734,10 +16850,13 @@ class ServerSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -15770,13 +16889,14 @@ class ServerShowMessageRequestParams implements RequestParams {
   ServerShowMessageRequestParams(this.type, this.message, this.actions);
 
   factory ServerShowMessageRequestParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       MessageType type;
       if (json.containsKey('type')) {
-        type =
-            MessageType.fromJson(jsonDecoder, '$jsonPath.type', json['type']);
+        type = MessageType.fromJson(jsonDecoder, '$jsonPath.type', json['type'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'type');
       }
@@ -15792,8 +16912,9 @@ class ServerShowMessageRequestParams implements RequestParams {
         actions = jsonDecoder.decodeList(
             '$jsonPath.actions',
             json['actions'],
-            (String jsonPath, Object? json) =>
-                MessageAction.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => MessageAction.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'actions');
       }
@@ -15804,28 +16925,35 @@ class ServerShowMessageRequestParams implements RequestParams {
     }
   }
 
-  factory ServerShowMessageRequestParams.fromRequest(Request request) {
+  factory ServerShowMessageRequestParams.fromRequest(Request request,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerShowMessageRequestParams.fromJson(
-        RequestDecoder(request), 'params', request.params);
+        RequestDecoder(request), 'params', request.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['type'] = type.toJson();
+    result['type'] = type.toJson(clientUriConverter: clientUriConverter);
     result['message'] = message;
-    result['actions'] =
-        actions.map((MessageAction value) => value.toJson()).toList();
+    result['actions'] = actions
+        .map((MessageAction value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  Request toRequest(String id) {
-    return Request(id, 'server.showMessageRequest', toJson());
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Request(id, 'server.showMessageRequest',
+        toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15862,7 +16990,8 @@ class ServerShowMessageRequestResult implements ResponseResult {
   ServerShowMessageRequestResult({this.action});
 
   factory ServerShowMessageRequestResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String? action;
@@ -15876,15 +17005,18 @@ class ServerShowMessageRequestResult implements ResponseResult {
     }
   }
 
-  factory ServerShowMessageRequestResult.fromResponse(Response response) {
+  factory ServerShowMessageRequestResult.fromResponse(Response response,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerShowMessageRequestResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         'result',
-        response.result);
+        response.result,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var action = this.action;
     if (action != null) {
@@ -15894,12 +17026,13 @@ class ServerShowMessageRequestResult implements ResponseResult {
   }
 
   @override
-  Response toResponse(String id) {
-    return Response(id, result: toJson());
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -15918,10 +17051,13 @@ class ServerShowMessageRequestResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class ServerShutdownParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Request toRequest(String id) {
+  Request toRequest(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Request(id, 'server.shutdown');
   }
 
@@ -15937,10 +17073,13 @@ class ServerShutdownParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ServerShutdownResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => {};
+  Map<String, Object> toJson(
+          {required ClientUriConverter? clientUriConverter}) =>
+      {};
 
   @override
-  Response toResponse(String id) {
+  Response toResponse(String id,
+      {required ClientUriConverter? clientUriConverter}) {
     return Response(id);
   }
 
@@ -15974,17 +17113,20 @@ class ServerStatusParams implements HasToJson {
   ServerStatusParams({this.analysis, this.pub});
 
   factory ServerStatusParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       AnalysisStatus? analysis;
       if (json.containsKey('analysis')) {
         analysis = AnalysisStatus.fromJson(
-            jsonDecoder, '$jsonPath.analysis', json['analysis']);
+            jsonDecoder, '$jsonPath.analysis', json['analysis'],
+            clientUriConverter: clientUriConverter);
       }
       PubStatus? pub;
       if (json.containsKey('pub')) {
-        pub = PubStatus.fromJson(jsonDecoder, '$jsonPath.pub', json['pub']);
+        pub = PubStatus.fromJson(jsonDecoder, '$jsonPath.pub', json['pub'],
+            clientUriConverter: clientUriConverter);
       }
       return ServerStatusParams(analysis: analysis, pub: pub);
     } else {
@@ -15992,31 +17134,37 @@ class ServerStatusParams implements HasToJson {
     }
   }
 
-  factory ServerStatusParams.fromNotification(Notification notification) {
+  factory ServerStatusParams.fromNotification(Notification notification,
+      {required ClientUriConverter? clientUriConverter}) {
     return ServerStatusParams.fromJson(
-        ResponseDecoder(null), 'params', notification.params);
+        ResponseDecoder(null), 'params', notification.params,
+        clientUriConverter: clientUriConverter);
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var analysis = this.analysis;
     if (analysis != null) {
-      result['analysis'] = analysis.toJson();
+      result['analysis'] =
+          analysis.toJson(clientUriConverter: clientUriConverter);
     }
     var pub = this.pub;
     if (pub != null) {
-      result['pub'] = pub.toJson();
+      result['pub'] = pub.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
-  Notification toNotification() {
-    return Notification('server.status', toJson());
+  Notification toNotification(
+      {required ClientUriConverter? clientUriConverter}) {
+    return Notification(
+        'server.status', toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -16092,13 +17240,15 @@ class TypeHierarchyItem implements HasToJson {
         subclasses = subclasses ?? <int>[];
 
   factory TypeHierarchyItem.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {required ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Element classElement;
       if (json.containsKey('classElement')) {
         classElement = Element.fromJson(
-            jsonDecoder, '$jsonPath.classElement', json['classElement']);
+            jsonDecoder, '$jsonPath.classElement', json['classElement'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'classElement');
       }
@@ -16110,7 +17260,8 @@ class TypeHierarchyItem implements HasToJson {
       Element? memberElement;
       if (json.containsKey('memberElement')) {
         memberElement = Element.fromJson(
-            jsonDecoder, '$jsonPath.memberElement', json['memberElement']);
+            jsonDecoder, '$jsonPath.memberElement', json['memberElement'],
+            clientUriConverter: clientUriConverter);
       }
       int? superclass;
       if (json.containsKey('superclass')) {
@@ -16151,16 +17302,19 @@ class TypeHierarchyItem implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson(
+      {required ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['classElement'] = classElement.toJson();
+    result['classElement'] =
+        classElement.toJson(clientUriConverter: clientUriConverter);
     var displayName = this.displayName;
     if (displayName != null) {
       result['displayName'] = displayName;
     }
     var memberElement = this.memberElement;
     if (memberElement != null) {
-      result['memberElement'] = memberElement.toJson();
+      result['memberElement'] =
+          memberElement.toJson(clientUriConverter: clientUriConverter);
     }
     var superclass = this.superclass;
     if (superclass != null) {
@@ -16173,7 +17327,7 @@ class TypeHierarchyItem implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {

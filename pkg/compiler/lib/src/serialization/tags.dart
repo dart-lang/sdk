@@ -9,6 +9,7 @@
 enum DataKind {
   bool,
   uint30,
+  uint32,
   string,
   enumValue,
   uri,

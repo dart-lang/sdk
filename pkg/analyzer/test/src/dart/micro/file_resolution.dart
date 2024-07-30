@@ -67,7 +67,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   void assertStateString(String expected) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     printer.AnalyzerStatePrinter(
       byteStore: byteStore,
       unlinkedUnitStore: fsState.unlinkedUnitStore as UnlinkedUnitStoreImpl,
@@ -78,7 +78,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       sink: buffer,
       withKeysGetPut: true,
     ).writeFileResolver(testData);
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       print(actual);

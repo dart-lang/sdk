@@ -11,7 +11,7 @@ part 'table.dart';
 /// The interface for the tables in a module.
 class TablesBuilder with Builder<ir.Tables> {
   final _tableBuilders = <TableBuilder>[];
-  final _importedTables = <ir.Import>[];
+  final _importedTables = <ir.ImportedTable>[];
 
   /// Defines a new table in this module.
   TableBuilder define(ir.RefType type, int minSize, [int? maxSize]) {
@@ -21,9 +21,6 @@ class TablesBuilder with Builder<ir.Tables> {
   }
 
   /// Imports a table into this module.
-  ///
-  /// All imported tables must be specified before any tables are declared
-  /// using [Tables.define].
   ir.ImportedTable import(
       String module, String name, ir.RefType type, int minSize,
       [int? maxSize]) {

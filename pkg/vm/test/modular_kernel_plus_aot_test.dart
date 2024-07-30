@@ -55,16 +55,14 @@ main() async {
     verifyComponent(
         vmTarget, VerificationStage.afterModularTransformations, component);
 
-    const useGlobalTypeFlowAnalysis = true;
-    const enableAsserts = false;
-    const useProtobufTreeShakerV2 = false;
     await runGlobalTransformations(
         vmTarget,
         component,
-        useGlobalTypeFlowAnalysis,
-        enableAsserts,
-        useProtobufTreeShakerV2,
-        ErrorDetector());
+        ErrorDetector(),
+        KernelCompilationArguments(
+            useGlobalTypeFlowAnalysis: true,
+            enableAsserts: false,
+            useProtobufTreeShakerV2: false));
 
     // Verify after running global transformations.
     verifyComponent(
@@ -92,7 +90,10 @@ Future compileToKernel(
       packagesFile,
       additionalDills,
       target,
-      StandardFileSystem.instance, const <String>[], const <String, String>{});
+      StandardFileSystem.instance,
+      const <String>[],
+      const <String, String>{},
+      nnbdMode: fe.NnbdMode.Strong);
 
   void onDiagnostic(fe.DiagnosticMessage message) {
     message.plainTextFormatted.forEach(print);
@@ -124,10 +125,6 @@ Uint8List concat(List<int> a, List<int> b) {
 Uri sdkRootFile(name) => Directory.current.uri.resolveUri(Uri.file(name));
 
 const String mainFile = r'''
-// @dart=2.9
-// This library is opt-out to provoke the creation of member signatures in
-// R that point to members of A2.
-
 import 'mixin.dart';
 
 class R extends A2 {

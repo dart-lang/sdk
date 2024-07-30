@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -20,8 +20,15 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   String _functionName = '';
 
+  CreateMethodOrFunction({required super.context});
+
   @override
-  List<Object> get fixArguments => [_functionName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_functionName];
 
   @override
   FixKind get fixKind => _fixKind;
@@ -147,10 +154,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     CompilationUnitMember? targetNode;
     List<ClassMember>? classMembers;
     if (targetClassElement is MixinElement) {
-      final node = targetNode = await getMixinDeclaration(targetClassElement);
+      var node = targetNode = await getMixinDeclaration(targetClassElement);
       classMembers = node?.members;
     } else if (targetClassElement is ClassElement) {
-      final node = targetNode = await getClassDeclaration(targetClassElement);
+      var node = targetNode = await getClassDeclaration(targetClassElement);
       classMembers = node?.members;
     }
     if (targetNode == null || classMembers == null) {

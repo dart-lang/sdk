@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart'
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -504,25 +505,30 @@ class NoProducerOverlapsTest {
     // non-data-driven fixes, as this could result in an LSP "Apply-all" code
     // action accidentally executing data-driven fixes.
 
-    final dataDrivenCodes = <String>{};
-    final bulkFixCodes = FixProcessor.lintProducerMap.entries
+    var dataDrivenCodes = <String>{};
+    var bulkFixCodes = FixProcessor.lintProducerMap.entries
         .where((e) => e.value
-            .where((generator) => generator().canBeAppliedInBulk)
+            .where((generator) =>
+                generator(context: StubCorrectionProducerContext.instance)
+                    .canBeAppliedAcrossFiles)
             .isNotEmpty)
         .map((e) => e.key);
-    final nonDataDrivenCodes = <String>{
+    var nonDataDrivenCodes = {
       ...bulkFixCodes,
       ...FixProcessor.nonLintProducerMap.entries
           .where((e) => e.value
-              .where((generator) => generator().canBeAppliedInBulk)
+              .where((generator) =>
+                  generator(context: StubCorrectionProducerContext.instance)
+                      .canBeAppliedAcrossFiles)
               .isNotEmpty)
           .map((e) => e.key.uniqueName),
     };
 
-    for (final entry in BulkFixProcessor.nonLintMultiProducerMap.entries) {
-      var code = entry.key;
-      for (final producerFunc in entry.value) {
-        final producer = producerFunc();
+    for (var MapEntry(key: code, value: generators)
+        in BulkFixProcessor.nonLintMultiProducerMap.entries) {
+      for (var generator in generators) {
+        var producer =
+            generator(context: StubCorrectionProducerContext.instance);
         if (producer is DataDriven) {
           dataDrivenCodes.add(code.uniqueName);
         } else {
@@ -531,10 +537,11 @@ class NoProducerOverlapsTest {
       }
     }
 
-    final intersection = dataDrivenCodes.intersection(nonDataDrivenCodes);
+    var intersection = dataDrivenCodes.intersection(nonDataDrivenCodes);
     if (intersection.isNotEmpty) {
       fail(
-          'Error codes $intersection have both data-driven and non-data-driven fixes');
+          'Error codes $intersection have both data-driven and non-data-driven '
+          'fixes');
     }
   }
 }

@@ -4,9 +4,8 @@
 
 import 'dart:io';
 
-import 'package:front_end/src/fasta/kernel/utils.dart' as ir
-    show serializeComponent;
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/kernel/utils.dart' as ir show serializeComponent;
+import 'package:front_end/src/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 

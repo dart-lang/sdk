@@ -117,18 +117,33 @@ void f() {
 suggestions
   E0
     kind: extensionType
+  E0
+    kind: constructorInvocation
 ''');
   }
 
-  Future<void> test_name() async {
-    allowedIdentifiers = {'Test'};
+  Future<void> test_name_withBody() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
     await computeSuggestions('''
-extension type ^
+extension type ^ {}
 ''');
     assertResponse(r'''
 suggestions
   Test
     kind: identifier
+''');
+  }
+
+  Future<void> test_name_withoutBody() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    await computeSuggestions('''
+extension type ^
+''');
+    assertResponse(r'''
+suggestions
+  Test {}
+    kind: identifier
+    selection: 6
 ''');
   }
 

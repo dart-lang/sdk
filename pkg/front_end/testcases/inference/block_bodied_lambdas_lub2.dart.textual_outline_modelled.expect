@@ -1,7 +1,0 @@
-library test;
-
-import 'dart:math' show Random;
-
-main() {}
-
-test2(List<num> o) {}

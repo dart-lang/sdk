@@ -325,17 +325,21 @@ class Place : public ValueObject {
   //    - for places that depend on an instance X.f, X.@offs, X[i], X[C]
   //      we drop X if X is not an allocation because in this case X does not
   //      possess an identity obtaining aliases *.f, *.@offs, *[i] and *[C]
-  //      respectively;
+  //      respectively; also drop instance of X[i] for typed data view
+  //      allocations as they may alias other indexed accesses.
   //    - for non-constant indexed places X[i] we drop information about the
   //      index obtaining alias X[*].
   //    - we drop information about representation, but keep element size
   //      if any.
   //
   Place ToAlias() const {
+    Definition* alias_instance = nullptr;
+    if (DependsOnInstance() && IsAllocation(instance()) &&
+        ((kind() != kIndexed) || !IsTypedDataViewAllocation(instance()))) {
+      alias_instance = instance();
+    }
     return Place(RepresentationBits::update(kNoRepresentation, flags_),
-                 (DependsOnInstance() && IsAllocation(instance())) ? instance()
-                                                                   : nullptr,
-                 (kind() == kIndexed) ? 0 : raw_selector_);
+                 alias_instance, (kind() == kIndexed) ? 0 : raw_selector_);
   }
 
   bool DependsOnInstance() const {
@@ -514,6 +518,17 @@ class Place : public ValueObject {
     return (defn != nullptr) && (defn->IsAllocation() ||
                                  (defn->IsStaticCall() &&
                                   defn->AsStaticCall()->IsRecognizedFactory()));
+  }
+
+  static bool IsTypedDataViewAllocation(Definition* defn) {
+    if (defn != nullptr) {
+      if (auto* alloc = defn->AsAllocateObject()) {
+        auto const cid = alloc->cls().id();
+        return IsTypedDataViewClassId(cid) ||
+               IsUnmodifiableTypedDataViewClassId(cid);
+      }
+    }
+    return false;
   }
 
  private:
@@ -1110,31 +1125,41 @@ class AliasedSet : public ZoneAllocated {
       } else if (UseIsARedefinition(use) &&
                  AnyUseCreatesAlias(instr->Cast<Definition>())) {
         return true;
-      } else if ((instr->IsStoreField() &&
-                  (use->use_index() != StoreFieldInstr::kInstancePos))) {
-        ASSERT(use->use_index() == StoreFieldInstr::kValuePos);
-        // If we store this value into an object that is not aliased itself
-        // and we never load again then the store does not create an alias.
+      } else if (instr->IsStoreField()) {
         StoreFieldInstr* store = instr->AsStoreField();
-        Definition* instance =
-            store->instance()->definition()->OriginalDefinition();
-        if (Place::IsAllocation(instance) &&
-            !instance->Identity().IsAliased()) {
-          bool is_load, is_store;
-          Place store_place(instr, &is_load, &is_store);
 
-          if (!HasLoadsFromPlace(instance, &store_place)) {
-            // No loads found that match this store. If it is yet unknown if
-            // the object is not aliased then optimistically assume this but
-            // add it to the worklist to check its uses transitively.
-            if (instance->Identity().IsUnknown()) {
-              instance->SetIdentity(AliasIdentity::NotAliased());
-              aliasing_worklist_.Add(instance);
-            }
-            continue;
-          }
+        if (store->slot().kind() == Slot::Kind::kTypedDataView_typed_data) {
+          // Initialization of TypedDataView.typed_data field creates
+          // aliasing between the view and original typed data,
+          // as the same data can now be accessed via both typed data
+          // view and the original typed data.
+          return true;
         }
-        return true;
+
+        if (use->use_index() != StoreFieldInstr::kInstancePos) {
+          ASSERT(use->use_index() == StoreFieldInstr::kValuePos);
+          // If we store this value into an object that is not aliased itself
+          // and we never load again then the store does not create an alias.
+          Definition* instance =
+              store->instance()->definition()->OriginalDefinition();
+          if (Place::IsAllocation(instance) &&
+              !instance->Identity().IsAliased()) {
+            bool is_load, is_store;
+            Place store_place(instr, &is_load, &is_store);
+
+            if (!HasLoadsFromPlace(instance, &store_place)) {
+              // No loads found that match this store. If it is yet unknown if
+              // the object is not aliased then optimistically assume this but
+              // add it to the worklist to check its uses transitively.
+              if (instance->Identity().IsUnknown()) {
+                instance->SetIdentity(AliasIdentity::NotAliased());
+                aliasing_worklist_.Add(instance);
+              }
+              continue;
+            }
+          }
+          return true;
+        }
       } else if (auto* const alloc = instr->AsAllocation()) {
         // Treat inputs to an allocation instruction exactly as if they were
         // manually stored using a StoreField instruction.
@@ -1402,6 +1427,11 @@ static bool IsLoadEliminationCandidate(Instruction* instr) {
       instr->AsDefinition()->MayCreateUnsafeUntaggedPointer()) {
     return false;
   }
+  if (auto* load = instr->AsLoadField()) {
+    if (load->slot().is_weak()) {
+      return false;
+    }
+  }
   return instr->IsLoadField() || instr->IsLoadIndexed() ||
          instr->IsLoadStaticField();
 }
@@ -1615,8 +1645,9 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
       Definition* def = instr_it.Current()->AsDefinition();
       if (def != nullptr && def->IsAllocation() && def->env() == nullptr &&
           !moved.HasKey(def)) {
-        Instruction* use = DominantUse(def);
-        if (use != nullptr && !use->IsPhi() && IsOneTimeUse(use, def)) {
+        auto [block_of_use, use] = DominantUse({block, def});
+        if (use != nullptr && !use->IsPhi() &&
+            IsOneTimeUse(block_of_use, block)) {
           instr_it.RemoveCurrentFromGraph();
           def->InsertBefore(use);
           moved.Insert(def);
@@ -1626,7 +1657,11 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
   }
 }
 
-Instruction* DelayAllocations::DominantUse(Definition* def) {
+std::pair<BlockEntryInstr*, Instruction*> DelayAllocations::DominantUse(
+    std::pair<BlockEntryInstr*, Definition*> def_in_block) {
+  const auto block_of_def = def_in_block.first;
+  const auto def = def_in_block.second;
+
   // Find the use that dominates all other uses.
 
   // Collect all uses.
@@ -1642,26 +1677,45 @@ Instruction* DelayAllocations::DominantUse(Definition* def) {
 
   // Returns |true| iff |instr| or any instruction dominating it are either a
   // a |def| or a use of a |def|.
-  auto is_dominated_by_another_use = [&](Instruction* instr) {
+  //
+  // Additionally this function computes the block of the |instr| and sets
+  // |*block_of_instr| to that block.
+  auto is_dominated_by_another_use = [&](Instruction* instr,
+                                         BlockEntryInstr** block_of_instr) {
+    BlockEntryInstr* first_block = nullptr;
     while (instr != def) {
       if (uses.HasKey(instr)) {
         // We hit another use, meaning that this use dominates the given |use|.
         return true;
       }
       if (auto block = instr->AsBlockEntry()) {
+        if (first_block == nullptr) {
+          first_block = block;
+        }
         instr = block->dominator()->last_instruction();
       } else {
         instr = instr->previous();
+      }
+    }
+    if (block_of_instr != nullptr) {
+      if (first_block == nullptr) {
+        // We hit |def| while iterating instructions without actually hitting
+        // the start of the block. This means |def| and |use| reside in the
+        // same block.
+        *block_of_instr = block_of_def;
+      } else {
+        *block_of_instr = first_block;
       }
     }
     return false;
   };
 
   // Find the dominant use.
-  Instruction* dominant_use = nullptr;
+  std::pair<BlockEntryInstr*, Instruction*> dominant_use = {nullptr, nullptr};
   auto use_it = uses.GetIterator();
   while (auto use = use_it.Next()) {
     bool dominated_by_another_use = false;
+    BlockEntryInstr* block_of_use = nullptr;
 
     if (auto phi = (*use)->AsPhi()) {
       // For phi uses check that the dominant use dominates all
@@ -1671,8 +1725,10 @@ Instruction* DelayAllocations::DominantUse(Definition* def) {
       for (intptr_t i = 0; i < phi->InputCount(); i++) {
         if (phi->InputAt(i)->definition() == def) {
           if (!is_dominated_by_another_use(
-                  phi->block()->PredecessorAt(i)->last_instruction())) {
+                  phi->block()->PredecessorAt(i)->last_instruction(),
+                  /*block_of_instr=*/nullptr)) {
             dominated_by_another_use = false;
+            block_of_use = phi->block();
             break;
           }
         }
@@ -1682,28 +1738,27 @@ Instruction* DelayAllocations::DominantUse(Definition* def) {
       // blocks in the dominator chain until we hit the definition or
       // another use.
       dominated_by_another_use =
-          is_dominated_by_another_use((*use)->previous());
+          is_dominated_by_another_use((*use)->previous(), &block_of_use);
     }
 
     if (!dominated_by_another_use) {
-      if (dominant_use != nullptr) {
+      if (dominant_use.second != nullptr) {
         // More than one use reached the definition, which means no use
         // dominates all other uses.
-        return nullptr;
+        return {nullptr, nullptr};
       }
-      dominant_use = *use;
+      dominant_use = {block_of_use, *use};
     }
   }
 
   return dominant_use;
 }
 
-bool DelayAllocations::IsOneTimeUse(Instruction* use, Definition* def) {
+bool DelayAllocations::IsOneTimeUse(BlockEntryInstr* use_block,
+                                    BlockEntryInstr* def_block) {
   // Check that this use is always executed at most once for each execution of
   // the definition, i.e. that there is no path from the use to itself that
   // doesn't pass through the definition.
-  BlockEntryInstr* use_block = use->GetBlock();
-  BlockEntryInstr* def_block = def->GetBlock();
   if (use_block == def_block) return true;
 
   DirectChainedHashMap<IdentitySetKeyValueTrait<BlockEntryInstr*>> seen;
@@ -2217,8 +2272,8 @@ class LoadOptimizer : public ValueObject {
               const intptr_t pos = alloc->InputForSlot(*slot);
               if (pos != -1) {
                 forward_def = alloc->InputAt(pos)->definition();
-              } else if (slot->is_unboxed()) {
-                // Unboxed fields that are not provided as an input should not
+              } else if (!slot->is_tagged()) {
+                // Fields that do not contain tagged values should not
                 // have a tagged null value forwarded for them, similar to
                 // payloads of typed data arrays.
                 continue;
@@ -3050,24 +3105,43 @@ class StoreOptimizer : public LivenessAnalysis {
         new (zone) BitVector(zone, aliased_set_->max_place_id());
     all_places->SetAll();
 
-    BitVector* all_aliased_places =
-        new (zone) BitVector(zone, aliased_set_->max_place_id());
+    BitVector* all_aliased_places = nullptr;
     if (CompilerState::Current().is_aot()) {
-      const auto& places = aliased_set_->places();
-      // Go through all places and identify those which are escaping.
-      // We find such places by inspecting definition allocation
-      // [AliasIdentity] field, which is populated above by
-      // [AliasedSet::ComputeAliasing].
-      for (intptr_t i = 0; i < places.length(); i++) {
-        Place* place = places[i];
-        if (place->DependsOnInstance()) {
-          Definition* instance = place->instance();
-          if (Place::IsAllocation(instance) &&
-              !instance->Identity().IsAliased()) {
-            continue;
-          }
+      all_aliased_places =
+          new (zone) BitVector(zone, aliased_set_->max_place_id());
+    }
+    const auto& places = aliased_set_->places();
+    for (intptr_t i = 0; i < places.length(); i++) {
+      Place* place = places[i];
+      if (place->DependsOnInstance()) {
+        Definition* instance = place->instance();
+        // Find escaping places by inspecting definition allocation
+        // [AliasIdentity] field, which is populated above by
+        // [AliasedSet::ComputeAliasing].
+        if ((all_aliased_places != nullptr) &&
+            (!Place::IsAllocation(instance) ||
+             instance->Identity().IsAliased())) {
+          all_aliased_places->Add(i);
         }
-        all_aliased_places->Add(i);
+        if (instance != nullptr) {
+          // Avoid incorrect propagation of "dead" state beyond definition
+          // of the instance. Otherwise it may eventually reach stores into
+          // this place via loop backedge.
+          live_in_[instance->GetBlock()->postorder_number()]->Add(i);
+        }
+      } else {
+        if (all_aliased_places != nullptr) {
+          all_aliased_places->Add(i);
+        }
+      }
+      if (place->kind() == Place::kIndexed) {
+        Definition* index = place->index();
+        if (index != nullptr) {
+          // Avoid incorrect propagation of "dead" state beyond definition
+          // of the index. Otherwise it may eventually reach stores into
+          // this place via loop backedge.
+          live_in_[index->GetBlock()->postorder_number()]->Add(i);
+        }
       }
     }
 
@@ -4524,21 +4598,23 @@ static bool IsMarkedWithNoInterrupts(const Function& function) {
 
 void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
   const bool should_remove_all = IsMarkedWithNoInterrupts(graph->function());
+  if (should_remove_all) {
+    for (auto entry : graph->reverse_postorder()) {
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+        if (it.Current()->IsCheckStackOverflow()) {
+          it.RemoveCurrentFromGraph();
+        }
+      }
+    }
+    return;
+  }
 
   CheckStackOverflowInstr* first_stack_overflow_instr = nullptr;
-  for (BlockIterator block_it = graph->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* entry = block_it.Current();
-
+  for (auto entry : graph->reverse_postorder()) {
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
 
       if (CheckStackOverflowInstr* instr = current->AsCheckStackOverflow()) {
-        if (should_remove_all) {
-          it.RemoveCurrentFromGraph();
-          continue;
-        }
-
         if (first_stack_overflow_instr == nullptr) {
           first_stack_overflow_instr = instr;
           ASSERT(!first_stack_overflow_instr->in_loop());

@@ -7,24 +7,18 @@ library front_end.kernel_generator;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain, noLength;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:kernel/ast.dart' show Component;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import '../base/compiler_context.dart' show CompilerContext;
 import '../base/processed_options.dart' show ProcessedOptions;
-
-import '../fasta/compiler_context.dart' show CompilerContext;
-
 import '../kernel_generator_impl.dart'
     show generateKernel, generateKernelInternal;
-
 import 'compiler_options.dart' show CompilerOptions;
 
+// Coverage-ignore(suite): Not run.
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source].
 ///
@@ -51,6 +45,7 @@ Future<CompilerResult?> kernelForProgram(Uri source, CompilerOptions options,
       additionalSources: additionalSources));
 }
 
+// Coverage-ignore(suite): Not run.
 Future<CompilerResult?> kernelForProgramInternal(
   Uri source,
   CompilerOptions options, {
@@ -81,6 +76,7 @@ Future<CompilerResult?> kernelForProgramInternal(
   });
 }
 
+// Coverage-ignore(suite): Not run.
 /// Generates a kernel representation for a module containing [sources].
 ///
 /// A module is a collection of libraries that are compiled together. Libraries

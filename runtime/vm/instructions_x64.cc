@@ -79,10 +79,10 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
       0xe8, -1, -1, -1, -1,  // callq [PC + <offset>]
   };
   static int16_t pattern_disp8[] = {
-      0x4d, 0x8b, 0x4f, -1,               // movq R9, [PP + offset]
+      0x4d, 0x8b, 0x4f, -1,  // movq R9, [PP + offset]
   };
   static int16_t pattern_disp32[] = {
-      0x4d, 0x8b, 0x8f, -1, -1, -1, -1,   // movq R9, [PP + offset]
+      0x4d, 0x8b, 0x8f, -1, -1, -1, -1,  // movq R9, [PP + offset]
   };
 
   uword pc = pc_;

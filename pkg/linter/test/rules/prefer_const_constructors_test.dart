@@ -93,6 +93,36 @@ var a = A<String>();
     ]);
   }
 
+  test_canBeConst_implicitTypeArgument() async {
+    await assertNoDiagnostics(r'''
+class A<T, U> {
+  const A();
+}
+A<T, int> f<T>() => A();
+''');
+  }
+
+  test_canBeConst_implicitTypeArgument_downwardInference() async {
+    await assertDiagnostics(r'''
+class A<T> {
+  const A();
+}
+A<int> f() => A();
+''', [
+      lint(42, 3),
+    ]);
+  }
+
+  test_canBeConst_implicitTypeArgument_inConditional() async {
+    await assertNoDiagnostics(r'''
+class A<T, U> {
+  const A();
+}
+class B<T, U> extends A<T, U> {}
+A<T, int> f<T>(bool b) => b ? A() : B();
+''');
+  }
+
   test_canBeConst_intLiteralArgument() async {
     await assertDiagnostics(r'''
 class A {
@@ -147,6 +177,23 @@ class A {
   const A(String s);
 }
 A f(int i) => A('adjacent' '$i');
+''');
+  }
+
+  test_cannotBeConst_argumentIsExtensionTypeMethodCall() async {
+    await assertNoDiagnostics(r'''
+final class A {
+  final Ex f;
+  const A(this.f);
+
+  void foo() {
+    var a = A(-f);
+  }
+}
+
+extension type const Ex(int i) implements int {
+  Ex operator -() => Ex(-i);
+}
 ''');
   }
 
@@ -229,7 +276,7 @@ class A {
   }
 
   test_deferred_arg() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A();
 }
@@ -251,7 +298,7 @@ main() {
   }
 
   test_deferredConstructorCall() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A();
 }

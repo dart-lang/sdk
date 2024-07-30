@@ -32,14 +32,15 @@ class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
       'no_leading_underscores_for_library_prefixes',
       "The library prefix '{0}' starts with an underscore.",
       correctionMessage:
-          'Try renaming the prefix to not start with an underscore.');
+          'Try renaming the prefix to not start with an underscore.',
+      hasPublishedDocs: true);
 
   NoLeadingUnderscoresForLibraryPrefixes()
       : super(
             name: 'no_leading_underscores_for_library_prefixes',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

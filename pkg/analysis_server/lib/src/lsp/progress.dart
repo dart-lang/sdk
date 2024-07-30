@@ -82,9 +82,9 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
     // Only end the token after both create/begin have completed, and return
     // a Future to indicate that has happened to callers know when it's safe
     // to re-use the token identifier.
-    final beginRequest = _tokenBeginRequest;
+    var beginRequest = _tokenBeginRequest;
     if (beginRequest != null) {
-      final didBegin = await beginRequest;
+      var didBegin = await beginRequest;
       if (didBegin) {
         super.end(message);
       }
@@ -93,8 +93,8 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
   }
 
   static String _randomTokenIdentifier() {
-    final millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
-    final random = _random.nextInt(0x3fffffff);
+    var millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
+    var random = _random.nextInt(0x3fffffff);
     return '$millisecondsSinceEpoch$random';
   }
 }

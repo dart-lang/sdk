@@ -3,19 +3,26 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class InvertIfStatement extends ResolvedCorrectionProducer {
+  InvertIfStatement({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   AssistKind get assistKind => DartAssistKind.INVERT_IF_STATEMENT;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final ifStatement = node;
+    var ifStatement = node;
     if (ifStatement is! IfStatement) {
       return;
     }
@@ -25,17 +32,17 @@ class InvertIfStatement extends ResolvedCorrectionProducer {
     }
 
     // The only sane case is when both are blocks.
-    final thenStatement = ifStatement.thenStatement;
-    final elseStatement = ifStatement.elseStatement;
+    var thenStatement = ifStatement.thenStatement;
+    var elseStatement = ifStatement.elseStatement;
     if (thenStatement is! Block || elseStatement is! Block) {
       return;
     }
 
-    final condition = ifStatement.expression;
-    final invertedCondition = utils.invertCondition(condition);
+    var condition = ifStatement.expression;
+    var invertedCondition = utils.invertCondition(condition);
 
-    final thenCode = utils.getNodeText(thenStatement);
-    final elseCode = utils.getNodeText(elseStatement);
+    var thenCode = utils.getNodeText(thenStatement);
+    var elseCode = utils.getNodeText(elseStatement);
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(condition), invertedCondition);

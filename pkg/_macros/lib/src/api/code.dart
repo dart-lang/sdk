@@ -7,8 +7,12 @@ part of '../api.dart';
 /// The base class representing an arbitrary chunk of Dart code, which may or
 /// may not be syntactically or semantically valid yet.
 sealed class Code {
-  /// All the chunks of [Code], raw [String]s, or [Identifier]s that
-  /// comprise this [Code] object.
+  /// All the chunks of [Code], raw [String]s, [Identifier]s, or
+  /// [OmittedTypeAnnotation]s that comprise this [Code] object.
+  ///
+  /// Note that [OmittedTypeAnnotation] objects can only be provided through
+  /// the [OmittedTypeAnnotationCode] wrapper instance, but will appear in
+  /// the [parts] of those, so they must be handled whenever iterating [parts].
   final List<Object> parts;
 
   /// Can be used to more efficiently detect the kind of code, avoiding is
@@ -17,9 +21,18 @@ sealed class Code {
 
   Code.fromString(String code) : parts = [code];
 
-  Code.fromParts(this.parts)
-      : assert(parts.every((element) =>
-            element is String || element is Code || element is Identifier));
+  Code.fromParts(this.parts) {
+    for (final part in parts) {
+      switch (part) {
+        case Code():
+        case Identifier():
+        case String():
+          break; // OK
+        default:
+          throw StateError('Unrecognized code part ${part.runtimeType}');
+      }
+    }
+  }
 }
 
 /// An arbitrary chunk of code, which does not have to be syntactically valid
@@ -444,7 +457,8 @@ final class TypeParameterCode implements Code {
 }
 
 extension Join<T extends Object> on List<T> {
-  /// Joins all the items in [this] with [separator], and returns a new list.
+  /// Joins all the items in this [Join] with [separator], and returns a new
+  /// list.
   ///
   /// Works on any kind of non-nullable list which accepts String entries, and
   /// does not convert the individual items to strings.

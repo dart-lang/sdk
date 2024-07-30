@@ -12,9 +12,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/io.dart' show errorSink;
 
 import '../analyzer.dart';
+import 'test_linter.dart';
 
 Future<Iterable<AnalysisErrorInfo>> lintFiles(
-    DartLinter linter, List<File> filesToLint) async {
+    TestLinter linter, List<File> filesToLint) async {
   // Setup an error watcher to track whether an error was logged to stderr so
   // we can set the exit code accordingly.
   var errorWatcher = ErrorWatchingSink(errorSink);

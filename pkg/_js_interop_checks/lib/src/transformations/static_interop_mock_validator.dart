@@ -11,7 +11,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart'
     show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show
         templateJsInteropStaticInteropMockNotStaticInteropType,
         templateJsInteropStaticInteropMockTypeParametersNotAllowed;
@@ -41,8 +41,8 @@ class StaticInteropMockValidator {
     if (staticInteropType is! InterfaceType ||
         !js_interop.hasStaticInteropAnnotation(staticInteropType.classNode)) {
       _diagnosticReporter.report(
-          templateJsInteropStaticInteropMockNotStaticInteropType.withArguments(
-              staticInteropType, true),
+          templateJsInteropStaticInteropMockNotStaticInteropType
+              .withArguments(staticInteropType),
           node.fileOffset,
           node.name.text.length,
           node.location?.file);
@@ -82,7 +82,7 @@ class StaticInteropMockValidator {
         if (arg is! DynamicType && arg != typeParams[i].bound) {
           _diagnosticReporter.report(
               templateJsInteropStaticInteropMockTypeParametersNotAllowed
-                  .withArguments(type, true),
+                  .withArguments(type),
               node.fileOffset,
               node.name.text.length,
               node.location?.file);
@@ -363,13 +363,13 @@ class StaticInteropMockValidator {
 /// parameters.
 class TypeParameterResolver extends ReplacementVisitor {
   @override
-  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     return node.nonTypeVariableBound;
   }
 
   @override
   DartType? visitStructuralParameterType(
-      StructuralParameterType node, int variance) {
+      StructuralParameterType node, Variance variance) {
     return node.nonTypeVariableBound;
   }
 

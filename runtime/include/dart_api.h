@@ -556,7 +556,6 @@ Dart_NewFinalizableHandle(Dart_Handle object,
 DART_EXPORT void Dart_DeleteFinalizableHandle(Dart_FinalizableHandle object,
                                               Dart_Handle strong_ref_to_object);
 
-
 /*
  * ==========================
  * Initialization and Globals
@@ -595,6 +594,7 @@ typedef struct {
   bool is_kernel_isolate;
   bool snapshot_is_dontneed_safe;
   bool branch_coverage;
+  bool coverage;
 } Dart_IsolateFlags;
 
 /**
@@ -1278,8 +1278,7 @@ DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
  */
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
 
-typedef void (*Dart_HeapSamplingReportCallback)(void* context,
-                                                void* data);
+typedef void (*Dart_HeapSamplingReportCallback)(void* context, void* data);
 
 typedef void* (*Dart_HeapSamplingCreateCallback)(
     Dart_Isolate isolate,
@@ -1524,6 +1523,10 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_IsolateMakeRunnable(
  * A port is used to send or receive inter-isolate messages
  */
 typedef int64_t Dart_Port;
+typedef struct {
+  int64_t port_id;
+  int64_t origin_id;
+} Dart_PortEx;
 
 /**
  * ILLEGAL_PORT is a port number guaranteed never to be associated with a valid
@@ -1775,12 +1778,26 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
 /**
  * Returns a new SendPort with the provided port id.
  *
+ * If there is a possibility of a port closing since port_id was acquired
+ * for a SendPort, one should use Dart_NewSendPortEx and
+ * Dart_SendPortGetIdEx.
+ *
  * \param port_id The destination port.
  *
  * \return A new SendPort if no errors occurs. Otherwise returns
  *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
+
+/**
+ * Returns a new SendPort with the provided port id and origin id.
+ *
+ * \param portex_id The destination composte port id.
+ *
+ * \return A new SendPort if no errors occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewSendPortEx(Dart_PortEx portex_id);
 
 /**
  * Gets the SendPort id for the provided SendPort.
@@ -1792,6 +1809,15 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
 DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
                                            Dart_Port* port_id);
 
+/**
+ * Gets the SendPort and Origin ids for the provided SendPort.
+ * \param port A SendPort object whose id is desired.
+ * \param portex_id Returns composite id of the SendPort.
+ * \return Success if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_SendPortGetIdEx(Dart_Handle port,
+                                             Dart_PortEx* portex_id);
 /*
  * ======
  * Scopes
@@ -2421,25 +2447,6 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle str,
  *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length);
-
-typedef enum {
-  Dart_CoreType_Dynamic,
-  Dart_CoreType_Int,
-  Dart_CoreType_String,
-} Dart_CoreType_Id;
-
-// TODO(bkonyi): convert this to use nullable types once NNBD is enabled.
-/**
- * Returns a List of the desired length with the desired legacy element type.
- *
- * \param element_type_id The type of elements of the list.
- * \param length The length of the list.
- *
- * \return The List object if no error occurs. Otherwise returns an error
- * handle.
- */
-DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
-                                       intptr_t length);
 
 /**
  * Returns a List of the desired length with the desired element type.
@@ -3332,6 +3339,77 @@ DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
 DART_EXPORT Dart_Handle
 Dart_SetFfiNativeResolver(Dart_Handle library, Dart_FfiNativeResolver resolver);
 
+/**
+ * Callback provided by the embedder that is used by the VM to resolve asset
+ * paths.
+ * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
+ * fail.
+ *
+ * The VM is responsible for looking up the asset path with the asset id in the
+ * kernel mapping.
+ * The embedder is responsible for providing the asset mapping during kernel
+ * compilation and using the asset path to return a library handle in this
+ * function.
+ *
+ * \param path The string in the asset path as passed in native_assets.yaml
+ *             during kernel compilation.
+ *
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
+ *
+ * \return The library handle. If |error| is not-null, the return value is
+ *         undefined.
+ */
+typedef void* (*Dart_NativeAssetsDlopenCallback)(const char* path,
+                                                 char** error);
+typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
+
+/**
+ * Callback provided by the embedder that is used by the VM to lookup symbols
+ * in native code assets.
+ * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
+ * fail.
+ *
+ * \param handle The library handle returned from a
+ *               `Dart_NativeAssetsDlopenCallback` or
+ *               `Dart_NativeAssetsDlopenCallbackNoPath`.
+ *
+ * \param symbol The symbol to look up. Is a string.
+ *
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
+ *
+ * \return The symbol address. If |error| is not-null, the return value is
+ *         undefined.
+ */
+typedef void* (*Dart_NativeAssetsDlsymCallback)(void* handle,
+                                                const char* symbol,
+                                                char** error);
+
+typedef struct {
+  Dart_NativeAssetsDlopenCallback dlopen_absolute;
+  Dart_NativeAssetsDlopenCallback dlopen_relative;
+  Dart_NativeAssetsDlopenCallback dlopen_system;
+  Dart_NativeAssetsDlopenCallbackNoPath dlopen_process;
+  Dart_NativeAssetsDlopenCallbackNoPath dlopen_executable;
+  Dart_NativeAssetsDlsymCallback dlsym;
+} NativeAssetsApi;
+
+/**
+ * Initializes native asset resolution for the current isolate group.
+ *
+ * The caller is responsible for ensuring this is called right after isolate
+ * group creation, and before running any dart code (or spawning isolates).
+ *
+ * @param native_assets_api The callbacks used by native assets resolution.
+ *                          The VM does not take ownership of the parameter,
+ *                          it can be freed immediately after the call.
+ */
+DART_EXPORT void Dart_InitializeNativeAssetsResolver(
+    NativeAssetsApi* native_assets_api);
+
 /*
  * =====================
  * Scripts and Libraries
@@ -3354,10 +3432,8 @@ typedef enum {
  * Dart_kCanonicalizeUrl
  *
  * This tag indicates that the embedder should canonicalize 'url' with
- * respect to 'library'.  For most embedders, the
- * Dart_DefaultCanonicalizeUrl function is a sufficient implementation
- * of this tag.  The return value should be a string holding the
- * canonicalized url.
+ * respect to 'library'.  For most embedders, this is resolving the `url`
+ * relative to the `library`s url (see `Dart_LibraryUrl`).
  *
  * Dart_kImportTag
  *
@@ -3450,26 +3526,6 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
                                const char* error_message,
                                bool transient);
-
-/**
- * Canonicalizes a url with respect to some library.
- *
- * The url is resolved with respect to the library's url and some url
- * normalizations are performed.
- *
- * This canonicalization function should be sufficient for most
- * embedders to implement the Dart_kCanonicalizeUrl tag.
- *
- * \param base_url The base url relative to which the url is
- *                being resolved.
- * \param url The url being resolved and canonicalized.  This
- *            parameter is a string handle.
- *
- * \return If no error occurs, a String object is returned.  Otherwise
- *   an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
-                                                    Dart_Handle url);
 
 /**
  * Loads the root library for the current isolate.
@@ -3592,7 +3648,6 @@ DART_EXPORT Dart_Handle Dart_TypeToNonNullableType(Dart_Handle type);
  */
 DART_EXPORT Dart_Handle Dart_IsNullableType(Dart_Handle type, bool* result);
 DART_EXPORT Dart_Handle Dart_IsNonNullableType(Dart_Handle type, bool* result);
-DART_EXPORT Dart_Handle Dart_IsLegacyType(Dart_Handle type, bool* result);
 
 /**
  * Lookup a class or interface by name from a Library.
@@ -3812,41 +3867,7 @@ DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
     const intptr_t platform_kernel_size);
 
 /**
- * Detect the null safety opt-in status.
- *
- * When running from source, it is based on the opt-in status of `script_uri`.
- * When running from a kernel buffer, it is based on the mode used when
- *   generating `kernel_buffer`.
- * When running from an appJIT or AOT snapshot, it is based on the mode used
- *   when generating `snapshot_data`.
- *
- * \param script_uri Uri of the script that contains the source code
- *
- * \param package_config Uri of the package configuration file (either in format
- *   of .packages or .dart_tool/package_config.json) for the null safety
- *   detection to resolve package imports against. If this parameter is not
- *   passed the package resolution of the parent isolate should be used.
- *
- * \param original_working_directory current working directory when the VM
- *   process was launched, this is used to correctly resolve the path specified
- *   for package_config.
- *
- * \param snapshot_data Buffer containing the snapshot data of the
- *   isolate or NULL if no snapshot is provided. If provided, the buffers must
- *   remain valid until the isolate shuts down.
- *
- * \param snapshot_instructions Buffer containing the snapshot instructions of
- *   the isolate or NULL if no snapshot is provided. If provided, the buffers
- *   must remain valid until the isolate shuts down.
- *
- * \param kernel_buffer A buffer which contains a kernel/DIL program. Must
- *   remain valid until isolate shutdown.
- *
- * \param kernel_buffer_size The size of `kernel_buffer`.
- *
- * \return Returns true if the null safety is opted in by the input being
- *   run `script_uri`, `snapshot_data` or `kernel_buffer`.
- *
+ * Always return true as the VM only supports strong null safety.
  */
 DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const char* package_config,

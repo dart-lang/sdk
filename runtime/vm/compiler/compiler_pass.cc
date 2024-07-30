@@ -30,7 +30,9 @@
    public:                                                                     \
     CompilerPass_##Name() : CompilerPass(k##Name, #Name) {}                    \
                                                                                \
-    static bool Register() { return true; }                                    \
+    static bool Register() {                                                   \
+      return true;                                                             \
+    }                                                                          \
                                                                                \
    protected:                                                                  \
     virtual bool DoBody(CompilerPassState* state) const {                      \
@@ -297,50 +299,12 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TryOptimizePatterns);
 }
 
-void CompilerPass::RunForceOptimizedInliningPipeline(
-    CompilerPassState* pass_state) {
-  INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(Canonicalize);
-  INVOKE_PASS(ConstantPropagation);
-}
-
-// Keep in sync with TestPipeline::RunForcedOptimizedAfterSSAPasses.
-FlowGraph* CompilerPass::RunForceOptimizedPipeline(
-    PipelineMode mode,
-    CompilerPassState* pass_state) {
-  INVOKE_PASS(ComputeSSA);
-  INVOKE_PASS(SetOuterInliningId);
-  INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(Canonicalize);
-  INVOKE_PASS(BranchSimplify);
-  INVOKE_PASS(IfConvert);
-  INVOKE_PASS(ConstantPropagation);
-  INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(WidenSmiToInt32);
-  INVOKE_PASS(SelectRepresentations_Final);
-  INVOKE_PASS(CSE);
-  INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(TryCatchOptimization);
-  INVOKE_PASS(EliminateEnvironments);
-  INVOKE_PASS(EliminateDeadPhis);
-  // Currently DCE assumes that EliminateEnvironments has already been run,
-  // so it should not be lifted earlier than that pass.
-  INVOKE_PASS(DCE);
-  INVOKE_PASS(Canonicalize);
-  INVOKE_PASS_AOT(DelayAllocations);
-  INVOKE_PASS(EliminateWriteBarriers);
-  // This must be done after all other possible intra-block code motion.
-  INVOKE_PASS(LoweringAfterCodeMotionDisabled);
-  INVOKE_PASS(FinalizeGraph);
-  INVOKE_PASS(ReorderBlocks);
-  INVOKE_PASS(AllocateRegisters);
-  INVOKE_PASS(TestILSerialization);  // Must be last.
-  return pass_state->flow_graph();
-}
-
 FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
-                                     CompilerPassState* pass_state) {
-  INVOKE_PASS(ComputeSSA);
+                                     CompilerPassState* pass_state,
+                                     bool compute_ssa) {
+  if (compute_ssa) {
+    INVOKE_PASS(ComputeSSA);
+  }
   INVOKE_PASS_AOT(ApplyClassIds);
   INVOKE_PASS_AOT(TypePropagation);
   INVOKE_PASS(ApplyICData);
@@ -366,7 +330,6 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   // unreachable code.
   INVOKE_PASS_AOT(ApplyICData);
   INVOKE_PASS_AOT(OptimizeTypedDataAccesses);
-  INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(CSE);
   INVOKE_PASS(Canonicalize);
@@ -471,12 +434,6 @@ COMPILER_PASS(OptimisticallySpecializeSmiPhis, {
   licm.OptimisticallySpecializeSmiPhis();
 });
 
-COMPILER_PASS(WidenSmiToInt32, {
-  // Where beneficial convert Smi operations into Int32 operations.
-  // Only meaningful for 32bit platforms right now.
-  flow_graph->WidenSmiToInt32();
-});
-
 COMPILER_PASS(SelectRepresentations, {
   // Unbox doubles. Performed after constant propagation to minimize
   // interference from phis merging double values and tagged
@@ -575,9 +532,7 @@ COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
   allocator.AllocateRegisters();
 });
 
-COMPILER_PASS(ReorderBlocks, {
-  BlockScheduler::ReorderBlocks(flow_graph);
-});
+COMPILER_PASS(ReorderBlocks, { BlockScheduler::ReorderBlocks(flow_graph); });
 
 COMPILER_PASS(EliminateWriteBarriers, { EliminateWriteBarriers(flow_graph); });
 

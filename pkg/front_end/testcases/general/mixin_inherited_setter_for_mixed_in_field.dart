@@ -1,13 +1,11 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class A {}
 
-class C<T extends A> {
-  T _field;
+mixin class C<T extends A> {
+  late T _field;
 
   foo(T x) {
     _field = x;

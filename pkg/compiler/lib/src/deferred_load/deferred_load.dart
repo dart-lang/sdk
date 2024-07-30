@@ -431,8 +431,7 @@ class DeferredLoadTask extends CompilerTask {
     return '';
   }
 
-  bool get generateDeferredLoadIdMap =>
-      compiler.options.stage == Dart2JSStage.deferredLoadIds;
+  bool get generateDeferredLoadIdMap => compiler.stage.emitsDeferredLoadIds;
 
   /// Performs the deferred loading algorithm.
   ///
@@ -670,9 +669,7 @@ class DeferredLoadTask extends CompilerTask {
       (mapping['${import.uri}'] ??= {})[import.name!] = deferredName;
     });
     compiler.outputProvider.createOutputSink(
-        compiler.options
-            .dataOutputUriForStage(Dart2JSStage.deferredLoadIds)
-            .path,
+        compiler.options.dataUriForStage(CompilerStage.deferredLoadIds).path,
         '',
         api.OutputType.deferredLoadIds)
       ..add(const JsonEncoder.withIndent("  ").convert(topLevel))

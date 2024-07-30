@@ -19,14 +19,15 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 import "package:front_end/src/api_prototype/terminal_color_support.dart"
     show printDiagnosticMessage;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show IncrementalCompiler;
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
-import 'package:front_end/src/fasta/kernel/utils.dart'
+import 'package:front_end/src/kernel/utils.dart'
     show serializeComponent, serializeProcedure;
 import 'package:front_end/src/testing/compiler_common.dart';
 import "package:kernel/ast.dart"
@@ -692,6 +693,8 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
+    // TODO(johnniwinther): We should default to strong mode.
+    ..nnbdMode = NnbdMode.Weak
     ..explicitExperimentalFlags = {}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 
@@ -709,6 +712,7 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
+    ..nnbdMode = NnbdMode.Weak
     ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 

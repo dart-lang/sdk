@@ -159,13 +159,6 @@ class DateTime implements Comparable<DateTime> {
   static const int december = 12;
   static const int monthsPerYear = 12;
 
-  /// The value of this DateTime.
-  ///
-  /// The content of this field is implementation dependent. On JavaScript it is
-  /// equal to [millisecondsSinceEpoch]. On the VM it is equal to
-  /// [microsecondsSinceEpoch].
-  final int _value;
-
   /// True if this [DateTime] is set to UTC time.
   ///
   /// ```dart
@@ -348,12 +341,12 @@ class DateTime implements Comparable<DateTime> {
           minute -= sign * minuteDifference;
         }
       }
-      int? value = _brokenDownDateToValue(years, month, day, hour, minute,
-          second, millisecond, microsecond, isUtc);
-      if (value == null) {
+      DateTime? result = _finishParse(years, month, day, hour, minute, second,
+          millisecond, microsecond, isUtc);
+      if (result == null) {
         throw FormatException("Time out of range", formattedString);
       }
-      return DateTime._withValue(value, isUtc: isUtc);
+      return result;
     } else {
       throw FormatException("Invalid date format", formattedString);
     }
@@ -373,6 +366,8 @@ class DateTime implements Comparable<DateTime> {
   }
 
   static const int _maxMillisecondsSinceEpoch = 8640000000000000;
+  static const int _maxMicrosecondsSinceEpoch =
+      _maxMillisecondsSinceEpoch * Duration.microsecondsPerMillisecond;
 
   /// Constructs a new [DateTime] instance
   /// with the given [millisecondsSinceEpoch].
@@ -406,21 +401,36 @@ class DateTime implements Comparable<DateTime> {
   external DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
       {bool isUtc = false});
 
-  /// Constructs a new [DateTime] instance with the given value.
+  /// Throws an error if the millisecondsSinceEpoch and microsecond components
+  /// are out of range.
   ///
-  /// If [isUtc] is false, then the date is in the local time zone.
-  DateTime._withValue(this._value, {required this.isUtc}) {
-    if (millisecondsSinceEpoch.abs() > _maxMillisecondsSinceEpoch ||
-        (millisecondsSinceEpoch.abs() == _maxMillisecondsSinceEpoch &&
-            microsecond != 0)) {
-      throw ArgumentError(
-          "DateTime is outside valid range: $millisecondsSinceEpoch");
+  /// Returns the millisecondsSinceEpoch component.
+  static int _validate(
+      int millisecondsSinceEpoch, int microsecond, bool isUtc) {
+    if (microsecond < 0 || microsecond > 999) {
+      throw RangeError.range(microsecond, 0, 999, "microsecond");
     }
+    if (millisecondsSinceEpoch < -_maxMillisecondsSinceEpoch ||
+        millisecondsSinceEpoch > _maxMillisecondsSinceEpoch) {
+      throw RangeError.range(
+          millisecondsSinceEpoch,
+          -_maxMillisecondsSinceEpoch,
+          _maxMillisecondsSinceEpoch,
+          "millisecondsSinceEpoch");
+    }
+    if (millisecondsSinceEpoch == _maxMillisecondsSinceEpoch &&
+        microsecond != 0) {
+      throw ArgumentError.value(microsecond, "microsecond",
+          "Time including microseconds is outside valid range");
+    }
+
     // For backwards compatibility with legacy mode.
     checkNotNullable(isUtc, "isUtc");
+
+    return millisecondsSinceEpoch;
   }
 
-  /// Returns true if [other] is a [DateTime] at the same moment and in the
+  /// Whether [other] is a [DateTime] at the same moment and in the
   /// same time zone (UTC or local).
   ///
   /// ```dart
@@ -436,7 +446,9 @@ class DateTime implements Comparable<DateTime> {
   /// independently of their zones.
   external bool operator ==(Object other);
 
-  /// Returns true if [this] occurs before [other].
+  external int get hashCode;
+
+  /// Whether this [DateTime] occurs before [other].
   ///
   /// The comparison is independent
   /// of whether the time is in UTC or in the local time zone.
@@ -456,7 +468,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external bool isBefore(DateTime other);
 
-  /// Returns true if [this] occurs after [other].
+  /// Whether this [DateTime] occurs after [other].
   ///
   /// The comparison is independent
   /// of whether the time is in UTC or in the local time zone.
@@ -476,7 +488,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external bool isAfter(DateTime other);
 
-  /// Returns true if [this] occurs at the same moment as [other].
+  /// Whether this [DateTime] occurs at the same moment as [other].
   ///
   /// The comparison is independent of whether the time is in UTC or in the local
   /// time zone.
@@ -516,11 +528,9 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   external int compareTo(DateTime other);
 
-  int get hashCode => (_value ^ (_value >> 30)) & 0x3FFFFFFF;
-
   /// Returns this DateTime value in the local time zone.
   ///
-  /// Returns [this] if it is already in the local time zone.
+  /// Returns this [DateTime] if it is already in the local time zone.
   /// Otherwise this method is equivalent to:
   ///
   /// ```dart template:expression
@@ -529,14 +539,14 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   DateTime toLocal() {
     if (isUtc) {
-      return DateTime._withValue(_value, isUtc: false);
+      return _withUtc(isUtc: false);
     }
     return this;
   }
 
   /// Returns this DateTime value in the UTC time zone.
   ///
-  /// Returns [this] if it is already in UTC.
+  /// Returns this [DateTime] if it is already in UTC.
   /// Otherwise this method is equivalent to:
   ///
   /// ```dart template:expression
@@ -545,8 +555,10 @@ class DateTime implements Comparable<DateTime> {
   /// ```
   DateTime toUtc() {
     if (isUtc) return this;
-    return DateTime._withValue(_value, isUtc: true);
+    return _withUtc(isUtc: true);
   }
+
+  external DateTime _withUtc({required bool isUtc});
 
   static String _fourDigits(int n) {
     int absN = n.abs();
@@ -642,7 +654,7 @@ class DateTime implements Comparable<DateTime> {
     }
   }
 
-  /// Returns a new [DateTime] instance with [duration] added to [this].
+  /// Returns a new [DateTime] instance with [duration] added to this [DateTime].
   ///
   /// ```dart
   /// final today = DateTime.now();
@@ -657,7 +669,8 @@ class DateTime implements Comparable<DateTime> {
   /// Be careful when working with dates in local time.
   external DateTime add(Duration duration);
 
-  /// Returns a new [DateTime] instance with [duration] subtracted from [this].
+  /// Returns a new [DateTime] instance with [duration] subtracted from this
+  /// [DateTime].
   ///
   /// ```dart
   /// final today = DateTime.now();
@@ -673,9 +686,10 @@ class DateTime implements Comparable<DateTime> {
   external DateTime subtract(Duration duration);
 
   /// Returns a [Duration] with the difference when subtracting [other] from
-  /// [this].
+  /// this [DateTime].
   ///
-  /// The returned [Duration] will be negative if [other] occurs after [this].
+  /// The returned [Duration] will be negative if [other] occurs after this
+  /// [DateTime].
   ///
   /// ```dart
   /// final berlinWallFell = DateTime.utc(1989, DateTime.november, 9);
@@ -710,18 +724,10 @@ class DateTime implements Comparable<DateTime> {
 
   external DateTime._now();
 
-  /// Returns the time as value (millisecond or microsecond since epoch), or
-  /// null if the values are out of range.
-  external static int? _brokenDownDateToValue(
-      int year,
-      int month,
-      int day,
-      int hour,
-      int minute,
-      int second,
-      int millisecond,
-      int microsecond,
-      bool isUtc);
+  /// Returns the [DateTime] corresponding to the given components, or `null` if
+  /// the values are out of range.
+  external static DateTime? _finishParse(int year, int month, int day, int hour,
+      int minute, int second, int millisecond, int microsecond, bool isUtc);
 
   /// The number of milliseconds since
   /// the "Unix epoch" 1970-01-01T00:00:00Z (UTC).
@@ -742,8 +748,10 @@ class DateTime implements Comparable<DateTime> {
   /// 8,640,000,000,000,000,000us (100,000,000 days) from the Unix epoch.
   /// In other words: `microsecondsSinceEpoch.abs() <= 8640000000000000000`.
   ///
-  /// Note that this value does not fit into 53 bits (the size of a IEEE double).
-  /// A JavaScript number is not able to hold this value.
+  /// Note that this value does not always fit into 53 bits (the size of a IEEE
+  /// double).  On the web JavaScript platforms, there may be a rounding error
+  /// for DateTime values sufficiently far from the epoch. The year range close
+  /// to the epoch to avoid rounding is approximately 1685..2254.
   external int get microsecondsSinceEpoch;
 
   /// The time zone name.

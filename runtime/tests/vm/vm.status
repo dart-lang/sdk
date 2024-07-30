@@ -13,6 +13,7 @@ cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
+dart/async_igoto_threshold_flag_test: Pass, Slow
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
 dart/byte_array_test: Pass, Slow # Uses --opt-counter-threshold=10
@@ -25,11 +26,11 @@ dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
-dart/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
 dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
 dart/regress32619_test: Pass, Slow
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
+dart/spawn_uri_aot_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 
 [ $arch == ia32 ]
@@ -37,7 +38,6 @@ dart/cachable_idempotent_test: Skip # CachableIdempotent calls are not supported
 dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
 dart/regress32597_2_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 dart/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
-dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 
 [ $builder_tag == obfuscated ]
 dart/heapsnapshot_cli_test: SkipByDesign # Relies on symbol names
@@ -50,7 +50,6 @@ dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # GC happens at unpredictable times.
 dart/kernel_determinism_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
-dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 
 [ $compiler == app_jitk ]
 dart/snapshot_version_test: RuntimeError
@@ -70,11 +69,8 @@ dart/b162922506_test: SkipByDesign # Only run in JIT
 dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 dart/minimal_kernel_test: SkipByDesign # Test needs to run from source
-dart/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
-dart/regress_44026_test: SkipByDesign # Test needs to run from source
 dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 dart/spawn_uri_from_kernel_blob_test: SkipByDesign # Only run in JIT.
-dart/type_casts_with_null_safety_autodetection_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp ]
 dart/await_type_check_with_dynamic_loading_test: SkipByDesign # Uses dart:mirrors.
@@ -99,10 +95,8 @@ dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimi
 dart/b162922506_test: SkipSlow # Generates very large input file
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
-dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/regress47472_test: Pass, Slow # Slow due to throwing 1 million exceptions.
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
-dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Very slow in debug mode, uses --optimization-counter-threshold=10
 
 [ $mode == product ]
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
@@ -128,7 +122,6 @@ dart/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills
 dart/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/gc/scavenger_abort_test: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
-dart/regress_40462_test: SkipSlow
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.
@@ -198,14 +191,17 @@ cc/Service_Profile: SkipByDesign
 dart/gc/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/isolates/regress_54528_test: SkipByDesign # Invokes gen_kernel/gen_snapshot
+dart/isolates/shared_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/reachability_test: SkipByDesign # Test takes too long on the simulator
 dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart/regress_b_216834909_test: SkipByDesign # No FFI on simulators
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
+dart/sendport_api_test: SkipByDesign # No FFI on simulators
 dart/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
+dart/use_code_comments_flag: Pass, Slow # Slow on simulator https://dartbug.com/55658
 
 [ $arch == ia32 && $mode == debug ]
 dart/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
@@ -265,7 +261,6 @@ dart/enable_mirrors_test: SkipByDesign # Separate kernel compilation doesn't res
 dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
 dart/isolates/fast_object_copy_test*: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
-dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/snapshot_version_test: RuntimeError # Please triage.
 
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
@@ -283,7 +278,6 @@ dart/regress_52703_test: SkipSlow
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
 
 [ $compiler == dartkp && $simulator ]
-dart/awaiter_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
 dart/awaiter_stacks/stream_methods_test/1: Pass, Slow
 dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
 dart/isolates/fast_object_copy_test*: SkipSlow
@@ -342,9 +336,6 @@ dart/emit_aot_size_info_flag_test: SkipByDesign # This test is for VM AOT only a
 dart/split_aot_kernel_generation2_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 dart/split_aot_kernel_generation_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 
-[ $mode != debug || $runtime != dart_precompiled ]
-in_memory_elf_test: Skip # Tests a debug-mode flag to dart_precompiled_runtime.
-
 # It makes no sense to run any test that uses spawnURI under the simulator
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
@@ -354,6 +345,9 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
+
+[ $runtime != dart_precompiled || $sanitizer != msan && $sanitizer != tsan ]
+dart/sanitizer_compatibility_test: SkipByDesign
 
 [ $system != macos || $simulator ]
 dart/thread_priority_macos_test: SkipByDesign
@@ -366,7 +360,6 @@ dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
 dart/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
 dart/issue_31959_31960_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
-dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart/print_flow_graph_determinism_test: SkipSlow
 dart/slow_path_shared_stub_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.

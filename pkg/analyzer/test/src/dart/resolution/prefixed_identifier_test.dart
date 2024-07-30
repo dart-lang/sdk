@@ -26,7 +26,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -54,7 +54,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -82,7 +82,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -112,7 +112,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -218,7 +218,7 @@ main() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -247,7 +247,7 @@ void f(E e) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -312,7 +312,7 @@ void f(Function a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -336,7 +336,7 @@ void f(int Function(String) a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -366,7 +366,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.prefixed('B.foo');
+    var node = findNode.prefixed('B.foo');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -446,7 +446,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.prefixed('prefix.');
+    var node = findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -476,7 +476,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.prefixed('prefix.');
+    var node = findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -506,7 +506,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.prefixed('prefix.');
+    var node = findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -536,7 +536,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.prefixed('prefix.');
+    var node = findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -568,7 +568,7 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 48, 3),
     ]);
 
-    final node = findNode.prefixed('prefix.');
+    var node = findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -598,7 +598,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.prefixed('prefix.');
+    var node = findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -617,7 +617,7 @@ PrefixedIdentifier
 
   test_ofClass_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment int get foo => 0;
@@ -635,7 +635,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -654,7 +654,7 @@ PrefixedIdentifier
 
   test_ofClass_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   int get foo => 0;
@@ -670,7 +670,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -689,7 +689,7 @@ PrefixedIdentifier
 
   test_ofClassName_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment static int get foo => 0;
@@ -707,7 +707,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -726,7 +726,7 @@ PrefixedIdentifier
 
   test_ofClassName_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   static int get foo => 0;
@@ -742,7 +742,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -761,7 +761,7 @@ PrefixedIdentifier
 
   test_ofClassName_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   static void foo() {}
@@ -777,7 +777,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -805,7 +805,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -833,7 +833,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -864,7 +864,7 @@ void f(A? a) {
           69, 3),
     ]);
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -892,7 +892,7 @@ void f(A? a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -919,7 +919,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -950,7 +950,7 @@ AssignmentExpression
 
   test_ofMixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   int get foo => 0;
@@ -966,7 +966,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -985,7 +985,7 @@ PrefixedIdentifier
 
   test_ofMixinName_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   static int get foo => 0;
@@ -1001,7 +1001,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1020,7 +1020,7 @@ PrefixedIdentifier
 
   test_ofMixinName_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   static void foo() {}
@@ -1036,7 +1036,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1060,7 +1060,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1084,7 +1084,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1110,7 +1110,7 @@ void f(int a) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 20, 3),
     ]);
 
-    final node = findNode.prefixed('foo;');
+    var node = findNode.prefixed('foo;');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1140,7 +1140,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePrefixedIdentifier;
+    var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier

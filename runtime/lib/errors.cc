@@ -85,12 +85,16 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   auto& condition_text = String::Handle();
   // Extract the assertion condition text (if source is available).
   intptr_t from_line = -1, from_column = -1;
-  if (script.GetTokenLocation(assertion_start, &from_line, &from_column)) {
-    // Extract the assertion condition text (if source is available).
-    intptr_t to_line, to_column;
-    script.GetTokenLocation(assertion_end, &to_line, &to_column);
-    condition_text =
-        script.GetSnippet(from_line, from_column, to_line, to_column);
+  String& url = String::Handle();
+  if (!script.IsNull()) {
+    if (script.GetTokenLocation(assertion_start, &from_line, &from_column)) {
+      // Extract the assertion condition text (if source is available).
+      intptr_t to_line, to_column;
+      script.GetTokenLocation(assertion_end, &to_line, &to_column);
+      condition_text =
+          script.GetSnippet(from_line, from_column, to_line, to_column);
+    }
+    url = script.url();
   }
   if (condition_text.IsNull()) {
     condition_text = Symbols::OptimizedOut().ptr();
@@ -98,7 +102,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   args.SetAt(0, condition_text);
 
   // Initialize location arguments starting at position 1.
-  args.SetAt(1, String::Handle(script.url()));
+  args.SetAt(1, url);
   args.SetAt(2, Smi::Handle(Smi::New(from_line)));
   args.SetAt(3, Smi::Handle(Smi::New(from_column)));
   args.SetAt(4, message);
@@ -110,31 +114,29 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
 
 // Allocate and throw a new AssertionError.
 // Arg0: Source code snippet of failed assertion.
-// Arg1: Line number.
-// Arg2: Column number.
-// Arg3: Message object or null.
+// Arg1: Script url string.
+// Arg2: Line number.
+// Arg3: Column number.
+// Arg4: Message object or null.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(AssertionError_throwNewSource, 0, 4) {
+DEFINE_NATIVE_ENTRY(AssertionError_throwNewSource, 0, 5) {
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
   const String& failed_assertion =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const String& script_url =
+      String::CheckedHandle(zone, arguments->NativeArgAt(1));
   const intptr_t line =
-      Smi::CheckedHandle(zone, arguments->NativeArgAt(1)).Value();
-  const intptr_t column =
       Smi::CheckedHandle(zone, arguments->NativeArgAt(2)).Value();
+  const intptr_t column =
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(3)).Value();
   const Instance& message =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(3));
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(4));
 
   const Array& args = Array::Handle(zone, Array::New(5));
 
-  DartFrameIterator iterator(thread,
-                             StackFrameIterator::kNoCrossThreadIteration);
-  iterator.NextFrame();  // Skip native call.
-  const Script& script = Script::Handle(zone, FindScript(&iterator));
-
   args.SetAt(0, failed_assertion);
-  args.SetAt(1, String::Handle(zone, script.url()));
+  args.SetAt(1, script_url);
   args.SetAt(2, Smi::Handle(zone, Smi::New(line)));
   args.SetAt(3, Smi::Handle(zone, Smi::New(column)));
   args.SetAt(4, message);

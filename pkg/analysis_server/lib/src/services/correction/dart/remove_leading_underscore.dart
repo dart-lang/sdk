@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -13,11 +13,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
-  @override
-  bool get canBeAppliedInBulk => true;
+  RemoveLeadingUnderscore({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_LEADING_UNDERSCORE;
@@ -27,9 +27,9 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
-    final Token? nameToken;
-    final Element? element;
+    var node = this.node;
+    Token? nameToken;
+    Element? element;
     if (node is SimpleIdentifier) {
       nameToken = node.token;
       element = node.staticElement;
@@ -53,7 +53,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       return;
     }
 
-    final oldName = nameToken.lexeme;
+    var oldName = nameToken.lexeme;
     if (oldName.length < 2) {
       return;
     }
@@ -103,7 +103,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     }
 
     // Compute the change.
-    final sourceRanges = {
+    var sourceRanges = {
       range.token(nameToken),
       ...references.map(range.node),
     };

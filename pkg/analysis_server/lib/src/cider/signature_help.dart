@@ -20,13 +20,13 @@ class CiderSignatureHelpComputer {
     var resolvedUnit = await _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
-    final formats = <MarkupKind>{MarkupKind.Markdown};
+    var formats = <MarkupKind>{MarkupKind.Markdown};
 
     var dartDocInfo = DartdocDirectiveInfo();
-    final typeArgsComputer = DartTypeArgumentsSignatureComputer(
+    var typeArgsComputer = DartTypeArgumentsSignatureComputer(
         dartDocInfo, resolvedUnit.unit, offset, formats);
     if (typeArgsComputer.offsetIsValid) {
-      final typeSignature = typeArgsComputer.compute();
+      var typeSignature = typeArgsComputer.compute();
 
       if (typeSignature != null) {
         return SignatureHelpResponse(typeSignature,
@@ -34,10 +34,10 @@ class CiderSignatureHelpComputer {
       }
     }
 
-    final computer =
+    var computer =
         DartUnitSignatureComputer(dartDocInfo, resolvedUnit.unit, offset);
     if (computer.offsetIsValid) {
-      final signature = computer.compute();
+      var signature = computer.compute();
       if (signature != null) {
         return SignatureHelpResponse(toSignatureHelp(formats, signature),
             lineInfo.getLocation(computer.argumentList.offset + 1));

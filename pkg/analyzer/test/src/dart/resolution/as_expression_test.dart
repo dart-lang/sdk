@@ -75,7 +75,7 @@ class A<T> {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5),
     ]);
 
-    final node = findNode.singleAsExpression;
+    var node = findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
   expression: SuperExpression
@@ -99,7 +99,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.singleAsExpression;
+    var node = findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
   expression: SwitchExpression

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r"Don't override fields.";
 
@@ -101,14 +102,15 @@ class OverriddenFields extends LintRule {
       'overridden_fields', "Field overrides a field inherited from '{0}'.",
       correctionMessage:
           'Try removing the field, overriding the getter and setter if '
-          'necessary.');
+          'necessary.',
+      hasPublishedDocs: true);
 
   OverriddenFields()
       : super(
             name: 'overridden_fields',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -128,9 +130,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    if (node.isStatic) {
-      return;
-    }
+    if (node.isAugmentation) return;
+    if (node.isStatic) return;
 
     for (var variable in node.fields.variables) {
       var declaredField = variable.declaredElement;

@@ -338,11 +338,6 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const TokenPosition& begin_pos = function.token_pos();
   const TokenPosition& end_pos = function.end_token_pos();
 
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new (zone()) ZoneGrowableArray<const ICData*>();
-  function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(zone(), code.pc_descriptors());
   const Script& script = Script::Handle(zone(), function.script());
 
   const int kCoverageNone = 0;
@@ -376,21 +371,6 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
       }
     }
   };
-
-  if (!report_branch_coverage) {
-    PcDescriptors::Iterator iter(descriptors,
-                                 UntaggedPcDescriptors::kIcCall |
-                                     UntaggedPcDescriptors::kUnoptStaticCall);
-    while (iter.MoveNext()) {
-      HANDLESCOPE(thread());
-      ASSERT(iter.DeoptId() < ic_data_array->length());
-      const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-      if (ic_data != nullptr) {
-        const TokenPosition& token_pos = iter.TokenPos();
-        update_coverage(token_pos, ic_data->AggregateCount() > 0);
-      }
-    }
-  }
 
   // Merge the coverage from coverage_array attached to the function.
   const Array& coverage_array = Array::Handle(function.GetCoverageArray());

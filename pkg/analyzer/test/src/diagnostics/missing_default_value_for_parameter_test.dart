@@ -252,6 +252,42 @@ class C {
 ''');
   }
 
+  test_constructor_generative_super_nonNullable_named_optional_noDefault() async {
+    await assertErrorsInCode('''
+class A {
+  final int a;
+  A({this.a = 0});
+}
+
+class B extends A {
+  B({required super.a});
+}
+
+class C extends B {
+  C({super.a});
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 126, 1),
+    ]);
+  }
+
+  test_constructor_generative_super_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int? a;
+  A({this.a});
+}
+
+class B extends A {
+  B({required super.a});
+}
+
+class C extends B {
+  C({super.a});
+}
+''');
+  }
+
   test_constructor_redirectingFactory_nonNullable_named_optional() async {
     await assertNoErrorsInCode('''
 class A {

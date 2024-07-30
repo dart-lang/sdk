@@ -20,6 +20,6 @@ application_snapshot("generate_dtd_snapshot") {
   main_dart = "../../pkg/dtd_impl/bin/dtd.dart"
   training_args = [ "--train" ]
 
-  vm_args = [ "--sound-null-safety" ]
+  vm_args = []
   output = "$root_gen_dir/dart_tooling_daemon.dart.snapshot"
 }

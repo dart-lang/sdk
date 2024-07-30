@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  #L1:
+  {
+    final synthesized dynamic #0#0 = x;
+    synthesized dynamic #0#5;
+    synthesized core::bool #0#5#isSet = false;
+    {
+      if(let final dynamic #t1 = #0#0! in #0#0! is core::Map<dynamic, dynamic> && (!((#0#5#isSet ?{dynamic} #0#5{dynamic} : let final dynamic #t2 = #0#5#isSet = true in #0#5 = (#0#0! as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && (#0#0! as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#5#isSet ?{dynamic} #0#5{dynamic} : let final dynamic #t3 = #0#5#isSet = true in #0#5 = (#0#0! as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic})) {
+        {
+          break #L1;
+        }
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = "a"
+  #C2 = 1
+}

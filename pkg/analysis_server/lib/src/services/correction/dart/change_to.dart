@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -25,31 +25,41 @@ class ChangeTo extends ResolvedCorrectionProducer {
   /// The name to which the undefined name will be changed.
   String _proposedName = '';
 
-  /// Initialize a newly created instance that will propose classes and mixins.
-  ChangeTo.annotation() : _kind = _ReplacementKind.annotation;
+  /// Initializes a newly created instance that will propose classes and mixins.
+  ChangeTo.annotation({required super.context})
+      : _kind = _ReplacementKind.annotation;
 
-  /// Initialize a newly created instance that will propose classes and mixins.
-  ChangeTo.classOrMixin() : _kind = _ReplacementKind.classOrMixin;
+  /// Initializes a newly created instance that will propose classes and mixins.
+  ChangeTo.classOrMixin({required super.context})
+      : _kind = _ReplacementKind.classOrMixin;
 
-  /// Initialize a newly created instance that will propose fields.
-  ChangeTo.field() : _kind = _ReplacementKind.field;
+  /// Initializes a newly created instance that will propose fields.
+  ChangeTo.field({required super.context}) : _kind = _ReplacementKind.field;
 
-  /// Initialize a newly created instance that will propose functions.
-  ChangeTo.function() : _kind = _ReplacementKind.function;
+  /// Initializes a newly created instance that will propose functions.
+  ChangeTo.function({required super.context})
+      : _kind = _ReplacementKind.function;
 
-  /// Initialize a newly created instance that will propose getters and setters.
-  ChangeTo.getterOrSetter() : _kind = _ReplacementKind.getterOrSetter;
+  /// Initializes a newly created instance that will propose getters and
+  /// setters.
+  ChangeTo.getterOrSetter({required super.context})
+      : _kind = _ReplacementKind.getterOrSetter;
 
-  /// Initialize a newly created instance that will propose methods.
-  ChangeTo.method() : _kind = _ReplacementKind.method;
+  /// Initializes a newly created instance that will propose methods.
+  ChangeTo.method({required super.context}) : _kind = _ReplacementKind.method;
 
-  /// Initialize a newly created instance that will propose super formal
+  /// Initializes a newly created instance that will propose super formal
   /// parameters.
-  ChangeTo.superFormalParameter()
+  ChangeTo.superFormalParameter({required super.context})
       : _kind = _ReplacementKind.superFormalParameter;
 
   @override
-  List<Object> get fixArguments => [_proposedName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_proposedName];
 
   @override
   FixKind get fixKind => DartFixKind.CHANGE_TO;
@@ -60,21 +70,16 @@ class ChangeTo extends ResolvedCorrectionProducer {
     //  reasonably possible.
     // TODO(brianwilkerson): Consider proposing all of the names within a
     //  reasonable distance, rather than just the first near match we find.
-    if (_kind == _ReplacementKind.annotation) {
-      await _proposeAnnotation(builder);
-    } else if (_kind == _ReplacementKind.classOrMixin) {
-      await _proposeClassOrMixin(builder, node);
-    } else if (_kind == _ReplacementKind.field) {
-      await _proposeField(builder);
-    } else if (_kind == _ReplacementKind.function) {
-      await _proposeFunction(builder);
-    } else if (_kind == _ReplacementKind.getterOrSetter) {
-      await _proposeGetterOrSetter(builder);
-    } else if (_kind == _ReplacementKind.method) {
-      await _proposeMethod(builder);
-    } else if (_kind == _ReplacementKind.superFormalParameter) {
-      await _proposeSuperFormalParameter(builder);
-    }
+    await switch (_kind) {
+      _ReplacementKind.annotation => _proposeAnnotation(builder),
+      _ReplacementKind.classOrMixin => _proposeClassOrMixin(builder, node),
+      _ReplacementKind.field => _proposeField(builder),
+      _ReplacementKind.function => _proposeFunction(builder),
+      _ReplacementKind.getterOrSetter => _proposeGetterOrSetter(builder),
+      _ReplacementKind.method => _proposeMethod(builder),
+      _ReplacementKind.superFormalParameter =>
+        _proposeSuperFormalParameter(builder),
+    };
   }
 
   Iterable<ParameterElement> _formalParameterSuggestions(
@@ -87,7 +92,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeAnnotation(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is Annotation) {
       var name = node.name;
       if (name.staticElement == null) {
@@ -163,7 +168,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeField(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! FieldFormalParameter) return;
 
     var exclusions = <String>{};
@@ -201,7 +206,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeFunction(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleIdentifier) {
       // Prepare the optional import prefix name.
       String? prefixName;
@@ -237,7 +242,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeGetterOrSetter(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleIdentifier) {
       // prepare target
       Expression? target;
@@ -265,7 +270,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeMethod(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     var parent = node.parent;
     if (parent is MethodInvocation && node is SimpleIdentifier) {
       await _proposeClassOrMixinMember(builder, node.token, parent.realTarget,
@@ -274,7 +279,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeSuperFormalParameter(ChangeBuilder builder) async {
-    final superParameter = node;
+    var superParameter = node;
     if (superParameter is! SuperFormalParameter) return;
 
     var constructorDeclaration =

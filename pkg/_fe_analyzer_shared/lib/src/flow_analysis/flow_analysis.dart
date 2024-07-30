@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:meta/meta.dart';
 
 import '../type_inference/assigned_variables.dart';
@@ -283,12 +284,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// be the pattern's constant expression, and [type] should be its static
   /// type.
   ///
+  /// [matchedValueType] should be the type returned by [getMatchedValueType].
+  ///
   /// If [patternsEnabled] is `true`, pattern support is enabled and this is an
   /// ordinary constant pattern.  if [patternsEnabled] is `false`, pattern
   /// support is disabled and this constant pattern is one of the cases of a
   /// legacy switch statement.
   void constantPattern_end(Expression expression, Type type,
-      {required bool patternsEnabled});
+      {required bool patternsEnabled, required Type matchedValueType});
 
   /// Copy promotion data associated with one promotion key to another.  This
   /// is used after analyzing a branch of a logical-or pattern, to move the
@@ -376,8 +379,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// equality operator (either `==` or `!=`).  [operand] should be the operand
   /// to the right of the operator, [operandType] should be its static type, and
   /// [notEqual] should be `true` iff the operator was `!=`.
+  ///
+  /// [matchedValueType] should be the type returned by [getMatchedValueType].
   void equalityRelationalPattern_end(Expression operand, Type operandType,
-      {bool notEqual = false});
+      {bool notEqual = false, required Type matchedValueType});
 
   /// Retrieves the [ExpressionInfo] associated with [target], if known.  Will
   /// return `null` if (a) no info is associated with [target], or (b) another
@@ -701,7 +706,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method before visiting the subpattern of a null-check or a
   /// null-assert pattern. [isAssert] indicates whether the pattern is a
   /// null-check or a null-assert pattern.
-  bool nullCheckOrAssertPattern_begin({required bool isAssert});
+  ///
+  /// [matchedValueType] should be the type returned by [getMatchedValueType].
+  bool nullCheckOrAssertPattern_begin(
+      {required bool isAssert, required Type matchedValueType});
 
   /// Call this method after visiting the subpattern of a null-check or a
   /// null-assert pattern.
@@ -1279,12 +1287,14 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   void constantPattern_end(Expression expression, Type type,
-      {required bool patternsEnabled}) {
+      {required bool patternsEnabled, required Type matchedValueType}) {
     _wrap(
         'constantPattern_end($expression, $type, '
-        'patternsEnabled: $patternsEnabled)',
+        'patternsEnabled: $patternsEnabled, '
+        'matchedValueType: $matchedValueType)',
         () => _wrapped.constantPattern_end(expression, type,
-            patternsEnabled: patternsEnabled));
+            patternsEnabled: patternsEnabled,
+            matchedValueType: matchedValueType));
   }
 
   @override
@@ -1368,12 +1378,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   void equalityRelationalPattern_end(Expression operand, Type operandType,
-      {bool notEqual = false}) {
+      {bool notEqual = false, required Type matchedValueType}) {
     _wrap(
         'equalityRelationalPattern_end($operand, $operandType, '
-        'notEqual: $notEqual)',
+        'notEqual: $notEqual, matchedValueType: $matchedValueType)',
         () => _wrapped.equalityRelationalPattern_end(operand, operandType,
-            notEqual: notEqual));
+            notEqual: notEqual, matchedValueType: matchedValueType));
   }
 
   @override
@@ -1651,10 +1661,15 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  bool nullCheckOrAssertPattern_begin({required bool isAssert}) {
-    return _wrap('nullCheckOrAssertPattern_begin(isAssert: $isAssert)',
-        () => _wrapped.nullCheckOrAssertPattern_begin(isAssert: isAssert),
-        isQuery: true, isPure: false);
+  bool nullCheckOrAssertPattern_begin(
+      {required bool isAssert, required Type matchedValueType}) {
+    return _wrap(
+        'nullCheckOrAssertPattern_begin(isAssert: $isAssert, '
+        'matchedValueType: $matchedValueType)',
+        () => _wrapped.nullCheckOrAssertPattern_begin(
+            isAssert: isAssert, matchedValueType: matchedValueType),
+        isQuery: true,
+        isPure: false);
   }
 
   @override
@@ -2450,7 +2465,7 @@ class FlowModel<Type extends Object> {
 
     Type previousType = reference._type;
     Type newType = helper.typeOperations.promoteToNonNull(previousType);
-    if (helper.typeOperations.isSameType(newType, previousType)) {
+    if (newType == previousType) {
       return new ExpressionInfo<Type>.trivial(
           after: this, type: helper.boolType);
     }
@@ -2481,8 +2496,7 @@ class FlowModel<Type extends Object> {
 
     Type previousType = reference._type;
     Type? newType = helper.typeOperations.tryPromoteToType(type, previousType);
-    if (newType == null ||
-        helper.typeOperations.isSameType(newType, previousType)) {
+    if (newType == null || newType == previousType) {
       return this;
     }
 
@@ -2513,8 +2527,7 @@ class FlowModel<Type extends Object> {
     FlowModel<Type> ifTrue = this;
     Type? typeIfSuccess =
         helper.typeOperations.tryPromoteToType(type, previousType);
-    if (typeIfSuccess != null &&
-        !helper.typeOperations.isSameType(typeIfSuccess, previousType)) {
+    if (typeIfSuccess != null && typeIfSuccess != previousType) {
       assert(helper.typeOperations.isSubtypeOf(typeIfSuccess, previousType),
           "Expected $typeIfSuccess to be a subtype of $previousType.");
       ifTrue = _finishTypeTest(helper, reference, info, type, typeIfSuccess);
@@ -2526,7 +2539,7 @@ class FlowModel<Type extends Object> {
       // Promoting to `Never` would mark the code as unreachable.  But it might
       // be reachable due to mixed mode unsoundness.  So don't promote.
       typeIfFalse = null;
-    } else if (helper.typeOperations.isSameType(factoredType, previousType)) {
+    } else if (factoredType == previousType) {
       // No change to the type, so don't promote.
       typeIfFalse = null;
     } else {
@@ -3196,7 +3209,7 @@ class PromotionModel<Type extends Object> {
 
       // Must be more specific that the currently promoted type.
       if (currentlyPromotedType != null) {
-        if (typeOperations.isSameType(type, currentlyPromotedType)) {
+        if (type == currentlyPromotedType) {
           return;
         }
         if (!typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
@@ -3205,7 +3218,7 @@ class PromotionModel<Type extends Object> {
       }
 
       // This is precisely the type we want to promote to; take it.
-      if (typeOperations.isSameType(type, writtenType)) {
+      if (type == writtenType) {
         result = _addToPromotedTypes(promotedTypes, writtenType);
       }
 
@@ -3224,7 +3237,7 @@ class PromotionModel<Type extends Object> {
     // The declared type is always a type of interest, but we never promote
     // to the declared type. So, try NonNull of it.
     Type declaredTypeNonNull = typeOperations.promoteToNonNull(declaredType);
-    if (!typeOperations.isSameType(declaredTypeNonNull, declaredType)) {
+    if (declaredTypeNonNull != declaredType) {
       handleTypeOfInterest(declaredTypeNonNull);
       if (result != null) {
         return result!;
@@ -3240,7 +3253,7 @@ class PromotionModel<Type extends Object> {
       }
 
       Type typeNonNull = typeOperations.promoteToNonNull(type);
-      if (!typeOperations.isSameType(typeNonNull, type)) {
+      if (typeNonNull != type) {
         handleTypeOfInterest(typeNonNull);
         if (result != null) {
           return result!;
@@ -3364,7 +3377,7 @@ class PromotionModel<Type extends Object> {
     while (index1 < chain1.length && index2 < chain2.length) {
       Type type1 = chain1[index1];
       Type type2 = chain2[index2];
-      if (typeOperations.isSameType(type1, type2)) {
+      if (type1 == type2) {
         result ??= <Type>[];
         result.add(type1);
         index1++;
@@ -3406,7 +3419,7 @@ class PromotionModel<Type extends Object> {
     // Determine the length of the common prefix the two lists share.
     int shared = 0;
     for (; shared < types1.length; shared++) {
-      if (!typeOperations.isSameType(types1[shared], types2[shared])) break;
+      if (types1[shared] != types2[shared]) break;
     }
     // Use types2 as a starting point and add any entries from types1 that are
     // not present in it.
@@ -3454,7 +3467,7 @@ class PromotionModel<Type extends Object> {
       for (int i = 0; i < thisPromotedTypes.length; i++) {
         Type nextType = thisPromotedTypes[i];
         if (typeOperations.isSubtypeOf(nextType, otherPromotedType) &&
-            !typeOperations.isSameType(nextType, otherPromotedType)) {
+            nextType != otherPromotedType) {
           newPromotedTypes = basePromotedTypes.toList()
             ..addAll(thisPromotedTypes.skip(i));
           break;
@@ -3513,7 +3526,7 @@ class PromotionModel<Type extends Object> {
       List<Type> list,
       Type searchType) {
     for (Type type in list) {
-      if (typeOperations.isSameType(type, searchType)) return true;
+      if (type == searchType) return true;
     }
     return false;
   }
@@ -4462,10 +4475,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void constantPattern_end(Expression expression, Type type,
-      {required bool patternsEnabled}) {
+      {required bool patternsEnabled, required Type matchedValueType}) {
     assert(_stack.last is _PatternContext<Type>);
     if (patternsEnabled) {
-      _handleEqualityCheckPattern(expression, type, notEqual: false);
+      _handleEqualityCheckPattern(expression, type,
+          notEqual: false, matchedValueType: matchedValueType);
     } else {
       // Before pattern support was added to Dart, flow analysis didn't do any
       // promotion based on the constants in individual case clauses.  Also, it
@@ -4491,8 +4505,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void declare(Variable variable, Type staticType,
       {required bool initialized, bool skipDuplicateCheck = false}) {
-    assert(
-        operations.isSameType(staticType, operations.variableType(variable)));
+    assert(staticType == operations.variableType(variable));
     assert(_debugDeclaredVariables.add(variable) || skipDuplicateCheck,
         'Variable $variable already declared');
     _current = _current.declare(
@@ -4599,8 +4612,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void equalityRelationalPattern_end(Expression operand, Type operandType,
-      {bool notEqual = false}) {
-    _handleEqualityCheckPattern(operand, operandType, notEqual: notEqual);
+      {bool notEqual = false, required Type matchedValueType}) {
+    _handleEqualityCheckPattern(operand, operandType,
+        notEqual: notEqual, matchedValueType: matchedValueType);
   }
 
   @override
@@ -4691,14 +4705,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Type getMatchedValueType() {
-    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    return _current.promotionInfo
-            ?.get(this, context._matchedValueInfo.promotionKey)
-            ?.promotedTypes
-            ?.last ??
-        context._matchedValueInfo._type;
-  }
+  Type getMatchedValueType() => _getMatchedValueType();
 
   @override
   void handleBreak(Statement? target) {
@@ -5034,7 +5041,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  bool nullCheckOrAssertPattern_begin({required bool isAssert}) {
+  bool nullCheckOrAssertPattern_begin(
+      {required bool isAssert, required Type matchedValueType}) {
     if (!isAssert) {
       // Account for the possibility that the pattern might not match.  Note
       // that it's tempting to skip this step if matchedValueType is
@@ -5045,7 +5053,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // assume the pattern might not match regardless of matchedValueType.
       _unmatched = _join(_unmatched, _current);
     }
-    FlowModel<Type>? ifNotNull = _nullCheckPattern();
+    FlowModel<Type>? ifNotNull =
+        _nullCheckPattern(matchedValueType: matchedValueType);
     if (ifNotNull != null) {
       _current = ifNotNull;
     }
@@ -5144,7 +5153,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       required Type knownType,
       bool matchFailsIfWrongType = true,
       bool matchMayFailEvenIfCorrectType = false}) {
-    if (operations.isError(knownType)) {
+    if (knownType is SharedInvalidType) {
       _unmatched = _join(_unmatched!, _current);
       return false;
     }
@@ -5192,9 +5201,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           .ifFalse;
     }
     _current = ifTrue;
-    if (matchMayFailEvenIfCorrectType ||
-        (matchFailsIfWrongType && !coversMatchedType)) {
-      _unmatched = _join(_unmatched!, coversMatchedType ? ifTrue : ifFalse);
+    if (matchFailsIfWrongType && !coversMatchedType) {
+      // There's a reachable control flow path where the match might fail due to
+      // a type mismatch. Therefore, we must update the `_unmatched` flow state
+      // based on the state of flow analysis assuming the type check failed.
+      _unmatched = _join(_unmatched!, ifFalse);
+    }
+    if (matchMayFailEvenIfCorrectType) {
+      // There's a reachable control flow path where the type might match, but
+      // the match might nonetheless fail for some other reason. Therefore, we
+      // must update the `_unmatched` flow state based on the state of flow
+      // analysis assuming the type check succeeded.
+      _unmatched = _join(_unmatched!, ifTrue);
     }
     return coversMatchedType;
   }
@@ -5672,6 +5690,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     }
   }
 
+  /// Gets the matched value type that should be used to type check the pattern
+  /// currently being analyzed.
+  ///
+  /// May only be called in the context of a pattern.
+  Type _getMatchedValueType() {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+    return _current.promotionInfo
+            ?.get(this, context._matchedValueInfo.promotionKey)
+            ?.promotedTypes
+            ?.last ??
+        context._matchedValueInfo._type;
+  }
+
   Map<Type, NonPromotionReason> Function() _getNonPromotionReasons(
       _Reference<Type> reference, PromotionModel<Type>? currentPromotionInfo) {
     if (reference is _PropertyReference<Type>) {
@@ -5759,10 +5790,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// equal to the operand; otherwise, it matches if the matched value is
   /// *equal* to the operand.
   void _handleEqualityCheckPattern(Expression operand, Type operandType,
-      {required bool notEqual}) {
+      {required bool notEqual, required Type matchedValueType}) {
+    assert(identical(matchedValueType, _getMatchedValueType()));
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     _Reference<Type> newReference = context
-        .createReference(getMatchedValueType(), _current)
+        .createReference(matchedValueType, _current)
         .addPreviousInfo(context._matchedValueInfo, this, _current);
     _EqualityCheckResult equalityCheckResult =
         _equalityCheck(newReference, equalityOperand_end(operand, operandType));
@@ -5781,7 +5813,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         //
         // So we want to promote the type of `v` in the case where the
         // constant pattern *didn't* match.
-        ifNotNull = _nullCheckPattern();
+        ifNotNull = _nullCheckPattern(matchedValueType: matchedValueType);
         if (ifNotNull == null) {
           // `_nullCheckPattern` returns `null` in the case where the matched
           // value type is non-nullable.  In fully sound programs, this would
@@ -5923,9 +5955,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// to `null`.
   ///
   /// If the matched value's type is non-nullable, then `null` is returned.
-  FlowModel<Type>? _nullCheckPattern() {
+  FlowModel<Type>? _nullCheckPattern({required Type matchedValueType}) {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    Type matchedValueType = getMatchedValueType();
+    assert(identical(matchedValueType, _getMatchedValueType()));
     _Reference<Type> matchedValueReference =
         context.createReference(matchedValueType, _current);
     // Promote
@@ -6311,7 +6343,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void constantPattern_end(Expression expression, Type type,
-      {required bool patternsEnabled}) {}
+      {required bool patternsEnabled, required Type matchedValueType}) {}
 
   @override
   void copyPromotionData(
@@ -6352,7 +6384,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void equalityRelationalPattern_end(Expression operand, Type operandType,
-      {bool notEqual = false}) {}
+      {bool notEqual = false, required Type matchedValueType}) {}
 
   @override
   ExpressionInfo<Type>? expressionInfoForTesting(Expression target) {
@@ -6475,8 +6507,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
       Type currentType =
           _knownTypes[variableKey] ?? _operations.variableType(variable);
       Type? promotedType = _operations.tryPromoteToType(type, currentType);
-      if (promotedType != null &&
-          !_operations.isSameType(currentType, promotedType)) {
+      if (promotedType != null && currentType != promotedType) {
         _storeExpressionInfo(isExpression,
             new _LegacyExpressionInfo<Type>({variableKey: promotedType}));
       }
@@ -6546,8 +6577,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
       } else {
         Type? newShownType =
             _operations.tryPromoteToType(entry.value, previouslyShownType);
-        if (newShownType != null &&
-            !_operations.isSameType(previouslyShownType, newShownType)) {
+        if (newShownType != null && previouslyShownType != newShownType) {
           newShownTypes[entry.key] = newShownType;
         }
       }
@@ -6619,7 +6649,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {}
 
   @override
-  bool nullCheckOrAssertPattern_begin({required bool isAssert}) => false;
+  bool nullCheckOrAssertPattern_begin(
+          {required bool isAssert, required Type matchedValueType}) =>
+      false;
 
   @override
   void nullCheckOrAssertPattern_end() {}

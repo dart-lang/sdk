@@ -12,17 +12,17 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisOptions, Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:server_plugin/edit/fix/dart_fix_context.dart';
 
 /// Produces [CodeAction]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -87,7 +87,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     RefactoringKind refactorKind, [
     Map<String, dynamic>? options,
   ]) {
-    final command = Commands.performRefactor;
+    var command = Commands.performRefactor;
     assert(
       (() => Commands.serverSupportedCommands.contains(command))(),
       'serverSupportedCommands did not contain $command',
@@ -102,7 +102,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             // TODO(dantup): Change this to a single entry that is a Map once
             //  enough time has passed that old versions of Dart-Code prior to
             //  to June 2022 need not be supported against newer SDKs.
-            refactorKind.toJson(),
+            refactorKind.toJson(clientUriConverter: server.uriConverter),
             path,
             docIdentifier.version,
             offset,
@@ -120,7 +120,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     }
 
     try {
-      final workspace = DartChangeWorkspace(await server.currentSessions);
+      var workspace = DartChangeWorkspace(await server.currentSessions);
       var context = DartAssistContextImpl(
         server.instrumentationService,
         workspace,
@@ -129,11 +129,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         offset,
         length,
       );
-      final processor = AssistProcessor(context);
-      final assists = await processor.compute();
+      var processor = AssistProcessor(context);
+      var assists = await processor.compute();
 
       return assists.map((assist) {
-        final action =
+        var action =
             createAssistAction(assist.change, unit.path, unit.lineInfo);
         return (action: action, priority: assist.kind.priority);
       }).toList();
@@ -152,12 +152,12 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       return [];
     }
 
-    final lineInfo = unit.lineInfo;
-    final codeActions = <CodeActionWithPriority>[];
+    var lineInfo = unit.lineInfo;
+    var codeActions = <CodeActionWithPriority>[];
 
     try {
-      final workspace = DartChangeWorkspace(await server.currentSessions);
-      for (final error in unit.errors) {
+      var workspace = DartChangeWorkspace(await server.currentSessions);
+      for (var error in unit.errors) {
         // Return fixes for any part of the line where a diagnostic is.
         // If a diagnostic spans multiple lines, the fix will be included for
         // all of those lines.
@@ -175,9 +175,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           resolvedResult: unit,
           error: error,
         );
-        final fixes = await computeFixes(context);
+        var fixes = await computeFixes(context);
         if (fixes.isNotEmpty) {
-          final diagnostic = toDiagnostic(
+          var diagnostic = toDiagnostic(
             server.uriConverter,
             unit,
             error,
@@ -186,7 +186,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           );
           codeActions.addAll(
             fixes.map((fix) {
-              final action =
+              var action =
                   createFixAction(fix.change, diagnostic, path, lineInfo);
               return (action: action, priority: fix.kind.priority);
             }),
@@ -211,11 +211,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       return const [];
     }
 
-    final refactorActions = <Either2<CodeAction, Command>>[];
+    var refactorActions = <Either2<CodeAction, Command>>[];
 
     try {
       // New interactive refactors.
-      final context = RefactoringContext(
+      var context = RefactoringContext(
         server: server,
         startSessions: await server.currentSessions,
         resolvedLibraryResult: library,
@@ -225,8 +225,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         includeExperimental:
             server.lspClientConfiguration.global.experimentalRefactors,
       );
-      final processor = RefactoringProcessor(context);
-      final actions = await processor.compute();
+      var processor = RefactoringProcessor(context);
+      var actions = await processor.compute();
       refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
 
       // Extracts
@@ -273,8 +273,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
       // Converts/Rewrites
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
-        final node = NodeLocator(offset).searchWithin(unit.unit);
-        final element = server.getElementOfNode(node);
+        var node = NodeLocator(offset).searchWithin(unit.unit);
+        var element = server.getElementOfNode(node);
 
         // Getter to Method
         if (element is PropertyAccessorElement &&

@@ -306,7 +306,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
     ]);
 
-    final node = findNode.singleIndexExpression;
+    var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: ThisExpression
@@ -331,7 +331,7 @@ void f(List<int> a) {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1),
     ]);
 
-    final node = findNode.singleIndexExpression;
+    var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -380,6 +380,70 @@ IndexExpression
   rightBracket: ]
   staticElement: self::@class::A::@method::[]
   staticType: bool?
+''');
+  }
+
+  test_read_ofExtension() async {
+    await assertNoErrorsInCode(r'''
+extension E on int {
+  bool operator[](int index) => false;
+}
+
+void f() {
+  0[1];
+}
+''');
+
+    var indexExpression = findNode.singleIndexExpression;
+    assertResolvedNodeText(indexExpression, r'''
+IndexExpression
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 1
+    parameter: self::@extension::E::@method::[]::@parameter::index
+    staticType: int
+  rightBracket: ]
+  staticElement: self::@extension::E::@method::[]
+  staticType: bool
+''');
+  }
+
+  test_read_ofExtension_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+augment extension E {
+  bool operator[](int index) => false;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+extension E on int {}
+
+void f() {
+  0[1];
+}
+''');
+
+    var indexExpression = findNode.singleIndexExpression;
+    assertResolvedNodeText(indexExpression, r'''
+IndexExpression
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 1
+    parameter: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]::@parameter::index
+    staticType: int
+  rightBracket: ]
+  staticElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]
+  staticType: bool
 ''');
   }
 
@@ -446,7 +510,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singleIndexExpression;
+    var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -473,7 +537,7 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
     ]);
 
-    final node = findNode.singleIndexExpression;
+    var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -823,6 +887,94 @@ AssignmentExpression
   writeType: num
   staticElement: <null>
   staticType: double?
+''');
+  }
+
+  test_write_ofExtension() async {
+    await assertNoErrorsInCode(r'''
+extension E on int {
+  operator[]=(int index, num value) {}
+}
+
+void f() {
+  0[1] = 2.3;
+}
+''');
+
+    var indexExpression = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(indexExpression, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: IntegerLiteral
+      literal: 0
+      staticType: int
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 1
+      parameter: self::@extension::E::@method::[]=::@parameter::index
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 2.3
+    parameter: self::@extension::E::@method::[]=::@parameter::value
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: num
+  staticElement: <null>
+  staticType: double
+''');
+  }
+
+  test_write_ofExtension_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+augment extension E {
+  operator[]=(int index, num value) {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+extension E on int {}
+
+void f() {
+  0[1] = 2.3;
+}
+''');
+
+    var indexExpression = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(indexExpression, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: IntegerLiteral
+      literal: 0
+      staticType: int
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 1
+      parameter: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::index
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 2.3
+    parameter: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::value
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=
+  writeType: num
+  staticElement: <null>
+  staticType: double
 ''');
   }
 

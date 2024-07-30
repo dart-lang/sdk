@@ -1265,19 +1265,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _classEmittingExtends = c;
 
     // Unroll mixins.
-    if (shouldDefer(supertype)) {
-      var originalSupertype = supertype;
-      deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
-            getBaseClass(mixinApplications.length),
-            emitDeferredClassRef(originalSupertype),
-          ]));
-      // Refers to 'supertype' without type parameters. We remove these from
-      // the 'extends' clause for generics for cyclic dependencies and append
-      // them later with 'setBaseClass'.
-      supertype =
-          _coreTypes.rawType(supertype.classNode, _currentLibrary!.nonNullable);
-    }
-    var baseClass = emitClassRef(supertype);
+    var baseClass = shouldDefer(supertype)
+        ? emitDeferredClassRef(supertype)
+        : emitClassRef(supertype);
 
     // TODO(jmesserly): we need to unroll kernel mixins because the synthetic
     // classes lack required synthetic members, such as constructors.
@@ -2197,7 +2187,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                   superMemberFunction!.positionalParameters[0])) {
         return const [];
       }
-      var setterType = substituteType(superMember.superSetterType);
+      var setterType =
+          substituteType(superMember.superSetterType).extensionTypeErasure;
       if (_types.isTop(setterType)) return const [];
       return [
         js_ast.Method(
@@ -2542,11 +2533,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     _currentUri = savedUri;
 
-    return runtimeStatement('defineLazy(#, { # }, #)', [
-      objExpr,
-      accessors,
-      js.boolean(!_currentLibrary!.isNonNullableByDefault)
-    ]);
+    return runtimeStatement(
+        'defineLazy(#, { # }, #)', [objExpr, accessors, js.boolean(false)]);
   }
 
   js_ast.Fun _emitStaticFieldInitializer(Field field) {
@@ -3552,14 +3540,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
-    var returnType = _currentLibrary!.isNonNullableByDefault
-        ? function.emittedValueType!
-        // Otherwise flatten the return type because futureValueType(T) is not
-        // defined for legacy libraries.
-        : _types.flatten(function
-            .computeThisFunctionType(_currentLibrary!.nonNullable,
-                reuseTypeParameters: true)
-            .returnType);
+    var returnType = function.emittedValueType!;
     return js.call('#.async(#, #)',
         [emitLibraryName(_coreTypes.asyncLibrary), _emitType(returnType), gen]);
   }
@@ -3826,12 +3807,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       DartType typeParameterType;
       if (t is TypeParameter) {
         isCovariantByClass = t.isCovariantByClass;
-        bound = t.bound;
+        bound = t.bound.extensionTypeErasure;
         name = t.name!;
         typeParameterType = TypeParameterType(t, Nullability.undetermined);
       } else {
         t as StructuralParameter;
-        bound = t.bound;
+        bound = t.bound.extensionTypeErasure;
         name = t.name!;
         typeParameterType =
             StructuralParameterType(t, Nullability.undetermined);
@@ -3950,8 +3931,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This is the most common kind of marking, and is used for most expressions
   /// and statements.
-  SourceLocation? _nodeStart(TreeNode node) =>
-      _toSourceLocation(node.fileOffset);
+  SourceLocation? _nodeStart(TreeNode node) => node is StringConcatenation
+      // Manually selecting the location of the first element to work around the
+      // location on the StringConcatenation node that points to the end of
+      // String. See https://github.com/dart-lang/sdk/issues/55690.
+      ? _toSourceLocation(node.expressions.first.fileOffset)
+      : _toSourceLocation(node.fileOffset);
 
   /// Gets the end position of [node] for use in source mapping.
   ///
@@ -4078,8 +4063,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var assertLocation = node.location;
     if (assertLocation != null) {
       var fileUri = assertLocation.file;
-      var encodedSource = node.enclosingComponent!.uriToSource[fileUri]!.source;
-      var source = utf8.decode(encodedSource, allowMalformed: true);
+      var source = node.enclosingComponent!.uriToSource[fileUri]!.text;
       conditionSource =
           source.substring(node.conditionStartOffset, node.conditionEndOffset);
       // Assertions that appear in debugger expressions have a synthetic Uri
@@ -4702,12 +4686,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     body.add(_visitStatement(node.body).toScopedBlock(vars));
     var then = js_ast.Block(body);
-
+    var guardType = node.guard.extensionTypeErasure;
     // Discard following clauses, if any, as they are unreachable.
-    if (_types.isTop(node.guard)) return then;
+    if (_types.isTop(guardType)) return then;
 
     var condition =
-        _emitIsExpression(VariableGet(exceptionParameter), node.guard);
+        _emitIsExpression(VariableGet(exceptionParameter), guardType);
     return js_ast.If(condition, then, otherwise)
       ..sourceInformation = _nodeStart(node);
   }
@@ -4810,11 +4794,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Detects temporary variables so we can avoid displaying
   /// them in the debugger if needed.
-  bool _isTemporaryVariable(VariableDeclaration v) =>
-      v.isLowered ||
-      v.isSynthesized ||
-      v.name == null ||
-      v.name!.startsWith('#');
+  bool _isTemporaryVariable(VariableDeclaration v) {
+    // Late local variables are be exposed to the debugger for inspection and
+    // evaluation by treating the backing store local variable as a regular
+    // non-temporary variable.
+    // See https://github.com/dart-lang/sdk/issues/55918
+    if (isLateLoweredLocal(v)) return false;
+    return v.isLowered ||
+        v.isSynthesized ||
+        v.name == null ||
+        v.name!.startsWith('#');
+  }
 
   /// Creates a temporary name recognized by the debugger.
   /// Assumes `_isTemporaryVariable(v)`  is true.
@@ -4837,7 +4827,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       name ??= 't\$${_tempVariables.length}';
       return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name!));
     }
-    return _emitIdentifier(v.name!);
+    var name = v.name!;
+    if (isLateLoweredLocal(v)) {
+      // Late local variables are be exposed to the debugger for inspection and
+      // evaluation by treating the backing store local variable as a regular
+      // non-temporary variable.
+      // See https://github.com/dart-lang/sdk/issues/55918
+      name = extractLocalNameFromLateLoweredLocal(name);
+    }
+    return _emitIdentifier(name);
   }
 
   /// Emits the declaration of a variable.
@@ -4862,19 +4860,54 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
   @override
-  js_ast.Expression visitVariableSet(VariableSet node) =>
-      _visitExpression(node.value)
-          .toAssignExpression(_emitVariableRef(node.variable));
+  js_ast.Expression visitVariableSet(VariableSet node) {
+    // Make the source information of the assignment use the start of the right
+    // hand side, to help normalize the inconsistent locations of the CFE
+    // lowerings for ++x, x++, x+=, etc.
+    // See https://github.com/dart-lang/sdk/issues/55691.
+    return _visitExpression(node.value)
+        .toAssignExpression(_emitVariableRef(node.variable))
+      ..sourceInformation = _nodeStart(node.value);
+  }
 
   @override
   js_ast.Expression visitDynamicGet(DynamicGet node) {
-    return _emitPropertyGet(node.receiver, null, node.name.text);
+    var jsReceiver = _visitExpression(node.receiver);
+    var jsMemberName = _emitMemberName(node.name.text);
+    return runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsMemberName]);
   }
 
   @override
   js_ast.Expression visitInstanceGet(InstanceGet node) {
-    return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.text);
+    // TODO(nshahan): Marking an end span for property accessors would improve
+    // source maps and hovering in the debugger. Unfortunately this is not
+    // possible as Kernel does not store this data.
+    var member = node.interfaceTarget;
+    var receiver = node.receiver;
+    var jsReceiver = _visitExpression(receiver);
+    if (_isNonStaticJsInteropCallMember(member)) {
+      // Historically DDC has treated this as a "callable class" and the access
+      // of `.call` as a no-op.
+      //
+      // This is here to preserve the existing behavior for the non-static
+      // JavaScript interop (including some failing cases) but could potentially
+      // be cleaned up as a breaking change.
+      return jsReceiver;
+    }
+    var memberName = node.name.text;
+    if (_isObjectGetter(memberName) &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // The names of the static helper methods in the runtime must match the
+      // names of the Object instance getters.
+      return runtimeCall('#(#)', [memberName, jsReceiver]);
+    }
+    // Otherwise generate this as a normal typed property get.
+    var jsMemberName =
+        _emitMemberName(memberName, member: node.interfaceTarget);
+    var instanceGet = js_ast.PropertyAccess(jsReceiver, jsMemberName);
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(instanceGet)
+        : instanceGet;
   }
 
   @override
@@ -4892,9 +4925,41 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceTearOff(InstanceTearOff node) {
-    return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.text);
+    var member = node.interfaceTarget;
+    var receiver = node.receiver;
+    var jsReceiver = _visitExpression(receiver);
+    if (_isNonStaticJsInteropCallMember(member)) {
+      // Historically DDC has treated this as a "callable class" and the tearoff
+      // of `.call` as a no-op.
+      //
+      // This is here to preserve the existing behavior for the non-static
+      // JavaScript interop (including some failing cases) but could potentially
+      // be cleaned up as a breaking change.
+      return jsReceiver;
+    }
+    var memberName = node.name.text;
+    if (_isObjectMethodTearoff(memberName) &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // The names of the static helper methods in the runtime must start with
+      // the names of the Object instance methods.
+      var tearOffName = '${memberName}Tearoff';
+      return runtimeCall('#(#)', [tearOffName, jsReceiver]);
+    }
+    var jsMemberName = _emitMemberName(memberName, member: member);
+    if (_reifyTearoff(member)) {
+      return runtimeCall('bind(#, #)', [jsReceiver, jsMemberName]);
+    }
+    var jsPropertyAccess = js_ast.PropertyAccess(jsReceiver, jsMemberName);
+    return isJsMember(member)
+        ? runtimeCall('tearoffInterop(#, #)',
+            [jsPropertyAccess, js.boolean(_isNullCheckableJsInterop(member))])
+        : jsPropertyAccess;
   }
+
+  /// Returns `true` when [member] is a `.call` member (field, getter or method)
+  /// of a non-static JavaScript interop class.
+  bool _isNonStaticJsInteropCallMember(Member member) =>
+      member.name.text == 'call' && isNonStaticJsInterop(member);
 
   @override
   js_ast.Expression visitDynamicSet(DynamicSet node) {
@@ -4955,53 +5020,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return false;
   }
 
-  // TODO(54463): Refactor and specialize this code for each type of 'get'.
-  js_ast.Expression _emitPropertyGet(
-      Expression receiver, Member? member, String memberName) {
-    // TODO(jmesserly): should tearoff of `.call` on a function type be
-    // encoded as a different node, or possibly eliminated?
-    // (Regardless, we'll still need to handle the callable JS interop classes.)
-    if (memberName == 'call' &&
-        _isDirectCallable(receiver.getStaticType(_staticTypeContext))) {
-      // Tearoff of `call` on a function type is a no-op;
-      return _visitExpression(receiver);
-    }
-    var jsName = _emitMemberName(memberName, member: member);
-    var jsReceiver = _visitExpression(receiver);
+  /// Returns [expression] wrapped in an optional null check.
+  ///
+  /// The null check is enabled by setting a flag during the application
+  /// bootstrap via `jsInteropNonNullAsserts(true)` in the SDK runtime library.
+  js_ast.Expression _wrapWithJsInteropNullCheck(js_ast.Expression expression) =>
+      runtimeCall('jsInteropNullCheck(#)', [expression]);
 
-    // TODO(jmesserly): we need to mark an end span for property accessors so
-    // they can be hovered. Unfortunately this is not possible as Kernel does
-    // not store this data.
-    if (_isObjectMember(memberName)) {
-      if (_shouldCallObjectMemberHelper(receiver)) {
-        if (_isObjectMethodTearoff(memberName)) {
-          if (memberName == 'toString') {
-            return runtimeCall('toStringTearoff(#)', [jsReceiver]);
-          }
-          if (memberName == 'noSuchMethod') {
-            return runtimeCall('noSuchMethodTearoff(#)', [jsReceiver]);
-          }
-          assert(false, 'Unexpected Object method tearoff: $memberName');
-        }
-        // The names of the static helper methods in the runtime must match the
-        // names of the Object instance members.
-        return runtimeCall('#(#)', [memberName, jsReceiver]);
-      }
-      // Otherwise generate this as a normal typed property get.
-    } else if (member == null) {
-      return runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsName]);
-    }
-
-    if (member != null && _reifyTearoff(member)) {
-      return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
-    } else if (member is Procedure &&
-        !member.isAccessor &&
-        isJsMember(member)) {
-      return runtimeCall(
-          'tearoffInterop(#)', [js_ast.PropertyAccess(jsReceiver, jsName)]);
-    } else {
-      return js_ast.PropertyAccess(jsReceiver, jsName);
-    }
+  /// Returns `true` when [member] is a JavaScript interop API that should be
+  /// checked to be not null when the runtime flag `--interop-null-assertions`
+  /// is enabled.
+  ///
+  /// These APIs are defined using the non-static package:js interop library and
+  /// are typed to be non-nullable.
+  bool _isNullCheckableJsInterop(Member member) {
+    var type =
+        member is Procedure ? member.function.returnType : member.getterType;
+    return type.nullability == Nullability.nonNullable &&
+        isNonStaticJsInterop(member);
   }
 
   /// Return whether [member] returns a native object whose type needs to be
@@ -5090,7 +5126,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return runtimeCall('global');
       }
     }
-    return _emitStaticGet(target);
+    var staticGet = _emitStaticGet(target);
+    return _isNullCheckableJsInterop(target)
+        ? _wrapWithJsInteropNullCheck(staticGet)
+        : staticGet;
   }
 
   @override
@@ -5131,15 +5170,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceInvocation(InstanceInvocation node) {
-    return _emitMethodCall(
+    var invocation = _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(invocation)
+        : invocation;
   }
 
   @override
   js_ast.Expression visitInstanceGetterInvocation(
       InstanceGetterInvocation node) {
-    return _emitMethodCall(
+    var getterInvocation = _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(getterInvocation)
+        : getterInvocation;
   }
 
   @override
@@ -5541,7 +5586,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         /// Emits an inlined binary operation using the JS [code], adding null
         /// checks if needed to ensure we throw the appropriate error.
         js_ast.Expression binary(String code) {
-          return js.call(code, [notNull(left), notNull(right)]);
+          return js.call(code, [notNull(left), notNull(right)])
+            ..sourceInformation = continueSourceMap;
         }
 
         js_ast.Expression bitwise(String code) {
@@ -6145,7 +6191,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var fn = _emitStaticTarget(target);
     var args = _emitArgumentList(node.arguments, target: target);
-    return js_ast.Call(fn, args);
+    var staticCall = js_ast.Call(fn, args);
+    return _isNullCheckableJsInterop(target)
+        ? _wrapWithJsInteropNullCheck(staticCall)
+        : staticCall;
   }
 
   js_ast.Expression _emitJSObjectGetPrototypeOf(js_ast.Expression obj,
@@ -6808,9 +6857,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) {
-    if (_types.isTop(type)) return expr;
+    var normalizedType = type.extensionTypeErasure;
+    if (_types.isTop(normalizedType)) return expr;
     return js.call('#.#(#)', [
-      _emitType(type),
+      _emitType(normalizedType),
       _emitMemberName(js_ast.FixedNames.rtiAsField, memberClass: rtiClass),
       expr
     ]);
@@ -7164,8 +7214,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return _emitStaticTarget(node.target);
       }
       if (node.target.isExternal && !isSdk) {
-        return runtimeCall(
-            'tearoffInterop(#)', [_emitStaticTarget(node.target)]);
+        return runtimeCall('tearoffInterop(#, #)', [
+          _emitStaticTarget(node.target),
+          js.boolean(_isNullCheckableJsInterop(node.target))
+        ]);
       }
     }
     if (node is TypeLiteralConstant) {
@@ -7391,7 +7443,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitFunctionTearOff(FunctionTearOff node) {
-    return _emitPropertyGet(node.receiver, null, 'call');
+    var receiver = node.receiver;
+    var receiverType = receiver.getStaticType(_staticTypeContext);
+    var jsReceiver = _visitExpression(receiver);
+    if (receiverType is InterfaceType &&
+        receiverType.classNode == _coreTypes.functionClass) {
+      // Historically DDC has treated this case as a dynamic get and allowed it
+      // to evaluate at runtime.
+      //
+      // This is here to preserve the existing behavior for the non-static
+      // JavaScript interop (including some failing cases) but could potentially
+      // be cleaned up as a breaking change.
+      return runtimeCall(
+          'dload$_replSuffix(#, #)', [jsReceiver, js.string('call')]);
+    }
+    // Otherwise, tearoff of `call` on a function type is a no-op.
+    return jsReceiver;
   }
 
   /// Creates header comments with helpful compilation information.
@@ -7499,7 +7566,11 @@ bool _isObjectMember(String name) {
   return false;
 }
 
+bool _isObjectGetter(String name) =>
+    name == 'hashCode' || name == 'runtimeType';
+
 bool _isObjectMethodTearoff(String name) =>
+    // "==" isn't in here because there is no syntax to tear it off.
     name == 'toString' || name == 'noSuchMethod';
 
 bool _isObjectMethodCall(String name, Arguments args) {

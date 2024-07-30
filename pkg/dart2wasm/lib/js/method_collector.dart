@@ -28,8 +28,7 @@ class MethodCollector {
       {required bool isExternal}) {
     final procedure = Procedure(
         Name(name, _library), ProcedureKind.Method, function,
-        isStatic: true, isExternal: isExternal, fileUri: fileUri)
-      ..isNonNullableByDefault = true;
+        isStatic: true, isExternal: isExternal, fileUri: fileUri);
     _util.annotateProcedure(procedure, pragmaOptionString, type);
     _library.addProcedure(procedure);
     return procedure;

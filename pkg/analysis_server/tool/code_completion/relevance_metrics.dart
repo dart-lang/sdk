@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show convertElementToElementKind, ElementKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -303,8 +303,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitArgumentList(ArgumentList node) {
     var context = _argumentListContext(node);
     var parent = node.parent;
-    var inWidgetConstructor = parent is InstanceCreationExpression &&
-        Flutter.isWidgetType(parent.staticType);
+    var inWidgetConstructor =
+        parent is InstanceCreationExpression && parent.staticType.isWidgetType;
     for (var argument in node.arguments) {
       var realArgument = argument;
       var argumentKind = 'unnamed';
@@ -656,7 +656,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     inGenericContext = inGenericContext || node.typeParameters != null;
     data.recordPercentage(
         'Extensions with type parameters', node.typeParameters != null);
-    _recordDataForNode('ExtensionDeclaration (type)', node.extendedType);
+    _recordDataForNode('ExtensionDeclaration (onClause)', node.onClause);
     for (var member in node.members) {
       _recordDataForNode('ExtensionDeclaration (member)', member,
           allowedKeywords: memberKeywords);
@@ -1037,6 +1037,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    for (var constraint in node.superclassConstraints) {
+      _recordDataForNode('OnClause (type)', constraint);
+    }
+    super.visitMixinOnClause(node);
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     // Named expressions only occur in argument lists and are handled there.
     super.visitNamedExpression(node);
@@ -1064,14 +1072,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitNullLiteral(NullLiteral node) {
     // There are no completions.
     super.visitNullLiteral(node);
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    for (var constraint in node.superclassConstraints) {
-      _recordDataForNode('OnClause (type)', constraint);
-    }
-    super.visitOnClause(node);
   }
 
   @override
@@ -1856,11 +1856,11 @@ class RelevanceMetricsComputer {
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
   Future<void> compute(String rootPath, {required bool verbose}) async {
-    final collection = AnalysisContextCollection(
+    var collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
-    final collector = RelevanceDataCollector(data);
+    var collector = RelevanceDataCollector(data);
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot, collector, verbose: verbose);
     }
@@ -1919,7 +1919,7 @@ class RelevanceMetricsComputer {
       ContextRoot root, RelevanceDataCollector collector,
       {required bool verbose}) async {
     // Create a new collection to avoid consuming large quantities of memory.
-    final collection = AnalysisContextCollection(
+    var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
       excludedPaths: root.excludedPaths.toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,

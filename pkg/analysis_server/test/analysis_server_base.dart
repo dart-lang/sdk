@@ -18,12 +18,12 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'mocks.dart';
-import 'src/utilities/mock_packages.dart';
 import 'support/configuration_files.dart';
 import 'test_macros.dart';
 
@@ -93,6 +93,8 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
   final List<GeneralAnalysisService> _analysisGeneralServices = [];
   final Map<AnalysisService, List<String>> _analysisFileSubscriptions = {};
 
+  void Function(Notification)? notificationListener;
+
   Folder get sdkRoot => newFolder('/sdk');
 
   Future<void> addGeneralAnalysisSubscription(
@@ -126,7 +128,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     return response;
   }
 
-  void processNotification(Notification notification) {}
+  void processNotification(Notification notification) {
+    notificationListener?.call(notification);
+  }
 
   Future<void> removeGeneralAnalysisSubscription(
     GeneralAnalysisService service,
@@ -139,7 +143,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(
         files.map((e) => e.path).toList(),
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
@@ -154,7 +158,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
         includedConverted,
         excludedConverted,
         packageRoots: {},
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
@@ -200,7 +204,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     await handleSuccessfulRequest(
       AnalysisSetGeneralSubscriptionsParams(
         _analysisGeneralServices,
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 }
@@ -251,7 +255,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     await handleSuccessfulRequest(
       AnalysisSetSubscriptionsParams(
         _analysisFileSubscriptions,
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 

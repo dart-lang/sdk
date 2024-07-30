@@ -7,7 +7,7 @@
 
 library vm.transformations.ffi;
 
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show
         messageFfiLeafCallMustNotReturnHandle,
         messageFfiLeafCallMustNotTakeHandle,
@@ -137,6 +137,37 @@ const List<NativeType> unalignedLoadsStores = [
   NativeType.kDouble,
 ];
 
+const List<String> addressOfExtensionsTypedData = [
+  'Float32List',
+  'Float64List',
+  'Int16List',
+  'Int32List',
+  'Int64List',
+  'Int8List',
+  'Uint16List',
+  'Uint32List',
+  'Uint64List',
+  'Uint8List',
+];
+
+const List<String> addressOfExtensionsCompound = [
+  'Array',
+  'Struct',
+  'Union',
+];
+
+const List<String> addressOfExtensionsPrimitive = [
+  'Bool',
+  'Double',
+  'Int',
+];
+
+const List<String> addressOfExtensions = [
+  ...addressOfExtensionsCompound,
+  ...addressOfExtensionsPrimitive,
+  ...addressOfExtensionsTypedData,
+];
+
 enum FfiTypeCheckDirection {
   // Passing a value from native code to Dart code.
   nativeToDart,
@@ -258,6 +289,7 @@ class FfiTransformer extends Transformer {
   final Procedure arrayNestedDimensionsRest;
   final Procedure structCreate;
   final Procedure unionCreate;
+  final Constructor compoundFromTypedDataBase;
   final Constructor structFromTypedDataBase;
   final Constructor unionFromTypedDataBase;
   final Constructor structFromTypedData;
@@ -301,8 +333,13 @@ class FfiTransformer extends Transformer {
   final Field nativeCallablePointerField;
   final Procedure nativeAddressOf;
   final Procedure nativePrivateAddressOf;
+  final List<Procedure> addressOfMethods;
+  final List<Procedure> addressOfMethodsCompound;
+  final List<Procedure> addressOfMethodsPrimitive;
+  final List<Procedure> addressOfMethodsTypedData;
   final Class ffiCallClass;
   final Field ffiCallIsLeafField;
+  final Field nativeIsLeafField;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -311,6 +348,7 @@ class FfiTransformer extends Transformer {
   late final InterfaceType nativeTypeType;
   // The Pointer type when instantiated to bounds.
   late final InterfaceType pointerNativeTypeType;
+  late final InterfaceType compoundType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final Map<NativeType, Class> nativeTypesClasses;
@@ -426,6 +464,8 @@ class FfiTransformer extends Transformer {
             'dart:ffi', 'Array', 'get:_nestedDimensionsRest'),
         structCreate = index.getProcedure('dart:ffi', 'Struct', 'create'),
         unionCreate = index.getProcedure('dart:ffi', 'Union', 'create'),
+        compoundFromTypedDataBase =
+            index.getConstructor('dart:ffi', '_Compound', '_fromTypedDataBase'),
         structFromTypedDataBase =
             index.getConstructor('dart:ffi', 'Struct', '_fromTypedDataBase'),
         unionFromTypedDataBase =
@@ -591,8 +631,25 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'Native', 'addressOf') as Procedure,
         nativePrivateAddressOf =
             index.getMember('dart:ffi', 'Native', '_addressOf') as Procedure,
+        addressOfMethods = [
+          for (final name in addressOfExtensions)
+            index.getProcedure('dart:ffi', '${name}Address', 'get:address'),
+        ],
+        addressOfMethodsPrimitive = [
+          for (final name in addressOfExtensionsPrimitive)
+            index.getProcedure('dart:ffi', '${name}Address', 'get:address'),
+        ],
+        addressOfMethodsCompound = [
+          for (final name in addressOfExtensionsCompound)
+            index.getProcedure('dart:ffi', '${name}Address', 'get:address'),
+        ],
+        addressOfMethodsTypedData = [
+          for (final name in addressOfExtensionsTypedData)
+            index.getProcedure('dart:ffi', '${name}Address', 'get:address'),
+        ],
         ffiCallClass = index.getClass('dart:ffi', '_FfiCall'),
-        ffiCallIsLeafField = index.getField('dart:ffi', '_FfiCall', 'isLeaf') {
+        ffiCallIsLeafField = index.getField('dart:ffi', '_FfiCall', 'isLeaf'),
+        nativeIsLeafField = index.getField('dart:ffi', 'Native', 'isLeaf') {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!
@@ -606,6 +663,11 @@ class FfiTransformer extends Transformer {
     intptrNativeTypeCfe =
         NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
             as AbiSpecificNativeTypeCfe;
+    compoundType = InterfaceType(
+      compoundClass,
+      Nullability.nonNullable,
+      const <DartType>[],
+    );
   }
 
   @override
@@ -673,7 +735,7 @@ class FfiTransformer extends Transformer {
       if (nativeClass == abiSpecificIntegerClass) {
         return null;
       }
-      return InterfaceType(intClass, Nullability.legacy);
+      return coreTypes.intNonNullableRawType;
     }
     if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
       if (nativeClass == structClass || nativeClass == unionClass) {
@@ -688,13 +750,13 @@ class FfiTransformer extends Transformer {
       return nativeType;
     }
     if (nativeIntTypesFixedSize.contains(nativeType_)) {
-      return InterfaceType(intClass, Nullability.legacy);
+      return coreTypes.intNonNullableRawType;
     }
     if (nativeType_ == NativeType.kFloat || nativeType_ == NativeType.kDouble) {
-      return InterfaceType(doubleClass, Nullability.legacy);
+      return coreTypes.doubleNonNullableRawType;
     }
     if (nativeType_ == NativeType.kBool) {
-      return InterfaceType(boolClass, Nullability.legacy);
+      return coreTypes.boolNonNullableRawType;
     }
     if (nativeType_ == NativeType.kVoid) {
       if (!allowVoid) {
@@ -703,7 +765,7 @@ class FfiTransformer extends Transformer {
       return VoidType();
     }
     if (nativeType_ == NativeType.kHandle && allowHandle) {
-      return InterfaceType(objectClass, Nullability.legacy);
+      return coreTypes.objectNonNullableRawType;
     }
     if (nativeType_ != NativeType.kNativeFunction ||
         native.typeArguments[0] is! FunctionType) {
@@ -736,7 +798,7 @@ class FfiTransformer extends Transformer {
       );
     }
     if (argumentTypes.contains(dummyDartType)) return null;
-    return FunctionType(argumentTypes, returnType, Nullability.legacy);
+    return FunctionType(argumentTypes, returnType, Nullability.nonNullable);
   }
 
   /// Finds a native type for the given [dartType] if there is only one possible
@@ -807,30 +869,36 @@ class FfiTransformer extends Transformer {
     return classNativeTypes[c];
   }
 
-  InterfaceType _listOfIntType() => InterfaceType(
-      listClass, Nullability.legacy, [coreTypes.intLegacyRawType]);
+  InterfaceType _listOfIntType(Nullability elementNullability) => InterfaceType(
+      listClass,
+      Nullability.nonNullable,
+      [coreTypes.intRawType(elementNullability)]);
 
-  ConstantExpression intListConstantExpression(List<int?> values) =>
+  ConstantExpression intListConstantExpression(
+          List<int?> values, Nullability elementNullability) =>
       ConstantExpression(
-          ListConstant(coreTypes.intLegacyRawType, [
+          ListConstant(coreTypes.intRawType(elementNullability), [
             for (var v in values)
               if (v != null) IntConstant(v) else NullConstant()
           ]),
-          _listOfIntType());
+          _listOfIntType(elementNullability));
 
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
   Expression runtimeBranchOnLayout(Map<Abi, int?> values) {
+    final elementNullability =
+        values.isPartial ? Nullability.nullable : Nullability.nonNullable;
     final result = InstanceInvocation(
         InstanceAccessKind.Instance,
         intListConstantExpression([
           for (final abi in Abi.values) values[abi],
-        ]),
+        ], elementNullability),
         listElementAt.name,
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         interfaceTarget: listElementAt,
-        functionType: Substitution.fromInterfaceType(_listOfIntType())
-            .substituteType(listElementAt.getterType) as FunctionType);
+        functionType:
+            Substitution.fromInterfaceType(_listOfIntType(elementNullability))
+                .substituteType(listElementAt.getterType) as FunctionType);
     if (values.isPartial) {
       return checkAbiSpecificIntegerMapping(result);
     }
@@ -887,7 +955,7 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
         type,
-        InterfaceType(arrayClass, Nullability.legacy, [nativeTypeType]),
+        InterfaceType(arrayClass, Nullability.nonNullable, [nativeTypeType]),
         SubtypeCheckMode.ignoringNullabilities);
   }
 
@@ -1025,7 +1093,7 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
         type,
-        InterfaceType(abiSpecificIntegerClass, Nullability.legacy),
+        InterfaceType(abiSpecificIntegerClass, Nullability.nonNullable),
         SubtypeCheckMode.ignoringNullabilities);
   }
 
@@ -1045,7 +1113,7 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
         type,
-        InterfaceType(compoundClass, Nullability.legacy),
+        InterfaceType(compoundClass, Nullability.nonNullable),
         SubtypeCheckMode.ignoringNullabilities);
   }
 
@@ -1323,8 +1391,8 @@ class FfiTransformer extends Transformer {
         }
     }
     diagnosticReporter.report(
-        templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,
-            nativeType, currentLibrary.isNonNullableByDefault),
+        templateFfiTypeMismatch.withArguments(
+            dartType, correspondingDartType, nativeType),
         reportErrorOn.fileOffset,
         1,
         reportErrorOn.location?.file);
@@ -1345,8 +1413,7 @@ class FfiTransformer extends Transformer {
         allowInlineArray: allowInlineArray,
         allowVoid: allowVoid)) {
       diagnosticReporter.report(
-          templateFfiTypeInvalid.withArguments(
-              nativeType, currentLibrary.isNonNullableByDefault),
+          templateFfiTypeInvalid.withArguments(nativeType),
           reportErrorOn.fileOffset,
           1,
           reportErrorOn.location?.file);

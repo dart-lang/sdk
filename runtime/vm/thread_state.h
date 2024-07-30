@@ -24,9 +24,7 @@ class Zone;
 class ThreadState : public BaseThread {
  public:
   // The currently executing thread, or nullptr if not yet initialized.
-  static ThreadState* Current() {
-    return OSThread::CurrentVMThread();
-  }
+  static ThreadState* Current() { return OSThread::CurrentVMThread(); }
 
   explicit ThreadState(bool is_os_thread);
   virtual ~ThreadState();

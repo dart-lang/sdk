@@ -1,0 +1,19 @@
+digraph {
+        label="Predecessors";
+        r -> a [dir = "back"];
+        r -> b [dir = "back"];
+        a -> c [dir = "back"];
+        b -> c [dir = "back"];
+        b -> d [dir = "back"];
+        c -> d [dir = "back"];
+        d -> b [dir = "back"];
+        d -> e [dir = "back"];
+        d -> f [dir = "back"];
+        e -> g [dir = "back"];
+        f -> g [dir = "back"];
+        { rank=same; r }
+        { rank=same; a; b }
+        { rank=same; c; d }
+        { rank=same; e; f }
+        { rank=same; g }
+}

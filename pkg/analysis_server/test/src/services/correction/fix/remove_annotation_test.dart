@@ -53,6 +53,20 @@ f() {}
 ''');
   }
 
+  Future<void> test_immutable_instanceCreation() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@Immutable()
+f() {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+f() {}
+''');
+  }
+
   Future<void> test_invalidAnnotationTarget() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';
@@ -64,6 +78,24 @@ class A {
 ''');
     await assertHasFix('''
 import 'package:meta/meta.dart';
+
+class A {
+  static int f = 0;
+}
+''');
+  }
+
+  Future<void> test_invalidAnnotationTarget_prefixed() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart' as meta;
+
+class A {
+  @meta.mustBeOverridden
+  static int f = 0;
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart' as meta;
 
 class A {
   static int f = 0;
@@ -237,6 +269,24 @@ class C {}
 extension type E(C c) implements C {
   int get i => 0;
 }
+''');
+  }
+
+  test_reopen() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {}
+
+@reopen
+base class B extends A {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {}
+
+base class B extends A {}
 ''');
   }
 

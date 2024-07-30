@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,13 +26,13 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     newFile(path, contents);
   }
 
-  Future<LibraryElementImpl> buildLibrary(String text) async {
-    final file = newFile(testFile.path, text);
-    final analysisContext = contextFor(file);
-    final analysisSession = analysisContext.currentSession;
+  Future<LibraryElementImpl> buildFileLibrary(File file) async {
+    var analysisContext = contextFor(file);
+    var analysisSession = analysisContext.currentSession;
 
-    final uriStr = 'package:test/test.dart';
-    final libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    var uri = analysisSession.uriConverter.pathToUri(file.path);
+    var uriStr = uri.toString();
+    var libraryResult = await analysisSession.getLibraryByUri(uriStr);
 
     if (keepLinkingLibraries) {
       return libraryResult.element;
@@ -43,8 +44,13 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     }
   }
 
+  Future<LibraryElementImpl> buildLibrary(String text) async {
+    var file = newFile(testFile.path, text);
+    return await buildFileLibrary(file);
+  }
+
   void checkElementText(LibraryElementImpl library, String expected) {
-    final actual = getLibraryText(
+    var actual = getLibraryText(
       library: library,
       configuration: configuration,
     );
@@ -57,9 +63,9 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   }
 
   Future<LibraryElementImpl> testContextLibrary(String uriStr) async {
-    final analysisContext = contextFor(testFile);
-    final analysisSession = analysisContext.currentSession;
-    final libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    var analysisContext = contextFor(testFile);
+    var analysisSession = analysisContext.currentSession;
+    var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     return libraryResult.element;
   }
 }

@@ -285,7 +285,7 @@ final _dartCore = Uri.parse('dart:core');
     if (!(await _checkValidToJson(method, toJsonData, builder))) return;
 
     // TODO(scheglov): support extending other classes.
-    final clazz = (await builder.typeDeclarationOf(method.definingType))
+    var clazz = (await builder.typeDeclarationOf(method.definingType))
         as ClassDeclaration;
     var superclass = clazz.superclass;
     var superclassHasToJson = false;
@@ -658,7 +658,7 @@ extension on FieldDeclaration {
 
 extension on Code {
   String get debugString {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     _writeDebugString(buffer);
     return buffer.toString();
   }

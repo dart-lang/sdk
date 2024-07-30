@@ -59,9 +59,11 @@ void f() { int x =
 
   Future<List<SourceFileEdit>> _format() async {
     await waitForTasksFinished();
-    var request =
-        EditFormatIfEnabledParams([testPackageRoot.path]).toRequest('0');
+    var request = EditFormatIfEnabledParams([testPackageRoot.path])
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    return EditFormatIfEnabledResult.fromResponse(response).edits;
+    return EditFormatIfEnabledResult.fromResponse(response,
+            clientUriConverter: server.uriConverter)
+        .edits;
   }
 }

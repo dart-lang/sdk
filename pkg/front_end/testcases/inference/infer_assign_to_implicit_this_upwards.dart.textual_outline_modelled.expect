@@ -1,18 +1,22 @@
-// @dart = 2.9
-
 library test;
 
 class Test1 {
+  Test1(this.t, this.t2);
+  int? t2;
   int t;
   void test() {}
 }
 
 class Test2 {
+  Test2(this.t, this.t2);
+  num? t2;
   num t;
   void test() {}
 }
 
 class Test3 {
+  Test3(this.t, this.t2);
+  double? t2;
   double t;
   void test3() {}
 }

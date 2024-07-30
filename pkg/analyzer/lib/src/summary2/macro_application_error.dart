@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
 
 /// Base for all macro related diagnostics.
 sealed class AnalyzerMacroDiagnostic {}
@@ -124,6 +126,30 @@ final class MacroDiagnosticMessage {
 }
 
 sealed class MacroDiagnosticTarget {}
+
+/// Macro phases are progressively restricted in what kinds of declarations
+/// they are allowed to add.
+///
+/// The `types` phase can add anything.
+/// The `declarations` phase cannot add types.
+/// The `definitions` phase cannot add any declarations.
+final class NotAllowedDeclarationDiagnostic extends AnalyzerMacroDiagnostic {
+  final int annotationIndex;
+  final macro.Phase phase;
+
+  /// The source code with not allowed declarations.
+  final String code;
+
+  /// The ranges of not allowed declarations in [code].
+  final List<SourceRange> nodeRanges;
+
+  NotAllowedDeclarationDiagnostic({
+    required this.annotationIndex,
+    required this.phase,
+    required this.code,
+    required this.nodeRanges,
+  });
+}
 
 final class TypeAnnotationMacroDiagnosticTarget extends MacroDiagnosticTarget {
   final TypeAnnotationLocation location;

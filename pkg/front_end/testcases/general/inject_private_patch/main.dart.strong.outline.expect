@@ -1,0 +1,93 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/inject_private_patch/origin_lib.dart:36:7: Error: The non-abstract class 'ClassImplements' is missing implementations for these members:
+//  - Class._privateInjectedInstanceMember1
+//  - Class._privateInjectedInstanceMember2
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ClassImplements implements Class {
+//       ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/inject_private_patch/patch_lib1.dart:10:8: Context: 'Class._privateInjectedInstanceMember1' is defined here.
+//   void _privateInjectedInstanceMember1(Class c) {
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/inject_private_patch/patch_lib2.dart:10:8: Context: 'Class._privateInjectedInstanceMember2' is defined here.
+//   void _privateInjectedInstanceMember2(Class c) {
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/inject_private_patch/origin_lib.dart:32:8: Error: The method 'ClassExtends._privateInstanceMember' has fewer positional arguments than those of overridden method 'Class._privateInstanceMember'.
+//   void _privateInstanceMember() {}
+//        ^
+// pkg/front_end/testcases/general/inject_private_patch/origin_lib.dart:6:8: Context: This is the overridden method ('_privateInstanceMember').
+//   void _privateInstanceMember(Class c) {
+//        ^
+//
+// pkg/front_end/testcases/general/inject_private_patch/origin_lib.dart:37:8: Error: The method 'ClassImplements._privateInstanceMember' has fewer positional arguments than those of overridden method 'Class._privateInstanceMember'.
+//   void _privateInstanceMember() {}
+//        ^
+// pkg/front_end/testcases/general/inject_private_patch/origin_lib.dart:6:8: Context: This is the overridden method ('_privateInstanceMember').
+//   void _privateInstanceMember(Class c) {
+//        ^
+//
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+import "dart:_internal";
+
+@/* from org-dartlang-testcase:///patch_lib1.dart */ _in::patch
+@/* from org-dartlang-testcase:///patch_lib2.dart */ _in::patch
+class Class extends core::Object {
+  synthetic constructor •() → self2::Class
+    ;
+  method _privateInstanceMember(self2::Class c) → void
+    ;
+  static method _privateStaticMember() → void
+    ;
+  method /* from org-dartlang-testcase:///patch_lib1.dart */ _privateInjectedInstanceMember1(self2::Class c) → void
+    ;
+  static method /* from org-dartlang-testcase:///patch_lib1.dart */ _privateInjectedStaticMember1() → void
+    ;
+  method /* from org-dartlang-testcase:///patch_lib2.dart */ _privateInjectedInstanceMember2(self2::Class c) → void
+    ;
+  static method /* from org-dartlang-testcase:///patch_lib2.dart */ _privateInjectedStaticMember2() → void
+    ;
+}
+class ClassExtends extends self2::Class {
+  synthetic constructor •() → self2::ClassExtends
+    ;
+  method _privateInstanceMember() → void
+    ;
+}
+class ClassImplements extends core::Object implements self2::Class {
+  synthetic constructor •() → self2::ClassImplements
+    ;
+  method _privateInstanceMember() → void
+    ;
+}
+static method _privateTopLevelMember() → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib1.dart */ _privateInjectedTopLevelMember1() → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib2.dart */ _privateInjectedTopLevelMember2() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib1.dart:8:1 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib2.dart:8:1 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

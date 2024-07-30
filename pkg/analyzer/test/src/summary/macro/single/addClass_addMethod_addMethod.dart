@@ -10,7 +10,7 @@ import 'package:macros/macros.dart';
   @override
   buildTypesForClass(clazz, builder) async {
     // ignore: deprecated_member_use
-    final identifier = await builder.resolveIdentifier(
+    var identifier = await builder.resolveIdentifier(
       Uri.parse('package:test/a.dart'),
       'AddMethodFoo',
     );
@@ -42,7 +42,7 @@ import 'package:macros/macros.dart';
   @override
   buildDeclarationsForClass(clazz, builder) async {
     // ignore: deprecated_member_use
-    final identifier = await builder.resolveIdentifier(
+    var identifier = await builder.resolveIdentifier(
       Uri.parse('package:test/a.dart'),
       'AddMethodBar',
     );

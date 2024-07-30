@@ -55,7 +55,7 @@ class RefactoringStatus {
   /// Returns the message of the [RefactoringProblem] with highest severity;
   /// may be `null` if no problems.
   String? get message {
-    final problem = this.problem;
+    var problem = this.problem;
     if (problem == null) {
       return null;
     }

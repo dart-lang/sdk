@@ -18,14 +18,14 @@ class UseEnumsTest extends LintRuleTest {
   String get lintRule => 'use_enums';
 
   test_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
 
 class C {}
 ''');
 
-    await assertNoDiagnostics(r'''
-library augment 'a.dart';
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
 
 augment class C {
   static const a = C._(1);
@@ -34,6 +34,15 @@ augment class C {
   const C._(this.i);
 }
 ''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      // TODO(pq): update when augmentation contributed fields are considered.
+      // See: https://github.com/dart-lang/linter/issues/4900
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
   }
 
   test_constructor_private() async {
@@ -349,7 +358,7 @@ _E e = _E.withValue(0);
   }
 
   test_simple_hasPart() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 ''');
     await assertDiagnostics(r'''

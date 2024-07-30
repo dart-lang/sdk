@@ -642,7 +642,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
   class NormalizeAndDedupCompressedStackMapsVisitor
       : public CodeVisitor,
         public Deduper<CompressedStackMaps,
-                        PointerSetKeyValueTrait<const CompressedStackMaps>> {
+                       PointerSetKeyValueTrait<const CompressedStackMaps>> {
    public:
     NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone,
                                                 IsolateGroup* isolate_group)
@@ -800,8 +800,7 @@ class TypedDataDeduper : public Deduper<TypedData, TypedDataKeyValueTrait> {
 };
 
 void ProgramVisitor::DedupDeoptEntries(Thread* thread) {
-  class DedupDeoptEntriesVisitor : public CodeVisitor,
-                                   public TypedDataDeduper {
+  class DedupDeoptEntriesVisitor : public CodeVisitor, public TypedDataDeduper {
    public:
     explicit DedupDeoptEntriesVisitor(Zone* zone)
         : TypedDataDeduper(zone),
@@ -926,16 +925,9 @@ void ProgramVisitor::DedupUnlinkedCalls(Thread* thread) {
   StackZone stack_zone(thread);
   DedupUnlinkedCallsVisitor visitor(thread->zone(), thread->isolate_group());
 
-  // Note: in bare instructions mode we can still have object pools attached
-  // to code objects and these pools need to be deduplicated.
-  // We use these pools to carry information about references between code
-  // objects and other objects in the snapshots (these references are otherwise
-  // implicit and go through global object pool). This information is needed
-  // to produce more informative snapshot profile.
-  if (FLAG_write_v8_snapshot_profile_to != nullptr ||
-      FLAG_trace_precompiler_to != nullptr) {
-    WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
-  }
+  // Deduplicate local object pools as they are used to trace
+  // objects when writing snapshots.
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 void ProgramVisitor::PruneSubclasses(Thread* thread) {

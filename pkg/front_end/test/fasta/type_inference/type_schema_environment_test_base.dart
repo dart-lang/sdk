@@ -2,21 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
+import 'package:front_end/src/source/source_library_builder.dart';
+import 'package:front_end/src/type_inference/type_constraint_gatherer.dart';
+import 'package:front_end/src/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/type_inference/type_schema.dart';
+import 'package:front_end/src/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/testing/type_parser_environment.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 
 abstract class TypeSchemaEnvironmentTestBase {
-  bool get isNonNullableByDefault;
-
   late Env typeParserEnvironment;
   late TypeSchemaEnvironment typeSchemaEnvironment;
 
@@ -36,8 +34,7 @@ abstract class TypeSchemaEnvironmentTestBase {
   late final OperationsCfe _operations;
 
   void parseTestLibrary(String testLibraryText) {
-    typeParserEnvironment = new Env(testLibraryText,
-        isNonNullableByDefault: isNonNullableByDefault);
+    typeParserEnvironment = new Env(testLibraryText);
     typeSchemaEnvironment = new TypeSchemaEnvironment(
         coreTypes, new ClassHierarchy(component, coreTypes));
     assert(
@@ -45,9 +42,6 @@ abstract class TypeSchemaEnvironmentTestBase {
         "The tests are supposed to have exactly two libraries: "
         "the core library and the test library.");
     _operations = new OperationsCfe(typeSchemaEnvironment,
-        nullability: isNonNullableByDefault
-            ? Nullability.nonNullable
-            : Nullability.legacy,
         fieldNonPromotabilityInfo: FieldNonPromotabilityInfo(
             fieldNameInfo: {}, individualPropertyReasons: {}),
         typeCacheNonNullable: {},
@@ -74,12 +68,8 @@ abstract class TypeSchemaEnvironmentTestBase {
     expect(
         typeSchemaEnvironment.solveTypeConstraint(
             parseConstraint(constraint),
-            isNonNullableByDefault
-                ? coreTypes.objectNullableRawType
-                : new DynamicType(),
-            isNonNullableByDefault
-                ? new NeverType.internal(Nullability.nonNullable)
-                : new NullType(),
+            coreTypes.objectNullableRawType,
+            new NeverType.internal(Nullability.nonNullable),
             grounded: grounded),
         parseType(expected));
   }
@@ -144,8 +134,7 @@ abstract class TypeSchemaEnvironmentTestBase {
         (List<TypeParameter> typeParameterNodes) {
       expect(
           typeSchemaEnvironment.getStandardLowerBound(
-              parseType(type1), parseType(type2),
-              isNonNullableByDefault: isNonNullableByDefault),
+              parseType(type1), parseType(type2)),
           parseType(lowerBound));
     });
   }
@@ -183,9 +172,7 @@ abstract class TypeSchemaEnvironmentTestBase {
               declaredReturnTypeNode,
               typeParameterNodesToInfer,
               returnContextTypeNode,
-              isNonNullableByDefault: isNonNullableByDefault,
               typeOperations: new OperationsCfe(typeSchemaEnvironment,
-                  nullability: Nullability.nonNullable,
                   fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
                       fieldNameInfo: {}, individualPropertyReasons: {}),
                   typeCacheNonNullable: {},
@@ -195,14 +182,12 @@ abstract class TypeSchemaEnvironmentTestBase {
               treeNodeForTesting: null);
       if (formalTypeNodes == null) {
         inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
-            gatherer, typeParameterNodesToInfer, inferredTypeNodes,
-            isNonNullableByDefault: isNonNullableByDefault);
+            gatherer, typeParameterNodesToInfer, inferredTypeNodes);
       } else {
         gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!,
             treeNodeForTesting: null);
         inferredTypeNodes = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, typeParameterNodesToInfer, inferredTypeNodes!,
-            isNonNullableByDefault: isNonNullableByDefault);
+            gatherer, typeParameterNodesToInfer, inferredTypeNodes!);
       }
 
       assert(
@@ -238,7 +223,6 @@ abstract class TypeSchemaEnvironmentTestBase {
           {typeParameterNode: typeConstraint},
           [typeParameterNode],
           inferredTypeNodes,
-          isNonNullableByDefault: isNonNullableByDefault,
           preliminary: downwardsInferPhase,
           operations: _operations);
 

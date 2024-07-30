@@ -4,17 +4,12 @@
 
 #include "bin/loader.h"
 
-#include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
-#include "bin/file.h"
-#include "bin/gzip.h"
-#include "bin/lockers.h"
 #include "bin/snapshot_utils.h"
-#include "bin/utils.h"
-#include "include/dart_tools_api.h"
-#include "platform/growable_array.h"
+#include "bin/uri.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -87,7 +82,18 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     if (is_dart_scheme_url || is_dart_library) {
       return url;
     }
-    return Dart_DefaultCanonicalizeUrl(library_url, url);
+    const char* url_cstr;
+    result = Dart_StringToCString(url, &url_cstr);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    CStringUniquePtr resolved_uri = ResolveUri(url_cstr, library_url_string);
+    if (!resolved_uri) {
+      return DartUtils::NewError("%s: Unable to canonicalize uri '%s'.",
+                                 __FUNCTION__, url_cstr);
+    }
+    result = Dart_NewStringFromCString(resolved_uri.get());
+    return result;
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (tag == Dart_kKernelTag) {
@@ -166,8 +172,7 @@ Dart_Handle Loader::DeferredLoadHandler(intptr_t loading_unit_id) {
   return result;
 }
 
-void Loader::InitOnce() {
-}
+void Loader::InitOnce() {}
 
 }  // namespace bin
 }  // namespace dart

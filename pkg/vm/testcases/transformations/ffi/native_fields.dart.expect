@@ -31,13 +31,13 @@ final class Vec2d extends ffi::Struct {
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Vec2d::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C9
   static get x#offsetOf() → core::int
-    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C9
   static get y#offsetOf() → core::int
-    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C9
-  static get #sizeOf() → core::int*
-    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C20
 final class MyUnion extends ffi::Union {
@@ -53,20 +53,20 @@ final class MyUnion extends ffi::Union {
   get vector() → self::Vec2d
     return new self::Vec2d::#fromTypedDataBase(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::vector#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
   set vector(synthesized self::Vec2d #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::vector#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::vector#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   get indirectVector() → ffi::Pointer<self::Vec2d>
     return ffi::_loadPointer<self::Vec2d>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::indirectVector#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
   set indirectVector(synthesized ffi::Pointer<self::Vec2d> #externalFieldValue) → void
     return ffi::_storePointer<self::Vec2d>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::indirectVector#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C9
   static get vector#offsetOf() → core::int
-    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C9
   static get indirectVector#offsetOf() → core::int
-    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C9
-  static get #sizeOf() → core::int*
-    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C26
 static get aString() → ffi::Pointer<ffi::Char>
@@ -97,7 +97,7 @@ static get manyNumbers() → ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>
   return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Double>>>(ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C44), #C10, #C39, #C46);
 @#C42
 static set manyNumbers(synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Double>>> #externalFieldValue) → void
-  ffi::_memCopy(ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C44), #C10, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+  ffi::_memCopy(ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C44), #C10, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
 static method main() → void {
   core::print("first char of string: ${ffi::_loadAbiSpecificInt<ffi::Char>(self::aString, #C10)}");
   core::print("global int: {${self::anInt}}");
@@ -153,11 +153,11 @@ constants  {
   #C8 = "vm:prefer-inline"
   #C9 = core::pragma {name:#C8, options:#C4}
   #C10 = 0
-  #C11 = <core::int*>[#C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10]
+  #C11 = <core::int>[#C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10]
   #C12 = 8
-  #C13 = <core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
+  #C13 = <core::int>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
   #C14 = 16
-  #C15 = <core::int*>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C15 = <core::int>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
   #C16 = TypeLiteralConstant(self::Vec2d)
   #C17 = TypeLiteralConstant(ffi::Pointer<core::Object>)
   #C18 = <core::Type>[#C16, #C17]
@@ -188,7 +188,7 @@ constants  {
   #C43 = "manyNumbers"
   #C44 = ffi::Native<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>> {symbol:#C43, assetId:#C23, isLeaf:#C24}
   #C45 = core::pragma {name:#C21, options:#C44}
-  #C46 = <core::int*>[#C40, #C41]
+  #C46 = <core::int>[#C40, #C41]
   #C47 = 48
-  #C48 = <core::int*>[#C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47]
+  #C48 = <core::int>[#C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47]
 }

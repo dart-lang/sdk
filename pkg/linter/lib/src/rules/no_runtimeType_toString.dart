@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Avoid calling toString() on runtimeType.';
+const _desc = r'Avoid calling `toString()` on `runtimeType`.';
 
 const _details = r'''
 Calling `toString` on a runtime type is a non-trivial operation that can
@@ -50,7 +50,7 @@ class NoRuntimeTypeToString extends LintRule {
             name: 'no_runtimeType_toString',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

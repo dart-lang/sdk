@@ -4,23 +4,23 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:macros/macros.dart' hide Library;
-import 'package:macros/src/executor.dart';
-import 'package:macros/src/executor/multi_executor.dart';
-import 'package:macros/src/executor/serialization.dart';
-import 'package:macros/src/executor/span.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/builder/declaration_builders.dart';
-import 'package:front_end/src/fasta/builder/library_builder.dart';
-import 'package:front_end/src/fasta/builder/member_builder.dart';
-import 'package:front_end/src/fasta/kernel/macro/macro.dart';
+import 'package:front_end/src/builder/declaration_builders.dart';
+import 'package:front_end/src/builder/library_builder.dart';
+import 'package:front_end/src/builder/member_builder.dart';
+import 'package:front_end/src/kernel/macro/macro.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments, TypeDeclaration;
+import 'package:macros/macros.dart' hide Library;
+import 'package:macros/src/executor.dart';
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/serialization.dart';
+import 'package:macros/src/executor/span.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir =
@@ -364,6 +364,9 @@ class _MacroExecutionResult implements MacroExecutionResult {
 
   @override
   Map<Identifier, Iterable<DeclarationCode>> enumValueAugmentations = const {};
+
+  @override
+  Map<Identifier, NamedTypeAnnotationCode> extendsTypeAugmentations = const {};
 
   @override
   Map<Identifier, Iterable<TypeAnnotationCode>> interfaceAugmentations =

@@ -670,7 +670,7 @@ static bool CompareIntegers(Token::Kind kind,
 
 // Comparison instruction that is equivalent to the (left & right) == 0
 // comparison pattern.
-void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
+void ConstantPropagator::VisitTestInt(TestIntInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
@@ -776,12 +776,8 @@ void ConstantPropagator::VisitFfiCall(FfiCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitCCall(CCallInstr* instr) {
+void ConstantPropagator::VisitLeafRuntimeCall(LeafRuntimeCallInstr* instr) {
   SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitRawStoreField(RawStoreFieldInstr* instr) {
-  // Nothing to do.
 }
 
 void ConstantPropagator::VisitDebugStepCheck(DebugStepCheckInstr* instr) {
@@ -920,8 +916,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     Representation rep = def->representation();
     if ((checked_type.IsFloat32x4Type() && (rep == kUnboxedFloat32x4)) ||
         (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4)) ||
-        (checked_type.IsDoubleType() && (rep == kUnboxedDouble) &&
-         FlowGraphCompiler::SupportsUnboxedDoubles()) ||
+        (checked_type.IsDoubleType() && (rep == kUnboxedDouble)) ||
         (checked_type.IsIntType() && (rep == kUnboxedInt64))) {
       // Ensure that compile time type matches representation.
       ASSERT(((rep == kUnboxedFloat32x4) && (value_cid == kFloat32x4Cid)) ||

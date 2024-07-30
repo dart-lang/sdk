@@ -4,6 +4,24 @@
 
 // CHANGES:
 //
+// v0.44 Change rule structure such that the association of metadata
+// with non-terminals can be explained in a simple and consistent way.
+// The derivable terms do not change. Remove `metadata` from the kind
+// of `forLoopParts` where the iteration variable is an existing variable
+// in scope (this is not implemented, is inconsistent anyway).
+//
+// v0.45 Support null-aware elements.
+//
+// v0.44 Change rule structure such that the association of metadata
+// with non-terminals can be explained in a simple and consistent way.
+// The derivable terms do not change. Remove `metadata` from the kind
+// of `forLoopParts` where the iteration variable is an existing variable
+// in scope (this is not implemented, is inconsistent anyway).
+//
+// v0.43 Support updated augmented `extensionDeclaration`.
+//
+// v0.42 Add missing `enumEntry` update for augmentations.
+//
 // v0.41 Include support for augmentation libraries.
 //
 // v0.40 Include latest changes to mixin related class modifiers.
@@ -453,7 +471,7 @@ extensionTypeDeclaration
     ;
 
 representationDeclaration
-    :    ('.' identifierOrNew)? '(' metadata type identifier ')'
+    :    ('.' identifierOrNew)? '(' metadata typedIdentifier ')'
     ;
 
 
@@ -463,8 +481,12 @@ extensionTypeMemberDeclaration
     ;
 
 extensionDeclaration
-    :    AUGMENT? EXTENSION typeIdentifierNotType? typeParameters? ON type
-         LBRACE (metadata extensionMemberDeclaration)* RBRACE
+    :    EXTENSION typeIdentifierNotType? typeParameters? ON type extensionBody
+    |    AUGMENT EXTENSION typeIdentifierNotType typeParameters? extensionBody
+    ;
+
+extensionBody
+    :    LBRACE (metadata extensionMemberDeclaration)* RBRACE
     ;
 
 // TODO: We might want to make this more strict.
@@ -604,8 +626,9 @@ enumType
     ;
 
 enumEntry
-    :    metadata identifier argumentPart?
-    |    metadata identifier typeArguments? '.' identifierOrNew arguments
+    :    metadata AUGMENT? identifier argumentPart?
+    |    metadata AUGMENT? identifier typeArguments?
+         '.' identifierOrNew arguments
     ;
 
 typeParameter
@@ -723,11 +746,22 @@ elements
     ;
 
 element
-    :    expressionElement
+    :    nullAwareExpressionElement
+    |    nullAwareMapElement
+    |    expressionElement
     |    mapElement
     |    spreadElement
     |    ifElement
     |    forElement
+    ;
+
+nullAwareExpressionElement
+    :    '?' expression
+    ;
+
+nullAwareMapElement
+    :    '?' expression ':' '?'? expression
+    |    expression ':' '?' expression
     ;
 
 expressionElement
@@ -1194,7 +1228,7 @@ objectPattern
     ;
 
 patternVariableDeclaration
-    :    (FINAL | VAR) outerPattern '=' expression
+    :    outerPatternDeclarationPrefix '=' expression
     ;
 
 outerPattern
@@ -1203,6 +1237,10 @@ outerPattern
     |    mapPattern
     |    recordPattern
     |    objectPattern
+    ;
+
+outerPatternDeclarationPrefix
+    : (FINAL | VAR) outerPattern
     ;
 
 patternAssignment
@@ -1272,12 +1310,15 @@ forStatement
     :    AWAIT? FOR '(' forLoopParts ')' statement
     ;
 
-// TODO: Include `metadata` in the pattern form?
 forLoopParts
-    :    metadata declaredIdentifier IN expression
-    |    metadata identifier IN expression
+    :    forInLoopPrefix IN expression
     |    forInitializerStatement expression? ';' expressionList?
-    |    metadata (FINAL | VAR) outerPattern IN expression
+    ;
+
+forInLoopPrefix
+    :    metadata declaredIdentifier
+    |    metadata outerPatternDeclarationPrefix
+    |    identifier
     ;
 
 // The localVariableDeclaration cannot be CONST, but that can

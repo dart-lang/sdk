@@ -91,7 +91,7 @@ class StubCode : public AllStatic {
   // code executable area.
   static CodePtr Generate(const char* name,
                           compiler::ObjectPoolBuilder* object_pool_builder,
-                          void (compiler::StubCodeCompiler::*GenerateStub)());
+                          void (compiler::StubCodeCompiler::* GenerateStub)());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
@@ -132,7 +132,7 @@ class StubCode : public AllStatic {
     Code* code;
     const char* name;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    void (compiler::StubCodeCompiler::*generator)();
+    void (compiler::StubCodeCompiler::* generator)();
 #endif
   };
   static StubCodeEntry entries_[kNumStubEntries];

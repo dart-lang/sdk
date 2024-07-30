@@ -88,17 +88,16 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot)) return 255;
-
-    final librariesPath = path.absolute(sdk.sdkPath, 'lib', 'libraries.json');
-
-    if (!Sdk.checkArtifactExists(librariesPath)) return 255;
+    if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot) ||
+        !Sdk.checkArtifactExists(sdk.librariesJson)) {
+      return 255;
+    }
 
     final args = argResults!;
 
     // Build arguments.
     final buildArgs = <String>[
-      '--libraries-spec=$librariesPath',
+      '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
       '--invoker=dart_cli',
       // Add the remaining arguments.
@@ -185,6 +184,17 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
         defaultsTo: soundNullSafetyOption.flagDefaultsTo,
         hide: true,
       )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help: 'Path to output Ninja depfile',
+      )
+      ..addMultiOption(
+        'extra-gen-kernel-options',
+        help: 'Pass additional options to gen_kernel.',
+        hide: true,
+        valueHelp: 'opt1,opt2,...',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -220,7 +230,9 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
     }
 
     final bool soundNullSafety = args.flag('sound-null-safety');
-    if (!soundNullSafety && !shouldAllowNoSoundNullSafety()) {
+    if (!soundNullSafety) {
+      log.stdout(
+          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
       return compileErrorExitCode;
     }
 
@@ -232,8 +244,9 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
         packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
         linkPlatform: args.flag('link-platform'),
+        depFile: args.option('depfile'),
+        extraOptions: args.multiOption('extra-gen-kernel-options'),
         embedSources: args.flag('embed-sources'),
-        soundNullSafety: args.flag('sound-null-safety'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
       );
@@ -339,10 +352,9 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     final bool soundNullSafety = args.flag('sound-null-safety');
     if (!soundNullSafety) {
-      if (!shouldAllowNoSoundNullSafety()) {
-        return compileErrorExitCode;
-      }
-      buildArgs.add('--no-sound-null-safety');
+      log.stdout(
+          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
+      return compileErrorExitCode;
     }
 
     final String? packages = args.option(packagesOption.flag);
@@ -410,8 +422,12 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         help: defineOption.help,
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
-      );
-    argParser
+      )
+      ..addFlag(
+        'enable-asserts',
+        negatable: false,
+        help: 'Enable assert statements.',
+      )
       ..addOption(
         packagesOption.flag,
         abbr: packagesOption.abbr,
@@ -422,12 +438,28 @@ class CompileNativeCommand extends CompileSubcommandCommand {
           help: soundNullSafetyOption.help,
           defaultsTo: soundNullSafetyOption.flagDefaultsTo,
           hide: true)
-      ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
+      ..addOption(
+        'save-debugging-info',
+        abbr: 'S',
+        valueHelp: 'path',
+        help: '''
 Remove debugging information from the output and save it separately to the specified file.
-<path> can be relative or absolute.''')
+<path> can be relative or absolute.''',
+      )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help: 'Path to output Ninja depfile',
+      )
       ..addMultiOption(
         'extra-gen-snapshot-options',
         help: 'Pass additional options to gen_snapshot.',
+        hide: true,
+        valueHelp: 'opt1,opt2,...',
+      )
+      ..addMultiOption(
+        'extra-gen-kernel-options',
+        help: 'Pass additional options to gen_kernel.',
         hide: true,
         valueHelp: 'opt1,opt2,...',
       )
@@ -465,7 +497,9 @@ Remove debugging information from the output and save it separately to the speci
       return genericErrorExitCode;
     }
 
-    if (!args.flag('sound-null-safety') && !shouldAllowNoSoundNullSafety()) {
+    if (!args.flag('sound-null-safety')) {
+      log.stdout(
+          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
       return compileErrorExitCode;
     }
 
@@ -501,21 +535,28 @@ Remove debugging information from the output and save it separately to the speci
       stderr.writeln('Target OS: $targetOS');
       return 128;
     }
-
+    final tempDir = Directory.systemTemp.createTempSync();
     try {
-      await generateNative(
+      final kernelGenerator = KernelGenerator(
         kind: format,
         sourceFile: sourcePath,
         outputFile: args.option('output'),
         defines: args.multiOption(defineOption.flag),
         packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
-        soundNullSafety: args.flag('sound-null-safety'),
+        enableAsserts: args.flag('enable-asserts'),
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
-        extraOptions: args.multiOption('extra-gen-snapshot-options'),
         targetOS: targetOS,
+        tempDir: tempDir,
+        depFile: args.option('depfile'),
+      );
+      final snapshotGenerator = await kernelGenerator.generate(
+        extraOptions: args.multiOption('extra-gen-kernel-options'),
+      );
+      await snapshotGenerator.generate(
+        extraOptions: args.multiOption('extra-gen-snapshot-options'),
       );
       return 0;
     } catch (e, st) {
@@ -525,14 +566,15 @@ Remove debugging information from the output and save it separately to the speci
         log.stderr(st.toString());
       }
       return compileErrorExitCode;
+    } finally {
+      await tempDir.delete(recursive: true);
     }
   }
 }
 
 class CompileWasmCommand extends CompileSubcommandCommand {
   static const String commandName = 'wasm';
-  static const String help =
-      'Compile Dart to a WebAssembly/WasmGC module (EXPERIMENTAL).';
+  static const String help = 'Compile Dart to a WebAssembly/WasmGC module.';
 
   // The unique place where we store various flags for dart2wasm & binaryen.
   //
@@ -605,10 +647,11 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         hide: !verbose,
       )
       ..addFlag(
-        'name-section',
+        'strip-wasm',
         defaultsTo: true,
         negatable: true,
-        help: 'Include a name section with printable function names.',
+        help:
+            'Whether to strip the resulting wasm file of static symbol names.',
         hide: !verbose,
       )
       ..addFlag(
@@ -685,14 +728,10 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    log.stdout('*NOTE*: Compilation to WasmGC is experimental.');
-    log.stdout(
-        'The support may change, or be removed, with no advance notice.\n');
-
     final args = argResults!;
     final verbose = this.verbose || args.flag('verbose');
 
-    if (!Sdk.checkArtifactExists(sdk.librariesJson) ||
+    if (!Sdk.checkArtifactExists(sdk.wasmPlatformDill) ||
         !Sdk.checkArtifactExists(sdk.dartAotRuntime) ||
         !Sdk.checkArtifactExists(sdk.dart2wasmSnapshot) ||
         !Sdk.checkArtifactExists(sdk.wasmOpt)) {
@@ -726,7 +765,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final outputFileBasename =
         outputFile.substring(0, outputFile.length - '.wasm'.length);
 
-    final sdkPath = path.absolute(sdk.sdkPath);
     final packages = args.option(packagesOption.flag);
     final defines = args.multiOption(defineOption.flag);
     final extraCompilerOptions = args.multiOption('extra-compiler-option');
@@ -764,14 +802,13 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     })
         .toList();
     handleOverride(optimizationFlags, 'minify',
-        args.wasParsed('minify') ? null : args.flag('minify'));
+        args.wasParsed('minify') ? args.flag('minify') : null);
 
     final enabledExperiments = args.enabledExperiments;
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
       sdk.dart2wasmSnapshot,
-      '--libraries-spec=${sdk.librariesJson}',
-      '--dart-sdk=$sdkPath',
+      '--platform=${sdk.wasmPlatformDill}',
       if (verbose) '--verbose',
       if (packages != null) '--packages=$packages',
       if (args.flag('print-wasm')) '--print-wasm',
@@ -805,13 +842,15 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       return compileErrorExitCode;
     }
 
+    final bool strip = args.flag('strip-wasm');
+
     if (runWasmOpt) {
       final unoptFile = '$outputFileBasename.unopt.wasm';
       File(outputFile).renameSync(unoptFile);
 
       final flags = [
         ...binaryenFlags,
-        if (args.flag('name-section')) '-g',
+        if (!strip) '-g',
       ];
 
       if (verbose) {
@@ -859,8 +898,8 @@ Sets the verbosity level of the compilation.
     flagDefaultsTo: true,
   );
 
-  late final Option defineOption;
-  late final Option packagesOption;
+  final Option defineOption;
+  final Option packagesOption;
 
   CompileSubcommandCommand(super.name, super.description, super.verbose,
       {super.hidden})
@@ -880,23 +919,6 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
                 '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
 For example: dart compile $name --packages=/tmp/pkgs.json main.dart''');
-
-  bool shouldAllowNoSoundNullSafety() {
-    // We need to maintain support for generating AOT snapshots and kernel
-    // files with no-sound-null-safety internal Flutter aplications are
-    // fully null-safe.
-    //
-    // See https://github.com/dart-lang/sdk/issues/51513 for context.
-    if (name == CompileNativeCommand.aotSnapshotCmdName ||
-        name == CompileKernelSnapshotCommand.commandName) {
-      log.stdout(
-          'Warning: the flag --no-sound-null-safety is deprecated and pending removal.');
-      return true;
-    }
-    log.stdout(
-        'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
-    return false;
-  }
 }
 
 class CompileCommand extends DartdevCommand {

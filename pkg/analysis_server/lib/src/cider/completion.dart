@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/cider/local_library_contributor.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
-import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -55,7 +55,7 @@ class CiderCompletionComputer {
     void Function(ResolvedForCompletionResultImpl)? testResolvedUnit,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
-      final resolvedUnit = await performance.runAsync(
+      var resolvedUnit = await performance.runAsync(
         'resolution',
         (performance) async {
           return _fileResolver.resolveForCompletion(
@@ -71,8 +71,8 @@ class CiderCompletionComputer {
         testResolvedUnit(resolvedUnit);
       }
 
-      final analysisSession = resolvedUnit.analysisSession;
-      final enclosingNode = resolvedUnit.parsedUnit;
+      var analysisSession = resolvedUnit.analysisSession;
+      var enclosingNode = resolvedUnit.parsedUnit;
 
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
@@ -92,13 +92,9 @@ class CiderCompletionComputer {
         'suggestions',
         (performance) async {
           var result = await _logger.runAsync('Compute suggestions', () async {
-            var includedElementKinds = <ElementKind>{};
-            var includedElementNames = <String>{};
-
             var manager = DartCompletionManager(
               budget: CompletionBudget(CompletionBudget.defaultDuration),
-              includedElementKinds: includedElementKinds,
-              includedElementNames: includedElementNames,
+              skipImports: true,
             );
 
             return await manager.computeSuggestions(
@@ -106,6 +102,7 @@ class CiderCompletionComputer {
               performance,
               enableOverrideContributor: false,
               enableUriContributor: false,
+              maxSuggestions: -1,
               useFilter: true,
             );
           });

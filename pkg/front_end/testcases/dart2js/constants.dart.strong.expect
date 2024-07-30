@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Class::T% field;
+  const constructor •(self::Class::T% field) → self::Class<self::Class::T%>
+    : self::Class::field = field, super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>(self::Class::_#new#tearOff::T% field) → self::Class<self::Class::_#new#tearOff::T%>
+    return new self::Class::•<self::Class::_#new#tearOff::T%>(field);
+}
+static const field (core::int) → core::int partialInstantiation = #C2;
+static const field self::Class<core::int> instance = #C4;
+static const field core::List<core::int> listLiteral = #C5;
+static const field core::Set<core::int> setLiteral = #C6;
+static const field core::Map<core::int, core::String> mapLiteral = #C8;
+static const field core::List<core::int> listConcatenation = #C5;
+static const field core::Set<core::int> setConcatenation = #C6;
+static const field core::Map<core::int, core::String> mapConcatenation = #C8;
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  return t;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::id
+  #C2 = instantiation #C1 <core::int>
+  #C3 = 0.0
+  #C4 = self::Class<core::int> {field:#C3}
+  #C5 = <core::int>[#C3]
+  #C6 = <core::int>{#C3}
+  #C7 = "foo"
+  #C8 = <core::int, core::String>{#C3:#C7}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constants.dart:
+- Class. (from org-dartlang-testcase:///constants.dart:8:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

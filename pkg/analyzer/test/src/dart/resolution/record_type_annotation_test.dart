@@ -22,7 +22,7 @@ class A {
 }
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -49,7 +49,7 @@ class A {
 }
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -77,7 +77,7 @@ void f(({int f1, String f2}) x) {}
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 1),
     ]);
 
-    final node = findNode.singleFormalParameterList;
+    var node = findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -101,7 +101,7 @@ void f((int, String) x) {}
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 1),
     ]);
 
-    final node = findNode.singleFormalParameterList;
+    var node = findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -125,7 +125,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -153,7 +153,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -181,7 +181,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -219,7 +219,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.recordTypeAnnotation('({int');
+    var node = findNode.recordTypeAnnotation('({int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -252,7 +252,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -277,7 +277,7 @@ RecordTypeAnnotation
 void f((int, String) a) {}
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -302,7 +302,7 @@ RecordTypeAnnotation
 (int, String)? f() => throw 0;
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -328,7 +328,7 @@ RecordTypeAnnotation
 (int, String) f() => throw 0;
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (
@@ -356,7 +356,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.recordTypeAnnotation('(int');
+    var node = findNode.recordTypeAnnotation('(int');
     assertResolvedNodeText(node, r'''
 RecordTypeAnnotation
   leftParenthesis: (

@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field dynamic field;
+  static final field dynamic finalField;
+  synthetic constructor •() → self::C
+    ;
+}
+class D extends core::Object {
+  static field dynamic field;
+  static final field dynamic finalField;
+  static factory •() → self::D
+    ;
+}

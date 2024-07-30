@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -15,12 +15,19 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ExtractLocalVariable extends ResolvedCorrectionProducer {
+  ExtractLocalVariable({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
   @override
   FixKind get fixKind => DartFixKind.EXTRACT_LOCAL_VARIABLE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier) {
       return;
     }
@@ -139,7 +146,7 @@ class _ExpressionEncoder {
   final Map<Element, int> _elementIds = {};
 
   String encode(Expression node) {
-    var tokens = TokenUtils.getNodeTokens(node);
+    var tokens = node.tokens;
 
     var tokenToElementMap = Map<Token, Element>.identity();
     node.accept(

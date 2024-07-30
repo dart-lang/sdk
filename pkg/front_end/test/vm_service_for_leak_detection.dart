@@ -9,13 +9,12 @@ import "vm_service_heap_helper.dart" as helper;
 Future<void> main(List<String> args) async {
   List<helper.Interest> interests = <helper.Interest>[];
   interests.add(new helper.Interest(
-    Uri.parse("package:front_end/src/fasta/source/source_library_builder.dart"),
+    Uri.parse("package:front_end/src/source/source_library_builder.dart"),
     "SourceLibraryBuilder",
     ["fileUri"],
   ));
   interests.add(new helper.Interest(
-    Uri.parse(
-        "package:front_end/src/fasta/source/source_extension_builder.dart"),
+    Uri.parse("package:front_end/src/source/source_extension_builder.dart"),
     "SourceExtensionBuilder",
     ["extension"],
   ));

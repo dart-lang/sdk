@@ -47,7 +47,7 @@ abstract class CompletionMetricsComputer {
   /// should be captured in the [collector].
   Future<void> computeInContext(ContextRoot root) async {
     // Create a new collection to avoid consuming large quantities of memory.
-    final collection = AnalysisContextCollectionImpl(
+    var collection = AnalysisContextCollectionImpl(
       includedPaths: root.includedPaths.toList(),
       excludedPaths: root.excludedPaths.toList(),
       resourceProvider: provider,
@@ -70,7 +70,7 @@ abstract class CompletionMetricsComputer {
       var filePath = result.path;
       // Use the ExpectedCompletionsVisitor to compute the set of expected
       // completions for this CompilationUnit.
-      final visitor =
+      var visitor =
           ExpectedCompletionsVisitor(result, caretOffset: options.prefixLength);
       resolvedUnitResult.unit.accept(visitor);
 
@@ -90,11 +90,11 @@ abstract class CompletionMetricsComputer {
   }
 
   Future<void> computeMetrics() async {
-    final collection = AnalysisContextCollectionImpl(
+    var collection = AnalysisContextCollectionImpl(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
-    for (final context in collection.contexts) {
+    for (var context in collection.contexts) {
       await computeInContext(context.contextRoot);
     }
   }
@@ -113,13 +113,13 @@ abstract class CompletionMetricsComputer {
   Future<List<ResolvedUnitResult>> resolveAnalyzedFiles({
     required AnalysisContext context,
   }) async {
-    final analyzedFileCount = context.contextRoot.analyzedFiles().length;
+    var analyzedFileCount = context.contextRoot.analyzedFiles().length;
     logger.write('Resolving $analyzedFileCount files...\n');
 
-    final progress = ProgressBar(logger, analyzedFileCount);
-    final results = <ResolvedUnitResult>[];
-    final pathContext = context.contextRoot.resourceProvider.pathContext;
-    for (final filePath in context.contextRoot.analyzedFiles()) {
+    var progress = ProgressBar(logger, analyzedFileCount);
+    var results = <ResolvedUnitResult>[];
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
+    for (var filePath in context.contextRoot.analyzedFiles()) {
       if (file_paths.isGenerated(filePath) ||
           filePath.endsWith('animated_icons.dart') ||
           filePath.endsWith('animated_icons_data.dart')) {
@@ -127,10 +127,10 @@ abstract class CompletionMetricsComputer {
       }
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          final result = await context.currentSession.getResolvedUnit(filePath)
+          var result = await context.currentSession.getResolvedUnit(filePath)
               as ResolvedUnitResult;
 
-          final analysisError = getFirstErrorOrNull(result);
+          var analysisError = getFirstErrorOrNull(result);
           if (analysisError != null) {
             progress.clear();
             print('File $filePath skipped due to errors such as:');
@@ -160,7 +160,7 @@ abstract class CompletionMetricsComputer {
   /// if such an error exists, `null` otherwise.
   static err.AnalysisError? getFirstErrorOrNull(
       ResolvedUnitResult resolvedUnitResult) {
-    for (final error in resolvedUnitResult.errors) {
+    for (var error in resolvedUnitResult.errors) {
       if (error.severity == Severity.error) {
         return error;
       }
@@ -179,7 +179,7 @@ abstract class CompletionMetricsComputer {
   ) {
     assert(content.isNotEmpty);
     var offset = expectedCompletion.offset;
-    final length = expectedCompletion.syntacticEntity.length;
+    var length = expectedCompletion.syntacticEntity.length;
     assert(offset >= 0);
     assert(length > 0);
     var tokenEndOffset = offset + length;
@@ -245,7 +245,7 @@ enum OverlayMode {
   const OverlayMode(this.flag);
 
   static OverlayMode parseFlag(String flag) {
-    for (final mode in values) {
+    for (var mode in values) {
       if (flag == mode.flag) {
         return mode;
       }
@@ -321,14 +321,14 @@ class ProgressBar {
       return;
     }
     _tickCount++;
-    final fractionComplete =
+    var fractionComplete =
         math.max(0, _tickCount * _innerWidth ~/ _totalTickCount - 1);
     // The inner space consists of hyphens, one spinner character, spaces, and a
     // percentage (8 characters).
-    final hyphens = '-' * fractionComplete;
-    final trailingSpace = ' ' * (_innerWidth - fractionComplete - 1);
-    final spinner = AnsiProgress.kAnimationItems[_tickCount % 4];
-    final pctComplete = (_tickCount * 100 / _totalTickCount).toStringAsFixed(2);
+    var hyphens = '-' * fractionComplete;
+    var trailingSpace = ' ' * (_innerWidth - fractionComplete - 1);
+    var spinner = AnsiProgress.kAnimationItems[_tickCount % 4];
+    var pctComplete = (_tickCount * 100 / _totalTickCount).toStringAsFixed(2);
     _logger.write('\r[$hyphens$spinner$trailingSpace] ($pctComplete%)');
   }
 }

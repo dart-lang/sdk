@@ -685,10 +685,6 @@ mixin FunctionDataTypeVariablesMixin implements FunctionData {
 mixin FunctionDataForEachParameterMixin implements FunctionData {
   ir.FunctionNode get functionNode;
 
-  // TODO(johnniwinther,sigmund): Remove this when it's no longer needed for
-  //  `getConstantValue` in [forEachParameter].
-  ir.Member get memberContext;
-
   @override
   void forEachParameter(
       JsToElementMap elementMap,
@@ -708,8 +704,7 @@ mixin FunctionDataForEachParameterMixin implements FunctionData {
         }
       } else if (isOptional) {
         if (parameter.initializer != null) {
-          defaultValue = elementMap.getConstantValue(
-              memberContext, parameter.initializer!);
+          defaultValue = elementMap.getConstantValue(parameter.initializer!);
         } else {
           defaultValue = NullConstantValue();
         }
@@ -771,9 +766,6 @@ class FunctionDataImpl extends JMemberDataImpl
     definition.writeToDataSink(sink);
     sink.end(tag);
   }
-
-  @override
-  ir.Member get memberContext => node;
 
   @override
   FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {

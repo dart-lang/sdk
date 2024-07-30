@@ -1,6 +1,6 @@
-// @dart = 2.9
-
 class Class {
+  Class(this.field);
+  int? nullableField;
   int field;
 }
 
@@ -9,6 +9,7 @@ class GenericClass<T> {}
 expect(expected, actual) {}
 
 extension Extension on Class {
+  int? get simpleNullableSetter => nullableField;
   int get mutatingSetter => field;
   int get setterWithClosure => field;
   int get setterWithReturn => field;
@@ -16,6 +17,7 @@ extension Extension on Class {
   set mutatingSetter(int value) {}
   set setterWithClosure(int value) {}
   set setterWithReturn(int value) {}
+  set simpleNullableSetter(int? value) {}
   set simpleSetter(int value) {}
   testInternal() {}
 }
@@ -25,3 +27,5 @@ extension GenericExtension<T> on GenericClass<T> {
 }
 
 main() {}
+
+test(Class c, Class? cn) {}

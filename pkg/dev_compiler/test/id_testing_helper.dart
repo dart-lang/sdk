@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart' as fe;
-import 'package:front_end/src/fasta/messages.dart';
+import 'package:front_end/src/base/messages.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/kernel_id_testing.dart';
 import 'package:kernel/ast.dart';

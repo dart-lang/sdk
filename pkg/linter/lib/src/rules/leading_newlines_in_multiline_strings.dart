@@ -45,7 +45,7 @@ class LeadingNewlinesInMultilineStrings extends LintRule {
             name: 'leading_newlines_in_multiline_strings',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -17,6 +17,146 @@ class AvoidAnnotatingWithDynamicTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_annotating_with_dynamic';
 
+  test_augmentationClass() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A { }
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  void f(dynamic o) { }
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertDiagnosticsIn(errors, [
+      lint(54, 9),
+    ]);
+  }
+
+  test_augmentationTopLevelFunction() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+void f(dynamic o) { }
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertDiagnosticsIn(errors, [
+      lint(34, 9),
+    ]);
+  }
+
+  test_augmentationTopLevelFunction_localDynamic() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+void f(int i) {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment void f(int i) {
+  var g = (dynamic x) {};
+  g(i);
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertDiagnosticsIn(errors, [
+      lint(62, 9),
+    ]);
+  }
+
+  test_augmentedMethod() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  void f(dynamic o) { }
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  augment void f(dynamic o) { }
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(45, 9),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
+  test_augmentedTopLevelFunction() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+void f(dynamic o) { }
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment void f(dynamic o) { }
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(33, 9),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
+  test_augmentedTopLevelFunction_multiple() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+void f(dynamic o) { }
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment void f(dynamic o) { }
+augment void f(dynamic o) { }
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(33, 9),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   // TODO(srawlins): Test parameter of function-typed typedef (both old and
   // new style).
   // Test parameter of function-typed parameter (`f(void g(dynamic x))`).

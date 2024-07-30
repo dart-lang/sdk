@@ -77,13 +77,13 @@ class _AvoidIntRule extends LintRule {
           name: 'avoid_int',
           description: '',
           details: '',
-          group: Group.errors,
+          categories: {Category.errors},
         );
 
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _AvoidIntVisitor(this);
+    var visitor = _AvoidIntVisitor(this);
     registry.addNamedType(this, visitor);
   }
 }

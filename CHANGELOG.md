@@ -1,88 +1,123 @@
-## 3.4.4 - 2024-06-12
+## 3.5.0
 
-This is a patch release that:
+### Language
 
-- Fixes an issue where pub would crash when failing to fetch advisories from
- the server. (issue [pub#4269]).
+- **Breaking Change** [#55418][]: The context used by the compiler to perform
+  type inference on the operand of an `await` expression has been changed to
+  match the behavior of the analyzer. This change is not expected to make any
+  difference in practice.
 
-- Fixes an issue where `const bool.fromEnvironment('dart.library.ffi')` is true
-  and conditional import condition `dart.library.ffi` is true in dart2wasm.
-  (issue [#55948]).
+- **Breaking Change** [#55436][]: The context used by the compiler to perform
+  type inference on the right hand side of an "if-null" expression (`e1 ?? e2`)
+  has been changed to match the behavior of the analyzer. change is expected to
+  have low impact on real-world code. But in principle it could cause
+  compile-time errors or changes in runtime behavior by changing inferred
+  types. The old behavior can be restored by supplying explicit types.
 
-- Fixes an issue where FFI calls with variadic arguments on MacOS Arm64
-  would mangle the arguments. (issue [#55943]).
+[#55418]: https://github.com/dart-lang/sdk/issues/55418
+[#55436]: https://github.com/dart-lang/sdk/issues/55436
 
-[pub#4269]: https://github.com/dart-lang/pub/issues/4269
-[#55948]: https://github.com/dart-lang/sdk/issues/55948
-[#55943]: https://github.com/dart-lang/sdk/issues/55943
+### Libraries
 
-## 3.4.3 - 2024-06-05
+#### `dart:core`
 
-This is a patch release that:
+- **Breaking Change** [#44876][]: `DateTime` on the web platform now stores
+  microseconds. The web implementation is now practically compatible with the
+  native implementation, where it is possible to round-trip a timestamp in
+  microseconds through a `DateTime` value without rounding the lower
+  digits. This change might be breaking for apps that rely in some way on the
+  `.microsecond` component always being zero, for example, expecting only three
+  fractional second digits in the `toString()` representation. Small
+  discrepancies in arithmetic due to rounding of web integers may still occur
+  for extreme values, (1) `microsecondsSinceEpoch` outside the safe range,
+  corresponding to dates with a year outside of 1685..2255, and (2) arithmetic
+  (`add`, `subtract`, `difference`) where the `Duration` argument or result
+  exceeds 570 years.
 
-- Fixes an issue where `DART_VM_OPTIONS` were not correctly parsed for
-  standalone Dart executables created with `dart compile exe` (issue
-  [#55818]).
+[#44876]: https://github.com/dart-lang/sdk/issues/44876
 
-- Fixes a bug in dart2wasm that can result in a runtime error that says
-  `array.new_fixed()` has a constant larger than 10000 (issue [#55873]).
+#### `dart:io`
 
-- Adds support for `--enable-experiment` flag to `dart compile` wasm
-  (issue [#55894]).
+- **Breaking Change** [#55786][]: `SecurityContext` is now `final`. This means
+  that `SecurityContext` can no longer be subclassed. `SecurityContext`
+  subclasses were never able to interoperate with other parts of `dart:io`.
 
-- Fixes an issue in dart2wasm compiler that can result in incorrect
-  nullability of type parameter (see [#55895]).
+- A `ConnectionTask` can now be created using an existing `Future<Socket>`.
+  Fixes [#55562].
 
-- Disallows `dart:ffi` imports in user code in dart2wasm (e.g. issue
-  [#53910]) as dart2wasm's currently only supports a small subset of
-  `dart:ffi` (issue [#55890]).
+[#55786]: https://github.com/dart-lang/sdk/issues/55786
+[#55562]: https://github.com/dart-lang/sdk/issues/55562
 
-[#55818]: https://github.com/dart-lang/sdk/issues/55818
-[#55873]: https://github.com/dart-lang/sdk/issues/55873
-[#55894]: https://github.com/dart-lang/sdk/issues/55894
-[#55895]: https://github.com/dart-lang/sdk/issues/55895
-[#55910]: https://github.com/dart-lang/sdk/issues/53910
-[#55890]: https://github.com/dart-lang/sdk/issues/55890
+#### `dart:typed_data`
 
-## 3.4.2 - 2024-05-29
+- **BREAKING CHANGE** [#53785][]: The unmodifiable view classes for typed data
+  have been removed. These classes were deprecated in Dart 3.4.
 
-This is a patch release that:
+  To create an unmodifiable view of a typed-data object, use the
+  `asUnmodifiableView()` methods added in Dart 3.3.
 
-- Marks `dart compile wasm` as no longer experimental.
+- Added superinterface `TypedDataList` to typed data lists, implementing both
+  `List` and `TypedData`. Allows abstracting over all such lists without losing
+  access to either the `List` or the `TypedData` members.
+  A `ByteData` is still only a `TypedData`, not a list.
 
-- Fixes two bugs in exception handling in `async` functions in dart2wasm
-  (issues [#55347], [#55457]).
+[#53785]: https://github.com/dart-lang/sdk/issues/53785
 
-- Fixes restoration of `this` variable in `sync*` and `async` functions in
-  dart2wasm.
+#### `dart:js_interop`
 
-- Implements missing control flow constructs (exceptions, switch/case with
-  yields) in `sync*` in dart2wasm (issues [#51342], [#51343]).
+- **Breaking Change** [#55508][]: `importModule` now accepts a `JSAny` instead
+  of a `String` to support other JS values as well, like `TrustedScriptURL`s.
+- **Breaking Change** [#55267][]: `isTruthy` and `not` now return `JSBoolean`
+  instead of `bool` to be consistent with the other operators.
+- **Breaking Change** `ExternalDartReference` no longer implements `Object`.
+  `ExternalDartReference` now accepts a type parameter `T` with a bound of
+  `Object?` to capture the type of the Dart object that is externalized.
+  `ExternalDartReferenceToObject.toDartObject` now returns a `T`.
+  `ExternalDartReferenceToObject` and `ObjectToExternalDartReference` are now
+  extensions on `T` and `ExternalDartReference<T>`, respectively, where `T
+  extends Object?`. See [#55342][] and [#55536][] for more details.
+- Fixes some consistency issues with `Function.toJS` across all compilers.
+  Specifically, calling `Function.toJS` on the same function gives you a new JS
+  function (see issue [#55515][]), the max number of args that are passed to the
+  JS function is determined by the static type of the Dart function, and extra
+  args are dropped when passed to the JS function in all compilers (see
+  [#48186][]).
 
-- Fixes a bug dart2wasm compiler that surfaces as a compiler crash when indexing
-  lists where the compiler proofs the list to be constant and the index is
-  out-of-bounds (issue [#55817]).
+[#55508]: https://github.com/dart-lang/sdk/issues/55508
+[#55267]: https://github.com/dart-lang/sdk/issues/55267
+[#55342]: https://github.com/dart-lang/sdk/issues/55342
+[#55536]: https://github.com/dart-lang/sdk/issues/55536
+[#55515]: https://github.com/dart-lang/sdk/issues/55515
+[#48186]: https://github.com/dart-lang/sdk/issues/48186
 
-[#55347]: https://github.com/dart-lang/sdk/issues/55347
-[#55457]: https://github.com/dart-lang/sdk/issues/55457
-[#51342]: https://github.com/dart-lang/sdk/issues/51342
-[#51343]: https://github.com/dart-lang/sdk/issues/51343
-[#55817]: https://github.com/dart-lang/sdk/issues/55817
+### Tools
 
-## 3.4.1 - 2024-05-22
+#### Linter
 
-This is a patch release that:
+- Added the [`unintended_html_in_doc_comment`][] lint.
+- Added the [`invalid_runtime_check_with_js_interop_types`][] lint.
+- Added the [`document_ignores`][] lint.
 
-- Fixes a bug in the CFE which could manifest as compilation errors of Flutter
-  web apps when compiled with dart2wasm (issue [#55714]).
+[`unintended_html_in_doc_comment`]: https://dart.dev/lints/unintended_html_in_doc_comment
+[`invalid_runtime_check_with_js_interop_types`]: https://dart.dev/lints/invalid_runtime_check_with_js_interop_types
+[`document_ignores`]: https://dart.dev/lints/document_ignores
 
-- Fixes a bug in the pub client, such that `dart run` will not interfere with
-  Flutter l10n (at least for most cases) (issue [#55758]).
+#### Pub
 
-[#55714]: https://github.com/dart-lang/sdk/issues/55714
-[#55758]: https://github.com/dart-lang/sdk/issues/55758
+- New flag `dart pub downgrade --tighten` to restrict lower bounds of
+  dependencies' constraints to the minimum that can be resolved.
 
-## 3.4.0 - 2024-05-14
+### Dart Runtime
+
+- The Dart VM only executes sound null safe code, running of unsound null
+  safe code using the option `--no-sound-null-safety` has been removed.
+
+- `Dart_NewListOf` and `Dart_IsLegacyType` functions are
+  removed from Dart C API.
+
+- `Dart_DefaultCanonicalizeUrl` is removed from the Dart C API.
+
+## 3.4.0
 
 ### Language
 
@@ -209,6 +244,14 @@ advantage of these improvements, set your package's
 [meta]: https://pub.dev/packages/meta
 [`@doNotSubmit`]: https://pub.dev/documentation/meta/latest/meta/doNotSubmit-constant.html
 [`@mustBeConst`]: https://pub.dev/documentation/meta/latest/meta/mustBeConst-constant.html
+
+#### Linter
+
+- Added the [`unnecessary_library_name`][] lint.
+- Added the [`missing_code_block_language_in_doc_comment`][] lint.
+
+[`unnecessary_library_name`]: https://dart.dev/lints/unnecessary_library_name
+[`missing_code_block_language_in_doc_comment`]: https://dart.dev/lints/missing_code_block_language_in_doc_comment
 
 #### Compilers
 

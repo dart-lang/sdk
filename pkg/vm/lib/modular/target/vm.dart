@@ -196,7 +196,7 @@ class VmTarget extends Target {
 
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformLibraries(libraries, coreTypes, hierarchy,
-        soundNullSafety: flags.soundNullSafety, productMode: productMode);
+        productMode: productMode);
     logger?.call("Lowering transformations performed");
 
     callSiteAnnotator.transformLibraries(
@@ -213,7 +213,7 @@ class VmTarget extends Target {
       {void Function(String msg)? logger}) {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformProcedure(procedure, coreTypes, hierarchy,
-        soundNullSafety: flags.soundNullSafety, productMode: productMode);
+        productMode: productMode);
     logger?.call("Lowering transformations performed");
   }
 
@@ -231,7 +231,7 @@ class VmTarget extends Target {
           new IntLiteral(type)..fileOffset = offset,
           _fixedLengthList(
               coreTypes,
-              coreTypes.typeLegacyRawType,
+              coreTypes.typeNonNullableRawType,
               arguments.types
                   .map<Expression>((t) => new TypeLiteral(t))
                   .toList(),
@@ -247,11 +247,11 @@ class VmTarget extends Target {
                       new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
                       arg.value)
                     ..fileOffset = arg.fileOffset;
-                })), keyType: coreTypes.symbolLegacyRawType)
+                })), keyType: coreTypes.symbolNonNullableRawType)
                   ..isConst = (arguments.named.isEmpty)
                   ..fileOffset = arguments.fileOffset
               ], types: [
-                coreTypes.symbolLegacyRawType,
+                coreTypes.symbolNonNullableRawType,
                 new DynamicType()
               ]))
             ..fileOffset = offset
@@ -527,5 +527,6 @@ class VmTarget extends Target {
       : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
 
   @override
-  bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("vm:");
+  bool isSupportedPragma(String pragmaName) =>
+      pragmaName.startsWith("vm:") || pragmaName.startsWith("dyn-module:");
 }

@@ -66,6 +66,23 @@ class FfiCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const FfiCode ADDRESS_POSITION = FfiCode(
+    'ADDRESS_POSITION',
+    "The '.address' expression can only be used as argument to a leaf native "
+        "external call.",
+  );
+
+  ///  No parameters.
+  static const FfiCode ADDRESS_RECEIVER = FfiCode(
+    'ADDRESS_RECEIVER',
+    "The receiver of '.address' must be a concrete 'TypedData', a concrete "
+        "'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a "
+        "Union field.",
+    correctionMessage:
+        "Change the receiver of '.address' to one of the allowed kinds.",
+  );
+
+  ///  No parameters.
   static const FfiCode ANNOTATION_ON_POINTER_FIELD = FfiCode(
     'ANNOTATION_ON_POINTER_FIELD',
     "Fields in a struct class whose type is 'Pointer' shouldn't have any "
@@ -89,6 +106,7 @@ class FfiCode extends AnalyzerErrorCode {
     "Argument to 'Native.addressOf' must be annotated with @Native",
     correctionMessage:
         "Try passing a static function or field annotated with '@Native'",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -143,6 +161,7 @@ class FfiCode extends AnalyzerErrorCode {
     'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
     "There may be at most one @DefaultAsset annotation on a library.",
     correctionMessage: "Try removing the extra annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters
@@ -150,6 +169,7 @@ class FfiCode extends AnalyzerErrorCode {
     'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
     "Native functions and fields must have exactly one `@Native` annotation.",
     correctionMessage: "Try removing the extra annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -157,6 +177,7 @@ class FfiCode extends AnalyzerErrorCode {
     'FFI_NATIVE_MUST_BE_EXTERNAL',
     "Native functions must be declared external.",
     correctionMessage: "Add the `external` keyword to the function.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -176,6 +197,7 @@ class FfiCode extends AnalyzerErrorCode {
     "Unexpected number of Native annotation parameters. Expected {0} but has "
         "{1}.",
     correctionMessage: "Make sure parameters match the function annotated.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -190,6 +212,7 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage:
         "Make sure parameters match the function annotated, including an extra "
         "first parameter for the receiver.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.

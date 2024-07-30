@@ -149,7 +149,7 @@ String? _getParametersString(engine.Element element) {
     }
     parameters = element.parameters.toList();
   } else if (element is engine.TypeAliasElement) {
-    final aliasedType = element.aliasedType;
+    var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       parameters = aliasedType.parameters.toList();
     } else {

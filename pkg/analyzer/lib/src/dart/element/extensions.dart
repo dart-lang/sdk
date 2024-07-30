@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -17,12 +18,12 @@ extension DartTypeExtension on DartType {
 
 extension ElementAnnotationExtensions on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
-    for (final kind in TargetKind.values) kind.name: kind,
+    for (var kind in TargetKind.values) kind.name: kind,
   };
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
-    final element = this.element;
+    var element = this.element;
     InterfaceElement? interfaceElement;
     if (element is PropertyAccessorElement) {
       if (element.isGetter) {
@@ -32,7 +33,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement.augmented?.declaration;
+      interfaceElement = element.enclosingElement.augmented.declaration;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -65,6 +66,14 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 }
 
 extension ElementExtension on Element {
+  /// If this element is an augmentation, returns the declaration.
+  Element get augmentedDeclaration {
+    if (this case InstanceElement self) {
+      return self.augmented.declaration;
+    }
+    return this;
+  }
+
   /// Return `true` if this element, the enclosing class (if there is one), or
   /// the enclosing library, has been annotated with the `@doNotStore`
   /// annotation.
@@ -108,19 +117,29 @@ extension ElementExtension on Element {
     }
     return false;
   }
+
+  /// Return true if this element is a wildcard variable.
+  bool get isWildcardVariable =>
+      name == '_' &&
+      (this is LocalVariableElement ||
+          this is TypeParameterElement ||
+          (this is ParameterElement &&
+              this is! FieldFormalParameterElement &&
+              this is! SuperFormalParameterElement)) &&
+      (library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false);
 }
 
 extension ExecutableElementExtension on ExecutableElement {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
-    final enclosing = enclosingElement;
+    var enclosing = enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }
 
 extension ExecutableElementExtensionQuestion on ExecutableElement? {
   DartType? get firstParameterType {
-    final self = this;
+    var self = this;
     if (self is MethodElement) {
       return self.parameters.firstOrNull?.type;
     }
@@ -128,41 +147,9 @@ extension ExecutableElementExtensionQuestion on ExecutableElement? {
   }
 }
 
-extension InterfaceElementExtension on InterfaceElement {
-  /// The result of applying augmentations.
-  ///
-  /// The target must be a declaration, not an augmentation.
-  /// This getter will throw, if this is not the case.
-  AugmentedInterfaceElement get augmentedOfDeclaration {
-    if (isAugmentation) {
-      throw StateError(
-        'The target must be a declaration, not an augmentation.',
-      );
-    }
-    // This is safe because declarations always have it.
-    return augmented!;
-  }
-}
-
 extension InterfaceTypeExtension on InterfaceType {
   bool get isDartCoreObjectNone {
     return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.none;
-  }
-}
-
-extension MixinElementExtension on MixinElement {
-  /// The result of applying augmentations.
-  ///
-  /// The target must be a declaration, not an augmentation.
-  /// This getter will throw, if this is not the case.
-  AugmentedMixinElement get augmentedOfDeclaration {
-    if (isAugmentation) {
-      throw StateError(
-        'The target must be a declaration, not an augmentation.',
-      );
-    }
-    // This is safe because declarations always have it.
-    return augmented!;
   }
 }
 
@@ -200,7 +187,7 @@ extension RecordTypeExtension on RecordType {
   }
 
   RecordTypeNamedField? namedField(String name) {
-    for (final field in namedFields) {
+    for (var field in namedFields) {
       if (field.name == name) {
         return field;
       }
@@ -209,7 +196,7 @@ extension RecordTypeExtension on RecordType {
   }
 
   RecordTypePositionalField? positionalField(String name) {
-    final index = positionalFieldIndex(name);
+    var index = positionalFieldIndex(name);
     if (index != null && index < positionalFields.length) {
       return positionalFields[index];
     }
@@ -219,11 +206,11 @@ extension RecordTypeExtension on RecordType {
   /// Attempt to parse `$1`, `$2`, etc.
   static int? positionalFieldIndex(String name) {
     if (_positionalName.hasMatch(name)) {
-      final positionString = name.substring(1);
+      var positionString = name.substring(1);
       // Use `tryParse` instead of `parse`
       // even though the numeral matches the pattern `[1-9]\d*`,
       // to reject numerals too big to fit in an `int`.
-      final position = int.tryParse(positionString);
+      var position = int.tryParse(positionString);
       if (position != null) return position - 1;
     }
     return null;

@@ -47,8 +47,8 @@ class DiagnosticFactory {
   /// already used by [originalElement].
   AnalysisError duplicateDefinition(ErrorCode code, Element duplicateElement,
       Element originalElement, List<Object> arguments) {
-    final duplicate = duplicateElement.nonSynthetic;
-    final original = originalElement.nonSynthetic;
+    var duplicate = duplicateElement.nonSynthetic;
+    var original = originalElement.nonSynthetic;
     return AnalysisError.tmp(
       source: duplicate.source!,
       offset: duplicate.nameOffset,

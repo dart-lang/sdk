@@ -26,20 +26,24 @@ class B extends core::Object implements self::A {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Record]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->r<2>]
   method returnUnboxed1() → dynamic
     return (1.0, "hey");
 
+  [@vm.inferred-return-type.metadata=dart.core::_Record]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
   [@vm.unboxing-info.metadata=()->r<1,foo>]
   get returnUnboxed2() → dynamic
     return let final core::String #t1 = "hi" in ([@vm.inferred-type.metadata=int] core::int::parse("2"), {foo: #t1});
 
+  [@vm.inferred-return-type.metadata=dart.core::_Record]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   method returnBoxed1() → dynamic
     return (1.0, "hey");
 
+  [@vm.inferred-return-type.metadata=dart.core::_Record]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6]
   get returnBoxed2() → dynamic
     return let final core::String #t2 = "hi" in ([@vm.inferred-type.metadata=int] core::int::parse("2"), {foo: #t2});
@@ -49,20 +53,24 @@ class C extends self::A {
     : super self::A::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Record]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->r<2>]
   method returnUnboxed1() → dynamic
     return ("bye", 10);
 
+  [@vm.inferred-return-type.metadata=dart.core::_Record]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
   [@vm.unboxing-info.metadata=()->r<1,foo>]
   get returnUnboxed2() → dynamic
     return let final core::double #t3 = 3.14 in ([@vm.inferred-type.metadata=int] core::int::parse("3"), {foo: #t3});
 
+  [@vm.inferred-return-type.metadata=dart.core::_Record]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   method returnBoxed1() → dynamic
     return (1.0, "hey", 3);
 
+  [@vm.inferred-return-type.metadata=dart.core::_Record]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6]
   get returnBoxed2() → dynamic
     return let final core::String #t4 = "hi" in ([@vm.inferred-type.metadata=int] core::int::parse("2"), {bar: #t4});
@@ -71,30 +79,41 @@ class C extends self::A {
 [@vm.inferred-type.metadata=dart.core::bool]
 static field core::bool condition = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1;
 
+[@vm.inferred-return-type.metadata=dart.core::_Record]
 [@vm.unboxing-info.metadata=()->r<2>]
 static method returnUnboxed1() → dynamic
   return (1, 2);
 
+[@vm.inferred-return-type.metadata=dart.core::_Record]
 [@vm.unboxing-info.metadata=()->r<2>]
 static method returnUnboxed2() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::condition ?{(core::int, core::int)} ([@vm.inferred-type.metadata=int] core::int::parse("1"), 42) : (2, [@vm.inferred-type.metadata=int] core::int::parse("43"));
 
+[@vm.inferred-return-type.metadata=dart.core::_Record]
 [@vm.unboxing-info.metadata=()->r<0,bar,foo>]
 static method returnUnboxed3() → dynamic
   return let final core::String #t5 = "foo" in ({bar: 3.14, foo: #t5});
 
+[@vm.inferred-return-type.metadata=dart.core::_Record]
 [@vm.unboxing-info.metadata=()->r<0,bar,foo>]
 static get returnUnboxed4() → dynamic
   return [@vm.inferred-type.metadata=dart.core::_Record] self::returnUnboxed3();
+
+[@vm.inferred-return-type.metadata=dart.core::_Record?]
 static method returnBoxed1() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::condition ?{(core::int, core::int)?} ([@vm.inferred-type.metadata=int] core::int::parse("1"), 42) : null;
+
+[@vm.inferred-return-type.metadata=!]
 static method returnBoxed2() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::condition ?{core::Object} ([@vm.inferred-type.metadata=int] core::int::parse("1"), 42) : 42;
 
+[@vm.inferred-return-type.metadata=dart.core::_Record]
 [@vm.unboxing-info.metadata=[!regcc]]
 @#C3
 static method returnBoxed3() → dynamic
   return (1, 2);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   core::print([@vm.inferred-type.metadata=dart.core::_Record] self::returnUnboxed1());
   core::print([@vm.inferred-type.metadata=dart.core::_Record] self::returnUnboxed2());

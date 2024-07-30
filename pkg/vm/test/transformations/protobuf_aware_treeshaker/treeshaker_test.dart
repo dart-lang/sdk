@@ -14,7 +14,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'package:vm/kernel_front_end.dart'
-    show runGlobalTransformations, ErrorDetector;
+    show runGlobalTransformations, ErrorDetector, KernelCompilationArguments;
 import 'package:vm/modular/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
@@ -79,18 +79,16 @@ Future<void> compileAOT(Uri source) async {
   // Imitate the global transformations as run by the protobuf-aware tree shaker
   // in AOT mode.
   // Copied verbatim from pkg/vm/bin/protobuf_aware_treeshaker.dart.
-  const bool useGlobalTypeFlowAnalysis = true;
-  const bool enableAsserts = false;
-  const bool useProtobufAwareTreeShakerV2 = true;
   final nopErrorDetector = ErrorDetector();
   runGlobalTransformations(
-    target,
-    component,
-    useGlobalTypeFlowAnalysis,
-    enableAsserts,
-    useProtobufAwareTreeShakerV2,
-    nopErrorDetector,
-  );
+      target,
+      component,
+      nopErrorDetector,
+      KernelCompilationArguments(
+        useGlobalTypeFlowAnalysis: true,
+        enableAsserts: false,
+        useProtobufTreeShakerV2: true,
+      ));
 }
 
 main() {

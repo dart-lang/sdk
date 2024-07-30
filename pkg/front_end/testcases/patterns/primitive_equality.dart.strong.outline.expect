@@ -1,0 +1,199 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Const extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Const
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get hashCode() → core::int
+    ;
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super core::Object::•()
+    ;
+  operator ==(core::Object other) → core::bool
+    ;
+}
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+  get hashCode() → core::int
+    ;
+  operator ==(core::Object other) → core::bool
+    ;
+}
+static const field core::bool a1 = const self::A::•() =={core::Object::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool a2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const self::A::•();
+static const field core::bool a3 = !(const self::A::•() =={core::Object::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool a4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const self::A::•());
+static const field core::bool a5 = const self::A::•() == null;
+static const field core::bool a6 = const self::A::•() == null;
+static const field core::bool a7 = !(const self::A::•() == null);
+static const field core::bool a8 = !(const self::A::•() == null);
+static const field core::bool b1 = const self::B::•() =={self::B::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool b2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const self::B::•();
+static const field core::bool b3 = !(const self::B::•() =={self::B::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool b4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const self::B::•());
+static const field core::bool b5 = const self::B::•() == null;
+static const field core::bool b6 = const self::B::•() == null;
+static const field core::bool b7 = !(const self::B::•() == null);
+static const field core::bool b8 = !(const self::B::•() == null);
+static const field core::bool c1 = const self::C::•() =={self::C::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool c2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const self::C::•();
+static const field core::bool c3 = !(const self::C::•() =={self::C::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool c4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const self::C::•());
+static const field core::bool c5 = const self::C::•() == null;
+static const field core::bool c6 = const self::C::•() == null;
+static const field core::bool c7 = !(const self::C::•() == null);
+static const field core::bool c8 = !(const self::C::•() == null);
+static const field core::bool d1 = true =={core::Object::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool d2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} true;
+static const field core::bool d3 = !(true =={core::Object::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool d4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} true);
+static const field core::bool e1 = 0 =={core::num::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool e2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} 0;
+static const field core::bool e3 = !(0 =={core::num::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool e4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} 0);
+static const field core::bool f1 = "" =={core::String::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool f2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} "";
+static const field core::bool f3 = !("" =={core::String::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool f4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} "");
+static const field core::bool g1 = #a =={core::Symbol::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool g2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} #a;
+static const field core::bool g3 = !(#a =={core::Symbol::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool g4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} #a);
+static const field core::bool h1 = const _in::Symbol::•("b") =={core::Symbol::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool h2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const _in::Symbol::•("b");
+static const field core::bool h3 = !(const _in::Symbol::•("b") =={core::Symbol::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool h4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const _in::Symbol::•("b"));
+static const field core::bool i1 = core::Object =={core::Type::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool i2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} core::Object;
+static const field core::bool i3 = !(core::Object =={core::Type::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool i4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} core::Object);
+static const field core::bool j1 = const <dynamic>[] =={core::List::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool j2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const <dynamic>[];
+static const field core::bool j3 = !(const <dynamic>[] =={core::List::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool j4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const <dynamic>[]);
+static const field core::bool k1 = const <dynamic, dynamic>{} =={core::Object::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool k2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const <dynamic, dynamic>{};
+static const field core::bool k3 = !(const <dynamic, dynamic>{} =={core::Object::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool k4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const <dynamic, dynamic>{});
+static const field core::bool l1 = const <core::int>{0} =={core::Object::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool l2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const <core::int>{0};
+static const field core::bool l3 = !(const <core::int>{0} =={core::Object::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool l4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} const <core::int>{0});
+static const field core::bool n1 = self::topLevel =={core::Object::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool n2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} self::topLevel;
+static const field core::bool n3 = !(self::topLevel =={core::Object::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool n4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} self::topLevel);
+static const field core::bool o1 = 0.5 =={core::num::==}{(core::Object) → core::bool} const self::Const::•();
+static const field core::bool o2 = const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} 0.5;
+static const field core::bool o3 = !(0.5 =={core::num::==}{(core::Object) → core::bool} const self::Const::•());
+static const field core::bool o4 = !(const self::Const::•() =={core::Object::==}{(core::Object) → core::bool} 0.5);
+static const field core::Set<core::Object?> set1 = const <core::Object?>{null, const self::Const::•(), true, 0, "", #a, const _in::Symbol::•("b"), core::Object, const <dynamic>[], const <dynamic, dynamic>{}, const <core::int>{0}, self::topLevel};
+static const field core::Set<self::A> set2 = const <self::A>{const self::A::•()};
+static const field core::Set<self::B> set3 = const <self::B>{const self::B::•()};
+static const field core::Set<self::C> set4 = const <self::C>{const self::C::•()};
+static const field core::Set<core::double> set5 = const <core::double>{0.5};
+static const field core::Map<core::Object?, core::int> map1 = const <core::Object?, core::int>{null: 0, const self::Const::•(): 0, true: 0, 0: 0, "": 0, #a: 0, const _in::Symbol::•("b"): 0, core::Object: 0, const <dynamic>[]: 0, const <dynamic, dynamic>{}: 0, const <core::int>{0}: 0, self::topLevel: 0};
+static const field core::Map<self::A, core::int> map2 = const <self::A, core::int>{const self::A::•(): 0};
+static const field core::Map<self::B, core::int> map3 = const <self::B, core::int>{const self::B::•(): 0};
+static const field core::Map<self::C, core::int> map4 = const <self::C, core::int>{const self::C::•(): 0};
+static const field core::Map<core::double, core::int> map5 = const <core::double, core::int>{0.5: 0};
+static method topLevel() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:27:12 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:27:19 -> InstanceConstant(const Const{})
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:28:20 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:29:12 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:29:19 -> InstanceConstant(const Const{})
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:30:20 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///primitive_equality.dart:31:16 -> BoolConstant(false)
+Evaluated: EqualsNull @ org-dartlang-testcase:///primitive_equality.dart:32:17 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:33:16 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:34:17 -> BoolConstant(true)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:36:12 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:36:19 -> InstanceConstant(const Const{})
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:37:20 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:38:12 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:38:19 -> InstanceConstant(const Const{})
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:39:20 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///primitive_equality.dart:40:16 -> BoolConstant(false)
+Evaluated: EqualsNull @ org-dartlang-testcase:///primitive_equality.dart:41:17 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:42:16 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:43:17 -> BoolConstant(true)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:45:12 -> InstanceConstant(const C{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:45:19 -> InstanceConstant(const Const{})
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:46:20 -> BoolConstant(false)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:47:12 -> InstanceConstant(const C{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:47:19 -> InstanceConstant(const Const{})
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:48:20 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///primitive_equality.dart:49:16 -> BoolConstant(false)
+Evaluated: EqualsNull @ org-dartlang-testcase:///primitive_equality.dart:50:17 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:51:16 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:52:17 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:54:17 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:55:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:56:17 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:57:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:59:14 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:60:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:61:14 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:62:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:64:15 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:65:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:66:15 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:67:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:69:15 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:70:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:71:15 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:72:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:74:30 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:75:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:76:30 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:77:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:79:19 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:80:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:81:19 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:82:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:84:15 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:85:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:86:15 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:87:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:89:15 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:90:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:91:15 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:92:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:94:16 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:95:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:96:16 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:97:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:99:21 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:100:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:101:21 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:102:20 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:104:16 -> BoolConstant(false)
+Evaluated: EqualsCall @ org-dartlang-testcase:///primitive_equality.dart:105:20 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:106:16 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///primitive_equality.dart:107:20 -> BoolConstant(true)
+Evaluated: SetLiteral @ org-dartlang-testcase:///primitive_equality.dart:109:14 -> SetConstant(const <Object?>{null, const Const{}, true, 0, "", #a, #b, Object, const <dynamic>[], const <dynamic, dynamic>{}, const <int>{0}, topLevel})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:125:3 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:129:3 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:133:3 -> InstanceConstant(const C{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///primitive_equality.dart:140:14 -> MapConstant(const <Object?, int>{null: 0, const Const{}: 0, true: 0, 0: 0, "": 0, #a: 0, #b: 0, Object: 0, const <dynamic>[]: 0, const <dynamic, dynamic>{}: 0, const <int>{0}: 0, topLevel: 0})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:156:3 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:160:3 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primitive_equality.dart:164:3 -> InstanceConstant(const C{})
+Extra constant evaluation: evaluated: 99, effectively constant: 82

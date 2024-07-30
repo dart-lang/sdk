@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -48,13 +49,13 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
               'arguments: List'));
     }
 
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 
-    final library = await requireResolvedLibrary(filePath);
+    var library = await requireResolvedLibrary(filePath);
     return library.mapResult((library) async {
       var unit = library.unitWithPath(filePath);
       if (unit == null) {
@@ -94,18 +95,18 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
       var fileEdits = <FileEditInformation>[];
       for (var edit in edits) {
         var path = edit.file;
-        final fileResult = context.session.getFile(path);
+        var fileResult = context.session.getFile(path);
         if (fileResult is! FileResult) {
           return ErrorOr.error(ResponseError(
               code: ServerErrorCodes.FileAnalysisFailed,
               message: 'Could not access "$path".'));
         }
-        final docIdentifier = server.getVersionedDocumentIdentifier(path);
+        var docIdentifier = server.getVersionedDocumentIdentifier(path);
         fileEdits.add(FileEditInformation(
             docIdentifier, fileResult.lineInfo, edit.edits,
             newFile: edit.fileStamp == -1));
       }
-      final workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
+      var workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
       return sendWorkspaceEditToClient(workspaceEdit);
     });
   }

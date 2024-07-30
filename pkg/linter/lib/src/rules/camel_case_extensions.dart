@@ -34,14 +34,15 @@ class CamelCaseExtensions extends LintRule {
   static const LintCode code = LintCode('camel_case_extensions',
       "The extension name '{0}' isn't an UpperCamelCase identifier.",
       correctionMessage:
-          'Try changing the name to follow the UpperCamelCase style.');
+          'Try changing the name to follow the UpperCamelCase style.',
+      hasPublishedDocs: true);
 
   CamelCaseExtensions()
       : super(
             name: 'camel_case_extensions',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -61,7 +62,9 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    // TODO(pq): don't lint augmentations, https://github.com/dart-lang/linter/issues/4898
+    // Don't lint augmentations.
+    if (node.augmentKeyword != null) return;
+
     var name = node.name;
     if (name != null && !isCamelCase(name.lexeme)) {
       rule.reportLintForToken(name, arguments: [name.lexeme]);

@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 class A {}
 
 class B extends A {
@@ -8,15 +6,22 @@ class B extends A {
 
 main() {}
 
-oracle<T>([T t]) => true;
+oracle<T>([T? t]) => true;
 
-testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int index, Map<String, int> mapStringInt, Map<String, double> mapStringDouble) {}
+testForElement(
+    dynamic dynVar,
+    List<int> listInt,
+    List<double> listDouble,
+    int index,
+    Map<String, int> mapStringInt,
+    Map<String, double> mapStringDouble) {}
 
 testForElementErrors(Map<int, int> map, List<int> list) async {}
 
 testForElementErrorsNotAsync(Stream<int> stream) {}
 
-testIfElement(dynamic dynVar, List<int> listInt, List<double> listDouble, Map<String, int> mapToInt, Map<String, double> mapToDouble) {}
+testIfElement(dynamic dynVar, List<int> listInt, List<double> listDouble,
+    Map<String, int> mapToInt, Map<String, double> mapToDouble) {}
 
 testIfElementErrors(Map<int, int> map) {}
 

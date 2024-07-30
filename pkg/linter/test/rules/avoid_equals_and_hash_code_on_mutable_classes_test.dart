@@ -53,6 +53,37 @@ class A {
 ''');
   }
 
+  @FailingTest(
+      reason: '`augmented.metadata` is unimplemented',
+      issue: 'https://github.com/dart-lang/linter/issues/4932')
+  test_immutableClass_augmented() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+import 'package:meta/meta.dart';
+
+augment class A {
+  @override
+  int get hashCode => 0;
+}
+
+@immutable
+augment class A { }
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   test_mutableClass() async {
     await assertDiagnostics(r'''
 class A {
@@ -66,6 +97,44 @@ class A {
 ''', [
       lint(65, 8),
       lint(133, 3),
+    ]);
+  }
+
+  test_mutableClass_augmentationMethod() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  @override
+  int get hashCode => 0;
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  augment int get hashCode => 0;
+}
+''');
+  }
+
+  test_mutableClass_augmented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  @override
+  int get hashCode => 0;
+}
+''', [
+      lint(59, 3),
     ]);
   }
 

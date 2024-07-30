@@ -11,6 +11,8 @@ class A extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::A? :a:finalizableValue;
   final hoisted has-declared-initializer self::A a;
@@ -25,6 +27,7 @@ static method main() → void {
   _in::reachabilityFence(:a:finalizableValue);
 }
 
+[@vm.inferred-return-type.metadata=dart.core::_Record]
 [@vm.unboxing-info.metadata=()->r<2>]
 static method b() → (self::A, core::bool)
   return (new self::A::•(), true);

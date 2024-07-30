@@ -22,7 +22,7 @@ mixin M {}
 class A extends Object with M {}
 ''');
 
-    final node = findNode.singleWithClause;
+    var node = findNode.singleWithClause;
     assertResolvedNodeText(node, r'''
 WithClause
   withKeyword: with
@@ -40,7 +40,7 @@ mixin M {}
 class A = Object with M;
 ''');
 
-    final node = findNode.singleWithClause;
+    var node = findNode.singleWithClause;
     assertResolvedNodeText(node, r'''
 WithClause
   withKeyword: with
@@ -132,7 +132,7 @@ mixin M<T> {
 }
 ''');
 
-    final node = findNode.singleFieldDeclaration;
+    var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -157,7 +157,7 @@ mixin M {
 }
 ''');
 
-    final node = findNode.singleMethodDeclaration;
+    var node = findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -185,7 +185,7 @@ class B {}
 mixin M implements A, B {}
 ''');
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -262,7 +262,7 @@ mixin M {
 }
 ''');
 
-    final node = findNode.singleMethodDeclaration;
+    var node = findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -295,7 +295,7 @@ mixin M<T> on C<T> {}
       error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
 
-    final node = findNode.functionExpressionInvocation('f()');
+    var node = findNode.functionExpressionInvocation('f()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -321,9 +321,9 @@ class B {}
 mixin M on A, B {}
 ''');
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType
@@ -337,32 +337,6 @@ OnClause
 ''');
   }
 
-  test_recursiveInterfaceInheritance_implements() async {
-    await assertErrorsInCode(r'''
-mixin A implements B {}
-mixin B implements A {}''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 30, 1),
-    ]);
-  }
-
-  test_recursiveInterfaceInheritance_on() async {
-    await assertErrorsInCode(r'''
-mixin A on B {}
-mixin B on A {}''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 22, 1),
-    ]);
-  }
-
-  test_recursiveInterfaceInheritanceOn() async {
-    await assertErrorsInCode(r'''
-mixin A on A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1),
-    ]);
-  }
-
   test_setter() async {
     await assertNoErrorsInCode(r'''
 mixin M {
@@ -370,7 +344,7 @@ mixin M {
 }
 ''');
 
-    final node = findNode.singleMethodDeclaration;
+    var node = findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -434,7 +408,7 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    final node = findNode.methodInvocation('foo(42)');
+    var node = findNode.methodInvocation('foo(42)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SuperExpression

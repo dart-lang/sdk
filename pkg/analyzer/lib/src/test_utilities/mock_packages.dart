@@ -5,6 +5,9 @@
 import 'package:analyzer/file_system/file_system.dart';
 
 /// Helper for creating mock packages.
+// TODO(brianwilkerson): Deprecate or remove this class after the internal uses
+//  of the class have been removed.
+//  @Deprecated('Use MockPackagesMixin from analyzer_utilities')
 class MockPackages {
   /// Create a fake 'angular' package that can be used by tests.
   static void addAngularMetaPackageFiles(Folder rootFolder) {
@@ -59,9 +62,8 @@ class _CallocAllocator implements Allocator {
     libFolder.getChildAssumingFile('js.dart').writeAsStringSync(r'''
 library js;
 
-class JS {
-  const JS([String js]);
-}
+// ignore: EXPORT_INTERNAL_LIBRARY
+export 'dart:_js_annotations' show JS, staticInterop;
 ''');
   }
 
@@ -86,12 +88,15 @@ library meta;
 
 import 'meta_meta.dart';
 
+@Deprecated("Use a return type of 'Never' instead")
 const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 
 @Deprecated('Use the `covariant` modifier instead')
 const _Checked checked = _Checked();
 
 const _DoNotStore doNotStore = _DoNotStore();
+
+const _DoNotSubmit doNotSubmit = _DoNotSubmit();
 
 const _Experimental experimental = _Experimental();
 
@@ -106,6 +111,9 @@ const _IsTest isTest = _IsTest();
 const _IsTestGroup isTestGroup = _IsTestGroup();
 
 const _Literal literal = _Literal();
+
+@experimental
+const _MustBeConst mustBeConst = _MustBeConst();
 
 const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
 
@@ -135,27 +143,15 @@ const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
 
 const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 
+@Target({
+  TargetKind.classType,
+  TargetKind.extensionType,
+  TargetKind.mixinType,
+})
 class Immutable {
   final String reason;
 
   const Immutable([this.reason = '']);
-}
-
-@Target({
-  TargetKind.getter,
-  TargetKind.setter,
-  TargetKind.method,
-})
-class _Redeclare {
-  const _Redeclare();
-}
-
-@Target({
-  TargetKind.classType,
-  TargetKind.mixinType,
-})
-class _Reopen {
-  const _Reopen();
 }
 
 class Required {
@@ -164,7 +160,22 @@ class Required {
   const Required([this.reason = '']);
 }
 
+@experimental
+class ResourceIdentifier {
+  final Object? metadata;
+
+  const ResourceIdentifier([this.metadata])
+      : assert(
+          metadata == null ||
+              metadata is bool ||
+              metadata is num ||
+              metadata is String,
+          'Valid metadata types are bool, int, double, and String.',
+        );
+}
+
 @Target({
+  TargetKind.constructor,
   TargetKind.field,
   TargetKind.function,
   TargetKind.getter,
@@ -191,19 +202,37 @@ class _Checked {
 
 @Target({
   TargetKind.classType,
+  TargetKind.constructor,
   TargetKind.function,
   TargetKind.getter,
   TargetKind.library,
   TargetKind.method,
+  TargetKind.mixinType,
 })
 class _DoNotStore {
   const _DoNotStore();
+}
+
+@Target({
+  TargetKind.constructor,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.parameter,
+  TargetKind.setter,
+  TargetKind.topLevelVariable,
+})
+class _DoNotSubmit {
+  const _DoNotSubmit();
 }
 
 class _Experimental {
   const _Experimental();
 }
 
+@Target({
+  TargetKind.method,
+})
 class _Factory {
   const _Factory();
 }
@@ -225,20 +254,22 @@ class _Literal {
 }
 
 @Target({
-  TargetKind.field,
-  TargetKind.getter,
-  TargetKind.method,
-  TargetKind.setter,
+  TargetKind.parameter,
+  TargetKind.extensionType,
+})
+class _MustBeConst {
+  const _MustBeConst();
+}
+
+@Target({
+  TargetKind.overridableMember,
 })
 class _MustBeOverridden {
   const _MustBeOverridden();
 }
 
 @Target({
-  TargetKind.field,
-  TargetKind.getter,
-  TargetKind.method,
-  TargetKind.setter,
+  TargetKind.overridableMember,
 })
 class _MustCallSuper {
   const _MustCallSuper();
@@ -265,10 +296,31 @@ class _Protected {
   const _Protected();
 }
 
+@Target({
+  TargetKind.getter,
+  TargetKind.setter,
+  TargetKind.method,
+})
+class _Redeclare {
+  const _Redeclare();
+}
+
+@Target({
+  TargetKind.classType,
+  TargetKind.mixinType,
+})
+class _Reopen {
+  const _Reopen();
+}
+
+@Target({
+  TargetKind.classType,
+})
 class _Sealed {
   const _Sealed();
 }
 
+@Deprecated('No longer has meaning')
 class _Virtual {
   const _Virtual();
 }
@@ -290,7 +342,6 @@ class Target {
   const Target(this.kinds);
 }
 
-
 class TargetKind {
   const TargetKind._(this.displayString, this.name);
 
@@ -300,7 +351,10 @@ class TargetKind {
   final String name;
 
   static const classType = TargetKind._('classes', 'classType');
+  static const constructor = TargetKind._('constructors', 'constructor');
+  static const directive = TargetKind._('directives', 'directive');
   static const enumType = TargetKind._('enums', 'enumType');
+  static const enumValue = TargetKind._('enum values', 'enumValue');
   static const extension = TargetKind._('extensions', 'extension');
   static const extensionType = TargetKind._('extension types', 'extensionType');
   static const field = TargetKind._('fields', 'field');
@@ -309,6 +363,10 @@ class TargetKind {
   static const getter = TargetKind._('getters', 'getter');
   static const method = TargetKind._('methods', 'method');
   static const mixinType = TargetKind._('mixins', 'mixinType');
+  static const optionalParameter =
+      TargetKind._('optional parameters', 'optionalParameter');
+  static const overridableMember =
+      TargetKind._('overridable members', 'overridableMember');
   static const parameter = TargetKind._('parameters', 'parameter');
   static const setter = TargetKind._('setters', 'setter');
   static const topLevelVariable =
@@ -316,10 +374,14 @@ class TargetKind {
   static const type =
       TargetKind._('types (classes, enums, mixins, or typedefs)', 'type');
   static const typedefType = TargetKind._('typedefs', 'typedefType');
+  static const typeParameter = TargetKind._('type parameters', 'typeParameter');
 
   static const values = [
     classType,
+    constructor,
+    directive,
     enumType,
+    enumValue,
     extension,
     extensionType,
     field,
@@ -328,11 +390,14 @@ class TargetKind {
     getter,
     method,
     mixinType,
+    optionalParameter,
+    overridableMember,
     parameter,
     setter,
     topLevelVariable,
     type,
     typedefType,
+    typeParameter,
   ];
 
   @override

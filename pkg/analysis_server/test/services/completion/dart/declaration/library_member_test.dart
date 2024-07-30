@@ -101,8 +101,12 @@ suggestions
     kind: topLevelVariable
   X0
     kind: class
+  X0
+    kind: constructorInvocation
   Y0
     kind: class
+  Y0
+    kind: constructorInvocation
 ''');
   }
 
@@ -120,6 +124,16 @@ foo() {
 suggestions
   Future
     kind: class
+  Future
+    kind: constructorInvocation
+  Future.delayed
+    kind: constructorInvocation
+  Future.error
+    kind: constructorInvocation
+  Future.microtask
+    kind: constructorInvocation
+  Future.value
+    kind: constructorInvocation
 ''');
   }
 
@@ -135,6 +149,16 @@ foo() {
 suggestions
   Future
     kind: class
+  Future
+    kind: constructorInvocation
+  Future.delayed
+    kind: constructorInvocation
+  Future.error
+    kind: constructorInvocation
+  Future.microtask
+    kind: constructorInvocation
+  Future.value
+    kind: constructorInvocation
   loadLibrary
     kind: functionInvocation
 ''');
@@ -157,6 +181,16 @@ f0() {
 suggestions
   Future
     kind: class
+  Future
+    kind: constructorInvocation
+  Future.delayed
+    kind: constructorInvocation
+  Future.error
+    kind: constructorInvocation
+  Future.microtask
+    kind: constructorInvocation
+  Future.value
+    kind: constructorInvocation
   loadLibrary
     kind: functionInvocation
 ''');
@@ -184,10 +218,17 @@ class C0 {}
 suggestions
   A0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: class
+  B0
+    kind: constructorInvocation
   B1
     kind: class
+    deprecated: true
+  B1
+    kind: constructorInvocation
     deprecated: true
 ''');
   }
@@ -210,6 +251,8 @@ void f() {
 suggestions
   A0
     kind: class
+  A0
+    kind: constructorInvocation
 ''');
   }
 
@@ -228,6 +271,8 @@ void f() {
 suggestions
   A0
     kind: class
+  A0
+    kind: constructorInvocation
 ''');
   }
 
@@ -257,8 +302,12 @@ suggestions
     kind: topLevelVariable
   X0
     kind: class
+  X0
+    kind: constructorInvocation
   Y0
     kind: class
+  Y0
+    kind: constructorInvocation
 ''');
   }
 
@@ -328,6 +377,16 @@ foo() {
 suggestions
   Future
     kind: class
+  Future
+    kind: constructorInvocation
+  Future.delayed
+    kind: constructorInvocation
+  Future.error
+    kind: constructorInvocation
+  Future.microtask
+    kind: constructorInvocation
+  Future.value
+    kind: constructorInvocation
 ''');
   }
 

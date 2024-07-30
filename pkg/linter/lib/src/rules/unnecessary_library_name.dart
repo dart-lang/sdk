@@ -58,7 +58,7 @@ class UnnecessaryLibraryName extends LintRule {
             name: 'unnecessary_library_name',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -66,7 +66,7 @@ class UnnecessaryLibraryName extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.currentUnit.unit.featureSet
+    if (!context.libraryElement!.featureSet
         .isEnabled(Feature.unnamedLibraries)) {
       return;
     }

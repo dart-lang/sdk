@@ -10,9 +10,222 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CreateExtensionGetterTest);
     defineReflectiveTests(CreateGetterTest);
     defineReflectiveTests(CreateGetterMixinTest);
   });
+}
+
+@reflectiveTest
+class CreateExtensionGetterTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_EXTENSION_GETTER;
+
+  Future<void> test_contextType() async {
+    await resolveTestCode('''
+void f() {
+  // ignore:unused_local_variable
+  int v = ''.test;
+}
+''');
+    await assertHasFix('''
+void f() {
+  // ignore:unused_local_variable
+  int v = ''.test;
+}
+
+extension on String {
+  int get test => null;
+}
+''');
+  }
+
+  Future<void> test_contextType_no() async {
+    await resolveTestCode('''
+void f() {
+  ''.test;
+}
+''');
+    await assertHasFix('''
+void f() {
+  ''.test;
+}
+
+extension on String {
+  get test => null;
+}
+''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['null']);
+  }
+
+  Future<void> test_existingExtension_contextType() async {
+    await resolveTestCode('''
+void f() {
+  // ignore:unused_local_variable
+  int v = ''.test;
+}
+
+extension on String {}
+''');
+    await assertHasFix('''
+void f() {
+  // ignore:unused_local_variable
+  int v = ''.test;
+}
+
+extension on String {
+  int get test => null;
+}
+''');
+  }
+
+  Future<void> test_existingExtension_generic_matching() async {
+    await resolveTestCode('''
+void f(List<int> a) {
+  a.test;
+}
+
+extension E<T> on Iterable<T> {}
+''');
+    await assertHasFix('''
+void f(List<int> a) {
+  a.test;
+}
+
+extension E<T> on Iterable<T> {
+  get test => null;
+}
+''');
+  }
+
+  Future<void> test_existingExtension_generic_notMatching() async {
+    await resolveTestCode('''
+void f(List<int> a) {
+  a.test;
+}
+
+extension E<K, V> on Map<K, V> {}
+''');
+    await assertHasFix('''
+void f(List<int> a) {
+  a.test;
+}
+
+extension on List<int> {
+  get test => null;
+}
+
+extension E<K, V> on Map<K, V> {}
+''');
+  }
+
+  Future<void> test_existingExtension_hasMethod() async {
+    await resolveTestCode('''
+void f() {
+  ''.test;
+}
+
+extension E on String {
+  // ignore:unused_element
+  void foo() {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  ''.test;
+}
+
+extension E on String {
+  get test => null;
+
+  // ignore:unused_element
+  void foo() {}
+}
+''');
+  }
+
+  Future<void> test_existingExtension_notGeneric_matching() async {
+    await resolveTestCode('''
+void f() {
+  ''.test;
+}
+
+extension on String {}
+''');
+    await assertHasFix('''
+void f() {
+  ''.test;
+}
+
+extension on String {
+  get test => null;
+}
+''');
+  }
+
+  Future<void> test_existingExtension_notGeneric_notMatching() async {
+    await resolveTestCode('''
+void f() {
+  ''.test;
+}
+
+extension on int {}
+''');
+    await assertHasFix('''
+void f() {
+  ''.test;
+}
+
+extension on String {
+  get test => null;
+}
+
+extension on int {}
+''');
+  }
+
+  Future<void> test_parent_nothing() async {
+    await resolveTestCode('''
+void f() {
+  test;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_parent_prefixedIdentifier() async {
+    await resolveTestCode('''
+void f(String a) {
+  a.test;
+}
+''');
+    await assertHasFix('''
+void f(String a) {
+  a.test;
+}
+
+extension on String {
+  get test => null;
+}
+''');
+  }
+
+  Future<void> test_targetType_hasTypeArguments() async {
+    await resolveTestCode('''
+void f(List<int> a) {
+  a.test;
+}
+''');
+    await assertHasFix('''
+void f(List<int> a) {
+  a.test;
+}
+
+extension on List<int> {
+  get test => null;
+}
+''');
+  }
 }
 
 @reflectiveTest

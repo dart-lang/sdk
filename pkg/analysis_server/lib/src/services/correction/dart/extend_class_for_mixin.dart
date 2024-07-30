@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -11,15 +11,22 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class ExtendClassForMixin extends ResolvedCorrectionProducer {
   String _typeName = '';
 
+  ExtendClassForMixin({required super.context});
+
   @override
-  List<Object> get fixArguments => [_typeName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_typeName];
 
   @override
   FixKind get fixKind => DartFixKind.EXTEND_CLASS_FOR_MIXIN;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final diagnostic = this.diagnostic;
+    var diagnostic = this.diagnostic;
     if (diagnostic == null) {
       return;
     }

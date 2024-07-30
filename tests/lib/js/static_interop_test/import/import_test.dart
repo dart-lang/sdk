@@ -5,17 +5,18 @@
 import 'dart:js_interop';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:expect/minitest.dart';
+import 'package:expect/expect.dart';
 
-extension type Module(JSObject o) implements JSObject {
+extension type Module(JSObject _) implements JSObject {
   external String testModuleFunction();
 }
 
 void main() {
   asyncTest(() async {
     final module = Module(await importModule(
-            '/root_dart/tests/lib/js/static_interop_test/import/module.mjs')
+            '/root_dart/tests/lib/js/static_interop_test/import/module.mjs'
+                .toJS)
         .toDart);
-    expect(module.testModuleFunction(), 'success');
+    Expect.equals('success', module.testModuleFunction());
   });
 }

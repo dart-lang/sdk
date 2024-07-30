@@ -31,14 +31,15 @@ class A<T> {
 class AvoidShadowingTypeParameters extends LintRule {
   static const LintCode code = LintCode('avoid_shadowing_type_parameters',
       "The type parameter '{0}' shadows a type parameter from the enclosing {1}.",
-      correctionMessage: 'Try renaming one of the type parameters.');
+      correctionMessage: 'Try renaming one of the type parameters.',
+      hasPublishedDocs: true);
 
   AvoidShadowingTypeParameters()
       : super(
             name: 'avoid_shadowing_type_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

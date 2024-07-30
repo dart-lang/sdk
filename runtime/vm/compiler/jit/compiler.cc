@@ -97,7 +97,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_background_compilation = false;
     FLAG_enable_mirrors = false;
     FLAG_interpret_irregexp = true;
-    FLAG_lazy_dispatchers = false;
     FLAG_link_natives_lazily = true;
     FLAG_optimization_counter_threshold = -1;
     FLAG_polymorphic_with_deopt = false;
@@ -566,12 +565,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
 
-      if (function.ForceOptimize()) {
-        ASSERT(optimized());
-        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
-        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kJIT,
-                                                             &pass_state);
-      } else if (optimized()) {
+      if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         JitCallSpecializer call_specializer(flow_graph, &speculative_policy);

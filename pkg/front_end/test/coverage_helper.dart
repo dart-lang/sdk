@@ -203,14 +203,16 @@ class FileCoverage {
 
   Map<String, Object?> toJson() {
     List<int> notCompiledRanges = [];
-    for (var pair in notCompiled) {
+    for (var pair in notCompiled.toList()
+      ..sort((a, b) => a.startPos.compareTo(b.startPos))) {
       notCompiledRanges.add(pair.startPos);
       notCompiledRanges.add(pair.endPos);
     }
+    misses.removeAll(hits);
     return {
       "uri": uri.toString(),
-      "hits": hits.toList(),
-      "misses": misses.toList(),
+      "hits": hits.toList()..sort(),
+      "misses": misses.toList()..sort(),
       "notCompiledRanges": notCompiledRanges,
     };
   }

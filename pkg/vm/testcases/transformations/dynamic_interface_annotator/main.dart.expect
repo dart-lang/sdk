@@ -1,0 +1,10 @@
+library #lib;
+import self as self;
+
+import "file:pkg/vm/testcases/transformations/dynamic_interface_annotator/lib1.dart";
+import "file:pkg/vm/testcases/transformations/dynamic_interface_annotator/lib2.dart";
+import "file:pkg/vm/testcases/transformations/dynamic_interface_annotator/lib3.dart";
+import "file:pkg/vm/testcases/transformations/dynamic_interface_annotator/prefix/lib1.dart";
+import "file:pkg/vm/testcases/transformations/dynamic_interface_annotator/prefix/lib2.dart";
+
+static method main() → dynamic {}

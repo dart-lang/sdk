@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  get g() → core::String?
+    ;
+}
+class C extends core::Object implements self::A {
+  synthetic constructor •() → self::C
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+  no-such-method-forwarder get g() → core::String?
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#g, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String?;
+}
+abstract class M extends self::A /*isMixinDeclaration*/  {
+  method test() → dynamic
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    ;
+}
+abstract class _MA&C&M = self::C with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MA&C&M
+    : super self::C::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
+  mixin-super-stub method test() → dynamic
+    return super.{self::M::test}();
+}
+class MA extends self::_MA&C&M {
+  synthetic constructor •() → self::MA
+    ;
+}
+static field core::String console;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///inherited_through_mixin_application.dart:11:7 -> SymbolConstant(#g)
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_through_mixin_application.dart:11:7 -> ListConstant(const <Type>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_through_mixin_application.dart:11:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///inherited_through_mixin_application.dart:11:7 -> MapConstant(const <Symbol, dynamic>{})
+Extra constant evaluation: evaluated: 12, effectively constant: 4

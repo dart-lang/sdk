@@ -45,7 +45,11 @@ main(List<String> args) {
     await checkTests(dataDir, const DumpInfoDataComputer(),
         args: args,
         testedConfigs: allSpecConfigs,
-        options: ['--dump-info', '--new-dump-info', '--enable-asserts']);
+        options: [
+          '--stage=dump-info-all',
+          '--new-dump-info',
+          '--enable-asserts'
+        ]);
   });
 }
 

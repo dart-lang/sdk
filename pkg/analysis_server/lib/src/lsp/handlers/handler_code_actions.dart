@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/analysis_options.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/dart.dart';
@@ -15,7 +16,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart' show groupBy;
 
@@ -35,213 +36,216 @@ class CodeActionHandler
   @override
   Future<ErrorOr<TextDocumentCodeActionResult>> handle(CodeActionParams params,
       MessageInfo message, CancellationToken token) async {
-    final performance = message.performance;
+    var performance = message.performance;
 
     var textDocument = params.textDocument;
-    final path = pathOfDoc(textDocument);
-    if (path.isError) {
-      return failure(path);
-    }
-    final unitPath = path.result;
-    if (!server.isAnalyzed(unitPath) || !isEditableDocument(textDocument.uri)) {
-      return success(const []);
-    }
+    var path = pathOfDoc(textDocument);
+    // TODO(dantup): Break this up, it's hundreds of lines.
+    return path.mapResult((unitPath) async {
+      if (!server.isAnalyzed(unitPath) ||
+          !isEditableDocument(textDocument.uri)) {
+        return success(const []);
+      }
 
-    final capabilities = server.lspClientCapabilities;
-    if (capabilities == null) {
-      // This should not happen unless a client misbehaves.
-      return serverNotInitializedError;
-    }
+      var capabilities = server.lspClientCapabilities;
+      if (capabilities == null) {
+        // This should not happen unless a client misbehaves.
+        return serverNotInitializedError;
+      }
 
-    final supportsLiterals = capabilities.literalCodeActions;
-    final supportedKinds = capabilities.codeActionKinds;
+      var supportsLiterals = capabilities.literalCodeActions;
+      var supportedKinds = capabilities.codeActionKinds;
 
-    /// Whether a fix of kind [kind] should be included in the results.
-    ///
-    /// Unlike [shouldIncludeAnyOfKind], this function is called with a more
-    /// specific action kind and answers the question "Should we include this
-    /// specific fix kind?".
-    bool shouldIncludeKind(CodeActionKind? kind) {
-      /// Checks whether the kind matches the [wanted] kind.
+      /// Whether a fix of kind [kind] should be included in the results.
       ///
-      /// If `wanted` is `refactor.foo` then:
-      ///  - refactor.foo - included
-      ///  - refactor.foobar - not included
-      ///  - refactor.foo.bar - included
-      bool isMatch(CodeActionKind wanted) =>
-          kind == wanted || kind.toString().startsWith('$wanted.');
+      /// Unlike [shouldIncludeAnyOfKind], this function is called with a more
+      /// specific action kind and answers the question "Should we include this
+      /// specific fix kind?".
+      bool shouldIncludeKind(CodeActionKind? kind) {
+        /// Checks whether the kind matches the [wanted] kind.
+        ///
+        /// If `wanted` is `refactor.foo` then:
+        ///  - refactor.foo - included
+        ///  - refactor.foobar - not included
+        ///  - refactor.foo.bar - included
+        bool isMatch(CodeActionKind wanted) =>
+            kind == wanted || kind.toString().startsWith('$wanted.');
 
-      // If the client wants only a specific set, use only that filter.
-      final only = params.context.only;
-      if (only != null) {
-        return only.any(isMatch);
+        // If the client wants only a specific set, use only that filter.
+        var only = params.context.only;
+        if (only != null) {
+          return only.any(isMatch);
+        }
+
+        // Otherwise, filter out anything not supported by the client (if they
+        // advertised that they provided the kinds).
+        if (supportsLiterals && !supportedKinds.any(isMatch)) {
+          return false;
+        }
+
+        return true;
       }
 
-      // Otherwise, filter out anything not supported by the client (if they
-      // advertised that they provided the kinds).
-      if (supportsLiterals && !supportedKinds.any(isMatch)) {
-        return false;
-      }
-
-      return true;
-    }
-
-    /// Whether any fixes of kind [kind] should be included in the results.
-    ///
-    /// Unlike [shouldIncludeKind], this function is called with a more general
-    /// action kind and answers the question "Should we include any actions of
-    /// kind CodeActionKind.Source?".
-    bool shouldIncludeAnyOfKind(CodeActionKind? kind) {
-      /// Checks whether the kind matches the [wanted] kind.
+      /// Whether any fixes of kind [kind] should be included in the results.
       ///
-      /// If `kind` is `refactor.foo` then for these `wanted` values:
-      ///  - wanted=refactor.foo - true
-      ///  - wanted=refactor.foo.bar - true
-      ///  - wanted=refactor - false
-      ///  - wanted=refactor.bar - false
-      bool isMatch(CodeActionKind wanted) =>
-          kind == wanted || wanted.toString().startsWith('$kind.');
+      /// Unlike [shouldIncludeKind], this function is called with a more general
+      /// action kind and answers the question "Should we include any actions of
+      /// kind CodeActionKind.Source?".
+      bool shouldIncludeAnyOfKind(CodeActionKind? kind) {
+        /// Checks whether the kind matches the [wanted] kind.
+        ///
+        /// If `kind` is `refactor.foo` then for these `wanted` values:
+        ///  - wanted=refactor.foo - true
+        ///  - wanted=refactor.foo.bar - true
+        ///  - wanted=refactor - false
+        ///  - wanted=refactor.bar - false
+        bool isMatch(CodeActionKind wanted) =>
+            kind == wanted || wanted.toString().startsWith('$kind.');
 
-      final only = params.context.only;
-      if (only != null) {
-        return only.any(isMatch);
+        var only = params.context.only;
+        if (only != null) {
+          return only.any(isMatch);
+        }
+
+        return true;
       }
 
-      return true;
-    }
+      var pathContext = server.resourceProvider.pathContext;
+      var docIdentifier = server.getVersionedDocumentIdentifier(unitPath);
 
-    final pathContext = server.resourceProvider.pathContext;
-    final docIdentifier = server.getVersionedDocumentIdentifier(unitPath);
+      var library = await requireResolvedLibrary(unitPath);
+      var libraryResult = library.resultOrNull;
+      var unit = libraryResult?.unitWithPath(unitPath);
 
-    final library = await requireResolvedLibrary(unitPath);
-    final libraryResult = library.resultOrNull;
-    final unit = libraryResult?.unitWithPath(unitPath);
+      // For non-Dart files we don't have a unit and must get the best LineInfo we
+      // can for current content.
+      var lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
+      if (lineInfo == null) {
+        return success([]);
+      }
 
-    // For non-Dart files we don't have a unit and must get the best LineInfo we
-    // can for current content.
-    final lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
-    if (lineInfo == null) {
-      return success([]);
-    }
+      var startOffset = toOffset(lineInfo, params.range.start);
+      var endOffset = toOffset(lineInfo, params.range.end);
+      if (startOffset.isError || endOffset.isError) {
+        return success([]);
+      }
 
-    final startOffset = toOffset(lineInfo, params.range.start);
-    final endOffset = toOffset(lineInfo, params.range.end);
-    if (startOffset.isError || endOffset.isError) {
-      return success([]);
-    }
+      return (startOffset, endOffset)
+          .mapResults((startOffset, endOffset) async {
+        var offset = startOffset;
+        var length = endOffset - startOffset;
 
-    final startOffsetResult = startOffset.result;
-    final endOffsetResult = endOffset.result;
+        var isDart = file_paths.isDart(pathContext, unitPath);
+        var isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
+        var isAnalysisOptions =
+            file_paths.isAnalysisOptionsYaml(pathContext, unitPath);
+        var includeSourceActions =
+            shouldIncludeAnyOfKind(CodeActionKind.Source);
+        var includeQuickFixes = shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
+        var includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
 
-    final offset = startOffsetResult;
-    final length = endOffsetResult - startOffsetResult;
+        Future<AnalysisOptions> getOptions() async {
+          if (unit != null) return unit.analysisOptions;
+          var session = await server.getAnalysisSession(unitPath);
+          var fileResult = session?.getFile(unitPath);
+          if (fileResult is FileResult) return fileResult.analysisOptions;
+          // Default to empty options.
+          return AnalysisOptionsImpl();
+        }
 
-    final isDart = file_paths.isDart(pathContext, unitPath);
-    final isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
-    final isAnalysisOptions =
-        file_paths.isAnalysisOptionsYaml(pathContext, unitPath);
-    final includeSourceActions = shouldIncludeAnyOfKind(CodeActionKind.Source);
-    final includeQuickFixes = shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
-    final includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
+        var analysisOptions = await getOptions();
 
-    Future<AnalysisOptions> getOptions() async {
-      if (unit != null) return unit.analysisOptions;
-      var session = await server.getAnalysisSession(unitPath);
-      var fileResult = session?.getFile(unitPath);
-      if (fileResult is FileResult) return fileResult.analysisOptions;
-      // Default to empty options.
-      return AnalysisOptionsImpl();
-    }
+        var actionComputers = [
+          if (isDart && libraryResult != null && unit != null)
+            DartCodeActionsProducer(
+              server,
+              unit.file,
+              lineInfo,
+              docIdentifier,
+              range: params.range,
+              offset: offset,
+              length: length,
+              libraryResult,
+              unit,
+              shouldIncludeKind: shouldIncludeKind,
+              capabilities: capabilities,
+              triggerKind: params.context.triggerKind,
+              analysisOptions: analysisOptions,
+            ),
+          if (isPubspec)
+            PubspecCodeActionsProducer(
+              server,
+              // TODO(pq): can we do better?
+              server.resourceProvider.getFile(unitPath),
+              lineInfo,
+              offset: offset,
+              length: length,
+              shouldIncludeKind: shouldIncludeKind,
+              capabilities: capabilities,
+              analysisOptions: analysisOptions,
+            ),
+          if (isAnalysisOptions)
+            AnalysisOptionsCodeActionsProducer(
+              server,
+              // TODO(pq): can we do better?
+              server.resourceProvider.getFile(unitPath),
+              lineInfo,
+              offset: offset,
+              length: length,
+              shouldIncludeKind: shouldIncludeKind,
+              capabilities: capabilities,
+              analysisOptions: analysisOptions,
+            ),
+          PluginCodeActionsProducer(
+            server,
+            // TODO(pq): can we do better?
+            server.resourceProvider.getFile(unitPath),
+            lineInfo,
+            offset: offset,
+            length: length,
+            shouldIncludeKind: shouldIncludeKind,
+            capabilities: capabilities,
+            analysisOptions: analysisOptions,
+          ),
+        ];
+        var sorter = _CodeActionSorter(params.range, shouldIncludeKind);
 
-    var analysisOptions = await getOptions();
+        var allActions = <Either2<CodeAction, Command>>[
+          // Like-kinded actions are grouped (and prioritized) together
+          // regardless of which producer they came from.
 
-    final actionComputers = [
-      if (isDart && libraryResult != null && unit != null)
-        DartCodeActionsProducer(
-          server,
-          unit.file,
-          lineInfo,
-          docIdentifier,
-          range: params.range,
-          offset: offset,
-          length: length,
-          libraryResult,
-          unit,
-          shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
-          triggerKind: params.context.triggerKind,
-          analysisOptions: analysisOptions,
-        ),
-      if (isPubspec)
-        PubspecCodeActionsProducer(
-          server,
-          // TODO(pq): can we do better?
-          server.resourceProvider.getFile(unitPath),
-          lineInfo,
-          offset: offset,
-          length: length,
-          shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
-          analysisOptions: analysisOptions,
-        ),
-      if (isAnalysisOptions)
-        AnalysisOptionsCodeActionsProducer(
-          server,
-          // TODO(pq): can we do better?
-          server.resourceProvider.getFile(unitPath),
-          lineInfo,
-          offset: offset,
-          length: length,
-          shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
-          analysisOptions: analysisOptions,
-        ),
-      PluginCodeActionsProducer(
-        server,
-        // TODO(pq): can we do better?
-        server.resourceProvider.getFile(unitPath),
-        lineInfo,
-        offset: offset,
-        length: length,
-        shouldIncludeKind: shouldIncludeKind,
-        capabilities: capabilities,
-        analysisOptions: analysisOptions,
-      ),
-    ];
-    final sorter = _CodeActionSorter(params.range, shouldIncludeKind);
+          // Source.
+          if (includeSourceActions)
+            for (var computer in actionComputers)
+              ...await performance.runAsync('${computer.name}.getSourceActions',
+                  (_) => computer.getSourceActions()),
 
-    final allActions = <Either2<CodeAction, Command>>[
-      // Like-kinded actions are grouped (and prioritized) together
-      // regardless of which producer they came from.
+          // Fixes.
+          if (includeQuickFixes)
+            ...sorter.sort([
+              for (var computer in actionComputers)
+                ...await performance.runAsync('${computer.name}.getFixActions',
+                    (_) => computer.getFixActions()),
+            ]),
 
-      // Source.
-      if (includeSourceActions)
-        for (final computer in actionComputers)
-          ...await performance.runAsync('${computer.name}.getSourceActions',
-              (_) => computer.getSourceActions()),
+          // Refactors  (Assists + Refactors).
+          if (includeRefactors)
+            ...sorter.sort([
+              for (var computer in actionComputers)
+                ...await performance.runAsync(
+                    '${computer.name}.getAssistActions',
+                    (_) => computer.getAssistActions()),
+            ]),
+          if (includeRefactors)
+            for (var computer in actionComputers)
+              ...await performance.runAsync(
+                  '${computer.name}.getRefactorActions',
+                  (_) => computer.getRefactorActions()),
+        ];
 
-      // Fixes.
-      if (includeQuickFixes)
-        ...sorter.sort([
-          for (final computer in actionComputers)
-            ...await performance.runAsync('${computer.name}.getFixActions',
-                (_) => computer.getFixActions()),
-        ]),
-
-      // Refactors  (Assists + Refactors).
-      if (includeRefactors)
-        ...sorter.sort([
-          for (final computer in actionComputers)
-            ...await performance.runAsync('${computer.name}.getAssistActions',
-                (_) => computer.getAssistActions()),
-        ]),
-      if (includeRefactors)
-        for (final computer in actionComputers)
-          ...await performance.runAsync('${computer.name}.getRefactorActions',
-              (_) => computer.getRefactorActions()),
-    ];
-
-    return success(allActions);
+        return success(allActions);
+      });
+    });
   }
 }
 
@@ -285,11 +289,11 @@ class _CodeActionSorter {
 
   List<Either2<CodeAction, Command>> sort(
       List<CodeActionWithPriority> actions) {
-    final dedupedActions = _dedupeActions(actions, range.start);
+    var dedupedActions = _dedupeActions(actions, range.start);
 
     // Add each index so we can do a stable sort on priority.
-    final dedupedActionsWithIndex = dedupedActions.indexed.map((item) {
-      final (index, action) = item;
+    var dedupedActionsWithIndex = dedupedActions.indexed.map((item) {
+      var (index, action) = item;
       return (action: action.action, priority: action.priority, index: index);
     }).toList();
     dedupedActionsWithIndex.sort(_compareCodeActions);
@@ -304,7 +308,7 @@ class _CodeActionSorter {
   int Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
       Position pos) {
     Position posOf(CodeAction action) {
-      final diagnostics = action.diagnostics;
+      var diagnostics = action.diagnostics;
       return diagnostics != null && diagnostics.isNotEmpty
           ? diagnostics.first.range.start
           : pos;
@@ -354,10 +358,10 @@ class _CodeActionSorter {
   /// chosen.
   List<CodeActionWithPriority> _dedupeActions(
       Iterable<CodeActionWithPriority> actions, Position position) {
-    final groups = groupBy(
+    var groups = groupBy(
         actions, (CodeActionWithPriority action) => action.action.title);
     return groups.entries.map((entry) {
-      final actions = entry.value;
+      var actions = entry.value;
 
       // If there's only one in the group, just return it.
       if (actions.length == 1) {
@@ -365,13 +369,13 @@ class _CodeActionSorter {
       }
 
       // Otherwise, find the action nearest to the caret.
-      final comparer = _codeActionColumnDistanceComparer(position);
+      var comparer = _codeActionColumnDistanceComparer(position);
       actions.sort((a, b) => comparer(a.action, b.action));
-      final first = actions.first.action;
-      final priority = actions.first.priority;
+      var first = actions.first.action;
+      var priority = actions.first.priority;
 
       // Get any actions with the same fix (edit/command) for merging diagnostics.
-      final others = actions.skip(1).where(
+      var others = actions.skip(1).where(
             (other) =>
                 // Compare either edits or commands based on which the selected action has.
                 first.edit != null
@@ -390,7 +394,7 @@ class _CodeActionSorter {
           // Merge diagnostics from all of the matching CodeActions.
           diagnostics: [
             ...?first.diagnostics,
-            for (final other in others) ...?other.action.diagnostics,
+            for (var other in others) ...?other.action.diagnostics,
           ],
           edit: first.edit,
           command: first.command,

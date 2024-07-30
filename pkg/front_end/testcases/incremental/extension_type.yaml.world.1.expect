@@ -1,0 +1,18 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  extension type _Foo(dart.core::int _foo) {
+    abstract extension-type-member representation-field get _foo() → dart.core::int;
+    operator + = main::_Foo|+;
+    constructor _ = main::_Foo|constructor#_;
+    constructor tearoff _ = main::_Foo|constructor#_#_#tearOff;
+  }
+  static extension-type-member method _Foo|constructor#_(dart.core::int _foo) → main::_Foo% /* erasure=dart.core::int, declared=! */ {
+    lowered final main::_Foo% /* erasure=dart.core::int, declared=! */ #this = _foo;
+    return #this;
+  }
+  static extension-type-member method _Foo|constructor#_#_#tearOff(dart.core::int _foo) → main::_Foo% /* erasure=dart.core::int, declared=! */
+    return main::_Foo|constructor#_(_foo);
+  static extension-type-member method _Foo|+(lowered final main::_Foo% /* erasure=dart.core::int, declared=! */ #this, main::_Foo% /* erasure=dart.core::int, declared=! */ other) → main::_Foo% /* erasure=dart.core::int, declared=! */
+    return throw "hello";
+}

@@ -4,21 +4,19 @@
 
 import 'dart:io' show Directory, File, Platform;
 
-import 'package:macros/macros.dart' hide Library;
-import 'package:macros/src/executor.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, LibraryId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/builder/field_builder.dart';
-import 'package:front_end/src/fasta/builder/member_builder.dart';
-import 'package:front_end/src/fasta/kernel/macro/macro.dart';
-import 'package:front_end/src/fasta/kernel/macro/offset_checker.dart';
-import 'package:front_end/src/fasta/source/source_class_builder.dart';
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
+import 'package:front_end/src/builder/field_builder.dart';
+import 'package:front_end/src/builder/member_builder.dart';
+import 'package:front_end/src/kernel/macro/macro.dart';
+import 'package:front_end/src/kernel/macro/offset_checker.dart';
 import 'package:front_end/src/macros/macro_serializer.dart';
 import 'package:front_end/src/macros/temp_dir_macro_serializer.dart';
+import 'package:front_end/src/source/source_class_builder.dart';
+import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -26,6 +24,8 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:macros/macros.dart' hide Library;
+import 'package:macros/src/executor.dart';
 
 import '../../utils/kernel_chain.dart';
 
@@ -71,7 +71,7 @@ class MacroTestConfig extends CfeTestConfig {
   }
 
   @override
-  Future<void> onCompilationResult(
+  Future<void> onCompilationResult(MarkerOptions markerOptions,
       TestData testData, CfeTestResultData testResultData) async {
     Component component = testResultData.compilerResult.component!;
     StringBuffer buffer = new StringBuffer();
@@ -95,19 +95,28 @@ class MacroTestConfig extends CfeTestConfig {
           file.writeAsStringSync(actual);
         } else {
           String diff = await runDiff(expectedUri, actual);
-          throw "${testData.name} don't match ${expectedUri}\n$diff";
+          print("ERROR: ${testData.name} don't match ${expectedUri}\n$diff");
+          onFailure(generateErrorMessage(markerOptions, mismatches: {
+            testData.name: {testResultData.config.marker}
+          }));
         }
       }
     } else if (generateExpectations) {
       file.writeAsStringSync(actual);
     } else {
-      throw 'Please use -g option to create file ${expectedUri} with this '
-          'content:\n$actual';
+      print('Please use -g option to create file ${expectedUri} with this '
+          'content:\n$actual');
+      onFailure(generateErrorMessage(markerOptions, errors: {
+        testData.name: {testResultData.config.marker}
+      }));
     }
     if (offsetErrors.isNotEmpty) {
       offsetErrors.forEach(print);
       offsetErrors.clear();
-      throw "${testData.name} has macro offset errors.";
+      print("ERROR: ${testData.name} has macro offset errors.");
+      onFailure(generateErrorMessage(markerOptions, errors: {
+        testData.name: {testResultData.config.marker}
+      }));
     }
   }
 }

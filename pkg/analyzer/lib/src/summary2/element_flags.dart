@@ -7,22 +7,24 @@ import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 
 class ClassElementFlags {
-  static const int _isAbstract = 1 << 0;
-  static const int _isAugmentation = 1 << 1;
-  static const int _isBase = 1 << 2;
-  static const int _isFinal = 1 << 3;
-  static const int _isInterface = 1 << 4;
-  static const int _isMacro = 1 << 5;
-  static const int _isMixinApplication = 1 << 6;
-  static const int _isMixinClass = 1 << 7;
-  static const int _isSealed = 1 << 8;
-  static const int _isSimplyBounded = 1 << 9;
+  static const int _hasExtendsClause = 1 << 0;
+  static const int _isAbstract = 1 << 1;
+  static const int _isAugmentation = 1 << 2;
+  static const int _isBase = 1 << 3;
+  static const int _isFinal = 1 << 4;
+  static const int _isInterface = 1 << 5;
+  static const int _isMacro = 1 << 6;
+  static const int _isMixinApplication = 1 << 7;
+  static const int _isMixinClass = 1 << 8;
+  static const int _isSealed = 1 << 9;
+  static const int _isSimplyBounded = 1 << 10;
 
   static void read(
     SummaryDataReader reader,
     ClassElementImpl element,
   ) {
     var byte = reader.readUInt30();
+    element.hasExtendsClause = (byte & _hasExtendsClause) != 0;
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isBase = (byte & _isBase) != 0;
@@ -40,6 +42,7 @@ class ClassElementFlags {
     ClassElementImpl element,
   ) {
     var result = 0;
+    result |= element.hasExtendsClause ? _hasExtendsClause : 0;
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isBase ? _isBase : 0;
@@ -83,15 +86,39 @@ class ConstructorElementFlags {
 
 class EnumElementFlags {
   static const int _isSimplyBounded = 1 << 0;
+  static const int _isAugmentation = 1 << 1;
 
   static void read(SummaryDataReader reader, EnumElementImpl element) {
     var byte = reader.readByte();
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, EnumElementImpl element) {
     var result = 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
+    sink.writeByte(result);
+  }
+}
+
+class ExtensionElementFlags {
+  static const int _isAugmentation = 1 << 0;
+
+  static void read(
+    SummaryDataReader reader,
+    ExtensionElementImpl element,
+  ) {
+    var byte = reader.readByte();
+    element.isAugmentation = (byte & _isAugmentation) != 0;
+  }
+
+  static void write(
+    BufferedSink sink,
+    ExtensionElementImpl element,
+  ) {
+    var result = 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     sink.writeByte(result);
   }
 }
@@ -99,7 +126,9 @@ class EnumElementFlags {
 class ExtensionTypeElementFlags {
   static const int _hasRepresentationSelfReference = 1 << 0;
   static const int _hasImplementsSelfReference = 1 << 1;
-  static const int _isSimplyBounded = 1 << 2;
+  static const int _isAugmentation = 1 << 2;
+  static const int _isAugmentationChainStart = 1 << 3;
+  static const int _isSimplyBounded = 1 << 4;
 
   static void read(SummaryDataReader reader, ExtensionTypeElementImpl element) {
     var byte = reader.readByte();
@@ -107,6 +136,8 @@ class ExtensionTypeElementFlags {
         (byte & _hasRepresentationSelfReference) != 0;
     element.hasImplementsSelfReference =
         (byte & _hasImplementsSelfReference) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
+    element.isAugmentationChainStart = (byte & _isAugmentationChainStart) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
@@ -117,6 +148,8 @@ class ExtensionTypeElementFlags {
         : 0;
     result |=
         element.hasImplementsSelfReference ? _hasImplementsSelfReference : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
+    result |= element.isAugmentationChainStart ? _isAugmentationChainStart : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }
@@ -258,7 +291,7 @@ class MethodElementFlags {
   static const int _isSynthetic = 1 << 9;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
-    final bits = reader.readUInt30();
+    var bits = reader.readUInt30();
     element.hasImplicitReturnType = (bits & _hasImplicitReturnType) != 0;
     element.invokesSuperSelf = (bits & _invokesSuperSelf) != 0;
     element.isAbstract = (bits & _isAbstract) != 0;
@@ -424,17 +457,20 @@ class TopLevelVariableElementFlags {
 
 class TypeAliasElementFlags {
   static const int _hasSelfReference = 1 << 1;
-  static const int _isSimplyBounded = 1 << 2;
+  static const int _isAugmentation = 1 << 2;
+  static const int _isSimplyBounded = 1 << 3;
 
   static void read(SummaryDataReader reader, TypeAliasElementImpl element) {
     var byte = reader.readByte();
     element.hasSelfReference = (byte & _hasSelfReference) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
   static void write(BufferedSink sink, TypeAliasElementImpl element) {
     var result = 0;
     result |= element.hasSelfReference ? _hasSelfReference : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }

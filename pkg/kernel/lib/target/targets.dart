@@ -270,13 +270,6 @@ abstract class Target {
   /// including dart:_internal, dart:async, dart:core and dart:mirrors.
   List<String> get extraIndexedLibraries => const <String>[];
 
-  /// Additional declared variables implied by this target.
-  ///
-  /// These can also be passed on the command-line of form `-D<name>=<value>`,
-  /// and those provided on the command-line take precedence over those defined
-  /// by the target.
-  Map<String, String> get extraDeclaredVariables => const <String, String>{};
-
   /// Classes from the SDK whose interface is required for the modular
   /// transformations.
   Map<String, List<String>> get requiredSdkClasses => CoreTypes.requiredClasses;
@@ -878,10 +871,6 @@ class TargetWrapper extends Target {
 
   @override
   bool get errorOnUnexactWebIntLiterals => _target.errorOnUnexactWebIntLiterals;
-
-  @override
-  Map<String, String> get extraDeclaredVariables =>
-      _target.extraDeclaredVariables;
 
   @override
   List<String> get extraIndexedLibraries => _target.extraIndexedLibraries;

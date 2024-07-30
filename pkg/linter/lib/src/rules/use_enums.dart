@@ -70,7 +70,7 @@ class UseEnums extends LintRule {
             name: 'use_enums',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -78,7 +78,9 @@ class UseEnums extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.isEnabled(Feature.enhanced_enums)) return;
+    if (!context.libraryElement!.featureSet.isEnabled(Feature.enhanced_enums)) {
+      return;
+    }
 
     var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);

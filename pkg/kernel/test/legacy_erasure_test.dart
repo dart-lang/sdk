@@ -54,7 +54,7 @@ const Map<String, String> data = {
 };
 
 void main() {
-  Env env = new Env('', isNonNullableByDefault: true);
+  Env env = new Env('');
   data.forEach((String input, String output) {
     DartType inputType = env.parseType(input);
     DartType expectedOutputType = env.parseType(output);

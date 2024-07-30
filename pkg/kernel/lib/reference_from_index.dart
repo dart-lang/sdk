@@ -7,16 +7,14 @@ import "ast.dart"
         Class,
         Constructor,
         Extension,
-        ExtensionMemberDescriptor,
+        ExtensionTypeDeclaration,
         Field,
         Library,
-        Member,
         Name,
         Procedure,
         ProcedureKind,
         Reference,
-        Typedef,
-        ExtensionTypeDeclaration;
+        Typedef;
 
 class ReferenceFromIndex {
   Map<Library, IndexedLibrary> _indexedLibraries =
@@ -55,6 +53,7 @@ mixin _IndexedProceduresMixin {
   }
 
   void _addProcedure(Procedure procedure) {
+    procedure.reference.canonicalName = null;
     Name name = procedure.name;
     if (procedure.isSetter) {
       assert(_setterReferences[name] == null);
@@ -84,6 +83,9 @@ abstract class IndexedContainerImpl
   void _addFields(List<Field> fields) {
     for (int i = 0; i < fields.length; i++) {
       Field field = fields[i];
+      field.fieldReference.canonicalName = null;
+      field.getterReference.canonicalName = null;
+      field.setterReference?.canonicalName = null;
       Name name = field.name;
       assert(_fieldReferences[name] == null);
       _fieldReferences[name] = field.fieldReference;
@@ -106,20 +108,29 @@ class IndexedLibrary extends IndexedContainerImpl {
   @override
   final Library library;
 
+  /// Index [library], and clear all canonical names in references in this
+  /// library and its containing classes, procedures etc.
+  /// TODO(jensj): Should this class be renamed to make it more immediately
+  /// clear that it also clears canonical names? And should the class be moved
+  /// as it is more tightly bound with the incremental compiler?
   IndexedLibrary(this.library) {
+    library.reference.canonicalName = null;
     for (int i = 0; i < library.typedefs.length; i++) {
       Typedef typedef = library.typedefs[i];
+      typedef.reference.canonicalName = null;
       assert(_typedefs[typedef.name] == null);
       _typedefs[typedef.name] = typedef;
     }
     for (int i = 0; i < library.classes.length; i++) {
       Class c = library.classes[i];
+      c.reference.canonicalName = null;
       assert(_indexedClasses[c.name] == null);
       _indexedClasses[c.name] = new IndexedClass._(c, library);
     }
     List<Extension> unnamedExtensions = [];
     for (int i = 0; i < library.extensions.length; i++) {
       Extension extension = library.extensions[i];
+      extension.reference.canonicalName = null;
       if (extension.isUnnamedExtension) {
         unnamedExtensions.add(extension);
       } else {
@@ -130,6 +141,7 @@ class IndexedLibrary extends IndexedContainerImpl {
     for (int i = 0; i < library.extensionTypeDeclarations.length; i++) {
       ExtensionTypeDeclaration extensionTypeDeclaration =
           library.extensionTypeDeclarations[i];
+      extensionTypeDeclaration.reference.canonicalName = null;
       assert(_indexedExtensionTypeDeclarations[extensionTypeDeclaration.name] ==
           null);
       _indexedExtensionTypeDeclarations[extensionTypeDeclaration.name] =
@@ -137,27 +149,6 @@ class IndexedLibrary extends IndexedContainerImpl {
     }
     _addProcedures(library.procedures);
     _addFields(library.fields);
-
-    // Unnamed extensions and their members cannot be looked up and reused and
-    // their references should not therefore not be bound to the canonical names
-    // as it would otherwise prevent (new) unnamed extensions and member from
-    // repurposing these canonical names.
-    for (Extension extension in unnamedExtensions) {
-      extension.reference.canonicalName?.unbind();
-      for (ExtensionMemberDescriptor descriptor
-          in extension.memberDescriptors) {
-        Reference reference = descriptor.memberReference;
-        Member member = reference.asMember;
-        if (member is Field) {
-          member.fieldReference.canonicalName?.unbind();
-          member.getterReference.canonicalName?.unbind();
-          member.setterReference?.canonicalName?.unbind();
-        } else {
-          member.reference.canonicalName?.unbind();
-        }
-        descriptor.tearOffReference?.canonicalName?.unbind();
-      }
-    }
   }
 
   @override
@@ -187,11 +178,13 @@ class IndexedClass extends IndexedContainerImpl {
   IndexedClass._(this.cls, this.library) {
     for (int i = 0; i < cls.constructors.length; i++) {
       Constructor constructor = cls.constructors[i];
+      constructor.reference.canonicalName = null;
       _constructors[constructor.name] = constructor.reference;
     }
     for (int i = 0; i < cls.procedures.length; i++) {
       Procedure procedure = cls.procedures[i];
       if (procedure.isFactory) {
+        procedure.reference.canonicalName = null;
         _constructors[procedure.name] = procedure.reference;
       } else {
         _addProcedure(procedure);

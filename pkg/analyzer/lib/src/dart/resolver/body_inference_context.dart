@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
 class BodyInferenceContext {
-  static const _key = 'BodyInferenceContext';
-
   final TypeSystemImpl _typeSystem;
   final bool isAsynchronous;
   final bool isGenerator;
@@ -30,7 +28,7 @@ class BodyInferenceContext {
 
   factory BodyInferenceContext({
     required TypeSystemImpl typeSystem,
-    required FunctionBody node,
+    required FunctionBodyImpl node,
     required DartType? imposedType,
   }) {
     var contextType = _contextTypeForImposed(typeSystem, node, imposedType);
@@ -42,7 +40,7 @@ class BodyInferenceContext {
       imposedType: imposedType,
       contextType: contextType,
     );
-    node.setProperty(_key, bodyContext);
+    node.bodyContext = bodyContext;
 
     return bodyContext;
   }
@@ -157,10 +155,6 @@ class BodyInferenceContext {
         ? _typeProvider.nullType
         : _typeProvider.neverType;
     return _returnTypes.fold(initialType, _typeSystem.leastUpperBound);
-  }
-
-  static BodyInferenceContext? of(FunctionBody node) {
-    return node.getProperty(_key);
   }
 
   static DartType? _argumentOf(DartType type, InterfaceElement element) {

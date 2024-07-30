@@ -17,15 +17,11 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = AnalysisSetAnalysisRootsParams.fromRequest(request);
+    var params = AnalysisSetAnalysisRootsParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var includedPathList = params.included;
     var excludedPathList = params.excluded;
 
-    unawaited(server.options.analytics?.sendEvent(
-      'analysis',
-      'setAnalysisRoots',
-      value: includedPathList.length,
-    ));
     server.analyticsManager.startedSetAnalysisRoots(params);
 
     // validate

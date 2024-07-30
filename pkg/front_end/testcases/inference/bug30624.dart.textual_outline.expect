@@ -1,16 +1,14 @@
-// @dart = 2.9
-
 library test;
 
 void foo<E>(C<E> c, int cmp(E a, E b)) {}
 
 class C<E> {
-  void barA([int cmp(E a, E b)]) {}
-  void barB([int cmp(E a, E b)]) {}
-  void barC([int cmp(E a, E b)]) {}
-  void barD([int cmp(E a, E b)]) {}
-  void barE([int cmp(E a, E b)]) {}
-  void barF([int cmp(E a, E b)]) {}
+  void barA([int Function(E a, E b)? cmp]) {}
+  void barB([int Function(E a, E b)? cmp]) {}
+  void barC([int Function(E a, E b)? cmp]) {}
+  void barD([int Function(E a, E b)? cmp]) {}
+  void barE([int Function(E a, E b)? cmp]) {}
+  void barF([int Function(E a, E b)? cmp]) {}
   static int _default(a, b) {}
 }
 

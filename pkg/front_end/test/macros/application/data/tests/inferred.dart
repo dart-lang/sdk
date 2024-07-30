@@ -23,7 +23,7 @@ abstract class Interface {
 class Class implements Interface {
   /*member: Class.field:
 declarations:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'dart:core' as prefix0;
 
@@ -38,7 +38,7 @@ prefix0.List<OmittedType0> get_fieldList(prefix0.List<OmittedType0> l) => [this.
 
   /*member: Class.:
 declarations:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'dart:core' as prefix0;
 
@@ -53,7 +53,7 @@ prefix0.List<OmittedType0> get_List() => throw "";
 
   /*member: Class.method:
 declarations:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'dart:core' as prefix0;
 
@@ -69,7 +69,7 @@ prefix0.List<OmittedType0> get_methodList() => [this.method()];
   @InferableMacro()
   /*member: Class.staticField:
 declarations:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'dart:core' as prefix0;
 
@@ -84,7 +84,7 @@ prefix0.List<OmittedType0> get_staticFieldList(prefix0.List<OmittedType0> l) => 
   @InferableMacro()
   /*member: Class.staticMethod:
 declarations:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'dart:core' as prefix0;
 

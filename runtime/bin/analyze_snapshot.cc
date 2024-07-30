@@ -216,10 +216,6 @@ int RunAnalyzer(int argc, char** argv) {
 
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);
-  // Null safety can be determined from the snapshot itself
-  isolate_flags.null_safety =
-      Dart_DetectNullSafety(nullptr, nullptr, nullptr, vm_snapshot_data,
-                            vm_snapshot_instructions, nullptr, -1);
 
   Dart_CreateIsolateGroup(nullptr, nullptr, vm_isolate_data,
                           vm_isolate_instructions, &isolate_flags,

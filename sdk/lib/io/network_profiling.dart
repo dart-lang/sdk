@@ -253,7 +253,11 @@ abstract class _SocketProfile {
         break;
       case _SocketProfileType.address:
         assert(object is InternetAddress);
-        stats.address = (object as InternetAddress).toString();
+        final internetAddress = object as InternetAddress;
+        stats.address = (internetAddress.type == InternetAddress.anyIPv6 ||
+                internetAddress.type == InternetAddress.loopbackIPv6)
+            ? '[${internetAddress.address}]'
+            : internetAddress.address;
         break;
       case _SocketProfileType.port:
         assert(object is int);

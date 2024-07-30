@@ -89,18 +89,12 @@ void functionExpressionInvocations(
   b()(); // LINT
   c(); // OK
   d(); // OK
-  f.call; // OK
-  f.call(); // OK
-  fn?.call; // OK
-  fn?.call(); // OK
 }
 
 void typedFunctionButBasicallyDynamic(Function a, Wrapper<Function> b) {
   a(); // LINT
   b.field(); // LINT
   (b.field)(); // LINT
-  a.call; // OK
-  a.call(); // LINT
 }
 
 void binaryExpressions(dynamic a, int b, bool c) {

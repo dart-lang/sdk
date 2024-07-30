@@ -2,27 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /*@testedFeatures=inference*/
 library test;
 
 var h = null;
-void foo(int f(Object _)) {}
+void foo(int? f(Object _)) {}
 
 test() {
-  var /*@type=(Object*) ->* Null*/ f = /*@ returnType=Null */ (Object x) {
+  var /*@type=(Object) -> Null*/ f = /*@ returnType=Null */ (Object x) {
     return null;
   };
-  String y = f(42);
+  String? y = f(42);
 
-  f = /*error:INVALID_CAST_FUNCTION_EXPR*/ /*@ returnType=Null */ (/*@type=Object**/ x) =>
-      'hello';
+  // error:INVALID_CAST_FUNCTION_EXPR
+  f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
 
-  foo(/*@returnType=Null*/ (/*@type=Object**/ x) {
+  foo(/*@returnType=Null*/ (/*@type=Object*/ x) {
     return null;
   });
-  foo(/*@returnType=Null*/ (/*@type=Object**/ x) {
+  foo(/*@returnType=Never*/ (/*@type=Object*/ x) {
     throw "not implemented";
   });
 }

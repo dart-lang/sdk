@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -12,6 +11,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateConstructorSuper extends MultiCorrectionProducer {
+  CreateConstructorSuper({required super.context});
+
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var targetClassNode = node.thisOrAncestorOfType<ClassDeclaration>();
@@ -30,12 +31,11 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
       if (!Identifier.isPrivateName(constructor.name)) {
-        var targetLocation = utils.prepareNewConstructorLocation(
-            unitResult.session, targetClassNode, unitResult.file);
-        if (targetLocation != null) {
-          producers.add(_CreateConstructor(
-              constructor, targetLocation, targetClassElement.name));
-        }
+        producers.add(_CreateConstructor(
+          constructor,
+          targetClassNode,
+          context: context,
+        ));
       }
     }
     return producers;
@@ -48,17 +48,22 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
   final ConstructorElement _constructor;
 
-  /// An indication of where the new constructor should be added.
-  final InsertionLocation _targetLocation;
-
-  /// The name of the class in which the constructor will be added.
-  final String _targetClassName;
+  /// The class in which the constructor will be added.
+  final ClassDeclaration _targetClass;
 
   _CreateConstructor(
-      this._constructor, this._targetLocation, this._targetClassName);
+    this._constructor,
+    this._targetClass, {
+    required super.context,
+  });
 
   @override
-  List<Object> get fixArguments {
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
     var constructorName = _constructor.name;
@@ -99,7 +104,9 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
     var requiredNamedParameters =
         _constructor.parameters.where((parameter) => parameter.isRequiredNamed);
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(_targetLocation.offset, (builder) {
+      builder.insertConstructor(_targetClass, (builder) {
+        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
+        // and `parameterWriter`.
         void writeParameters(bool isDefinition) {
           void writeParameter(ParameterElement parameter) {
             var parameterName = parameter.displayName;
@@ -152,8 +159,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           }
         }
 
-        builder.write(_targetLocation.prefix);
-        builder.write(_targetClassName);
+        builder.write(_targetClass.name.lexeme);
         if (constructorName.isNotEmpty) {
           builder.write('.');
           builder.addSimpleLinkedEdit('NAME', constructorName);
@@ -168,7 +174,6 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
         builder.write('(');
         writeParameters(false);
         builder.write(');');
-        builder.write(_targetLocation.suffix);
       });
     });
   }
@@ -180,7 +185,9 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
     var requiredNamedParameters =
         _constructor.parameters.where((parameter) => parameter.isRequiredNamed);
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(_targetLocation.offset, (builder) {
+      builder.insertConstructor(_targetClass, (builder) {
+        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
+        // and `parameterWriter`.
         void writeParameter(ParameterElement parameter) {
           var parameterName = parameter.displayName;
 
@@ -196,8 +203,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           builder.write(parameterName);
         }
 
-        builder.write(_targetLocation.prefix);
-        builder.write(_targetClassName);
+        builder.write(_targetClass.name.lexeme);
         if (constructorName.isNotEmpty) {
           builder.write('.');
           builder.addSimpleLinkedEdit('NAME', constructorName);
@@ -234,7 +240,6 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           builder.write('(');
         }
         builder.write(');');
-        builder.write(_targetLocation.suffix);
       });
     });
   }

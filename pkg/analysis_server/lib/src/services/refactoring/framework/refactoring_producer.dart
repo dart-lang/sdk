@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/selection.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -82,7 +82,7 @@ abstract class RefactoringProducer {
   /// that require the ability to create new files must not create a refactoring
   /// if this getter returns `false`.
   bool get supportsFileCreation {
-    final capabilities = refactoringContext.server.lspClientCapabilities;
+    var capabilities = refactoringContext.server.lspClientCapabilities;
     return capabilities != null &&
         capabilities.documentChanges == true &&
         capabilities.createResourceOperations == true;
@@ -118,7 +118,7 @@ abstract class RefactoringProducer {
   /// that don't have a default value must not create a refactoring if this
   /// returns `false`.
   bool supportsCommandParameter(String kind) {
-    final capabilities = refactoringContext.server.lspClientCapabilities;
+    var capabilities = refactoringContext.server.lspClientCapabilities;
     return capabilities != null &&
         capabilities.codeActionCommandParameterSupportedKinds.contains(kind);
   }

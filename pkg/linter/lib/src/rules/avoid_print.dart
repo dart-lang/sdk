@@ -60,14 +60,15 @@ void f(int x) {
 class AvoidPrint extends LintRule {
   static const LintCode code = LintCode(
       'avoid_print', "Don't invoke 'print' in production code.",
-      correctionMessage: 'Try using a logging framework.');
+      correctionMessage: 'Try using a logging framework.',
+      hasPublishedDocs: true);
 
   AvoidPrint()
       : super(
             name: 'avoid_print',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

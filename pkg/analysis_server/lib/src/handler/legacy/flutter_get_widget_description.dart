@@ -18,7 +18,8 @@ class FlutterGetWidgetDescriptionHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = FlutterGetWidgetDescriptionParams.fromRequest(request);
+    var params = FlutterGetWidgetDescriptionParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
     var offset = params.offset;
 

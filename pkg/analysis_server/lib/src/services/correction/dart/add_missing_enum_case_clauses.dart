@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -11,15 +11,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
-  @override
-  // Adding the missing case is not a sufficient fix (user logic needs adding
-  // too).
-  bool get canBeAppliedInBulk => false;
+  AddMissingEnumCaseClauses({required super.context});
 
   @override
-  // Adding the missing case is not a sufficient fix (user logic needs adding
-  // too).
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Adding the missing case is not a sufficient fix (user logic needs
+      // adding too).
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
@@ -82,22 +80,17 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
     var statementIndent = utils.getLinePrefix(statement.offset);
     var singleIndent = utils.oneIndent;
-    var location = utils.newCaseClauseAtEndLocation(
-      switchKeyword: statement.switchKeyword,
-      leftBracket: statement.leftBracket,
-      rightBracket: statement.rightBracket,
-    );
 
     var prefixString = prefix.isNotEmpty ? '$prefix.' : '';
-    final enumName_final = '$prefixString$enumName';
-    var isLeftBracketSynthetic = statement.leftBracket.isSynthetic;
-    var insertionOffset = isLeftBracketSynthetic
-        ? statement.rightParenthesis.end
-        : location.offset;
+    var enumName_final = '$prefixString$enumName';
     await builder.addDartFileEdit(file, (builder) {
       // TODO(brianwilkerson): Consider inserting the names in order into the
       //  switch statement.
-      builder.addInsertion(insertionOffset, (builder) {
+      builder.insertCaseClauseAtEnd(
+          switchKeyword: statement.switchKeyword,
+          rightParenthesis: statement.rightParenthesis,
+          leftBracket: statement.leftBracket,
+          rightBracket: statement.rightBracket, (builder) {
         void addMissingCase(String expression) {
           builder.write(statementIndent);
           builder.write(singleIndent);
@@ -114,21 +107,11 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
           builder.writeln('break;');
         }
 
-        if (isLeftBracketSynthetic) {
-          builder.write(' {');
-        }
-        builder.write(location.prefix);
-
         for (var constantName in unhandledEnumCases) {
           addMissingCase('$enumName_final.$constantName');
         }
         if (unhandledNullValue) {
           addMissingCase('null');
-        }
-
-        builder.write(location.suffix);
-        if (statement.rightBracket.isSynthetic) {
-          builder.write('}');
         }
       });
     });

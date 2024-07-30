@@ -56,7 +56,7 @@ import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/kernel_world.dart';
 import 'null_compiler_output.dart' show NullCompilerOutput;
-import 'options.dart' show CompilerOptions, Dart2JSStage;
+import 'options.dart' show CompilerOptions, CompilerStage;
 import 'phase/load_kernel.dart' as load_kernel;
 import 'resolution/enqueuer.dart';
 import 'serialization/serialization.dart';
@@ -136,7 +136,7 @@ class Compiler {
 
   _ResolutionStatus? _resolutionStatus;
 
-  Dart2JSStage get stage => options.stage;
+  CompilerStage get stage => options.stage;
 
   bool compilationFailed = false;
 
@@ -407,12 +407,12 @@ class Compiler {
       if (retainDataForTesting) {
         componentForTesting = component;
       }
-      if (options.features.newDumpInfo.isEnabled && options.dumpInfo) {
+      if (options.features.newDumpInfo.isEnabled && stage.emitsDumpInfo) {
         untrimmedComponentForDumpInfo = component;
       }
       if (stage.shouldOnlyComputeDill) {
         Set<Uri> includedLibraries = output.libraries!.toSet();
-        if (stage.shouldLoadFromDill) {
+        if (options.shouldLoadFromDill) {
           if (options.dumpUnusedLibraries) {
             dumpUnusedLibraries(component, includedLibraries);
           }
@@ -531,7 +531,7 @@ class Compiler {
       Uri rootLibraryUri = output.rootLibraryUri!;
       List<Uri> libraries = output.libraries!;
       closedWorld = computeClosedWorld(component, rootLibraryUri, libraries);
-      if (stage == Dart2JSStage.closedWorld && closedWorld != null) {
+      if (stage.shouldWriteClosedWorld && closedWorld != null) {
         serializationTask.serializeClosedWorld(closedWorld, indices);
         if (options.producesModifiedDill) {
           serializationTask.serializeComponent(component,
@@ -553,8 +553,8 @@ class Compiler {
 
   bool shouldStopAfterClosedWorld(JClosedWorld? closedWorld) =>
       closedWorld == null ||
-      stage == Dart2JSStage.closedWorld ||
-      stage == Dart2JSStage.deferredLoadIds ||
+      stage.shouldWriteClosedWorld ||
+      stage.emitsDeferredLoadIds ||
       stopAfterClosedWorldForTesting;
 
   Future<GlobalTypeInferenceResults> produceGlobalTypeInferenceResults(
@@ -564,7 +564,7 @@ class Compiler {
     GlobalTypeInferenceResults globalTypeInferenceResults;
     if (!stage.shouldReadGlobalInference) {
       globalTypeInferenceResults = performGlobalTypeInference(closedWorld);
-      if (stage == Dart2JSStage.globalInference) {
+      if (stage.shouldWriteGlobalInference) {
         serializationTask.serializeGlobalTypeInference(
             globalTypeInferenceResults, indices);
       } else if (options.testMode) {
@@ -585,7 +585,7 @@ class Compiler {
   }
 
   bool get shouldStopAfterGlobalTypeInference =>
-      stage == Dart2JSStage.globalInference ||
+      stage.shouldWriteGlobalInference ||
       stopAfterGlobalTypeInferenceForTesting;
 
   CodegenInputs initializeCodegen(
@@ -602,17 +602,7 @@ class Compiler {
       SerializationIndices indices) async {
     CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceResults);
     CodegenResults codegenResults;
-    if (!stage.shouldReadCodegenShards) {
-      codegenResults = OnDemandCodegenResults(
-          codegenInputs, backendStrategy.functionCompiler);
-      if (stage == Dart2JSStage.codegenSharded) {
-        serializationTask.serializeCodegen(
-            backendStrategy,
-            globalTypeInferenceResults.closedWorld.abstractValueDomain,
-            codegenResults,
-            indices);
-      }
-    } else {
+    if (stage.shouldReadCodegenShards && options.codegenShards != null) {
       codegenResults = await serializationTask.deserializeCodegen(
           backendStrategy,
           globalTypeInferenceResults.closedWorld,
@@ -620,16 +610,23 @@ class Compiler {
           useDeferredSourceReads,
           sourceLookup,
           indices);
+    } else {
+      codegenResults = OnDemandCodegenResults(
+          codegenInputs, backendStrategy.functionCompiler);
+      if (stage.shouldWriteCodegen) {
+        serializationTask.serializeCodegen(
+            backendStrategy,
+            globalTypeInferenceResults.closedWorld.abstractValueDomain,
+            codegenResults,
+            indices);
+      }
     }
     return codegenResults;
   }
 
-  bool get shouldStopAfterCodegen => stage == Dart2JSStage.codegenSharded;
+  bool get shouldStopAfterCodegen => stage.shouldWriteCodegen;
 
-  // Only use deferred reads for the linker phase as most deferred entities will
-  // not be needed. In other stages we use most of this data so it's not worth
-  // deferring.
-  bool get useDeferredSourceReads => stage == Dart2JSStage.jsEmitter;
+  bool get useDeferredSourceReads => stage.shouldUseDeferredSourceReads;
 
   Future<void> runSequentialPhases() async {
     // Load kernel.
@@ -656,13 +653,12 @@ class Compiler {
     AbstractValueDomain? abstractValueDomainForDumpInfo;
     OutputUnitData? outputUnitDataForDumpInfo;
     DataSinkWriter? sinkForDumpInfo;
-    if (options.dumpInfoReadUri != null || options.dumpInfo) {
+    if (stage.emitsDumpInfo) {
       globalTypeInferenceResultsForDumpInfo = globalTypeInferenceResults;
       abstractValueDomainForDumpInfo = closedWorld.abstractValueDomain;
       outputUnitDataForDumpInfo = closedWorld.outputUnitData;
       indicesForDumpInfo = indices;
-    }
-    if (options.dumpInfoWriteUri != null) {
+    } else if (stage.shouldWriteDumpInfoData) {
       sinkForDumpInfo = serializationTask.dataSinkWriterForDumpInfo(
           closedWorld.abstractValueDomain, indices);
       dumpInfoRegistry.registerDataSinkWriter(sinkForDumpInfo);
@@ -675,7 +671,7 @@ class Compiler {
     if (shouldStopAfterCodegen) return;
     final inferredData = globalTypeInferenceResults.inferredData;
 
-    if (options.dumpInfoReadUri != null) {
+    if (stage.shouldReadDumpInfoData) {
       final dumpInfoData =
           await serializationTask.deserializeDumpInfoProgramData(
               backendStrategy,
@@ -688,14 +684,14 @@ class Compiler {
       // Link.
       final programSize = runCodegenEnqueuer(
           codegenResults, inferredData, sourceLookup, closedWorld);
-      if (options.dumpInfo || options.dumpInfoWriteUri != null) {
+      if (stage.emitsDumpInfo || stage.shouldWriteDumpInfoData) {
         final dumpInfoData = DumpInfoProgramData.fromEmitterResults(
             backendStrategy.emitterTask,
             dumpInfoRegistry,
             codegenResults,
             programSize);
         dumpInfoRegistry.close();
-        if (options.dumpInfoWriteUri != null) {
+        if (stage.shouldWriteDumpInfoData) {
           serializationTask.serializeDumpInfoProgramData(sinkForDumpInfo!,
               backendStrategy, dumpInfoData, dumpInfoRegistry);
         } else {
@@ -738,7 +734,7 @@ class Compiler {
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);
     OutputUnitData result = deferredLoadTask.run(mainFunction, kClosedWorld);
-    if (options.stage == Dart2JSStage.deferredLoadIds) return null;
+    if (stage.emitsDeferredLoadIds) return null;
 
     // Impact data is no longer needed.
     if (!retainDataForTesting) {

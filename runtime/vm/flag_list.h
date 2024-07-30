@@ -59,7 +59,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(code_comments, bool, false, "Include comments into code and disassembly.") \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
-  P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")
 
@@ -106,13 +105,8 @@ constexpr bool FLAG_support_il_printer = false;
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
-  R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  P(enable_asserts, bool, false, "Enable assert statements.")                  \
   P(inline_alloc, bool, true, "Whether to use inline allocation fast paths.")  \
-  R(null_assertions, false, bool, false,                                       \
-    "Enable null assertions for parameters.")                                  \
-  R(strict_null_safety_checks, false, bool, false,                             \
-    "Enable strict type checks for non-nullable types and required "           \
-    "parameters.")                                                             \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
@@ -128,13 +122,12 @@ constexpr bool FLAG_support_il_printer = false;
   P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
-  P(lazy_async_stacks, bool, true, "Obsolete, ignored.")                       \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
   P(scavenger_tasks, int, 2,                                                   \
-    "The number of tasks to spawn during scavenging (0 means "                 \
-    "perform all marking on main thread).")                                    \
+    "The number of tasks to spawn during scavenging and incremental "          \
+    "compaction (0 means perform all work on the main thread).")               \
   P(mark_when_idle, bool, false,                                               \
     "The Dart thread will assist in concurrent marking during idle time and "  \
     "is counted as one marker task")                                           \
@@ -222,6 +215,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
+  P(use_incremental_compactor, bool, true,                                     \
+    "Compact the heap during old-space GC.")                                   \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, true, "Use field guards and track field types")    \
@@ -250,8 +245,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(verify_entry_points, bool, false,                                          \
     "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
-  P(sound_null_safety, bool, true,                                             \
-    "Respect the nullability of types at runtime.")                            \
-  C(branch_coverage, false, false, bool, false, "Enable branch coverage")
+  C(branch_coverage, false, false, bool, false, "Enable branch coverage")      \
+  C(coverage, false, false, bool, true, "Enable coverage")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

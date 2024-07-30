@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Avoid overloading operator == and hashCode on classes not marked `@immutable`.';
@@ -75,7 +76,7 @@ class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
             name: 'avoid_equals_and_hash_code_on_mutable_classes',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -95,24 +96,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isAugmentation) return;
+
     if (node.name.type == TokenType.EQ_EQ || isHashCode(node)) {
-      var classElement = _getClassForMethod(node);
-      if (classElement != null && !_hasImmutableAnnotation(classElement)) {
+      var classElement = node.classElement;
+      if (classElement != null && !classElement.hasImmutableAnnotation) {
         rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata,
             arguments: [node.name.lexeme]);
       }
     }
   }
+}
 
-  ClassElement? _getClassForMethod(MethodDeclaration node) =>
+extension on MethodDeclaration {
+  ClassElement? get classElement =>
       // TODO(pq): should this be ClassOrMixinDeclaration ?
-      node.thisOrAncestorOfType<ClassDeclaration>()?.declaredElement;
-
-  bool _hasImmutableAnnotation(ClassElement clazz) {
-    var inheritedAndSelfElements = <InterfaceElement>[
-      ...clazz.allSupertypes.map((t) => t.element),
-      clazz,
-    ];
-    return inheritedAndSelfElements.any((e) => e.hasImmutable);
-  }
+      thisOrAncestorOfType<ClassDeclaration>()?.declaredElement;
 }

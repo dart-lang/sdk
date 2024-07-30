@@ -36,7 +36,7 @@ class B implements T {}
           1),
     ]);
 
-    final node = findNode.namedType('T {}');
+    var node = findNode.namedType('T {}');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -57,7 +57,7 @@ class B implements T<A> {}
           1),
     ]);
 
-    final node = findNode.namedType('T<A> {}');
+    var node = findNode.namedType('T<A> {}');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -86,7 +86,7 @@ mixin M implements T {}
           1),
     ]);
 
-    final node = findNode.namedType('T {}');
+    var node = findNode.namedType('T {}');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T

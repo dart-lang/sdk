@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -185,15 +185,21 @@ class DartUnitOutlineComputer {
       ExtensionDeclaration node, List<Outline> extensionContents) {
     var nameToken = node.name;
     var name = nameToken?.lexeme ?? '';
+
+    Location? location;
+    if (nameToken != null) {
+      location = _getLocationToken(nameToken);
+    } else if (node.onClause case var onClause?) {
+      location = _getLocationNode(onClause.extendedType);
+    }
+
     var element = Element(
         ElementKind.EXTENSION,
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
             isDeprecated: _isDeprecated(node)),
-        location: nameToken != null
-            ? _getLocationToken(nameToken)
-            : _getLocationNode(node.extendedType),
+        location: location,
         typeParameters: _getTypeParametersStr(node.typeParameters));
     return _nodeOutline(node, element, extensionContents);
   }
@@ -476,14 +482,14 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (outlineComputer.withBasicFlutter && Flutter.isWidgetCreation(node)) {
+    if (outlineComputer.withBasicFlutter && node.isWidgetCreation) {
       var children = <Outline>[];
       node.argumentList
           .accept(_FunctionBodyOutlinesVisitor(outlineComputer, children));
 
       // The method `getWidgetPresentationText` should not return `null` when
       // `isWidgetCreation` returns `true`.
-      var text = Flutter.getWidgetPresentationText(node) ?? '<unknown>';
+      var text = node.widgetPresentationText ?? '<unknown>';
       var element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
           location: outlineComputer._getLocationOffsetLength(node.offset, 0));
 

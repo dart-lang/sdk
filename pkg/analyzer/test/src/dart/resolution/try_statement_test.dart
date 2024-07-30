@@ -25,7 +25,7 @@ void f() {
       error(ParserErrorCode.CATCH_SYNTAX, 27, 1),
     ]);
 
-    final node = findNode.singleTryStatement;
+    var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -57,7 +57,7 @@ void f() {
       error(ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS, 31, 1),
     ]);
 
-    final node = findNode.singleTryStatement;
+    var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -94,7 +94,7 @@ void f() {
       error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
     ]);
 
-    final node = findNode.singleTryStatement;
+    var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -131,7 +131,7 @@ void f() {
       error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
     ]);
 
-    final node = findNode.singleTryStatement;
+    var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -167,7 +167,7 @@ void f() {
       error(WarningCode.UNUSED_CATCH_STACK, 30, 2),
     ]);
 
-    final node = findNode.singleTryStatement;
+    var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -203,7 +203,7 @@ void f() {
       error(WarningCode.UNUSED_CATCH_STACK, 37, 2),
     ]);
 
-    final node = findNode.singleTryStatement;
+    var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try

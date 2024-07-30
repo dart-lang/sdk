@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -697,8 +696,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (identical(entity, node.extendedType)) {
-      optype.completionLocation = 'ExtensionDeclaration_extendedType';
+    if (identical(entity, node.onClause)) {
+      optype.completionLocation = 'ExtensionDeclaration_onClause';
       optype.includeTypeNameSuggestions = true;
     } else if (node.members.contains(entity) ||
         identical(entity, node.rightBracket)) {
@@ -706,6 +705,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'ExtensionDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    optype.completionLocation = 'ExtensionOnClause_extendedType';
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override
@@ -1169,6 +1174,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    optype.completionLocation = 'MixinOnClause_superclassConstraint';
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     if (identical(entity, node.expression)) {
       var context = _argumentListContext(node.parent);
@@ -1263,12 +1274,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       );
     }
     optype.completionLocation = 'ObjectPattern_fieldName';
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    optype.completionLocation = 'OnClause_superclassConstraint';
-    optype.includeTypeNameSuggestions = true;
   }
 
   @override

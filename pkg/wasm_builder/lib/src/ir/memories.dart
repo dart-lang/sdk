@@ -9,7 +9,7 @@ part 'memory.dart';
 
 class Memories {
   /// Imported memories.
-  final List<Import> imported;
+  final List<ImportedMemory> imported;
 
   /// Defined memories.
   final List<DefinedMemory> defined;

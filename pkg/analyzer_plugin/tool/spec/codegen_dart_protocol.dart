@@ -25,15 +25,12 @@ const Map<String, String> specialElementFlags = {
   'deprecated': '0x20'
 };
 
-GeneratedFile target(
-    bool responseRequiresRequestTime, bool requiresProtocolJsonMethods) {
+GeneratedFile target(bool responseRequiresRequestTime,
+    CodegenUriConverterKind clientUriConverterKind) {
   return GeneratedFile('lib/protocol/protocol_generated.dart',
       (String pkgPath) async {
-    var visitor = CodegenProtocolVisitor(
-        path.basename(pkgPath),
-        responseRequiresRequestTime,
-        requiresProtocolJsonMethods,
-        readApi(pkgPath));
+    var visitor = CodegenProtocolVisitor(path.basename(pkgPath),
+        responseRequiresRequestTime, clientUriConverterKind, readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
   });
 }
@@ -69,9 +66,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// parameter.
   final bool responseRequiresRequestTime;
 
-  /// A flag indicating whether the classes should have `toProtocolJson` and
-  /// `fromProtocolJson` methods that can handle converting client URIs.
-  final bool requiresProtocolJsonMethods;
+  /// The kind or URI Conversion to be used in generated code.
+  final CodegenUriConverterKind clientUriConverterKind;
 
   /// Visitor used to produce doc comments.
   final ToHtmlVisitor toHtmlVisitor;
@@ -82,7 +78,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   final Map<String, ImpliedType> impliedTypes;
 
   CodegenProtocolVisitor(this.packageName, this.responseRequiresRequestTime,
-      this.requiresProtocolJsonMethods, Api api)
+      this.clientUriConverterKind, Api api)
       : toHtmlVisitor = ToHtmlVisitor(api),
         impliedTypes = computeImpliedTypes(api),
         super(api) {
@@ -182,20 +178,30 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       default:
         return false;
     }
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? ', { ${clientUriConverterKind.namedParameterString} }'
+        : '';
+    var namedArguments = clientUriConverterKind != CodegenUriConverterKind.none
+        ? ', ${clientUriConverterKind.namedArgumentString}'
+        : '';
+
     var args = <String>['$inputType $inputName'];
     args.addAll(extraArgs);
-    writeln('factory $className.$constructorName(${args.join(', ')}) {');
+    writeln(
+        'factory $className.$constructorName(${args.join(', ')}$namedParameters) {');
     indent(() {
       var fieldNameString =
           literalString(fieldName.replaceFirst(RegExp('^_'), ''));
       if (className == 'EditGetRefactoringParams') {
         writeln('var params = $className.fromJson(');
-        writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
+        writeln(
+            '    $makeDecoder, $fieldNameString, $inputName.$fieldName$namedArguments);');
         writeln('REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;');
         writeln('return params;');
       } else {
         writeln('return $className.fromJson(');
-        writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
+        writeln(
+            '    $makeDecoder, $fieldNameString, $inputName.$fieldName$namedArguments);');
       }
     });
     writeln('}');
@@ -250,12 +256,19 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
 
   /// Emit the toJson() code for an empty class.
   void emitEmptyToJsonMember() {
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? '{ ${clientUriConverterKind.namedParameterString} }'
+        : '';
     writeln('@override');
-    writeln('Map<String, Object> toJson() => {};');
+    writeln('Map<String, Object> toJson($namedParameters) => {};');
   }
 
   /// Emit a class to encapsulate an enum.
   void emitEnumClass(String className, TypeEnum type, ImpliedType impliedType) {
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? '{ ${clientUriConverterKind.namedParameterString} }'
+        : '';
+
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(impliedType.humanReadableName);
@@ -321,7 +334,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln('@override');
       writeln("String toString() => '$className.\$name';");
       writeln();
-      writeln('String toJson() => name;');
+      writeln('String toJson($namedParameters) => name;');
     });
     writeln('}');
   }
@@ -349,8 +362,11 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the method for decoding an enum from JSON.
   void emitEnumFromJsonConstructor(
       String className, TypeEnum type, ImpliedType impliedType) {
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? ', { ${clientUriConverterKind.namedParameterString} }'
+        : '';
     writeln(
-        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object? json) {');
+        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object? json$namedParameters) {');
     indent(() {
       writeln('if (json is String) {');
       indent(() {
@@ -379,6 +395,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln("import 'package:$packageName/protocol/protocol.dart';");
     writeln(
         "import 'package:$packageName/src/protocol/protocol_internal.dart';");
+    writeln(
+        "import 'package:$packageName/src/utilities/client_uri_converter.dart';");
     for (var uri in api.types.importUris) {
       write("import '");
       write(uri);
@@ -453,9 +471,15 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       if (emitSpecialMethods(className)) {
         writeln();
       }
+
+      var namedArguments =
+          clientUriConverterKind != CodegenUriConverterKind.none
+              ? 'clientUriConverter: null'
+              : '';
       writeln('@override');
-      writeln('String toString() => json.encode(toJson());');
+      writeln('String toString() => json.encode(toJson($namedArguments));');
       writeln();
+
       emitObjectEqualsMember(type, className);
       writeln();
       emitObjectHashCode(type, className);
@@ -539,31 +563,39 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the method for decoding an object from JSON.
   void emitObjectFromJsonConstructor(
       String className, TypeObject type, ImpliedType impliedType) {
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? ', { ${clientUriConverterKind.namedParameterString} }'
+        : '';
+    var namedArguments = clientUriConverterKind != CodegenUriConverterKind.none
+        ? ', ${clientUriConverterKind.namedArgumentString}'
+        : '';
+
     var humanReadableNameString = literalString(impliedType.humanReadableName);
     if (className == 'RefactoringFeedback') {
       writeln('factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
           'String jsonPath, '
           'Object? json, '
-          'Map<Object?, Object?> responseJson) {');
+          'Map<Object?, Object?> responseJson$namedParameters) {');
       indent(() {
         writeln('return refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
-            'json, responseJson);');
+            'json, responseJson$namedArguments);');
       });
       writeln('}');
       return;
     }
     if (className == 'RefactoringOptions') {
       writeln('factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
-          'String jsonPath, Object? json, RefactoringKind kind) {');
+          'String jsonPath, Object? json, RefactoringKind kind$namedParameters) {');
       indent(() {
         writeln('return refactoringOptionsFromJson(jsonDecoder, jsonPath, '
-            'json, kind);');
+            'json, kind$namedArguments);');
       });
       writeln('}');
       return;
     }
+
     writeln(
-        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object? json) {');
+        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object? json$namedParameters) {');
     indent(() {
       writeln('json ??= {};');
       writeln('if (json is Map) {');
@@ -859,8 +891,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
 
   /// Emit the toJson() code for an object class.
   void emitToJsonMember(TypeObject type) {
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? '{ ${clientUriConverterKind.namedParameterString} }'
+        : '';
+
     writeln('@override');
-    writeln('Map<String, Object> toJson() {');
+    writeln('Map<String, Object> toJson($namedParameters) {');
     indent(() {
       writeln('var result = <String, Object>{};');
       for (var field in type.fields) {
@@ -892,12 +928,20 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the toNotification() code for a class, if appropriate. Returns true
   /// if code was emitted.
   bool emitToNotificationMember(ImpliedType impliedType) {
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? '{ ${clientUriConverterKind.namedParameterString} }'
+        : '';
+    var namedArguments = clientUriConverterKind != CodegenUriConverterKind.none
+        ? clientUriConverterKind.namedArgumentString
+        : '';
+
     if (impliedType.kind == 'notificationParams') {
-      writeln('Notification toNotification() {');
+      writeln('Notification toNotification($namedParameters) {');
       indent(() {
         var eventString =
             literalString((impliedType.apiNode as Notification).longEvent);
-        var jsonPart = impliedType.type != null ? 'toJson()' : 'null';
+        var jsonPart =
+            impliedType.type != null ? 'toJson($namedArguments)' : 'null';
         writeln('return Notification($eventString, $jsonPart);');
       });
       writeln('}');
@@ -909,14 +953,22 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the toRequest() code for a class, if appropriate. Returns true if
   /// code was emitted.
   bool emitToRequestMember(ImpliedType impliedType) {
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? ', { ${clientUriConverterKind.namedParameterString} }'
+        : '';
+    var namedArguments = clientUriConverterKind != CodegenUriConverterKind.none
+        ? clientUriConverterKind.namedArgumentString
+        : '';
+
     if (impliedType.kind == 'requestParams') {
       writeln('@override');
-      writeln('Request toRequest(String id) {');
+      writeln('Request toRequest(String id$namedParameters) {');
       indent(() {
         var methodString =
             literalString((impliedType.apiNode as Request).longMethod);
         if (impliedType.type != null) {
-          writeln('return Request(id, $methodString, toJson());');
+          writeln(
+              'return Request(id, $methodString, toJson($namedArguments));');
         } else {
           writeln('return Request(id, $methodString);');
         }
@@ -930,19 +982,28 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// Emit the toResponse() code for a class, if appropriate. Returns true if
   /// code was emitted.
   bool emitToResponseMember(ImpliedType impliedType) {
+    var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
+        ? ', { ${clientUriConverterKind.namedParameterString} }'
+        : '';
+    var namedArguments = clientUriConverterKind != CodegenUriConverterKind.none
+        ? clientUriConverterKind.namedArgumentString
+        : '';
+
     if (impliedType.kind == 'requestResult') {
       writeln('@override');
       if (responseRequiresRequestTime) {
-        writeln('Response toResponse(String id, int requestTime) {');
+        writeln(
+            'Response toResponse(String id, int requestTime$namedParameters) {');
       } else {
-        writeln('Response toResponse(String id) {');
+        writeln('Response toResponse(String id$namedParameters) {');
       }
       indent(() {
         if (impliedType.type != null) {
           if (responseRequiresRequestTime) {
-            writeln('return Response(id, requestTime, result: toJson());');
+            writeln(
+                'return Response(id, requestTime, result: toJson($namedArguments));');
           } else {
-            writeln('return Response(id, result: toJson());');
+            writeln('return Response(id, result: toJson($namedArguments));');
           }
         } else {
           if (responseRequiresRequestTime) {
@@ -960,6 +1021,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
 
   /// Compute the code necessary to translate [type] from JSON.
   FromJsonCode fromJsonCode(TypeDecl type) {
+    var namedArguments = clientUriConverterKind != CodegenUriConverterKind.none
+        ? ', ${clientUriConverterKind.namedArgumentString}'
+        : '';
+
     if (type is TypeReference) {
       var referencedDefinition = api.types[type.typeName];
       if (referencedDefinition != null) {
@@ -968,17 +1033,20 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           return FromJsonSnippet((String jsonPath, String json) {
             var typeName = dartType(type);
             if (typeName == 'RefactoringFeedback') {
-              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json, json)';
+              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json, json$namedArguments)';
             } else if (typeName == 'RefactoringOptions') {
-              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
+              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json, kind$namedArguments)';
             } else {
-              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json)';
+              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json$namedArguments)';
             }
           });
-        } else if (requiresProtocolJsonMethods &&
+        } else if (clientUriConverterKind != CodegenUriConverterKind.none &&
             referencedDefinition.name == 'FilePath') {
+          // TODO(dantup): Ensure if the client sends us filepaths instead of
+          //  URIs that we generate good error responses.
           return FromJsonSnippet((jsonPath, json) =>
-              'clientUriConverter.fromClientFilePath(jsonDecoder.decodeString($jsonPath, $json))');
+              'clientUriConverter?.fromClientFilePath(jsonDecoder.decodeString($jsonPath, $json))'
+              ' ?? jsonDecoder.decodeString($jsonPath, $json)');
         } else {
           return fromJsonCode(referencedType);
         }
@@ -1001,7 +1069,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       FromJsonCode keyCode;
       var referencedDefinition = api.types[type.keyType.typeName];
       if (dartType(type.keyType) != 'String' ||
-          (requiresProtocolJsonMethods &&
+          (clientUriConverterKind != CodegenUriConverterKind.none &&
               referencedDefinition?.name == 'FilePath')) {
         keyCode = fromJsonCode(type.keyType);
       } else {
@@ -1095,13 +1163,18 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
 
   /// Compute the code necessary to convert [type] to JSON.
   ToJsonCode toJsonCode(TypeDecl type) {
+    var namedArguments = clientUriConverterKind != CodegenUriConverterKind.none
+        ? clientUriConverterKind.namedArgumentString
+        : '';
+
     var resolvedType = resolveTypeReferenceChain(type);
     if (type is TypeReference &&
-        requiresProtocolJsonMethods &&
+        clientUriConverterKind != CodegenUriConverterKind.none &&
         type.typeName == 'FilePath') {
       return ToJsonSnippet(
         dartType(type),
-        (String value) => 'clientUriConverter.toClientFilePath($value)',
+        (String value) =>
+            'clientUriConverter?.toClientFilePath($value) ?? $value',
       );
     } else if (resolvedType is TypeReference) {
       return ToJsonIdentity(dartType(type));
@@ -1117,7 +1190,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       ToJsonCode keyCode;
       var referencedDefinition = api.types[resolvedType.keyType.typeName];
       if (dartType(resolvedType.keyType) != 'String' ||
-          (requiresProtocolJsonMethods &&
+          (clientUriConverterKind != CodegenUriConverterKind.none &&
               referencedDefinition?.name == 'FilePath')) {
         keyCode = toJsonCode(resolvedType.keyType);
       } else {
@@ -1151,7 +1224,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         (String value) => '($value as dynamic).toJson()',
       );
     } else if (resolvedType is TypeObject || resolvedType is TypeEnum) {
-      return ToJsonSnippet(dartType(type), (String value) => '$value.toJson()');
+      return ToJsonSnippet(
+          dartType(type), (String value) => '$value.toJson($namedArguments)');
     } else {
       throw Exception("Can't convert $resolvedType from JSON");
     }
@@ -1164,6 +1238,50 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     emitImports();
     emitClasses(getClassesToEmit());
   }
+}
+
+/// The kind of URI converter that should be used in generated toJson/fromJson
+/// methods.
+enum CodegenUriConverterKind {
+  /// No URI/Path conversion is done.
+  ///
+  /// This is used in analysis_server_client where the client code should handle
+  /// getting/setting the raw values based on server parameters and no
+  /// conversion is ever done.
+  none,
+
+  /// URI/Path conversion is done optionally with a UriConverter parameter.
+  ///
+  /// This is used in analyzer_plugin common protocol classes that are used by
+  /// both server and plugins. Plugin protocol classes will not pass a converter
+  /// but server classes will.
+  optionalParameter,
+
+  /// URI/Path conversion is done with a required converter.
+  ///
+  /// This is used in analysis_server where all calls should use the
+  /// server-configured converter.
+  requiredParameter;
+
+  /// Dart code for a named argument to pass the converter to another
+  /// `toJson`/`fromJson` method.
+  ///
+  /// Throws if this value is [none].
+  String get namedArgumentString => switch (this) {
+        optionalParameter ||
+        requiredParameter =>
+          'clientUriConverter: clientUriConverter',
+        _ => throw "'namedArgumentString' cannot be used for 'none'",
+      };
+
+  /// Dart code for a named parameter for the converter.
+  ///
+  /// Throws if this value is [none].
+  String get namedParameterString => switch (this) {
+        optionalParameter => 'ClientUriConverter? clientUriConverter',
+        requiredParameter => 'required ClientUriConverter? clientUriConverter',
+        _ => throw "'namedParameterString' can only be used for 'parameter'",
+      };
 }
 
 /// Container for code that can be used to translate a data type from JSON.

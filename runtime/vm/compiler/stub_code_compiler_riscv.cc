@@ -41,7 +41,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // Page's TLAB use is always ascending.
   Label done;
   __ AndImmediate(TMP, A0, target::kPageMask);
-  __ LoadFromOffset(TMP, Address(TMP, target::Page::original_top_offset()));
+  __ LoadFromOffset(TMP, TMP, target::Page::original_top_offset());
   __ CompareRegisters(A0, TMP);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 
@@ -333,9 +333,8 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
   __ AndImmediate(dst, FfiCallbackMetadata::kPageMask);
 
   // Load the function from the function table.
-  __ LoadFromOffset(
-      dst,
-      Address(dst, FfiCallbackMetadata::RuntimeFunctionOffset(function_index)));
+  __ LoadFromOffset(dst, dst,
+                    FfiCallbackMetadata::RuntimeFunctionOffset(function_index));
 }
 
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
@@ -591,7 +590,7 @@ void StubCodeCompiler::GenerateRangeError(bool with_fpu_regs) {
 
 void StubCodeCompiler::GenerateWriteError(bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
-    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/0);
+    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/2);
     __ Breakpoint();
   };
 
@@ -1013,6 +1012,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ PushRegister(T1);  // Preserve result, it will be GC-d here.
   } else if (kind == kLazyDeoptFromThrow) {
+    // Preserve CODE_REG for one more runtime call.
+    __ PushRegister(CODE_REG);
     // Preserve exception, it will be GC-d here.
     // Preserve stacktrace, it will be GC-d here.
     __ PushRegistersInOrder({T1, T2});
@@ -1029,11 +1030,25 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   } else if (kind == kLazyDeoptFromThrow) {
     __ PopRegister(A1);  // Restore stacktrace.
     __ PopRegister(A0);  // Restore exception.
+    __ PopRegister(CODE_REG);
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
   __ add(SP, SP, T2);
   // The caller is responsible for emitting the return instruction.
+
+  if (kind == kLazyDeoptFromThrow) {
+    // Unoptimized frame is now ready to accept the exception. Rethrow it to
+    // find the right handler. Ask rethrow machinery to bypass debugger it
+    // was already notified about this exception.
+    __ EnterStubFrame();
+    __ PushRegister(ZR);  // Space for the result value (unused)
+    __ PushRegister(A0);  // Exception
+    __ PushRegister(A1);  // Stacktrace
+    __ PushImmediate(target::ToRawSmi(1));  // Bypass debugger.
+    __ CallRuntime(kReThrowRuntimeEntry, 3);
+    __ LeaveStubFrame();
+  }
 }
 
 // A0: result, must be preserved
@@ -1197,16 +1212,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // R3: array size.
     // R7: new object end address.
 
-    // Store the type argument field.
-    __ StoreCompressedIntoObjectOffsetNoBarrier(
-        AllocateArrayABI::kResultReg, target::Array::type_arguments_offset(),
-        AllocateArrayABI::kTypeArgumentsReg);
-
-    // Set the length field.
-    __ StoreCompressedIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
-                                                target::Array::length_offset(),
-                                                AllocateArrayABI::kLengthReg);
-
     // Calculate the size tag.
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // AllocateArrayABI::kLengthReg: array length as Smi.
@@ -1228,6 +1233,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ OrImmediate(T5, T5, tags);
     __ StoreFieldToOffset(T5, AllocateArrayABI::kResultReg,
                           target::Array::tags_offset());
+
+    // Store the type argument field.
+    __ StoreCompressedIntoObjectOffsetNoBarrier(
+        AllocateArrayABI::kResultReg, target::Array::type_arguments_offset(),
+        AllocateArrayABI::kTypeArgumentsReg);
+
+    // Set the length field.
+    __ StoreCompressedIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
+                                                target::Array::length_offset(),
+                                                AllocateArrayABI::kLengthReg);
 
     // Initialize all array elements to raw_null.
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
@@ -1694,8 +1709,7 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub() {
 COMPILE_ASSERT(kWriteBarrierObjectReg == A0);
 COMPILE_ASSERT(kWriteBarrierValueReg == A1);
 COMPILE_ASSERT(kWriteBarrierSlotReg == A6);
-static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           bool cards) {
+static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   RegisterSet spill_set((1 << T2) | (1 << T3) | (1 << T4), 0);
 
   Label skip_marking;
@@ -1707,7 +1721,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   {
     // Atomically clear kNotMarkedBit.
-    Label done;
+    Label is_new, done;
     __ PushRegisters(spill_set);
     __ addi(T3, A1, target::Object::tags_offset() - kHeapObjectTag);
     // T3: Untagged address of header word (amo's do not support offsets).
@@ -1720,22 +1734,35 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kNotMarkedBit);
     __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
-    __ lx(T4, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ lw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
-    __ slli(T3, T2, target::kWordSizeLog2);
-    __ add(T3, T4, T3);
-    __ sx(A1, Address(T3, target::MarkingStackBlock::pointers_offset()));
-    __ addi(T2, T2, 1);
-    __ sw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
-    __ CompareImmediate(T2, target::MarkingStackBlock::kSize);
-    __ BranchIf(NE, &done);
+    __ andi(TMP2, A1, 1 << target::ObjectAlignment::kNewObjectBitPosition);
+    __ bnez(TMP2, &is_new);
 
-    {
-      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mv(A0, THR);
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ lx(T4, Address(THR, offset));
+      __ lw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
+      __ slli(T3, T2, target::kWordSizeLog2);
+      __ add(T3, T4, T3);
+      __ sx(A1, Address(T3, target::MarkingStackBlock::pointers_offset()));
+      __ addi(T2, T2, 1);
+      __ sw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
+      __ CompareImmediate(T2, target::MarkingStackBlock::kSize);
+      __ BranchIf(NE, &done);
+
+      {
+        LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                            /*preserve_registers=*/true);
+        __ mv(A0, THR);
+        rt.Call(entry, /*argument_count=*/1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ j(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
     __ PopRegisters(spill_set);
@@ -1812,8 +1839,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
           Address(TMP, target::Page::card_table_offset()));  // Card table.
     __ beqz(TMP2, &remember_card_slow);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ sub(A6, A6, TMP);                               // Offset in page.
     __ srli(A6, A6, target::Page::kBytesPerCardLog2);  // Card index.
     __ li(TMP, 1);
@@ -1821,9 +1847,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ srli(A6, A6, target::kBitsPerWordLog2);
     __ slli(A6, A6, target::kWordSizeLog2);
     __ add(TMP2, TMP2, A6);  // Card word address.
-    __ lx(A6, Address(TMP2, 0));
-    __ or_(A6, A6, TMP);
-    __ sx(A6, Address(TMP2, 0));
+#if XLEN == 32
+    __ amoorw(ZR, TMP, Address(TMP2, 0));
+#else
+    __ amoord(ZR, TMP, Address(TMP2, 0));
+#endif
     __ ret();
 
     // Card table not yet allocated.
@@ -1913,6 +1941,9 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
     }  // kFieldReg = T4
 
+    __ AddImmediate(AllocateObjectABI::kResultReg,
+                    AllocateObjectABI::kResultReg, kHeapObjectTag);
+
     if (is_cls_parameterized) {
       Label not_parameterized_case;
 
@@ -1930,15 +1961,14 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
                            host_type_arguments_field_offset_in_words_offset()));
 
       // Set the type arguments in the new object.
-      __ slli(kTypeOffsetReg, kTypeOffsetReg, target::kWordSizeLog2);
-      __ add(kTypeOffsetReg, kTypeOffsetReg, AllocateObjectABI::kResultReg);
-      __ sx(AllocateObjectABI::kTypeArgumentsReg, Address(kTypeOffsetReg, 0));
+      __ AddShifted(kTypeOffsetReg, AllocateObjectABI::kResultReg,
+                    kTypeOffsetReg, target::kWordSizeLog2);
+      __ StoreCompressedIntoObjectNoBarrier(
+          AllocateObjectABI::kResultReg, FieldAddress(kTypeOffsetReg, 0),
+          AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
     }  // kClsIdReg = R4, kTypeOffsetReg = R5
-
-    __ AddImmediate(AllocateObjectABI::kResultReg,
-                    AllocateObjectABI::kResultReg, kHeapObjectTag);
 
     __ ret();
 
@@ -2420,7 +2450,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
-  if (!FLAG_lazy_dispatchers) {
+  if (FLAG_precompiled_mode) {
     GenerateDispatcherCode(assembler, &call_target_function);
   } else {
     __ j(&call_target_function);

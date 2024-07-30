@@ -529,7 +529,7 @@ class RawSocketEvent {
 /// A cancelable connection attempt.
 ///
 /// Returned by the `startConnect` methods on client-side socket types `S`,
-/// `ConnectionTask<S>` allows cancelling an attempt to connect to a host.
+/// `ConnectionTask<S>` allows canceling an attempt to connect to a host.
 final class ConnectionTask<S> {
   /// A `Future` that completes with value that `S.connect()` would return
   /// unless [cancel] is called on this [ConnectionTask].
@@ -541,6 +541,26 @@ final class ConnectionTask<S> {
 
   ConnectionTask._(Future<S> this.socket, void Function() onCancel)
       : _onCancel = onCancel;
+
+  /// Create a `ConnectionTask` from an existing `Future<Socket>`.
+  ///
+  /// You can use this method to return existing socket connections in
+  /// [HttpClient.connectionFactory].
+  ///
+  /// For example:
+  ///
+  /// ```dart
+  /// final clientSocketFuture = Socket.connect(
+  ///     serverUri.host, serverUri.port);
+  /// final client = HttpClient()
+  ///  ..connectionFactory = (uri, proxyHost, proxyPort) {
+  ///    return Future.value(
+  ///        ConnectionTask.fromSocket(clientSocketFuture, () {}));
+  /// final response = await client.getUrl(serverUri);
+  /// ```
+  static ConnectionTask<T> fromSocket<T extends Socket>(
+          Future<T> socket, void Function() onCancel) =>
+      ConnectionTask<T>._(socket, onCancel);
 
   /// Cancels the connection attempt.
   ///

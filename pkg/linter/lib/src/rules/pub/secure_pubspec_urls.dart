@@ -33,14 +33,15 @@ repository: https://github.com/dart-lang/example
 class SecurePubspecUrls extends LintRule {
   static const LintCode code = LintCode('secure_pubspec_urls',
       "The '{0}' protocol shouldn't be used because it isn't secure.",
-      correctionMessage: "Try using a secure protocol, such as 'https'.");
+      correctionMessage: "Try using a secure protocol, such as 'https'.",
+      hasPublishedDocs: true);
 
   SecurePubspecUrls()
       : super(
             name: 'secure_pubspec_urls',
             description: _desc,
             details: _details,
-            group: Group.pub);
+            categories: {Category.pub});
 
   @override
   LintCode get lintCode => code;

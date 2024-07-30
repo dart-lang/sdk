@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -13,15 +13,22 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class MakeFieldPublic extends ResolvedCorrectionProducer {
   late String _fieldName;
 
+  MakeFieldPublic({required super.context});
+
   @override
-  List<Object>? get fixArguments => [_fieldName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String>? get fixArguments => [_fieldName];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_FIELD_PUBLIC;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaration = node;
+    var declaration = node;
     if (declaration is! MethodDeclaration) {
       return;
     }

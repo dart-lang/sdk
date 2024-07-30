@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, StringScanner;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show BeginToken, SimpleToken, Token, TokenType;
 
@@ -345,7 +344,7 @@ void main(List<String> args) {
   if (args.isEmpty) {
     args = [
       Platform.script
-          .resolve("../lib/src/fasta/source/source_library_builder.dart")
+          .resolve("../lib/src/source/source_library_builder.dart")
           .toFilePath()
     ];
   }

@@ -28,7 +28,7 @@ extension type E(int it) {
           5),
     ]);
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -44,6 +44,20 @@ SuperConstructorInvocation
 ''');
   }
 
+  test_notLast() async {
+    await assertErrorsInCode(r'''
+extension type const E._(int it) {
+  const E(int it) : super._(it), assert(it >= 0);
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 43, 1),
+      error(
+          CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
+          55,
+          5),
+    ]);
+  }
+
   test_unnamed() async {
     await assertErrorsInCode('''
 extension type E(int it) {
@@ -56,7 +70,7 @@ extension type E(int it) {
           5),
     ]);
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super

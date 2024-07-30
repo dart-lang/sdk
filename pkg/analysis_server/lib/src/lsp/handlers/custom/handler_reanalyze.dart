@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class ReanalyzeHandler extends LspMessageHandler<void, void> {
@@ -15,7 +16,7 @@ class ReanalyzeHandler extends LspMessageHandler<void, void> {
   Method get handlesMessage => CustomMethods.reanalyze;
 
   @override
-  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
+  LspJsonHandler<void> get jsonHandler => nullJsonHandler;
 
   @override
   Future<ErrorOr<void>> handle(

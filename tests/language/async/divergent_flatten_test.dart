@@ -6,7 +6,10 @@
 // when applied to interfaces that have `Future` as a superinterface.
 
 import 'dart:async';
+
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../static_type_helper.dart';
 
 mixin Base {
@@ -39,6 +42,7 @@ class Divergent<T> = Object
     implements Future<Divergent<Divergent<T>>>;
 
 void main() async {
+  asyncStart();
   // ----- Test the static types of await on the non-standard futures.
 
   bool obscureFalse = DateTime.now().millisecondsSinceEpoch < 0;
@@ -142,4 +146,5 @@ void main() async {
   } on Divergent {
     // Expected throw.
   }
+  asyncEnd();
 }

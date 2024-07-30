@@ -1,20 +1,21 @@
-// @dart = 2.9
-
 library test;
 
 class Test1 {
-  int prop;
-  static void test(Test1 t) {}
+  int? prop2;
+  int prop = 0;
+  static void test(Test1? t) {}
 }
 
 class Test2 {
-  num prop;
-  static void test(Test2 t) {}
+  num? prop2;
+  num prop = 0;
+  static void test(Test2? t) {}
 }
 
 class Test3 {
-  double prop;
-  static void test3(Test3 t) {}
+  double? prop2;
+  double prop = 0;
+  static void test3(Test3? t) {}
 }
 
 double getDouble() => 0.0;

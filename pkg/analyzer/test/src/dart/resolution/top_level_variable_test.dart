@@ -27,7 +27,7 @@ final x = f(g, (z) => z.length);
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
           108, 6),
     ]);
-    final node = findNode.variableDeclaration('x =');
+    var node = findNode.variableDeclaration('x =');
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -92,7 +92,7 @@ T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final String? x = f(g, (z) => z.length);
 ''');
-    final node = findNode.variableDeclaration('x =');
+    var node = findNode.variableDeclaration('x =');
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x

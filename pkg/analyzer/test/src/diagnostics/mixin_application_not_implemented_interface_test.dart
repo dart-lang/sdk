@@ -47,6 +47,18 @@ class C extends Object with M {}
     ]);
   }
 
+  test_class_noMatchingInterface_fromAugmentation() async {
+    await assertErrorsInCode('''
+class B with M {}
+mixin M {}
+class A {}
+augment mixin M on A {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          13, 1),
+    ]);
+  }
+
   test_class_noMatchingInterface_withTypeArguments() async {
     await assertErrorsInCode('''
 abstract class A<T> {}
@@ -258,5 +270,21 @@ enum E with M {
   v;
 }
 ''');
+  }
+
+  test_enum_noSuperclassConstraint_augmented() async {
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+mixin M {}
+enum E {v}
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum E with M {}
+''');
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
   }
 }

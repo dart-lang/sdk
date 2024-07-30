@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
+import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
-import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -44,7 +45,7 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     var optionsFile = newFile('/analysis_options.yaml', content);
     var sourceFactory = SourceFactory([]);
     var errors = analyzeAnalysisOptions(
-      optionsFile.createSource(),
+      FileSource(optionsFile),
       content,
       sourceFactory,
       '/',

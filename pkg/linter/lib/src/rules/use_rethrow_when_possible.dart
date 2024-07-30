@@ -41,14 +41,15 @@ try {
 class UseRethrowWhenPossible extends LintRule {
   static const LintCode code = LintCode('use_rethrow_when_possible',
       "Use 'rethrow' to rethrow a caught exception.",
-      correctionMessage: "Try replacing the 'throw' with a 'rethrow'.");
+      correctionMessage: "Try replacing the 'throw' with a 'rethrow'.",
+      hasPublishedDocs: true);
 
   UseRethrowWhenPossible()
       : super(
             name: 'use_rethrow_when_possible',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -68,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    if (node.parent is Expression || node.parent is ArgumentList) return;
+    if (node.parent is! ExpressionStatement) return;
 
     var element = node.expression.canonicalElement;
     if (element != null) {

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:path/path.dart' as path;
 
 final _pubspec = RegExp(r'^[_]?pubspec\.yaml$');

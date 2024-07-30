@@ -6,6 +6,7 @@
 
 import 'dart:io';
 
+import 'package:native_assets_cli/native_assets_cli_internal.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -74,15 +75,25 @@ void main(List<String> args) async {
           final relativeExeUri = Uri.file('./bin/dart_app/dart_app.exe');
           final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
           expect(await File.fromUri(absoluteExeUri).exists(), true);
-          for (final exeUri in [absoluteExeUri, relativeExeUri]) {
-            final result = await runProcess(
-              executable: exeUri,
-              arguments: [],
-              workingDirectory: dartAppUri,
-              logger: logger,
-            );
-            expectDartAppStdout(result.stdout);
-          }
+          await _withTempDir((tempUri) async {
+            // The link needs to have the same extension as the executable on
+            // Windows to be able to be executable.
+            final link = Link.fromUri(tempUri.resolve('my_link.exe'));
+            await link.create(absoluteExeUri.toFilePath());
+            for (final exeUri in [
+              absoluteExeUri,
+              relativeExeUri,
+              link.uri,
+            ]) {
+              final result = await runProcess(
+                executable: exeUri,
+                arguments: [],
+                workingDirectory: dartAppUri,
+                logger: logger,
+              );
+              expectDartAppStdout(result.stdout);
+            }
+          });
         });
       });
     }
@@ -116,4 +127,76 @@ void main(List<String> args) {
       expect(result.exitCode, 255);
     });
   });
+
+  test('dart link assets', timeout: longTimeout, () async {
+    await nativeAssetsTest('drop_dylib_link', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'build',
+          'bin/drop_dylib_link.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(result.exitCode, 0);
+
+      // Check that the build directory exists
+      final directory =
+          Directory.fromUri(dartAppUri.resolve('bin/drop_dylib_link'));
+      expect(directory.existsSync(), true);
+
+      // Check that only one dylib is in the final application package
+      final buildFiles = directory.listSync(recursive: true);
+      expect(
+        buildFiles.where((file) => file.path.contains('add')),
+        isNotEmpty,
+      );
+      expect(
+        buildFiles.where((file) => file.path.contains('multiply')),
+        isEmpty,
+      );
+    });
+  });
+
+  test('dart link assets', timeout: longTimeout, () async {
+    await nativeAssetsTest('add_asset_link', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'build',
+          'bin/add_asset_link.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(result.exitCode, 0);
+
+      // Check that the build directory exists
+      final directory =
+          Directory.fromUri(dartAppUri.resolve('bin/add_asset_link'));
+      expect(directory.existsSync(), true);
+      final dylib =
+          OSImpl.current.libraryFileName('add', DynamicLoadingBundledImpl());
+      expect(
+        File.fromUri(directory.uri.resolve('lib/$dylib')).existsSync(),
+        true,
+      );
+    });
+  });
+}
+
+Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
+  final tempDir = await Directory.systemTemp.createTemp('link_dir');
+  final tempDirResolved = Directory(await tempDir.resolveSymbolicLinks());
+  try {
+    await fun(tempDirResolved.uri);
+  } finally {
+    if (!Platform.environment.containsKey(keepTempKey) ||
+        Platform.environment[keepTempKey]!.isEmpty) {
+      await tempDirResolved.delete(recursive: true);
+    }
+  }
 }

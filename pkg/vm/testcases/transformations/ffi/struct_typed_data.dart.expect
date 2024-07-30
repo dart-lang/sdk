@@ -42,13 +42,13 @@ final class Coordinate extends ffi::Struct {
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C10
   static get x#offsetOf() → core::int
-    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
   static get y#offsetOf() → core::int
-    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C10
-  static get #sizeOf() → core::int*
-    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  static get #sizeOf() → core::int
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → void {
   for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
@@ -84,9 +84,9 @@ constants  {
   #C8 = ffi::Double {}
   #C9 = "vm:prefer-inline"
   #C10 = core::pragma {name:#C9, options:#C4}
-  #C11 = <core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
+  #C11 = <core::int>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
   #C12 = 8
-  #C13 = <core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
+  #C13 = <core::int>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
   #C14 = 16
-  #C15 = <core::int*>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C15 = <core::int>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
 }

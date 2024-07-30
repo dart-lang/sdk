@@ -10,13 +10,13 @@ import 'package:analyzer/dart/element/element.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r'Avoid null in null-aware assignment.';
+const _desc = r'Avoid `null` in `null`-aware assignment.';
 
 const _details = r'''
-**AVOID** `null` in null-aware assignment.
+**AVOID** `null` in `null`-aware assignment.
 
-Using `null` on the right-hand side of a null-aware assignment effectively makes
-the assignment redundant.
+Using `null` on the right-hand side of a `null`-aware assignment effectively
+makes the assignment redundant.
 
 **BAD:**
 ```dart
@@ -35,14 +35,15 @@ x ??= 1;
 class UnnecessaryNullAwareAssignments extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_null_aware_assignments', "Unnecessary assignment of 'null'.",
-      correctionMessage: 'Try removing the assignment.');
+      correctionMessage: 'Try removing the assignment.',
+      hasPublishedDocs: true);
 
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

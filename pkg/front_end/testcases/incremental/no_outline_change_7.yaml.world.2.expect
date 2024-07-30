@@ -72,7 +72,7 @@ constants  {
   #C12 = 3
   #C13 = "fromData"
   #C14 = main::CompilationStrategy {index:#C12, _name:#C13}
-  #C15 = <main::CompilationStrategy*>[#C5, #C8, #C11, #C14]
+  #C15 = <main::CompilationStrategy>[#C5, #C8, #C11, #C14]
 }
 
 

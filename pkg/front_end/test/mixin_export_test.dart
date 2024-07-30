@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
-
-import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/testing/compiler_common.dart';
 
 void main() {
   asyncTest(() async {

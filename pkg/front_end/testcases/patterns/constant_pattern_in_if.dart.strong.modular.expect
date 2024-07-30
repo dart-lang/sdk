@@ -1,0 +1,100 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Const<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Const::T% value;
+  const constructor •(self::Const::T% value) → self::Const<self::Const::T%>
+    : self::Const::value = value, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::test(42, false);
+  self::test(<core::int>[42], false);
+  self::test(<core::num>[42], false);
+  self::test(<core::int, core::String>{42: "foo"}, false);
+  self::test(<core::num, core::Object>{42: "foo"}, false);
+  self::test(new self::Const::•<core::int>(42), false);
+  self::test(new self::Const::•<core::num>(42), false);
+  self::test(#C2, true);
+  self::test(#C3, true);
+  self::test(#C4, true);
+  self::test(#C5, true);
+  self::test(#C7, true);
+  self::test(#C8, true);
+  self::test(#C9, true);
+  self::test(#C10, true);
+}
+static method test(dynamic value, core::bool expected) → void {
+  core::bool matched = false;
+  {
+    final synthesized dynamic #0#0 = value;
+    if(#C2 =={core::List::==}{(core::Object) → core::bool} #0#0) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #1#0 = value;
+    if(#C3 =={core::List::==}{(core::Object) → core::bool} #1#0) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #2#0 = value;
+    if(#C4 =={core::Object::==}{(core::Object) → core::bool} #2#0) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #3#0 = value;
+    if(#C5 =={core::Object::==}{(core::Object) → core::bool} #3#0) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #4#0 = value;
+    if(#C7 =={core::Object::==}{(core::Object) → core::bool} #4#0) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #5#0 = value;
+    if(#C8 =={core::Object::==}{(core::Object) → core::bool} #5#0) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #6#0 = value;
+    if(#C9 =={core::Object::==}{(core::Object) → core::bool} #6#0) {
+      matched = true;
+    }
+  }
+  {
+    final synthesized dynamic #7#0 = value;
+    if(#C10 =={core::Object::==}{(core::Object) → core::bool} #7#0) {
+      matched = true;
+    }
+  }
+  if(!(matched =={core::Object::==}{(core::Object) → core::bool} expected)) {
+    core::print("FAIL: ${value} ${matched ?{core::String} "matched" : "didn't match"}");
+  }
+}
+
+constants  {
+  #C1 = 42
+  #C2 = <core::int>[#C1]
+  #C3 = <core::num>[#C1]
+  #C4 = <core::int>{#C1}
+  #C5 = <core::num>{#C1}
+  #C6 = "foo"
+  #C7 = <core::int, core::String>{#C1:#C6}
+  #C8 = <core::num, core::Object>{#C1:#C6}
+  #C9 = self::Const<core::int> {value:#C1}
+  #C10 = self::Const<core::num> {value:#C1}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constant_pattern_in_if.dart:
+- Const. (from org-dartlang-testcase:///constant_pattern_in_if.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

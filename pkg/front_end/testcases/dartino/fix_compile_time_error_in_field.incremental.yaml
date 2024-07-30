@@ -8,9 +8,9 @@ main.dart.patch: |
   // that a compile-time error was encountered when attempting to resolve C).
   class C {
   <<<< {"messages":[],"hasCompileTimeError":1}
-    int sync*;
+    int? sync*;
   ==== []
-    int sync;
+    int? sync;
   >>>>
   }
   main() {

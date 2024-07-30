@@ -11,6 +11,7 @@ import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
+import '../utils.dart';
 import 'dart.dart';
 import 'mixins.dart';
 
@@ -68,14 +69,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     terminatePids(ProcessSignal.sigkill);
   }
 
-  /// Checks whether [flag] is in [args], allowing for both underscore and
-  /// dash format.
-  bool _containsVmFlag(List<String> args, String flag) {
-    final flagUnderscores = flag.replaceAll('-', '_');
-    final flagDashes = flag.replaceAll('_', '-');
-    return args.contains(flagUnderscores) || args.contains(flagDashes);
-  }
-
   @override
   Future<void> launchImpl() {
     throw UnsupportedError(
@@ -115,7 +108,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       ...?args.vmAdditionalArgs,
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
-        '--pause_isolates_on_start',
         if (!enableAuthCodes) '--disable-service-auth-codes'
       ],
       '--disable-dart-dev',
@@ -128,11 +120,19 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     final toolArgs = args.toolArgs ?? [];
     if (debug) {
       // If the user has explicitly set pause-isolates-on-exit we need to
-      // not add it ourselves, and disable auto-resuming.
-      if (_containsVmFlag(toolArgs, '--pause_isolates_on_exit')) {
-        resumeIsolatesAfterPauseExit = false;
+      // not add it ourselves, and specify that we didn't set it.
+      if (containsVmFlag(toolArgs, '--pause_isolates_on_exit')) {
+        pauseIsolatesOnExitSetByDap = false;
       } else {
         vmArgs.add('--pause_isolates_on_exit');
+      }
+
+      // If the user has explicitly set pause-isolates-on-start we need to
+      // not add it ourselves, and specify that we didn't set it.
+      if (containsVmFlag(toolArgs, '--pause_isolates_on_start')) {
+        pauseIsolatesOnStartSetByDap = false;
+      } else {
+        vmArgs.add('--pause_isolates_on_start');
       }
     }
 

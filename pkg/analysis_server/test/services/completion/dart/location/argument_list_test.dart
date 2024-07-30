@@ -51,6 +51,37 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterComma_beforeMethodInvocation() async {
+    allowedIdentifiers = {'random'};
+    await computeSuggestions('''
+class OC {
+  OC(int a, double b);
+}
+void f(int n) {
+  var random = Random();
+  var list = List<OC>.generate(n, (i) => OC(i, ^random.nextInt(n)));
+}
+''');
+
+    assertResponse(r'''
+replacement
+  right: 6
+suggestions
+  random
+    kind: localVariable
+  null
+    kind: keyword
+  false
+    kind: keyword
+  true
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterInt_beforeRightParen() async {
     await computeSuggestions('''
 void f() { print(42^); }
@@ -76,6 +107,32 @@ suggestions
     kind: keyword
   switch
     kind: keyword
+''');
+  }
+
+  Future<void> test_afterLeftParen_beforeRightParen_factoryConstructor() async {
+    printerConfiguration
+      ..withDocumentation = true
+      ..withElement = true;
+
+    await computeSuggestions('''
+class A {
+  int fff;
+  A._({this.fff});
+  factory A({int fff}) = A._;
+}
+void f() {
+  new A(^);
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  |fff: |
+    kind: namedArgument
+    element
+      name: fff
+      kind: parameter
 ''');
   }
 

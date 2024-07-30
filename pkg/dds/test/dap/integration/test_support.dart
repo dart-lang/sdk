@@ -17,8 +17,8 @@ import 'test_server.dart';
 
 /// A [RegExp] that matches the "Connecting to VM Service" banner that is sent
 /// by the DAP adapter as the first output event for a debug session.
-final dapVmServiceBannerPattern =
-    RegExp(r'Connecting to VM Service at ([^\s]+)\s');
+final dapVmServiceBannerPattern = RegExp(
+    r'Connecting to VM Service at ([^\s]+)\s|Connected to the VM Service');
 
 /// Whether to run the DAP server in-process with the tests, or externally in
 /// another process.
@@ -71,9 +71,13 @@ expectResponseError<T>(Future<T> response, Matcher messageMatcher) {
   expect(
     response,
     throwsA(
-      const TypeMatcher<Response>()
-          .having((r) => r.success, 'success', isFalse)
-          .having((r) => r.message, 'message', messageMatcher),
+      const TypeMatcher<RequestException>().having(
+        (r) => r.message,
+        'message',
+        TypeMatcher<Response>()
+            .having((r) => r.success, 'success', isFalse)
+            .having((r) => r.message, 'message', messageMatcher),
+      ),
     ),
   );
 }
@@ -88,6 +92,7 @@ Future<Process> startDartProcessPaused(
   List<String> args, {
   required String cwd,
   List<String>? vmArgs,
+  required bool pauseOnExit,
 }) async {
   final vmPath = Platform.resolvedExecutable;
   vmArgs ??= [];
@@ -95,7 +100,7 @@ Future<Process> startDartProcessPaused(
     '--enable-vm-service=0',
     '--pause_isolates_on_start',
     // Use pause-on-exit so we don't lose async output events in attach tests.
-    '--pause_isolates_on_exit',
+    if (pauseOnExit) '--pause_isolates_on_exit',
   ]);
   final processArgs = [
     ...vmArgs,

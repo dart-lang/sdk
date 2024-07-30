@@ -5586,9 +5586,9 @@ ASSEMBLER_TEST_RUN(TestSetCC4, test) {
 ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
   __ pushq(RSI);
   __ pushq(RDI);
-  __ pushq(CallingConventions::kArg1Reg);     // from.
-  __ pushq(CallingConventions::kArg2Reg);     // to.
-  __ pushq(CallingConventions::kArg3Reg);     // count.
+  __ pushq(CallingConventions::kArg1Reg);             // from.
+  __ pushq(CallingConventions::kArg2Reg);             // to.
+  __ pushq(CallingConventions::kArg3Reg);             // count.
   __ movq(RSI, Address(RSP, 2 * target::kWordSize));  // from.
   __ movq(RDI, Address(RSP, 1 * target::kWordSize));  // to.
   __ movq(RCX, Address(RSP, 0 * target::kWordSize));  // count.
@@ -6227,11 +6227,11 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                __ popq(RAX))
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
-#if defined(TARGET_USES_THREAD_SANITIZER)
-  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
-  // call to tell TSAN about our action.
-  __ MoveRegister(THR, CallingConventions::kArg2Reg);
-#endif
+  if (FLAG_target_thread_sanitizer) {
+    // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+    // call to tell TSAN about our action.
+    __ MoveRegister(THR, CallingConventions::kArg2Reg);
+  }
 
   __ pushq(RCX);
   __ xorq(RCX, RCX);
@@ -6254,7 +6254,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
       __ movq(reg, Immediate(0xAABBCCDD + i));
     }
   }
-  __ StoreRelease(CallingConventions::kArg3Reg, RSP, 0);
+  __ StoreReleaseToOffset(CallingConventions::kArg3Reg, RSP, 0);
 
   __ pushq(TMP);
 
@@ -6294,7 +6294,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
       __ Bind(&ok);
     }
   }
-  __ LoadAcquire(CallingConventions::kReturnReg, RSP, 0);
+  __ LoadAcquireFromOffset(CallingConventions::kReturnReg, RSP, 0);
   __ popq(RCX);
   __ popq(RCX);
   __ ret();
@@ -6306,18 +6306,18 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
-#if defined(TARGET_USES_THREAD_SANITIZER)
-  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
-  // call to tell TSAN about our action.
-  __ MoveRegister(THR, CallingConventions::kArg2Reg);
-#endif
+  if (FLAG_target_thread_sanitizer) {
+    // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+    // call to tell TSAN about our action.
+    __ MoveRegister(THR, CallingConventions::kArg2Reg);
+  }
 
   __ pushq(RCX);
   __ xorq(RCX, RCX);
   __ pushq(RCX);
   __ subq(RSP, Immediate(1024));
-  __ StoreRelease(CallingConventions::kArg3Reg, RSP, 1024);
-  __ LoadAcquire(CallingConventions::kReturnReg, RSP, 1024);
+  __ StoreReleaseToOffset(CallingConventions::kArg3Reg, RSP, 1024);
+  __ LoadAcquireFromOffset(CallingConventions::kReturnReg, RSP, 1024);
   __ addq(RSP, Immediate(1024));
   __ popq(RCX);
   __ popq(RCX);
@@ -6327,19 +6327,19 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
 ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
   const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(123);
   EXPECT_EQ(123, res);
-#if !defined(TARGET_USES_THREAD_SANITIZER)
-  EXPECT_DISASSEMBLY_NOT_WINDOWS(
-      "push rcx\n"
-      "xorq rcx,rcx\n"
-      "push rcx\n"
-      "subq rsp,0x400\n"
-      "movq [rsp+0x400],rdx\n"
-      "movq rax,[rsp+0x400]\n"
-      "addq rsp,0x400\n"
-      "pop rcx\n"
-      "pop rcx\n"
-      "ret\n");
-#endif
+  if (!FLAG_target_thread_sanitizer) {
+    EXPECT_DISASSEMBLY_NOT_WINDOWS(
+        "push rcx\n"
+        "xorq rcx,rcx\n"
+        "push rcx\n"
+        "subq rsp,0x400\n"
+        "movq [rsp+0x400],rdx\n"
+        "movq rax,[rsp+0x400]\n"
+        "addq rsp,0x400\n"
+        "pop rcx\n"
+        "pop rcx\n"
+        "ret\n");
+  }
 }
 
 ASSEMBLER_TEST_GENERATE(MoveByteRunTest, assembler) {

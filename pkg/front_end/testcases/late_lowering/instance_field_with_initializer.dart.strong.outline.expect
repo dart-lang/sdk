@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? _#Class#field;
+  constructor constructor1() → self::Class
+    ;
+  constructor constructor2(core::int field) → self::Class
+    ;
+  constructor constructor3(core::int value) → self::Class
+    ;
+  constructor constructor4([core::int field = 42]) → self::Class
+    ;
+  get field() → core::int;
+  set field(core::int field#param) → void;
+}
+class Subclass extends self::Class {
+  constructor constructor1() → self::Subclass
+    ;
+  constructor constructor2(core::int value) → self::Subclass
+    ;
+  constructor constructor3(core::int value) → self::Subclass
+    ;
+  constructor constructor4([core::int value = 87]) → self::Subclass
+    ;
+}
+static method test1() → dynamic
+  ;
+static method test2() → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

@@ -64,8 +64,11 @@ void main() {
         'package:test/has_local.dart', // package:test/test.dart -> file:///has_local.dart
         'package:does_not_exist/does_not_exist.dart', // invalid URI -> null
       ];
-      var result = await service
-          .lookupResolvedPackageUris(isolate.id!, unresolvedUris, local: true);
+      final result = await service.lookupResolvedPackageUris(
+        isolate.id!,
+        unresolvedUris,
+        local: true,
+      );
 
       expect(result.uris?[0], 'org-dartlang-sdk:///sdk/lib/io/io.dart');
       expect(result.uris?[1], 'file:///home/has_local.dart');

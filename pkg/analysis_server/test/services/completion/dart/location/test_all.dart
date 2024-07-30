@@ -33,10 +33,12 @@ import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_statement;
 import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_test.dart' as function_expression;
+import 'function_invocation_test.dart' as function_invocation;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
 import 'implements_clause_test.dart' as implements_clause;
 import 'import_directive_test.dart' as import_directive;
+import 'index_expression_test.dart' as index_expression;
 import 'instance_creation_expression_test.dart' as instance_creation_expression;
 import 'is_expression_test.dart' as is_expression;
 import 'library_directive_test.dart' as library_directive;
@@ -76,6 +78,7 @@ import 'try_statement_test.dart' as try_statement;
 import 'type_argument_list_test.dart' as type_argument_list;
 import 'type_test_test.dart' as type_test;
 import 'variable_declaration_list_test.dart' as variable_declaration_list;
+import 'wildcard_pattern_test.dart' as wildcard_pattern;
 import 'with_clause_test.dart' as with_clause;
 
 /// Tests suggestions produced at specific locations.
@@ -110,10 +113,12 @@ void main() {
     for_statement.main();
     function_declaration.main();
     function_expression.main();
+    function_invocation.main();
     if_element.main();
     if_statement.main();
     implements_clause.main();
     import_directive.main();
+    index_expression.main();
     instance_creation_expression.main();
     is_expression.main();
     library_directive.main();
@@ -152,6 +157,7 @@ void main() {
     type_argument_list.main();
     type_test.main();
     variable_declaration_list.main();
+    wildcard_pattern.main();
     with_clause.main();
   });
 }

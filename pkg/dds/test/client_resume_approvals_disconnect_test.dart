@@ -21,6 +21,7 @@ final test = <IsolateTest>[
   // Multiple clients, disconnect client awaiting approval.
   hasPausedAtStart,
   (VmService service, IsolateRef isolate) async {
+    service.requireUserPermissionToResume(onPauseStart: false);
     final isolateId = isolate.id!;
     final client1 = await createClient(
       service: service,
@@ -43,8 +44,7 @@ final test = <IsolateTest>[
     await hasPausedAtStart(service, isolate);
 
     // Once client2 disconnects, there are no clients which require resume
-    // approval. Ensure we resume immediately so we don't deadlock waiting for
-    // approvals from disconnected clients.
+    // approval.
     await client2.dispose();
   },
   hasStoppedAtExit,

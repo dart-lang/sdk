@@ -26,7 +26,7 @@ b() {
 
 ''';
 
-class EnableNullSafety extends LintRule implements NodeLintRule {
+class EnableNullSafety extends LintRule {
   static const LintCode code = LintCode(
       'enable_null_safety', 'Use sound null safety.',
       correctionMessage:
@@ -38,7 +38,7 @@ class EnableNullSafety extends LintRule implements NodeLintRule {
             description: _desc,
             details: _details,
             state: State.removed(since: dart2_12),
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

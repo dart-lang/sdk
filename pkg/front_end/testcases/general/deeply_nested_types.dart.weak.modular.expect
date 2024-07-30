@@ -1,7 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method test() → dynamic {
-  core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<dynamic>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> x = <core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<core::List<dynamic>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[];
-}

@@ -206,6 +206,11 @@ class DartDevelopmentServiceException implements Exception {
   @override
   String toString() => 'DartDevelopmentServiceException: $message';
 
+  Map<String, Object?> toJson() => {
+        'error_code': errorCode,
+        'message': message,
+      };
+
   final int errorCode;
   final String message;
 }
@@ -226,14 +231,22 @@ class ExistingDartDevelopmentServiceException
   /// not the WebSocket URI (which can be obtained by mapping the scheme to
   /// `ws` (or `wss`) and appending `ws` to the path segments).
   final Uri? ddsUri;
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'uri': ddsUri.toString(),
+      };
 }
 
 class DevToolsConfiguration {
   const DevToolsConfiguration({
     required this.customBuildDirectoryPath,
+    this.devToolsServerAddress,
     this.enable = false,
   });
 
   final bool enable;
+  final Uri? devToolsServerAddress;
   final Uri customBuildDirectoryPath;
 }

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_augmentation.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_augmented.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
@@ -99,7 +100,7 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
   InitializedLspStateMessageHandler(
     LspAnalysisServer server,
   ) : super(server) {
-    for (final generator in lspHandlerGenerators) {
+    for (var generator in lspHandlerGenerators) {
       registerHandler(generator(server));
     }
   }
@@ -148,7 +149,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     reject(Method.initialized, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
 
-    for (final generator in sharedHandlerGenerators) {
+    for (var generator in sharedHandlerGenerators) {
       registerHandler(generator(server));
     }
   }

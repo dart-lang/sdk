@@ -57,17 +57,15 @@ class TypeLiteralInConstantPattern extends LintRule {
   static const String lintName = 'type_literal_in_constant_pattern';
 
   static const LintCode code = LintCode(
-    lintName,
-    "Use 'TypeName _' instead of a type literal.",
-    correctionMessage: "Replace with 'TypeName _'.",
-  );
+      lintName, "Use 'TypeName _' instead of a type literal.",
+      correctionMessage: "Replace with 'TypeName _'.", hasPublishedDocs: true);
 
   TypeLiteralInConstantPattern()
       : super(
           name: lintName,
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

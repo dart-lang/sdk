@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import '../api.dart';
 import '../executor.dart';
 import 'builder_impls.dart';
@@ -61,15 +63,7 @@ Future<MacroExecutionResult> executeTypesMacro(
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    if (e is DiagnosticException) {
-      builder.report(e.diagnostic);
-    } else if (e is MacroExceptionImpl) {
-      // Preserve `MacroException`s thrown by SDK tools.
-      builder.failWithException(e);
-    } else {
-      // Convert exceptions thrown by macro implementations into diagnostics.
-      builder.report(_unexpectedExceptionDiagnostic(e, s));
-    }
+    _handleError(e, s, builder);
   }
   return builder.result;
 }
@@ -141,15 +135,7 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    if (e is DiagnosticException) {
-      builder.report(e.diagnostic);
-    } else if (e is MacroExceptionImpl) {
-      // Preserve `MacroException`s thrown by SDK tools.
-      builder.failWithException(e);
-    } else {
-      // Convert exceptions thrown by macro implementations into diagnostics.
-      builder.report(_unexpectedExceptionDiagnostic(e, s));
-    }
+    _handleError(e, s, builder);
   }
   return builder.result;
 }
@@ -216,17 +202,134 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    if (e is DiagnosticException) {
-      builder.report(e.diagnostic);
-    } else if (e is MacroExceptionImpl) {
-      // Preserve `MacroException`s thrown by SDK tools.
-      builder.failWithException(e);
-    } else {
-      // Convert exceptions thrown by macro implementations into diagnostics.
-      builder.report(_unexpectedExceptionDiagnostic(e, s));
-    }
+    _handleError(e, s, builder);
   }
   return builder.result;
+}
+
+/// Handles macro execution errors, specifically handling [DiagnosticException]s
+/// and [MacroException]s in the expected ways.
+///
+/// Also unwraps [ParallelWaitError]s and [AsyncError]s, such that we can
+/// recognize properly the nested errors if they are of specially handled types.
+void _handleError(
+    Object error, StackTrace stackTrace, TypeBuilderBase builder) {
+  switch (error) {
+    case ParallelWaitError(errors: List<Object?> errors):
+      _handleErrors(errors, stackTrace, builder);
+    case ParallelWaitError(errors: (var e1,)):
+      _handleErrors([e1], stackTrace, builder);
+    case ParallelWaitError(
+        errors: (
+          var e1,
+          var e2,
+        )
+      ):
+      _handleErrors([e1, e2], stackTrace, builder);
+    case ParallelWaitError(
+        errors: (
+          var e1,
+          var e2,
+          var e3,
+        )
+      ):
+      _handleErrors([e1, e2, e3], stackTrace, builder);
+    case ParallelWaitError(
+        errors: (
+          var e1,
+          var e2,
+          var e3,
+          var e4,
+        )
+      ):
+      _handleErrors([e1, e2, e3, e4], stackTrace, builder);
+    case ParallelWaitError(
+        errors: (
+          var e1,
+          var e2,
+          var e3,
+          var e4,
+          var e5,
+        )
+      ):
+      _handleErrors([e1, e2, e3, e4, e5], stackTrace, builder);
+    case ParallelWaitError(
+        errors: (
+          var e1,
+          var e2,
+          var e3,
+          var e4,
+          var e5,
+          var e6,
+        )
+      ):
+      _handleErrors([e1, e2, e3, e4, e5, e6], stackTrace, builder);
+    case ParallelWaitError(
+        errors: (
+          var e1,
+          var e2,
+          var e3,
+          var e4,
+          var e5,
+          var e6,
+          var e7,
+        )
+      ):
+      _handleErrors([e1, e2, e3, e4, e5, e6, e7], stackTrace, builder);
+    case ParallelWaitError(
+        errors: (
+          var e1,
+          var e2,
+          var e3,
+          var e4,
+          var e5,
+          var e6,
+          var e7,
+          var e8,
+        )
+      ):
+      _handleErrors([e1, e2, e3, e4, e5, e6, e7, e8], stackTrace, builder);
+    case ParallelWaitError(
+        errors: (
+          var e1,
+          var e2,
+          var e3,
+          var e4,
+          var e5,
+          var e6,
+          var e7,
+          var e8,
+          var e9,
+        )
+      ):
+      _handleErrors([e1, e2, e3, e4, e5, e6, e7, e8, e9], stackTrace, builder);
+    // Unwrap async errors.
+    case AsyncError():
+      _handleError(error.error, error.stackTrace, builder);
+    // Custom diagnostics from macros, these should just be reported.
+    case DiagnosticException():
+      builder.report(error.diagnostic);
+    // Preserve `MacroException`s thrown by SDK tools.
+    case MacroExceptionImpl():
+      builder.failWithException(error);
+    case _:
+      // Convert exceptions thrown by macro implementations into diagnostics.
+      builder.report(_unexpectedExceptionDiagnostic(error, stackTrace));
+  }
+}
+
+/// Handles a number of [errors], ignoring null values.
+///
+/// This is used for parallel wait scenarios such as [Future.wait].
+void _handleErrors(
+    List<Object?> errors, StackTrace outerStackTrace, TypeBuilderBase builder) {
+  for (var error in errors) {
+    if (error == null) continue;
+    // Passing the outerStackTrace here is the best we can do - but most of the
+    // time `error` will actually be an `AsyncError`, and we will end up using
+    // that stack trace anyways.
+    _handleError(error, outerStackTrace, builder);
+  }
 }
 
 // It's a bug in the macro but we need to show something to the user; put the

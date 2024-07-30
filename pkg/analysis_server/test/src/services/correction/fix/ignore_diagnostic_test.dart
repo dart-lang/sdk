@@ -10,14 +10,14 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(IgnoreDiagnosticAnalysisOptionFileTest);
     defineReflectiveTests(IgnoreDiagnosticLineTest);
     defineReflectiveTests(IgnoreDiagnosticFileTest);
-    defineReflectiveTests(IgnoreDiagnosticAnaylsisOptionFileTest);
   });
 }
 
 @reflectiveTest
-class IgnoreDiagnosticAnaylsisOptionFileTest extends FixProcessorTest {
+class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
 
@@ -171,10 +171,10 @@ include: package:lints/recommended.yaml
   ''');
     await assertHasFix(
       '''
+include: package:lints/recommended.yaml
 analyzer:
   errors:
     unused_local_variable: ignore
-include: package:lints/recommended.yaml
 ''',
       target: analysisOptionsPath,
     );
@@ -297,6 +297,14 @@ void f() {
 ''');
   }
 
+  Future<void> test_noHeader_oneLine() async {
+    await resolveTestCode('var _a = 1;');
+    await assertHasFix('''
+// ignore_for_file: unused_element
+
+var _a = 1;''');
+  }
+
   Future<void> test_unignorable() async {
     createAnalysisOptionsFile(
       experiments: experiments,
@@ -389,5 +397,22 @@ void f() {
   var a = 1;
 }
 ''');
+  }
+
+  Future<void> test_unusedCode_firstLine() async {
+    await resolveTestCode('''
+var _a = 1;
+''');
+    await assertHasFix('''
+// ignore: unused_element
+var _a = 1;
+''');
+  }
+
+  Future<void> test_unusedCode_oneLine() async {
+    await resolveTestCode('var _a = 1;');
+    await assertHasFix('''
+// ignore: unused_element
+var _a = 1;''');
   }
 }

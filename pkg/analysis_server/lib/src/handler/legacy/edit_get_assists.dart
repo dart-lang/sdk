@@ -13,7 +13,7 @@ import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/util/file_paths.dart';
@@ -30,7 +30,8 @@ class EditGetAssistsHandler extends LegacyHandler
 
   @override
   Future<void> handle() async {
-    var params = EditGetAssistsParams.fromRequest(request);
+    var params = EditGetAssistsParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
     var offset = params.offset;
     var length = params.length;

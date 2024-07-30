@@ -125,14 +125,37 @@ onPrint() {
 ''');
   }
 
-  test_string_adjacentBlankString() async {
-    await assertDiagnostics(r'''
+  test_string_adjacentBlankString_lintInMiddle() async {
+    await assertDiagnostics(
+      r'''
+void f(String x) {
+  x = 'hello\n' '' 'world\n';
+}
+''',
+      [
+        lint(35, 2),
+      ],
+    );
+  }
+
+  test_string_adjacentBlankString_okAtEnd() async {
+    await assertNoDiagnostics(
+      r'''
 void f(String x) {
   x = 'hello\n' 'world\n' '';
 }
-''', [
-      lint(45, 2),
-    ]);
+''',
+    );
+  }
+
+  test_string_adjacentBlankString_okAtStart() async {
+    await assertNoDiagnostics(
+      r'''
+void f(String x) {
+  x = '' 'hello\n' 'world\n';
+}
+''',
+    );
   }
 
   test_string_nullable_toString() async {

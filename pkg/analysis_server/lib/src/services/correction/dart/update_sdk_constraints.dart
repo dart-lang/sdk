@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
@@ -15,33 +15,16 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
   /// The minimum version to which the SDK constraints should be updated.
   final String _minimumVersion;
 
-  /// Initialize a newly created instance that will update the SDK constraints
+  /// Initializes a newly created instance that will update the SDK constraints
   /// to '2.14.0'.
-  UpdateSdkConstraints.version_2_14_0() : _minimumVersion = '2.14.0';
-
-  /// Initialize a newly created instance that will update the SDK constraints
-  /// to '2.1.0'.
-  UpdateSdkConstraints.version_2_1_0() : _minimumVersion = '2.1.0';
-
-  /// Initialize a newly created instance that will update the SDK constraints
-  /// to '2.2.0'.
-  UpdateSdkConstraints.version_2_2_0() : _minimumVersion = '2.2.0';
-
-  /// Initialize a newly created instance that will update the SDK constraints
-  /// to '2.2.0'.
-  UpdateSdkConstraints.version_2_2_2() : _minimumVersion = '2.2.2';
-
-  /// Initialize a newly created instance that will update the SDK constraints
-  /// to '2.2.0'.
-  UpdateSdkConstraints.version_2_6_0() : _minimumVersion = '2.6.0';
+  UpdateSdkConstraints.version_2_14_0({required super.context})
+      : _minimumVersion = '2.14.0';
 
   @override
-  // Too nuanced to do unattended.
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  // Not applicable (there can only be one constraint per file).
-  bool get canBeAppliedToFile => false;
+  // Too nuanced to do unattended to apply in bulk.
+  // And not applicable (there can only be one constraint per file).
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
@@ -80,7 +63,7 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
       return;
     }
 
-    final newText_final = newText;
+    var newText_final = newText;
     await builder.addYamlFileEdit(pubspecFile.path, (builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), newText_final);
     });

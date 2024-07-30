@@ -47,9 +47,15 @@ class Container {
     Version(2, 13),
   );
 
+  static const typedData = Container(
+    'TypedData',
+    Version(3, 5),
+  );
+
   static const values = [
     pointer,
     array,
+    typedData,
   ];
 }
 
@@ -294,6 +300,41 @@ $since extension ${nativeType}Array on Array<$nativeType> {
 }
 
 """);
+    case Container.typedData:
+      if (typedListType != kDoNotEmit) {
+        buffer.write("""
+$since extension ${typedListType}Address on $typedListType {
+  /// The memory address of the underlying data.
+  ///
+  /// An expression of the form `expression.address` denoting this `address`
+  /// can only occurr as an entire argument expression in the invocation of
+  /// a leaf [Native] external function.
+  ///
+  /// Example:
+  ///
+  /// ```dart import:typed_data
+  /// @Native<Void Function(Pointer<$nativeType>)>(isLeaf: true)
+  /// external void myFunction(Pointer<$nativeType> pointer);
+  ///
+  /// void main() {
+  ///   final list = $typedListType(10);
+  ///   myFunction(list.address);
+  /// }
+  /// ```
+  ///
+  /// The expression before `.address` is evaluated like the left-hand-side of
+  /// an assignment, to something that gives access to the storage behind the
+  /// expression, which can be used both for reading and writing. The `.address`
+  /// then gives a native pointer to that storage.
+  ///
+  /// The `.address` is evaluated just before calling into native code when
+  /// invoking a leaf [Native] external function. This ensures the Dart garbage
+  /// collector will not move the object that the address points in to.
+  external Pointer<$nativeType> get address;
+}
+
+""");
+      }
   }
 }
 
@@ -375,6 +416,8 @@ extension ${nativeType}Array on Array<$nativeType> {
 }
 
 """);
+    case Container.typedData:
+    // Nothing to do, all rewritten in the CFE.
   }
 }
 

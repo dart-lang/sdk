@@ -18,7 +18,6 @@ library from "org-dartlang-test:///main.dart" as main {
           break #L1;
         }
       }
-      throw{for-error-handling} new dart._internal::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
   static method main() → dynamic {

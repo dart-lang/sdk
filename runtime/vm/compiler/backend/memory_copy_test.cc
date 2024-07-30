@@ -14,7 +14,11 @@
 
 namespace dart {
 
-extern const char* pointer_prefix;
+#ifdef DART_TARGET_OS_WINDOWS
+const char* pointer_prefix = "0x";
+#else
+const char* pointer_prefix = "";
+#endif
 
 static constexpr intptr_t kMemoryTestLength = 1024;
 static constexpr uint8_t kUnInitialized = 0xFE;
@@ -150,7 +154,7 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
   OS::Print("&ptr %p &ptr2 %p\n", ptr, ptr2);
 
   // clang-format off
-  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  CStringUniquePtr kScript(OS::SCreate(nullptr, R"(
     import 'dart:ffi';
 
     void copyConst() {
@@ -178,7 +182,7 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
                       int length) {}
   )", pointer_prefix, ptr, pointer_prefix, ptr2,
       pointer_prefix, ptr, pointer_prefix, ptr2,
-      src_start, dest_start, length), std::free);
+      src_start, dest_start, length));
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
@@ -205,8 +209,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
 
       EXPECT(cursor.TryMatch({
           kMoveGlob,
+          kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &pointer},
+          kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &pointer2},
+          kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &another_function_call},
       }));
     }
@@ -239,8 +246,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
       ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
       EXPECT(cursor.TryMatch({
           kMoveGlob,
+          kMatchAndMoveRecordCoverage,
           kMatchAndMoveStaticCall,
+          kMatchAndMoveRecordCoverage,
           kMatchAndMoveStaticCall,
+          kMatchAndMoveRecordCoverage,
           kMatchAndMoveMemoryCopy,
       }));
     }

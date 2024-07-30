@@ -130,8 +130,7 @@ Handle::Handle(intptr_t handle)
       read_thread_finished_(false),
       flags_(0) {}
 
-Handle::~Handle() {
-}
+Handle::~Handle() {}
 
 bool Handle::CreateCompletionPort(HANDLE completion_port) {
   ASSERT(completion_port_ == INVALID_HANDLE_VALUE);
@@ -149,15 +148,7 @@ void Handle::Close() {
     // If the handle uses synchronous I/O (e.g. stdin), cancel any pending
     // operation before closing the handle, so the read thread is not blocked.
     BOOL result = CancelIoEx(handle_, nullptr);
-// The Dart code 'stdin.listen(() {}).cancel()' causes this assert to be
-// triggered on Windows 7, but not on Windows 10.
-#if defined(DEBUG)
-    if (IsWindows10OrGreater()) {
-      ASSERT(result || (GetLastError() == ERROR_NOT_FOUND));
-    }
-#else
-    USE(result);
-#endif
+    ASSERT(result || (GetLastError() == ERROR_NOT_FOUND));
   }
   if (!IsClosing()) {
     // Close the socket and set the closing state. This close method can be

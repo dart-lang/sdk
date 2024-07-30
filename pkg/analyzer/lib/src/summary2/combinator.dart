@@ -27,7 +27,7 @@ class Combinator {
 extension CombinatorListExtension on List<Combinator> {
   /// Return `true` if this list of combinators allows the [name].
   bool allows(String name) {
-    for (final combinator in this) {
+    for (var combinator in this) {
       if (combinator.isShow && !combinator.matches(name)) return false;
       if (combinator.isHide && combinator.matches(name)) return false;
     }

@@ -26,8 +26,9 @@
 namespace dart {
 namespace bin {
 
-static constexpr int64_t kAppSnapshotHeaderSize = 4 * kInt64Size;
-static constexpr int64_t kAppSnapshotPageSize = 16 * KB;
+static constexpr int64_t kAppSnapshotHeaderSize = 2 * kInt64Size;
+// The largest possible page size among the platforms we support (Linux ARM64).
+static constexpr int64_t kAppSnapshotPageSize = 64 * KB;
 
 static const char kMachOAppSnapshotNoteName[] DART_UNUSED = "__dart_app_snap";
 
@@ -103,47 +104,20 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     return nullptr;
   }
 
-  int64_t header[4];
+  int64_t header[2];
   ASSERT(sizeof(header) == kAppSnapshotHeaderSize);
   if (!file->ReadFully(&header, kAppSnapshotHeaderSize)) {
     return nullptr;
   }
-  int64_t vm_data_size = header[0];
-  int64_t vm_data_position =
+  int64_t isolate_data_size = header[0];
+  int64_t isolate_data_position =
       Utils::RoundUp(file->Position(), kAppSnapshotPageSize);
-  int64_t vm_instructions_size = header[1];
-  int64_t vm_instructions_position = vm_data_position + vm_data_size;
-  if (vm_instructions_size != 0) {
-    vm_instructions_position =
-        Utils::RoundUp(vm_instructions_position, kAppSnapshotPageSize);
-  }
-  int64_t isolate_data_size = header[2];
-  int64_t isolate_data_position = Utils::RoundUp(
-      vm_instructions_position + vm_instructions_size, kAppSnapshotPageSize);
-  int64_t isolate_instructions_size = header[3];
+  int64_t isolate_instructions_size = header[1];
   int64_t isolate_instructions_position =
       isolate_data_position + isolate_data_size;
   if (isolate_instructions_size != 0) {
     isolate_instructions_position =
         Utils::RoundUp(isolate_instructions_position, kAppSnapshotPageSize);
-  }
-
-  MappedMemory* vm_data_mapping = nullptr;
-  if (vm_data_size != 0) {
-    vm_data_mapping =
-        file->Map(File::kReadOnly, vm_data_position, vm_data_size);
-    if (vm_data_mapping == nullptr) {
-      FATAL("Failed to memory map snapshot: %s\n", script_name);
-    }
-  }
-
-  MappedMemory* vm_instr_mapping = nullptr;
-  if (vm_instructions_size != 0) {
-    vm_instr_mapping = file->Map(File::kReadExecute, vm_instructions_position,
-                                 vm_instructions_size);
-    if (vm_instr_mapping == nullptr) {
-      FATAL("Failed to memory map snapshot: %s\n", script_name);
-    }
   }
 
   MappedMemory* isolate_data_mapping = nullptr;
@@ -165,9 +139,8 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     }
   }
 
-  auto app_snapshot =
-      new MappedAppSnapshot(vm_data_mapping, vm_instr_mapping,
-                            isolate_data_mapping, isolate_instr_mapping);
+  auto app_snapshot = new MappedAppSnapshot(
+      nullptr, nullptr, isolate_data_mapping, isolate_instr_mapping);
   return app_snapshot;
 }
 
@@ -588,7 +561,7 @@ bool Snapshot::IsPEFormattedBinary(const char* filename) {
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
                                           bool force_load_elf_from_memory,
                                           bool decode_uri) {
-  Utils::CStringUniquePtr decoded_path(nullptr, std::free);
+  CStringUniquePtr decoded_path(nullptr);
   const char* script_name = nullptr;
   if (decode_uri) {
     decoded_path = File::UriToPath(script_uri);
@@ -636,8 +609,7 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_MACOS)
   // On Linux and OSX, resolve the script path before passing into dlopen()
   // since dlopen will not search the filesystem for paths like 'libtest.so'.
-  std::unique_ptr<char, decltype(std::free)*> absolute_path{
-      realpath(script_name, nullptr), std::free};
+  CStringUniquePtr absolute_path(realpath(script_name, nullptr));
   script_name = absolute_path.get();
 #endif
 
@@ -682,10 +654,6 @@ static bool WriteInt64(File* file, int64_t size) {
 }
 
 void Snapshot::WriteAppSnapshot(const char* filename,
-                                uint8_t* vm_data_buffer,
-                                intptr_t vm_data_size,
-                                uint8_t* vm_instructions_buffer,
-                                intptr_t vm_instructions_size,
                                 uint8_t* isolate_data_buffer,
                                 intptr_t isolate_data_size,
                                 uint8_t* isolate_instructions_buffer,
@@ -696,31 +664,10 @@ void Snapshot::WriteAppSnapshot(const char* filename,
   }
 
   file->WriteFully(appjit_magic_number.bytes, appjit_magic_number.length);
-  WriteInt64(file, vm_data_size);
-  WriteInt64(file, vm_instructions_size);
   WriteInt64(file, isolate_data_size);
   WriteInt64(file, isolate_instructions_size);
   ASSERT(file->Position() ==
          (kAppSnapshotHeaderSize + DartUtils::kMaxMagicNumberSize));
-
-  file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
-  if (LOG_SECTION_BOUNDARIES) {
-    Syslog::PrintErr("%" Px64 ": VM Data\n", file->Position());
-  }
-  if (!file->WriteFully(vm_data_buffer, vm_data_size)) {
-    ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
-  }
-
-  if (vm_instructions_size != 0) {
-    file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
-    if (LOG_SECTION_BOUNDARIES) {
-      Syslog::PrintErr("%" Px64 ": VM Instructions\n", file->Position());
-    }
-    if (!file->WriteFully(vm_instructions_buffer, vm_instructions_size)) {
-      ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n",
-                filename);
-    }
-  }
 
   file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
   if (LOG_SECTION_BOUNDARIES) {
@@ -786,8 +733,7 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
 
-  WriteAppSnapshot(snapshot_filename, nullptr, 0, nullptr, 0, isolate_buffer,
-                   isolate_size, nullptr, 0);
+  WriteAppSnapshot(snapshot_filename, isolate_buffer, isolate_size, nullptr, 0);
 #else
   uint8_t* isolate_data_buffer = nullptr;
   intptr_t isolate_data_size = 0;
@@ -799,8 +745,7 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
-  WriteAppSnapshot(snapshot_filename, nullptr, 0, nullptr, 0,
-                   isolate_data_buffer, isolate_data_size,
+  WriteAppSnapshot(snapshot_filename, isolate_data_buffer, isolate_data_size,
                    isolate_instructions_buffer, isolate_instructions_size);
 #endif
 }

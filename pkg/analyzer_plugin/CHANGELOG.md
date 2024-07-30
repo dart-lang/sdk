@@ -1,3 +1,7 @@
+## 0.12.0-dev
+- Breaking changes to `DartFileEditBuilder`: `convertFunctionFromSyncToAsync`
+  and `replaceTypeWithFuture`.
+
 ## 0.11.3
 
 - Support version `6.x` of the `analyzer` package

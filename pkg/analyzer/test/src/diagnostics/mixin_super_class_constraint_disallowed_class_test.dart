@@ -31,9 +31,9 @@ mixin M on Enum {}
           27, 4),
     ]);
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType
@@ -41,6 +41,24 @@ OnClause
       element: dart:core::@class::Enum
       type: Enum
 ''');
+  }
+
+  test_in_inAugmentation() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+mixin A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment mixin A on int {}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          45, 3),
+    ]);
   }
 
   test_int() async {
@@ -51,9 +69,9 @@ mixin M on int {}
           11, 3),
     ]);
 
-    final node = findNode.singleOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType

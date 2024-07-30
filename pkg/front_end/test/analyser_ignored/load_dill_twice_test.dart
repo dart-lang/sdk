@@ -5,10 +5,8 @@
 import 'dart:io' show Platform, exit;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
-import 'package:kernel/text/ast_to_text.dart' show componentToString;
-
 import 'package:kernel/kernel.dart' show Component;
+import 'package:kernel/text/ast_to_text.dart' show componentToString;
 
 import '../incremental_suite.dart' show normalCompileToBytes;
 

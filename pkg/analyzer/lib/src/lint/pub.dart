@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
@@ -506,10 +507,11 @@ class _PSNode implements PSNode {
 
   @override
   Source get source {
-    final provider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
-    return provider
-        .getFile(provider.pathContext.fromUri(span.sourceUrl!))
-        .createSource(span.sourceUrl);
+    var provider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+    var uri = span.sourceUrl!;
+    var filePath = provider.pathContext.fromUri(uri);
+    var file = provider.getFile(filePath);
+    return FileSource(file, uri);
   }
 
   @override

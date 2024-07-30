@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -68,7 +69,7 @@ class CompletionHandler
       : suggestFromUnimportedLibraries =
             server.initializationOptions?.suggestFromUnimportedLibraries ??
                 true {
-    final budgetMs = server.initializationOptions?.completionBudgetMilliseconds;
+    var budgetMs = server.initializationOptions?.completionBudgetMilliseconds;
     completionBudgetDuration = budgetMs != null
         ? Duration(milliseconds: budgetMs)
         : CompletionBudget.defaultDuration;
@@ -84,7 +85,7 @@ class CompletionHandler
   @override
   Future<ErrorOr<CompletionList>> handle(CompletionParams params,
       MessageInfo message, CancellationToken token) async {
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -96,10 +97,10 @@ class CompletionHandler
     previousRequestCancellationToken?.cancel();
     previousRequestCancellationToken = token.asCancelable();
 
-    final requestLatency = message.timeSinceRequest;
-    final triggerCharacter = params.context?.triggerCharacter;
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
+    var requestLatency = message.timeSinceRequest;
+    var triggerCharacter = params.context?.triggerCharacter;
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
 
     // IMPORTANT:
     // This handler is frequently called while the user is typing, which means
@@ -118,7 +119,7 @@ class CompletionHandler
         // If we don't have a unit, we can still try to obtain the line info from
         // the server (this could be because the file is non-Dart, such as YAML or
         // another handled by a plugin).
-        (error) => path.mapResult(getLineInfo),
+        (error) => path.mapResultSync(getLineInfo),
         (unit) => success(unit.lineInfo),
       );
     });
@@ -132,121 +133,116 @@ class CompletionHandler
 
     // Map the offset, propagating the previous failure if we didn't have a
     // valid LineInfo.
-    final offsetResult = !lineInfo.isError
-        ? toOffset(lineInfo.result, pos)
-        : failure<int>(lineInfo);
+    var offset = lineInfo.mapResultSync((lineInfo) => toOffset(lineInfo, pos));
 
-    if (offsetResult.isError) {
-      return failure(offsetResult);
-    }
-    final offset = offsetResult.result;
+    return await (path, lineInfo, offset)
+        .mapResults((path, lineInfo, offset) async {
+      var fileExtension = pathContext.extension(path);
+      var maxResults =
+          server.lspClientConfiguration.forResource(path).maxCompletionItems;
+      CompletionPerformance? completionPerformance;
+      Future<ErrorOr<_CompletionResults>>? serverResultsFuture;
+      if (fileExtension == '.dart') {
+        unit.ifResult((unit) {
+          var performance = message.performance;
+          serverResultsFuture = performance.runAsync(
+            'request',
+            (performance) async {
+              var thisPerformance = CompletionPerformance(
+                performance: performance,
+                path: unit.path,
+                requestLatency: requestLatency,
+                content: unit.content,
+                offset: offset,
+              );
+              completionPerformance = thisPerformance;
+              server.recentPerformance.completion.add(thisPerformance);
 
-    Future<ErrorOr<_CompletionResults>>? serverResultsFuture;
-    final fileExtension = pathContext.extension(path.result);
-
-    final maxResults = server.lspClientConfiguration
-        .forResource(path.result)
-        .maxCompletionItems;
-
-    CompletionPerformance? completionPerformance;
-    if (fileExtension == '.dart' && !unit.isError) {
-      final result = unit.result;
-      var performance = message.performance;
-      serverResultsFuture = performance.runAsync(
-        'request',
-        (performance) async {
-          final thisPerformance = CompletionPerformance(
-            performance: performance,
-            path: result.path,
-            requestLatency: requestLatency,
-            content: result.content,
-            offset: offset,
+              // `await` required for `performance.runAsync` to count time.
+              return await _getServerDartItems(
+                clientCapabilities,
+                unit,
+                thisPerformance,
+                performance,
+                offset,
+                triggerCharacter,
+                token,
+                maxResults,
+              );
+            },
           );
-          completionPerformance = thisPerformance;
-          server.recentPerformance.completion.add(thisPerformance);
-
-          // `await` required for `performance.runAsync` to count time.
-          return await _getServerDartItems(
+        });
+      } else if (fileExtension == '.yaml') {
+        YamlCompletionGenerator? generator;
+        if (file_paths.isAnalysisOptionsYaml(pathContext, path)) {
+          generator = AnalysisOptionsGenerator(server.resourceProvider);
+        } else if (file_paths.isFixDataYaml(pathContext, path)) {
+          generator = FixDataGenerator(server.resourceProvider);
+        } else if (file_paths.isPubspecYaml(pathContext, path)) {
+          generator = PubspecGenerator(
+              server.resourceProvider, server.pubPackageService);
+        }
+        if (generator != null) {
+          serverResultsFuture = _getServerYamlItems(
+            generator,
             clientCapabilities,
-            unit.result,
-            thisPerformance,
-            performance,
+            path,
+            lineInfo,
             offset,
-            triggerCharacter,
             token,
           );
-        },
-      );
-    } else if (fileExtension == '.yaml') {
-      YamlCompletionGenerator? generator;
-      if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
-        generator = AnalysisOptionsGenerator(server.resourceProvider);
-      } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
-        generator = FixDataGenerator(server.resourceProvider);
-      } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
-        generator =
-            PubspecGenerator(server.resourceProvider, server.pubPackageService);
+        }
       }
-      if (generator != null) {
-        serverResultsFuture = _getServerYamlItems(
-          generator,
-          clientCapabilities,
-          path.result,
-          lineInfo.result,
-          offset,
-          token,
-        );
-      }
-    }
 
-    serverResultsFuture ??= Future.value(success(_CompletionResults.empty()));
+      var pluginResultsFuture =
+          _getPluginResults(clientCapabilities, lineInfo, path, offset);
 
-    final pluginResultsFuture = _getPluginResults(
-        clientCapabilities, lineInfo.result, path.result, offset);
+      var serverResults =
+          (await serverResultsFuture) ?? success(_CompletionResults.empty());
+      var pluginResults = await pluginResultsFuture;
 
-    final serverResults = await serverResultsFuture;
-    final pluginResults = await pluginResultsFuture;
+      return (serverResults, pluginResults)
+          .mapResultsSync((serverResults, pluginResults) {
+        // Add in fuzzy scores for completion items.
+        var pluginResultItems = pluginResults.items.map((item) =>
+            (item: item, score: serverResults.fuzzy.completionItemScore(item)));
 
-    if (serverResults.isError) return failure(serverResults);
-    if (pluginResults.isError) return failure(pluginResults);
+        var untruncatedRankedItems =
+            serverResults.rankedItems.followedBy(pluginResultItems).toList();
+        var unrankedItems = serverResults.unrankedItems;
 
-    final serverResult = serverResults.result;
-    // Add in fuzzy scores for completion items.
-    final pluginResultItems = pluginResults.result.items.map((item) =>
-        (item: item, score: serverResult.fuzzy.completionItemScore(item)));
+        // Truncate ranked items allowing for all unranked items.
+        var maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
+        var truncatedRankedItems =
+            untruncatedRankedItems.length <= maxRankedItems
+                ? untruncatedRankedItems
+                : _truncateResults(
+                    untruncatedRankedItems,
+                    serverResults.targetPrefix,
+                    maxRankedItems,
+                  );
 
-    final untruncatedRankedItems =
-        serverResult.rankedItems.followedBy(pluginResultItems).toList();
-    final unrankedItems = serverResult.unrankedItems;
+        var truncatedItems = truncatedRankedItems
+            .map((item) => item.item)
+            .followedBy(unrankedItems)
+            .toList();
 
-    // Truncate ranked items allowing for all unranked items.
-    final maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
-    final truncatedRankedItems = untruncatedRankedItems.length <= maxRankedItems
-        ? untruncatedRankedItems
-        : _truncateResults(
-            untruncatedRankedItems,
-            serverResult.targetPrefix,
-            maxRankedItems,
-          );
+        // If we're tracing performance (only Dart), record the number of results
+        // after truncation.
+        completionPerformance?.transmittedSuggestionCount =
+            truncatedItems.length;
 
-    final truncatedItems = truncatedRankedItems
-        .map((item) => item.item)
-        .followedBy(unrankedItems)
-        .toList();
-
-    // If we're tracing performance (only Dart), record the number of results
-    // after truncation.
-    completionPerformance?.transmittedSuggestionCount = truncatedItems.length;
-
-    return success(CompletionList(
-      // If any set of the results is incomplete, the whole batch must be
-      // marked as such.
-      isIncomplete: serverResult.isIncomplete ||
-          pluginResults.result.isIncomplete ||
-          truncatedRankedItems.length != untruncatedRankedItems.length,
-      items: truncatedItems,
-      itemDefaults: serverResult.defaults,
-    ));
+        return success(CompletionList(
+          // If any set of the results is incomplete, the whole batch must be
+          // marked as such.
+          isIncomplete: serverResults.isIncomplete ||
+              pluginResults.isIncomplete ||
+              truncatedRankedItems.length != untruncatedRankedItems.length,
+          items: truncatedItems,
+          itemDefaults: serverResults.defaults,
+        ));
+      });
+    });
   }
 
   /// Computes all supported defaults for completion items based on
@@ -298,8 +294,7 @@ class CompletionHandler
   /// difference between the replacementOffset and the caret position.
   int _computeInsertLength(
       int offset, int replacementOffset, int replacementLength) {
-    final insertLength =
-        math.min(offset - replacementOffset, replacementLength);
+    var insertLength = math.min(offset - replacementOffset, replacementLength);
     assert(insertLength >= 0);
     assert(insertLength <= replacementLength);
     return insertLength;
@@ -313,12 +308,12 @@ class CompletionHandler
     required bool Function(String input) filter,
     CompletionListItemDefaults? defaults,
   }) async {
-    final request = DartSnippetRequest(
+    var request = DartSnippetRequest(
       unit: unit,
       offset: offset,
     );
-    final snippetManager = DartSnippetManager();
-    final snippets =
+    var snippetManager = DartSnippetManager();
+    var snippets =
         await snippetManager.computeSnippets(request, filter: filter);
 
     return snippets.map((snippet) => snippetToCompletionItem(
@@ -338,11 +333,11 @@ class CompletionHandler
     String path,
     int offset,
   ) async {
-    final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
-    final pluginResponses = await requestFromPlugins(path, requestParams,
+    var requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
+    var pluginResponses = await requestFromPlugins(path, requestParams,
         timeout: const Duration(milliseconds: 100));
 
-    final pluginResults = pluginResponses
+    var pluginResults = pluginResponses
         .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
         .toList();
 
@@ -366,19 +361,20 @@ class CompletionHandler
     int offset,
     String? triggerCharacter,
     CancellationToken token,
+    int maxSuggestions,
   ) async {
-    final useNotImportedCompletions =
+    var useNotImportedCompletions =
         suggestFromUnimportedLibraries && capabilities.applyEdit;
 
-    final completionRequest = DartCompletionRequest.forResolvedUnit(
+    var completionRequest = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: unit,
       offset: offset,
       dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(unit),
       completionPreference: CompletionPreference.replace,
     );
-    final target = completionRequest.target;
-    final targetPrefix = completionRequest.targetPrefix;
-    final fuzzy = _FuzzyScoreHelper(targetPrefix);
+    var target = completionRequest.target;
+    var targetPrefix = completionRequest.targetPrefix;
+    var fuzzy = _FuzzyScoreHelper(targetPrefix);
 
     if (triggerCharacter != null) {
       if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
@@ -393,16 +389,17 @@ class CompletionHandler
 
     var isIncomplete = false;
     try {
-      final serverSuggestions2 =
+      var serverSuggestions2 =
           await performance.runAsync('computeSuggestions', (performance) async {
         var contributor = DartCompletionManager(
           budget: CompletionBudget(completionBudgetDuration),
           notImportedSuggestions: notImportedSuggestions,
         );
 
-        final suggestions = await contributor.computeSuggestions(
+        var suggestions = await contributor.computeSuggestions(
           completionRequest,
           performance,
+          maxSuggestions: maxSuggestions,
           useFilter: true,
         );
 
@@ -414,16 +411,16 @@ class CompletionHandler
         return suggestions;
       });
 
-      final serverSuggestions =
+      var serverSuggestions =
           performance.run('buildSuggestions', (performance) {
         return serverSuggestions2
             .map((serverSuggestion) => serverSuggestion.build())
             .toList();
       });
 
-      final replacementOffset = completionRequest.replacementOffset;
-      final replacementLength = completionRequest.replacementLength;
-      final insertLength = _computeInsertLength(
+      var replacementOffset = completionRequest.replacementOffset;
+      var replacementLength = completionRequest.replacementLength;
+      var insertLength = _computeInsertLength(
         offset,
         replacementOffset,
         replacementLength,
@@ -436,16 +433,16 @@ class CompletionHandler
       /// completeFunctionCalls should be suppressed if the target is an
       /// invocation that already has an argument list, otherwise we would
       /// insert dupes.
-      final completeFunctionCalls = _hasExistingArgList(target.entity)
+      var completeFunctionCalls = _hasExistingArgList(target.entity)
           ? false
           : server.lspClientConfiguration.global.completeFunctionCalls;
 
       // Compute defaults that will allow us to reduce payload size.
-      final defaultReplacementRange =
+      var defaultReplacementRange =
           toRange(unit.lineInfo, replacementOffset, replacementLength);
-      final defaultInsertionRange =
+      var defaultInsertionRange =
           toRange(unit.lineInfo, replacementOffset, insertLength);
-      final defaults = _computeCompletionDefaults(
+      var defaults = _computeCompletionDefaults(
           capabilities, defaultInsertionRange, defaultReplacementRange);
 
       /// Helper to convert [CompletionSuggestions] to [CompletionItem].
@@ -463,9 +460,9 @@ class CompletionHandler
         }
 
         // Convert to LSP ranges using the LineInfo.
-        final replacementRange = toRange(
+        var replacementRange = toRange(
             unit.lineInfo, itemReplacementOffset, itemReplacementLength);
-        final insertionRange =
+        var insertionRange =
             toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
 
         // For items that need imports, we'll round-trip some additional info
@@ -473,8 +470,8 @@ class CompletionHandler
         // lazily to reduce the payload.
         CompletionItemResolutionInfo? resolutionInfo;
         if (item is DartCompletionSuggestion) {
-          final elementLocation = item.elementLocation;
-          final importUris = item.requiredImports;
+          var elementLocation = item.elementLocation;
+          var importUris = item.requiredImports;
 
           if (importUris.isNotEmpty) {
             resolutionInfo = DartCompletionResolutionInfo(
@@ -510,7 +507,7 @@ class CompletionHandler
         );
       }
 
-      final rankedResults = performance.run('mapSuggestions', (performance) {
+      var rankedResults = performance.run('mapSuggestions', (performance) {
         return serverSuggestions
             // Compute the fuzzy score which we can use both for filtering here
             // and for truncation sorting later on.
@@ -527,11 +524,11 @@ class CompletionHandler
       });
 
       // Add in any snippets.
-      final snippetsEnabled =
+      var snippetsEnabled =
           server.lspClientConfiguration.forResource(unit.path).enableSnippets;
       // We can only produce edits with edit builders for files inside
       // the root, so skip snippets entirely if not.
-      final isEditableFile =
+      var isEditableFile =
           unit.session.analysisContext.contextRoot.isAnalyzed(unit.path);
       List<CompletionItem> unrankedResults;
       if (capabilities.completionSnippets &&
@@ -550,7 +547,7 @@ class CompletionHandler
             // TODO(dantup): Pass `fuzzy` into here so we can filter snippets
             //  before computing them to avoid looking up Element->Public Library
             //  if they won't be included.
-            final snippets = await _getDartSnippetItems(
+            var snippets = await _getDartSnippetItems(
               clientCapabilities: capabilities,
               unit: unit,
               offset: offset,
@@ -597,27 +594,27 @@ class CompletionHandler
     int offset,
     CancellationToken token,
   ) async {
-    final suggestions = generator.getSuggestions(filePath, offset);
-    final insertLength = _computeInsertLength(
+    var suggestions = generator.getSuggestions(filePath, offset);
+    var insertLength = _computeInsertLength(
       offset,
       suggestions.replacementOffset,
       suggestions.replacementLength,
     );
-    final replacementRange = toRange(
+    var replacementRange = toRange(
         lineInfo, suggestions.replacementOffset, suggestions.replacementLength);
-    final insertionRange =
+    var insertionRange =
         toRange(lineInfo, suggestions.replacementOffset, insertLength);
 
     // Perform fuzzy matching based on the identifier in front of the caret to
     // reduce the size of the payload.
-    final fuzzyPattern = suggestions.targetPrefix;
-    final fuzzyMatcher = FuzzyMatcher(fuzzyPattern);
+    var fuzzyPattern = suggestions.targetPrefix;
+    var fuzzyMatcher = FuzzyMatcher(fuzzyPattern);
 
-    final completionItems = suggestions.suggestions
+    var completionItems = suggestions.suggestions
         .where((item) =>
             fuzzyMatcher.score(item.displayText ?? item.completion) > 0)
         .map((item) {
-      final resolutionInfo = item.kind == CompletionSuggestionKind.PACKAGE_NAME
+      var resolutionInfo = item.kind == CompletionSuggestionKind.PACKAGE_NAME
           ? PubPackageCompletionItemResolutionInfo(
               // The completion for package names may contain a trailing
               // ': ' for convenience, so if it's there, trim it off.
@@ -681,19 +678,19 @@ class CompletionHandler
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
   ) {
     return pluginResults.expand((result) {
-      final insertLength = _computeInsertLength(
+      var insertLength = _computeInsertLength(
         offset,
         result.replacementOffset,
         result.replacementLength,
       );
-      final replacementRange =
+      var replacementRange =
           toRange(lineInfo, result.replacementOffset, result.replacementLength);
-      final insertionRange =
+      var insertionRange =
           toRange(lineInfo, result.replacementOffset, insertLength);
 
       return result.results.map((item) {
-        final isNotImported = item.isNotImported ?? false;
-        final importUri = item.libraryUri;
+        var isNotImported = item.isNotImported ?? false;
+        var importUri = item.libraryUri;
 
         DartCompletionResolutionInfo? resolutionInfo;
         if (isNotImported && importUri != null) {
@@ -733,7 +730,7 @@ class CompletionHandler
   /// and sends the requests unconditionally.
   bool _triggerCharacterValid(
       int offset, String triggerCharacter, CompletionTarget target) {
-    final node = target.containingNode;
+    var node = target.containingNode;
 
     switch (triggerCharacter) {
       // For quotes, it's only valid if we're right after the opening quote of a
@@ -770,7 +767,7 @@ class CompletionHandler
     String prefix,
     int maxCompletionCount,
   ) {
-    final prefixLower = prefix.toLowerCase();
+    var prefixLower = prefix.toLowerCase();
     bool isExactMatch(CompletionItem item) =>
         (item.filterText ?? item.label).toLowerCase() == prefixLower;
 
@@ -779,7 +776,7 @@ class CompletionHandler
 
     // Skip the text comparisons if we don't have a prefix (plugin results, or
     // just no prefix when completion was invoked).
-    final shouldInclude = prefixLower.isEmpty
+    var shouldInclude = prefixLower.isEmpty
         ? (int index, _ScoredCompletionItem item) => index < maxCompletionCount
         : (int index, _ScoredCompletionItem item) =>
             index < maxCompletionCount || isExactMatch(item.item);
@@ -806,8 +803,8 @@ class CompletionHandler
     // Note: It should never be the case that we produce items without sortText
     // but if they're null, fall back to label which is what the client would do
     // when sorting.
-    final item1Text = item1.item.sortText ?? item1.item.label;
-    final item2Text = item2.item.sortText ?? item2.item.label;
+    var item1Text = item1.item.sortText ?? item1.item.label;
+    var item2Text = item2.item.sortText ?? item2.item.label;
 
     // If both items have the same text, this means they had the same relevance.
     // In this case, sort by the length of the name ascending, so that shorter
@@ -866,7 +863,7 @@ class CompletionRegistrations extends FeatureRegistration
   /// We use two dynamic registrations because for Dart we support trigger
   /// characters but for other kinds of files we do not.
   List<TextDocumentFilterWithScheme> get nonDartCompletionTypes {
-    final pluginTypesExcludingDart =
+    var pluginTypesExcludingDart =
         pluginTypes.where((filter) => filter.pattern != '**/*.dart');
 
     return {

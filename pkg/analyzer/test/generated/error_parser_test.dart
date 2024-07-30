@@ -65,36 +65,32 @@ class ErrorParserTest extends FastaParserTestCase {
 
   void test_abstractEnum() {
     parseCompilationUnit("abstract enum E {ONE}",
-        errors: [expectedError(ParserErrorCode.ABSTRACT_ENUM, 0, 8)]);
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8)]);
   }
 
   void test_abstractTopLevelFunction_function() {
-    parseCompilationUnit("abstract f(v) {}", errors: [
-      expectedError(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, 0, 8)
-    ]);
+    parseCompilationUnit("abstract f(v) {}",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8)]);
   }
 
   void test_abstractTopLevelFunction_getter() {
-    parseCompilationUnit("abstract get m {}", errors: [
-      expectedError(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, 0, 8)
-    ]);
+    parseCompilationUnit("abstract get m {}",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8)]);
   }
 
   void test_abstractTopLevelFunction_setter() {
-    parseCompilationUnit("abstract set m(v) {}", errors: [
-      expectedError(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, 0, 8)
-    ]);
+    parseCompilationUnit("abstract set m(v) {}",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8)]);
   }
 
   void test_abstractTopLevelVariable() {
-    parseCompilationUnit("abstract C f;", errors: [
-      expectedError(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, 0, 8)
-    ]);
+    parseCompilationUnit("abstract C f;",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8)]);
   }
 
   void test_abstractTypeDef() {
     parseCompilationUnit("abstract typedef F();",
-        errors: [expectedError(ParserErrorCode.ABSTRACT_TYPEDEF, 0, 8)]);
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8)]);
   }
 
   void test_await_missing_async2_issue36048() {
@@ -559,7 +555,7 @@ main() { // missing async
     var member = parseFullCompilationUnitMember() as ClassDeclaration;
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, 0, 9)]);
+        [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_enum() {
@@ -567,13 +563,12 @@ main() { // missing async
     var member = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, 0, 9)]);
+        [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_typedef() {
-    parseCompilationUnit("covariant typedef F();", errors: [
-      expectedError(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, 0, 9)
-    ]);
+    parseCompilationUnit("covariant typedef F();",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 9)]);
   }
 
   void test_defaultValueInFunctionType_named_colon() {
@@ -689,7 +684,7 @@ main() { // missing async
     var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(declaration);
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([ParserErrorCode.EMPTY_ENUM_BODY]);
+    listener.assertErrorsWithCodes([]);
 //    listener
 //        .assertErrors([expectedError(ParserErrorCode.EMPTY_ENUM_BODY, 7, 2),]);
   }
@@ -1835,9 +1830,9 @@ class Wrong<T> {
   }
 
   void test_missing_closing_bracket_issue37528() {
-    final code = '\${foo';
+    var code = '\${foo';
     createParser(code);
-    final result = fasta.scanString(code);
+    var result = fasta.scanString(code);
     expect(result.hasErrors, isTrue);
     var token = parserProxy.fastaParser.syntheticPreviousToken(result.tokens);
     try {
@@ -1868,6 +1863,18 @@ class Wrong<T> {
 
   void test_missingAssignableSelector_selector() {
     parseExpression("x(y)(z).a++");
+  }
+
+  void test_missingAssignableSelector_superAsExpressionFunctionBody() {
+    CompilationUnit unit = parseCompilationUnit('main() => super;', errors: [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 10, 5),
+    ]);
+    var declaration = unit.declarations.first as FunctionDeclaration;
+    var body = declaration.functionExpression.body as ExpressionFunctionBody;
+    var expression = body.expression;
+    expect(expression, isSuperExpression);
+    var superExpression = expression as SuperExpression;
+    expect(superExpression.superKeyword, isNotNull);
   }
 
   void test_missingAssignableSelector_superPrimaryExpression() {
@@ -2569,33 +2576,28 @@ class Wrong<T> {
   }
 
   void test_staticTopLevelDeclaration_class() {
-    parseCompilationUnit("static class C {}", errors: [
-      expectedError(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, 0, 6)
-    ]);
+    parseCompilationUnit("static class C {}",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_enum() {
-    parseCompilationUnit("static enum E { v }", errors: [
-      expectedError(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, 0, 6)
-    ]);
+    parseCompilationUnit("static enum E { v }",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_function() {
-    parseCompilationUnit("static f() {}", errors: [
-      expectedError(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, 0, 6)
-    ]);
+    parseCompilationUnit("static f() {}",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_typedef() {
-    parseCompilationUnit("static typedef F();", errors: [
-      expectedError(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, 0, 6)
-    ]);
+    parseCompilationUnit("static typedef F();",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_variable() {
-    parseCompilationUnit("static var x;", errors: [
-      expectedError(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, 0, 6)
-    ]);
+    parseCompilationUnit("static var x;",
+        errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 6)]);
   }
 
   void test_string_unterminated_interpolation_block() {

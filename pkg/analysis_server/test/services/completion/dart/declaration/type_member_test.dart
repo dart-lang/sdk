@@ -1447,12 +1447,6 @@ A0 S1;
 replacement
   left: 1
 suggestions
-  A0
-    kind: class
-  S2.B
-    kind: class
-  _B0
-    kind: class
   S2
     kind: library
 ''');
@@ -1890,18 +1884,10 @@ class A0 {
   a0(blat: ^) {}
 }
 ''');
-    // TODO(brianwilkerson): We shouldn't be suggesting either the non-const
-    //  constructor nor the function invocation.
     assertResponse(r'''
 suggestions
   A0.new
     kind: constructor
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  f0
-    kind: functionInvocation
 ''');
   }
 
@@ -2616,6 +2602,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -3180,8 +3170,12 @@ class C {}
 suggestions
   A0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: class
+  B0
+    kind: constructorInvocation
 ''');
   }
 
@@ -3308,10 +3302,14 @@ foo = {^
 suggestions
   C0
     kind: class
-  C0
-    kind: constructorInvocation
   C1
     kind: class
+  T0
+    kind: topLevelVariable
+  T1
+    kind: topLevelVariable
+  C0
+    kind: constructorInvocation
   C1
     kind: constructorInvocation
   D0
@@ -3322,10 +3320,6 @@ suggestions
     kind: functionInvocation
   F1
     kind: functionInvocation
-  T0
-    kind: topLevelVariable
-  T1
-    kind: topLevelVariable
 ''');
   }
 
@@ -4390,18 +4384,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s1
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0
@@ -4445,8 +4439,12 @@ suggestions
     kind: topLevelVariable
   X0
     kind: class
+  X0
+    kind: constructorInvocation
   Y0
     kind: class
+  Y0
+    kind: constructorInvocation
 ''');
   }
 
@@ -5267,10 +5265,10 @@ class C1 extends C2 implements C3 {
 ''');
     assertResponse(r'''
 suggestions
-  f2
-    kind: field
   m4
     kind: methodInvocation
+  f2
+    kind: field
   m2
     kind: methodInvocation
 ''');
@@ -5449,18 +5447,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s0
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0

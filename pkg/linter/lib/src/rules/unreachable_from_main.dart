@@ -53,7 +53,7 @@ class UnreachableFromMain extends LintRule {
           name: 'unreachable_from_main',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
           state: State.stable(since: Version(3, 1, 0)),
         );
 
@@ -281,6 +281,20 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.name.lexeme == 'toJson' && !node.isStatic) {
+      // The 'dart:convert' library uses dynamic invocation to call `toJson` on
+      // arbitrary objects. Any declaration of `toJson` is automatically
+      // reachable.
+      var element = node.declaredElement;
+      if (element != null) {
+        _addDeclaration(element);
+      }
+    }
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     var element = node.element;
     if (element == null) {
@@ -471,9 +485,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declarationGatherer = _DeclarationGatherer(
-      linterContext: context,
-    );
+    var declarationGatherer = _DeclarationGatherer(linterContext: context);
     for (var unit in context.allUnits) {
       declarationGatherer.addDeclarations(unit.unit);
     }
@@ -529,7 +541,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    var unusedDeclarations = declarations.difference(usedMembers);
+    var unitDeclarationGatherer = _DeclarationGatherer(linterContext: context);
+    unitDeclarationGatherer.addDeclarations(node);
+    var unitDeclarations = unitDeclarationGatherer.declarations;
+    var unusedDeclarations = unitDeclarations.difference(usedMembers);
     var unusedMembers = unusedDeclarations.where((declaration) {
       var element = declaration.declaredElement;
       return element != null &&

@@ -1118,7 +1118,7 @@ class _MockSdkElementsBuilder {
     String name,
     DartType type,
   ) {
-    final variable = ConstTopLevelVariableElementImpl(name, -1)
+    var variable = ConstTopLevelVariableElementImpl(name, -1)
       ..isConst = true
       ..type = type;
     PropertyAccessorElementImpl_ImplicitGetter(variable);

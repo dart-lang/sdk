@@ -109,10 +109,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
 
   Future<void>
       test_changeWorkspaceFolders_addExplicitParentOfImplicit_closeFile() async {
-    final nestedFolderPath =
+    var nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
-    final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFilePath = join(nestedFolderPath, 'test.dart');
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     await initialize(allowEmptyRootUri: true);
@@ -146,10 +146,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
 
   Future<void>
       test_changeWorkspaceFolders_addExplicitParentOfImplicit_closeFolder() async {
-    final nestedFolderPath =
+    var nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
-    final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFilePath = join(nestedFolderPath, 'test.dart');
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     await initialize(allowEmptyRootUri: true);
@@ -184,10 +184,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
 
   Future<void>
       test_changeWorkspaceFolders_addImplicitChildOfExplicitParent_closeFile() async {
-    final nestedFolderPath =
+    var nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
-    final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFilePath = join(nestedFolderPath, 'test.dart');
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
@@ -219,10 +219,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
 
   Future<void>
       test_changeWorkspaceFolders_addImplicitChildOfExplicitParent_closeFolder() async {
-    final nestedFolderPath =
+    var nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
-    final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFilePath = join(nestedFolderPath, 'test.dart');
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
@@ -255,10 +255,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_changeWorkspaceFolders_implicitFile_noProject() async {
-    final nestedFolderPath =
+    var nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
-    final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = pathContext.toUri(nestedFilePath);
+    var nestedFilePath = join(nestedFolderPath, 'test.dart');
+    var nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     // Ensure no package config in tree.
@@ -336,10 +336,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     // When a file is opened that is outside of the analysis roots, the first
     // analysis driver will be used (see [AbstractAnalysisServer.getAnalysisDriver])
     // and no new root will be created.
-    final workspace1FilePath = join(workspaceFolder1Path, 'test.dart');
+    var workspace1FilePath = join(workspaceFolder1Path, 'test.dart');
     newFile(workspace1FilePath, '');
-    final workspace2FilePath = join(workspaceFolder2Path, 'test.dart');
-    final workspace2FileUri = pathContext.toUri(workspace2FilePath);
+    var workspace2FilePath = join(workspaceFolder2Path, 'test.dart');
+    var workspace2FileUri = pathContext.toUri(workspace2FilePath);
     newFile(workspace2FilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
@@ -391,15 +391,15 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     await initialize(workspaceFolders: [projectFolderUri, workspaceFolder1Uri]);
 
     // Generate an error in the test project.
-    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    var firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     newFile(mainFilePath, 'String a = 1;');
-    final initialDiagnostics = await firstDiagnosticsUpdate;
+    var initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
 
     // Ensure the error is removed if we removed the workspace folder.
-    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    var secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await changeWorkspaceFolders(remove: [projectFolderUri]);
-    final updatedDiagnostics = await secondDiagnosticsUpdate;
+    var updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(0));
   }
 }

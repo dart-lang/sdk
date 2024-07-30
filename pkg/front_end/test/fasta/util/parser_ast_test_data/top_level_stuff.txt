@@ -12,6 +12,7 @@ part 'top_level_stuff_helper.dart';
 
 @metadataOneOnThisOne("bla")
 @metadataTwoOnThisOne
+@metadataThree.OnThisOne<int>("hello")
 void toplevelMethod() {
   // no content
 }

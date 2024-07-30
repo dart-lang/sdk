@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// dart2wasmOptions=--extra-compiler-option=--enable-experimental-wasm-interop
+
 import 'dart:_wasm';
 import 'dart:js_util';
 

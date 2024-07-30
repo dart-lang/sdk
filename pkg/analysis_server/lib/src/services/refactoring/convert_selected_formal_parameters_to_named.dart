@@ -36,7 +36,7 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
     List<Object?> commandArguments,
     ChangeBuilder builder,
   ) async {
-    final availability = analyzeAvailability(
+    var availability = analyzeAvailability(
       refactoringContext: refactoringContext,
     );
 
@@ -45,7 +45,7 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    final selection = await analyzeSelection(
+    var selection = await analyzeSelection(
       available: availability,
     );
 
@@ -54,9 +54,9 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    final List<FormalParameterState> reordered;
-    final formalParameters = selection.formalParameters;
-    final allSelectedNamed = formalParameters
+    List<FormalParameterState> reordered;
+    var formalParameters = selection.formalParameters;
+    var allSelectedNamed = formalParameters
         .where((e) => e.isSelected)
         .every((e) => e.kind.isNamed);
     if (allSelectedNamed) {
@@ -65,7 +65,7 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       reordered = formalParameters.stablePartition((e) => !e.isSelected);
     }
 
-    final formalParameterUpdates = reordered.map(
+    var formalParameterUpdates = reordered.map(
       (formalParameter) {
         if (formalParameter.isSelected) {
           return FormalParameterUpdate(
@@ -81,13 +81,13 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       },
     ).toList();
 
-    final signatureUpdate = MethodSignatureUpdate(
+    var signatureUpdate = MethodSignatureUpdate(
       formalParameters: formalParameterUpdates,
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
-    final status = await computeSourceChange(
+    var status = await computeSourceChange(
       selectionState: selection,
       signatureUpdate: signatureUpdate,
       builder: builder,
@@ -105,7 +105,7 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
 
   @override
   bool isAvailable() {
-    final availability = analyzeAvailability(
+    var availability = analyzeAvailability(
       refactoringContext: refactoringContext,
     );
     if (availability is! Available) {

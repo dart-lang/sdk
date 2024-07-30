@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method method(Never n) → dynamic {
+  #L1:
+  {
+    final synthesized Never #0#0 = n;
+    {
+      if(#0#0 =={core::Object::==}{(dynamic) → Never} #C1) {
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = 0
+}

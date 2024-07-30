@@ -17,7 +17,7 @@ class BinaryDataSource implements DataSource {
 
   BinaryDataSource(this._bytes, {StringInterner? stringInterner})
       : _stringInterner = stringInterner {
-    final deferredDataStart = readAtOffset(_bytes.length - 4, _readUint32);
+    final deferredDataStart = readAtOffset(_bytes.length - 4, readUint32);
     _deferredOffsetToSize = readAtOffset(deferredDataStart, () {
       final deferredSizesCount = readInt();
       final result = <int, int>{};
@@ -86,7 +86,8 @@ class BinaryDataSource implements DataSource {
     return value;
   }
 
-  int _readUint32() {
+  @override
+  int readUint32() {
     return (_readByte() << 24) |
         (_readByte() << 16) |
         (_readByte() << 8) |

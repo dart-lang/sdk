@@ -37,7 +37,7 @@ class CombinatorsOrdering extends LintRule {
           name: 'combinators_ordering',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

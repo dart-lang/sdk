@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -16,15 +16,17 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterRemoveWidget extends ResolvedCorrectionProducer {
+  FlutterRemoveWidget({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      // TODO(pq): find out why overlapping edits were not being applied (and
+      // enable).
+      CorrectionApplicability.singleLocation;
+
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
-
-  // TODO(pq): find out why overlapping edits are not being applied (and enable)
-  @override
-  bool get canBeAppliedInBulk => false;
-
-  @override
-  bool get canBeAppliedToFile => false;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER;
@@ -34,13 +36,13 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var widgetCreation = Flutter.identifyNewExpression(node);
+    var widgetCreation = node.findInstanceCreationExpression;
     if (widgetCreation == null) {
       return;
     }
 
     // Prepare the list of our children.
-    var childrenArgument = Flutter.findChildrenArgument(widgetCreation);
+    var childrenArgument = widgetCreation.childrenArgument;
     if (childrenArgument != null) {
       var childrenExpression = childrenArgument.expression;
       if (childrenExpression is ListLiteral &&
@@ -49,11 +51,11 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
             builder, widgetCreation, childrenExpression.elements);
       }
     } else {
-      var childArgument = Flutter.findChildArgument(widgetCreation);
+      var childArgument = widgetCreation.childArgument;
       if (childArgument != null) {
         await _removeSingle(builder, widgetCreation, childArgument.expression);
       } else {
-        var builderArgument = Flutter.findBuilderArgument(widgetCreation);
+        var builderArgument = widgetCreation.builderArgument;
         if (builderArgument != null) {
           await _removeBuilder(builder, widgetCreation, builderArgument);
         }

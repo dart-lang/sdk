@@ -36,7 +36,7 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 BINARYEN="$BIN_DIR/wasm-opt"
 DART="$BIN_DIR/dart"
 DART_AOT_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
-SDK_ARG="--dart-sdk=$SDK_DIR"
+LIBRARIES_JSON_ARG="--libraries-spec=$SDK_DIR/sdk/lib/libraries.json"
 
 function find_flags {
   echo -en "$(sed -n "/$1 =/,/end of $1/ p" $SDK_DIR/pkg/dartdev/lib/src/commands/compile.dart  | sed  '1d' | sed '$d' | tr '\n' ' ' | sed 's#\s\+# #g' | sed 's#^\s\+##' | sed 's#\s\+$##')"
@@ -52,7 +52,7 @@ OPT_FLAGS_L4=($(find_flags 'optimizationLevel4Flags'))
 RUN_BINARYEN=1
 RUN_SRC=0
 COMPILE_BENCHMARK_BASE_NAME=""
-PLATFORM_FILENAME="dart2wasm_platform.dill"
+PLATFORM_FILENAME="$BIN_DIR/dart2wasm_platform.dill"
 SNAPSHOT_NAME="dart2wasm"
 
 # All arguments will be passed along to dart2wasm except specially recognized
@@ -74,12 +74,12 @@ while [ $# -gt 0 ]; do
       ;;
 
     --js-compatibility)
-      PLATFORM_FILENAME="dart2wasm_js_compatibility_platform.dill"
+      PLATFORM_FILENAME="$BIN_DIR/dart2wasm_js_compatibility_platform.dill"
       DART2WASM_ARGS+=("--js-compatibility")
       shift
       ;;
 
-    -g | --name-section)
+    -g | --no-strip-wasm)
       BINARYEN_FLAGS+=("-g")
       shift
       ;;
@@ -120,8 +120,19 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    --extra-compiler-option=--platform=*)
+      PLATFORM_FILENAME="${1#--extra-compiler-option=--platform=}"
+      shift
+      ;;
+
     --extra-compiler-option=*)
       DART2WASM_ARGS+=(${1#--extra-compiler-option=})
+      shift
+      ;;
+
+    -o)
+      shift
+      WASM_FILE="$1"
       shift
       ;;
 
@@ -153,7 +164,7 @@ if [ -z "$DART_FILE" -o -z "$WASM_FILE" ]; then
 fi
 
 
-PLATFORM_ARG="--platform=$BIN_DIR/$PLATFORM_FILENAME"
+PLATFORM_ARG="--platform=$PLATFORM_FILENAME"
 DART2WASM_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
 DART2WASM_SRC="$SDK_DIR/pkg/dart2wasm/bin/dart2wasm.dart"
 
@@ -184,9 +195,9 @@ function run_if_binaryen_enabled() {
 }
 
 if [ $RUN_SRC -eq 1 ]; then
-  dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$SDK_ARG" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+  dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
 else
-  dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+  dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
 fi
 
 binaryen_command=("$BINARYEN" "${BINARYEN_FLAGS[@]}" "$WASM_FILE" -o "$WASM_FILE")

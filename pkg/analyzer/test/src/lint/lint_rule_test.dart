@@ -18,10 +18,22 @@ import '../../generated/test_support.dart';
 
 main() {
   group('lint rule', () {
+    group('code creation', () {
+      test('without published diagnostic docs', () {
+        expect(customCode.url,
+            equals('https://dart.dev/lints/${customCode.name}'));
+      });
+
+      test('with published diagnostic docs', () {
+        expect(customCodeWithDocs.url,
+            equals('https://dart.dev/diagnostics/${customCodeWithDocs.name}'));
+      });
+    });
+
     group('error code reporting', () {
       test('reportLintForToken (custom)', () {
-        final rule = TestRule();
-        final reporter =
+        var rule = TestRule();
+        var reporter =
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
@@ -30,8 +42,8 @@ main() {
         expect(reporter.code, customCode);
       });
       test('reportLintForToken (default)', () {
-        final rule = TestRule();
-        final reporter =
+        var rule = TestRule();
+        var reporter =
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
@@ -39,24 +51,24 @@ main() {
         expect(reporter.code, rule.lintCode);
       });
       test('reportLint (custom)', () {
-        final rule = TestRule();
-        final reporter =
+        var rule = TestRule();
+        var reporter =
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
-        final node = EmptyStatementImpl(
+        var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
         rule.reportLint(node, errorCode: customCode);
         expect(reporter.code, customCode);
       });
       test('reportLint (default)', () {
-        final rule = TestRule();
-        final reporter =
+        var rule = TestRule();
+        var reporter =
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
-        final node = EmptyStatementImpl(
+        var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
         rule.reportLint(node);
@@ -69,6 +81,10 @@ main() {
 const LintCode customCode = LintCode(
     'hash_and_equals', 'Override `==` if overriding `hashCode`.',
     correctionMessage: 'Implement `==`.');
+
+const LintCode customCodeWithDocs = LintCode(
+    'hash_and_equals', 'Override `==` if overriding `hashCode`.',
+    correctionMessage: 'Implement `==`.', hasPublishedDocs: true);
 
 class CollectingReporter extends ErrorReporter {
   ErrorCode? code;
@@ -139,7 +155,7 @@ class TestRule extends LintRule {
           name: 'test_rule',
           description: '',
           details: '... tl;dr ...',
-          group: Group.errors,
+          categories: {Category.errors},
         );
 }
 

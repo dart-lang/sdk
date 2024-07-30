@@ -3,19 +3,46 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:status_file/src/expression.dart';
+import 'package:status_file/status_file_entries_file_checker.dart';
 
 import 'canonical_status_file.dart';
 import 'dart:convert';
 
-StatusFile normalizeStatusFile(StatusFile statusFile) {
+StatusFile normalizeStatusFile(StatusFile statusFile,
+    {required bool deleteNonExisting}) {
   StatusFile newStatusFile = _sortSectionsAndCombine(statusFile);
   for (var section in newStatusFile.sections) {
+    if (deleteNonExisting) {
+      _deleteNonExistingEntries(statusFile, section);
+    }
     _sortEntriesInSection(section);
     _oneLineBetweenSections(section);
   }
+
+  // Remove any empty sections.
+  newStatusFile.sections.removeWhere((section) =>
+      section.sectionHeaderComments.isEmpty &&
+      (section.entries.isEmpty ||
+          (section.entries.length == 1 &&
+              section.entries.single is EmptyEntry)));
+
   // Remove empty line at the end of the file
   newStatusFile.sections.last.entries.removeLast();
   return newStatusFile;
+}
+
+void _deleteNonExistingEntries(StatusFile file, StatusSection section) {
+  Uri statusFileUri = Uri.base.resolveUri(Uri.file(file.path));
+  Set<Entry> remove = {};
+  for (var entry in section.entries.whereType<StatusEntry>()) {
+    if (isNonExistingEntry(statusFileUri, entry)) {
+      // Doesn't exist. Remove it.
+      remove.add(entry);
+    }
+  }
+  if (remove.isNotEmpty) {
+    section.entries.removeWhere(remove.contains);
+  }
 }
 
 /// Sort section entries alphabetically.

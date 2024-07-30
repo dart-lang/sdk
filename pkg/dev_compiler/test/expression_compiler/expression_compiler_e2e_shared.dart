@@ -67,6 +67,8 @@ class C {
 }
 
 int global = 42;
+late int lateGlobal;
+late String lateGlobal2;
 
 const soundNullSafety = !(<Null>[] is List<int>);
 soundNullSafetyTest() {
@@ -103,6 +105,24 @@ extensionsSymbolTest() {
   list.add(0);
   // Breakpoint: extensionSymbolsBP
   print(list);
+}
+
+lateLocalVariableTest() {
+  late int lateLocal;
+  late int lateLocal2;
+  if (42.isEven) {
+    lateLocal = 42;
+  }
+  // Breakpoint: lateLocalVariableBP
+  print(lateLocal);
+}
+
+lateGlobalVariableTest() {
+  if (42.isEven) {
+    lateGlobal = 42;
+  }
+  // Breakpoint: lateGlobalVariableBP
+  print(lateGlobal);
 }
 
 int foo(int x, {int y = 0}) {
@@ -148,6 +168,9 @@ void closuresTest() {
   return;
 }
 
+// Caution: this test function should not be reused across multiple test cases
+// to prevent data races. See http://github.com/dart-lang/sdk/issues/55299 for
+// details.
 void forLoopTest() {
   int x = 15;
   for(int i = 0; i < 10; i++) {
@@ -156,6 +179,9 @@ void forLoopTest() {
   };
 }
 
+// Caution: this test function should not be reused across multiple test cases
+// to prevent data races. See http://github.com/dart-lang/sdk/issues/55299 for
+// details.
 int iteratorLoopTest() {
   var l = <String>['1', '2', '3'];
 
@@ -262,6 +288,8 @@ main() {
   soundNullSafetyTest();
   couldReturnNullTest();
   extensionsSymbolTest();
+  lateLocalVariableTest();
+  lateGlobalVariableTest();
 
   "1234".parseIntPlusOne();
   callFooTest();
@@ -278,8 +306,6 @@ main() {
 ''';
 
 /// Shared tests that require a language version >=2.12.0 <2.17.0.
-// TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
-// test support for evaluation in legacy (pre-null safety) code.
 void runNullSafeSharedTests(
     SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
   group('JS interop', () {
@@ -456,6 +482,20 @@ void runNullSafeSharedTests(
                 contains('0: Instance of \'B\''),
                 contains('1: Instance of \'B\''),
                 contains('length: 2')));
+      });
+
+      test('invoke an SDK method', () async {
+        await driver.check(
+            expression: 'Flow.begin(id: 0) is Flow',
+            libraryUri: Uri.parse('dart:developer'),
+            expectedResult: 'true');
+      });
+
+      test('tearoff an SDK method', () async {
+        await driver.check(
+            expression: 'postEvent',
+            libraryUri: Uri.parse('dart:developer'),
+            expectedResult: contains('function postEvent(eventKind'));
       });
     });
 
@@ -732,6 +772,58 @@ void runNullSafeSharedTests(
       test('scope', () async {
         await driver.checkScope(breakpointId: 'enumBP', expectedScope: {
           'e': 'e',
+        });
+      });
+    });
+
+    group('late', () {
+      group('local', () {
+        test(
+          'can be evaluated when initialized',
+          () async {
+            await driver.checkInFrame(
+                breakpointId: 'lateLocalVariableBP',
+                expression: 'lateLocal',
+                expectedResult: '42');
+          },
+        );
+        test('does not throw when evaluated and not initialized', () async {
+          // It isn't clear if this is expected to work or not, the behavior is
+          // somewhat undefined for the debugger. At this time we expose the
+          // backing storage variable that can be displayed or might be null if
+          // uninitialized.
+          // See https://github.com/dart-lang/sdk/issues/55918
+          await driver.checkInFrame(
+              breakpointId: 'lateLocalVariableBP',
+              expression: 'lateLocal2',
+              expectedResult: 'null');
+        });
+        test('throws when not initialized and used in method call', () async {
+          // It isn't clear if this is expected to work or not, the behavior is
+          // somewhat undefined for the debugger. At this time we expose the
+          // backing storage variable that can be displayed or might be null if
+          // uninitialized.
+          // See https://github.com/dart-lang/sdk/issues/55918
+          await driver.checkInFrame(
+              breakpointId: 'lateLocalVariableBP',
+              expression: 'lateLocal2.isEven',
+              expectedError: "Error: Property 'isEven' cannot be accessed on "
+                  "'int?' because it is potentially null.");
+        });
+      });
+      group('global', () {
+        test('can be evaluated when initialized', () async {
+          await driver.checkInFrame(
+              breakpointId: 'lateGlobalVariableBP',
+              expression: 'lateGlobal',
+              expectedResult: '42');
+        });
+        test('throws when not initialized', () async {
+          await driver.checkInFrame(
+              breakpointId: 'lateGlobalVariableBP',
+              expression: 'lateGlobal2',
+              expectedError: 'Error: LateInitializationError: '
+                  "Field 'lateGlobal2' has not been initialized.");
         });
       });
     });
@@ -1418,18 +1510,14 @@ void runAgnosticSharedTestsShard2(
     });
 
     group('simple loops', () {
-      test('expression using local', () async {
+      // Caution: this breakpoint should not be reused across multiple test
+      // cases to prevent data races. See
+      // http://github.com/dart-lang/sdk/issues/55299 for details.
+      test('expression using local & loop var', () async {
         await driver.checkInFrame(
             breakpointId: 'forLoopTestBP',
-            expression: 'x',
-            expectedResult: '15');
-      });
-
-      test('expression using loop variable', () async {
-        await driver.checkInFrame(
-            breakpointId: 'forLoopTestBP',
-            expression: 'i',
-            expectedResult: '0');
+            expression: r'"$x + $i"',
+            expectedResult: '15 + 0');
       });
     });
 
@@ -1479,6 +1567,9 @@ void runAgnosticSharedTestsShard2(
     });
 
     group('iterator loops', () {
+      // Caution: this breakpoint should not be reused across multiple test
+      // cases to prevent data races. See
+      // http://github.com/dart-lang/sdk/issues/55299 for details.
       test('expression loop variable', () async {
         await driver.checkInFrame(
             breakpointId: 'iteratorLoopTestBP',

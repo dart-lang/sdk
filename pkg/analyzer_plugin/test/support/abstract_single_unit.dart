@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -17,6 +18,7 @@ import 'abstract_context.dart';
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
+  late ResolvedUnitResult result;
   late String testCode;
   late String testFile;
   late CompilationUnit testUnit;
@@ -101,7 +103,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestFile() async {
-    var result = await resolveFile(testFile);
+    result = await resolveFile(testFile);
     testCode = result.content;
     testUnit = result.unit;
     if (verifyNoTestUnitErrors) {

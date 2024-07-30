@@ -10,13 +10,13 @@ import 'package:analyzer/dart/element/element.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-const _desc = r'Private field could be final.';
+const _desc = r'Private field could be `final`.';
 
 const _details = r'''
-**DO** prefer declaring private fields as final if they are not reassigned later
-in the library.
+**DO** prefer declaring private fields as `final` if they are not reassigned
+later in the library.
 
-Declaring fields as final when possible is a good practice because it helps
+Declaring fields as `final` when possible is a good practice because it helps
 avoid accidental reassignments and allows the compiler to do optimizations.
 
 **BAD:**
@@ -84,14 +84,15 @@ class NotAssignedInAllConstructors {
 class PreferFinalFields extends LintRule {
   static const LintCode code = LintCode(
       'prefer_final_fields', "The private field {0} could be 'final'.",
-      correctionMessage: "Try making the field 'final'.");
+      correctionMessage: "Try making the field 'final'.",
+      hasPublishedDocs: true);
 
   PreferFinalFields()
       : super(
             name: 'prefer_final_fields',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

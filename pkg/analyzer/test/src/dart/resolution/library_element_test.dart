@@ -3,11 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/element_printer.dart';
+import '../../../util/tree_string_sink.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -206,6 +212,76 @@ extension on int {}
     );
   }
 
+  test_lookup_extensions_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
+    ]);
+
+    _assertLibraryExtensions(result.libraryElement, r'''
+extensions
+  package:test/a.dart::@extension::E
+  dart:core::@extension::EnumName
+''');
+  }
+
+  test_lookup_extensions_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart' as prefix;
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 8),
+    ]);
+
+    _assertLibraryExtensions(result.libraryElement, r'''
+extensions
+  package:test/a.dart::@extension::E
+  dart:core::@extension::EnumName
+''');
+  }
+
+  test_lookup_extensions_local() async {
+    await assertNoErrorsInCode(r'''
+extension E on int {}
+''');
+
+    _assertLibraryExtensions(result.libraryElement, r'''
+extensions
+  self::@extension::E
+  dart:core::@extension::EnumName
+''');
+  }
+
+  test_lookup_extensions_local_withAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+augment extension E {
+  void foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+extension E on int {}
+''');
+
+    _assertLibraryExtensions(result.libraryElement, r'''
+extensions
+  self::@extension::E
+  dart:core::@extension::EnumName
+''');
+  }
+
   test_lookup_implicitCoreImport() async {
     await assertNoErrorsInCode('');
 
@@ -305,6 +381,31 @@ import 'dart:math' show sin;
     assertElementNull(
       scope.lookup('cos').getter,
     );
+  }
+
+  void _assertLibraryExtensions(LibraryElement library, String expected) {
+    library as LibraryElementImpl;
+
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(sink: buffer, indent: '');
+    var elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: result.uri.toString(),
+    );
+
+    var extensions = library.scope.extensions;
+    extensions = extensions.sortedBy((e) => e.name ?? '');
+    elementPrinter.writeElementList('extensions', extensions);
+
+    var actual = buffer.toString();
+    if (actual != expected) {
+      fail('''
+    \r${'-' * 28} Actual ${'-' * 28}
+    \r${actual.trimRight().split('\n').join('\n\r')}
+    \r${'-' * 64}
+    ''');
+    }
   }
 }
 

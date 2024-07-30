@@ -19,12 +19,12 @@ void main() {
 @reflectiveTest
 class HoverTest extends LspOverLegacyTest {
   Future<void> expectHover(String content, String expected) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
     await waitForTasksFinished();
 
-    final result = await getHover(testFileUri, code.position.position);
-    final markup = _getMarkupContents(result!);
+    var result = await getHover(testFileUri, code.position.position);
+    var markup = _getMarkupContents(result!);
     expect(markup.kind, MarkupKind.Markdown);
     expect(markup.value.trimRight(), expected.trimRight());
     expect(result.range, code.range.range);

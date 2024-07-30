@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Outline;
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -29,17 +30,17 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
       DocumentSymbolParams params,
       MessageInfo message,
       CancellationToken token) async {
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null || !isDartDocument(params.textDocument)) {
       return success(
         TextDocumentDocumentSymbolResult.t2([]),
       );
     }
 
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    return unit.mapResult(
-        (unit) => _getSymbols(clientCapabilities, path.result, unit));
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    return unit.mapResultSync(
+        (unit) => _getSymbols(clientCapabilities, unit.path, unit));
   }
 
   DocumentSymbol _asDocumentSymbol(
@@ -47,9 +48,9 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
     LineInfo lineInfo,
     Outline outline,
   ) {
-    final codeRange = toRange(lineInfo, outline.codeOffset, outline.codeLength);
-    final nameLocation = outline.element.location;
-    final nameRange = nameLocation != null
+    var codeRange = toRange(lineInfo, outline.codeOffset, outline.codeLength);
+    var nameLocation = outline.element.location;
+    var nameRange = nameLocation != null
         ? toRange(lineInfo, nameLocation.offset, nameLocation.length)
         : null;
     return DocumentSymbol(
@@ -72,7 +73,7 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
     LineInfo lineInfo,
     Outline outline,
   ) {
-    final location = outline.element.location;
+    var location = outline.element.location;
     if (location == null) {
       return null;
     }
@@ -94,13 +95,13 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
     String path,
     ResolvedUnitResult unit,
   ) {
-    final computer = DartUnitOutlineComputer(unit);
-    final outline = computer.compute();
+    var computer = DartUnitOutlineComputer(unit);
+    var outline = computer.compute();
 
     if (capabilities.hierarchicalSymbols) {
       // Return a tree of DocumentSymbol only if the client shows explicit support
       // for it.
-      final children = outline.children;
+      var children = outline.children;
       if (children == null) {
         return success(null);
       }
@@ -114,13 +115,13 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
       );
     } else {
       // Otherwise, we need to use the original flat SymbolInformation.
-      final allSymbols = <SymbolInformation>[];
-      final documentUri = uriConverter.toClientUri(path);
+      var allSymbols = <SymbolInformation>[];
+      var documentUri = uriConverter.toClientUri(path);
 
       // Adds a symbol and it's children recursively, supplying the parent
       // name as required by SymbolInformation.
       void addSymbol(Outline outline, {String? parentName}) {
-        final symbol = _asSymbolInformation(
+        var symbol = _asSymbolInformation(
           parentName,
           capabilities.documentSymbolKinds,
           documentUri,

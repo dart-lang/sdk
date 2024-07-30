@@ -10,22 +10,22 @@ import 'package:test/test.dart';
 void main() {
   group('lsp_packet_transformer', () {
     test('transforms data received as individual bytes', () async {
-      final payload = '{ json payload }';
-      final lspPacket = makeLspPacket(payload);
-      final output = await Stream.fromIterable([lspPacket])
+      var payload = '{ json payload }';
+      var lspPacket = makeLspPacket(payload);
+      var output = await Stream.fromIterable([lspPacket])
           .transform(LspPacketTransformer())
           .toList();
       expect(output, equals([payload]));
     });
 
     test('transforms data received in chunks', () async {
-      final payload = '{ json\n payload\n  }';
-      final lspPacket = makeLspPacket(payload);
+      var payload = '{ json\n payload\n  }';
+      var lspPacket = makeLspPacket(payload);
       // Separate each byte into it's own "packet" to simulate chunked data
       // where all the bytes for a single LSP packet don't arrive in one
       // item to the stream.
-      final dataPackets = lspPacket.map((b) => [b]);
-      final output = await Stream.fromIterable(dataPackets)
+      var dataPackets = lspPacket.map((b) => [b]);
+      var output = await Stream.fromIterable(dataPackets)
           .transform(LspPacketTransformer())
           .toList();
       expect(output, equals([payload]));
@@ -33,48 +33,48 @@ void main() {
 
     test('handles unicode characters', () async {
       // This file is saved as UTF8.
-      final payload = '{ json payload 🎉 }';
-      final lspPacket = makeLspPacket(payload);
-      final output = await Stream.fromIterable([lspPacket])
+      var payload = '{ json payload 🎉 }';
+      var lspPacket = makeLspPacket(payload);
+      var output = await Stream.fromIterable([lspPacket])
           .transform(LspPacketTransformer())
           .toList();
       expect(output, equals([payload]));
     });
 
     test('accepts "utf-8" as an encoding', () async {
-      final payload = '{ json payload 🎉 }';
-      final lspPacket =
+      var payload = '{ json payload 🎉 }';
+      var lspPacket =
           makeLspPacket(payload, 'application/vscode-jsonrpc; charset=utf-8');
-      final output = await Stream.fromIterable([lspPacket])
+      var output = await Stream.fromIterable([lspPacket])
           .transform(LspPacketTransformer())
           .toList();
       expect(output, equals([payload]));
     });
 
     test('accepts "utf8" as an encoding', () async {
-      final payload = '{ json payload 🎉 }';
-      final lspPacket =
+      var payload = '{ json payload 🎉 }';
+      var lspPacket =
           makeLspPacket(payload, 'application/vscode-jsonrpc; charset=utf8');
-      final output = await Stream.fromIterable([lspPacket])
+      var output = await Stream.fromIterable([lspPacket])
           .transform(LspPacketTransformer())
           .toList();
       expect(output, equals([payload]));
     });
 
     test('accepts no encoding', () async {
-      final payload = '{ json payload 🎉 }';
-      final lspPacket = makeLspPacket(payload, 'application/vscode-jsonrpc;');
-      final output = await Stream.fromIterable([lspPacket])
+      var payload = '{ json payload 🎉 }';
+      var lspPacket = makeLspPacket(payload, 'application/vscode-jsonrpc;');
+      var output = await Stream.fromIterable([lspPacket])
           .transform(LspPacketTransformer())
           .toList();
       expect(output, equals([payload]));
     });
 
     test('rejects invalid encoding', () async {
-      final payload = '{ json payload }';
-      final lspPacket =
+      var payload = '{ json payload }';
+      var lspPacket =
           makeLspPacket(payload, 'application/vscode-jsonrpc; charset=ascii');
-      final outputStream =
+      var outputStream =
           Stream.fromIterable([lspPacket]).transform(LspPacketTransformer());
 
       await expectLater(outputStream.toList(),
@@ -84,10 +84,10 @@ void main() {
 }
 
 List<int> makeLspPacket(String json, [String? contentType]) {
-  final utf8EncodedBody = utf8.encode(json);
-  final header =
+  var utf8EncodedBody = utf8.encode(json);
+  var header =
       'Content-Length: ${utf8EncodedBody.length}${contentType != null ? '\r\nContent-Type: $contentType' : ''}\r\n\r\n';
-  final asciiEncodedHeader = ascii.encode(header);
+  var asciiEncodedHeader = ascii.encode(header);
 
   return asciiEncodedHeader.followedBy(utf8EncodedBody).toList();
 }

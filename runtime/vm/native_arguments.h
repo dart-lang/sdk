@@ -30,7 +30,8 @@ class Thread;
 #elif defined(DART_HOST_OS_WINDOWS)
 // The compiler may dynamically align the stack on Windows, so do not check.
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {}
+  {                                                                            \
+  }
 #else
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
@@ -49,9 +50,11 @@ class Thread;
 #else
 
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {}
+  {                                                                            \
+  }
 #define DEOPTIMIZE_ALOT                                                        \
-  {}
+  {                                                                            \
+  }
 
 #endif
 
@@ -225,10 +228,10 @@ class NativeArguments {
     return num_hidden_args;
   }
 
-  Thread* thread_;      // Current thread pointer.
-  intptr_t argc_tag_;   // Encodes argument count and invoked native call type.
-  ObjectPtr* argv_;     // Pointer to an array of arguments to runtime call.
-  ObjectPtr* retval_;   // Pointer to the return value area.
+  Thread* thread_;     // Current thread pointer.
+  intptr_t argc_tag_;  // Encodes argument count and invoked native call type.
+  ObjectPtr* argv_;    // Pointer to an array of arguments to runtime call.
+  ObjectPtr* retval_;  // Pointer to the return value area.
 };
 
 }  // namespace dart

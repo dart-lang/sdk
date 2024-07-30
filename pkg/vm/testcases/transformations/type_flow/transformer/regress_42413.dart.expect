@@ -8,6 +8,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   [@vm.unboxing-info.metadata=()->i]
   get x() → dynamic
@@ -23,6 +24,7 @@ class A extends core::Object {
     [@vm.direct-call.metadata=#lib::A.list] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A::list} = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::B>] core::_GrowableList::_literal1<self::B>(new self::B::•());
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
   @#C3
   method forIn() → void {
@@ -35,6 +37,7 @@ class A extends core::Object {
     }
   }
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   @#C3
   method cLoop() → void {
@@ -44,6 +47,8 @@ class A extends core::Object {
     }
   }
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   [@vm.direct-call.metadata=#lib::A.forIn] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::forIn}(){() → void};
   [@vm.direct-call.metadata=#lib::A.cLoop] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::cLoop}(){() → void};

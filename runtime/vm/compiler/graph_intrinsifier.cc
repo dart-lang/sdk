@@ -215,55 +215,6 @@ static Definition* CreateUnboxedResultIfNeeded(BlockBuilder* builder,
   }
 }
 
-static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
-                                      intptr_t array_cid) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
-
-  Definition* array = builder.AddParameter(0);
-  Definition* index = builder.AddParameter(1);
-
-  VerifyParameterIsBoxed(&builder, 0);
-
-  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
-  index = PrepareIndexedOp(flow_graph, &builder, array, index,
-                           Slot::GetLengthFieldForArrayCid(array_cid));
-
-  if (IsExternalTypedDataClassId(array_cid)) {
-    array = builder.AddDefinition(new LoadFieldInstr(
-        new Value(array), Slot::PointerBase_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
-  }
-
-  Definition* result = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(array), new Value(index), /*index_unboxed=*/false,
-      /*index_scale=*/target::Instance::ElementSizeFor(array_cid), array_cid,
-      kAlignedAccess, DeoptId::kNone, builder.Source()));
-
-  // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
-  // following boxing instruction about a more precise range we attach it here
-  // manually.
-  // http://dartbug.com/36632
-  auto const rep = RepresentationUtils::RepresentationOfArrayElement(array_cid);
-  if (RepresentationUtils::IsUnboxedInteger(rep)) {
-    result->set_range(Range::Full(rep));
-  }
-  const bool clear_environment =
-      RangeUtils::Fits(result->range(), RangeBoundary::kRangeBoundarySmi);
-
-  // Box and/or convert result if necessary.
-  if (RepresentationUtils::IsUnboxed(rep)) {
-    result = CreateBoxedResultIfNeeded(&builder, result, rep);
-  }
-  if (result->IsBoxInteger() && clear_environment) {
-    result->AsBoxInteger()->ClearEnv();
-  }
-  result = CreateUnboxedResultIfNeeded(&builder, result);
-  builder.AddReturn(new Value(result));
-  return true;
-}
-
 static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -326,14 +277,6 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   return true;
 }
 
-#define DEFINE_ARRAY_GETTER_INTRINSIC(enum_name)                               \
-  bool GraphIntrinsifier::Build_##enum_name##GetIndexed(                       \
-      FlowGraph* flow_graph) {                                                 \
-    return IntrinsifyArrayGetIndexed(                                          \
-        flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
-                        MethodRecognizer::k##enum_name##GetIndexed));          \
-  }
-
 #define DEFINE_ARRAY_SETTER_INTRINSIC(enum_name)                               \
   bool GraphIntrinsifier::Build_##enum_name##SetIndexed(                       \
       FlowGraph* flow_graph) {                                                 \
@@ -342,71 +285,32 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                         MethodRecognizer::k##enum_name##SetIndexed));          \
   }
 
-DEFINE_ARRAY_GETTER_INTRINSIC(ObjectArray)
+DEFINE_ARRAY_SETTER_INTRINSIC(Int8Array)
+DEFINE_ARRAY_SETTER_INTRINSIC(Uint8Array)
+DEFINE_ARRAY_SETTER_INTRINSIC(ExternalUint8Array)
+DEFINE_ARRAY_SETTER_INTRINSIC(Uint8ClampedArray)
+DEFINE_ARRAY_SETTER_INTRINSIC(ExternalUint8ClampedArray)
+DEFINE_ARRAY_SETTER_INTRINSIC(Int16Array)
+DEFINE_ARRAY_SETTER_INTRINSIC(Uint16Array)
+DEFINE_ARRAY_SETTER_INTRINSIC(Int32Array)
+DEFINE_ARRAY_SETTER_INTRINSIC(Uint32Array)
+DEFINE_ARRAY_SETTER_INTRINSIC(Int64Array)
+DEFINE_ARRAY_SETTER_INTRINSIC(Uint64Array)
 
-#define DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                       \
-  DEFINE_ARRAY_GETTER_INTRINSIC(enum_name)                                     \
-  DEFINE_ARRAY_SETTER_INTRINSIC(enum_name)
-
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int8Array)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint8Array)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(ExternalUint8Array)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint8ClampedArray)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(ExternalUint8ClampedArray)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int16Array)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint16Array)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int32Array)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint32Array)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int64Array)
-DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint64Array)
-
-#undef DEFINE_ARRAY_GETTER_SETTER_INTRINSICS
-#undef DEFINE_ARRAY_GETTER_INTRINSIC
 #undef DEFINE_ARRAY_SETTER_INTRINSIC
-
-#define DEFINE_FLOAT_ARRAY_GETTER_INTRINSIC(enum_name)                         \
-  bool GraphIntrinsifier::Build_##enum_name##GetIndexed(                       \
-      FlowGraph* flow_graph) {                                                 \
-    if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {                        \
-      return false;                                                            \
-    }                                                                          \
-    return IntrinsifyArrayGetIndexed(                                          \
-        flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
-                        MethodRecognizer::k##enum_name##GetIndexed));          \
-  }
 
 #define DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(enum_name)                         \
   bool GraphIntrinsifier::Build_##enum_name##SetIndexed(                       \
       FlowGraph* flow_graph) {                                                 \
-    if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {                        \
-      return false;                                                            \
-    }                                                                          \
     return IntrinsifyArraySetIndexed(                                          \
         flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
                         MethodRecognizer::k##enum_name##SetIndexed));          \
   }
 
-#define DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                 \
-  DEFINE_FLOAT_ARRAY_GETTER_INTRINSIC(enum_name)                               \
-  DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(enum_name)
+DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(Float64Array)
+DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(Float32Array)
 
-DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(Float64Array)
-DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(Float32Array)
-
-#undef DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS
-#undef DEFINE_FLOAT_ARRAY_GETTER_INTRINSIC
 #undef DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC
-
-#define DEFINE_SIMD_ARRAY_GETTER_INTRINSIC(enum_name)                          \
-  bool GraphIntrinsifier::Build_##enum_name##GetIndexed(                       \
-      FlowGraph* flow_graph) {                                                 \
-    if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {                        \
-      return false;                                                            \
-    }                                                                          \
-    return IntrinsifyArrayGetIndexed(                                          \
-        flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
-                        MethodRecognizer::k##enum_name##GetIndexed));          \
-  }
 
 #define DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(enum_name)                          \
   bool GraphIntrinsifier::Build_##enum_name##SetIndexed(                       \
@@ -419,16 +323,10 @@ DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(Float32Array)
                         MethodRecognizer::k##enum_name##SetIndexed));          \
   }
 
-#define DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                  \
-  DEFINE_SIMD_ARRAY_GETTER_INTRINSIC(enum_name)                                \
-  DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(enum_name)
+DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(Float32x4Array)
+DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(Int32x4Array)
+DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(Float64x2Array)
 
-DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float32x4Array)
-DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Int32x4Array)
-DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float64x2Array)
-
-#undef DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS
-#undef DEFINE_SIMD_ARRAY_GETTER_INTRINSIC
 #undef DEFINE_SIMD_ARRAY_SETTER_INTRINSIC
 
 static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
@@ -500,8 +398,7 @@ bool GraphIntrinsifier::Build_Float64x2Add(FlowGraph* flow_graph) {
 
 static bool BuildFloat32x4Get(FlowGraph* flow_graph,
                               MethodRecognizer::Kind kind) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles() ||
-      !FlowGraphCompiler::SupportsUnboxedSimd128()) {
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {
     return false;
   }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -593,32 +490,6 @@ bool GraphIntrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
       new Value(backing_store), Slot::Array_length(), builder.Source()));
   capacity = CreateUnboxedResultIfNeeded(&builder, capacity);
   builder.AddReturn(new Value(capacity));
-  return true;
-}
-
-bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
-
-  Definition* growable_array = builder.AddParameter(0);
-  Definition* index = builder.AddParameter(1);
-
-  VerifyParameterIsBoxed(&builder, 0);
-
-  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
-  index = PrepareIndexedOp(flow_graph, &builder, growable_array, index,
-                           Slot::GrowableObjectArray_length());
-
-  Definition* backing_store = builder.AddDefinition(
-      new LoadFieldInstr(new Value(growable_array),
-                         Slot::GrowableObjectArray_data(), builder.Source()));
-  Definition* result = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(backing_store), new Value(index), /*index_unboxed=*/false,
-      /*index_scale=*/target::Instance::ElementSizeFor(kArrayCid), kArrayCid,
-      kAlignedAccess, DeoptId::kNone, builder.Source()));
-  result = CreateUnboxedResultIfNeeded(&builder, result);
-  builder.AddReturn(new Value(result));
   return true;
 }
 
@@ -830,9 +701,6 @@ static Definition* ConvertOrUnboxDoubleParameter(BlockBuilder* builder,
 }
 
 bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
-    return false;
-  }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);

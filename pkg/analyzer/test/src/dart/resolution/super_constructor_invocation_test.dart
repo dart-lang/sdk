@@ -27,7 +27,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -61,7 +61,7 @@ class B extends A {
       error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, 53, 14),
     ]);
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -96,7 +96,7 @@ class B extends A {
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 71, 8),
     ]);
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -123,7 +123,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -153,7 +153,7 @@ class B extends A {
           59, 8),
     ]);
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super

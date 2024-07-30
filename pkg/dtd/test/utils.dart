@@ -23,6 +23,7 @@ class ToolingDaemonTestProcess {
         'tooling-daemon',
         '--machine',
         if (unrestricted) '--unrestricted',
+        '--fakeAnalytics',
       ],
     );
     process!.handle(

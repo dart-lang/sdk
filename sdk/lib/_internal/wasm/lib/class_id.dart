@@ -34,13 +34,13 @@ class ClassID {
   external static int get cid_Closure;
   @pragma("wasm:class-id", "dart.core#List")
   external static int get cidList;
-  @pragma("wasm:class-id", "dart.core#_List")
+  @pragma("wasm:class-id", "dart._list#ModifiableFixedLengthList")
   external static int get cidFixedLengthList;
-  @pragma("wasm:class-id", "dart.core#_ListBase")
+  @pragma("wasm:class-id", "dart._list#WasmListBase")
   external static int get cidListBase;
-  @pragma("wasm:class-id", "dart.core#_GrowableList")
+  @pragma("wasm:class-id", "dart._list#GrowableList")
   external static int get cidGrowableList;
-  @pragma("wasm:class-id", "dart.core#_ImmutableList")
+  @pragma("wasm:class-id", "dart._list#ImmutableList")
   external static int get cidImmutableList;
   @pragma("wasm:class-id", "dart.core#Record")
   external static int get cidRecord;

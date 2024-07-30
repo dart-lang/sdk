@@ -127,6 +127,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -165,6 +169,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -207,6 +215,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -246,6 +258,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -284,6 +300,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -325,6 +345,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -380,13 +404,13 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
-    kind: import
-  package:
-    kind: import
-  package:test/
     kind: import
   package:test/test.dart
     kind: import
@@ -420,6 +444,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -455,6 +483,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -493,6 +525,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -840,6 +876,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -897,6 +937,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -937,6 +981,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -991,6 +1039,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import

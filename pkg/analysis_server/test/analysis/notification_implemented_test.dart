@@ -93,7 +93,8 @@ class AnalysisNotificationImplementedTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_IMPLEMENTED) {
-      var params = AnalysisImplementedParams.fromNotification(notification);
+      var params = AnalysisImplementedParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       if (params.file == testFile.path) {
         implementedClasses = params.classes;
         implementedMembers = params.members;
@@ -139,7 +140,7 @@ class A {}
 class B extends A {}
 ''');
     addTestFile('''
-library augment 'b.dart';
+augment library 'b.dart';
 
 augment class A {} // 1
 augment class A {} // 2
@@ -151,7 +152,7 @@ augment class A {} // 2
 
   Future<void> test_class_extended_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 
 class B extends A {}
 ''');
@@ -171,7 +172,7 @@ import augment 'test.dart';
 class B extends A {}
 ''');
     addTestFile('''
-library augment 'b.dart';
+augment library 'b.dart';
 
 class A {}
 ''');
@@ -428,7 +429,7 @@ class B extends A {
 }
 ''');
     addTestFile('''
-library augment 'b.dart';
+augment library 'b.dart';
 
 augment class A {
   augment m() {} // 1
@@ -442,7 +443,7 @@ augment class A {
 
   Future<void> test_ofClass_byClass_method_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class B extends A {
   m() {}
@@ -470,7 +471,7 @@ class B extends A {
 }
 ''');
     addTestFile('''
-library augment 'b.dart';
+augment library 'b.dart';
 
 augment class A {
   m() {}

@@ -1920,11 +1920,9 @@ replacement
 suggestions
   final
     kind: keyword
-  static
-    kind: keyword
-  void
-    kind: keyword
   const
+    kind: keyword
+  var
     kind: keyword
   abstract
     kind: keyword
@@ -1936,7 +1934,9 @@ suggestions
     kind: keyword
   late
     kind: keyword
-  var
+  static
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -2341,19 +2341,19 @@ class X {dynamic f(a,b,c) {return a + b * c ^;}}
 ''');
     assertResponse(r'''
 suggestions
-  const
+  true
+    kind: keyword
+  null
     kind: keyword
   false
     kind: keyword
-  null
+  this
+    kind: keyword
+  const
     kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -2497,6 +2497,10 @@ suggestions
   dart:io
     kind: import
   dart:isolate
+    kind: import
+  dart:js
+    kind: import
+  dart:js_interop
     kind: import
   dart:math
     kind: import
@@ -4356,7 +4360,16 @@ suggestions
   Future<void> test_commentSnippets007_3() async {
     allowedIdentifiers = {'int'};
     await computeSuggestions('''
-class C {mth(Map x, ) {}mtf(, Map x) {}m() {for (in^t i=0; i<5; i++); A x;}}class int{}class Arrays{}
+class C {
+  mth(Map x, ) {}
+  mtf(, Map x) {}
+  m() {
+    for (in^t i=0; i<5; i++);
+    A x;
+  }
+}
+class int{}
+class Arrays{}
 ''');
     assertResponse(r'''
 replacement
@@ -4627,25 +4640,31 @@ class x {}^
 ''');
     assertResponse(r'''
 suggestions
+  class
+    kind: keyword
+  num
+    kind: class
+  const
+    kind: keyword
+  void
+    kind: keyword
+  final
+    kind: keyword
+  enum
+    kind: keyword
+  typedef
+    kind: keyword
   abstract
     kind: keyword
   base
-    kind: keyword
-  class
-    kind: keyword
-  const
     kind: keyword
   covariant
     kind: keyword
   dynamic
     kind: keyword
-  enum
-    kind: keyword
   extension
     kind: keyword
   external
-    kind: keyword
-  final
     kind: keyword
   interface
     kind: keyword
@@ -4653,15 +4672,9 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  num
-    kind: class
   sealed
     kind: keyword
-  typedef
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -7208,6 +7221,8 @@ suggestions
     kind: keyword
   void
     kind: keyword
+  HashMap
+    kind: class
 ''');
   }
 
@@ -8584,7 +8599,12 @@ suggestions
   Future<void> test_completion_forStmt_vars_1() async {
     allowedIdentifiers = {'int'};
     await computeSuggestions('''
-class int{}class Foo { mth() { for (in^t i = 0; i < 5; i++); }}
+class int{}
+class Foo {
+  mth() {
+    for (in^t i = 0; i < 5; i++);
+  }
+}
 ''');
     assertResponse(r'''
 replacement
@@ -8906,6 +8926,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -8969,6 +8993,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -9015,6 +9043,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   my_lib.dart
@@ -9037,6 +9069,9 @@ import^
 replacement
   left: 6
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
 ''');
   }
 
@@ -10070,9 +10105,9 @@ void f(B b, C c) {
 ''');
     assertResponse(r'''
 suggestions
-  fieldA
-    kind: field
   fieldC
+    kind: field
+  fieldA
     kind: field
 ''');
   }
@@ -10145,7 +10180,14 @@ suggestions
   Future<void> test_completion_staticField1_3() async {
     allowedIdentifiers = {'num'};
     await computeSuggestions('''
-class num{}class Sunflower {static final num MAX_D = 300;nu^m xc, yc;Sunflower() {xc = yc = MA }}
+class num{}
+class Sunflower {
+  static final num MAX_D = 300;
+  nu^m xc, yc;
+  Sunflower() {
+    xc = yc = MA
+  }
+}
 ''');
     assertResponse(r'''
 replacement
@@ -10160,7 +10202,14 @@ suggestions
   Future<void> test_completion_staticField1_4() async {
     allowedIdentifiers = {'Sunflower'};
     await computeSuggestions('''
-class num{}class Sunflower {static final num MAX_D = 300;num xc, yc;Sun^flower() {xc = yc = MA }}
+class num{}
+class Sunflower {
+  static final num MAX_D = 300;
+  num xc, yc;
+  Sun^flower() {
+    xc = yc = MA
+  }
+}
 ''');
     assertResponse(r'''
 replacement
@@ -10392,9 +10441,9 @@ class B extends A {
 ''');
     assertResponse(r'''
 suggestions
-  fa
-    kind: field
   fb
+    kind: field
+  fa
     kind: field
   ma
     kind: methodInvocation
@@ -10483,8 +10532,6 @@ suggestions
     kind: keyword
   while
     kind: keyword
-  cos
-    kind: functionInvocation
   cos
     kind: functionInvocation
 ''');
@@ -10882,6 +10929,8 @@ suggestions
     kind: topLevelVariable
   Y
     kind: class
+  Y
+    kind: constructorInvocation
   m
     kind: functionInvocation
 ''');
@@ -10916,6 +10965,8 @@ suggestions
     kind: topLevelVariable
   Y
     kind: class
+  Y
+    kind: constructorInvocation
   m
     kind: functionInvocation
 ''');
@@ -10950,11 +11001,14 @@ suggestions
     kind: topLevelVariable
   Y
     kind: class
+  Y
+    kind: constructorInvocation
   m
     kind: functionInvocation
 ''');
   }
 
+  @FailingTest(reason: 'We suggest also the variable')
   Future<void> test_library009_4() async {
     allowedIdentifiers = {'Y', 'm', 'X'};
     newFile('$testPackageLibPath/lib.dart', '''

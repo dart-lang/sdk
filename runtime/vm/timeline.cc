@@ -570,9 +570,7 @@ void TimelineEvent::Duration(const char* label,
   set_timestamp1_or_id(end_micros);
 }
 
-void TimelineEvent::Begin(const char* label,
-                          int64_t id,
-                          int64_t micros) {
+void TimelineEvent::Begin(const char* label, int64_t id, int64_t micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
   // Overload timestamp1_ with the event ID. This is required for the MacOS
@@ -1002,14 +1000,12 @@ std::unique_ptr<const char[]> TimelineEvent::GetFormattedIsolateGroupId()
   return formatted_isolate_group_id;
 }
 
-TimelineTrackMetadata::TimelineTrackMetadata(
-    intptr_t pid,
-    intptr_t tid,
-    Utils::CStringUniquePtr&& track_name)
+TimelineTrackMetadata::TimelineTrackMetadata(intptr_t pid,
+                                             intptr_t tid,
+                                             CStringUniquePtr&& track_name)
     : pid_(pid), tid_(tid), track_name_(std::move(track_name)) {}
 
-void TimelineTrackMetadata::set_track_name(
-    Utils::CStringUniquePtr&& track_name) {
+void TimelineTrackMetadata::set_track_name(CStringUniquePtr&& track_name) {
   track_name_ = std::move(track_name);
 }
 
@@ -1533,23 +1529,23 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
     // cases.
     return;
   }
-    MutexLocker ml(&track_uuid_to_track_metadata_lock_);
+  MutexLocker ml(&track_uuid_to_track_metadata_lock_);
 
-    void* key = reinterpret_cast<void*>(trace_id);
-    const intptr_t hash = Utils::WordHash(trace_id);
-    SimpleHashMap::Entry* entry =
-        track_uuid_to_track_metadata_.Lookup(key, hash, true);
-    if (entry->value == nullptr) {
-      entry->value = new TimelineTrackMetadata(
-          process_id, trace_id,
-          Utils::CreateCStringUniquePtr(
-              Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
-    } else {
-      TimelineTrackMetadata* value =
-          static_cast<TimelineTrackMetadata*>(entry->value);
-      ASSERT(process_id == value->pid());
-      value->set_track_name(Utils::CreateCStringUniquePtr(
-          Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
+  void* key = reinterpret_cast<void*>(trace_id);
+  const intptr_t hash = Utils::WordHash(trace_id);
+  SimpleHashMap::Entry* entry =
+      track_uuid_to_track_metadata_.Lookup(key, hash, true);
+  if (entry->value == nullptr) {
+    entry->value = new TimelineTrackMetadata(
+        process_id, trace_id,
+        CStringUniquePtr(
+            Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
+  } else {
+    TimelineTrackMetadata* value =
+        static_cast<TimelineTrackMetadata*>(entry->value);
+    ASSERT(process_id == value->pid());
+    value->set_track_name(CStringUniquePtr(
+        Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
   }
 }
 
@@ -1561,10 +1557,10 @@ void TimelineEventRecorder::AddAsyncTrackMetadataBasedOnEvent(
       strcmp("callback", FLAG_timeline_recorder) == 0 ||
       strcmp("systrace", FLAG_timeline_recorder) == 0 ||
       FLAG_systrace_timeline) {
-      // There is no way to retrieve track metadata when a no-op, callback, or
-      // systrace recorder is in use, so we don't need to update the map in
-      // these cases.
-      return;
+    // There is no way to retrieve track metadata when a no-op, callback, or
+    // systrace recorder is in use, so we don't need to update the map in
+    // these cases.
+    return;
   }
   MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
 

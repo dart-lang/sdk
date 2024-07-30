@@ -1,0 +1,56 @@
+main = <No Member>;
+@#C1
+library from "org-dartlang-test:///error_two.dart" as err {
+//
+// Problems in library:
+//
+// org-dartlang-test:///error_two.dart:1:2: Error: The macro can only be applied to classes.
+// @Hello()
+//  ^
+//
+
+  import "org-dartlang-test:///hello.dart";
+
+}
+library from "org-dartlang-test:///hello.dart" as hel {
+
+  import "package:macros/macros.dart";
+
+  macro class Hello extends dart.core::Object implements #lib1::ClassTypesMacro /*hasConstConstructor*/  {
+    const constructor •() → hel::Hello
+      : super dart.core::Object::•()
+      ;
+    @#C2
+    method buildTypesForClass(#lib1::ClassDeclaration clazz, #lib1::ClassTypeBuilder builder) → dart.async::Future<void> async /* emittedValueType= void */ {}
+  }
+}
+constants  {
+  #C1 = hel::Hello {}
+  #C2 = dart.core::_Override {}
+}
+
+
+Constructor coverage from constants:
+holepunch:pkg/_macros/lib/src/api/builders.dart:
+- Deprecated. (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+holepunch:pkg/_macros/lib/src/api/code.dart:
+- CodeKind. (from holepunch:pkg/_macros/lib/src/api/code.dart:474:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+holepunch:pkg/_macros/lib/src/api/diagnostic.dart:
+- Severity. (from holepunch:pkg/_macros/lib/src/api/diagnostic.dart:93:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+org-dartlang-test:///error_two.dart:
+- Hello. (from org-dartlang-test:///hello.dart:3:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+
+A total of 1 errors:
+ - org-dartlang-test:///error_two.dart:1:2: Error: The macro can only be applied to classes.
+@Hello()
+ ^

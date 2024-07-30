@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
+import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:front_end/src/fasta/messages.dart';
-import 'package:front_end/src/fasta/source/diet_parser.dart';
+import 'package:front_end/src/base/messages.dart';
+import 'package:front_end/src/source/diet_parser.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -502,7 +502,7 @@ class CollectionElementTest {
         'handleNoTypeArguments {',
         'handleLiteralInt 5',
         'handleLiteralSetOrMap 1, {, const, }',
-        'endConstLiteral ]',
+        'endConstLiteral }',
         'handleSpreadExpression ...',
         'endIfElseControlFlow }',
         'handleLiteralList 1, [, null, ]',
@@ -817,7 +817,7 @@ class MapElementTest {
       'handleLiteralInt 2',
       'handleLiteralMapEntry :, }',
       'handleLiteralSetOrMap 1, {, const, }',
-      'endConstLiteral ',
+      'endConstLiteral }',
       'handleSpreadExpression ...',
     ]);
   }
@@ -830,7 +830,7 @@ class MapElementTest {
       'handleLiteralInt 3',
       'handleLiteralMapEntry :, }',
       'handleLiteralSetOrMap 1, {, const, }',
-      'endConstLiteral ',
+      'endConstLiteral }',
       'handleSpreadExpression ...?',
     ]);
   }
@@ -916,13 +916,13 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     calls.add('endBinaryExpression $token');
   }
 
   @override
-  void endConstLiteral(Token token) {
-    calls.add('endConstLiteral $token');
+  void endConstLiteral(Token endToken) {
+    calls.add('endConstLiteral $endToken');
   }
 
   @override
@@ -971,7 +971,7 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
+  void handleAssignmentExpression(Token token, Token endToken) {
     calls.add('handleAssignmentExpression $token');
   }
 
@@ -981,8 +981,8 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleExpressionStatement(Token token) {
-    calls.add('handleExpressionStatement $token');
+  void handleExpressionStatement(Token beginToken, Token endToken) {
+    calls.add('handleExpressionStatement $endToken');
   }
 
   @override
@@ -1004,7 +1004,7 @@ class TestInfoListener implements Listener {
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
     calls.add('handleForInitializerExpressionStatement '
         '$forKeyword $leftParen $leftSeparator $updateExpressionCount');
   }
@@ -1046,7 +1046,8 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     calls.add('handleLiteralMapEntry $colon, $endToken');
   }
 

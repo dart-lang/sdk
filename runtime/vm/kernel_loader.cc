@@ -24,6 +24,7 @@
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
+#include "vm/version.h"
 
 namespace dart {
 namespace kernel {
@@ -35,6 +36,24 @@ namespace kernel {
 #define H (translation_helper_)
 
 static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
+
+static bool IsMainOrDevChannel() {
+  return strstr("|main|dev|", Version::Channel()) != nullptr;
+}
+
+static bool is_experimental_shared_data_enabled = false;
+static void EnableExperimentSharedData(bool value) {
+  if (value && !IsMainOrDevChannel()) {
+    FATAL(
+        "Shared memory multithreading in only available for "
+        "experimentation in dev or main");
+  }
+  is_experimental_shared_data_enabled = value;
+}
+
+DEFINE_FLAG_HANDLER(EnableExperimentSharedData,
+                    experimental_shared_data,
+                    "Enable experiment to share data between isolates.");
 
 class SimpleExpressionConverter {
  public:
@@ -745,8 +764,7 @@ void KernelLoader::ReadInferredType(const Field& field,
   if (FLAG_precompiled_mode) {
     field.set_is_unboxed(!field.is_late() && !field.is_static() &&
                          !field.is_nullable() &&
-                         ((field.guarded_cid() == kDoubleCid &&
-                           FlowGraphCompiler::SupportsUnboxedDoubles()) ||
+                         ((field.guarded_cid() == kDoubleCid) ||
                           (field.guarded_cid() == kFloat32x4Cid &&
                            FlowGraphCompiler::SupportsUnboxedSimd128()) ||
                           (field.guarded_cid() == kFloat64x2Cid &&
@@ -810,7 +828,6 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
 
   if (library.Loaded()) return library.ptr();
 
-  library.set_is_nnbd(library_helper.IsNonNullableByDefault());
   const NNBDCompiledMode mode =
       library_helper.GetNonNullableByDefaultCompiledMode();
   if (mode == NNBDCompiledMode::kInvalid) {
@@ -819,21 +836,12 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
         "null safety and not sound null safety.",
         String::Handle(library.url()).ToCString());
   }
-  if (!IG->null_safety() && mode == NNBDCompiledMode::kStrong) {
-    H.ReportError(
-        "Library '%s' was compiled with sound null safety (in strong mode) and "
-        "it "
-        "requires --sound-null-safety option at runtime",
-        String::Handle(library.url()).ToCString());
-  }
-  if (IG->null_safety() && (mode == NNBDCompiledMode::kWeak)) {
+  if (mode == NNBDCompiledMode::kWeak) {
     H.ReportError(
         "Library '%s' was compiled without sound null safety (in weak mode) "
-        "and it "
-        "cannot be used with --sound-null-safety at runtime",
+        "and it cannot be used at runtime",
         String::Handle(library.url()).ToCString());
   }
-  library.set_nnbd_compiled_mode(mode);
 
   library_kernel_data_ = helper_.reader_.ViewFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
@@ -1061,13 +1069,13 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.set_has_pragma(HasPragma::decode(pragma_bits));
     field.set_is_extension_member(is_extension_member);
     field.set_is_extension_type_member(is_extension_type_member);
+    field.set_is_shared(SharedPragma::decode(pragma_bits));
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
     CheckForInitializer(field);
-    // In NNBD libraries, static fields with initializers are
-    // implicitly late.
-    if (field.has_initializer() && library.is_nnbd()) {
+    // Static fields with initializers are implicitly late.
+    if (field.has_initializer()) {
       field.set_is_late(true);
     }
     field_helper.SetJustRead(FieldHelper::kType);
@@ -1366,6 +1374,10 @@ void KernelLoader::LoadClass(const Library& library,
   if (HasPragma::decode(pragma_bits)) {
     out_class->set_has_pragma(true);
   }
+  if (DynModuleExtendablePragma::decode(pragma_bits)) {
+    out_class->set_is_dynamically_extendable(true);
+    IG->set_has_dynamically_extendable_classes(true);
+  }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
   intptr_t type_parameter_counts =
@@ -1471,12 +1483,11 @@ void KernelLoader::FinishClassLoading(const Class& klass,
           field_helper.IsGenericCovariantImpl());
       field.set_is_extension_member(is_extension_member);
       field.set_is_extension_type_member(is_extension_type_member);
+      field.set_is_shared(SharedPragma::decode(pragma_bits));
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
-      // In NNBD libraries, static fields with initializers are
-      // implicitly late.
-      if (field_helper.IsStatic() && field.has_initializer() &&
-          library.is_nnbd()) {
+      // Static fields with initializers are implicitly late.
+      if (field_helper.IsStatic() && field.has_initializer()) {
         field.set_is_late(true);
       }
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -1598,6 +1609,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     signature.set_result_type(T.ReceiverType(klass));
     function.set_has_pragma(HasPragma::decode(pragma_bits));
     function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
+    function.SetIsDynamicallyOverridden(
+        DynModuleCanBeOverriddenPragma::decode(pragma_bits));
 
     FunctionNodeHelper function_node_helper(&helper_);
     function_node_helper.ReadUntilExcluding(
@@ -1768,6 +1781,23 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
         if (constant_reader.IsStringConstant(name_index, "vm:ffi:native")) {
           *pragma_bits = FfiNativePragma::update(true, *pragma_bits);
         }
+        if (constant_reader.IsStringConstant(name_index, "vm:shared")) {
+          if (!is_experimental_shared_data_enabled) {
+            FATAL(
+                "Encountered vm:shared when functionality is disabled. "
+                "Pass --experimental-shared-data");
+          }
+          *pragma_bits = SharedPragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "dyn-module:extendable")) {
+          *pragma_bits = DynModuleExtendablePragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "dyn-module:can-be-overridden")) {
+          *pragma_bits =
+              DynModuleCanBeOverriddenPragma::update(true, *pragma_bits);
+        }
       }
     } else {
       helper_.SkipExpression();
@@ -1833,6 +1863,8 @@ void KernelLoader::LoadProcedure(const Library& library,
                             procedure_helper.IsMemberSignature() ||
                             is_synthetic);
   function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
+  function.SetIsDynamicallyOverridden(
+      DynModuleCanBeOverriddenPragma::decode(pragma_bits));
   if (register_function) {
     functions_.Add(&function);
   } else {

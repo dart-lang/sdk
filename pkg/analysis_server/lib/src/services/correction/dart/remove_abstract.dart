@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -14,21 +14,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   @override
-  bool canBeAppliedInBulk;
-
-  @override
-  bool canBeAppliedToFile;
+  final CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveAbstract()
-      : canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
+  RemoveAbstract({required super.context})
+      : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
-  RemoveAbstract.bulkFixable()
-      : canBeAppliedInBulk = true,
-        canBeAppliedToFile = true;
+  RemoveAbstract.bulkFixable({required super.context})
+      : applicability = CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_ABSTRACT;
@@ -38,9 +33,9 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
-    final parent = node.parent;
-    final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    var node = this.node;
+    var parent = node.parent;
+    var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (node is VariableDeclaration) {
       await _compute(classDeclaration, node.declaredElement, builder);
     } else if (node is SimpleIdentifier &&

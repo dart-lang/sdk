@@ -136,7 +136,7 @@ class _OverriddenElementsFinder {
 
   /// Add the [OverriddenElements] for this element.
   OverriddenElements find() {
-    _class = _class.augmented?.declaration ?? _class;
+    _class = _class.augmented.declaration;
     _visited.clear();
     _addSuperOverrides(_class, withThisType: false);
     _visited.clear();
@@ -199,7 +199,7 @@ class _OverriddenElementsFinder {
     // method
     if (_kinds.contains(ElementKind.METHOD)) {
       var augmented = classElement.augmented;
-      member = augmented?.lookUpMethod(name: _name, library: _library);
+      member = augmented.lookUpMethod(name: _name, library: _library);
       if (member != null) {
         return member;
       }
@@ -207,7 +207,7 @@ class _OverriddenElementsFinder {
     // getter
     if (_kinds.contains(ElementKind.GETTER)) {
       var augmented = classElement.augmented;
-      member = augmented?.lookUpGetter(name: _name, library: _library);
+      member = augmented.lookUpGetter(name: _name, library: _library);
       if (member != null) {
         return member;
       }
@@ -215,7 +215,7 @@ class _OverriddenElementsFinder {
     // setter
     if (_kinds.contains(ElementKind.SETTER)) {
       var augmented = classElement.augmented;
-      member = augmented?.lookUpSetter(name: '$_name=', library: _library);
+      member = augmented.lookUpSetter(name: '$_name=', library: _library);
       if (member != null) {
         return member;
       }

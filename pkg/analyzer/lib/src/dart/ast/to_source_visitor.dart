@@ -90,6 +90,18 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitAugmentedExpression(AugmentedExpression node) {
+    sink.write('augmented');
+  }
+
+  @override
+  void visitAugmentedInvocation(AugmentedInvocation node) {
+    _visitToken(node.augmentedKeyword);
+    _visitNode(node.typeArguments);
+    _visitNode(node.arguments);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     sink.write('await ');
     _visitNode(node.expression);
@@ -436,17 +448,22 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');
     _visitToken(node.typeKeyword, suffix: ' ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);
     sink.write(' ');
-    _visitToken(node.onKeyword);
-    sink.write(' ');
-    _visitNode(node.extendedType, suffix: ' ');
+    _visitNode(node.onClause, suffix: ' ');
     _visitToken(node.leftBracket);
     _visitNodeList(node.members, separator: ' ');
     _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    sink.write('on ');
+    _visitNode(node.extendedType);
   }
 
   @override
@@ -476,6 +493,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitToken(node.staticKeyword, suffix: ' ');
     _visitNode(node.fields);
@@ -667,6 +685,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('typedef ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);
@@ -807,8 +826,8 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    sink.write('library ');
     sink.write('augment ');
+    sink.write('library ');
     _visitNode(node.uri);
     sink.write(';');
   }
@@ -925,6 +944,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    sink.write('on ');
+    _visitNodeList(node.superclassConstraints, separator: ', ');
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     _visitNode(node.name);
     _visitNode(node.expression, prefix: ' ');
@@ -978,6 +1003,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(')');
   }
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   void visitOnClause(OnClause node) {
     sink.write('on ');
@@ -1353,6 +1379,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitNode(node.variables, suffix: ';');
   }

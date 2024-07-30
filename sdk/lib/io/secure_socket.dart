@@ -905,12 +905,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
     } else if (_status == handshakeStatus) {
       _socketClosedRead = true;
+      // The other party might have disconnected, but if there still
+      // bytes available we can continue handshake.
       if (_filterStatus.readEmpty) {
         _reportError(
             new HandshakeException('Connection terminated during handshake'),
             null);
-      } else {
-        await _secureHandshake();
       }
     }
   }

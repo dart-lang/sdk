@@ -10,6 +10,7 @@ import 'dart:convert' hide JsonDecoder;
 
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 
 // ignore_for_file: flutter_style_todos
 
@@ -28,7 +29,8 @@ class AddContentOverlay implements HasToJson {
   AddContentOverlay(this.content);
 
   factory AddContentOverlay.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       if (json['type'] != 'add') {
@@ -48,7 +50,7 @@ class AddContentOverlay implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['type'] = 'add';
     result['content'] = content;
@@ -56,7 +58,7 @@ class AddContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -133,27 +135,31 @@ class AnalysisError implements HasToJson {
       {this.correction, this.url, this.contextMessages, this.hasFix});
 
   factory AnalysisError.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       AnalysisErrorSeverity severity;
       if (json.containsKey('severity')) {
         severity = AnalysisErrorSeverity.fromJson(
-            jsonDecoder, '$jsonPath.severity', json['severity']);
+            jsonDecoder, '$jsonPath.severity', json['severity'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'severity');
       }
       AnalysisErrorType type;
       if (json.containsKey('type')) {
         type = AnalysisErrorType.fromJson(
-            jsonDecoder, '$jsonPath.type', json['type']);
+            jsonDecoder, '$jsonPath.type', json['type'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'type');
       }
       Location location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
-            jsonDecoder, '$jsonPath.location', json['location']);
+            jsonDecoder, '$jsonPath.location', json['location'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'location');
       }
@@ -184,8 +190,9 @@ class AnalysisError implements HasToJson {
         contextMessages = jsonDecoder.decodeList(
             '$jsonPath.contextMessages',
             json['contextMessages'],
-            (String jsonPath, Object? json) =>
-                DiagnosticMessage.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => DiagnosticMessage.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       }
       bool? hasFix;
       if (json.containsKey('hasFix')) {
@@ -202,11 +209,13 @@ class AnalysisError implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['severity'] = severity.toJson();
-    result['type'] = type.toJson();
-    result['location'] = location.toJson();
+    result['severity'] =
+        severity.toJson(clientUriConverter: clientUriConverter);
+    result['type'] = type.toJson(clientUriConverter: clientUriConverter);
+    result['location'] =
+        location.toJson(clientUriConverter: clientUriConverter);
     result['message'] = message;
     var correction = this.correction;
     if (correction != null) {
@@ -220,7 +229,8 @@ class AnalysisError implements HasToJson {
     var contextMessages = this.contextMessages;
     if (contextMessages != null) {
       result['contextMessages'] = contextMessages
-          .map((DiagnosticMessage value) => value.toJson())
+          .map((DiagnosticMessage value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
           .toList();
     }
     var hasFix = this.hasFix;
@@ -231,7 +241,7 @@ class AnalysisError implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -306,7 +316,8 @@ class AnalysisErrorSeverity implements Enum {
   }
 
   factory AnalysisErrorSeverity.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return AnalysisErrorSeverity(json);
@@ -320,7 +331,7 @@ class AnalysisErrorSeverity implements Enum {
   @override
   String toString() => 'AnalysisErrorSeverity.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// AnalysisErrorType
@@ -399,7 +410,8 @@ class AnalysisErrorType implements Enum {
   }
 
   factory AnalysisErrorType.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return AnalysisErrorType(json);
@@ -413,7 +425,7 @@ class AnalysisErrorType implements Enum {
   @override
   String toString() => 'AnalysisErrorType.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// ChangeContentOverlay
@@ -431,7 +443,8 @@ class ChangeContentOverlay implements HasToJson {
   ChangeContentOverlay(this.edits);
 
   factory ChangeContentOverlay.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       if (json['type'] != 'change') {
@@ -442,8 +455,9 @@ class ChangeContentOverlay implements HasToJson {
         edits = jsonDecoder.decodeList(
             '$jsonPath.edits',
             json['edits'],
-            (String jsonPath, Object? json) =>
-                SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SourceEdit.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
@@ -454,15 +468,18 @@ class ChangeContentOverlay implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['type'] = 'change';
-    result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();
+    result['edits'] = edits
+        .map((SourceEdit value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -667,13 +684,15 @@ class CompletionSuggestion implements HasToJson {
       this.isNotImported});
 
   factory CompletionSuggestion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       CompletionSuggestionKind kind;
       if (json.containsKey('kind')) {
         kind = CompletionSuggestionKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -764,8 +783,9 @@ class CompletionSuggestion implements HasToJson {
       }
       Element? element;
       if (json.containsKey('element')) {
-        element =
-            Element.fromJson(jsonDecoder, '$jsonPath.element', json['element']);
+        element = Element.fromJson(
+            jsonDecoder, '$jsonPath.element', json['element'],
+            clientUriConverter: clientUriConverter);
       }
       String? returnType;
       if (json.containsKey('returnType')) {
@@ -838,9 +858,9 @@ class CompletionSuggestion implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['relevance'] = relevance;
     result['completion'] = completion;
     var displayText = this.displayText;
@@ -881,7 +901,8 @@ class CompletionSuggestion implements HasToJson {
     }
     var element = this.element;
     if (element != null) {
-      result['element'] = element.toJson();
+      result['element'] =
+          element.toJson(clientUriConverter: clientUriConverter);
     }
     var returnType = this.returnType;
     if (returnType != null) {
@@ -923,7 +944,7 @@ class CompletionSuggestion implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1103,7 +1124,8 @@ class CompletionSuggestionKind implements Enum {
   }
 
   factory CompletionSuggestionKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return CompletionSuggestionKind(json);
@@ -1117,7 +1139,7 @@ class CompletionSuggestionKind implements Enum {
   @override
   String toString() => 'CompletionSuggestionKind.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// DiagnosticMessage
@@ -1139,7 +1161,8 @@ class DiagnosticMessage implements HasToJson {
   DiagnosticMessage(this.message, this.location);
 
   factory DiagnosticMessage.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String message;
@@ -1152,7 +1175,8 @@ class DiagnosticMessage implements HasToJson {
       Location location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
-            jsonDecoder, '$jsonPath.location', json['location']);
+            jsonDecoder, '$jsonPath.location', json['location'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'location');
       }
@@ -1163,15 +1187,16 @@ class DiagnosticMessage implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['message'] = message;
-    result['location'] = location.toJson();
+    result['location'] =
+        location.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1275,13 +1300,14 @@ class Element implements HasToJson {
       this.aliasedType});
 
   factory Element.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey('kind')) {
-        kind =
-            ElementKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
+        kind = ElementKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -1294,7 +1320,8 @@ class Element implements HasToJson {
       Location? location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
-            jsonDecoder, '$jsonPath.location', json['location']);
+            jsonDecoder, '$jsonPath.location', json['location'],
+            clientUriConverter: clientUriConverter);
       }
       int flags;
       if (json.containsKey('flags')) {
@@ -1341,13 +1368,14 @@ class Element implements HasToJson {
   bool get isDeprecated => (flags & FLAG_DEPRECATED) != 0;
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['name'] = name;
     var location = this.location;
     if (location != null) {
-      result['location'] = location.toJson();
+      result['location'] =
+          location.toJson(clientUriConverter: clientUriConverter);
     }
     result['flags'] = flags;
     var parameters = this.parameters;
@@ -1370,7 +1398,7 @@ class Element implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1601,7 +1629,8 @@ class ElementKind implements Enum {
   }
 
   factory ElementKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return ElementKind(json);
@@ -1615,7 +1644,7 @@ class ElementKind implements Enum {
   @override
   String toString() => 'ElementKind.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// FoldingKind
@@ -1708,7 +1737,8 @@ class FoldingKind implements Enum {
   }
 
   factory FoldingKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return FoldingKind(json);
@@ -1722,7 +1752,7 @@ class FoldingKind implements Enum {
   @override
   String toString() => 'FoldingKind.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// FoldingRegion
@@ -1747,13 +1777,14 @@ class FoldingRegion implements HasToJson {
   FoldingRegion(this.kind, this.offset, this.length);
 
   factory FoldingRegion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       FoldingKind kind;
       if (json.containsKey('kind')) {
-        kind =
-            FoldingKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
+        kind = FoldingKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -1776,16 +1807,16 @@ class FoldingRegion implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['offset'] = offset;
     result['length'] = length;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -1827,13 +1858,15 @@ class HighlightRegion implements HasToJson {
   HighlightRegion(this.type, this.offset, this.length);
 
   factory HighlightRegion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       HighlightRegionType type;
       if (json.containsKey('type')) {
         type = HighlightRegionType.fromJson(
-            jsonDecoder, '$jsonPath.type', json['type']);
+            jsonDecoder, '$jsonPath.type', json['type'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'type');
       }
@@ -1856,16 +1889,16 @@ class HighlightRegion implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['type'] = type.toJson();
+    result['type'] = type.toJson(clientUriConverter: clientUriConverter);
     result['offset'] = offset;
     result['length'] = length;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2494,7 +2527,8 @@ class HighlightRegionType implements Enum {
   }
 
   factory HighlightRegionType.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return HighlightRegionType(json);
@@ -2508,7 +2542,7 @@ class HighlightRegionType implements Enum {
   @override
   String toString() => 'HighlightRegionType.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// LinkedEditGroup
@@ -2535,7 +2569,8 @@ class LinkedEditGroup implements HasToJson {
   LinkedEditGroup(this.positions, this.length, this.suggestions);
 
   factory LinkedEditGroup.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       List<Position> positions;
@@ -2543,8 +2578,9 @@ class LinkedEditGroup implements HasToJson {
         positions = jsonDecoder.decodeList(
             '$jsonPath.positions',
             json['positions'],
-            (String jsonPath, Object? json) =>
-                Position.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => Position.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'positions');
       }
@@ -2559,8 +2595,9 @@ class LinkedEditGroup implements HasToJson {
         suggestions = jsonDecoder.decodeList(
             '$jsonPath.suggestions',
             json['suggestions'],
-            (String jsonPath, Object? json) =>
-                LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => LinkedEditSuggestion.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'suggestions');
       }
@@ -2574,13 +2611,16 @@ class LinkedEditGroup implements HasToJson {
   LinkedEditGroup.empty() : this(<Position>[], 0, <LinkedEditSuggestion>[]);
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['positions'] =
-        positions.map((Position value) => value.toJson()).toList();
+    result['positions'] = positions
+        .map((Position value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     result['length'] = length;
     result['suggestions'] = suggestions
-        .map((LinkedEditSuggestion value) => value.toJson())
+        .map((LinkedEditSuggestion value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     return result;
   }
@@ -2597,7 +2637,7 @@ class LinkedEditGroup implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2637,7 +2677,8 @@ class LinkedEditSuggestion implements HasToJson {
   LinkedEditSuggestion(this.value, this.kind);
 
   factory LinkedEditSuggestion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String value;
@@ -2649,7 +2690,8 @@ class LinkedEditSuggestion implements HasToJson {
       LinkedEditSuggestionKind kind;
       if (json.containsKey('kind')) {
         kind = LinkedEditSuggestionKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -2660,15 +2702,15 @@ class LinkedEditSuggestion implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['value'] = value;
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2732,7 +2774,8 @@ class LinkedEditSuggestionKind implements Enum {
   }
 
   factory LinkedEditSuggestionKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return LinkedEditSuggestionKind(json);
@@ -2746,7 +2789,7 @@ class LinkedEditSuggestionKind implements Enum {
   @override
   String toString() => 'LinkedEditSuggestionKind.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// Location
@@ -2793,13 +2836,15 @@ class Location implements HasToJson {
       {this.endLine, this.endColumn});
 
   factory Location.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -2846,9 +2891,9 @@ class Location implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     result['length'] = length;
     result['startLine'] = startLine;
@@ -2865,7 +2910,7 @@ class Location implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -2917,7 +2962,8 @@ class NavigationRegion implements HasToJson {
   NavigationRegion(this.offset, this.length, this.targets);
 
   factory NavigationRegion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -2946,7 +2992,7 @@ class NavigationRegion implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
@@ -2955,7 +3001,7 @@ class NavigationRegion implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3022,13 +3068,14 @@ class NavigationTarget implements HasToJson {
       {this.codeOffset, this.codeLength});
 
   factory NavigationTarget.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey('kind')) {
-        kind =
-            ElementKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
+        kind = ElementKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -3084,9 +3131,9 @@ class NavigationTarget implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['fileIndex'] = fileIndex;
     result['offset'] = offset;
     result['length'] = length;
@@ -3104,7 +3151,7 @@ class NavigationTarget implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3156,13 +3203,15 @@ class Occurrences implements HasToJson {
   Occurrences(this.element, this.offsets, this.length);
 
   factory Occurrences.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Element element;
       if (json.containsKey('element')) {
-        element =
-            Element.fromJson(jsonDecoder, '$jsonPath.element', json['element']);
+        element = Element.fromJson(
+            jsonDecoder, '$jsonPath.element', json['element'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'element');
       }
@@ -3186,16 +3235,16 @@ class Occurrences implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['element'] = element.toJson();
+    result['element'] = element.toJson(clientUriConverter: clientUriConverter);
     result['offsets'] = offsets;
     result['length'] = length;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3256,13 +3305,15 @@ class Outline implements HasToJson {
       {this.children});
 
   factory Outline.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       Element element;
       if (json.containsKey('element')) {
-        element =
-            Element.fromJson(jsonDecoder, '$jsonPath.element', json['element']);
+        element = Element.fromJson(
+            jsonDecoder, '$jsonPath.element', json['element'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'element');
       }
@@ -3297,8 +3348,9 @@ class Outline implements HasToJson {
         children = jsonDecoder.decodeList(
             '$jsonPath.children',
             json['children'],
-            (String jsonPath, Object? json) =>
-                Outline.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => Outline.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       }
       return Outline(element, offset, length, codeOffset, codeLength,
           children: children);
@@ -3308,23 +3360,25 @@ class Outline implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['element'] = element.toJson();
+    result['element'] = element.toJson(clientUriConverter: clientUriConverter);
     result['offset'] = offset;
     result['length'] = length;
     result['codeOffset'] = codeOffset;
     result['codeLength'] = codeLength;
     var children = this.children;
     if (children != null) {
-      result['children'] =
-          children.map((Outline value) => value.toJson()).toList();
+      result['children'] = children
+          .map((Outline value) =>
+              value.toJson(clientUriConverter: clientUriConverter))
+          .toList();
     }
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3377,13 +3431,15 @@ class ParameterInfo implements HasToJson {
   ParameterInfo(this.kind, this.name, this.type, {this.defaultValue});
 
   factory ParameterInfo.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       ParameterKind kind;
       if (json.containsKey('kind')) {
-        kind =
-            ParameterKind.fromJson(jsonDecoder, '$jsonPath.kind', json['kind']);
+        kind = ParameterKind.fromJson(
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -3411,9 +3467,9 @@ class ParameterInfo implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['name'] = name;
     result['type'] = type;
     var defaultValue = this.defaultValue;
@@ -3424,7 +3480,7 @@ class ParameterInfo implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3499,7 +3555,8 @@ class ParameterKind implements Enum {
   }
 
   factory ParameterKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return ParameterKind(json);
@@ -3513,7 +3570,7 @@ class ParameterKind implements Enum {
   @override
   String toString() => 'ParameterKind.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// Position
@@ -3534,13 +3591,15 @@ class Position implements HasToJson {
   Position(this.file, this.offset);
 
   factory Position.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -3557,15 +3616,15 @@ class Position implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['offset'] = offset;
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3666,7 +3725,8 @@ class RefactoringKind implements Enum {
   }
 
   factory RefactoringKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return RefactoringKind(json);
@@ -3680,7 +3740,7 @@ class RefactoringKind implements Enum {
   @override
   String toString() => 'RefactoringKind.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// RefactoringMethodParameter
@@ -3718,7 +3778,8 @@ class RefactoringMethodParameter implements HasToJson {
       {this.id, this.parameters});
 
   factory RefactoringMethodParameter.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String? id;
@@ -3728,7 +3789,8 @@ class RefactoringMethodParameter implements HasToJson {
       RefactoringMethodParameterKind kind;
       if (json.containsKey('kind')) {
         kind = RefactoringMethodParameterKind.fromJson(
-            jsonDecoder, '$jsonPath.kind', json['kind']);
+            jsonDecoder, '$jsonPath.kind', json['kind'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
@@ -3757,13 +3819,13 @@ class RefactoringMethodParameter implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     var id = this.id;
     if (id != null) {
       result['id'] = id;
     }
-    result['kind'] = kind.toJson();
+    result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['type'] = type;
     result['name'] = name;
     var parameters = this.parameters;
@@ -3774,7 +3836,7 @@ class RefactoringMethodParameter implements HasToJson {
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -3839,7 +3901,8 @@ class RefactoringMethodParameterKind implements Enum {
   }
 
   factory RefactoringMethodParameterKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return RefactoringMethodParameterKind(json);
@@ -3854,7 +3917,7 @@ class RefactoringMethodParameterKind implements Enum {
   @override
   String toString() => 'RefactoringMethodParameterKind.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// RefactoringProblem
@@ -3881,13 +3944,15 @@ class RefactoringProblem implements HasToJson {
   RefactoringProblem(this.severity, this.message, {this.location});
 
   factory RefactoringProblem.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       RefactoringProblemSeverity severity;
       if (json.containsKey('severity')) {
         severity = RefactoringProblemSeverity.fromJson(
-            jsonDecoder, '$jsonPath.severity', json['severity']);
+            jsonDecoder, '$jsonPath.severity', json['severity'],
+            clientUriConverter: clientUriConverter);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'severity');
       }
@@ -3901,7 +3966,8 @@ class RefactoringProblem implements HasToJson {
       Location? location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
-            jsonDecoder, '$jsonPath.location', json['location']);
+            jsonDecoder, '$jsonPath.location', json['location'],
+            clientUriConverter: clientUriConverter);
       }
       return RefactoringProblem(severity, message, location: location);
     } else {
@@ -3910,19 +3976,21 @@ class RefactoringProblem implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['severity'] = severity.toJson();
+    result['severity'] =
+        severity.toJson(clientUriConverter: clientUriConverter);
     result['message'] = message;
     var location = this.location;
     if (location != null) {
-      result['location'] = location.toJson();
+      result['location'] =
+          location.toJson(clientUriConverter: clientUriConverter);
     }
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4006,7 +4074,8 @@ class RefactoringProblemSeverity implements Enum {
   }
 
   factory RefactoringProblemSeverity.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     if (json is String) {
       try {
         return RefactoringProblemSeverity(json);
@@ -4025,7 +4094,7 @@ class RefactoringProblemSeverity implements Enum {
   @override
   String toString() => 'RefactoringProblemSeverity.$name';
 
-  String toJson() => name;
+  String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
 /// RemoveContentOverlay
@@ -4039,7 +4108,8 @@ class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
 
   factory RemoveContentOverlay.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       if (json['type'] != 'remove') {
@@ -4052,14 +4122,14 @@ class RemoveContentOverlay implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['type'] = 'remove';
     return result;
   }
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4121,7 +4191,8 @@ class SourceChange implements HasToJson {
         linkedEditGroups = linkedEditGroups ?? <LinkedEditGroup>[];
 
   factory SourceChange.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String message;
@@ -4136,8 +4207,9 @@ class SourceChange implements HasToJson {
         edits = jsonDecoder.decodeList(
             '$jsonPath.edits',
             json['edits'],
-            (String jsonPath, Object? json) =>
-                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SourceFileEdit.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
@@ -4146,15 +4218,17 @@ class SourceChange implements HasToJson {
         linkedEditGroups = jsonDecoder.decodeList(
             '$jsonPath.linkedEditGroups',
             json['linkedEditGroups'],
-            (String jsonPath, Object? json) =>
-                LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => LinkedEditGroup.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'linkedEditGroups');
       }
       Position? selection;
       if (json.containsKey('selection')) {
         selection = Position.fromJson(
-            jsonDecoder, '$jsonPath.selection', json['selection']);
+            jsonDecoder, '$jsonPath.selection', json['selection'],
+            clientUriConverter: clientUriConverter);
       }
       int? selectionLength;
       if (json.containsKey('selectionLength')) {
@@ -4177,17 +4251,21 @@ class SourceChange implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['message'] = message;
-    result['edits'] =
-        edits.map((SourceFileEdit value) => value.toJson()).toList();
+    result['edits'] = edits
+        .map((SourceFileEdit value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     result['linkedEditGroups'] = linkedEditGroups
-        .map((LinkedEditGroup value) => value.toJson())
+        .map((LinkedEditGroup value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
         .toList();
     var selection = this.selection;
     if (selection != null) {
-      result['selection'] = selection.toJson();
+      result['selection'] =
+          selection.toJson(clientUriConverter: clientUriConverter);
     }
     var selectionLength = this.selectionLength;
     if (selectionLength != null) {
@@ -4224,7 +4302,7 @@ class SourceChange implements HasToJson {
   SourceFileEdit? getFileEdit(String file) => getChangeFileEdit(this, file);
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4304,7 +4382,8 @@ class SourceEdit implements HasToJson {
       {this.id, this.description});
 
   factory SourceEdit.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -4346,7 +4425,7 @@ class SourceEdit implements HasToJson {
   int get end => offset + length;
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
@@ -4366,7 +4445,7 @@ class SourceEdit implements HasToJson {
   String apply(String code) => applyEdit(code, this);
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {
@@ -4417,13 +4496,15 @@ class SourceFileEdit implements HasToJson {
       : edits = edits ?? <SourceEdit>[];
 
   factory SourceFileEdit.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json,
+      {ClientUriConverter? clientUriConverter}) {
     json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey('file')) {
-        file = clientUriConverter.fromClientFilePath(
-            jsonDecoder.decodeString('$jsonPath.file', json['file']));
+        file = clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString('$jsonPath.file', json['file'])) ??
+            jsonDecoder.decodeString('$jsonPath.file', json['file']);
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
@@ -4439,8 +4520,9 @@ class SourceFileEdit implements HasToJson {
         edits = jsonDecoder.decodeList(
             '$jsonPath.edits',
             json['edits'],
-            (String jsonPath, Object? json) =>
-                SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+            (String jsonPath, Object? json) => SourceEdit.fromJson(
+                jsonDecoder, jsonPath, json,
+                clientUriConverter: clientUriConverter));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
@@ -4451,11 +4533,14 @@ class SourceFileEdit implements HasToJson {
   }
 
   @override
-  Map<String, Object> toJson() {
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
     var result = <String, Object>{};
-    result['file'] = clientUriConverter.toClientFilePath(file);
+    result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
     result['fileStamp'] = fileStamp;
-    result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();
+    result['edits'] = edits
+        .map((SourceEdit value) =>
+            value.toJson(clientUriConverter: clientUriConverter))
+        .toList();
     return result;
   }
 
@@ -4478,7 +4563,7 @@ class SourceFileEdit implements HasToJson {
           insertBeforeExisting: insertBeforeExisting);
 
   @override
-  String toString() => json.encode(toJson());
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
   bool operator ==(other) {

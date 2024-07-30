@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -12,8 +14,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
-import 'package:server_plugin/edit/fix/dart_fix_context.dart';
-import 'package:server_plugin/edit/fix/fix.dart';
 
 class CiderErrorFixes {
   final AnalysisError error;
@@ -86,7 +86,7 @@ class _CiderDartFixContextImpl extends DartFixContext {
     var result = <LibraryElement, Element>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
     for (var file in files) {
-      final kind = file.kind;
+      var kind = file.kind;
       if (kind is LibraryFileKind) {
         var libraryElement = await _fileResolver.getLibraryByUri2(
           uriStr: file.uriStr,

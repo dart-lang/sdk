@@ -44,14 +44,15 @@ class EmptyStatements extends LintRule {
   static const LintCode code = LintCode(
       'empty_statements', 'Unnecessary empty statement.',
       correctionMessage:
-          'Try removing the empty statement or restructuring the code.');
+          'Try removing the empty statement or restructuring the code.',
+      hasPublishedDocs: true);
 
   EmptyStatements()
       : super(
             name: 'empty_statements',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

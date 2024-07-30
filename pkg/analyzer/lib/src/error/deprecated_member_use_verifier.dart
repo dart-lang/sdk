@@ -349,10 +349,9 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 
     message = message?.trim();
     if (message == null || message.isEmpty || message == '.') {
-      _errorReporter.atOffset(
-        offset: errorEntity.offset,
-        length: errorEntity.length,
-        errorCode: _isLibraryInWorkspacePackage(library)
+      _errorReporter.atEntity(
+        errorEntity,
+        _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
             : HintCode.DEPRECATED_MEMBER_USE,
         arguments: [displayName],
@@ -363,10 +362,9 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
           !message.endsWith('!')) {
         message = '$message.';
       }
-      _errorReporter.atOffset(
-        offset: errorEntity.offset,
-        length: errorEntity.length,
-        errorCode: _isLibraryInWorkspacePackage(library)
+      _errorReporter.atEntity(
+        errorEntity,
+        _isLibraryInWorkspacePackage(library)
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
             : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
         arguments: [displayName, message],

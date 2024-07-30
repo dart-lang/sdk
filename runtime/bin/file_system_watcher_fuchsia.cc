@@ -26,15 +26,13 @@ bool FileSystemWatcher::IsSupported() {
   return false;
 }
 
-void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
-}
+void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {}
 
 intptr_t FileSystemWatcher::Init() {
   return 0;
 }
 
-void FileSystemWatcher::Close(intptr_t id) {
-}
+void FileSystemWatcher::Close(intptr_t id) {}
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       Namespace* namespc,

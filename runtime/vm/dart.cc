@@ -920,6 +920,12 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
   Object::VerifyBuiltinVtables();
 
   auto IG = T->isolate_group();
+  {
+    SafepointReadRwLocker reader(T, IG->program_lock());
+    IG->set_shared_field_table(T, IG->shared_initial_field_table()->Clone(
+                                      /*for_isolate=*/nullptr,
+                                      /*for_isolate_group=*/IG));
+  }
   DEBUG_ONLY(IG->heap()->Verify("InitializeIsolate", kForbidMarked));
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1028,16 +1034,23 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
   if (Snapshot::IncludesCode(kind)) {
     VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
 
-    ADD_FLAG(tsan, kTargetUsesThreadSanitizer)
+    ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
+    ADD_FLAG(msan, FLAG_target_memory_sanitizer)
 
-    // Enabling assertions affects deopt ids.
-    ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
+      // Enabling assertions affects deopt ids.
+      //
+      // This flag is only used at compile time for AOT, so it's only relevant
+      // when running JIT snapshots. We can omit this flag for AOT snapshots so
+      // feature verification won't fail if --enable-snapshots isn't provided
+      // at runtime.
+      ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
       ADD_ISOLATE_GROUP_FLAG(use_field_guards, use_field_guards,
                              FLAG_use_field_guards);
       ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);
       ADD_ISOLATE_GROUP_FLAG(branch_coverage, branch_coverage,
                              FLAG_branch_coverage);
+      ADD_ISOLATE_GROUP_FLAG(coverage, coverage, FLAG_coverage);
     }
 
     // Generated code must match the host architecture and ABI. We check the
@@ -1082,22 +1095,6 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #else
     buffer.AddString(" no-compressed-pointers");
 #endif
-  }
-
-  if (!Snapshot::IsAgnosticToNullSafety(kind)) {
-    if (isolate_group != nullptr) {
-      if (isolate_group->null_safety()) {
-        buffer.AddString(" null-safety");
-      } else {
-        buffer.AddString(" no-null-safety");
-      }
-    } else {
-      if (FLAG_sound_null_safety) {
-        buffer.AddString(" null-safety");
-      } else {
-        buffer.AddString(" no-null-safety");
-      }
-    }
   }
 
 #undef ADD_ISOLATE_FLAG

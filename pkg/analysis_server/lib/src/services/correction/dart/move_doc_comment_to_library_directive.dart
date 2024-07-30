@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -14,8 +14,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
+  MoveDocCommentToLibraryDirective({required super.context});
+
   @override
-  bool get canBeAppliedInBulk => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automaticallyButOncePerFile;
 
   @override
   FixKind get fixKind => DartFixKind.MOVE_DOC_COMMENT_TO_LIBRARY_DIRECTIVE;

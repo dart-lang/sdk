@@ -9,6 +9,7 @@ import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 import 'macro_target.dart';
 
+// Coverage-ignore(suite): Not run.
 MacroConfiguration computeMacroConfiguration({Uri? targetSdkSummary}) {
   // Force the SDK summary to "vm_platform_strong.dill".
   // TODO(54404): make this sufficiently correct for all use cases.
@@ -19,8 +20,13 @@ MacroConfiguration computeMacroConfiguration({Uri? targetSdkSummary}) {
       sdkSummary: _findSdkSummary(targetSdkSummary: targetSdkSummary));
 }
 
+// Coverage-ignore(suite): Not run.
 Uri _findSdkSummary({Uri? targetSdkSummary}) {
   if (targetSdkSummary?.path == 'virtual_platform_kernel.dill') {
+    return targetSdkSummary!;
+  }
+  // This makes it work in the incremental test suite.
+  if (targetSdkSummary?.path == '/vm_platform_strong.dill') {
     return targetSdkSummary!;
   }
 
@@ -28,7 +34,8 @@ Uri _findSdkSummary({Uri? targetSdkSummary}) {
   // dill from there. Failing that, try searching from the target dill.
   List<Directory> searchDirectories = [
     new File(Platform.resolvedExecutable).parent,
-    if (targetSdkSummary != null) new File.fromUri(targetSdkSummary).parent,
+    if (targetSdkSummary != null && targetSdkSummary.isScheme("file"))
+      new File.fromUri(targetSdkSummary).parent,
   ];
 
   for (Directory searchDirectory in searchDirectories) {
@@ -50,6 +57,7 @@ Uri _findSdkSummary({Uri? targetSdkSummary}) {
   throw new StateError('Unable to find platform dill to build macros.');
 }
 
+// Coverage-ignore(suite): Not run.
 // Looks for a directory `dart-sdk` in or above [directory].
 Directory? _findSdkDirectoryAbove(Directory directory) {
   while (directory.parent.path != directory.path) {
@@ -61,6 +69,7 @@ Directory? _findSdkDirectoryAbove(Directory directory) {
   return null;
 }
 
+// Coverage-ignore(suite): Not run.
 // Returns the `vm_platform_strong.dill` file under [sdkDirectory] if it
 // exists, or `null` if not.
 File? _findPlatformDillUnder(Directory sdkDirectory) {

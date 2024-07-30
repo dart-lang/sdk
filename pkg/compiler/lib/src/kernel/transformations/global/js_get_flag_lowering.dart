@@ -51,28 +51,18 @@ class JsGetFlagLowering {
       ..fileOffset = node.fileOffset;
   }
 
-  bool? _getFlagValue(String flagName) {
-    switch (flagName) {
-      case 'DEV_COMPILER':
-        return false;
-      case 'MINIFIED':
-        return _options.enableMinification;
-      case 'MUST_RETAIN_METADATA':
-        return false;
-      case 'USE_CONTENT_SECURITY_POLICY':
-        return _options.features.useContentSecurityPolicy.isEnabled;
-      case 'VARIANCE':
-        return _options.enableVariance;
-      case 'LEGACY':
-        return _options.useLegacySubtyping;
-      case 'EXTRA_NULL_SAFETY_CHECKS':
-        return _options.experimentNullSafetyChecks;
-      case 'PRINT_LEGACY_STARS':
-        return _options.printLegacyStars;
-      default:
-        return null;
-    }
-  }
+  bool? _getFlagValue(String flagName) => switch (flagName) {
+        'DEV_COMPILER' => false,
+        'MINIFIED' => _options.enableMinification,
+        'MUST_RETAIN_METADATA' => false,
+        'USE_CONTENT_SECURITY_POLICY' =>
+          _options.features.useContentSecurityPolicy.isEnabled,
+        'VARIANCE' => _options.enableVariance,
+        'LEGACY' => _options.useLegacySubtyping,
+        'EXTRA_NULL_SAFETY_CHECKS' => _options.experimentNullSafetyChecks,
+        'PRINT_LEGACY_STARS' => _options.printLegacyStars,
+        _ => null,
+      };
 
   Never _unsupportedFlag(Object? flag) =>
       throw UnsupportedError('Unexpected JS_GET_FLAG argument: $flag');

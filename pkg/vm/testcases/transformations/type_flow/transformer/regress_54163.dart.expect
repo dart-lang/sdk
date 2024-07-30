@@ -15,6 +15,7 @@ class B extends core::Object implements self::A<core::int> {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method setRange([@vm.inferred-arg-type.metadata=!] covariant-by-class self::A<core::int> other) → void {}
 }
@@ -23,13 +24,17 @@ class C extends core::Object implements self::A<core::double> {
     : super core::Object::•()
     ;
 
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method setRange([@vm.inferred-arg-type.metadata=#lib::C (skip check)] covariant-by-class self::A<core::double> other) → void {}
 }
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method foo<T extends core::Object? = dynamic>([@vm.inferred-arg-type.metadata=!] self::A<self::foo::T%> a1, [@vm.inferred-arg-type.metadata=!] self::A<self::foo::T%> a2) → void {
   [@vm.call-site-attributes.metadata=receiverType:#lib::A<#lib::foo.T%>] a1.{self::A::setRange}(a2){(self::A<self::foo::T%>) → void};
 }
 
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main() → void {
   self::foo<core::int>(new self::B::•(), new self::B::•());

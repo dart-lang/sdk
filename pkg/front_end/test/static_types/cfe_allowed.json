@@ -19,7 +19,7 @@
     "Dynamic access of 'start'.": 1,
     "Dynamic access of 'boolValue'.": 2
   },
-  "pkg/front_end/lib/src/fasta/dill/dill_member_builder.dart": {
+  "pkg/front_end/lib/src/dill/dill_member_builder.dart": {
     "Dynamic access of 'fileUri'.": 1
   }
 }

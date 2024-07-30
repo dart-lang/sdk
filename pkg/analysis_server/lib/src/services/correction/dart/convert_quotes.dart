@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -16,11 +16,11 @@ class ConvertQuotes extends _ConvertQuotes {
   @override
   late bool _fromDouble;
 
-  @override
-  bool get canBeAppliedInBulk => true;
+  ConvertQuotes({required super.context});
 
   @override
-  bool get canBeAppliedToFile => true;
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_QUOTES;
@@ -30,7 +30,7 @@ class ConvertQuotes extends _ConvertQuotes {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleStringLiteral) {
       _fromDouble = !node.isSingleQuoted;
       await _simpleStringLiteral(builder, node);
@@ -60,14 +60,14 @@ class ConvertQuotes extends _ConvertQuotes {
 }
 
 class ConvertToDoubleQuotes extends _ConvertQuotes {
+  ConvertToDoubleQuotes({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
@@ -80,14 +80,14 @@ class ConvertToDoubleQuotes extends _ConvertQuotes {
 }
 
 class ConvertToSingleQuotes extends _ConvertQuotes {
+  ConvertToSingleQuotes({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
-
-  @override
-  bool get canBeAppliedInBulk => true;
-
-  @override
-  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;
@@ -100,13 +100,15 @@ class ConvertToSingleQuotes extends _ConvertQuotes {
 }
 
 abstract class _ConvertQuotes extends ResolvedCorrectionProducer {
+  _ConvertQuotes({required super.context});
+
   /// Return `true` if this producer is converting from double quotes to single
   /// quotes, or `false` if it's converting from single quotes to double quotes.
   bool get _fromDouble;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleStringLiteral) {
       await _simpleStringLiteral(builder, node);
     } else if (node is StringInterpolation) {

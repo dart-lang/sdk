@@ -286,6 +286,10 @@ ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
 ExperimentDisabled/example: Fail
 ExperimentDisabledInvalidLanguageVersion/example: Fail
+ExperimentExpiredDisabled/analyzerCode: Fail
+ExperimentExpiredDisabled/example: Fail
+ExperimentExpiredEnabled/analyzerCode: Fail
+ExperimentExpiredEnabled/example: Fail
 ExperimentNotEnabled/example: Fail
 ExperimentNotEnabledNoFlag/example: Fail
 ExperimentNotEnabledNoFlagInvalidLanguageVersion/example: Fail
@@ -304,8 +308,6 @@ ExplicitExtensionTypeArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionTypeArgumentMismatch/example: Fail
 ExportAfterPart/part_wrapped_script1: Fail
 ExportAfterPart/script1: Fail
-ExportOptOutFromOptIn/analyzerCode: Fail
-ExportOptOutFromOptIn/part_wrapped_script: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
 ExtendingEnum/example: Fail
@@ -321,6 +323,8 @@ ExtendsNever/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsNever/example: Fail # Feature not yet enabled by default.
 ExtendsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsVoid/example: Fail # Feature not yet enabled by default.
+ExtensionAugmentationHasOnClause/part_wrapped_script: Fail
+ExtensionAugmentationHasOnClause/script: Fail
 ExtensionInNullAwareReceiver/analyzerCode: Fail
 ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
 ExtensionTypeImplementsDeferred/part_wrapped_script: Fail # Uses imports
@@ -380,6 +384,8 @@ FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
 FfiAbiSpecificIntegerInvalid/analyzerCode: Fail
 FfiAbiSpecificIntegerMappingInvalid/analyzerCode: Fail
+FfiAddressPosition/analyzerCode: Fail
+FfiAddressReceiver/analyzerCode: Fail
 FfiCompoundImplementsFinalizable/analyzerCode: Fail
 FfiCreateOfStructOrUnion/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
@@ -558,18 +564,11 @@ InvalidExtensionTypeSuperExtensionType/analyzerCode: Fail
 InvalidExtensionTypeSuperInterface/analyzerCode: Fail
 InvalidGetterSetterType/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedField/analyzerCode: Fail
-InvalidGetterSetterTypeBothInheritedFieldLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedGetter/analyzerCode: Fail
-InvalidGetterSetterTypeBothInheritedGetterLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeFieldInherited/analyzerCode: Fail
-InvalidGetterSetterTypeFieldInheritedLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeGetterInherited/analyzerCode: Fail
-InvalidGetterSetterTypeGetterInheritedLegacy/analyzerCode: Fail
-InvalidGetterSetterTypeLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeSetterInheritedField/analyzerCode: Fail
-InvalidGetterSetterTypeSetterInheritedFieldLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeSetterInheritedGetter/analyzerCode: Fail
-InvalidGetterSetterTypeSetterInheritedGetterLegacy/analyzerCode: Fail
 InvalidInitializer/example: Fail
 InvalidMacroApplicationTarget/analyzerCode: Fail
 InvalidMacroApplicationTarget/example: Fail
@@ -639,6 +638,8 @@ JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: Fail # Web co
 JsInteropExternalExtensionMemberWithStaticDisallowed/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
+JsInteropFunctionToJSNamedParameters/analyzerCode: Fail # Web compiler specific
+JsInteropFunctionToJSNamedParameters/example: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/example: Fail # Web compiler specific
 JsInteropFunctionToJSTypeParameters/analyzerCode: Fail # Web compiler specific
@@ -675,8 +676,6 @@ JsInteropStaticInteropExternalAccessorTypeViolation/analyzerCode: Fail # Web com
 JsInteropStaticInteropExternalAccessorTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalFunctionTypeViolation/example: Fail # Web compiler specific
-JsInteropStaticInteropToJSFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropToJSFunctionTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
@@ -695,6 +694,8 @@ JsInteropStaticInteropSyntheticConstructor/analyzerCode: Fail # Web compiler spe
 JsInteropStaticInteropSyntheticConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropTearOffsDisallowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTearOffsDisallowed/example: Fail # Web compiler specific
+JsInteropStaticInteropToJSFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropToJSFunctionTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
@@ -710,6 +711,8 @@ LanguageVersionMismatchInPatch/analyzerCode: Fail
 LanguageVersionMismatchInPatch/example: Fail
 LanguageVersionTooHigh/analyzerCode: Fail
 LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LanguageVersionTooLow/analyzerCode: Fail
+LanguageVersionTooLow/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
 LateDefinitelyAssignedError/analyzerCode: Fail
 LateDefinitelyUnassignedError/analyzerCode: Fail
 LibraryDirectiveNotFirst/part_wrapped_script1: Fail # Defining library name in the (now) part.
@@ -845,11 +848,6 @@ NotAnLvalue/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
 NullAwareCascadeOutOfOrder/example: Fail
-NullSafetyDisabledInvalidLanguageVersion/example: Fail
-NullSafetyOptOutExplicit/analyzerCode: Fail
-NullSafetyOptOutExplicit/example: Fail
-NullSafetyOptOutImplicit/analyzerCode: Fail
-NullSafetyOptOutImplicit/example: Fail
 NullableExpressionCallError/analyzerCode: Fail
 NullableExpressionCallError/example: Fail
 NullableExpressionCallWarning/analyzerCode: Fail
@@ -996,10 +994,6 @@ SpreadMapEntryTypeMismatch/analyzerCode: Fail # There's no analyzer code for tha
 SpreadTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
 StackOverflow/example: Fail
 StaticTearOffFromInstantiatedClass/analyzerCode: Fail
-StrongModeNNBDButOptOut/analyzerCode: Fail
-StrongModeNNBDButOptOut/example: Fail
-StrongModeNNBDPackageOptOut/analyzerCode: Fail
-StrongModeNNBDPackageOptOut/example: Fail
 StrongWithWeakDillLibrary/analyzerCode: Fail
 StrongWithWeakDillLibrary/example: Fail
 StrongWithWeakDillLibrary/spelling: Fail
@@ -1123,6 +1117,8 @@ VarAsTypeName/part_wrapped_script1: Fail
 VarAsTypeName/script1: Fail # Too many problems
 VariableCouldBeNullDueToWrite/analyzerCode: Fail
 VariableCouldBeNullDueToWrite/example: Fail
+WasmImportOrExportInUserCode/analyzerCode: Fail
+WasmImportOrExportInUserCode/example: Fail
 WeakReferenceMismatchReturnAndArgumentTypes/analyzerCode: Fail
 WeakReferenceMismatchReturnAndArgumentTypes/example: Fail
 WeakReferenceNotOneArgument/analyzerCode: Fail
@@ -1141,3 +1137,9 @@ WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail
 WebLiteralCannotBeRepresentedExactly/example: Fail
 YieldAsIdentifier/example: Fail
 YieldNotGenerator/example: Fail
+
+# Messages only reported for legacy libraries
+# TODO(johnniwinther): Remove these.
+ExternalField/example: Fail
+UnexpectedModifierInNonNnbd/example: Fail
+SwitchExpressionNotAssignable/example: Fail

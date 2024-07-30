@@ -35,7 +35,7 @@ In order to submit a patch from a local workspace, you need to install the Chrom
 
 ## Getting the code
 
-To work with the Dart code, you need to download and build the development branch. Active development of Dart takes place on the `main` branch, from which we push "green" versions that have passed all tests to `dev` branch. Complete instructions are found at [Getting The Source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source). **You must use the `gclient` tool (`fetch`), using `git clone` will not get you a functional environment!**
+To work with the Dart code, you need to download and build the development branch. Active development of Dart takes place on the `main` branch, from which we push "green" versions that have passed all tests to `dev` branch. Complete instructions are found at [Getting The Source](docs/Building.md#getting-the-source). **You must use the `gclient` tool (`fetch`), using `git clone` will not get you a functional environment!**
 
 ## Starting a patch with git
 

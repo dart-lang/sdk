@@ -27,11 +27,9 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry, RecordPatternField;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide RecordType;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:test/test.dart';
 
 import 'mini_ir.dart';
@@ -365,7 +363,8 @@ Pattern objectPattern({
   required List<RecordPatternField> fields,
 }) {
   var parsedType = Type(requiredType);
-  if (parsedType is! PrimaryType) {
+  if (parsedType is! PrimaryType ||
+      parsedType.nullabilitySuffix != NullabilitySuffix.none) {
     fail('Expected a primary type, got $parsedType');
   }
   return ObjectPattern._(
@@ -812,19 +811,20 @@ class CastPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeCastPattern(
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
+    var analysisResult = h.typeAnalyzer.analyzeCastPattern(
       context: context,
       pattern: this,
       innerPattern: inner,
       requiredType: type,
     );
+    var matchedType = analysisResult.matchedValueType;
     h.irBuilder.atom(type.type, Kind.type, location: location);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
         'castPattern', [Kind.pattern, Kind.type, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
+    return analysisResult;
   }
 
   @override
@@ -1005,7 +1005,7 @@ class CheckPromoted extends Expression {
   ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
     var promotedType = promotable._getPromotedType(h);
     expect(promotedType?.type, expectedTypeStr, reason: 'at $location');
-    return SimpleTypeAnalysisResult(type: Type('Null'));
+    return SimpleTypeAnalysisResult(type: NullType.instance);
   }
 }
 
@@ -1024,7 +1024,7 @@ class CheckReachable extends Expression {
   ExpressionTypeAnalysisResult<Type> visit(Harness h, TypeSchema schema) {
     expect(h.flow.isReachable, expectedReachable, reason: 'at $location');
     h.irBuilder.atom('null', Kind.expression, location: location);
-    return new SimpleTypeAnalysisResult(type: Type('Null'));
+    return new SimpleTypeAnalysisResult(type: NullType.instance);
   }
 }
 
@@ -1159,12 +1159,14 @@ class ConstantPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeConstantPattern(context, this, constant);
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
+    var analysisResult =
+        h.typeAnalyzer.analyzeConstantPattern(context, this, constant);
+    var matchedType = analysisResult.matchedValueType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('const', [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
+    return analysisResult;
   }
 
   @override
@@ -1789,7 +1791,7 @@ class Harness {
         return _members['Object.$memberName']!;
       default:
         // It's legal to look up any member on the type `dynamic`.
-        if (type.type == 'dynamic') {
+        if (type is DynamicType) {
           return null;
         }
         // But an attempt to look up an unknown member on any other type
@@ -1815,7 +1817,8 @@ class Harness {
     var member = getMember(matchedValueType, operator);
     if (member == null) return null;
     var memberType = member._type;
-    if (memberType is! FunctionType) {
+    if (memberType is! FunctionType ||
+        memberType.nullabilitySuffix != NullabilitySuffix.none) {
       fail('$matchedValueType.operator$operator has type $memberType; '
           'must be a function type');
     }
@@ -2289,10 +2292,10 @@ class ListPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var listPatternResult = h.typeAnalyzer.analyzeListPattern(context, this,
         elementType: elementType, elements: elements);
+    var matchedType = listPatternResult.matchedValueType;
     var requiredType = listPatternResult.requiredType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -2302,6 +2305,7 @@ class ListPattern extends Pattern {
         Kind.pattern,
         names: ['matchedType', 'requiredType'],
         location: location);
+    return listPatternResult;
   }
 
   @override
@@ -2395,13 +2399,15 @@ class LogicalAndPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeLogicalAndPattern(context, this, lhs, rhs);
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
+    var analysisResult =
+        h.typeAnalyzer.analyzeLogicalAndPattern(context, this, lhs, rhs);
+    var matchedType = analysisResult.matchedValueType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('logicalAndPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
+    return analysisResult;
   }
 
   @override
@@ -2434,13 +2440,15 @@ class LogicalOrPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeLogicalOrPattern(context, this, lhs, rhs);
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
+    var analysisResult =
+        h.typeAnalyzer.analyzeLogicalOrPattern(context, this, lhs, rhs);
+    var matchedType = analysisResult.matchedValueType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('logicalOrPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
+    return analysisResult;
   }
 
   @override
@@ -2559,10 +2567,10 @@ class MapPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var mapPatternResult = h.typeAnalyzer.analyzeMapPattern(context, this,
         typeArguments: typeArguments, elements: elements);
+    var matchedType = mapPatternResult.matchedValueType;
     var requiredType = mapPatternResult.requiredType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -2577,6 +2585,7 @@ class MapPattern extends Pattern {
       names: ['matchedType', 'requiredType'],
       location: location,
     );
+    return mapPatternResult;
   }
 
   @override
@@ -2611,7 +2620,9 @@ class MapPatternEntry extends Node implements MapPatternElement {
 }
 
 class MiniAstOperations
-    implements TypeAnalyzerOperations<Var, Type, TypeSchema> {
+    implements
+        TypeAnalyzerOperations<Var, Type, TypeSchema, PromotedTypeVariableType,
+            Type, String> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
     '(int, int?)': false,
@@ -2630,9 +2641,9 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreGlbs = {
-    '?, int': Type('int'),
-    '(int,), ?': Type('(int,)'),
-    '(num,), ?': Type('(num,)'),
+    '_, int': Type('int'),
+    '(int,), _': Type('(int,)'),
+    '(num,), _': Type('(num,)'),
     'Object?, double': Type('double'),
     'Object?, int': Type('int'),
     'double, int': Type('Never'),
@@ -2647,9 +2658,9 @@ class MiniAstOperations
     'int, num': Type('num'),
     'Null, int': Type('int?'),
     'Null, Object': Type('Object?'),
-    '?, int': Type('int'),
-    '?, List<_>': Type('List<_>'),
-    '?, Null': Type('Null'),
+    'int, _': Type('int'),
+    'List<_>, _': Type('List<_>'),
+    'Null, _': Type('Null'),
   };
 
   static final Map<String, Type> _coreDownwardInferenceResults = {
@@ -2681,15 +2692,6 @@ class MiniAstOperations
     'List<int>': Type('List<int>'),
   };
 
-  static final Map<String, bool> _coreAreStructurallyEqualResults = {
-    'Object == FutureOr<Object>': false,
-    'double == num': false,
-    'int == Object': false,
-    'int == num': false,
-    'num == int': false,
-    'List<int> == int': false,
-  };
-
   @override
   late final Type objectQuestionType = Type('Object?');
 
@@ -2703,16 +2705,7 @@ class MiniAstOperations
   late final Type intType = Type('int');
 
   @override
-  late final Type neverType = Type('Never');
-
-  @override
-  late final Type nullType = Type('Null');
-
-  @override
   late final Type doubleType = Type('double');
-
-  @override
-  late final Type dynamicType = Type('dynamic');
 
   bool? _legacy;
 
@@ -2731,22 +2724,28 @@ class MiniAstOperations
 
   Map<String, Type> _normalizeResults = Map.of(_coreNormalizeResults);
 
-  Map<String, bool> _areStructurallyEqualResults =
-      Map.of(_coreAreStructurallyEqualResults);
-
   final TypeSystem _typeSystem = TypeSystem();
 
   @override
   final Type boolType = Type('bool');
 
   @override
-  Type get errorType => Type('error');
+  Type get dynamicType => DynamicType.instance;
+
+  @override
+  Type get errorType => InvalidType.instance;
 
   bool get legacy => _legacy ?? false;
 
   set legacy(bool value) {
     _legacy = value;
   }
+
+  @override
+  Type get neverType => NeverType.instance;
+
+  @override
+  Type get nullType => NullType.instance;
 
   /// Updates the harness with a new result for [downwardInfer].
   void addDownwardInfer({
@@ -2788,32 +2787,10 @@ class MiniAstOperations
   }
 
   @override
-  bool areStructurallyEqual(Type type1, Type type2) {
-    if ('$type1' == '$type2') {
-      return true;
-    }
-    var query = '$type1 == $type2';
-    return _areStructurallyEqualResults[query] ?? fail('Unknown query: $query');
-  }
-
-  @override
-  shared.RecordType<Type>? asRecordType(Type type) {
-    if (type is RecordType) {
-      return shared.RecordType<Type>(
-        positional: type.positional,
-        named: type.named.entries.map((entry) {
-          return (name: entry.key, type: entry.value);
-        }).toList(),
-      );
-    }
-    return null;
-  }
-
-  @override
   TypeClassification classifyType(Type type) {
     if (isSubtypeOf(type, Type('Object'))) {
       return TypeClassification.nonNullable;
-    } else if (isSubtypeOf(type, Type('Null'))) {
+    } else if (isSubtypeOf(type, NullType.instance)) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -2840,17 +2817,8 @@ class MiniAstOperations
   }
 
   @override
-  String getDisplayString(Type type) => type.type;
-
-  @override
-  NullabilitySuffix getNullabilitySuffix(Type type) {
-    if (type is QuestionType) {
-      return NullabilitySuffix.question;
-    } else if (type is StarType) {
-      return NullabilitySuffix.star;
-    } else {
-      return NullabilitySuffix.none;
-    }
+  Type futureType(Type argumentType) {
+    return PrimaryType('Future', args: [argumentType]);
   }
 
   @override
@@ -2862,6 +2830,13 @@ class MiniAstOperations
     } else {
       return null;
     }
+  }
+
+  @override
+  Variance getTypeParameterVariance(
+      String typeDeclaration, int parameterIndex) {
+    // TODO(cstefantsova): Support variance of type parameters in Mini AST.
+    return Variance.covariant;
   }
 
   @override
@@ -2894,34 +2869,18 @@ class MiniAstOperations
   @override
   bool isAssignableTo(Type fromType, Type toType) {
     if (legacy && isSubtypeOf(toType, fromType)) return true;
-    if (fromType.type == 'dynamic') return true;
-    if (fromType.type == 'error') return true;
+    if (fromType is DynamicType) return true;
+    if (fromType is InvalidType) return true;
     return isSubtypeOf(fromType, toType);
   }
 
   @override
-  bool isDynamic(Type type) =>
-      type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
-
-  @override
-  bool isFunctionType(Type type) {
-    return withNullabilitySuffix(type, NullabilitySuffix.none) is FunctionType;
+  bool isDartCoreFunction(Type type) {
+    return type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Function' &&
+        type.args.isEmpty;
   }
-
-  @override
-  Type? matchFutureOr(Type type) {
-    Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
-    if (underlyingType is PrimaryType && underlyingType.args.length == 1) {
-      if (underlyingType.name == 'FutureOr') {
-        return underlyingType.args[0];
-      }
-    }
-    return null;
-  }
-
-  @override
-  bool isError(Type type) =>
-      type is PrimaryType && type.name == 'error' && type.args.isEmpty;
 
   @override
   bool isExtensionType(Type type) {
@@ -2931,27 +2890,28 @@ class MiniAstOperations
   }
 
   @override
-  bool isInterfaceType(Type type) {
-    Type underlyingType = withNullabilitySuffix(type, NullabilitySuffix.none);
-    return underlyingType is PrimaryType && underlyingType.isInterfaceType;
-  }
+  bool isFunctionType(Type type) => type is FunctionType;
 
   @override
-  bool isNever(Type type) {
-    return type.type == 'Never';
-  }
+  bool isInterfaceType(Type type) =>
+      type is PrimaryType && type.isInterfaceType;
+
+  @override
+  bool isNever(Type type) =>
+      type is NeverType && type.nullabilitySuffix == NullabilitySuffix.none;
 
   @override
   bool isNonNullable(TypeSchema typeSchema) {
     Type type = typeSchema.toType();
-    if (isDynamic(type) ||
-        isUnknownType(typeSchema) ||
-        isVoid(type) ||
-        isNull(type)) {
+    if (type is DynamicType ||
+        typeSchema is SharedUnknownType ||
+        type is VoidType ||
+        type is NullType) {
       return false;
-    } else if (type is PromotedTypeVariableType) {
+    } else if (type is PromotedTypeVariableType &&
+        type.nullabilitySuffix == NullabilitySuffix.none) {
       return isNonNullable(typeToSchema(type.promotion));
-    } else if (type is QuestionType) {
+    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     } else if (matchFutureOr(type) case Type typeArgument?) {
       return isNonNullable(typeToSchema(typeArgument));
@@ -2959,17 +2919,18 @@ class MiniAstOperations
     // TODO(cstefantsova): Update to a fast-pass implementation when the
     // mini-ast testing framework supports looking up superinterfaces of
     // extension types or looking up bounds of type parameters.
-    return _typeSystem.isSubtype(new Type('Null'), type);
+    return _typeSystem.isSubtype(NullType.instance, type);
   }
 
   @override
-  bool isNull(Type type) {
-    return type.type == 'Null';
-  }
+  bool isNull(Type type) => type is NullType;
 
   @override
   bool isObject(Type type) {
-    return type is PrimaryType && type.name == 'Object' && type.args.isEmpty;
+    return type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Object' &&
+        type.args.isEmpty;
   }
 
   @override
@@ -2977,14 +2938,7 @@ class MiniAstOperations
       property.isPromotable;
 
   @override
-  bool isRecordType(Type type) {
-    return withNullabilitySuffix(type, NullabilitySuffix.none) is RecordType;
-  }
-
-  @override
-  bool isSameType(Type type1, Type type2) {
-    return type1.type == type2.type;
-  }
+  bool isRecordType(Type type) => type is RecordType;
 
   @override
   bool isSubtypeOf(Type leftType, Type rightType) {
@@ -2992,7 +2946,9 @@ class MiniAstOperations
   }
 
   @override
-  bool isTypeParameterType(Type type) => type is PromotedTypeVariableType;
+  bool isTypeParameterType(Type type) =>
+      type is PromotedTypeVariableType &&
+      type.nullabilitySuffix == NullabilitySuffix.none;
 
   @override
   bool isTypeSchemaSatisfied(
@@ -3000,16 +2956,9 @@ class MiniAstOperations
       isSubtypeOf(type, typeSchema.toType());
 
   @override
-  bool isUnknownType(TypeSchema type) => type.toType() is UnknownType;
-
-  @override
   bool isVariableFinal(Var node) {
     return node.isFinal;
   }
-
-  @override
-  bool isVoid(Type type) =>
-      type is PrimaryType && type.name == 'void' && type.args.isEmpty;
 
   @override
   TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema) {
@@ -3027,23 +2976,23 @@ class MiniAstOperations
 
   @override
   Type lub(Type type1, Type type2) {
-    if (isSameType(type1, type2)) {
+    if (type1 == type2) {
       return type1;
-    } else if (isSameType(promoteToNonNull(type1), type2)) {
+    } else if (promoteToNonNull(type1) == type2) {
       return type1;
-    } else if (isSameType(promoteToNonNull(type2), type1)) {
+    } else if (promoteToNonNull(type2) == type1) {
       return type2;
-    } else if (type1.type == 'Null' &&
-        !isSameType(promoteToNonNull(type2), type2)) {
+    } else if (type1 is NullType && promoteToNonNull(type2) != type2) {
       // type2 is already nullable
       return type2;
-    } else if (type2.type == 'Null' &&
-        !isSameType(promoteToNonNull(type1), type1)) {
+    } else if (type2 is NullType && promoteToNonNull(type1) != type1) {
       // type1 is already nullable
       return type1;
-    } else if (type1.type == 'Never') {
+    } else if (type1 is NeverType &&
+        type1.nullabilitySuffix == NullabilitySuffix.none) {
       return type2;
-    } else if (type2.type == 'Never') {
+    } else if (type2 is NeverType &&
+        type2.nullabilitySuffix == NullabilitySuffix.none) {
       return type1;
     } else {
       var typeNames = [type1.type, type2.type];
@@ -3054,11 +3003,11 @@ class MiniAstOperations
   }
 
   @override
-  Type makeNullable(Type type) => lub(type, Type('Null'));
+  Type makeNullable(Type type) => lub(type, NullType.instance);
 
   @override
   TypeSchema makeTypeSchemaNullable(TypeSchema typeSchema) =>
-      TypeSchema.fromType(lub(typeSchema.toType(), Type('Null')));
+      TypeSchema.fromType(lub(typeSchema.toType(), NullType.instance));
 
   @override
   Type mapType({
@@ -3077,8 +3026,24 @@ class MiniAstOperations
   }
 
   @override
+  Type? matchFutureOr(Type type) {
+    if (type is FutureOrType) {
+      return type.typeArgument;
+    }
+    return null;
+  }
+
+  @override
+  PromotedTypeVariableType? matchInferableParameter(Type type) {
+    // TODO(cstefantsova): Add support for type parameter objects in Mini AST.
+    return null;
+  }
+
+  @override
   Type? matchIterableType(Type type) {
-    if (type is PrimaryType && type.args.length == 1) {
+    if (type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.args.length == 1) {
       if (type.name == 'Iterable' || type.name == 'List') {
         return type.args[0];
       }
@@ -3095,7 +3060,10 @@ class MiniAstOperations
 
   @override
   Type? matchListType(Type type) {
-    if (type is PrimaryType && type.name == 'List' && type.args.length == 1) {
+    if (type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'List' &&
+        type.args.length == 1) {
       return type.args[0];
     }
     return null;
@@ -3103,7 +3071,10 @@ class MiniAstOperations
 
   @override
   ({Type keyType, Type valueType})? matchMapType(Type type) {
-    if (type is PrimaryType && type.name == 'Map' && type.args.length == 2) {
+    if (type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Map' &&
+        type.args.length == 2) {
       return (
         keyType: type.args[0],
         valueType: type.args[1],
@@ -3114,12 +3085,34 @@ class MiniAstOperations
 
   @override
   Type? matchStreamType(Type type) {
-    if (type is PrimaryType && type.args.length == 1) {
+    if (type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.args.length == 1) {
       if (type.name == 'Stream') {
         return type.args[0];
       }
     }
     return null;
+  }
+
+  @override
+  TypeDeclarationMatchResult? matchTypeDeclarationType(Type type) {
+    if (type is! PrimaryType) return null;
+    if (type.isInterfaceType) {
+      return new TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+          typeDeclaration: type.type,
+          typeDeclarationType: type,
+          typeArguments: type.args);
+    } else if (isExtensionType(type)) {
+      return new TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+          typeDeclaration: type.type,
+          typeDeclarationType: type,
+          typeArguments: type.args);
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -3130,10 +3123,10 @@ class MiniAstOperations
 
   @override
   Type promoteToNonNull(Type type) {
-    if (type is QuestionType) {
-      return type.innerType;
-    } else if (type.type == 'Null') {
-      return Type('Never');
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return type.withNullability(NullabilitySuffix.none);
+    } else if (type is NullType) {
+      return NeverType.instance;
     } else {
       return type;
     }
@@ -3143,8 +3136,10 @@ class MiniAstOperations
   RecordType recordType(
       {required List<Type> positional, required List<(String, Type)> named}) {
     return RecordType(
-      positional: positional,
-      named: {for (var (name, type) in named) name: type},
+      positionalTypes: positional,
+      namedTypes: [
+        for (var (name, type) in named) NamedType(name: name, type: type)
+      ],
     );
   }
 
@@ -3189,7 +3184,18 @@ class MiniAstOperations
   @override
   bool typeSchemaIsDynamic(TypeSchema typeSchema) {
     var type = typeSchema.toType();
-    return type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
+    return type is DynamicType;
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {
+    return isSubtypeOf(leftSchema.toType(), rightType);
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      TypeSchema leftSchema, TypeSchema rightSchema) {
+    return isSubtypeOf(leftSchema.toType(), rightSchema.toType());
   }
 
   @override
@@ -3210,45 +3216,8 @@ class MiniAstOperations
       property.whyNotPromotable;
 
   @override
-  bool typeSchemaIsSubtypeOfTypeSchema(
-      TypeSchema leftSchema, TypeSchema rightSchema) {
-    return isSubtypeOf(leftSchema.toType(), rightSchema.toType());
-  }
-
-  @override
-  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {
-    return isSubtypeOf(leftSchema.toType(), rightType);
-  }
-
-  @override
-  Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) {
-    switch (modifier) {
-      case NullabilitySuffix.none:
-        if (type is QuestionType) {
-          return type.innerType;
-        } else if (type is StarType) {
-          return type.innerType;
-        } else {
-          return type;
-        }
-      case NullabilitySuffix.question:
-        if (type is QuestionType) {
-          return type;
-        } else if (type is StarType) {
-          return QuestionType(type.innerType);
-        } else {
-          return QuestionType(type);
-        }
-      case NullabilitySuffix.star:
-        if (type is QuestionType) {
-          return StarType(type.innerType);
-        } else if (type is StarType) {
-          return type;
-        } else {
-          return StarType(type);
-        }
-    }
-  }
+  Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) =>
+      type.withNullability(modifier);
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -3353,7 +3322,7 @@ class NullAwareAccess extends Expression {
     var rhsType =
         h.typeAnalyzer.analyzeExpression(rhs, h.operations.unknownType);
     h.flow.nullAwareAccess_end();
-    var type = h.operations.lub(rhsType, Type('Null'));
+    var type = h.operations.lub(rhsType, NullType.instance);
     h.irBuilder.apply(
         _fakeMethodName, [Kind.expression, Kind.expression], Kind.expression,
         location: location);
@@ -3381,14 +3350,16 @@ class NullCheckOrAssertPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeNullCheckOrAssertPattern(context, this, inner,
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
+    var analysisResult = h.typeAnalyzer.analyzeNullCheckOrAssertPattern(
+        context, this, inner,
         isAssert: isAssert);
+    var matchedType = analysisResult.matchedValueType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(isAssert ? 'nullAssertPattern' : 'nullCheckPattern',
         [Kind.pattern, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
+    return analysisResult;
   }
 
   @override
@@ -3438,10 +3409,10 @@ class ObjectPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var objectPatternResult =
         h.typeAnalyzer.analyzeObjectPattern(context, this, fields: fields);
+    var matchedType = objectPatternResult.matchedValueType;
     var requiredType = objectPatternResult.requiredType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -3452,6 +3423,7 @@ class ObjectPattern extends Pattern {
       names: ['matchedType', 'requiredType'],
       location: location,
     );
+    return objectPatternResult;
   }
 
   @override
@@ -3498,8 +3470,8 @@ class ParenthesizedPattern extends Pattern {
       inner.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    inner.visit(h, context);
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
+    return inner.visit(h, context);
   }
 
   @override
@@ -3559,7 +3531,7 @@ abstract class Pattern extends Node
   @override
   String toString() => _debugString(needsKeywordOrType: true);
 
-  void visit(Harness h, SharedMatchContext context);
+  PatternResult<Type> visit(Harness h, SharedMatchContext context);
 
   GuardedPattern when(ProtoExpression? guard) {
     return GuardedPattern._(
@@ -4194,10 +4166,10 @@ class RecordPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     var recordPatternResult =
         h.typeAnalyzer.analyzeRecordPattern(context, this, fields: fields);
+    var matchedType = recordPatternResult.matchedValueType;
     var requiredType = recordPatternResult.requiredType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -4208,6 +4180,7 @@ class RecordPattern extends Pattern {
       names: ['matchedType', 'requiredType'],
       location: location,
     );
+    return recordPatternResult;
   }
 
   @override
@@ -4256,12 +4229,14 @@ class RelationalPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeRelationalPattern(context, this, operand);
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
+    var analysisResult =
+        h.typeAnalyzer.analyzeRelationalPattern(context, this, operand);
+    var matchedType = analysisResult.matchedValueType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(operator, [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
+    return analysisResult;
   }
 
   @override
@@ -4858,18 +4833,21 @@ class VariablePattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
     if (isAssignedVariable) {
-      h.typeAnalyzer.analyzeAssignedVariablePattern(context, this, variable);
+      var analysisResult = h.typeAnalyzer
+          .analyzeAssignedVariablePattern(context, this, variable);
       h.typeAnalyzer.handleAssignedVariablePattern(this);
+      return analysisResult;
     } else {
-      var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
       var declaredVariablePatternResult = h.typeAnalyzer
           .analyzeDeclaredVariablePattern(
               context, this, variable, variable.name, declaredType);
+      var matchedType = declaredVariablePatternResult.matchedValueType;
       var staticType = declaredVariablePatternResult.staticType;
       h.typeAnalyzer.handleDeclaredVariablePattern(this,
           matchedType: matchedType, staticType: staticType);
+      return declaredVariablePatternResult;
     }
   }
 
@@ -4969,13 +4947,13 @@ class WildcardPattern extends Pattern {
       {required bool isInAssignment}) {}
 
   @override
-  void visit(Harness h, SharedMatchContext context) {
-    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeWildcardPattern(
+  PatternResult<Type> visit(Harness h, SharedMatchContext context) {
+    var analysisResult = h.typeAnalyzer.analyzeWildcardPattern(
       context: context,
       node: this,
       declaredType: declaredType,
     );
+    var matchedType = analysisResult.matchedValueType;
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('wildcardPattern', [Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
@@ -4983,6 +4961,7 @@ class WildcardPattern extends Pattern {
     if (expectInferredType != null) {
       expect(matchedType.type, expectInferredType, reason: 'at $location');
     }
+    return analysisResult;
   }
 
   @override
@@ -5369,7 +5348,7 @@ class _MiniAstErrors
 class _MiniAstTypeAnalyzer
     with
         TypeAnalyzer<Node, Statement, Expression, Var, Type, Pattern, void,
-            TypeSchema> {
+            TypeSchema, PromotedTypeVariableType, Type, String> {
   final Harness _harness;
 
   @override
@@ -5380,8 +5359,6 @@ class _MiniAstTypeAnalyzer
   Statement? _currentContinueTarget;
 
   final _irBuilder = MiniIRBuilder();
-
-  late final Type nullType = Type('Null');
 
   @override
   final TypeAnalyzerOptions options;
@@ -5401,6 +5378,8 @@ class _MiniAstTypeAnalyzer
   @override
   FlowAnalysis<Node, Statement, Expression, Var, Type> get flow =>
       _harness.flow;
+
+  Type get nullType => NullType.instance;
 
   @override
   MiniAstOperations get operations => _harness.operations;
@@ -5560,7 +5539,8 @@ class _MiniAstTypeAnalyzer
       inputKinds.add(Kind.expression);
       analyzeExpression(
           arguments[i],
-          methodType is FunctionType
+          methodType is FunctionType &&
+                  methodType.nullabilitySuffix == NullabilitySuffix.none
               ? operations.typeToSchema(methodType.positionalParameters[i])
               : operations.unknownType);
     }
@@ -5716,7 +5696,8 @@ class _MiniAstTypeAnalyzer
       _irBuilder.guard(expression, () => expression.visit(_harness, schema));
 
   @override
-  void dispatchPattern(SharedMatchContext context, covariant Pattern node) {
+  PatternResult<Type> dispatchPattern(
+      SharedMatchContext context, covariant Pattern node) {
     return node.visit(_harness, context);
   }
 

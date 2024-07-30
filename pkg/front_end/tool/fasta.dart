@@ -4,8 +4,9 @@
 
 import 'dart:io';
 
-import "package:testing/src/run_tests.dart" as run_tests;
 import 'package:kernel/src/tool/dump.dart' as dump;
+import "package:testing/src/run_tests.dart" as run_tests;
+
 import '../test/utils/io_utils.dart' show computeRepoDir;
 import '_fasta/abcompile.dart' as abcompile;
 import '_fasta/compile.dart' as compile;

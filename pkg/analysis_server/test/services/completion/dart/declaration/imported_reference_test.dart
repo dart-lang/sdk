@@ -1821,12 +1821,6 @@ A0 S1;
 replacement
   left: 1
 suggestions
-  A0
-    kind: class
-  S2.B
-    kind: class
-  _B0
-    kind: class
   S2
     kind: library
 ''');
@@ -2313,12 +2307,6 @@ suggestions
     kind: constructor
   String.fromEnvironment
     kind: constructorInvocation
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  f0
-    kind: functionInvocation
 ''');
   }
 
@@ -3564,6 +3552,10 @@ suggestions
     kind: import
   dart:isolate
     kind: import
+  dart:js
+    kind: import
+  dart:js_interop
+    kind: import
   dart:math
     kind: import
   dart:typed_data
@@ -4210,14 +4202,14 @@ void f() {
 suggestions
   S0
     kind: localVariable
-  String
-    kind: class
   String.fromCharCode
     kind: constructorInvocation
   String.fromCharCodes
     kind: constructorInvocation
   String.fromEnvironment
     kind: constructorInvocation
+  String
+    kind: class
 ''');
   }
 
@@ -4288,10 +4280,14 @@ foo = {^
 suggestions
   C0
     kind: class
-  C0
-    kind: constructorInvocation
   C1
     kind: class
+  T0
+    kind: topLevelVariable
+  T1
+    kind: topLevelVariable
+  C0
+    kind: constructorInvocation
   C1
     kind: constructorInvocation
   D0
@@ -4302,10 +4298,6 @@ suggestions
     kind: functionInvocation
   F1
     kind: functionInvocation
-  T0
-    kind: topLevelVariable
-  T1
-    kind: topLevelVariable
 ''');
   }
 
@@ -5237,18 +5229,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s1
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0
@@ -5287,8 +5279,12 @@ suggestions
     kind: topLevelVariable
   X0
     kind: class
+  X0
+    kind: constructorInvocation
   Y0
     kind: class
+  Y0
+    kind: constructorInvocation
 ''');
   }
 
@@ -5810,18 +5806,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s0
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0

@@ -1,0 +1,135 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/null.dart:19:49: Error: The type 'Null' is not exhaustively matched by the switch cases since it doesn't match 'Null(hashCode: int())'.
+// Try adding a wildcard pattern or cases that match 'null'.
+// nonExhaustiveRestrictedField(Null n) => switch (n) {
+//                                                 ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/null.dart:28:45: Error: The type 'Object?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+//  - 'Object' is from 'dart:core'.
+// Try adding a wildcard pattern or cases that match 'null'.
+// nonExhaustiveNullable(Object? o) => switch (o) {
+//                                             ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/null.dart:32:55: Error: The type 'Object?' is not exhaustively matched by the switch cases since it doesn't match 'Object(hashCode: int())'.
+//  - 'Object' is from 'dart:core'.
+// Try adding a wildcard pattern or cases that match 'Object()'.
+// nonExhaustiveNullableRestricted(Object? o) => switch (o) {
+//                                                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Nullable = core::Object?;
+static method exhaustiveByValue(Null n) → dynamic
+  return block {
+    core::int #t1;
+    #L1:
+    switch(n) /* isExplicitlyExhaustive, Null */ {
+      #L2:
+      case #C1:
+        {
+          #t1 = 0;
+          break #L1;
+        }
+    }
+  } =>#t1;
+static method exhaustiveByType(Null n) → dynamic
+  return block {
+    core::int #t2;
+    final synthesized Null #0#0 = n;
+    #L3:
+    {
+      {
+        if(true) {
+          #t2 = 0;
+          break #L3;
+        }
+      }
+    }
+  } =>#t2;
+static method exhaustiveWithField(Null n) → dynamic
+  return block {
+    core::int #t3;
+    final synthesized Null #0#0 = n;
+    #L4:
+    {
+      {
+        hoisted core::int hashCode;
+        if(true) {
+          hashCode = #0#0.{core::Object::hashCode}{<object>}.{core::int};
+          #t3 = hashCode;
+          break #L4;
+        }
+      }
+    }
+  } =>#t3;
+static method nonExhaustiveRestrictedField(Null n) → dynamic
+  return block {
+    core::int #t4;
+    final synthesized Null #0#0 = n;
+    #L5:
+    {
+      {
+        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{<object>}.{core::int}) {
+          #t4 = 0;
+          break #L5;
+        }
+      }
+    }
+  } =>#t4;
+static method exhaustiveNullable(core::Object? o) → dynamic
+  return block {
+    core::int #t5;
+    final synthesized core::Object? #0#0 = o;
+    #L6:
+    {
+      {
+        if(#0#0 is core::Object) {
+          #t5 = 0;
+          break #L6;
+        }
+      }
+      {
+        if(true) {
+          #t5 = 1;
+          break #L6;
+        }
+      }
+    }
+  } =>#t5;
+static method nonExhaustiveNullable(core::Object? o) → dynamic
+  return block {
+    core::int #t6;
+    final synthesized core::Object? #0#0 = o;
+    #L7:
+    {
+      {
+        if(#0#0 is core::Object) {
+          #t6 = 1;
+          break #L7;
+        }
+      }
+    }
+  } =>#t6;
+static method nonExhaustiveNullableRestricted(core::Object? o) → dynamic
+  return block {
+    core::int #t7;
+    final synthesized core::Object? #0#0 = o;
+    #L8:
+    {
+      {
+        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{<object>}.{core::int}) {
+          #t7 = 1;
+          break #L8;
+        }
+      }
+    }
+  } =>#t7;
+
+constants  {
+  #C1 = null
+  #C2 = 5
+}

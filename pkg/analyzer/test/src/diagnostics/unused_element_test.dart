@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -373,6 +372,21 @@ class A {
 ''');
   }
 
+  test_constructor_notUsed_single_inSubclass() async {
+    await assertErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+
+class B extends A {
+  B() : super._constructor();
+  B._named() : super._constructor();
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 87, 6),
+    ]);
+  }
+
   test_enum_constructor_parameter_optionalNamed_isUsed() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -554,6 +568,22 @@ class A {
   int? get g => this._g;
 }
 ''');
+  }
+
+  test_function_underscore() async {
+    await assertErrorsInCode(r'''
+_(){}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 0, 1),
+    ]);
+  }
+
+  test_function_underscores() async {
+    await assertErrorsInCode(r'''
+__(){}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 0, 2),
+    ]);
   }
 
   test_functionLocal_isUsed_closure() async {
@@ -806,6 +836,80 @@ class A {
 }
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 16, 2),
+    ]);
+  }
+
+  test_localFunction_inFunction_wildcard() async {
+    await assertErrorsInCode(r'''
+m() {
+  _(){}
+}
+''', [
+      // Code is dead but not unused.
+      error(WarningCode.DEAD_CODE, 8, 5),
+    ]);
+  }
+
+  test_localFunction_inFunction_wildcard_preWildCards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+main() {
+  _(){}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 55, 1),
+    ]);
+  }
+
+  test_localFunction_inMethod_underscores() async {
+    await assertErrorsInCode(r'''
+class C {
+  m() {
+    __(){}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 22, 2),
+    ]);
+  }
+
+  test_localFunction_inMethod_wildcard() async {
+    await assertErrorsInCode(r'''
+class C {
+  m() {
+    _(){}
+  }
+}
+''', [
+      // Code is dead but not unused.
+      error(WarningCode.DEAD_CODE, 22, 5),
+    ]);
+  }
+
+  test_localFunction_inMethod_wildcard_preWildCards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class C {
+  m() {
+    _(){}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 66, 1),
+    ]);
+  }
+
+  test_localFunction_underscores() async {
+    await assertErrorsInCode(r'''
+main() {
+  __(){}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 11, 2),
     ]);
   }
 
@@ -1618,6 +1722,30 @@ f() => A()._m();
 ''', [
       error(WarningCode.UNUSED_ELEMENT_PARAMETER, 66, 1),
     ]);
+  }
+
+  test_optionalParameter_notUsed_overrideRequired() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A({
+    required this.a,
+    required this.b,
+  });
+  final String a;
+  final String b;
+}
+
+class _B extends A {
+  const _B({
+    required super.a,
+    super.b = 'b',
+  });
+}
+
+const foo = _B(
+  a: 'a',
+);
+''');
   }
 
   test_optionalParameter_notUsed_positional() async {

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid defining unused parameters in constructors.';
@@ -41,7 +42,7 @@ class AvoidUnusedConstructorParameters extends LintRule {
             name: 'avoid_unused_constructor_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -82,6 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.isAugmentation) return;
     if (node.redirectedConstructor != null) return;
     if (node.externalKeyword != null) return;
 

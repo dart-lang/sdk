@@ -65,9 +65,22 @@ abstract interface class MixinTypesBuilder implements TypeBuilder {
   void appendMixins(Iterable<TypeAnnotationCode> mixins);
 }
 
+/// The API used by macros in the type phase to add an extends clause to an
+/// existing type.
+abstract interface class ExtendsTypeBuilder implements TypeBuilder {
+  /// Sets the `extends` clause to [superclass].
+  ///
+  /// The type must not already have an `extends` clause.
+  void extendsType(NamedTypeAnnotationCode superclass);
+}
+
 /// The API used by macros in the type phase to augment classes.
 abstract interface class ClassTypeBuilder
-    implements TypeBuilder, InterfaceTypesBuilder, MixinTypesBuilder {}
+    implements
+        TypeBuilder,
+        ExtendsTypeBuilder,
+        InterfaceTypesBuilder,
+        MixinTypesBuilder {}
 
 /// The API used by macros in the type phase to augment enums.
 abstract interface class EnumTypeBuilder

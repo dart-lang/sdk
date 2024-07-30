@@ -114,6 +114,7 @@ placing
 pointer`s
 pragma
 pragma('vm:deeply
+pragmas
 preexisting
 pubspec.yaml
 r
@@ -143,9 +144,12 @@ tojs
 trusttypes
 type's
 type3.#name
+typeddata
 typeof
 u
 unavailable
 unsound
 v
+wasm:export
+wasm:import
 x

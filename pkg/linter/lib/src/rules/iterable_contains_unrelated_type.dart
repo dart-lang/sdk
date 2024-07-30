@@ -4,8 +4,8 @@
 
 import '../analyzer.dart';
 
-const _desc = r'Invocation of Iterable<E>.contains with references of unrelated'
-    r' types.';
+const _desc = r'Invocation of `Iterable<E>.contains` with references of'
+    r' unrelated types.';
 
 const _details = r'''
 NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
@@ -127,7 +127,7 @@ class IterableContainsUnrelatedType extends LintRule {
           name: 'iterable_contains_unrelated_type',
           description: _desc,
           details: _details,
-          group: Group.errors,
+          categories: {Category.errors},
           state: State.removed(since: dart3_3),
         );
 

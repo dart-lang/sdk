@@ -22,7 +22,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleSetOrMapLiteral;
+    var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -47,7 +47,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleSetOrMapLiteral;
+    var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -78,7 +78,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
 
-    final node = findNode.singleSetOrMapLiteral;
+    var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
@@ -101,7 +101,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
 
-    final node = findNode.singleSetOrMapLiteral;
+    var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
@@ -128,7 +128,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
 
-    final node = findNode.singleSetOrMapLiteral;
+    var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {

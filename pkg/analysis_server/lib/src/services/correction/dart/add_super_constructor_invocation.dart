@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddSuperConstructorInvocation extends MultiCorrectionProducer {
+  AddSuperConstructorInvocation({required super.context});
+
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var targetConstructor = node.parent;
@@ -45,7 +47,8 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
       if (!Identifier.isPrivateName(constructor.name)) {
-        producers.add(_AddInvocation(constructor, insertOffset, prefix));
+        producers.add(_AddInvocation(constructor, insertOffset, prefix,
+            context: context));
       }
     }
     return producers;
@@ -64,10 +67,20 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   /// The prefix to be added before the actual invocation.
   final String _prefix;
 
-  _AddInvocation(this._constructor, this._insertOffset, this._prefix);
+  _AddInvocation(
+    this._constructor,
+    this._insertOffset,
+    this._prefix, {
+    required super.context,
+  });
 
   @override
-  List<Object> get fixArguments {
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
     var constructorName = _constructor.name;
@@ -112,12 +125,31 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           if (parameter.isNamed) {
             builder.write('${parameter.name}: ');
           }
-          // default value
+          // A default value to pass as an argument.
           builder.addSimpleLinkedEdit(
-              parameter.name, getDefaultValueCode(parameter.type));
+              parameter.name, parameter.type.defaultArgumentCode);
         }
         builder.write(')');
       });
     });
+  }
+}
+
+extension on DartType {
+  String get defaultArgumentCode {
+    if (isDartCoreBool) {
+      return 'false';
+    }
+    if (isDartCoreInt) {
+      return '0';
+    }
+    if (isDartCoreDouble) {
+      return '0.0';
+    }
+    if (isDartCoreString) {
+      return "''";
+    }
+    // No better guess.
+    return 'null';
   }
 }

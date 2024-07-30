@@ -8,16 +8,12 @@
 #include "bin/directory.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
-#include "bin/namespace.h"
-#include "bin/platform.h"
 #include "bin/typed_data_utils.h"
 #include "bin/utils.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
-#include "include/dart_tools_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 
 // Return the error from the containing function if handle is in error handle.
@@ -774,7 +770,6 @@ Dart_Handle DartUtils::NewError(const char* format, ...) {
   va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
-  MSAN_UNPOISON(buffer, (len + 1));
   va_list print_args;
   va_start(print_args, format);
   Utils::VSNPrint(buffer, (len + 1), format, print_args);
@@ -805,7 +800,6 @@ char* DartUtils::ScopedCStringVFormatted(const char* format, va_list args) {
   va_end(measure_args);
 
   char* buffer = ScopedCString(len + 1);
-  MSAN_UNPOISON(buffer, (len + 1));
   va_list print_args;
   va_copy(print_args, args);
   len = Utils::VSNPrint(buffer, (len + 1), format, print_args);

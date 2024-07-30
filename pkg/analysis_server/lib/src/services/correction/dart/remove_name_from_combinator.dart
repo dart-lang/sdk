@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -13,23 +13,22 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
   String _combinatorKind = '';
 
-  @override
-  // Not predictably the correct action.
-  bool get canBeAppliedInBulk => false;
+  RemoveNameFromCombinator({required super.context});
 
   @override
-  // Not predictably the correct action.
-  bool get canBeAppliedToFile => false;
+  CorrectionApplicability get applicability =>
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
-  List<Object> get fixArguments => [_combinatorKind];
+  List<String> get fixArguments => [_combinatorKind];
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_NAME_FROM_COMBINATOR;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveredNode;
+    var node = coveringNode;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is Combinator) {

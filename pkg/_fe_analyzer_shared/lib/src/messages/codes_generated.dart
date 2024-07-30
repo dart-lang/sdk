@@ -242,28 +242,6 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAgnosticWithStrongDillLibrary =
-    messageAgnosticWithStrongDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAgnosticWithStrongDillLibrary = const MessageCode(
-  "AgnosticWithStrongDillLibrary",
-  problemMessage:
-      r"""Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAgnosticWithWeakDillLibrary =
-    messageAgnosticWithWeakDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAgnosticWithWeakDillLibrary = const MessageCode(
-  "AgnosticWithWeakDillLibrary",
-  problemMessage:
-      r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4789,6 +4767,65 @@ Message _withArgumentsExperimentDisabledInvalidLanguageVersion(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateExperimentExpiredDisabled =
+    const Template<Message Function(String name)>(
+  "ExperimentExpiredDisabled",
+  problemMessageTemplate:
+      r"""The experiment '#name' has expired and can't be disabled.""",
+  withArguments: _withArgumentsExperimentExpiredDisabled,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExperimentExpiredDisabled =
+    const Code<Message Function(String name)>(
+  "ExperimentExpiredDisabled",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentExpiredDisabled(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeExperimentExpiredDisabled,
+    problemMessage:
+        """The experiment '${name}' has expired and can't be disabled.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateExperimentExpiredEnabled =
+    const Template<Message Function(String name)>(
+  "ExperimentExpiredEnabled",
+  problemMessageTemplate:
+      r"""The experiment '#name' has expired and can't be enabled.""",
+  withArguments: _withArgumentsExperimentExpiredEnabled,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExperimentExpiredEnabled =
+    const Code<Message Function(String name)>(
+  "ExperimentExpiredEnabled",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentExpiredEnabled(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeExperimentExpiredEnabled,
+    problemMessage:
+        """The experiment '${name}' has expired and can't be enabled.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String string2)>
     templateExperimentNotEnabled =
     const Template<Message Function(String string, String string2)>(
@@ -5041,16 +5078,6 @@ const MessageCode messageExportAfterPart = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExportOptOutFromOptIn = messageExportOptOutFromOptIn;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExportOptOutFromOptIn = const MessageCode(
-  "ExportOptOutFromOptIn",
-  problemMessage:
-      r"""Null safe libraries are not allowed to export declarations from of opt-out libraries.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExportedMain = messageExportedMain;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5168,6 +5195,18 @@ const Code<Null> codeExtendsVoid = messageExtendsVoid;
 const MessageCode messageExtendsVoid = const MessageCode(
   "ExtendsVoid",
   problemMessage: r"""The type 'void' can't be used in an 'extends' clause.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionAugmentationHasOnClause =
+    messageExtensionAugmentationHasOnClause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionAugmentationHasOnClause = const MessageCode(
+  "ExtensionAugmentationHasOnClause",
+  index: 179,
+  problemMessage: r"""Extension augmentations can't have 'on' clauses.""",
+  correctionMessage: r"""Try removing the 'on' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5896,6 +5935,28 @@ const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
   analyzerCodes: <String>["ARGUMENT_MUST_BE_NATIVE"],
   problemMessage:
       r"""Argument to 'Native.addressOf' must be annotated with @Native.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAddressPosition = messageFfiAddressPosition;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAddressPosition = const MessageCode(
+  "FfiAddressPosition",
+  problemMessage:
+      r"""The '.address' expression can only be used as argument to a leaf native external call.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAddressReceiver = messageFfiAddressReceiver;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAddressReceiver = const MessageCode(
+  "FfiAddressReceiver",
+  problemMessage:
+      r"""The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field.""",
+  correctionMessage:
+      r"""Change the receiver of '.address' to one of the allowed kinds.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10448,6 +10509,20 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropFunctionToJSNamedParameters =
+    messageJsInteropFunctionToJSNamedParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropFunctionToJSNamedParameters =
+    const MessageCode(
+  "JsInteropFunctionToJSNamedParameters",
+  problemMessage:
+      r"""Functions converted via `toJS` cannot declare named parameters.""",
+  correctionMessage:
+      r"""Remove the declared named parameters from the function.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropFunctionToJSTypeParameters =
     messageJsInteropFunctionToJSTypeParameters;
 
@@ -11240,6 +11315,35 @@ Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
     codeLanguageVersionTooHigh,
     problemMessage:
         """The specified language version is too high. The highest supported language version is ${count}.${count2}.""",
+    arguments: {
+      'count': count,
+      'count2': count2,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count, int count2)>
+    templateLanguageVersionTooLow =
+    const Template<Message Function(int count, int count2)>(
+  "LanguageVersionTooLow",
+  problemMessageTemplate:
+      r"""The specified language version is too low. The lowest supported language version is #count.#count2.""",
+  withArguments: _withArgumentsLanguageVersionTooLow,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)> codeLanguageVersionTooLow =
+    const Code<Message Function(int count, int count2)>(
+  "LanguageVersionTooLow",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLanguageVersionTooLow(int count, int count2) {
+  return new Message(
+    codeLanguageVersionTooLow,
+    problemMessage:
+        """The specified language version is too low. The lowest supported language version is ${count}.${count2}.""",
     arguments: {
       'count': count,
       'count2': count2,
@@ -12802,15 +12906,6 @@ const MessageCode messageNoUnnamedConstructorInObject = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonAgnosticConstant = messageNonAgnosticConstant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAgnosticConstant = const MessageCode(
-  "NonAgnosticConstant",
-  problemMessage: r"""Constant value is not strong/weak mode agnostic.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String character, int codePoint)>
     templateNonAsciiIdentifier =
     const Template<Message Function(String character, int codePoint)>(
@@ -13630,110 +13725,6 @@ const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
   correctionMessage:
       r"""Try moving the '?..' operator to be the first cascade operator in the sequence.""",
 );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string2)>
-    templateNullSafetyDisabledInvalidLanguageVersion =
-    const Template<Message Function(String string2)>(
-  "NullSafetyDisabledInvalidLanguageVersion",
-  problemMessageTemplate:
-      r"""This requires null safety, which requires language version of #string2 or higher.""",
-  withArguments: _withArgumentsNullSafetyDisabledInvalidLanguageVersion,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string2)>
-    codeNullSafetyDisabledInvalidLanguageVersion =
-    const Code<Message Function(String string2)>(
-  "NullSafetyDisabledInvalidLanguageVersion",
-  analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"],
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullSafetyDisabledInvalidLanguageVersion(String string2) {
-  if (string2.isEmpty) throw 'No string provided';
-  return new Message(
-    codeNullSafetyDisabledInvalidLanguageVersion,
-    problemMessage:
-        """This requires null safety, which requires language version of ${string2} or higher.""",
-    arguments: {
-      'string2': string2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNullSafetyOptOutComment = messageNullSafetyOptOutComment;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNullSafetyOptOutComment = const MessageCode(
-  "NullSafetyOptOutComment",
-  severity: Severity.context,
-  problemMessage:
-      r"""This is the annotation that opts out this library from null safety features.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
-    templateNullSafetyOptOutExplicit =
-    const Template<Message Function(String string)>(
-  "NullSafetyOptOutExplicit",
-  problemMessageTemplate: r"""Null safety is disabled for this library.""",
-  correctionMessageTemplate:
-      r"""Try removing the `@dart=` annotation or setting the language version to #string or higher.""",
-  withArguments: _withArgumentsNullSafetyOptOutExplicit,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeNullSafetyOptOutExplicit =
-    const Code<Message Function(String string)>(
-  "NullSafetyOptOutExplicit",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullSafetyOptOutExplicit(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(
-    codeNullSafetyOptOutExplicit,
-    problemMessage: """Null safety is disabled for this library.""",
-    correctionMessage:
-        """Try removing the `@dart=` annotation or setting the language version to ${string} or higher.""",
-    arguments: {
-      'string': string,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
-    templateNullSafetyOptOutImplicit =
-    const Template<Message Function(String string)>(
-  "NullSafetyOptOutImplicit",
-  problemMessageTemplate: r"""Null safety is disabled for this library.""",
-  correctionMessageTemplate:
-      r"""Try removing the package language version or setting the language version to #string or higher.""",
-  withArguments: _withArgumentsNullSafetyOptOutImplicit,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeNullSafetyOptOutImplicit =
-    const Code<Message Function(String string)>(
-  "NullSafetyOptOutImplicit",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullSafetyOptOutImplicit(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(
-    codeNullSafetyOptOutImplicit,
-    problemMessage: """Null safety is disabled for this library.""",
-    correctionMessage:
-        """Try removing the package language version or setting the language version to ${string} or higher.""",
-    arguments: {
-      'string': string,
-    },
-  );
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNullableInterfaceError =
@@ -15691,53 +15682,6 @@ const MessageCode messageStaticTearOffFromInstantiatedClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStrongModeNNBDButOptOut = messageStrongModeNNBDButOptOut;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
-  "StrongModeNNBDButOptOut",
-  problemMessage: r"""Library doesn't support null safety.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(List<String> _names)>
-    templateStrongModeNNBDPackageOptOut =
-    const Template<Message Function(List<String> _names)>(
-  "StrongModeNNBDPackageOptOut",
-  problemMessageTemplate:
-      r"""The following dependencies don't support null safety:
-
-#names
-
-For solutions, see https://dart.dev/go/unsound-null-safety""",
-  withArguments: _withArgumentsStrongModeNNBDPackageOptOut,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(List<String> _names)>
-    codeStrongModeNNBDPackageOptOut =
-    const Code<Message Function(List<String> _names)>(
-  "StrongModeNNBDPackageOptOut",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
-  if (_names.isEmpty) throw 'No names provided';
-  String names = itemizeNames(_names);
-  return new Message(
-    codeStrongModeNNBDPackageOptOut,
-    problemMessage: """The following dependencies don't support null safety:
-
-${names}
-
-For solutions, see https://dart.dev/go/unsound-null-safety""",
-    arguments: {
-      'names': _names,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStrongWithWeakDillLibrary =
     messageStrongWithWeakDillLibrary;
 
@@ -17678,6 +17622,17 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
   index: 100,
   problemMessage: r"""Type 'void' can't have type arguments.""",
   correctionMessage: r"""Try removing the type arguments.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWasmImportOrExportInUserCode =
+    messageWasmImportOrExportInUserCode;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWasmImportOrExportInUserCode = const MessageCode(
+  "WasmImportOrExportInUserCode",
+  problemMessage:
+      r"""Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

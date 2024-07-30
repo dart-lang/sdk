@@ -482,7 +482,7 @@ class CompletionMetrics {
   /// Perform any operations required in order to revert computing the kind of
   /// completions represented by this metrics collector.
   void disable() {
-    final disableFunction = this.disableFunction;
+    var disableFunction = this.disableFunction;
     if (disableFunction != null) {
       disableFunction();
     }
@@ -491,7 +491,7 @@ class CompletionMetrics {
   /// Perform any initialization required in order to compute the kind of
   /// completions represented by this metrics collector.
   void enable() {
-    final enableFunction = this.enableFunction;
+    var enableFunction = this.enableFunction;
     if (enableFunction != null) {
       enableFunction();
     }
@@ -723,7 +723,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     // If an overlay option is being used, compute the overlay file, and
     // have the context reanalyze the file.
     if (options.overlay != OverlayMode.none) {
-      final overlayContents = CompletionMetricsComputer.getOverlayContent(
+      var overlayContents = CompletionMetricsComputer.getOverlayContent(
         resolvedUnitResult.content,
         expectedCompletion,
         options.overlay,
@@ -1410,6 +1410,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     ).computeSuggestions(
       dartRequest,
       performance,
+      maxSuggestions: -1,
       useFilter: true,
     );
 
@@ -1479,6 +1480,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
           'hasDeprecated',
           'isConstant',
           'isNoSuchMethod',
+          'isNotImported',
           'keyword',
           'startsWithDollar',
           'superMatches',

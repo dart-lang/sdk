@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,15 +19,22 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   /// The name of the variable whose type is to be made nullable.
   String _variableName = '';
 
+  MakeVariableNullable({required super.context});
+
   @override
-  List<Object> get fixArguments => [_variableName];
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_variableName];
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_VARIABLE_NULLABLE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
+    var node = this.node;
     if (node is SimpleFormalParameter) {
       await _forSimpleFormalParameter(builder, node);
     } else if (node is FunctionTypedFormalParameter) {
@@ -37,7 +44,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     } else if (node is SuperFormalParameter) {
       await _forSuperFormalParameter(builder, node);
     } else if (node is Expression) {
-      final parent = node.parent;
+      var parent = node.parent;
       if (parent is AssignmentExpression && parent.rightHandSide == node) {
         await _forAssignment(builder, node, parent);
       } else if (parent is VariableDeclaration && parent.initializer == node) {

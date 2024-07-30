@@ -207,7 +207,7 @@ class TypePropertyResolver {
       }
 
       if (receiverTypeResolved is RecordType) {
-        final field = receiverTypeResolved.fieldByName(name);
+        var field = receiverTypeResolved.fieldByName(name);
         if (field != null) {
           return ResolutionResult(
             recordField: field,
@@ -230,8 +230,9 @@ class TypePropertyResolver {
   }
 
   void _lookupExtension(DartType type) {
+    var getterName = Name(_definingLibrary.source.uri, _name);
     var result =
-        _extensionResolver.findExtension(type, _nameErrorEntity, _name);
+        _extensionResolver.findExtension(type, _nameErrorEntity, getterName);
     _reportedGetterError = result.isAmbiguous;
     _reportedSetterError = result.isAmbiguous;
 

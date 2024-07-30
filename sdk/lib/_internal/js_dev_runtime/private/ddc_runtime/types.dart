@@ -99,6 +99,16 @@ void nativeNonNullAsserts(bool enable) {
   _nativeNonNullAsserts = enable;
 }
 
+@notNull
+bool _jsInteropNonNullAsserts = false;
+
+/// Enables null assertions on non-static JavaScript interop APIs to make sure
+/// values returned are sound with respect to the nullability.
+void jsInteropNonNullAsserts(bool enable) {
+  // This value is only read from `jsInteropNullCheck`.
+  _jsInteropNonNullAsserts = enable;
+}
+
 /// A JavaScript Symbol used to store the Rti signature object on a function.
 ///
 /// Accessed by a call to `JS_GET_NAME(JsGetName.SIGNATURE_NAME)`.
@@ -127,8 +137,12 @@ F assertInterop<F extends Function?>(F f) {
 bool isDartClass(Object? obj) {
   // All Dart classes are instances of JavaScript functions.
   if (!JS<bool>('!', '# instanceof Function', obj)) return false;
-  // All Dart classes have an interface type recipe attached to them.
-  return JS('', '#.#', obj, rti.interfaceTypeRecipePropertyName) != null;
+  // All Dart classes have an interface type recipe attached to them. We put the
+  // `!=` check in the foreign function call, since the Dart `!=` check would
+  // lower to `!==`. In the case where [obj] is a JS function, the result of
+  // getting this property would be `undefined`, and therefore `!== null` would
+  // be true, which is not what we want.
+  return JS<bool>('!', '#.# != null', obj, rti.interfaceTypeRecipePropertyName);
 }
 
 /// Returns `true` when [obj] represents a Dart function.
@@ -136,27 +150,42 @@ bool isDartClass(Object? obj) {
 bool isDartFunction(Object? obj) {
   // All Dart functions are instances of JavaScript functions.
   if (!JS<bool>('!', '# instanceof Function', obj)) return false;
-  // All Dart functions have a signature attached to them.
-  return JS('!', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME)) != null;
+  // All Dart functions have a signature attached to them. We put the `!=` check
+  // in the foreign function call, since the Dart `!=` check would lower to
+  // `!==`. In the case where [obj] is a JS function, the result of getting this
+  // property would be `undefined`, and therefore `!== null` would be true,
+  // which is not what we want.
+  return JS<bool>(
+      '!', '#[#] != null', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
 }
 
 Expando<Function> _assertInteropExpando = Expando<Function>();
 
 @NoReifyGeneric()
-F tearoffInterop<F extends Function?>(F f) {
+F tearoffInterop<F extends Function?>(F f, bool checkReturnType) {
   // Wrap a JS function with a closure that ensures all function arguments are
   // native JS functions.
   if (f is! LegacyJavaScriptObject || f == null) return f;
   var ret = _assertInteropExpando[f];
   if (ret == null) {
-    ret = JS(
-        '',
-        'function (...arguments) {'
-            ' var args = arguments.map(#);'
-            ' return #.apply(this, args);'
-            '}',
-        assertInterop,
-        f);
+    ret = checkReturnType
+        ? JS(
+            '',
+            'function (...arguments) {'
+                ' var args = arguments.map(#);'
+                ' return #(#.apply(this, args));'
+                '}',
+            assertInterop,
+            jsInteropNullCheck,
+            f)
+        : JS(
+            '',
+            'function (...arguments) {'
+                ' var args = arguments.map(#);'
+                ' return #.apply(this, args);'
+                '}',
+            assertInterop,
+            f);
     _assertInteropExpando[f] = ret;
   }
   // Suppress a cast back to F.

@@ -36,7 +36,6 @@ Future<void> testMain() async {
 final tests = <IsolateTest>[
   hasPausedAtStart,
 
-  // Test future breakpoints.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
@@ -44,60 +43,23 @@ final tests = <IsolateTest>[
         await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
     final rootLibId = rootLib.id!;
     final scriptId = rootLib.scripts![0].id!;
-    final script = await service.getObject(isolateId, scriptId) as Script;
 
-    // Future breakpoint.
-    var futureBpt1 = await service.addBreakpoint(isolateId, scriptId, LINE_A);
-    expect(futureBpt1.breakpointNumber, 1);
-    expect(futureBpt1.resolved, isFalse);
-    expect(await futureBpt1.location!.line!, LINE_A);
-    expect(await futureBpt1.location!.column, null);
+    final bpt1 = await service.addBreakpoint(isolateId, scriptId, LINE_A);
+    expect(bpt1.breakpointNumber, 1);
+    expect(bpt1.resolved, true);
+    expect(await bpt1.location!.line!, LINE_A);
+    expect(await bpt1.location!.column, 12);
 
-    // Future breakpoint with specific column.
-    var futureBpt2 =
+    // Breakpoint with specific column.
+    final bpt2 =
         await service.addBreakpoint(isolateId, scriptId, LINE_A, column: 3);
-    expect(futureBpt2.breakpointNumber, 2);
-    expect(futureBpt2.resolved, isFalse);
-    expect(await futureBpt2.location!.line!, LINE_A);
-    expect(await futureBpt2.location!.column!, 3);
+    expect(bpt2.breakpointNumber, 2);
+    expect(bpt2.resolved, true);
+    expect(await bpt2.location!.line!, LINE_A);
+    expect(await bpt2.location!.column!, 3);
 
-    final int resolvedCount = await resumeAndCountResolvedBreakpointsUntilPause(
-      service,
-      isolate,
-    );
-
-    // After resolution the breakpoints have assigned line & column.
-    expect(resolvedCount, 2);
-
-    // Refresh objects
-    futureBpt1 =
-        await service.getObject(isolateId, futureBpt1.id!) as Breakpoint;
-    futureBpt2 =
-        await service.getObject(isolateId, futureBpt2.id!) as Breakpoint;
-
-    expect(futureBpt1.resolved, isTrue);
-    expect(
-      script.getLineNumberFromTokenPos(futureBpt1.location!.tokenPos!),
-      LINE_A,
-    );
-    expect(futureBpt1.location!.line, LINE_A);
-    expect(
-      script.getColumnNumberFromTokenPos(futureBpt1.location!.tokenPos!),
-      12,
-    );
-    expect(futureBpt1.location!.column, 12);
-    expect(futureBpt2.resolved, isTrue);
-    expect(
-      script.getLineNumberFromTokenPos(futureBpt2.location!.tokenPos!),
-      LINE_A,
-    );
-    expect(futureBpt2.location!.line, LINE_A);
-    expect(
-      script.getColumnNumberFromTokenPos(futureBpt2.location!.tokenPos!),
-      3,
-    );
-    expect(futureBpt2.location!.column, 3);
-
+    await service.resume(isolateId);
+    await hasStoppedAtBreakpoint(service, isolate);
     // The first breakpoint hits before value is modified.
     InstanceRef result =
         await service.evaluate(isolateId, rootLibId, 'value') as InstanceRef;
@@ -105,7 +67,6 @@ final tests = <IsolateTest>[
 
     await service.resume(isolateId);
     await hasStoppedAtBreakpoint(service, isolate);
-
     // The second breakpoint hits after value has been modified once.
     result =
         await service.evaluate(isolateId, rootLibId, 'value') as InstanceRef;
@@ -113,11 +74,11 @@ final tests = <IsolateTest>[
 
     // Remove the breakpoints.
     expect(
-      (await service.removeBreakpoint(isolateId, futureBpt1.id!)).type,
+      (await service.removeBreakpoint(isolateId, bpt1.id!)).type,
       'Success',
     );
     expect(
-      (await service.removeBreakpoint(isolateId, futureBpt2.id!)).type,
+      (await service.removeBreakpoint(isolateId, bpt2.id!)).type,
       'Success',
     );
   },
@@ -182,31 +143,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-Future<int> resumeAndCountResolvedBreakpointsUntilPause(
-  VmService service,
-  Isolate isolate,
-) async {
-  final completer = Completer<void>();
-  late StreamSubscription subscription;
-  int resolvedCount = 0;
-
-  subscription = service.onDebugEvent.listen((event) {
-    if (event.kind == EventKind.kBreakpointResolved) {
-      resolvedCount++;
-    } else if (event.kind == EventKind.kPauseBreakpoint) {
-      subscription.cancel();
-      service.streamCancel(EventStreams.kDebug);
-      completer.complete();
-    }
-  });
-  await service.streamListen(EventStreams.kDebug);
-
-  await service.resume(isolate.id!);
-  await completer.future;
-  return resolvedCount;
-}
-
-void main([args = const <String>[]]) => runIsolateTests(
+Future<void> main(args) => runIsolateTests(
       args,
       tests,
       'add_breakpoint_rpc_kernel_test.dart',

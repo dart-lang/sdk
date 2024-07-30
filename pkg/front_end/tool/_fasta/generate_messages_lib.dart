@@ -14,8 +14,8 @@ Uri computeSharedGeneratedFile(Uri repoDir) {
 }
 
 Uri computeCfeGeneratedFile(Uri repoDir) {
-  return repoDir.resolve(
-      "pkg/front_end/lib/src/fasta/codes/fasta_codes_cfe_generated.dart");
+  return repoDir
+      .resolve("pkg/front_end/lib/src/codes/cfe_codes_generated.dart");
 }
 
 class Messages {
@@ -62,7 +62,7 @@ part of _fe_analyzer_shared.messages.codes;
 """);
   cfeMessages.writeln(preamble2);
   cfeMessages.writeln("""
-part of fasta.codes;
+part of 'cfe_codes.dart';
 """);
 
   bool hasError = false;
@@ -163,8 +163,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
   bool canBeShared = true;
   void ensureLabeler() {
     if (hasLabeler) return;
-    conversions
-        .add("TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);");
+    conversions.add("TypeLabeler labeler = new TypeLabeler();");
     hasLabeler = true;
     canBeShared = false;
   }
@@ -359,10 +358,6 @@ Template compileTemplate(String name, int? index, String? problemMessage,
       default:
         throw "Unhandled placeholder in template: '$name'";
     }
-  }
-
-  if (hasLabeler) {
-    parameters.add("bool isNonNullableByDefault");
   }
 
   conversions.addAll(conversions2);

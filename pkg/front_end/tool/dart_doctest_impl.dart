@@ -24,35 +24,30 @@ import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/builder/library_builder.dart';
-import 'package:front_end/src/fasta/codes/fasta_codes.dart';
-import 'package:front_end/src/fasta/combinator.dart';
-import 'package:front_end/src/fasta/command_line_reporting.dart'
+import 'package:front_end/src/base/combinator.dart';
+import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
-import 'package:front_end/src/fasta/compiler_context.dart';
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:front_end/src/fasta/dill/dill_target.dart';
-import 'package:front_end/src/fasta/hybrid_file_system.dart';
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:front_end/src/fasta/incremental_compiler.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/fasta/scope.dart';
-import 'package:front_end/src/fasta/source/diet_parser.dart'
+import 'package:front_end/src/base/compiler_context.dart';
+import 'package:front_end/src/base/hybrid_file_system.dart';
+import 'package:front_end/src/base/incremental_compiler.dart';
+import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/base/scope.dart';
+import 'package:front_end/src/base/uri_translator.dart';
+import 'package:front_end/src/builder/library_builder.dart';
+import 'package:front_end/src/codes/cfe_codes.dart';
+import 'package:front_end/src/dill/dill_library_builder.dart';
+import 'package:front_end/src/dill/dill_target.dart';
+import 'package:front_end/src/kernel/utils.dart';
+import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/fasta/source/source_loader.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/source/source_library_builder.dart';
+import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/kernel.dart' as kernel
-    show Combinator, Component, LibraryDependency, Library, Location, Source;
+    show Combinator, Component, LibraryDependency, Location, Source;
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:vm/modular/target/vm.dart';
 
-// ignore: import_of_legacy_library_into_null_safe
 import '../test/incremental_suite.dart' show getOptions;
 
 const _portMessageTest = "test";
@@ -66,7 +61,7 @@ const _portMessageDone = "done";
 // the part declares what file it's part of and if we've compiled other stuff
 // first so we know more stuff).
 class DartDocTest {
-  DocTestIncrementalCompiler? incrementalCompiler;
+  DocTestIncrementalCompiler? savedIncrementalCompiler;
   late CompilerOptions options;
   late ProcessedOptions processedOpts;
   bool errors = false;
@@ -137,9 +132,12 @@ class DartDocTest {
       sb.writeln("}");
     }
 
-    if (incrementalCompiler == null) {
-      setupIncrementalCompiler(uri);
-    }
+    // Setup the incremental compiler.
+    // We only want to reuse it if it didn't crash as that will make it wait
+    // for the crashed compile to finish (and it won't).
+    DocTestIncrementalCompiler incrementalCompiler =
+        savedIncrementalCompiler ?? createIncrementalCompiler(uri);
+    savedIncrementalCompiler = null;
 
     processedOpts.inputs.clear();
     processedOpts.inputs.add(uri);
@@ -150,11 +148,11 @@ class DartDocTest {
     processedOpts.clearFileSystemCache();
     // Invalidate package uri to force re-finding of packages
     // (e.g. if we're now compiling somewhere else).
-    incrementalCompiler!.invalidate(processedOpts.packagesUri);
+    incrementalCompiler.invalidate(processedOpts.packagesUri);
 
     Stopwatch stopwatch = new Stopwatch()..start();
     IncrementalCompilerResult compilerResult =
-        await incrementalCompiler!.computeDelta(entryPoints: [uri]);
+        await incrementalCompiler.computeDelta(entryPoints: [uri]);
     kernel.Component component = compilerResult.component;
     if (errors) {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
@@ -166,7 +164,7 @@ class DartDocTest {
     _print("Compiled (1) in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
 
-    await incrementalCompiler!.compileDartDocTestLibrary(
+    await incrementalCompiler.compileDartDocTestLibrary(
         sb.toString(), component.uriToSource[uri]?.importUri ?? uri);
 
     final Uri dartDocMainUri = new Uri(scheme: "dartdoctest", path: "main");
@@ -174,8 +172,8 @@ class DartDocTest {
         .entityForUri(dartDocMainUri)
         .writeAsStringSync(mainFileContent);
 
-    incrementalCompiler!.invalidate(dartDocMainUri);
-    IncrementalCompilerResult compilerMainResult = await incrementalCompiler!
+    incrementalCompiler.invalidate(dartDocMainUri);
+    IncrementalCompilerResult compilerMainResult = await incrementalCompiler
         .computeDelta(entryPoints: [dartDocMainUri], fullComponent: true);
     kernel.Component componentMain = compilerMainResult.component;
     if (errors) {
@@ -275,6 +273,9 @@ class DartDocTest {
     await completer.future;
     tmpDir.deleteSync(recursive: true);
 
+    // We finished successfully. Save the incremental compiler.
+    savedIncrementalCompiler = incrementalCompiler;
+
     if (error) {
       _print("Completed with an error in ${stopwatch.elapsedMilliseconds} ms.");
       return [new TestResult(null, TestOutcome.RuntimeError)];
@@ -305,7 +306,7 @@ class DartDocTest {
     }
   }
 
-  void setupIncrementalCompiler(Uri uri) {
+  DocTestIncrementalCompiler createIncrementalCompiler(Uri uri) {
     options = getOptions();
     TargetFlags targetFlags = new TargetFlags();
     // TODO: Target could possible be something else...
@@ -323,7 +324,7 @@ class DartDocTest {
     };
     processedOpts = new ProcessedOptions(options: options, inputs: [uri]);
     CompilerContext compilerContext = new CompilerContext(processedOpts);
-    this.incrementalCompiler = new DocTestIncrementalCompiler(compilerContext);
+    return new DocTestIncrementalCompiler(compilerContext);
   }
 }
 
@@ -789,8 +790,8 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
     assert(dillTargetForTesting != null && kernelTargetForTesting != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder =
-          kernelTargetForTesting!.loader.readAsEntryPoint(libraryUri);
+      LibraryBuilder libraryBuilder = kernelTargetForTesting!.loader
+          .lookupLoadedLibraryBuilder(libraryUri)!;
 
       kernelTargetForTesting!.loader.resetSeenMessages();
 
@@ -846,33 +847,19 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
                   combinator.fileOffset, libraryBuilder.fileUri));
         }
 
-        dartDocTestLibrary.addImport(
-            metadata: null,
-            isAugmentationImport: false,
+        dartDocTestLibrary.compilationUnit.addSyntheticImport(
             uri: dependency.importedLibraryReference.asLibrary.importUri
                 .toString(),
-            configurations: null,
             prefix: dependency.name,
             combinators: combinators,
-            deferred: dependency.isDeferred,
-            charOffset: -1,
-            prefixCharOffset: -1,
-            uriOffset: -1,
-            importIndex: -1);
+            deferred: dependency.isDeferred);
       }
 
-      dartDocTestLibrary.addImport(
-          metadata: null,
-          isAugmentationImport: false,
+      dartDocTestLibrary.compilationUnit.addSyntheticImport(
           uri: libraryBuilder.importUri.toString(),
-          configurations: null,
           prefix: null,
           combinators: null,
-          deferred: false,
-          charOffset: -1,
-          prefixCharOffset: -1,
-          uriOffset: -1,
-          importIndex: -1);
+          deferred: false);
 
       dartDocTestLibrary.addImportsToScope();
     } else {
@@ -909,7 +896,7 @@ class DocTestSourceLoader extends SourceLoader {
       Uri? packageUri,
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
-      kernel.Library? referencesFrom,
+      IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
       bool isPatch = false}) {
@@ -928,7 +915,7 @@ class DocTestSourceLoader extends SourceLoader {
         packageUri: packageUri,
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
-        referencesFrom: referencesFrom,
+        referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
         isPatch: isPatch);

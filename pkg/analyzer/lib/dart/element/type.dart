@@ -21,6 +21,7 @@
 /// the references to `String` and `int` are type arguments.
 library;
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -29,7 +30,7 @@ import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
 /// The type associated with elements in the element model.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class DartType {
+abstract class DartType implements SharedType {
   /// If this type is an instantiation of a type alias, information about
   /// the alias element, and the type arguments.
   /// Otherwise return `null`.
@@ -147,7 +148,7 @@ abstract class DartType {
   @Deprecated('Check element, or use getDisplayString()')
   String? get name;
 
-  /// Return the nullability suffix of this type.
+  @override
   NullabilitySuffix get nullabilitySuffix;
 
   /// Use the given [visitor] to visit this type.
@@ -188,6 +189,7 @@ abstract class DartType {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
+  @override
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
@@ -464,7 +466,7 @@ abstract class ParameterizedType implements DartType {
 /// The type of a record literal or a record type annotation.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class RecordType implements DartType {
+abstract class RecordType implements DartType, SharedRecordType<DartType> {
   /// Creates a record type from of [positional] and [named] fields.
   factory RecordType({
     required List<DartType> positional,
@@ -497,8 +499,10 @@ abstract class RecordTypeField {
 /// A named field in a [RecordType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class RecordTypeNamedField implements RecordTypeField {
+abstract class RecordTypeNamedField
+    implements RecordTypeField, SharedNamedType<DartType> {
   /// The name of the field.
+  @override
   String get name;
 }
 

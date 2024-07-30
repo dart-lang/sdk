@@ -24,11 +24,6 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
-// Smi->Int32 widening pass is disabled due to dartbug.com/32619.
-DEFINE_FLAG(bool, use_smi_widening, false, "Enable Smi->Int32 widening pass.");
-DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
-#endif
 DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
 
 // Quick access to the current zone.
@@ -38,6 +33,14 @@ static bool ShouldReorderBlocks(const Function& function,
                                 FlowGraph::CompilationMode mode) {
   return (mode == FlowGraph::CompilationMode::kOptimized) &&
          FLAG_reorder_basic_blocks && !function.IsFfiCallbackTrampoline();
+}
+
+static bool IsMarkedWithNoBoundsChecks(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(),
+                             /*only_core=*/false, function,
+                             Symbols::vm_unsafe_no_bounds_checks(),
+                             /*multiple=*/false, &options);
 }
 
 FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
@@ -70,7 +73,10 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       loop_invariant_loads_(nullptr),
       captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
-      should_print_(false) {
+      should_print_(false),
+      should_remove_all_bounds_checks_(
+          CompilerState::Current().is_aot() &&
+          IsMarkedWithNoBoundsChecks(parsed_function.function())) {
   should_print_ = FlowGraphPrinter::ShouldPrint(parsed_function.function(),
                                                 &compiler_pass_filters_);
   ComputeLocationsOfFixedParameters(
@@ -525,7 +531,8 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   }
 
   // Useful receiver class information?
-  if (receiver_class.IsNull()) {
+  if (receiver_class.IsNull() ||
+      receiver_class.has_dynamically_extendable_subtypes()) {
     return ToCheck::kCheckCid;
   } else if (call->HasICData()) {
     // If the static class type does not match information found in ICData
@@ -565,7 +572,8 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
         Class::Handle(zone(), isolate_group()->object_store()->null_class());
     Function& target = Function::Handle(zone());
     if (null_class.EnsureIsFinalized(thread()) == Error::null()) {
-      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name);
+      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name,
+                                               /*allow_add=*/true);
     }
     if (!target.IsNull()) {
       return ToCheck::kCheckCid;
@@ -1586,10 +1594,11 @@ void FlowGraph::RenameRecursive(
         break;
       }
 
-      case Instruction::kConstant: {
+      case Instruction::kConstant:
+      case Instruction::kUnboxedConstant: {
         ConstantInstr* constant = current->Cast<ConstantInstr>();
         if (constant->HasTemp()) {
-          result = GetConstant(constant->value());
+          result = GetConstant(constant->value(), constant->representation());
         }
         break;
       }
@@ -1922,10 +1931,6 @@ static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-static bool CanUnboxDouble() {
-  return FlowGraphCompiler::SupportsUnboxedDoubles();
-}
-
 static bool CanConvertInt64ToDouble() {
   return FlowGraphCompiler::CanConvertInt64ToDouble();
 }
@@ -1967,7 +1972,6 @@ void FlowGraph::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != nullptr)
                                   ? deopt_target->DeoptimizationTarget()
                                   : DeoptId::kNone;
-    ASSERT(CanUnboxDouble());
     converted = new Int64ToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != nullptr)
@@ -2121,18 +2125,16 @@ class PhiUnboxingHeuristic : public ValueObject {
     auto new_representation = phi->representation();
     switch (phi->Type()->ToCid()) {
       case kDoubleCid:
-        if (CanUnboxDouble()) {
-          new_representation = DetermineIfAnyIncomingUnboxedFloats(phi)
-                                   ? kUnboxedFloat
-                                   : kUnboxedDouble;
+        new_representation = DetermineIfAnyIncomingUnboxedFloats(phi)
+                                 ? kUnboxedFloat
+                                 : kUnboxedDouble;
 #if defined(DEBUG)
-          if (new_representation == kUnboxedFloat) {
-            for (auto input : phi->inputs()) {
-              ASSERT(input->representation() != kUnboxedDouble);
-            }
+        if (new_representation == kUnboxedFloat) {
+          for (auto input : phi->inputs()) {
+            ASSERT(input->representation() != kUnboxedDouble);
           }
-#endif
         }
+#endif
         break;
       case kFloat32x4Cid:
         if (ShouldInlineSimd()) {
@@ -2346,229 +2348,6 @@ void FlowGraph::SelectRepresentations() {
   }
 }
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
-// Smi widening pass is only meaningful on platforms where Smi
-// is smaller than 32bit. For now only support it on ARM and ia32.
-static bool CanBeWidened(BinarySmiOpInstr* smi_op) {
-  return BinaryInt32OpInstr::IsSupported(smi_op->op_kind(), smi_op->left(),
-                                         smi_op->right());
-}
-
-static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
-  // TODO(vegorov): when shifts with non-constants shift count are supported
-  // add them here as we save untagging for the count.
-  switch (smi_op->op_kind()) {
-    case Token::kMUL:
-    case Token::kSHR:
-    case Token::kUSHR:
-      // For kMUL we save untagging of the argument.
-      // For kSHR/kUSHR we save tagging of the result.
-      return true;
-
-    default:
-      return false;
-  }
-}
-
-// Maps an entry block to its closest enveloping loop id, or -1 if none.
-static intptr_t LoopId(BlockEntryInstr* block) {
-  LoopInfo* loop = block->loop_info();
-  if (loop != nullptr) {
-    return loop->id();
-  }
-  return -1;
-}
-
-void FlowGraph::WidenSmiToInt32() {
-  if (!FLAG_use_smi_widening) {
-    return;
-  }
-
-  GrowableArray<BinarySmiOpInstr*> candidates;
-
-  // Step 1. Collect all instructions that potentially benefit from widening of
-  // their operands (or their result) into int32 range.
-  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
-       block_it.Advance()) {
-    for (ForwardInstructionIterator instr_it(block_it.Current());
-         !instr_it.Done(); instr_it.Advance()) {
-      BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
-      if ((smi_op != nullptr) && smi_op->HasSSATemp() &&
-          BenefitsFromWidening(smi_op) && CanBeWidened(smi_op)) {
-        candidates.Add(smi_op);
-      }
-    }
-  }
-
-  if (candidates.is_empty()) {
-    return;
-  }
-
-  // Step 2. For each block in the graph compute which loop it belongs to.
-  // We will use this information later during computation of the widening's
-  // gain: we are going to assume that only conversion occurring inside the
-  // same loop should be counted against the gain, all other conversions
-  // can be hoisted and thus cost nothing compared to the loop cost itself.
-  GetLoopHierarchy();
-
-  // Step 3. For each candidate transitively collect all other BinarySmiOpInstr
-  // and PhiInstr that depend on it and that it depends on and count amount of
-  // untagging operations that we save in assumption that this whole graph of
-  // values is using kUnboxedInt32 representation instead of kTagged.
-  // Convert those graphs that have positive gain to kUnboxedInt32.
-
-  // BitVector containing SSA indexes of all processed definitions. Used to skip
-  // those candidates that belong to dependency graph of another candidate.
-  BitVector* processed = new (Z) BitVector(Z, current_ssa_temp_index());
-
-  // Worklist used to collect dependency graph.
-  DefinitionWorklist worklist(this, candidates.length());
-  for (intptr_t i = 0; i < candidates.length(); i++) {
-    BinarySmiOpInstr* op = candidates[i];
-    if (op->WasEliminated() || processed->Contains(op->ssa_temp_index())) {
-      continue;
-    }
-
-    if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-      THR_Print("analysing candidate: %s\n", op->ToCString());
-    }
-    worklist.Clear();
-    worklist.Add(op);
-
-    // Collect dependency graph. Note: more items are added to worklist
-    // inside this loop.
-    intptr_t gain = 0;
-    for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
-      Definition* defn = worklist.definitions()[j];
-
-      if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-        THR_Print("> %s\n", defn->ToCString());
-      }
-
-      if (defn->IsBinarySmiOp() &&
-          BenefitsFromWidening(defn->AsBinarySmiOp())) {
-        gain++;
-        if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-          THR_Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
-        }
-      }
-
-      const intptr_t defn_loop = LoopId(defn->GetBlock());
-
-      // Process all inputs.
-      for (intptr_t k = 0; k < defn->InputCount(); k++) {
-        Definition* input = defn->InputAt(k)->definition();
-        if (input->IsBinarySmiOp() && CanBeWidened(input->AsBinarySmiOp())) {
-          worklist.Add(input);
-        } else if (input->IsPhi() && (input->Type()->ToCid() == kSmiCid)) {
-          worklist.Add(input);
-        } else if (input->IsBinaryInt64Op()) {
-          // Mint operation produces untagged result. We avoid tagging.
-          gain++;
-          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-            THR_Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
-          }
-        } else if (defn_loop == LoopId(input->GetBlock()) &&
-                   (input->Type()->ToCid() == kSmiCid)) {
-          // Input comes from the same loop, is known to be smi and requires
-          // untagging.
-          // TODO(vegorov) this heuristic assumes that values that are not
-          // known to be smi have to be checked and this check can be
-          // coalesced with untagging. Start coalescing them.
-          gain--;
-          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-            THR_Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
-          }
-        }
-      }
-
-      // Process all uses.
-      for (Value* use = defn->input_use_list(); use != nullptr;
-           use = use->next_use()) {
-        Instruction* instr = use->instruction();
-        Definition* use_defn = instr->AsDefinition();
-        if (use_defn == nullptr) {
-          // We assume that tagging before returning or pushing argument costs
-          // very little compared to the cost of the return/call itself.
-          ASSERT(!instr->IsMoveArgument());
-          if (!instr->IsReturnBase() &&
-              (use->use_index() >= instr->ArgumentCount())) {
-            gain--;
-            if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-              THR_Print("v [%" Pd "] (u) %s\n", gain,
-                        use->instruction()->ToCString());
-            }
-          }
-          continue;
-        } else if (use_defn->IsBinarySmiOp() &&
-                   CanBeWidened(use_defn->AsBinarySmiOp())) {
-          worklist.Add(use_defn);
-        } else if (use_defn->IsPhi() &&
-                   use_defn->AsPhi()->Type()->ToCid() == kSmiCid) {
-          worklist.Add(use_defn);
-        } else if (use_defn->IsBinaryInt64Op()) {
-          // BinaryInt64Op requires untagging of its inputs.
-          // Converting kUnboxedInt32 to kUnboxedInt64 is essentially zero cost
-          // sign extension operation.
-          gain++;
-          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-            THR_Print("^ [%" Pd "] (u) %s\n", gain,
-                      use->instruction()->ToCString());
-          }
-        } else if (defn_loop == LoopId(instr->GetBlock())) {
-          gain--;
-          if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-            THR_Print("v [%" Pd "] (u) %s\n", gain,
-                      use->instruction()->ToCString());
-          }
-        }
-      }
-    }
-
-    processed->AddAll(worklist.contains_vector());
-
-    if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
-      THR_Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
-    }
-
-    if (gain > 0) {
-      // We have positive gain from widening. Convert all BinarySmiOpInstr into
-      // BinaryInt32OpInstr and set representation of all phis to kUnboxedInt32.
-      for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
-        Definition* defn = worklist.definitions()[j];
-        ASSERT(defn->IsPhi() || defn->IsBinarySmiOp());
-
-        // Since we widen the integer representation we've to clear out type
-        // propagation information (e.g. it might no longer be a _Smi).
-        for (Value::Iterator it(defn->input_use_list()); !it.Done();
-             it.Advance()) {
-          it.Current()->SetReachingType(nullptr);
-        }
-
-        if (defn->IsBinarySmiOp()) {
-          BinarySmiOpInstr* smi_op = defn->AsBinarySmiOp();
-          BinaryInt32OpInstr* int32_op = new (Z) BinaryInt32OpInstr(
-              smi_op->op_kind(), smi_op->left()->CopyWithType(),
-              smi_op->right()->CopyWithType(), smi_op->DeoptimizationTarget());
-
-          smi_op->ReplaceWith(int32_op, nullptr);
-        } else if (defn->IsPhi()) {
-          defn->AsPhi()->set_representation(kUnboxedInt32);
-          ASSERT(defn->Type()->IsInt());
-        }
-      }
-    }
-  }
-}
-#else
-void FlowGraph::WidenSmiToInt32() {
-  // TODO(vegorov) ideally on 64-bit platforms we would like to narrow smi
-  // operations to 32-bit where it saves tagging and untagging and allows
-  // to use shorted (and faster) instructions. But we currently don't
-  // save enough range information in the ICData to drive this decision.
-}
-#endif
-
 void FlowGraph::EliminateEnvironments() {
   // After this pass we can no longer perform LICM and hoist instructions
   // that can deoptimize.
@@ -2588,7 +2367,7 @@ void FlowGraph::EliminateEnvironments() {
       // See FlowGraphChecker::VisitInstruction.
       if (!current->ComputeCanDeoptimize() &&
           !current->ComputeCanDeoptimizeAfterCall() &&
-          (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {
+          (!current->MayThrow() || !block->InsideTryBlock())) {
         // Instructions that can throw need an environment for optimized
         // try-catch.
         // TODO(srdjan): --source-lines needs deopt environments to get at
@@ -2648,11 +2427,18 @@ void FlowGraph::ExtractNonInternalTypedDataPayload(Instruction* instr,
   auto const type_cid = array->Type()->ToCid();
   // For external PointerBase objects, the payload should have already been
   // extracted during canonicalization.
-  ASSERT(!IsExternalPayloadClassId(cid) || !IsExternalPayloadClassId(type_cid));
-  // Don't extract if the array is an internal typed data object.
-  if (IsTypedDataClassId(type_cid)) return;
-  ExtractUntaggedPayload(instr, array, Slot::PointerBase_data(),
-                         InnerPointerAccess::kMayBeInnerPointer);
+  ASSERT(!IsExternalPayloadClassId(cid) && !IsExternalPayloadClassId(type_cid));
+  // Extract payload for typed data view instructions even if array is
+  // an internal typed data (could happen in the unreachable code),
+  // as code generation handles direct accesses only for internal typed data.
+  //
+  // For internal typed data instructions (which are also used for
+  // non-internal typed data arrays), don't extract payload if the array is
+  // an internal typed data object.
+  if (IsTypedDataViewClassId(cid) || !IsTypedDataClassId(type_cid)) {
+    ExtractUntaggedPayload(instr, array, Slot::PointerBase_data(),
+                           InnerPointerAccess::kMayBeInnerPointer);
+  }
 }
 
 void FlowGraph::ExtractNonInternalTypedDataPayloads() {

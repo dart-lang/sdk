@@ -34,7 +34,7 @@ class C {
 }
 ''');
 
-    final node = findNode.singleAssertInitializer;
+    var node = findNode.singleAssertInitializer;
     assertResolvedNodeText(node, r'''
 AssertInitializer
   assertKeyword: assert
@@ -91,7 +91,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleAssertStatement;
+    var node = findNode.singleAssertStatement;
     assertResolvedNodeText(node, r'''
 AssertStatement
   assertKeyword: assert
@@ -333,7 +333,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleBinaryExpression;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation
@@ -377,7 +377,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleBinaryExpression;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation

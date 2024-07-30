@@ -180,9 +180,7 @@ class FfiCallbackMetadata {
     // Tells FfiCallbackTrampolineStub how to call into the entry point. Mostly
     // it's just a flag for whether this is a sync or async callback, but on
     // IA32 it also encodes whether there's a stack delta of 4 to deal with.
-    TrampolineType trampoline_type() const {
-      return trampoline_type_;
-    }
+    TrampolineType trampoline_type() const { return trampoline_type_; }
   };
 
   // Returns the Metadata object for the given trampoline.

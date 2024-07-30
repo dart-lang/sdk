@@ -29,7 +29,7 @@ void f() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 54, 5),
     ]);
 
-    final node = findNode.extensionOverride('E<int>');
+    var node = findNode.extensionOverride('E<int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E
@@ -69,7 +69,7 @@ void f() {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 60, 6),
     ]);
 
-    final node = findNode.extensionOverride('E<bool>');
+    var node = findNode.extensionOverride('E<bool>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E
@@ -112,7 +112,7 @@ void f() {
           11),
     ]);
 
-    final node = findNode.extensionOverride('E<bool, int>');
+    var node = findNode.extensionOverride('E<bool, int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E

@@ -8,10 +8,10 @@ import '../analyzer.dart';
 import '../extensions.dart';
 import '../util/leak_detector_visitor.dart';
 
-const _desc = r'Close instances of `dart.core.Sink`.';
+const _desc = r'Close instances of `dart:core` `Sink`.';
 
 const _details = r'''
-**DO** invoke `close` on instances of `dart.core.Sink`.
+**DO** invoke `close` on instances of `dart:core` `Sink`.
 
 Closing instances of Sink prevents memory leaks and unexpected behavior.
 
@@ -67,14 +67,15 @@ class CloseSinks extends LintRule {
       'close_sinks', "Unclosed instance of 'Sink'.",
       correctionMessage:
           "Try invoking 'close' in the function in which the 'Sink' was "
-          'created.');
+          'created.',
+      hasPublishedDocs: true);
 
   CloseSinks()
       : super(
             name: 'close_sinks',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

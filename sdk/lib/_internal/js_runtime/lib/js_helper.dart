@@ -682,8 +682,16 @@ class Primitives {
         as int;
   }
 
-  static int? valueFromDecomposedDate(int years, int month, int day, int hours,
-      int minutes, int seconds, int milliseconds, bool isUtc) {
+  static int? valueFromDecomposedDate(
+      int years,
+      int month,
+      int day,
+      int hours,
+      int minutes,
+      int seconds,
+      int milliseconds,
+      int microseconds,
+      bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
@@ -692,6 +700,7 @@ class Primitives {
     checkInt(minutes);
     checkInt(seconds);
     checkInt(milliseconds);
+    checkInt(microseconds);
     checkBool(isUtc);
     var jsMonth = month - 1;
     // The JavaScript Date constructor 'corrects' year NN to 19NN. Sidestep that
@@ -702,6 +711,11 @@ class Primitives {
       years += 400;
       jsMonth -= 400 * 12;
     }
+    // JavaScript `Date` does not handle microseconds, so ensure the provided
+    // microseconds is in range [0..999].
+    final remainder = microseconds % 1000;
+    milliseconds += (microseconds - remainder) ~/ 1000;
+    microseconds = remainder;
     num value;
     if (isUtc) {
       value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
@@ -712,7 +726,8 @@ class Primitives {
     }
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
-        value > MAX_MILLISECONDS_SINCE_EPOCH) {
+        value > MAX_MILLISECONDS_SINCE_EPOCH ||
+        value == MAX_MILLISECONDS_SINCE_EPOCH && microseconds != 0) {
       return null;
     }
     return JS('int', '#', value);
@@ -744,7 +759,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static getYear(DateTime receiver) {
+  static int getYear(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
@@ -753,7 +768,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static getMonth(DateTime receiver) {
+  static int getMonth(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
@@ -762,7 +777,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static getDay(DateTime receiver) {
+  static int getDay(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
@@ -771,7 +786,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static getHours(DateTime receiver) {
+  static int getHours(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
@@ -780,7 +795,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static getMinutes(DateTime receiver) {
+  static int getMinutes(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
@@ -789,7 +804,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static getSeconds(DateTime receiver) {
+  static int getSeconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
@@ -798,7 +813,7 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static getMilliseconds(DateTime receiver) {
+  static int getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS(
             'JSUInt31', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
@@ -808,19 +823,12 @@ class Primitives {
   @pragma('dart2js:noSideEffects')
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
-  static getWeekday(DateTime receiver) {
+  static int getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
         ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
         : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
-  }
-
-  static num valueFromDateString(str) {
-    if (str is! String) throw argumentErrorValue(str);
-    num value = JS('num', r'Date.parse(#)', str);
-    if (value.isNaN) throw argumentErrorValue(str);
-    return value;
   }
 
   static getProperty(object, key) {
@@ -2952,7 +2960,7 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryMultiLoader)) {
     return _loadAllHunks(
-            deferredLibraryMultiLoader, uris, hashes, loadId, priority)
+            deferredLibraryMultiLoader, uris, hashes, loadId, priority, 0)
         .then((_) {
       waitingForLoad = List.filled(total, false);
       finalizeLoad();
@@ -3114,8 +3122,14 @@ String _computeThisScriptFromTrace() {
   throw UnsupportedError('Cannot extract URI from "$stack"');
 }
 
+Object _buildTrustedScriptUriWithRetry(String hunkName, int retryCount) {
+  return _getBasedScriptUrl(
+      hunkName, retryCount > 0 ? '?dart2jsRetry=$retryCount' : '');
+}
+
 Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
-    String loadId, int priority) {
+    String loadId, int priority, int retryCount) {
+  const int maxRetries = 3;
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
 
@@ -3136,7 +3150,8 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
       } else {
         hunksToLoad.add(hunkName);
         hashesToLoad.add(hash);
-        Object trustedScriptUri = _getBasedScriptUrl(hunkName, '');
+        Object trustedScriptUri =
+            _buildTrustedScriptUriWithRetry(hunkName, retryCount);
         // [trustedScriptUri] is either a String, in which case `toString()` is
         // an identity function, or it is a TrustedScriptURL and `toString()`
         // returns the sanitized URL.
@@ -3156,48 +3171,76 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
   hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = completer);
   _addEvent(part: loadedHunksString, event: 'downloadMulti', loadId: loadId);
 
-  void failure(error, String context, StackTrace? stackTrace) {
-    _addEvent(
-        part: loadedHunksString, event: 'downloadFailure', loadId: loadId);
-    hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = null);
-    stackTrace ??= StackTrace.current;
-    completer.completeError(
-        DeferredLoadException('Loading $loadedHunksString failed: $error\n'
-            'Context: $context\n'
-            'event log:\n${_getEventLog()}\n'),
-        stackTrace);
+  void failure(error, String context, StackTrace? stackTrace,
+      List<String>? hunksToRetry, List<String>? hashesToRetry) {
+    if (retryCount < maxRetries && hunksToRetry != null) {
+      _addEvent(
+          part: hunksToRetry.join(';'),
+          event: 'retry$retryCount',
+          loadId: loadId);
+      for (var i = 0; i < hunksToRetry.length; i++) {
+        _loadingLibraries[hunksToRetry[i]] = null;
+      }
+      _loadAllHunks(loader, hunksToRetry!, hashesToRetry!, loadId, priority,
+              retryCount + 1)
+          .then((_) => completer.complete(null),
+              onError: completer.completeError);
+    } else {
+      _addEvent(
+          part: loadedHunksString, event: 'downloadFailure', loadId: loadId);
+      hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = null);
+      stackTrace ??= StackTrace.current;
+      completer.completeError(
+          DeferredLoadException('Loading $loadedHunksString failed: $error\n'
+              'Context: $context\n'
+              'event log:\n${_getEventLog()}\n'),
+          stackTrace);
+    }
   }
 
   void success() {
-    List<String> missingHunks = [];
+    List<String> hunksToRetry = [];
+    List<String> hashesToRetry = [];
     for (int i = 0; i < hashesToLoad.length; i++) {
       bool isLoaded = JS('bool', '#(#)', isHunkLoaded, hashesToLoad[i]);
-      if (!isLoaded) missingHunks.add(hunksToLoad[i]);
+      if (!isLoaded) {
+        hunksToRetry.add(hunksToLoad[i]);
+        hashesToRetry.add(hashesToLoad[i]);
+      }
     }
-    if (missingHunks.isEmpty) {
+    if (hunksToRetry.isEmpty) {
       _addEvent(
           part: loadedHunksString, event: 'downloadSuccess', loadId: loadId);
       completer.complete(null);
     } else {
       failure(
-          'Success callback invoked but parts ${missingHunks.join(';')} not '
-              'loaded.',
-          '',
-          null);
+        'Success callback invoked but parts ${hunksToRetry.join(';')} not '
+            'loaded.',
+        '',
+        null,
+        hunksToRetry,
+        hashesToRetry,
+      );
     }
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
   var jsFailure = convertDartClosureToJS((error) {
-    failure(unwrapException(error), 'js-failure-wrapper',
-        getTraceFromException(error));
+    failure(
+      unwrapException(error),
+      'js-failure-wrapper',
+      getTraceFromException(error),
+      hunksToLoad,
+      hashesToLoad,
+    );
   }, 1);
 
   try {
     JS('void', '#(#, #, #, #, #)', loader, urisToLoad, jsSuccess, jsFailure,
         loadId, priority);
   } catch (error, stackTrace) {
-    failure(error, "invoking dartDeferredLibraryMultiLoader hook", stackTrace);
+    failure(error, "invoking dartDeferredLibraryMultiLoader hook", stackTrace,
+        hunksToLoad, hashesToLoad);
   }
 
   return Future.wait([...pendingLoads, completer.future]);
@@ -3216,11 +3259,8 @@ Future<Null> _loadHunk(
   }
   completer ??= _loadingLibraries[hunkName] = Completer();
 
-  Object trustedScriptUri = _getBasedScriptUrl(
-      hunkName, retryCount > 0 ? '?dart2jsRetry=$retryCount' : '');
-  // [trustedScriptUri] is either a String, in which case `toString()` is an
-  // identity function, or it is a TrustedScriptURL and `toString()` returns the
-  // sanitized URL.
+  Object trustedScriptUri =
+      _buildTrustedScriptUriWithRetry(hunkName, retryCount);
   String uriAsString = JS('', '#.toString()', trustedScriptUri);
 
   _addEvent(part: hunkName, event: 'download', loadId: loadId);

@@ -419,6 +419,7 @@ class VariableDeclarationHelper {
     kLowered = 1 << 8,
     kSynthesized = 1 << 9,
     kHoisted = 1 << 10,
+    kWildcard = 1 << 11,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -440,6 +441,7 @@ class VariableDeclarationHelper {
   bool IsRequired() const { return (flags_ & kRequired) != 0; }
   bool IsSynthesized() const { return (flags_ & kSynthesized) != 0; }
   bool IsHoisted() const { return (flags_ & kHoisted) != 0; }
+  bool IsWildcard() const { return (flags_ & kWildcard) != 0; }
   bool HasDeclaredInitializer() const {
     return (flags_ & kHasDeclaredInitializer) != 0;
   }
@@ -494,10 +496,9 @@ class FieldHelper {
     kIsGenericCovariantImpl = 1 << 4,
     kIsLate = 1 << 5,
     kExtensionMember = 1 << 6,
-    kNonNullableByDefault = 1 << 7,
-    kInternalImplementation = 1 << 8,
-    kEnumElement = 1 << 9,
-    kExtensionTypeMember = 1 << 10,
+    kInternalImplementation = 1 << 7,
+    kEnumElement = 1 << 8,
+    kExtensionTypeMember = 1 << 9,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -594,11 +595,10 @@ class ProcedureHelper {
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
     kExtensionMember = 1 << 4,
-    kIsNonNullableByDefault = 1 << 5,
-    kSyntheticProcedure = 1 << 6,
-    kInternalImplementation = 1 << 7,
-    kExtensionTypeMember = 1 << 8,
-    kHasWeakTearoffReferencePragma = 1 << 9,
+    kSyntheticProcedure = 1 << 5,
+    kInternalImplementation = 1 << 6,
+    kExtensionTypeMember = 1 << 7,
+    kHasWeakTearoffReferencePragma = 1 << 8,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -848,10 +848,9 @@ class LibraryHelper {
 
   enum Flag {
     kSynthetic = 1 << 0,
-    kIsNonNullableByDefault = 1 << 1,
-    kNonNullableByDefaultCompiledModeBit1 = 1 << 2,
-    kNonNullableByDefaultCompiledModeBit2 = 1 << 3,
-    kUnsupported = 1 << 4,
+    kNonNullableByDefaultCompiledModeBit1 = 1 << 1,
+    kNonNullableByDefaultCompiledModeBit2 = 1 << 2,
+    kUnsupported = 1 << 3,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper)
@@ -867,14 +866,11 @@ class LibraryHelper {
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
-  bool IsNonNullableByDefault() const {
-    return (flags_ & kIsNonNullableByDefault) != 0;
-  }
   NNBDCompiledMode GetNonNullableByDefaultCompiledMode() const {
     bool bit1 = (flags_ & kNonNullableByDefaultCompiledModeBit1) != 0;
     bool bit2 = (flags_ & kNonNullableByDefaultCompiledModeBit2) != 0;
-    if (!bit1 && !bit2) return NNBDCompiledMode::kWeak;
-    if (bit1 && !bit2) return NNBDCompiledMode::kStrong;
+    if (!bit1 && !bit2) return NNBDCompiledMode::kStrong;
+    if (bit1 && !bit2) return NNBDCompiledMode::kWeak;
     if (bit1 && bit2) return NNBDCompiledMode::kAgnostic;
     if (!bit1 && bit2) return NNBDCompiledMode::kInvalid;
     UNREACHABLE();
@@ -1428,12 +1424,6 @@ class ActiveClass {
     return member->IsFactory();
   }
 
-  bool RequireConstCanonicalTypeErasure(bool null_safety) const {
-    return klass != nullptr && !null_safety &&
-           Library::Handle(klass->library()).nnbd_compiled_mode() ==
-               NNBDCompiledMode::kAgnostic;
-  }
-
   intptr_t MemberTypeParameterCount(Zone* zone);
 
   intptr_t ClassNumTypeArguments() {
@@ -1552,7 +1542,6 @@ class TypeTranslator {
                  ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
-                 bool apply_canonical_type_erasure = false,
                  bool in_constant_context = false);
 
   AbstractType& BuildType();
@@ -1643,7 +1632,6 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
-  const bool apply_canonical_type_erasure_;
   const bool in_constant_context_;
 
   friend class ScopeBuilder;

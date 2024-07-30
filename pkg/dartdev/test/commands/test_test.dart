@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service_io.dart';
 
 import '../experiment_util.dart';
 import '../utils.dart';
@@ -157,6 +160,53 @@ void main() {
     expect(result.stderr, isEmpty);
   });
 
+  test('implicitly passes --mark-main-isolate-as-system-isolate', () async {
+    // --mark-main-isolate-as-system-isolate is necessary for DevTools to be
+    // able to identify the correct root library.
+    //
+    // See https://github.com/flutter/flutter/issues/143170 for details.
+    final p = project(
+      mainSrc: 'int get foo => 1;\n',
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'}
+      },
+    );
+    p.file('test/foo_test.dart', '''
+import 'package:test/test.dart';
+
+void main() {
+  test('', () {
+    print('hello world');
+  });
+}
+''');
+
+    final vmServiceUriRegExp =
+        RegExp(r'(http:\/\/127.0.0.1:\d*\/[\da-zA-Z-_]*=\/)');
+    final process = await p.start(['test', '--pause-after-load']);
+    final completer = Completer<Uri>();
+    late StreamSubscription sub;
+    sub = process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) async {
+      if (line.contains(vmServiceUriRegExp)) {
+        await sub.cancel();
+        final httpUri = Uri.parse(
+          vmServiceUriRegExp.firstMatch(line)!.group(0)!,
+        );
+        completer.complete(
+          httpUri.replace(scheme: 'ws', path: '${httpUri.path}ws'),
+        );
+      }
+    });
+
+    final vmServiceUri = await completer.future;
+    final vmService = await vmServiceConnectUri(vmServiceUri.toString());
+    final vm = await vmService.getVM();
+    expect(vm.systemIsolates!.where((e) => e.name == 'main'), isNotEmpty);
+  });
+
   group('--enable-experiment', () {
     late TestProject p;
     Future<ProcessResult> runTestWithExperimentFlag(String? flag) async {
@@ -213,5 +263,45 @@ void main() {
         }
       });
     }
+  });
+
+  test('workspace', () async {
+    final p = project(
+        sdkConstraint: VersionConstraint.parse('^3.5.0-0'),
+        pubspecExtras: {
+          'workspace': ['pkgs/a', 'pkgs/b']
+        });
+    p.file('pkgs/a/pubspec.yaml', '''
+name: a
+environment:
+  sdk: ^3.5.0-0
+resolution: workspace
+dependencies:
+  b:
+  test: any
+''');
+    p.file('pkgs/b/pubspec.yaml', '''
+name: b
+environment:
+  sdk: ^3.5.0-0
+resolution: workspace
+''');
+    p.file('pkgs/a/test/a_test.dart', '''
+import 'package:test/test.dart';
+main() {
+  test('works', () {
+    print('testing package a');
+  });
+} 
+''');
+    p.file('pkgs/b/test/b_test.dart', '''
+main() => throw('Test failure');
+''');
+    expect(
+        await p.run(['test'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+        isA<ProcessResult>()
+            .having((r) => r.stdout, 'stdout', contains('testing package a\n'))
+            .having((r) => r.stderr, 'stderr', isEmpty)
+            .having((r) => r.exitCode, 'exitCode', 0));
   });
 }

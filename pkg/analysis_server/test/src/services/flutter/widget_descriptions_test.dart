@@ -244,7 +244,8 @@ void f() {
 ''');
     var property = await getWidgetProperty('Text(', 'overflow');
 
-    var json = property.toJson().cast<String, dynamic>();
+    var json =
+        property.toJson(clientUriConverter: null).cast<String, dynamic>();
     expect(
       json['editor']['enumItems'][0]['documentation'],
       startsWith('Clip the overflowing'),

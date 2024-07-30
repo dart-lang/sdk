@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -21,7 +22,7 @@ import 'package:collection/collection.dart';
 /// Returns a [List] of fixed length with given types.
 List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
   if (e2 != null) {
-    final result = List<DartType>.filled(2, e1);
+    var result = List<DartType>.filled(2, e1);
     result[1] = e2;
     return result;
   } else {
@@ -30,7 +31,8 @@ List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
 }
 
 /// The [Type] representing the type `dynamic`.
-class DynamicTypeImpl extends TypeImpl implements DynamicType {
+class DynamicTypeImpl extends TypeImpl
+    implements DynamicType, SharedDynamicType {
   /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
@@ -118,8 +120,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   int get hashCode {
     // Reference the arrays of parameters
-    final normalParameterTypes = this.normalParameterTypes;
-    final optionalParameterTypes = this.optionalParameterTypes;
+    var normalParameterTypes = this.normalParameterTypes;
+    var optionalParameterTypes = this.optionalParameterTypes;
     var namedParameterTypes = this.namedParameterTypes.values;
     // Generate the hashCode
     var code = returnType.hashCode;
@@ -475,7 +477,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.nullabilitySuffix,
     super.alias,
   }) {
-    if (element.isAugmentation) {
+    if (element.augmentationTarget != null) {
       throw ArgumentError(
         'InterfaceType(s) can only be created for declarations',
       );
@@ -562,7 +564,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartCoreEnum {
-    final element = this.element;
+    var element = this.element;
     return element is ClassElement && element.isDartCoreEnum;
   }
 
@@ -657,8 +659,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /// The instantiated representation type, if [element] is an extension type.
   DartType? get representationType {
     if (element case ExtensionTypeElement element) {
-      final substitution = Substitution.fromInterfaceType(this);
-      final representationType = element.representation.type;
+      var substitution = Substitution.fromInterfaceType(this);
+      var representationType = element.representation.type;
       return substitution.substituteType(representationType);
     }
     return null;
@@ -678,9 +680,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceType> get superclassConstraints {
-    final element = this.element;
-    if (element is MixinElement) {
-      final constraints = element.superclassConstraints;
+    var element = this.element;
+    var augmented = element.augmented;
+    if (augmented is AugmentedMixinElement) {
+      var constraints = augmented.superclassConstraints;
       return _instantiateSuperTypes(constraints);
     } else {
       return [];
@@ -757,9 +760,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   ConstructorElement? lookUpConstructor(
       String? constructorName, LibraryElement library) {
     var augmented = element.augmented;
-    if (augmented == null) {
-      return null;
-    }
 
     // prepare base ConstructorElement
     ConstructorElement? constructorElement;
@@ -809,7 +809,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as InterfaceElementImpl;
+      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticGetter(name, library);
     }
 
@@ -848,7 +848,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as InterfaceElementImpl;
+      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticMethod(name, library);
     }
 
@@ -887,7 +887,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as InterfaceElementImpl;
+      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticSetter(name, library);
     }
 
@@ -922,8 +922,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       substitution = Substitution.fromInterfaceType(this);
     }
 
-    final List<InterfaceTypeImpl> results = [];
-    for (final definedType in definedTypes) {
+    List<InterfaceTypeImpl> results = [];
+    for (var definedType in definedTypes) {
       var result = substitution != null
           ? substitution.substituteType(definedType)
           : definedType;
@@ -935,7 +935,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 }
 
-class InvalidTypeImpl extends TypeImpl implements InvalidType {
+class InvalidTypeImpl extends TypeImpl
+    implements InvalidType, SharedInvalidType {
   /// The unique instance of this class.
   static final InvalidTypeImpl instance = InvalidTypeImpl._();
 
@@ -1082,6 +1083,11 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
+  @override
+  late final List<DartType> positionalTypes = [
+    for (var field in positionalFields) field.type
+  ];
+
   RecordTypeImpl({
     required this.positionalFields,
     required List<RecordTypeNamedFieldImpl> namedFields,
@@ -1096,11 +1102,10 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   }) {
     return RecordTypeImpl(
       positionalFields: [
-        for (final type in positional)
-          RecordTypePositionalFieldImpl(type: type),
+        for (var type in positional) RecordTypePositionalFieldImpl(type: type),
       ],
       namedFields: [
-        for (final entry in named.entries)
+        for (var entry in named.entries)
           RecordTypeNamedFieldImpl(name: entry.key, type: entry.value),
       ],
       nullabilitySuffix: nullabilitySuffix,
@@ -1127,6 +1132,9 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   String? get name => null;
 
   @override
+  List<SharedNamedType<DartType>> get namedTypes => namedFields;
+
+  @override
   bool operator ==(Object other) {
     if (identical(other, this)) {
       return true;
@@ -1140,27 +1148,27 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
       return false;
     }
 
-    final thisPositional = positionalFields;
-    final otherPositional = other.positionalFields;
+    var thisPositional = positionalFields;
+    var otherPositional = other.positionalFields;
     if (thisPositional.length != otherPositional.length) {
       return false;
     }
     for (var i = 0; i < thisPositional.length; i++) {
-      final thisField = thisPositional[i];
-      final otherField = otherPositional[i];
+      var thisField = thisPositional[i];
+      var otherField = otherPositional[i];
       if (thisField.type != otherField.type) {
         return false;
       }
     }
 
-    final thisNamed = namedFields;
-    final otherNamed = other.namedFields;
+    var thisNamed = namedFields;
+    var otherNamed = other.namedFields;
     if (thisNamed.length != otherNamed.length) {
       return false;
     }
     for (var i = 0; i < thisNamed.length; i++) {
-      final thisField = thisNamed[i];
-      final otherField = otherNamed[i];
+      var thisField = thisNamed[i];
+      var otherField = otherNamed[i];
       if (thisField.name != otherField.name ||
           thisField.type != otherField.type) {
         return false;
@@ -1206,8 +1214,8 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   ) {
     var isSorted = true;
     String? lastName;
-    for (final field in fields) {
-      final name = field.name;
+    for (var field in fields) {
+      var name = field.name;
       if (lastName != null && lastName.compareTo(name) > 0) {
         isSorted = false;
         break;
@@ -1335,14 +1343,19 @@ abstract class TypeImpl implements DartType {
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
+    bool preferTypeAlias = false,
   }) {
     var builder = ElementDisplayStringBuilder(
       // ignore:deprecated_member_use_from_same_package
       withNullability: withNullability,
+      preferTypeAlias: preferTypeAlias,
     );
     appendTo(builder);
     return builder.toString();
   }
+
+  @override
+  bool isStructurallyEqualTo(SharedType other) => this == other;
 
   /// Returns true if this type references any of the [parameters].
   bool referencesAny(Set<TypeParameterElement> parameters) {
@@ -1502,7 +1515,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @Deprecated('Use TypeSystem.resolveToBound() instead')
   @override
   DartType resolveToBound(DartType objectType) {
-    final promotedBound = this.promotedBound;
+    var promotedBound = this.promotedBound;
     if (promotedBound != null) {
       return promotedBound.resolveToBound(objectType);
     }
@@ -1536,7 +1549,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 }
 
 /// A concrete implementation of a [VoidType].
-class VoidTypeImpl extends TypeImpl implements VoidType {
+class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   /// The unique instance of this class, with indeterminate nullability.
   static final VoidTypeImpl instance = VoidTypeImpl._();
 

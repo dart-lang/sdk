@@ -19,7 +19,8 @@ class ExecutionMapUriHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = ExecutionMapUriParams.fromRequest(request);
+    var params = ExecutionMapUriParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var contextId = params.id;
     var path = server.executionContext.contextMap[contextId];
     if (path == null) {
@@ -54,7 +55,7 @@ class ExecutionMapUriHandler extends LegacyHandler {
         return;
       }
 
-      final fileResult = driver.getFileSync(file);
+      var fileResult = driver.getFileSync(file);
       if (fileResult is! FileResult) {
         sendResponse(
           Response.invalidParameter(

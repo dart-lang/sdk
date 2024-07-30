@@ -13,7 +13,7 @@ die() {
 
 ensure_in_checkout_root() {
   set -e
-  if [ ! -e src/third_party/dart ]; then
+  if [ ! -e src/flutter/third_party/dart ]; then
     die
   fi
 
