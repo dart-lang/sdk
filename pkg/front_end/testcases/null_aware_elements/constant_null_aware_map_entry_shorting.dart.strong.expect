@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::String? key = #C1;
+static const field core::Map<core::String, core::int> mapLiteral = #C2;
+
+constants  {
+  #C1 = null
+  #C2 = <core::String, core::int>{}
+}

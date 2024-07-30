@@ -45,6 +45,7 @@ import '../kernel/collections.dart'
         IfElement,
         IfMapEntry,
         NullAwareElement,
+        NullAwareMapEntry,
         PatternForElement,
         SpreadElement,
         SpreadMapEntry,
@@ -3458,6 +3459,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (entry is SpreadMapEntry) {
       _translateSpreadEntry(
           entry, receiverType, keyType, valueType, result, body);
+    } else if (entry is NullAwareMapEntry) {
+      _translateNullAwareMapEntry(
+          entry, receiverType, keyType, valueType, result, body);
     } else if (entry is IfMapEntry) {
       _translateIfEntry(entry, receiverType, keyType, valueType, result, body);
     } else if (entry is IfCaseMapEntry) {
@@ -3740,6 +3744,101 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
+  void _translateNullAwareMapEntry(
+      NullAwareMapEntry entry,
+      InterfaceType receiverType,
+      DartType keyType,
+      DartType valueType,
+      VariableDeclaration result,
+      List<Statement> body) {
+    assert(entry.isKeyNullAware || entry.isValueNullAware);
+
+    // The code below lowers null-aware map entries into series of statements.
+    // For example, the null-aware entry in the literal
+    // `<String, int>{?key: ?value}` will be lowered into the following:
+    //
+    //   String? #keyTemp = key as String?;
+    //   if (#keyTemp != null) {
+    //     int? #valueTemp = value as int?;
+    //     if (#valueTemp != null) {
+    //       #t[#keyTemp{String}] = #valueTemp{int};
+    //     }
+    //   }
+    //
+    // In that example `#t` is the collection literal being generated, and
+    // `#keyTemp{String}` and `#valueTemp{int}` represent the promotions of the
+    // variables `#keyTemp` and `#valueTemp` to the non-nullable types `String`
+    // and `int` correspondingly.
+    //
+    // TODO(cstefantsova): Verify the static types of [entry.key] and
+    // [entry.value] are checked by the type inference by now, and remove the
+    // cast if that's so.
+
+    Expression keyExpression = entry.key;
+    Expression valueExpression = entry.value;
+
+    // Since the statement adding the entry to the map may include promotions of
+    // the key or the value expressions, we can't create that statement until
+    // the very end. Instead, we track the guard node that the add-entry
+    // statement should be directly nested in and assign the add-entry
+    // statement with the necessary promotions when we can create it.
+    IfStatement? addedEntryStatementParent;
+
+    Block desugaredStatement = _createBlock([]);
+
+    if (entry.isValueNullAware) {
+      DartType nullableValueType =
+          valueType.withDeclaredNullability(Nullability.nullable);
+      VariableDeclaration valueTemp = _createVariable(
+          _createImplicitAs(
+              entry.value.fileOffset, valueExpression, nullableValueType),
+          nullableValueType);
+      valueExpression = _createNullCheckedVariableGet(valueTemp);
+
+      IfStatement ifValueNotNullStatement = _createIf(
+          valueTemp.fileOffset,
+          _createEqualsNull(createVariableGet(valueTemp), notEquals: true),
+          desugaredStatement);
+      addedEntryStatementParent ??= ifValueNotNullStatement;
+
+      desugaredStatement = _createBlock([valueTemp, ifValueNotNullStatement])
+        ..fileOffset = entry.fileOffset;
+    }
+
+    if (entry.isKeyNullAware) {
+      DartType nullableKeyType =
+          keyType.withDeclaredNullability(Nullability.nullable);
+      VariableDeclaration keyTemp = _createVariable(
+          _createImplicitAs(
+              entry.key.fileOffset, keyExpression, nullableKeyType),
+          nullableKeyType);
+      keyExpression = _createNullCheckedVariableGet(keyTemp);
+
+      IfStatement ifKeyNotNullStatement = _createIf(
+          keyTemp.fileOffset,
+          _createEqualsNull(createVariableGet(keyTemp), notEquals: true),
+          desugaredStatement);
+      addedEntryStatementParent ??= ifKeyNotNullStatement;
+
+      desugaredStatement = _createBlock([keyTemp, ifKeyNotNullStatement])
+        ..fileOffset = entry.fileOffset;
+    }
+
+    // Since either the key or the value is null-aware, [desugaredStatement]
+    // should be replaced with a null-checking [IfStatement].
+    assert(addedEntryStatementParent != null &&
+        desugaredStatement is! EmptyStatement);
+    addedEntryStatementParent!.then = _createExpressionStatement(
+        _createIndexSet(
+            entry.fileOffset,
+            _createVariableGet(result)..fileOffset = TreeNode.noOffset,
+            receiverType,
+            keyExpression,
+            valueExpression));
+
+    body.addAll(desugaredStatement.statements);
+  }
+
   Expression _translateConstListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
       {bool isSet = false}) {
@@ -3894,6 +3993,68 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         } else {
           parts.add(spreadExpression);
         }
+      } else if (entry is NullAwareMapEntry) {
+        assert(entry.isKeyNullAware || entry.isValueNullAware);
+        if (currentPart != null) {
+          parts.add(makeLiteral(node.fileOffset, currentPart));
+          currentPart = null;
+        }
+
+        Expression keyExpression = entry.key;
+        Expression valueExpression = entry.value;
+
+        // Since the desugared map entry may include promotions of the key or
+        // the value expressions, we can't finalize it until the later stages of
+        // desugaring. To assign the promoted expressions as necessary, we keep
+        // track of the map entry node via [addedMapLiteralEntry].
+        MapLiteralEntry? addedMapLiteralEntry;
+
+        Expression desugaredExpression = new NullLiteral();
+
+        if (entry.isValueNullAware) {
+          VariableDeclaration valueTemp = _createVariable(valueExpression,
+              node.valueType.withDeclaredNullability(Nullability.nullable));
+          valueExpression = _createNullCheckedVariableGet(valueTemp);
+          Expression defaultValue = makeLiteral(entry.fileOffset, []);
+          addedMapLiteralEntry ??=
+              new MapLiteralEntry(keyExpression, valueExpression);
+          Expression nullCheckedValue =
+              makeLiteral(entry.value.fileOffset, [addedMapLiteralEntry]);
+          desugaredExpression = _createNullAwareGuard(
+              entry.fileOffset, valueTemp, defaultValue, collectionType,
+              nullCheckedValue: nullCheckedValue);
+        }
+
+        if (entry.isKeyNullAware) {
+          VariableDeclaration keyTemp = _createVariable(entry.key,
+              node.keyType.withDeclaredNullability(Nullability.nullable));
+          keyExpression = _createNullCheckedVariableGet(keyTemp);
+          Expression defaultValue = makeLiteral(entry.fileOffset, []);
+          Expression nullCheckedKey;
+          if (addedMapLiteralEntry == null) {
+            assert(!entry.isValueNullAware);
+            addedMapLiteralEntry =
+                new MapLiteralEntry(keyExpression, valueExpression);
+            nullCheckedKey =
+                makeLiteral(entry.key.fileOffset, [addedMapLiteralEntry]);
+          } else {
+            assert(entry.isValueNullAware);
+            addedMapLiteralEntry.key = keyExpression
+              ..parent = addedMapLiteralEntry;
+            nullCheckedKey = desugaredExpression;
+          }
+          desugaredExpression = _createNullAwareGuard(
+              entry.fileOffset, keyTemp, defaultValue, collectionType,
+              nullCheckedValue: nullCheckedKey);
+        }
+
+        // Since either the key or the value is null-aware,
+        // [desugaredExpression] should be replaced with a null-checking
+        // [Expression].
+        assert(addedMapLiteralEntry != null &&
+            desugaredExpression is! NullLiteral);
+
+        parts.add(desugaredExpression);
       } else if (entry is IfMapEntry) {
         // Coverage-ignore-block(suite): Not run.
         if (currentPart != null) {
@@ -4378,6 +4539,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return replacement;
   }
 
+  NullAwareMapEntry _inferNullAwareMapEntry(
+      NullAwareMapEntry entry,
+      TreeNode parent,
+      DartType inferredKeyType,
+      DartType inferredValueType,
+      DartType spreadContext,
+      List<DartType> actualTypes,
+      List<DartType> actualTypesForSet,
+      Map<TreeNode, DartType> inferredSpreadTypes,
+      Map<Expression, DartType> inferredConditionTypes,
+      _MapLiteralEntryOffsets offsets) {
+    // TODO(cstefantsova): Implement type inference for null-aware map entries.
+    return entry;
+  }
+
   MapLiteralEntry _inferIfMapEntry(
       IfMapEntry entry,
       TreeNode parent,
@@ -4756,6 +4932,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _MapLiteralEntryOffsets offsets) {
     if (entry is SpreadMapEntry) {
       return _inferSpreadMapEntry(
+          entry,
+          parent,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets);
+    } else if (entry is NullAwareMapEntry) {
+      return _inferNullAwareMapEntry(
           entry,
           parent,
           inferredKeyType,

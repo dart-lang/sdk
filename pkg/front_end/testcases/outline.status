@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Null-aware elements are in development
+null_aware_elements/constant_null_aware_map_entry_shorting_erroneous: Crash # Should go away once inference is implemented.
+null_aware_elements/constant_null_aware_map_entry_shorting: Crash # Should go away once inference is implemented.
+
 const_functions/const_functions_const_factory: VerificationError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError

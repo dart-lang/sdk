@@ -651,6 +651,62 @@ mixin ControlFlowMapEntry implements MapLiteralEntry {
   String toStringInternal() => toText(defaultAstTextStrategy);
 }
 
+/// A null-aware entry in a map literal.
+class NullAwareMapEntry extends TreeNode with ControlFlowMapEntry {
+  /// `true` if the key expression is null-aware, that is, marked with `?`.
+  bool isKeyNullAware;
+
+  @override
+  Expression key;
+
+  /// `true` if the value expression is null-aware, that is, marked with `?`.
+  bool isValueNullAware;
+
+  @override
+  Expression value;
+
+  NullAwareMapEntry(
+      {required this.isKeyNullAware,
+      required this.key,
+      required this.isValueNullAware,
+      required this.value});
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (isKeyNullAware) {
+      printer.write('?');
+    }
+    key.toTextInternal(printer);
+    printer.write(': ');
+    if (isValueNullAware) {
+      printer.write('?');
+    }
+    value.toTextInternal(printer);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    key = v.transform(key);
+    key.parent = this;
+    value = v.transform(value);
+    value.parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    key = v.transform(key);
+    key.parent = this;
+    value = v.transform(value);
+    value.parent = this;
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    key.accept(v);
+    value.accept(v);
+  }
+}
+
 /// A spread element in a map literal.
 class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression expression;

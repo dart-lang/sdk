@@ -5116,13 +5116,11 @@ class BodyBuilder extends StackListenerImpl
             (nullAwareKeyToken ?? nullAwareValueToken!).offset,
             noLength);
       }
-      // TODO(cstefantsova): Replace the following no-op with the node for
-      // handling null-aware elements.
-      push(forest.createSpreadElement(
-          offsetForToken(nullAwareKeyToken ?? nullAwareValueToken!),
-          forest.createNullLiteral(
-              offsetForToken(nullAwareKeyToken ?? nullAwareValueToken!)),
-          isNullAware: true));
+      push(forest.createNullAwareMapEntry(offsetForToken(colon),
+          isKeyNullAware: nullAwareKeyToken != null,
+          key: key,
+          isValueNullAware: nullAwareValueToken != null,
+          value: value));
     }
   }
 
