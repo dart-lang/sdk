@@ -107,8 +107,13 @@ Object getInterceptorForRti(obj) {
       default:
         // The interceptors for native JavaScript types like bool, string, etc.
         // (excluding number and function, see above) are stored as a symbolized
-        // property and can be accessed from the native value itself.
-        classRef = JS('', '#[#]', obj, _extensionType);
+        // property and can be accessed from the prototype of native value.
+        // Avoid reading this field when `obj` has the property itself which
+        // means that `obj` must be a native prototype and should be treated as
+        // an interop object.
+        if (!JS('', '#.call(#, #)', hOP, obj, _extensionType)) {
+          classRef = JS('', '#[#]', obj, _extensionType);
+        }
         // If there is no extension type then this object must not be from Dart.
         if (classRef == null) classRef = JS_CLASS_REF(LegacyJavaScriptObject);
     }
@@ -128,7 +133,11 @@ getReifiedType(obj) {
       if (obj == null) return TYPE_REF<Null>();
       if (_jsInstanceOf(obj, RecordImpl)) return getRtiForRecord(obj);
       if (_jsInstanceOf(obj, Object) ||
-          JS('', '#[#]', obj, _extensionType) != null) {
+          // Avoid reading this field when `obj` has the property itself which
+          // means that `obj` must be a native prototype and should be treated
+          // as an interop object.
+          (JS('', '#[#]', obj, _extensionType) != null &&
+              !JS('', '#.call(#, #)', hOP, obj, _extensionType))) {
         // The rti library can correctly extract the representation.
         return rti.instanceType(obj);
       }
