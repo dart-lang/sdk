@@ -13,6 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -21,7 +22,6 @@ import '../analysis_server_base.dart';
 import '../lsp/change_verifier.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../services/completion/dart/text_expectations.dart';
-import '../utils/tree_string_sink.dart';
 
 class EventsCollector {
   final ContextResolutionTest test;

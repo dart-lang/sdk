@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:macros/src/bootstrap.dart' as macro;
 import 'package:macros/src/executor/serialization.dart' as macro;
@@ -23,7 +24,6 @@ import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../util/tree_string_sink.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
 import 'element_text.dart';

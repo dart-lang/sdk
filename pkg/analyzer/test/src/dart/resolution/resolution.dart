@@ -21,11 +21,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 import '../../../util/element_printer.dart';
-import '../../../util/tree_string_sink.dart';
 import '../../summary/macros_environment.dart';
 import '../../summary/resolved_ast_printer.dart';
 import '../analysis/result_printer.dart';

@@ -9,9 +9,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
-
-import 'tree_string_sink.dart';
 
 class ElementPrinter {
   final TreeStringSink _sink;

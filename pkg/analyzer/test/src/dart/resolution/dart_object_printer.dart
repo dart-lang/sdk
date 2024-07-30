@@ -4,10 +4,10 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 
 import '../../../util/element_printer.dart';
-import '../../../util/tree_string_sink.dart';
 
 /// Prints [DartObjectImpl] as a tree, with values and fields.
 class DartObjectPrinter {
