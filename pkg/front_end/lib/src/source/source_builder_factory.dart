@@ -508,14 +508,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
           ..resolveNamedTypes(typeVariables, _problemReporting);
-    Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
 
     LookupScope typeParameterScope =
         TypeParameterScope.fromList(_scope, typeVariables);
-    NameSpace enumNameSpace =
-        new NameSpaceImpl(getables: members, setables: setters);
+    NameSpace enumNameSpace = declaration.toNameSpace();
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
@@ -579,9 +576,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       setParent(member as MemberBuilder);
     }
 
-    members.forEach(setParentAndCheckConflicts);
+    enumNameSpace.forEachLocalMember(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
+    enumNameSpace.forEachLocalSetter(setParentAndCheckConflicts);
     addBuilder(name, enumBuilder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
 
@@ -664,14 +661,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         endNestedDeclaration(kind, className)
           ..resolveNamedTypes(typeVariables, _problemReporting);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
 
     LookupScope typeParameterScope =
         TypeParameterScope.fromList(_scope, typeVariables);
-    NameSpace classNameSpace =
-        new NameSpaceImpl(getables: members, setables: setters);
+    NameSpace classNameSpace = declaration.toNameSpace();
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
@@ -750,9 +744,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       setParent(member as MemberBuilder);
     }
 
-    members.forEach(setParentAndCheckConflicts);
+    classNameSpace.forEachLocalMember(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
+    classNameSpace.forEachLocalSetter(setParentAndCheckConflicts);
     addBuilder(className, classBuilder, nameOffset,
         getterReference: _indexedContainer?.reference);
     offsetMap.registerNamedDeclaration(identifier, classBuilder);
@@ -1150,14 +1144,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
           ..resolveNamedTypes(typeVariables, _problemReporting);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
 
     LookupScope typeParameterScope =
         TypeParameterScope.fromList(_scope, typeVariables);
-    NameSpace extensionNameSpace =
-        new NameSpaceImpl(getables: members, setables: setters);
+    NameSpace extensionNameSpace = declaration.toNameSpace();
 
     Extension? referenceFrom;
     ExtensionName extensionName = declaration.extensionName!;
@@ -1206,9 +1197,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       setParent(member as MemberBuilder);
     }
 
-    members.forEach(setParentAndCheckConflicts);
+    extensionNameSpace.forEachLocalMember(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
+    extensionNameSpace.forEachLocalSetter(setParentAndCheckConflicts);
     addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
     if (identifier != null) {
@@ -1234,14 +1225,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         TypeParameterScopeKind.extensionTypeDeclaration, name)
       ..resolveNamedTypes(typeVariables, _problemReporting);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
 
     LookupScope typeParameterScope =
         TypeParameterScope.fromList(_scope, typeVariables);
-    NameSpace extensionTypeNameSpace =
-        new NameSpaceImpl(getables: members, setables: setters);
+    NameSpace extensionTypeNameSpace = declaration.toNameSpace();
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
@@ -1250,7 +1238,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
-    for (Builder? member in members.values) {
+    for (Builder? member in extensionTypeNameSpace.localMembers) {
       while (member != null) {
         if (!member.isDuplicate &&
             member is SourceFieldBuilder &&
@@ -1307,9 +1295,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       setParent(member as MemberBuilder);
     }
 
-    members.forEach(setParentAndCheckConflicts);
+    extensionTypeNameSpace.forEachLocalMember(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
+    extensionTypeNameSpace.forEachLocalSetter(setParentAndCheckConflicts);
     addBuilder(extensionTypeDeclarationBuilder.name,
         extensionTypeDeclarationBuilder, identifier.nameOffset,
         getterReference: indexedContainer?.reference);
