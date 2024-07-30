@@ -85,6 +85,9 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
         } else if (node is VariableDeclaration) {
           originEntity = node.name;
           type = node.declaredElement?.type;
+        } else if (node is DeclaredIdentifier) {
+          originEntity = node.name;
+          type = node.declaredElement?.type;
         } else if (node is Expression) {
           originEntity = node;
           type = _getType(node);

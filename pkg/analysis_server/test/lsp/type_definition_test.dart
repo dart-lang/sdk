@@ -213,6 +213,32 @@ const [!a^!] = 'test string';
     _expectSdkCoreType(result, 'String');
   }
 
+  Future<void> test_variableDeclaration_forInLoop() async {
+    var code = TestCode.parse('''
+void f() {
+  for (final [!a^!] in ['']) {
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_variableDeclaration_forLoop() async {
+    var code = TestCode.parse('''
+void f() {
+  for (var [!i^!] = 0; i < 1; i++) {
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'int');
+  }
+
   Future<void> test_variableDeclaration_inferredType() async {
     var code = TestCode.parse('''
 var [!a^!] = 'test string';
@@ -234,6 +260,34 @@ void f() {
     var result = await _getResult(code);
     expect(result.originSelectionRange, code.range.range);
     _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_variableReference_forInLoop() async {
+    var code = TestCode.parse('''
+void f() {
+  for (final a in ['']) {
+    print([!a^!]);
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_variableReference_forLoop() async {
+    var code = TestCode.parse('''
+void f() {
+  for (var i = 0; i < 1; i++) {
+    print([!i^!]);
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'int');
   }
 
   Future<void> test_variableReference_inferredType() async {
