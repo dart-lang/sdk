@@ -148,7 +148,7 @@ AwaitExpression
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier

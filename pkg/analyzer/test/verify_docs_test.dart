@@ -145,7 +145,7 @@ $snippet
           ErrorCode errorCode = error.errorCode;
           // TODO(brianwilkerson): .
           return errorCode != WarningCode.UNUSED_IMPORT &&
-              errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
+              errorCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
               !isAllowedLint(error);
         });
         if (errors.isNotEmpty) {

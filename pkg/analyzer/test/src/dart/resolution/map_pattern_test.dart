@@ -24,7 +24,7 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -60,7 +60,7 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -93,7 +93,7 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -283,7 +283,7 @@ void f(Map<int, String> x) {
   if (x case {0: var a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -313,7 +313,7 @@ void f(Map<bool, num> x) {
   if (x case <bool, int>{true: var a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -400,7 +400,7 @@ void f(Object x) {
   if (x case {true: int a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -433,7 +433,7 @@ void f(Object x) {
   if (x case {true: var a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -502,7 +502,7 @@ void f(Object x) {
   if (x case <bool, int>{true: var a}) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -581,7 +581,7 @@ void f(Map<bool, int> x) {
   var {true: a} = x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -620,7 +620,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -679,7 +679,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''

@@ -287,7 +287,7 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1),
     ]);
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
@@ -317,7 +317,7 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
     ]);
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
@@ -2575,7 +2575,7 @@ PropertyAccess
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::@prefix::p
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2643,7 +2643,7 @@ PropertyAccess
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::@prefix::p
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2711,7 +2711,7 @@ MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::@prefix::p
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2787,7 +2787,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: p
-        staticElement: <thisLibrary>::@prefix::p
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::p
         staticType: null
       period: .
       identifier: SimpleIdentifier

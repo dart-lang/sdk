@@ -26,7 +26,7 @@ void test() {
   context = f; // 1
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 7),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 7),
     ]);
     _assertTearOff(
       'f; // 1',
@@ -44,7 +44,7 @@ void test() {
   context = f; // 1
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 7),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 7),
     ]);
     _assertTearOff(
       'f; // 1',

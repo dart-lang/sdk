@@ -59,7 +59,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <thisLibrary>::@prefix::a
+      element: <thisLibrary>::<definingUnit>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -275,7 +275,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <thisLibrary>::@prefix::a
+      element: <thisLibrary>::<definingUnit>::@prefix::a
     name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -368,7 +368,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <thisLibrary>::@prefix::a
+      element: <thisLibrary>::<definingUnit>::@prefix::a
     name: A
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -428,7 +428,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <thisLibrary>::@prefix::a
+      element: <thisLibrary>::<definingUnit>::@prefix::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -509,7 +509,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <thisLibrary>::@prefix::a
+      element: <thisLibrary>::<definingUnit>::@prefix::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <

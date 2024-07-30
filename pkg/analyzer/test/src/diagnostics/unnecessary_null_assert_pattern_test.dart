@@ -21,7 +21,7 @@ void f(int x) {
   if (x case var a!) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
       error(StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN, 34, 1),
     ]);
   }
@@ -32,7 +32,7 @@ void f(int? x) {
   if (x case var a!) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
   }
 
@@ -44,7 +44,7 @@ class A<T extends num> {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
       error(StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN, 61, 1),
     ]);
   }
@@ -57,7 +57,7 @@ class A<T> {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
     ]);
   }
 }

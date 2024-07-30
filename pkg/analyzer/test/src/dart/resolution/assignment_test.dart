@@ -367,7 +367,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2097,7 +2097,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::@prefix::p
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -4073,7 +4073,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: <thisLibrary>::@prefix::x
+  writeElement: <thisLibrary>::<definingUnit>::@prefix::x
   writeType: InvalidType
   staticElement: <null>
   staticType: int
@@ -4106,7 +4106,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: <thisLibrary>::@prefix::x
+  writeElement: <thisLibrary>::<definingUnit>::@prefix::x
   writeType: InvalidType
   staticElement: <null>
   staticType: int

@@ -1842,15 +1842,9 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
   status: noFix
 HintCode.MACRO_INFO:
   status: noFix
-HintCode.UNNECESSARY_CAST:
-  status: hasFix
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
 HintCode.UNREACHABLE_SWITCH_CASE:
-  status: hasFix
-HintCode.UNUSED_ELEMENT:
-  status: hasFix
-HintCode.UNUSED_ELEMENT_PARAMETER:
   status: hasFix
 LintCode.always_declare_return_types:
   status: hasFix
@@ -3700,6 +3694,8 @@ WarningCode.UNNECESSARY_CAST_PATTERN:
   notes: |-
     The fix is to remove the cast pattern, assuming that doing so won't produce
     invalid code.
+WarningCode.UNNECESSARY_CAST:
+  status: hasFix
 WarningCode.UNNECESSARY_FINAL:
   status: hasFix
 WarningCode.UNNECESSARY_IGNORE:
@@ -3735,6 +3731,10 @@ WarningCode.UNNECESSARY_WILDCARD_PATTERN:
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 WarningCode.UNUSED_CATCH_STACK:
+  status: hasFix
+WarningCode.UNUSED_ELEMENT:
+  status: hasFix
+WarningCode.UNUSED_ELEMENT_PARAMETER:
   status: hasFix
 WarningCode.UNUSED_FIELD:
   status: hasFix

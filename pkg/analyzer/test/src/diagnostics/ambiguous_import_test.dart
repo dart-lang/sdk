@@ -211,7 +211,7 @@ class B<T extends N> {}''', [
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 63, 1),
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 72, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 74, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 74, 1),
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 106, 1),
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 149, 1),
     ]);

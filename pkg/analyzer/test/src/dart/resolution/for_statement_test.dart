@@ -687,7 +687,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
     ]);
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -737,7 +737,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
     ]);
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''

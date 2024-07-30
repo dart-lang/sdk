@@ -961,7 +961,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   set libraryExports(List<LibraryExportElementImpl> exports) {
     for (var exportElement in exports) {
       exportElement.enclosingElement3 = this;
-      exportElement.enclosingElement = this;
+      exportElement.enclosingElement = library;
     }
     _libraryExports = exports;
   }
@@ -979,7 +979,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<PrefixElementImpl> get libraryImportPrefixes {
-    return _libraryImportPrefixes ??= _buildPrefixesFromImports();
+    return _libraryImportPrefixes ??= _buildLibraryImportPrefixes();
   }
 
   @override
@@ -991,7 +991,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   set libraryImports(List<LibraryImportElementImpl> imports) {
     for (var importElement in imports) {
       importElement.enclosingElement3 = this;
-      importElement.enclosingElement = this;
+      importElement.enclosingElement = library;
     }
     _libraryImports = imports;
     _libraryImportPrefixes = null;
@@ -1164,7 +1164,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     this.linkedData = linkedData;
   }
 
-  List<PrefixElementImpl> _buildPrefixesFromImports() {
+  List<PrefixElementImpl> _buildLibraryImportPrefixes() {
     var prefixes = <PrefixElementImpl>{};
     for (var import in libraryImports) {
       var prefix = import.prefix?.element;
@@ -4415,17 +4415,6 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   LibraryElementImpl get library => augmentationTarget.library;
 
   @override
-  List<LibraryExportElementImpl> get libraryExports {
-    return _libraryExports;
-  }
-
-  @override
-  List<LibraryImportElementImpl> get libraryImports {
-    _readLinkedData();
-    return _libraryImports;
-  }
-
-  @override
   Source get librarySource => library.source;
 
   @override
@@ -4788,18 +4777,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   LibraryElement2 get library2 => this;
 
   @override
-  List<LibraryExportElementImpl> get libraryExports {
-    _readLinkedData();
-    return _libraryExports;
-  }
-
-  @override
-  List<LibraryImportElementImpl> get libraryImports {
-    _readLinkedData();
-    return _libraryImports;
-  }
-
-  @override
   FunctionElement get loadLibraryFunction {
     return _loadLibraryFunction;
   }
@@ -4843,10 +4820,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
     _parts = parts;
   }
-
-  @override
-  List<PrefixElementImpl> get prefixes =>
-      _prefixes ??= buildPrefixesFromImports(libraryImports);
 
   @override
   Namespace get publicNamespace {
@@ -5247,19 +5220,6 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   List<AugmentationImportElementImpl> _augmentationImports =
       _Sentinel.augmentationImportElement;
 
-  /// A list containing specifications of all of the imports defined in this
-  /// library.
-  List<LibraryExportElementImpl> _libraryExports =
-      _Sentinel.libraryExportElement;
-
-  /// A list containing specifications of all of the imports defined in this
-  /// library.
-  List<LibraryImportElementImpl> _libraryImports =
-      _Sentinel.libraryImportElement;
-
-  /// The cached list of prefixes.
-  List<PrefixElementImpl>? _prefixes;
-
   /// The scope of this library, `null` if it has not been created yet.
   LibraryOrAugmentationScope? _scope;
 
@@ -5309,53 +5269,26 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return _definingCompilationUnit;
   }
 
-  List<LibraryExportElementImpl> get exports_unresolved {
-    return _libraryExports;
-  }
-
   @override
   String get identifier => '${_definingCompilationUnit.source.uri}';
-
-  List<LibraryImportElementImpl> get imports_unresolved {
-    return _libraryImports;
-  }
 
   @override
   LibraryElementImpl get library;
 
   @override
   List<LibraryExportElementImpl> get libraryExports {
-    _readLinkedData();
-    return _libraryExports;
-  }
-
-  /// Set the specifications of all of the exports defined in this library to
-  /// the given list of [exports].
-  set libraryExports(List<LibraryExportElementImpl> exports) {
-    for (var exportElement in exports) {
-      exportElement.enclosingElement3 = this;
-      exportElement.enclosingElement = this;
-    }
-    _libraryExports = exports;
+    return definingCompilationUnit.libraryExports;
   }
 
   @override
-  List<LibraryImportElementImpl> get libraryImports;
-
-  /// Set the specifications of all of the imports defined in this library to
-  /// the given list of [imports].
-  set libraryImports(List<LibraryImportElementImpl> imports) {
-    for (var importElement in imports) {
-      importElement.enclosingElement3 = this;
-      importElement.enclosingElement = this;
-    }
-    _libraryImports = imports;
-    _prefixes = null;
+  List<LibraryImportElementImpl> get libraryImports {
+    return definingCompilationUnit.libraryImports;
   }
 
   @override
-  List<PrefixElementImpl> get prefixes =>
-      _prefixes ??= buildPrefixesFromImports(libraryImports);
+  List<PrefixElementImpl> get prefixes {
+    return definingCompilationUnit.libraryImportPrefixes;
+  }
 
   @override
   LibraryOrAugmentationScope get scope {
@@ -5375,18 +5308,6 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   }
 
   void _readLinkedData();
-
-  static List<PrefixElementImpl> buildPrefixesFromImports(
-      List<LibraryImportElementImpl> imports) {
-    var prefixes = <PrefixElementImpl>{};
-    for (var import in imports) {
-      var prefix = import.prefix;
-      if (prefix != null) {
-        prefixes.add(prefix.element);
-      }
-    }
-    return prefixes.toList(growable: false);
-  }
 }
 
 /// A concrete implementation of a [LocalVariableElement].

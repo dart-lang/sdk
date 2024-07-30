@@ -67,7 +67,7 @@ main() {
   B<int> b = B(<num>[])..x=2.2;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
 
     var node = findNode.instanceCreation('B(<num>');

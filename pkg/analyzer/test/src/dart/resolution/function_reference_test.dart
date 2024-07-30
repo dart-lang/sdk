@@ -162,7 +162,7 @@ FunctionReference
         importPrefix: ImportPrefixReference
           name: a
           period: .
-          element: <thisLibrary>::@prefix::a
+          element: <thisLibrary>::<definingUnit>::@prefix::a
         name: Future
         element: dart:async::<definingUnit>::@class::Future
         type: null
@@ -419,7 +419,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: <thisLibrary>::@prefix::a
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1235,7 +1235,7 @@ ImplicitCallReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::@prefix::prefix
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1286,7 +1286,7 @@ ImplicitCallReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2211,7 +2211,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::@prefix::prefix
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -2262,7 +2262,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::@prefix::prefix
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -2582,7 +2582,7 @@ ExpressionStatement
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2960,7 +2960,7 @@ void f(({T Function<T>(T) f1, String f2}) r) {
   int Function(int) v = r.f1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1),
     ]);
 
     var node = findNode.functionReference(r'.f1;');
@@ -2989,7 +2989,7 @@ void f((T Function<T>(T), String) r) {
   int Function(int) v = r.$1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
 
     var node = findNode.functionReference(r'.$1;');
@@ -3104,7 +3104,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
-        staticElement: <thisLibrary>::@prefix::a
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::a
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3154,7 +3154,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::@prefix::prefix
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3205,7 +3205,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::@prefix::prefix
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3434,7 +3434,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: <thisLibrary>::@prefix::a
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3478,7 +3478,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: <thisLibrary>::@prefix::a
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3623,7 +3623,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3665,7 +3665,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::@prefix::prefix
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3845,7 +3845,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: <thisLibrary>::@prefix::a
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier

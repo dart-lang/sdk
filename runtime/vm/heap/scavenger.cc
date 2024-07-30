@@ -1979,6 +1979,39 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
          failed_to_promote_);
 }
 
+static constexpr intptr_t kMinAutoScavengeWorkers = 2;
+static constexpr intptr_t kMaxAutoScavengeWorkers = 4;
+
+intptr_t Scavenger::NumScavengeWorkers() {
+  intptr_t num_tasks = FLAG_scavenger_tasks;
+  if (num_tasks == -1) {
+    // --scavenger_tasks=-1 => dynamically choose workers
+    num_tasks = heap_->isolate_group()->MutatorCount();
+    if (num_tasks < kMinAutoScavengeWorkers) {
+      num_tasks = kMinAutoScavengeWorkers;
+    }
+    if (num_tasks > kMaxAutoScavengeWorkers) {
+      num_tasks = kMaxAutoScavengeWorkers;
+    }
+  } else if (num_tasks == 0) {
+    // --scavenger_tasks=0 => serial scavenge
+    num_tasks = 1;
+  }
+  ASSERT(num_tasks > 0);
+  ASSERT(num_tasks <= NumDataFreelists());
+  return num_tasks;
+}
+
+intptr_t Scavenger::NumDataFreelists() {
+  if (FLAG_scavenger_tasks == -1) {
+    return kMaxAutoScavengeWorkers;
+  } else if (FLAG_scavenger_tasks == 0) {
+    return 1;
+  } else {
+    return FLAG_scavenger_tasks;
+  }
+}
+
 intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
   FreeList* freelist = heap_->old_space()->DataFreeList(0);
   SerialScavengerVisitor visitor(heap_->isolate_group(), this, from, freelist,
@@ -1993,8 +2026,7 @@ intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
 
 intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   intptr_t bytes_promoted = 0;
-  const intptr_t num_tasks = FLAG_scavenger_tasks;
-  ASSERT(num_tasks > 0);
+  const intptr_t num_tasks = NumScavengeWorkers();
 
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
   RelaxedAtomic<uintptr_t> num_busy = 0;

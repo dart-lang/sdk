@@ -382,7 +382,7 @@ main() {
   var c = const C();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
     ]);
     var otherFileResult = await resolveFile(other);
     assertErrorsInList(otherFileResult.errors, [

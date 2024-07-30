@@ -805,7 +805,7 @@ PrefixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::@prefix::p
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier

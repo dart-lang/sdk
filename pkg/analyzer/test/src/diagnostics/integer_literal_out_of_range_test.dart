@@ -15,6 +15,19 @@ main() {
 
 @reflectiveTest
 class IntegerLiteralOutOfRangeTest extends PubPackageResolutionTest {
+  test_hex() async {
+    await assertErrorsInCode('''
+int x = 0xFFFF_FFFF_FFFF_FFFF_FFFF;
+''', [
+      error(
+        CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
+        8,
+        26,
+        messageContains: [RegExp('0xFFFF_FFFF_FFFF_FFFF_FFFF')],
+      ),
+    ]);
+  }
+
   test_negative() async {
     await assertErrorsInCode('''
 int x = -9223372036854775809;
@@ -28,6 +41,19 @@ int x = -9223372036854775809;
 int x = 9223372036854775808;
 ''', [
       error(CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, 8, 19),
+    ]);
+  }
+
+  test_separators() async {
+    await assertErrorsInCode('''
+int x = 9_223_372_036_854_775_808;
+''', [
+      error(
+        CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
+        8,
+        25,
+        messageContains: [RegExp('9_223_372_036_854_775_808')],
+      ),
     ]);
   }
 }

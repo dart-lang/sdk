@@ -888,7 +888,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A<int>
@@ -943,7 +943,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1006,7 +1006,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1065,7 +1065,7 @@ MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1117,7 +1117,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: X
       element: package:test/a.dart::<definingUnit>::@typeAlias::X
       type: A<int>
@@ -1346,7 +1346,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1402,7 +1402,7 @@ ExtensionOverride
   importPrefix: ImportPrefixReference
     name: prefix
     period: .
-    element: <thisLibrary>::@prefix::prefix
+    element: <thisLibrary>::<definingUnit>::@prefix::prefix
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1447,7 +1447,7 @@ f() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   operator: .
   methodName: SimpleIdentifier

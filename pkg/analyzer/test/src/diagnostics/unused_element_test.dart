@@ -714,7 +714,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
     ]);
   }
 
@@ -763,7 +763,7 @@ void f(A a) {
   var v = a._g;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
   }
 
@@ -776,7 +776,7 @@ main() {
   var v = new A()._g;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
   }
 

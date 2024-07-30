@@ -836,7 +836,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <thisLibrary>::@prefix::p
+        element: <thisLibrary>::<definingUnit>::@prefix::p
       name: Foo
       element: package:test/a.dart::<definingUnit>::@class::Foo
       type: Foo<dynamic>
@@ -937,7 +937,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <thisLibrary>::@prefix::p
+        element: <thisLibrary>::<definingUnit>::@prefix::p
       name: Foo
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1227,7 +1227,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: prefix
-      element: <thisLibrary>::@prefix::prefix
+      element: <thisLibrary>::<definingUnit>::@prefix::prefix
       type: InvalidType
     staticElement: <null>
   argumentList: ArgumentList
@@ -1273,7 +1273,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A<int>
@@ -1337,7 +1337,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A<int>
@@ -1384,7 +1384,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
@@ -1437,7 +1437,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
@@ -1487,7 +1487,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
@@ -1523,7 +1523,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1583,7 +1583,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1636,7 +1636,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
@@ -1678,7 +1678,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
@@ -1721,7 +1721,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: Foo
       element: <null>
       type: InvalidType

@@ -514,8 +514,6 @@ class BundleWriter {
     LibraryOrAugmentationElementImpl container,
   ) {
     _resolutionSink._writeAnnotationList(container.metadata);
-    _writeList(container.libraryImports, _writeImportElement);
-    _writeList(container.libraryExports, _writeExportElement);
     _writeList(
       container.augmentationImports,
       _writeAugmentationImportElement,

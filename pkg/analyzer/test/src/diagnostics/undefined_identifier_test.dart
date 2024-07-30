@@ -237,7 +237,7 @@ f() {
   return [for (int x in []) null, x];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 40, 1),
     ]);
   }
@@ -271,7 +271,7 @@ f() {
   x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
     ]);
   }
@@ -380,7 +380,7 @@ class B extends A {
     var v = _foo;
   }
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 4),
     ]);
   }

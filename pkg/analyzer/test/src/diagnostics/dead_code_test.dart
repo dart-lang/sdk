@@ -713,7 +713,7 @@ f() {
   bool b = DEBUG || true;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1),
     ]);
   }
 

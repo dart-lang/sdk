@@ -346,8 +346,8 @@ class B extends A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 92, 1),
     ]);
   }
 }

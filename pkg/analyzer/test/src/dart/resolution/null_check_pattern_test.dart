@@ -21,7 +21,7 @@ void f(int? x) {
   if (x case var y?) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -46,7 +46,7 @@ void f(int? x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -70,7 +70,7 @@ void f(int? x) {
 ''', [
       error(
           CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 24, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''

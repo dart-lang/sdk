@@ -37,7 +37,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       element: package:test/lib1.dart::<definingUnit>::@class::A
       type: A
@@ -67,7 +67,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: B
       element: package:test/lib1.dart::<definingUnit>::@typeAlias::B
       type: A
@@ -99,7 +99,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       element: package:test/lib1.dart::<definingUnit>::@class::A
       type: A
@@ -127,7 +127,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
@@ -155,7 +155,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       element: package:test/a.dart::<definingUnit>::@extensionType::A
       type: A
@@ -179,7 +179,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element: <thisLibrary>::@prefix::math
+        element: <thisLibrary>::<definingUnit>::@prefix::math
       name: Random
       element: dart:math::<definingUnit>::@class::Random
       type: Random

@@ -244,6 +244,9 @@ class Scavenger {
   template <typename Type, typename PtrType>
   void PruneWeak(GCLinkedList<Type, PtrType>* list);
 
+  intptr_t NumScavengeWorkers();
+  static intptr_t NumDataFreelists();
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {

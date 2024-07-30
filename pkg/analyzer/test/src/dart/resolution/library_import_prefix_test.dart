@@ -30,7 +30,7 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  staticElement: <thisLibrary>::@prefix::p
+  staticElement: <thisLibrary>::<definingUnit>::@prefix::p
   staticType: InvalidType
 ''');
   }
@@ -43,7 +43,7 @@ main() {
   for (var x in p) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
     ]);
 
@@ -61,7 +61,7 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::@prefix::p
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
   body: Block
@@ -82,7 +82,7 @@ main() {
   var x = new C(p);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 76, 1),
     ]);
 
@@ -106,7 +106,7 @@ InstanceCreationExpression
         parameter: ParameterMember
           base: <thisLibrary>::<definingUnit>::@class::C::@constructor::new::@parameter::a
           substitution: {T: dynamic}
-        staticElement: <thisLibrary>::@prefix::p
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
