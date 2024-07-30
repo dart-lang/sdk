@@ -10,6 +10,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import 'name_scheme.dart';
+import 'source_field_builder.dart';
 
 // The kind of type parameter scope built by a [TypeParameterScopeBuilder]
 // object.
@@ -117,6 +118,8 @@ class TypeParameterScopeBuilder {
 
   final Map<String, List<Builder>> setterAugmentations =
       <String, List<Builder>>{};
+
+  List<SourceFieldBuilder>? primaryConstructorFields;
 
   // TODO(johnniwinther): Stop using [_name] for determining the declaration
   // kind.
@@ -331,6 +334,10 @@ class TypeParameterScopeBuilder {
     unresolvedNamedTypes.add(type);
   }
 
+  void addPrimaryConstructorField(SourceFieldBuilder builder) {
+    (primaryConstructorFields ??= []).add(builder);
+  }
+
   /// Resolves type variables in [unresolvedNamedTypes] and propagate other
   /// types to [parent].
   void resolveNamedTypes(List<NominalVariableBuilder>? typeVariables,
@@ -446,6 +453,73 @@ class TypeParameterScopeBuilder {
         getables: members, setables: setters, extensions: extensions);
   }
 
+  NameSpaceBuilder toNameSpaceBuilder(
+      Map<String, NominalVariableBuilder>? typeVariables) {
+    return new NameSpaceBuilder._(
+        members, setters, constructors, extensions, typeVariables);
+  }
+
   @override
   String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
+}
+
+class NameSpaceBuilder {
+  final Map<String, Builder>? _getables;
+  final Map<String, MemberBuilder>? _setables;
+  final Map<String, MemberBuilder>? _constructors;
+  final Set<ExtensionBuilder>? _extensions;
+  final Map<String, NominalVariableBuilder>? _typeVariables;
+
+  NameSpaceBuilder.empty()
+      : _getables = null,
+        _setables = null,
+        _constructors = null,
+        _extensions = null,
+        _typeVariables = null;
+
+  NameSpaceBuilder._(this._getables, this._setables, this._constructors,
+      this._extensions, this._typeVariables);
+
+  void addLocalMember(String name, MemberBuilder builder,
+      {required bool setter}) {
+    (setter ? _setables : _getables)![name] = builder;
+  }
+
+  MemberBuilder? lookupLocalMember(String name, {required bool setter}) {
+    return (setter ? _setables : _getables)![name] as MemberBuilder?;
+  }
+
+  NameSpace buildNameSpace(IDeclarationBuilder parent) {
+    void setParent(MemberBuilder? member) {
+      while (member != null) {
+        member.parent = parent;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (_typeVariables != null) {
+        NominalVariableBuilder? tv = _typeVariables![name];
+        if (tv != null) {
+          // Coverage-ignore-block(suite): Not run.
+          parent.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(member as MemberBuilder);
+    }
+
+    _getables?.forEach(setParentAndCheckConflicts);
+    _setables?.forEach(setParentAndCheckConflicts);
+    _constructors?.forEach(setParentAndCheckConflicts);
+
+    return new NameSpaceImpl(
+        getables: _getables, setables: _setables, extensions: _extensions);
+  }
 }

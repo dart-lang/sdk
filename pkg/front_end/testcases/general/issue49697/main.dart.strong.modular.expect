@@ -16,8 +16,8 @@ class A extends core::_Enum /*isEnum*/  {
     return "A.${this.{core::_Enum::_name}{core::String}}";
 }
 class B extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::B> values = #C10;
   static const field self::B c = #C8;
+  static const field core::List<self::B> values = #C10;
   enum-element static const field self::B a = #C8;
   enum-element static const field self::B b = #C9;
   const synthetic constructor •(core::int #index, core::String #name) → self::B

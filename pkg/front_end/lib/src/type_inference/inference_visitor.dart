@@ -2762,52 +2762,45 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               item.expression);
           item.expression = expression..parent = item;
         }
-      case NullAwareElement():
-        Expression itemExpression = item.expression;
-        if (itemExpression is ControlFlowElement) {
-          checkElement(itemExpression, item, typeArgument, inferredSpreadTypes,
+      case NullAwareElement(:Expression expression):
+        if (expression is ControlFlowElement) {
+          checkElement(expression, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-      case IfElement():
-        Expression itemThen = item.then;
-        if (itemThen is ControlFlowElement) {
-          checkElement(itemThen, item, typeArgument, inferredSpreadTypes,
+      case IfElement(:Expression then, :Expression? otherwise):
+        if (then is ControlFlowElement) {
+          checkElement(then, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-        Expression? itemOtherwise = item.otherwise;
-        if (itemOtherwise is ControlFlowElement) {
-          checkElement(itemOtherwise, item, typeArgument, inferredSpreadTypes,
+        if (otherwise is ControlFlowElement) {
+          checkElement(otherwise, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-      case IfCaseElement():
-        Expression itemThen = item.then;
-        if (itemThen is ControlFlowElement) {
-          checkElement(itemThen, item, typeArgument, inferredSpreadTypes,
+      case IfCaseElement(:Expression then, :Expression? otherwise):
+        if (then is ControlFlowElement) {
+          checkElement(then, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-        Expression? itemOtherwise = item.otherwise;
-        if (itemOtherwise is ControlFlowElement) {
-          checkElement(itemOtherwise, item, typeArgument, inferredSpreadTypes,
+        if (otherwise is ControlFlowElement) {
+          checkElement(otherwise, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-      case ForElement():
-        if (item.condition != null) {
-          DartType conditionType = inferredConditionTypes[item.condition]!;
-          Expression condition = ensureAssignable(
+      case ForElement(:Expression? condition, :Expression body):
+        if (condition != null) {
+          DartType conditionType = inferredConditionTypes[condition]!;
+          Expression assignableCondition = ensureAssignable(
               coreTypes.boolRawType(Nullability.nonNullable),
               conditionType,
-              item.condition!);
-          item.condition = condition..parent = item;
+              condition);
+          item.condition = assignableCondition..parent = item;
         }
-        Expression itemBody = item.body;
-        if (itemBody is ControlFlowElement) {
-          checkElement(itemBody, item, typeArgument, inferredSpreadTypes,
+        if (body is ControlFlowElement) {
+          checkElement(body, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-      case ForInElement():
-        Expression itemBody = item.body;
-        if (itemBody is ControlFlowElement) {
-          checkElement(itemBody, item, typeArgument, inferredSpreadTypes,
+      case ForInElement(:Expression body):
+        if (body is ControlFlowElement) {
+          checkElement(body, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
     }
@@ -2877,8 +2870,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new InstrumentationValueForTypeArgs([inferredTypeArgument]));
       node.typeArgument = inferredTypeArgument;
     }
-    for (int i = 0; i < node.expressions.length; i++) {
-      Expression expression = node.expressions[i];
+    for (Expression expression in node.expressions) {
       if (expression is ControlFlowElement) {
         checkElement(expression, node, node.typeArgument, inferredSpreadTypes,
             inferredConditionTypes);
@@ -5239,8 +5231,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         SetLiteral setLiteral = new SetLiteral(setElements,
             typeArgument: inferredTypeArgument, isConst: node.isConst)
           ..fileOffset = node.fileOffset;
-        for (int i = 0; i < setLiteral.expressions.length; i++) {
-          Expression element = setLiteral.expressions[i];
+        for (Expression element in setLiteral.expressions) {
           if (element is ControlFlowElement) {
             checkElement(element, setLiteral, setLiteral.typeArgument,
                 inferredSpreadTypes, inferredConditionTypes);

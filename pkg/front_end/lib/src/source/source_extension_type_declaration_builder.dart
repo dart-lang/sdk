@@ -37,6 +37,7 @@ import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
@@ -56,9 +57,9 @@ class SourceExtensionTypeDeclarationBuilder
 
   MergedClassMemberScope? _mergedScope;
 
-  final LookupScope _scope;
+  late final LookupScope _scope;
 
-  final NameSpace _nameSpace;
+  late final NameSpace _nameSpace;
 
   @override
   final ConstructorScope constructorScope;
@@ -83,7 +84,7 @@ class SourceExtensionTypeDeclarationBuilder
       this.typeParameters,
       this.interfaceBuilders,
       this.typeParameterScope,
-      NameSpace nameSpace,
+      NameSpaceBuilder nameSpaceBuilder,
       this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
@@ -92,18 +93,19 @@ class SourceExtensionTypeDeclarationBuilder
       int endOffset,
       this.indexedContainer,
       this.representationFieldBuilder)
-      : _nameSpace = nameSpace,
-        _scope = new NameSpaceLookupScope(
-            nameSpace, ScopeKind.declaration, "extension type $name",
-            parent: typeParameterScope),
-        _extensionTypeDeclaration = new ExtensionTypeDeclaration(
+      : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: parent.fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset);
+        super(metadata, modifiers, name, parent, nameOffset) {
+    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
+    _scope = new NameSpaceLookupScope(
+        nameSpace, ScopeKind.declaration, "extension type $name",
+        parent: typeParameterScope);
+  }
 
   @override
   LookupScope get scope => _scope;

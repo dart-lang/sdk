@@ -15,10 +15,10 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::_Enum /*isEnum*/  {
+  final field core::int value2 = null;
   static const field core::List<self::A> values = invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
   const A(this.value);
                ^^^^^";
-  final field core::int value2 = null;
   enum-element static const field self::A a = invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
   const A(this.value);
                ^^^^^";

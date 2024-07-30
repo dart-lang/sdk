@@ -129,8 +129,8 @@ class E2 extends core::_Enum /*isEnum*/  {
     return "foo";
 }
 class E3 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E3> values = #C9;
   final field core::int index = 42;
+  static const field core::List<self::E3> values = #C9;
   enum-element static const field self::E3 element = #C8;
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
@@ -161,10 +161,10 @@ class E5 extends core::_Enum /*isEnum*/  {
     return throw 42;
 }
 class E6 extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::E6> values = #C17;
   final field core::int foo = 0;
   final field core::int index = 1;
   final field core::int bar = 2;
+  static const field core::List<self::E6> values = #C17;
   enum-element static const field self::E6 element = #C16;
   const synthetic constructor •(core::int #index, core::String #name) → self::E6
     : super core::_Enum::•(#index, #name)

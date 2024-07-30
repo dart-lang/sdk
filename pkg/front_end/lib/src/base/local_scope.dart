@@ -4,7 +4,6 @@
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../kernel/body_builder.dart' show JumpTarget;
 import 'scope.dart';
 
 abstract class LocalScope implements LookupScope {
@@ -18,15 +17,6 @@ abstract class LocalScope implements LookupScope {
       {required String debugName,
       required Map<String, Builder> local,
       required ScopeKind kind});
-
-  /// Create a special scope for use by labeled statements. This scope doesn't
-  /// introduce a new scope for local variables, only for labels. This deals
-  /// with corner cases like this:
-  ///
-  ///     L: var x;
-  ///     x = 42;
-  ///     print("The answer is $x.");
-  LocalScope createNestedLabelScope();
 
   Iterable<Builder> get localMembers;
 
@@ -42,10 +32,6 @@ abstract class LocalScope implements LookupScope {
 
   void addLocalMember(String name, Builder member, {required bool setter});
 
-  void declareLabel(String name, JumpTarget target);
-
-  JumpTarget? lookupLabel(String name);
-
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri);
 
@@ -53,16 +39,6 @@ abstract class LocalScope implements LookupScope {
   Builder? lookupSetter(String name, int charOffset, Uri uri);
 
   Map<String, List<int>>? get usedNames;
-
-  SwitchScope get switchScope;
-}
-
-abstract class SwitchScope {
-  Map<String, JumpTarget>? get unclaimedForwardDeclarations;
-  JumpTarget? lookupLabel(String name);
-  bool hasLocalLabel(String name);
-  bool claimLabel(String name);
-  void forwardDeclareLabel(String name, JumpTarget target);
 }
 
 abstract base class BaseLocalScope implements LocalScope {
@@ -125,8 +101,8 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
 }
 
 final class LocalScopeImpl extends BaseLocalScope
-    with LookupScopeMixin, LocalScopeMixin, SwitchScopeMixin
-    implements LocalScope, SwitchScope {
+    with LookupScopeMixin, LocalScopeMixin
+    implements LocalScope {
   @override
   final LocalScope? _parent;
 
@@ -141,14 +117,9 @@ final class LocalScopeImpl extends BaseLocalScope
   Map<String, List<int>>? usedNames;
 
   @override
-  Map<String, JumpTarget>? labels;
-
-  @override
   final ScopeKind kind;
 
-  LocalScopeImpl(this._parent, this.kind, this.classNameOrDebugName,
-      {Map<String, Builder>? local})
-      : _local = local;
+  LocalScopeImpl(this._parent, this.kind, this.classNameOrDebugName);
 
   @override
   void addLocalMember(String name, Builder member, {required bool setter}) {
@@ -166,14 +137,6 @@ final class LocalScopeImpl extends BaseLocalScope
   }
 
   @override
-  void declareLabel(String name, JumpTarget target) {
-    (labels ??= {})[name] = target;
-  }
-
-  @override
-  SwitchScope get switchScope => this;
-
-  @override
   void recordUse(String name, int charOffset) {
     usedNames ??= <String, List<int>>{};
     // Don't use putIfAbsent to avoid the context allocation needed
@@ -182,58 +145,8 @@ final class LocalScopeImpl extends BaseLocalScope
   }
 
   @override
-  LocalScope createNestedLabelScope() {
-    // The scopes needs to reference the same locals, so we have to eagerly
-    // initialize them.
-    _local ??= {};
-    return new LocalScopeImpl(this, kind, "label", local: _local);
-  }
-
-  @override
   String toString() =>
       "$runtimeType(${kind}, $classNameOrDebugName, ${_local?.keys})";
-}
-
-mixin SwitchScopeMixin implements SwitchScope {
-  Map<String, JumpTarget>? get labels;
-  LocalScope? get _parent;
-
-  Map<String, JumpTarget>? forwardDeclaredLabels;
-
-  void declareLabel(String name, JumpTarget target);
-
-  @override
-  JumpTarget? lookupLabel(String name) {
-    return labels?[name] ?? _parent?.lookupLabel(name);
-  }
-
-  @override
-  bool hasLocalLabel(String name) =>
-      labels != null && labels!.containsKey(name);
-
-  @override
-  bool claimLabel(String name) {
-    if (forwardDeclaredLabels == null ||
-        forwardDeclaredLabels!.remove(name) == null) {
-      return false;
-    }
-    if (forwardDeclaredLabels!.length == 0) {
-      forwardDeclaredLabels = null;
-    }
-    return true;
-  }
-
-  @override
-  void forwardDeclareLabel(String name, JumpTarget target) {
-    declareLabel(name, target);
-    forwardDeclaredLabels ??= <String, JumpTarget>{};
-    forwardDeclaredLabels![name] = target;
-  }
-
-  @override
-  Map<String, JumpTarget>? get unclaimedForwardDeclarations {
-    return forwardDeclaredLabels;
-  }
 }
 
 mixin ImmutableLocalScopeMixin implements LocalScope {
@@ -245,21 +158,6 @@ mixin ImmutableLocalScopeMixin implements LocalScope {
   @override
   List<int>? declare(String name, Builder builder, Uri uri) {
     throw new UnsupportedError('$runtimeType($kind).declare');
-  }
-
-  @override
-  void declareLabel(String name, JumpTarget target) {
-    throw new UnsupportedError('$runtimeType($kind).declareLabel');
-  }
-
-  @override
-  SwitchScope get switchScope {
-    throw new UnsupportedError('$runtimeType($kind).switchScope');
-  }
-
-  @override
-  LocalScope createNestedLabelScope() {
-    throw new UnsupportedError("$runtimeType($kind).createNestedLabelScope()");
   }
 
   @override
@@ -287,9 +185,6 @@ final class FixedLocalScope extends BaseLocalScope
         _debugName = debugName;
 
   @override
-  JumpTarget? lookupLabel(String name) => _parent?.lookupLabel(name);
-
-  @override
   String get classNameOrDebugName => _debugName;
 
   @override
@@ -310,9 +205,6 @@ final class FormalParameterScope extends BaseLocalScope
 
   @override
   ScopeKind get kind => ScopeKind.formals;
-
-  @override
-  JumpTarget? lookupLabel(String name) => null;
 
   @override
   String get classNameOrDebugName => "formal parameter";
@@ -338,9 +230,6 @@ final class EnclosingLocalScope extends BaseLocalScope
   Builder? lookup(String name, int charOffset, Uri fileUri) {
     return _scope.lookup(name, charOffset, fileUri);
   }
-
-  @override
-  JumpTarget? lookupLabel(String name) => null;
 
   @override
   Builder? lookupLocalMember(String name, {required bool setter}) => null;
