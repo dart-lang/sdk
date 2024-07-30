@@ -12,7 +12,7 @@ void main() {
 Iterable<int> naturalsTo(int n) sync* {
   /*bl*/
   /*sl:1*/ var k = 0;
-  /*sl:2*/ /*sl:4*/ /*sl:6*/ while (k < n) {
+  /*bc:2*/ /*sl:4*/ /*sl:6*/ while (k < n) {
     yield /*bc:3*/ /*bc:5*/ foo(++k);
   }
 }

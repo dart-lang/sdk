@@ -168,18 +168,14 @@ class _AsyncRun {
 
   @ReifyFunctionTypes(false)
   static void _scheduleImmediateJSOverride(void Function() callback) {
-    dart.addAsyncCallback();
     JS('void', '#.scheduleImmediate(#)', dart.global_, () {
-      dart.removeAsyncCallback();
       callback();
     });
   }
 
   @ReifyFunctionTypes(false)
   static void _scheduleImmediateWithPromise(void Function() callback) {
-    dart.addAsyncCallback();
     JS('', '#.Promise.resolve(null).then(#)', dart.global_, () {
-      dart.removeAsyncCallback();
       callback();
     });
   }
