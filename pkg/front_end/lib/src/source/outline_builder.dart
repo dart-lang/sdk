@@ -1724,6 +1724,9 @@ class OutlineBuilder extends StackListenerImpl {
         if (formal.isNamed) {
           firstNamedParameterOffset = formal.charOffset;
         }
+        // Primary constructors should not have a lowered wildcard name.
+        String formalName =
+            isWildcardLoweredFormalParameter(formal.name) ? '_' : formal.name;
         _builderFactory.addPrimaryConstructorField(
             // TODO(johnniwinther): Support annotations on annotations on fields
             // defined through a primary constructor. This is not needed for
@@ -1731,7 +1734,7 @@ class OutlineBuilder extends StackListenerImpl {
             // be needed when primary constructors are generally supported.
             metadata: null,
             type: formal.type,
-            name: formal.name,
+            name: formalName,
             charOffset: formal.charOffset);
         formals[i] = formal.forPrimaryConstructor(_builderFactory);
       }

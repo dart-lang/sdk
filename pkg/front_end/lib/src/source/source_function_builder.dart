@@ -268,6 +268,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   FormalParameterBuilder? getFormal(Identifier identifier) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
+        if (formal.isWildcard &&
+            identifier.name == '_' &&
+            formal.charOffset == identifier.nameOffset) {
+          return formal;
+        }
         if (formal.name == identifier.name &&
             formal.charOffset == identifier.nameOffset) {
           return formal;

@@ -17,6 +17,7 @@ import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/wildcard_lowering.dart';
 import '../source/constructor_declaration.dart';
 import '../source/builder_factory.dart';
 import '../source/source_factory_builder.dart';
@@ -197,8 +198,10 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
+    // Primary constructors should not have a lowered wildcard name.
+    String formalName = isWildcardLoweredFormalParameter(name) ? '_' : name;
     return new FormalParameterBuilder(kind, modifiers | initializingFormalMask,
-        builderFactory.addInferableType(), name, null, charOffset,
+        builderFactory.addInferableType(), formalName, null, charOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)

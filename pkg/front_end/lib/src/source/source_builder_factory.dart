@@ -13,6 +13,7 @@ import 'package:kernel/reference_from_index.dart'
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../api_prototype/experimental_flags.dart';
+import '../api_prototype/lowering_predicates.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
 import '../base/export.dart' show Export;
@@ -139,6 +140,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   final LookupScope _scope;
 
   final NameSpace _nameSpace;
+
+  /// Index for building unique lowered names for wildcard variables.
+  int wildcardVariableIndex = 0;
 
   BuilderFactoryImpl(
       {required SourceCompilationUnit compilationUnit,
@@ -1920,11 +1924,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     if (hasSuper) {
       modifiers |= superInitializingFormalMask;
     }
+    String formalName = name;
+    bool isWildcard =
+        libraryFeatures.wildcardVariables.isEnabled && formalName == '_';
+    if (isWildcard) {
+      formalName = createWildcardFormalParameterName(wildcardVariableIndex);
+      wildcardVariableIndex++;
+    }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        kind, modifiers, type, name, _parent, charOffset,
+        kind, modifiers, type, formalName, _parent, charOffset,
         fileUri: _compilationUnit.fileUri,
         hasImmediatelyDeclaredInitializer: initializerToken != null,
-        isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_')
+        isWildcard: isWildcard)
       ..initializerToken = initializerToken;
     return formal;
   }
@@ -2044,12 +2055,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   NominalVariableBuilder addNominalTypeVariable(List<MetadataBuilder>? metadata,
       String name, TypeBuilder? bound, int charOffset, Uri fileUri,
       {required TypeVariableKind kind}) {
+    String variableName = name;
+    bool isWildcard =
+        libraryFeatures.wildcardVariables.isEnabled && variableName == '_';
+    if (isWildcard) {
+      variableName = createWildcardTypeVariableName(wildcardVariableIndex);
+      wildcardVariableIndex++;
+    }
     NominalVariableBuilder builder = new NominalVariableBuilder(
-        name, _parent, charOffset, fileUri,
-        bound: bound,
-        metadata: metadata,
-        kind: kind,
-        isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_');
+        variableName, _parent, charOffset, fileUri,
+        bound: bound, metadata: metadata, kind: kind, isWildcard: isWildcard);
 
     _unboundNominalVariables.add(builder);
     return builder;
@@ -2062,11 +2077,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       TypeBuilder? bound,
       int charOffset,
       Uri fileUri) {
+    String variableName = name;
+    bool isWildcard =
+        libraryFeatures.wildcardVariables.isEnabled && variableName == '_';
+    if (isWildcard) {
+      variableName = createWildcardTypeVariableName(wildcardVariableIndex);
+      wildcardVariableIndex++;
+    }
     StructuralVariableBuilder builder = new StructuralVariableBuilder(
-        name, _parent, charOffset, fileUri,
-        bound: bound,
-        metadata: metadata,
-        isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_');
+        variableName, _parent, charOffset, fileUri,
+        bound: bound, metadata: metadata, isWildcard: isWildcard);
 
     _unboundStructuralVariables.add(builder);
     return builder;
