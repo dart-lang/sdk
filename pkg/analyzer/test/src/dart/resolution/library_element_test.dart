@@ -392,7 +392,6 @@ import 'dart:math' show sin;
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: result.uri.toString(),
     );
 
     var extensions = library.scope.extensions;

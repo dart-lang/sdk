@@ -113,7 +113,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: '${libraryElement.source.uri}',
     );
     DartObjectPrinter(
       configuration: dartObjectPrinterConfiguration,
@@ -275,7 +274,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
     );
 
     node.accept(
@@ -314,7 +312,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       elementPrinter: ElementPrinter(
         sink: sink,
         configuration: ElementPrinterConfiguration(),
-        selfUriStr: null,
       ),
     ).write(result);
 
@@ -520,7 +517,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withInterfaceTypeElements
         ..withRedirectedConstructors =
             nodeTextConfiguration.withRedirectedConstructors,
-      selfUriStr: '${result.libraryElement.source.uri}',
     );
     node.accept(
       ResolvedAstPrinter(

@@ -102,7 +102,6 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
     );
 
     var events = collector.take();

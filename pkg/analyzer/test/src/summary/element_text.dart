@@ -30,7 +30,6 @@ String getLibraryText({
   var elementPrinter = ElementPrinter(
     sink: sink,
     configuration: ElementPrinterConfiguration(),
-    selfUriStr: '${library.source.uri}',
   );
   var writer = _ElementWriter(
     sink: sink,

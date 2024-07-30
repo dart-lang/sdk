@@ -15,16 +15,12 @@ import 'package:test/test.dart';
 class ElementPrinter {
   final TreeStringSink _sink;
   final ElementPrinterConfiguration _configuration;
-  // ignore: unused_field
-  final String? _selfUriStr;
 
   ElementPrinter({
     required TreeStringSink sink,
     required ElementPrinterConfiguration configuration,
-    required String? selfUriStr,
   })  : _sink = sink,
-        _configuration = configuration,
-        _selfUriStr = selfUriStr;
+        _configuration = configuration;
 
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {

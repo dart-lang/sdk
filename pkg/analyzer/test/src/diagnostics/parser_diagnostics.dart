@@ -77,7 +77,6 @@ class ParserDiagnosticsTest {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
     );
     node.accept(
       ResolvedAstPrinter(

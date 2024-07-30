@@ -206,7 +206,6 @@ class DriverEventsPrinter {
           elementPrinter: ElementPrinter(
             sink: sink,
             configuration: ElementPrinterConfiguration(),
-            selfUriStr: null,
           ),
         ).write(result);
       default:

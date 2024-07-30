@@ -2917,7 +2917,6 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: '${library.source.uri}',
     );
 
     _InterfacePrinter(
