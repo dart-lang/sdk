@@ -1092,6 +1092,7 @@ extension DapTestClientExtension on DapTestClient {
     required String expectedVariables,
     int? start,
     int? count,
+    ValueFormat? format,
     bool ignorePrivate = true,
     Set<String>? ignore,
   }) async {
@@ -1108,6 +1109,7 @@ extension DapTestClientExtension on DapTestClient {
       start: start,
       count: count,
       ignorePrivate: ignorePrivate,
+      format: format,
       ignore: ignore,
     );
   }

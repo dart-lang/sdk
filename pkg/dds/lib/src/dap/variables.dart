@@ -105,6 +105,14 @@ class VariableFormat {
     return noQuotes ? value : '"$value"';
   }
 
+  String format(Object? value) {
+    return switch (value) {
+      int() => formatInt(value),
+      String() => formatString(value),
+      _ => value.toString(),
+    };
+  }
+
   /// Converts a DAP ValueFormat into our own formatting class used by our
   /// debug adapters.
   ///
