@@ -252,7 +252,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
+      staticElement: <testLibraryFragment>::@function::f::@parameter::c
       staticType: C
     period: .
     identifier: SimpleIdentifier

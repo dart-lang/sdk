@@ -1842,7 +1842,7 @@ class LibraryReader {
     );
 
     var unitReference =
-        _reference.getChild('@unit').getChild('${unitSource.uri}');
+        _reference.getChild('@fragment').getChild('${unitSource.uri}');
     unitElement.setLinkedData(
       unitReference,
       CompilationUnitElementLinkedData(

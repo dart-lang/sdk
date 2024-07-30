@@ -593,7 +593,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     unitElement.setCodeRange(0, unitNode.length);
 
     var unitReference =
-        reference.getChild('@unit').getChild(importedFile.uriStr);
+        reference.getChild('@fragment').getChild(importedFile.uriStr);
     _bindReference(unitReference, unitElement);
 
     var augmentation = LibraryAugmentationElementImpl(
@@ -982,7 +982,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         unitElement.setCodeRange(0, unitNode.length);
 
         var unitReference =
-            reference.getChild('@unit').getChild(importedFile.uriStr);
+            reference.getChild('@fragment').getChild(importedFile.uriStr);
         _bindReference(unitReference, unitElement);
 
         var augmentation = LibraryAugmentationElementImpl(
@@ -1332,7 +1332,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     _bindReference(libraryReference, libraryElement);
     elementFactory.setLibraryTypeSystem(libraryElement);
 
-    var unitContainerRef = libraryReference.getChild('@unit');
+    var unitContainerRef = libraryReference.getChild('@fragment');
 
     var linkingUnits = <LinkingUnit>[];
     {

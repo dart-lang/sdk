@@ -31,14 +31,14 @@ ConstantPattern
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: <thisLibrary>::<definingUnit>::@class::A
+      staticElement: <testLibraryFragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
+      staticElement: <testLibraryFragment>::@class::A::@getter::foo
       staticType: int
-    staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
     staticType: int
   matchedValueType: dynamic
 ''');
@@ -63,9 +63,9 @@ ConstantPattern
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: <thisLibrary>::<definingUnit>::@class::A
+        element: <testLibraryFragment>::@class::A
         type: A
-      staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -181,19 +181,19 @@ ConstantPattern
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
+        staticElement: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: package:test/a.dart::<definingUnit>::@class::A
+        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
         staticType: null
-      staticElement: package:test/a.dart::<definingUnit>::@class::A
+      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::<definingUnit>::@class::A::@getter::foo
+      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::foo
       staticType: int
     staticType: int
   matchedValueType: dynamic
@@ -219,14 +219,14 @@ ConstantPattern
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
+      staticElement: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::<definingUnit>::@getter::foo
+      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
       staticType: int
-    staticElement: package:test/a.dart::<definingUnit>::@getter::foo
+    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
     staticType: int
   matchedValueType: dynamic
 ''');
@@ -271,7 +271,7 @@ void f(x) {
 ConstantPattern
   expression: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
+    staticElement: <testLibraryFragment>::@getter::foo
     staticType: int
   matchedValueType: dynamic
 ''');
@@ -289,7 +289,7 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       name: int
-      element: dart:core::<definingUnit>::@class::int
+      element: dart:core::@fragment::dart:core::@class::int
       type: int
     staticType: Type
   matchedValueType: Object?
@@ -316,7 +316,7 @@ ListPattern
       expression: TypeLiteral
         type: NamedType
           name: int
-          element: dart:core::<definingUnit>::@class::int
+          element: dart:core::@fragment::dart:core::@class::int
           type: int
         staticType: Type
       matchedValueType: Object?
@@ -340,9 +340,9 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       name: A
-      element: <thisLibrary>::<definingUnit>::@typeAlias::A
+      element: <testLibraryFragment>::@typeAlias::A
       type: int
-        alias: <thisLibrary>::<definingUnit>::@typeAlias::A
+        alias: <testLibraryFragment>::@typeAlias::A
     staticType: Type
   matchedValueType: Object?
 ''');
@@ -364,9 +364,9 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element: <thisLibrary>::<definingUnit>::@prefix::math
+        element: <testLibraryFragment>::@prefix::math
       name: Random
-      element: dart:math::<definingUnit>::@class::Random
+      element: dart:math::@fragment::dart:math::@class::Random
       type: Random
     staticType: Type
   matchedValueType: Object?
@@ -394,11 +394,11 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::<definingUnit>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
-      element: package:test/a.dart::<definingUnit>::@typeAlias::A
+      element: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::A
       type: int
-        alias: package:test/a.dart::<definingUnit>::@typeAlias::A
+        alias: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::A
     staticType: Type
   matchedValueType: Object?
 ''');

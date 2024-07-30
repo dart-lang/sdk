@@ -98,7 +98,7 @@ class LibraryContext {
   ) {
     var reference = elementFactory.rootReference
         .getChild(library.file.uriStr)
-        .getChild('@unit')
+        .getChild('@fragment')
         .getChild(unit.uriStr);
     var element = elementFactory.elementOfReference(reference);
     return element as CompilationUnitElementImpl;

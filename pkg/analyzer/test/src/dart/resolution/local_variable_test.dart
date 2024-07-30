@@ -181,7 +181,7 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::_
+  staticElement: <testLibraryFragment>::@class::C::@getter::_
   staticType: int
 ''');
   }
@@ -200,7 +200,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  staticElement: <thisLibrary>::<definingUnit>::@getter::_
+  staticElement: <testLibraryFragment>::@getter::_
   staticType: int
 ''');
   }
