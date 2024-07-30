@@ -29,6 +29,7 @@ import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -221,7 +222,10 @@ abstract class ContextResolutionTest
       libraryContext: analysisDriver.libraryContext,
       configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
-      sink: buffer,
+      sink: TreeStringSink(
+        sink: buffer,
+        indent: '',
+      ),
       withKeysGetPut: false,
     ).writeAnalysisDriver(analysisDriver.testView!);
     var actual = buffer.toString();
