@@ -899,9 +899,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 166,
     missCount: 0,
   ),
-  // 99.5138975445594%.
+  // 99.51377633711506%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 7984,
+    hitCount: 7982,
     missCount: 39,
   ),
   // 99.875%.
