@@ -932,10 +932,6 @@ abstract class Expression extends Node {
   @override
   Statement toReturn() => Return(this);
 
-  // TODO(jmesserly): make this return a Yield?
-  Statement toYieldStatement({bool star = false}) =>
-      ExpressionStatement(Yield(this, star: star));
-
   Expression toVoidExpression() => this;
   Expression toAssignExpression(Expression left, [String? op]) =>
       Assignment.compound(left, op, this);
@@ -1458,7 +1454,7 @@ class RestParameter extends Expression implements Parameter {
   String get parameterName => parameter.parameterName;
 }
 
-class This extends Expression {
+class This extends Literal {
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitThis(this);
   @override
@@ -1471,7 +1467,7 @@ class This extends Expression {
 
 /// `super` is more restricted in the ES6 spec, but for simplicity we accept
 /// it anywhere that `this` is accepted.
-class Super extends Expression {
+class Super extends Literal {
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitSuper(this);
   @override
@@ -2362,7 +2358,7 @@ class NameSpecifier extends Node {
 /// This transformer will only clone a node if it detects a subtree under that
 /// node has changed, otherwise it returns the same node. Subclasses of this
 /// transformer can override specific 'visit' methods to return modified nodes.
-abstract class Transformer implements NodeVisitor<Node> {
+abstract class Transformer extends BaseVisitor<Node> {
   T visit<T extends Node>(Node node) {
     return (node.accept(this)..sourceInformation = node.sourceInformation) as T;
   }
@@ -2450,6 +2446,12 @@ abstract class Transformer implements NodeVisitor<Node> {
   }
 
   @override
+  Node visitNode(Node node) => node;
+
+  @override
+  Node visitComment(Comment node) => node;
+
+  @override
   Node visitAccess(PropertyAccess node) {
     return transformIfUnchanged2(
         node, node.receiver, node.selector, PropertyAccess.new);
@@ -2459,11 +2461,6 @@ abstract class Transformer implements NodeVisitor<Node> {
   Node visitArrayBindingPattern(ArrayBindingPattern node) {
     return transformIfUnchangedList(
         node, node.variables, ArrayBindingPattern.new);
-  }
-
-  @override
-  Node visitArrayHole(ArrayHole node) {
-    return node;
   }
 
   @override
@@ -2504,11 +2501,6 @@ abstract class Transformer implements NodeVisitor<Node> {
   }
 
   @override
-  Node visitBreak(Break node) {
-    return node;
-  }
-
-  @override
   Node visitCall(Call node) {
     return transformIfUnchangedList1(
         node, node.arguments, node.target, (e1, e2) => Call(e2, e1));
@@ -2543,11 +2535,6 @@ abstract class Transformer implements NodeVisitor<Node> {
   }
 
   @override
-  Node visitComment(Comment node) {
-    return node;
-  }
-
-  @override
   Node visitCommentExpression(CommentExpression node) {
     return transformIfUnchanged1(
         node, node.expression, (e) => CommentExpression(node.comment, e));
@@ -2560,19 +2547,9 @@ abstract class Transformer implements NodeVisitor<Node> {
   }
 
   @override
-  Node visitContinue(Continue node) {
-    return node;
-  }
-
-  @override
   Node visitDartYield(DartYield node) {
     return transformIfUnchanged1(
         node, node.expression, (e) => DartYield(e, node.hasStar));
-  }
-
-  @override
-  Node visitDebuggerStatement(DebuggerStatement node) {
-    return node;
   }
 
   @override
@@ -2603,11 +2580,6 @@ abstract class Transformer implements NodeVisitor<Node> {
   @override
   Node visitDo(Do node) {
     return transformIfUnchanged2(node, node.body, node.condition, Do.new);
-  }
-
-  @override
-  Node visitEmptyStatement(EmptyStatement node) {
-    return node;
   }
 
   @override
@@ -2677,11 +2649,6 @@ abstract class Transformer implements NodeVisitor<Node> {
   }
 
   @override
-  Node visitIdentifier(Identifier node) {
-    return node;
-  }
-
-  @override
   Node visitIf(If node) {
     return transformIfUnchanged3(
         node, node.condition, node.then, node.otherwise, If.new);
@@ -2702,74 +2669,9 @@ abstract class Transformer implements NodeVisitor<Node> {
   }
 
   @override
-  Node visitInterpolatedExpression(InterpolatedExpression node) {
-    return node;
-  }
-
-  @override
-  Node visitInterpolatedIdentifier(InterpolatedIdentifier node) {
-    return node;
-  }
-
-  @override
-  Node visitInterpolatedLiteral(InterpolatedLiteral node) {
-    return node;
-  }
-
-  @override
-  Node visitInterpolatedMethod(InterpolatedMethod node) {
-    return node;
-  }
-
-  @override
-  Node visitInterpolatedParameter(InterpolatedParameter node) {
-    return node;
-  }
-
-  @override
-  Node visitInterpolatedSelector(InterpolatedSelector node) {
-    return node;
-  }
-
-  @override
-  Node visitInterpolatedStatement(InterpolatedStatement node) {
-    return node;
-  }
-
-  @override
   Node visitLabeledStatement(LabeledStatement node) {
     return transformIfUnchanged1(
         node, node.body, (e) => LabeledStatement(node.label, e));
-  }
-
-  @override
-  Node visitLiteralBool(LiteralBool node) {
-    return node;
-  }
-
-  @override
-  Node visitLiteralExpression(LiteralExpression node) {
-    return node;
-  }
-
-  @override
-  Node visitLiteralNull(LiteralNull node) {
-    return node;
-  }
-
-  @override
-  Node visitLiteralNumber(LiteralNumber node) {
-    return node;
-  }
-
-  @override
-  Node visitLiteralStatement(LiteralStatement node) {
-    return node;
-  }
-
-  @override
-  Node visitLiteralString(LiteralString node) {
-    return node;
   }
 
   @override
@@ -2848,11 +2750,6 @@ abstract class Transformer implements NodeVisitor<Node> {
   }
 
   @override
-  Node visitRegExpLiteral(RegExpLiteral node) {
-    return node;
-  }
-
-  @override
   Node visitRestParameter(RestParameter node) {
     return transformIfUnchanged1(node, node.parameter, RestParameter.new);
   }
@@ -2877,11 +2774,6 @@ abstract class Transformer implements NodeVisitor<Node> {
   }
 
   @override
-  Node visitSuper(Super node) {
-    return node;
-  }
-
-  @override
   Node visitSwitch(Switch node) {
     return transformIfUnchangedList1(
         node, node.cases, node.key, (e1, e2) => Switch(e2, e1));
@@ -2897,11 +2789,6 @@ abstract class Transformer implements NodeVisitor<Node> {
   Node visitTemplateString(TemplateString node) {
     return transformIfUnchangedList(
         node, node.interpolations, (e) => TemplateString(node.strings, e));
-  }
-
-  @override
-  Node visitThis(This node) {
-    return node;
   }
 
   @override
@@ -2925,7 +2812,7 @@ abstract class Transformer implements NodeVisitor<Node> {
   @override
   Node visitVariableDeclarationList(VariableDeclarationList node) {
     return transformIfUnchangedList(node, node.declarations,
-        (e) => VariableDeclarationList(node.keyword, node.declarations));
+        (e) => VariableDeclarationList(node.keyword, e));
   }
 
   @override

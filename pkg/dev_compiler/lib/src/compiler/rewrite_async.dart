@@ -140,14 +140,13 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   int _currentLabel = 0;
 
-  final Map<String, TemporaryId> _parameterNameMap = {};
-
   bool get _isAsync => false;
   bool get _isSyncStar => false;
   bool get _isAsyncStar => false;
 
-  late final _parameterNameRemapper =
-      _ArgumentNameTransformer(_parameterNameMap);
+  /// Visitor that collects scopes for the function passed to [rewrite]. Used
+  /// to initialize and reset scope objects where necessary.
+  late _ScopeCollector _scopeCollector;
 
   AsyncRewriterBase({required this.bodyName});
 
@@ -160,16 +159,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   js_ast.Fun rewrite(js_ast.Fun node, Object? bodySourceInformation,
       Object? exitSourceInformation,
       {List<js_ast.Statement>? bodyPrefix}) {
-    _initializeParameterNameMap(node);
-    final identifierMap = <js_ast.Identifier, TemporaryId>{};
-    final collector =
-        _FunctionScopeDeclarations(identifierMap, _parameterNameMap)
-          ..collect(node);
-    // The [_NameCollisionTransform] must be done before the
-    // PreTranslationAnalysis. The transformer analysis stores references to
-    // nodes but the transformer rewrites the tree.
-    node = _NameCollisionTransform(collector.identifierMap).visit(node);
     _analysis = PreTranslationAnalysis(_unsupported, node)..analyze();
+    _scopeCollector = _ScopeCollector(_analysis)..collect(node);
 
     _outerLabelName = _freshLabelName('outer');
 
@@ -178,21 +169,9 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         bodyPrefix: bodyPrefix);
     if (bodyPrefix != null) {
       // Prepend the body prefix to the start of the rewritten function.
-      rewrittenFunction.body.statements.insertAll(
-          0,
-          bodyPrefix.map(
-              (s) => s.accept(_parameterNameRemapper) as js_ast.Statement));
+      rewrittenFunction.body.statements.insertAll(0, bodyPrefix);
     }
     return rewrittenFunction;
-  }
-
-  void _initializeParameterNameMap(js_ast.Fun node) {
-    for (final param in node.params) {
-      if (param is TemporaryId) continue;
-      final name = param.parameterName;
-      final id = TemporaryId(name);
-      _parameterNameMap[name] = id;
-    }
   }
 
   js_ast.Expression get _currentErrorHandler {
@@ -240,6 +219,16 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// Buffer for collecting translated statements belonging to the same switch
   /// case.
   List<js_ast.Statement> currentStatementBuffer = [];
+
+  /// Hoisted variables get declared in the outer scope of the function body
+  /// being rewritten. Most variables get hoisted via a scope object. See
+  /// [_ScopeCollector] for more info on scope objects. Temporary ids are
+  /// already unique to a given scope so we can just hoist them directly.
+  void _hoistIfNecessary(js_ast.Expression node) {
+    if (node is TemporaryId) {
+      _localVariables.add(node);
+    }
+  }
 
   // Labels will become cases in the big switch expression, and `goto label`
   // is expressed by assigning to the switch key [gotoName] and breaking out of
@@ -306,8 +295,10 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     currentStatementBuffer.add(node);
   }
 
-  void _addExpressionStatement(js_ast.Expression node) {
-    _addStatement(js_ast.ExpressionStatement(node));
+  void _addExpressionStatement(js_ast.Expression node,
+      [Object? sourceInformation]) {
+    _addStatement(js_ast.ExpressionStatement(node)
+      ..sourceInformation = sourceInformation);
   }
 
   /// True if there is an await or yield in [node] or some subexpression.
@@ -393,36 +384,51 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// If [store] is true the result of evaluating [node] is stored in a
   /// temporary.
   ///
-  /// We cannot rewrite `<receiver>.m()` to:
+  /// We might need to compute and store the receiver of a call expression if
+  /// the arguments include an 'await' expression. Due to expression evaluation
+  /// order we must first evaluate the receiver, then the arguments, and finally
+  /// invoke the call. With this async lowering the argument evaluation might
+  /// cause us to break out of the current function. We therefore need to store
+  /// the receiver in a temporary variable to use after we re-enter the function
+  /// body.
+  ///
+  /// We cannot simply rewrite `<receiver>.m()` to:
   ///     temp = <receiver>.m;
   ///     temp();
-  /// Because this leaves `this` unbound in the call. But because of dart
-  /// evaluation order we can write:
-  ///     temp = <receiver>;
-  ///     temp.m();
+  /// Because this leaves `this` unbound in the call. To solve this we `bind`
+  /// the receiver to the tear-off to re-establish the `this` context.
+  ///
+  /// [isCall] determines if the node is a [js_ast.Call] or a [js_ast.New]. We
+  /// cannot `bind` to a constructor tear-off as it would no longer be a
+  /// constructor. However, constructors have no `this` context anyway so they
+  /// are safe to tear-off without binding.
   js_ast.Expression withCallTargetExpression(js_ast.Expression node,
       js_ast.Expression Function(js_ast.Expression result) fn,
-      {required bool store}) {
+      {required bool store, required bool isCall}) {
     var visited = visitExpression(node);
-    js_ast.Expression? selector;
     js_ast.Expression storedIfNeeded;
     if (store) {
       if (visited is js_ast.PropertyAccess) {
-        var propertyAccess = visited;
-        selector = propertyAccess.selector;
-        visited = propertyAccess.receiver;
+        final storedReceiver = _storeIfNecessary(visited.receiver);
+        // We handle the `super` literal specially since the bound object in
+        // that case is `this`. `super` cannot be passed to `bind`.
+        final bindTarget =
+            storedReceiver is js_ast.Super ? js_ast.This() : storedReceiver;
+        final jsTearOff = isCall
+            ? js_ast.Call(
+                js_ast.PropertyAccess.field(
+                    js_ast.PropertyAccess(storedReceiver, visited.selector),
+                    'bind'),
+                [bindTarget])
+            : visited;
+        storedIfNeeded = _storeIfNecessary(jsTearOff);
+      } else {
+        storedIfNeeded = _storeIfNecessary(visited);
       }
-      storedIfNeeded = _storeIfNecessary(visited);
     } else {
       storedIfNeeded = visited;
     }
-    js_ast.Expression result;
-    if (selector == null) {
-      result = fn(storedIfNeeded);
-    } else {
-      result = fn(js_ast.PropertyAccess(storedIfNeeded, selector));
-    }
-    return result;
+    return fn(storedIfNeeded);
   }
 
   /// Calls [fn] with the value of evaluating [node1] and [node2].
@@ -494,6 +500,34 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         }
       }
       visited.add(node);
+    }
+  }
+
+  /// Makes an empty scope object for captured variables.
+  ///
+  /// Uses `Object.create(null)` to ensure none of the JS Object prototype chain
+  /// pollutes the namespace.
+  js_ast.Expression _makeEmptyScopeObject() {
+    return js_ast.js('Object.create(null)');
+  }
+
+  /// Creates a new scope object for [node] if it needs one.
+  ///
+  /// Only scopes that are captured need to be reset on re-entry. Otherwise the
+  /// scope object becomes obsolete when the end of the scope is reached as
+  /// there is no way to reference it anymore.
+  ///
+  /// This should be invoked whenever a scope is collected by [_ScopeCollector]
+  /// and the scope would be re-entered by a loop in control flow.
+  void _resetScopeIfNecessary(js_ast.Node node) {
+    final nodeScope = _scopeCollector.scopeMapping[node];
+    // Also exclude scopes with no declarations, these don't even have an
+    // associated object.
+    if (nodeScope != null &&
+        nodeScope.isCaptured &&
+        nodeScope.hasDeclarations) {
+      _addExpressionStatement(
+          js_ast.Assignment(nodeScope.scopeObject, _makeEmptyScopeObject()));
     }
   }
 
@@ -703,6 +737,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     variables.addAll(_localVariables.map((js_ast.VariableBinding declaration) {
       return js_ast.VariableInitialization(declaration, null);
     }));
+    variables.addAll([
+      for (final scope in _scopeCollector.scopeMapping.values)
+        if (scope.hasDeclarations)
+          js_ast.VariableInitialization(
+              scope.scopeObject, _makeEmptyScopeObject())
+    ].reversed);
     var variableDeclarationLists =
         js_ast.VariableDeclarationList('let', variables);
 
@@ -718,7 +758,42 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       // introduced by JS foreign code from our own libraries.
       throw StateError('Nested function is a generator or asynchronous.');
     }
-    return node;
+
+    final captureInfo = _scopeCollector.scopeCaptures[node]!;
+    // If this closure does not capture any variables from an outside scope
+    // then we can leave it as-is.
+    if (!captureInfo.hasCapture) return node;
+
+    // Rename any references to captured variables so they are instead looked
+    // up via the captured scope object.
+    node = _ClosureRenamer(_scopeCollector, captureInfo).visit(node);
+    final scopeVariableList = <js_ast.Expression>[];
+    final capturedScopeVariableList = <js_ast.Parameter>[];
+
+    captureInfo.usedScopes.forEach((scope, capturedScopeVariable) {
+      scopeVariableList.add(scope.scopeObject);
+      capturedScopeVariableList.add(capturedScopeVariable);
+    });
+
+    // Wrap the closure in an IIFE that captures the necessary scope objects.
+    // This ensures the closure grabs the scope before it gets reset (e.g. by
+    // a loop iteration).
+    //
+    // Code that originally looked like:
+    //   var foo = 3;
+    //   function(x) {
+    //     console.log(foo);
+    //   }
+    //
+    // Would be transformed to:
+    //    var asyncScope = {};
+    //    asyncScope.foo = 3;
+    //    ((capturedAsyncScope) =>
+    //      function (x) {
+    //        console.log(capturedAsyncScope.foo);
+    //      })(asyncScope);
+    return js_ast.Call(
+        js_ast.ArrowFun(capturedScopeVariableList, node), scopeVariableList);
   }
 
   @override
@@ -852,6 +927,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   @override
   void visitBlock(js_ast.Block node) {
+    _resetScopeIfNecessary(node);
     for (var statement in node.statements) {
       _visitStatement(statement);
     }
@@ -876,7 +952,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
         return js_ast.Call(target, arguments)
             .withSourceInformation(node.sourceInformation);
       });
-    }, store: storeTarget);
+    }, store: storeTarget, isCall: true);
   }
 
   @override
@@ -1065,6 +1141,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       return;
     }
 
+    _resetScopeIfNecessary(node);
     if (node.init != null) {
       _visitExpressionIgnoreResult(node.init!);
     }
@@ -1106,9 +1183,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   @override
   void visitFunctionDeclaration(js_ast.FunctionDeclaration node) {
-    _localVariables.add(node.name);
     _withExpression(node.function, (js_ast.Expression function) {
-      _addExpressionStatement(js_ast.Assignment(node.name, function));
+      final name = visitExpression(node.name);
+      _hoistIfNecessary(name);
+      _addExpressionStatement(
+          js_ast.Assignment(visitExpression(name), function));
     }, store: false);
   }
 
@@ -1242,7 +1321,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
           (List<js_ast.Expression> arguments) {
         return js_ast.New(target, arguments);
       });
-    }, store: storeTarget);
+    }, store: storeTarget, isCall: false);
   }
 
   @override
@@ -1550,8 +1629,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       // The catch declaration name can shadow outer variables, so a fresh name
       // is needed to avoid collisions.  See Ecma 262, 3rd edition,
       // section 12.14.
-      var errorName = catchPart.declaration;
-      _localVariables.add(errorName);
+      var errorName = visitExpression(catchPart.declaration);
+      _hoistIfNecessary(errorName);
       _addStatement(js_ast.js.statement('# = #;', [errorName, _currentError]));
       _visitStatement(catchPart.body);
       if (finallyPart != null) {
@@ -1605,12 +1684,14 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   js_ast.Expression visitVariableDeclarationList(
       js_ast.VariableDeclarationList node) {
     for (final initialization in node.declarations) {
-      var declaration = initialization.declaration;
-      _localVariables.add(declaration);
+      var declaration = visitExpression(initialization.declaration);
+      _hoistIfNecessary(declaration);
       if (initialization.value != null) {
         _withExpression(initialization.value!, (js_ast.Expression value) {
-          _addExpressionStatement(js_ast.Assignment(declaration, value)
-            ..sourceInformation = initialization.sourceInformation);
+          _addExpressionStatement(
+              js_ast.Assignment(declaration, value)
+                ..sourceInformation = initialization.sourceInformation,
+              node.sourceInformation);
         }, store: false);
       }
     }
@@ -1624,7 +1705,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
 
   @override
   js_ast.Expression visitIdentifier(js_ast.Identifier node) {
-    return node;
+    return _scopeCollector.transformIdentifier(node);
   }
 
   @override
@@ -1689,8 +1770,12 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     }
 
     _visitExpressionIgnoreResult(node.leftHandSide);
-    // The last declared variable will be the loop variable.
-    final loopVar = _localVariables.last;
+    final loopVar = visitExpression(
+        (node.leftHandSide as js_ast.VariableDeclarationList)
+            .declarations
+            .first
+            .declaration);
+
     final valueWrapperVar = TemporaryId('t\$wrappedValue');
     final iteratorVar = TemporaryId('t\$iterator');
     _localVariables.add(valueWrapperVar);
@@ -1699,7 +1784,9 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     // Get the iterator object for the iterable expresion.
     _withExpression(node.iterable, (js_ast.Expression iterable) {
       _addExpressionStatement(js_ast.Assignment(
-          iteratorVar, js_ast.js('#[Symbol.iterator]()', [iterable])));
+          iteratorVar,
+          js_ast.js('#[Symbol.iterator]()', [iterable])
+            ..sourceInformation = node.iterable.sourceInformation));
     }, store: false);
 
     var continueLabel = _newLabel('for-of iterator update');
@@ -1714,6 +1801,7 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     // 3a) If no: assign the value to the loop variable and execute the body.
     // 3b) If yes: jump to after the loop body.
     _beginLabel(continueLabel);
+    _resetScopeIfNecessary(node);
     _addExpressionStatement(js_ast.Assignment(
         valueWrapperVar, js_ast.js('#.next()', [iteratorVar])));
     _addStatement(js_ast.If.noElse(js_ast.js('#.done', [valueWrapperVar]),
@@ -1926,7 +2014,6 @@ class AsyncRewriter extends AsyncRewriterBase {
         js_ast.js('#(#)', [
           completerFactory,
           completerFactoryTypeArguments
-              .map((e) => e.accept(_parameterNameRemapper))
         ]).withSourceInformation(sourceInformation),
         sourceInformation));
     if (_analysis.hasExplicitReturns) {
@@ -2105,9 +2192,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
     for (var parameter in parameters) {
       final name = parameter.parameterName;
       final renamedIdentifier = TemporaryId(name);
-      final parameterRef = parameter is js_ast.Identifier
-          ? parameter
-          : (_parameterNameMap[name] ?? js_ast.Identifier(name));
+      final parameterRef =
+          parameter is TemporaryId ? parameter : js_ast.Identifier(name);
       innerDeclarationsList
           .add(js_ast.VariableInitialization(parameterRef, renamedIdentifier));
       outerDeclarationsList
@@ -2163,8 +2249,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
       'varDecl': variableDeclarationLists,
       'returnInnerInnerFunction': returnInnerInnerFunction,
       'makeSyncStarIterable': makeSyncStarIterable,
-      'iterableType':
-          syncStarIterableTypeArgument.accept(_parameterNameRemapper),
+      'iterableType': syncStarIterableTypeArgument,
     });
     var returnInnerFunction = js_ast.Return(innerInnerFunctionInvocation);
     // Add the copied parameter declarations outside the inner function in case
@@ -2472,8 +2557,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
         controller,
         js_ast.js('#(#, #)', [
           newController,
-          newControllerTypeArguments
-              .map((e) => e.accept(_parameterNameRemapper)),
+          newControllerTypeArguments,
           bodyName
         ]).withSourceInformation(sourceInformation),
         sourceInformation));
@@ -3024,193 +3108,230 @@ class PreTranslationAnalysis extends js_ast.NodeVisitor<bool> {
   }
 }
 
+/// Defines a scope in the async body of a function tracking all variables
+/// available in the scope.
+///
+/// We maintain a mapping from each variable name to the scope it is declared
+/// in. This allows us to refer to the correct scope object for uses of that
+/// variable.
+///
+/// Each scope also tracks if it was captured. Only captured scopes need to be
+/// reset upon re-entry, otherwise the values within them cannot leak out.
+class _ScopeInfo {
+  late final TemporaryId scopeObject = TemporaryId('asyncScope');
+  bool isCaptured = false;
+  bool hasDeclarations = false;
+  final Map<String, _ScopeInfo> _nameDeclarations;
+
+  _ScopeInfo([Map<String, _ScopeInfo>? nameDeclarations])
+      : _nameDeclarations = {...?nameDeclarations};
+
+  _ScopeInfo childScope() {
+    return _ScopeInfo(_nameDeclarations);
+  }
+
+  void declare(js_ast.Identifier node, bool isUntrackedDeclaration) {
+    final key = node.name;
+    assert(_nameDeclarations[key] != this,
+        'Name "$node" already declared in scope.');
+    if (isUntrackedDeclaration) {
+      _nameDeclarations.remove(key);
+    } else {
+      _nameDeclarations[key] = this;
+      hasDeclarations = true;
+    }
+  }
+
+  _ScopeInfo? getDeclaringScope(js_ast.Identifier node) {
+    return _nameDeclarations[node.name];
+  }
+}
+
+/// Tracks [_ScopeInfo] are captured by this closure.
+///
+/// We use an IIFE to capture scope objects used within this closure. Capture
+/// names are assigned to each captured scope, this is the parameter name in the
+/// IIFE. Within the body of this closure, captured scopes will be referred to
+/// by their capture name.
+class _ClosureCaptureInfo {
+  final _ScopeInfo scopeInfo;
+  final Map<_ScopeInfo, TemporaryId> usedScopes = {};
+  bool get hasCapture => usedScopes.isNotEmpty;
+
+  _ClosureCaptureInfo(this.scopeInfo);
+
+  TemporaryId useScope(_ScopeInfo scope) {
+    scope.isCaptured = true;
+    return usedScopes[scope] ??= TemporaryId('capturedAsyncScope');
+  }
+}
+
+/// Updates references to captured variables to read the value from the
+/// appropriate captured scope name.
+class _ClosureRenamer extends js_ast.Transformer {
+  final _ScopeCollector scopeCollector;
+  final _ClosureCaptureInfo closureInfo;
+
+  _ClosureRenamer(this.scopeCollector, this.closureInfo);
+
+  @override
+  js_ast.Node visitIdentifier(js_ast.Identifier node) {
+    final declaringScope = scopeCollector.useToDeclaringScope[node];
+    if (declaringScope == null) return node;
+    final captureVariable = closureInfo.usedScopes[declaringScope];
+    return captureVariable != null
+        ? (js_ast.PropertyAccess.field(captureVariable, node.name)
+          ..sourceInformation = node.sourceInformation)
+        : node;
+  }
+}
+
 /// Collects scoped names for each variable declared within the scope of the
 /// given function.
 ///
-/// Defines a new [TemporaryId] for each variable declaration encountered and
-/// then collects a mapping of [js_ast.Identifier] references to the correctly
-/// scoped [TemporaryId] for that name.
+/// In order to support scope capture we define a [_ScopeInfo] for each scope
+/// we enter. Each one will be a JS Object that we can capture in inner
+/// functions. This object can also be reset when we re-enter a scoped
+/// construct (e.g. different iterations of a for loop).
 ///
-/// [js_ast.Identifier] names that are encountered that are not declared in
-/// scope are skipped.
+/// The [_ScopeInfo] object will get hoisted to the top of the async body so it
+/// can be accessed where needed across async gaps.
 ///
-/// Child functions scopes are collected and scanned after all other statements
-/// have been processed because the declarations of variables used within a
-/// function may come after the function body.
-class _FunctionScopeDeclarations extends js_ast.BaseVisitorVoid {
-  Map<String, TemporaryId> _currentScope;
-  final Map<js_ast.Identifier, TemporaryId> identifierMap;
-  final List<(js_ast.FunctionExpression, Map<String, TemporaryId>)>
-      childFunctionAndScope = [];
-  bool _inDeclaration = false;
+/// This approach also works well for debugging, users will see "asyncScope"
+/// objects. Since we have one scope object (roughly) per Dart scope, users will
+/// see variables matching the names they've used in the source code. In the
+/// future DevTools can even recognize these objects and flatten them into their
+/// appropriate scopes.
+///
+/// We also track [_ClosureCaptureInfo] for each capturing function so that we
+/// can maintain the correct captured scopes.
+///
+/// Variables that are not hoisted (i.e. we can maintain their control flow
+/// constructs because they don't contain awaits or yields) do not need to be
+/// referenced via scope objects.
+class _ScopeCollector extends js_ast.VariableDeclarationVisitor {
+  final PreTranslationAnalysis _analysis;
 
-  _FunctionScopeDeclarations(this.identifierMap, this._currentScope);
+  _ScopeInfo _currentScope = _ScopeInfo(null);
+  _ClosureCaptureInfo? _currentOuterClosure;
+  bool skipHoisting = false;
+  final Map<js_ast.Identifier, _ScopeInfo> useToDeclaringScope = {};
+  final Map<js_ast.Node, _ScopeInfo> scopeMapping = {};
+  final Map<js_ast.FunctionExpression, _ClosureCaptureInfo> scopeCaptures = {};
+  bool get inClosure => _currentOuterClosure != null;
+
+  _ScopeCollector(this._analysis);
 
   void collect(js_ast.FunctionExpression node) {
-    for (final param in node.params) {
-      _inDeclaration = true;
-      param.accept(this);
-      _inDeclaration = false;
-    }
-    _currentScope = {..._currentScope};
     node.body.accept(this);
-    for (final (childFunction, scope) in childFunctionAndScope) {
-      final collector = _FunctionScopeDeclarations(identifierMap, {...scope});
-      collector.collect(childFunction);
+    scopeMapping[node.body] = _currentScope;
+  }
+
+  js_ast.Expression transformIdentifier(js_ast.Identifier node) {
+    final declaringScope = useToDeclaringScope[node];
+    if (declaringScope == null) return node;
+    return (js_ast.PropertyAccess.field(declaringScope.scopeObject, node.name)
+      ..sourceInformation = node.sourceInformation);
+  }
+
+  void registerUsed(js_ast.Identifier node) {
+    final declaringScope = _currentScope.getDeclaringScope(node);
+    if (declaringScope != null) {
+      useToDeclaringScope[node] = declaringScope;
+      _currentOuterClosure?.useScope(declaringScope);
     }
+  }
+
+  void withNewScope(js_ast.Node node, void Function() f) {
+    final savedScope = _currentScope;
+    _currentScope = _currentScope.childScope();
+    scopeMapping[node] = _currentScope;
+    f();
+    _currentScope = savedScope;
   }
 
   @override
-  void visitFunctionExpression(js_ast.FunctionExpression node) {
-    childFunctionAndScope.add((node, _currentScope));
-  }
-
-  TemporaryId _declareIdentifier(String name) {
-    // Declare a new temporary ID for the declared name. The JS printer will
-    // then handle renaming these based on scope.
-    return TemporaryId(name);
+  void declare(js_ast.Identifier node) {
+    if (node is TemporaryId) return;
+    _currentScope.declare(node, inClosure || skipHoisting);
+    registerUsed(node);
   }
 
   @override
   void visitIdentifier(js_ast.Identifier node) {
     if (node is TemporaryId) return;
-    if (_inDeclaration) {
-      // Temporary IDs will already get renamed by the JS printer.
-      // If this is a declaration, get a new temp ID and add it to the scope.
-      final id = _declareIdentifier(node.name);
-      _currentScope[node.name] = id;
-      identifierMap[node] = id;
-    } else {
-      // Lookup the mapped name within the current scope. If it isn't mapped yet
-      // then the declaration is outside the scope of this transform and the
-      // Identifier should remain the same.
-      final mappedNode = _currentScope[node.name];
-      if (mappedNode != null) {
-        identifierMap[node] ??= mappedNode;
+    registerUsed(node);
+  }
+
+  @override
+  void visitFunctionExpression(js_ast.FunctionExpression node) {
+    withNewScope(node, () {
+      if (!inClosure) {
+        _currentOuterClosure = _ClosureCaptureInfo(_currentScope);
+        scopeCaptures[node] = _currentOuterClosure!;
+        super.visitFunctionExpression(node);
+        _currentOuterClosure = null;
+      } else {
+        super.visitFunctionExpression(node);
       }
-    }
-  }
-
-  @override
-  void visitVariableDeclarationList(js_ast.VariableDeclarationList node) {
-    for (final declaration in node.declarations) {
-      // Register the new declarations.
-      _inDeclaration = true;
-      declaration.declaration.accept(this);
-      _inDeclaration = false;
-      declaration.value?.accept(this);
-    }
-  }
-
-  @override
-  void visitFunctionDeclaration(js_ast.FunctionDeclaration node) {
-    // Function declarations are syntactic sugar for a variable binding.
-    _inDeclaration = true;
-    node.name.accept(this);
-    _inDeclaration = false;
-    node.function.accept(this);
-  }
-
-  @override
-  void visitNamedFunction(js_ast.NamedFunction node) {
-    // Function declarations are syntactic sugar for a variable binding.
-    _inDeclaration = true;
-    node.name.accept(this);
-    _inDeclaration = false;
-    node.function.accept(this);
-  }
-
-  @override
-  void visitCatch(js_ast.Catch node) {
-    _inDeclaration = true;
-    node.declaration.accept(this);
-    _inDeclaration = false;
-    node.body.accept(this);
+    });
   }
 
   @override
   void visitBlock(js_ast.Block node) {
-    if (!node.isScope) {
-      super.visitBlock(node);
+    if (node.isScope) {
+      withNewScope(node, () => super.visitBlock(node));
     } else {
-      var savedScope = _currentScope;
-      _currentScope = {..._currentScope};
       super.visitBlock(node);
-      _currentScope = savedScope;
     }
   }
 
   @override
+  void visitForIn(js_ast.ForIn node) {
+    node.object.accept(this);
+    withNewScope(node, () {
+      final savedSkipHoisting = skipHoisting;
+      skipHoisting = !_analysis.hasAwaitOrYield.contains(node);
+      node.leftHandSide.accept(this);
+      skipHoisting = savedSkipHoisting;
+      node.body.accept(this);
+    });
+  }
+
+  @override
   void visitForOf(js_ast.ForOf node) {
-    // Make sure any declared variables are scoped to this loop.
-    final savedScope = _currentScope;
-    _currentScope = {..._currentScope};
-    super.visitForOf(node);
-    _currentScope = savedScope;
+    node.iterable.accept(this);
+    withNewScope(node, () {
+      final savedSkipHoisting = skipHoisting;
+      skipHoisting = !_analysis.hasAwaitOrYield.contains(node);
+      node.leftHandSide.accept(this);
+      skipHoisting = savedSkipHoisting;
+      node.body.accept(this);
+    });
   }
 
   @override
   void visitFor(js_ast.For node) {
     // Make sure any declared variables are scoped to this loop.
-    final savedScope = _currentScope;
-    _currentScope = {..._currentScope};
-    super.visitFor(node);
-    _currentScope = savedScope;
-  }
-}
-
-/// Transforms a JS AST to avoid name collisions that would occur due to the
-/// variable hoisting performed by [AsyncRewriterBase].
-///
-/// Uses [TemporaryId] to correctly scoped identifiers by reference. The names
-/// for these IDs will then get finalized by the [js_ast.LocalNamer] ensuring
-/// no naming collisions. This transform must be done before the hoisting occurs
-/// so that we still have the necessary scope information.
-class _NameCollisionTransform extends js_ast.Transformer {
-  final Map<js_ast.Identifier, TemporaryId> identifierMap;
-
-  _NameCollisionTransform(this.identifierMap);
-
-  @override
-  js_ast.Node visitIdentifier(js_ast.Identifier node) {
-    return identifierMap[node] ?? node;
+    withNewScope(node, () {
+      final savedSkipHoisting = skipHoisting;
+      skipHoisting = !_analysis.hasAwaitOrYield.contains(node);
+      node.init?.accept(this);
+      skipHoisting = savedSkipHoisting;
+      node.condition?.accept(this);
+      node.update?.accept(this);
+      node.body.accept(this);
+    });
   }
 
   @override
-  js_ast.Node visitVariableDeclarationList(
-      js_ast.VariableDeclarationList node) {
-    final newDeclarations = <js_ast.VariableInitialization>[];
-    for (final declaration in node.declarations) {
-      final binding = visit<js_ast.VariableBinding>(declaration.declaration);
-      final value = visitNullable<js_ast.Expression>(declaration.value);
-      // Since the declaration might be replaced with a temporary ID, which is a
-      // shared node that cannot hold source information, use the declaration's
-      // source information if this initializer doesn't already have one.
-      newDeclarations.add(js_ast.VariableInitialization(binding, value)
-        ..sourceInformation = declaration.sourceInformation ??
-            declaration.declaration.sourceInformation);
-    }
-    return js_ast.VariableDeclarationList(node.keyword, newDeclarations)
-      ..sourceInformation = node.sourceInformation;
-  }
-}
-
-/// Transforms provided nodes based on remapped parameter identifiers.
-///
-/// Type arguments and argument initializers will be passed in as an individual
-/// expression which might refer to a function parameter by name (rather than by
-/// reference). The name collision transformer above will transform the
-/// function's parameters before these statements are injected into the function
-/// body. Therefore we have to make sure we map the names to the correct temp
-/// IDs.
-class _ArgumentNameTransformer extends js_ast.Transformer {
-  final Map<String, js_ast.Identifier> _parameterNameMappings;
-
-  _ArgumentNameTransformer(this._parameterNameMappings);
-
-  @override
-  js_ast.Node visitIdentifier(js_ast.Identifier node) {
-    if (node is TemporaryId) return node;
-    return _parameterNameMappings[node.name] ?? node;
+  void visitTry(js_ast.Try node) {
+    node.body.accept(this);
+    final savedSkipHoisting = skipHoisting;
+    skipHoisting = !_analysis.hasAwaitOrYield.contains(node);
+    node.catchPart?.declaration.accept(this);
+    skipHoisting = savedSkipHoisting;
+    node.catchPart?.body.accept(this);
+    node.finallyPart?.accept(this);
   }
 }
