@@ -35,7 +35,7 @@ CastPattern
   asToken: as
   type: NamedType
     name: int
-    element: dart:core::<definingUnit>::@class::int
+    element: dart:core::@fragment::dart:core::@class::int
     type: int
   matchedValueType: dynamic
 ''');
@@ -63,7 +63,7 @@ CastPattern
   asToken: as
   type: NamedType
     name: int
-    element: dart:core::<definingUnit>::@class::int
+    element: dart:core::@fragment::dart:core::@class::int
     type: int
   matchedValueType: dynamic
 ''');
@@ -92,7 +92,7 @@ PatternVariableDeclaration
       asToken: as
       type: NamedType
         name: int
-        element: dart:core::<definingUnit>::@class::int
+        element: dart:core::@fragment::dart:core::@class::int
         type: int
       matchedValueType: dynamic
     rightParenthesis: )
@@ -100,7 +100,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
+    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     staticType: dynamic
   patternTypeSchema: _
 ''');

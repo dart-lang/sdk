@@ -27,7 +27,7 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <thisLibrary>::<definingUnit>::@function::a
+    staticElement: <testLibraryFragment>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (

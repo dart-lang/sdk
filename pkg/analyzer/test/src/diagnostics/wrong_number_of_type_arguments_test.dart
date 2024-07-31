@@ -379,10 +379,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<definingUnit>::@class::int
+        element: dart:core::@fragment::dart:core::@class::int
         type: int
     rightBracket: >
-  element: <thisLibrary>::<definingUnit>::@extensionType::A
+  element: <testLibraryFragment>::@extensionType::A
   type: A
 ''');
   }
@@ -405,10 +405,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<definingUnit>::@class::int
+        element: dart:core::@fragment::dart:core::@class::int
         type: int
     rightBracket: >
-  element: <thisLibrary>::<definingUnit>::@extensionType::A
+  element: <testLibraryFragment>::@extensionType::A
   type: A<InvalidType, InvalidType>
 ''');
   }
@@ -431,14 +431,14 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<definingUnit>::@class::int
+        element: dart:core::@fragment::dart:core::@class::int
         type: int
       NamedType
         name: String
-        element: dart:core::<definingUnit>::@class::String
+        element: dart:core::@fragment::dart:core::@class::String
         type: String
     rightBracket: >
-  element: <thisLibrary>::<definingUnit>::@extensionType::A
+  element: <testLibraryFragment>::@extensionType::A
   type: A<InvalidType>
 ''');
   }

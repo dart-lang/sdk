@@ -61,7 +61,7 @@ LibraryDirective
     staticElement: <null>
     staticType: null
   semicolon: ;
-  element: <thisLibrary>
+  element: <testLibrary>
 ''');
   }
 
@@ -75,7 +75,7 @@ library;
 LibraryDirective
   libraryKeyword: library
   semicolon: ;
-  element: <thisLibrary>
+  element: <testLibrary>
 ''');
   }
 }

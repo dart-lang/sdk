@@ -858,7 +858,7 @@ var B = 0;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::<definingUnit>::@getter::B
+      staticElement: package:test/b.dart::@fragment::package:test/b.dart::@getter::B
       staticType: int
 [status] idle
 ''');
@@ -884,7 +884,7 @@ var B = 1.2;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::<definingUnit>::@getter::B
+      staticElement: package:test/b.dart::@fragment::package:test/b.dart::@getter::B
       staticType: double
 [status] idle
 ''');
@@ -3803,8 +3803,8 @@ void bar() {}
   flags: isLibrary
   enclosing: package:test/a.dart
   selectedElements
-    package:test/a.dart::<definingUnit>::@function::foo
-    package:test/a.dart::<definingUnit>::@function::bar
+    package:test/a.dart::@fragment::package:test/a.dart::@function::foo
+    package:test/a.dart::@fragment::package:test/a.dart::@function::bar
 [status] idle
 ''');
   }
@@ -3889,7 +3889,7 @@ class A {}
   flags: isAugmentation isMacroAugmentation
   enclosing: package:test/a.dart::@augmentation::package:test/a.macro.dart
   selectedElements
-    package:test/a.dart::@unit::package:test/a.macro.dart::@class::B
+    package:test/a.dart::@fragment::package:test/a.macro.dart::@class::B
 [status] idle
 ''');
   }

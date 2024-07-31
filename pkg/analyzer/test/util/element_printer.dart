@@ -16,6 +16,7 @@ import 'tree_string_sink.dart';
 class ElementPrinter {
   final TreeStringSink _sink;
   final ElementPrinterConfiguration _configuration;
+  // ignore: unused_field
   final String? _selfUriStr;
 
   ElementPrinter({
@@ -183,19 +184,22 @@ class ElementPrinter {
     if (parent.parent == null) {
       var libraryUriStr = reference.name;
 
-      // Very often we have just one library.
-      if (libraryUriStr == _selfUriStr) {
-        return '<thisLibrary>';
+      // Very often we have just the test library.
+      if (libraryUriStr == 'package:test/test.dart') {
+        return '<testLibrary>';
       }
 
       return _toPosixUriStr(libraryUriStr);
     }
 
-    // Very often we only have the defining unit.
-    if (parent.name == '@unit') {
+    // Compress often used library fragments.
+    if (parent.name == '@fragment') {
       var libraryRef = parent.parent!;
       if (reference.name == libraryRef.name) {
-        return '${_referenceToString(libraryRef)}::<definingUnit>';
+        if (libraryRef.name == 'package:test/test.dart') {
+          return '<testLibraryFragment>';
+        }
+        // return '${_referenceToString(libraryRef)}::<fragment>';
       }
     }
 

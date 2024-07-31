@@ -49,7 +49,7 @@ E a;
     assertResolvedNodeText(node, r'''
 NamedType
   name: E
-  element: <thisLibrary>::<definingUnit>::@extension::E
+  element: <testLibraryFragment>::@extension::E
   type: InvalidType
 ''');
   }

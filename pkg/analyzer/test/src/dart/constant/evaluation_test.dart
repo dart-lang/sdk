@@ -40,7 +40,7 @@ const x = a as int;
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 int 42
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -53,7 +53,7 @@ const x = null as E;
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 Null null
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -66,7 +66,7 @@ const x = 42 as E;
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 int 42
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -81,7 +81,7 @@ const x = (a as num) * (b as num);
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 int 6
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -122,9 +122,9 @@ E
     _name: String v1
     a: int 42
     index: int 0
-    variable: <thisLibrary>::<definingUnit>::@enum::E::@field::v1
+    variable: <testLibraryFragment>::@enum::E::@field::v1
   index: int 1
-  variable: <thisLibrary>::<definingUnit>::@enum::E::@field::v2
+  variable: <testLibraryFragment>::@enum::E::@field::v2
 ''');
   }
 
@@ -145,14 +145,14 @@ E<double>
   _name: String v1
   f: double 10.0
   index: int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x1
+  variable: <testLibraryFragment>::@topLevelVariable::x1
 ''');
     assertDartObjectText(_topLevelVar('x2'), r'''
 E<int>
   _name: String v2
   f: int 20
   index: int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x2
+  variable: <testLibraryFragment>::@topLevelVariable::x2
 ''');
   }
 
@@ -175,21 +175,21 @@ E<int>
   _name: String v1
   f: int 10
   index: int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x1
+  variable: <testLibraryFragment>::@topLevelVariable::x1
 ''');
     assertDartObjectText(_topLevelVar('x2'), r'''
 E<int>
   _name: String v2
   f: int 20
   index: int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x2
+  variable: <testLibraryFragment>::@topLevelVariable::x2
 ''');
     assertDartObjectText(_topLevelVar('x3'), r'''
 E<String>
   _name: String v3
   f: String abc
   index: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x3
+  variable: <testLibraryFragment>::@topLevelVariable::x3
 ''');
   }
 
@@ -203,13 +203,13 @@ const x2 = E.v2;
 E
   _name: String v1
   index: int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x1
+  variable: <testLibraryFragment>::@topLevelVariable::x1
 ''');
     assertDartObjectText(_topLevelVar('x2'), r'''
 E
   _name: String v2
   index: int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x2
+  variable: <testLibraryFragment>::@topLevelVariable::x2
 ''');
   }
 
@@ -220,7 +220,7 @@ const v = true == false;
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -231,7 +231,7 @@ const v = true == true;
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -242,7 +242,7 @@ const v = 1.2 == Object();
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -253,7 +253,7 @@ const v = 1 == 2;
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -264,7 +264,7 @@ const v = 1 == 1;
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -276,7 +276,7 @@ const v = a == null;
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -287,7 +287,7 @@ const v = 1 == Object();
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -302,7 +302,7 @@ const v = 1 == A();
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -334,7 +334,7 @@ const v = a == Object();
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -345,7 +345,7 @@ const v = 'foo' == Object();
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -391,7 +391,7 @@ const v = A(0) == 0;
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -422,7 +422,7 @@ const v = A(0) == A(0);
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -613,7 +613,7 @@ const v = A();
     assertDartObjectText(result, r'''
 A
   f: Null null
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -627,7 +627,7 @@ extension type const ExList<T>(List<T> value) implements List<T> {}
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -639,7 +639,7 @@ const c = identical(C<int>, C<String>);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -652,7 +652,7 @@ const c = identical(C<int>, D<int>);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -664,7 +664,7 @@ const c = identical(C<int>, C<int>);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -677,7 +677,7 @@ const c = identical(C<int>, TC);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -690,7 +690,7 @@ const c = identical(C<int>, TC<int>);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -703,7 +703,7 @@ const c = identical(C<int>, TC<String>);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -716,7 +716,7 @@ const c = identical(C<dynamic>, TC);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -729,7 +729,7 @@ const c = identical(C<num>, TC);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -740,7 +740,7 @@ const c = identical(int, String);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -751,7 +751,7 @@ const c = identical(int, int);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -774,7 +774,7 @@ const b = a;
     assertDartObjectText(result, r'''
 A<int>
   t: int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -791,7 +791,7 @@ const x = C<E>();
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 C<int>
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -810,7 +810,7 @@ const x = C(E(42));
     assertDartObjectText(result, '''
 C<int>
   f: int 42
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -823,7 +823,7 @@ const x = E(42);
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 int 42
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -837,7 +837,7 @@ const x = a is String;
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -851,7 +851,7 @@ const x = a is int;
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -864,7 +864,7 @@ const x = 42 is E;
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -877,7 +877,7 @@ const x = 42 is E;
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -891,7 +891,7 @@ const x = <E>[];
     assertDartObjectText(result, '''
 List
   elementType: int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -908,7 +908,7 @@ List
   elements
     int 0
     int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -925,7 +925,7 @@ Map
     entry
       key: int 0
       value: int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -952,7 +952,7 @@ const a = ('',) is (int,);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1012,7 +1012,7 @@ const v2 = v1 + 2;
     var result = _topLevelVar('v2');
     assertDartObjectText(result, r'''
 int 3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v2
+  variable: <testLibraryFragment>::@topLevelVariable::v2
 ''');
   }
 
@@ -1023,7 +1023,7 @@ const c = 2 > 3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1034,7 +1034,7 @@ const c = 2 >= 3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1046,7 +1046,7 @@ const c = 0xFFFFFFFF >>> 8;
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0xffffff
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1057,7 +1057,7 @@ const c = 0xFFFFFFFF >>> 33;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1068,7 +1068,7 @@ const c = 0xFFFFFFFF >>> 65;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1090,7 +1090,7 @@ const c = 0xFFFFFFFF >>> 0;
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0xffffffff
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1102,7 +1102,7 @@ const c = 0xFF >>> 3;
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0x1f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1113,7 +1113,7 @@ const c = 0xFF >>> 9;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1124,7 +1124,7 @@ const c = 0xFF >>> 65;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1146,7 +1146,7 @@ const c = 0xFF >>> 0;
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0xff
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1157,7 +1157,7 @@ const c = 2 < 3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1168,7 +1168,7 @@ const c = 2 <= 3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1215,10 +1215,10 @@ const void Function(int p) h = b ? g : g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int, {int? q})
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::h
+  variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
 
@@ -1230,7 +1230,7 @@ const x = kIsWeb ? 0 : 1;
     var result = _topLevelVar('x');
     assertDartObjectText(result, r'''
 <unknown> int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -1331,10 +1331,10 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <thisLibrary>::<definingUnit>::@class::C::@constructor::foo
+  element: <testLibraryFragment>::@class::C::@constructor::foo
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1348,10 +1348,10 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
+  element: <testLibraryFragment>::@class::C::@constructor::new
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1364,7 +1364,7 @@ const a = identical(MyC.new, C<int>.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1377,7 +1377,7 @@ const a = identical(MyC.new, C.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1390,7 +1390,7 @@ const a = identical(MyC.new, C.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1403,7 +1403,7 @@ const a = identical(MyC.new, C.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1416,7 +1416,7 @@ const a = identical(MyC.new, C.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1429,7 +1429,7 @@ const a = identical(MyC<int>.new, C<int>.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1442,7 +1442,7 @@ const a = identical(MyC<int>.new, (MyC.new)<int>);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1455,7 +1455,7 @@ const a = identical(MyC<int>.new, MyC<int>.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1468,7 +1468,7 @@ const a = identical(MyC<int>.new, (MyC.new)<int>);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1481,7 +1481,7 @@ const a = identical(MyC<int>.new, MyC<int>.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1495,7 +1495,7 @@ const a = identical(MyC<int>.new, MyC<int>.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1508,7 +1508,7 @@ const a = identical(MyC.new, MyC.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1521,7 +1521,7 @@ const a = identical(C<int>.new, D<int>.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1536,7 +1536,7 @@ const a = identical(C<int>.new, C<int>.named);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1548,7 +1548,7 @@ const a = identical(C<int>.new, C<String>.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1560,7 +1560,7 @@ const a = identical(C<int>.new, C<int>.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1574,7 +1574,7 @@ const a = identical(c1, c2);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1587,7 +1587,7 @@ const a = identical(C.new, D.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1602,7 +1602,7 @@ const a = identical(C.new, C.named);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1614,7 +1614,7 @@ const a = identical(C.new, C.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1626,7 +1626,7 @@ const a = identical(C<int>.new, C.new);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -1640,10 +1640,10 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <thisLibrary>::<definingUnit>::@class::C::@constructor::foo
+  element: <testLibraryFragment>::@class::C::@constructor::foo
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1657,10 +1657,10 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
+  element: <testLibraryFragment>::@class::C::@constructor::new
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1688,10 +1688,10 @@ const g = (b ? foo : bar)<int>;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::foo
+  element: <testLibraryFragment>::@function::foo
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1705,10 +1705,10 @@ const g = (b ? foo : bar)<int>;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(String, int)
-  element: <thisLibrary>::<definingUnit>::@function::foo
+  element: <testLibraryFragment>::@function::foo
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1720,10 +1720,10 @@ const g = f<int>;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1737,10 +1737,10 @@ const g = f<String>;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(String)
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     String
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1807,7 +1807,7 @@ const g = identical(foo<int>, bar<int>);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1819,7 +1819,7 @@ const g = identical(foo<int>, foo<String>);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1831,7 +1831,7 @@ const g = identical(foo<int>, foo);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1843,7 +1843,7 @@ const g = identical(foo<int>, foo<int>);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1856,7 +1856,7 @@ const g = identical(foo<Object>, foo<FutureOr<Object>>);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1869,7 +1869,7 @@ const g = identical(foo<int>, bar<int>);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1881,7 +1881,7 @@ const g = identical(foo<int>, foo<String>);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1893,7 +1893,7 @@ const g = identical(foo<int>, foo);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1905,7 +1905,7 @@ const g = identical(foo<int>, foo<int>);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1918,7 +1918,7 @@ const g = identical(foo<Object>, foo<FutureOr<Object>>);
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -1932,7 +1932,7 @@ const c = identical(f, g);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1946,7 +1946,7 @@ const c = identical(f, g);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1958,7 +1958,7 @@ const c = identical(foo, foo);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1972,7 +1972,7 @@ const c = identical(f, g);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -1986,7 +1986,7 @@ const c = identical(f, g);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -2000,8 +2000,8 @@ const g = b ? foo : bar;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function<T>(T)
-  element: <thisLibrary>::<definingUnit>::@function::foo
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  element: <testLibraryFragment>::@function::foo
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -2013,8 +2013,8 @@ const g = f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function<T>(T)
-  element: <thisLibrary>::<definingUnit>::@function::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  element: <testLibraryFragment>::@function::f
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -2026,7 +2026,7 @@ const c = identical(foo, foo);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -2040,7 +2040,7 @@ const a = A();
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -2065,7 +2065,7 @@ const a = A(1);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -2105,7 +2105,7 @@ const c = foo is void Function(int);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -2122,7 +2122,7 @@ class A {
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -2142,7 +2142,7 @@ class B extends A {
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -2155,7 +2155,7 @@ class A {}
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -2168,7 +2168,7 @@ class A {}
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -2180,7 +2180,7 @@ const b = a is Object;
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -2197,7 +2197,7 @@ class A {
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -2217,7 +2217,7 @@ class B extends A {
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -2230,7 +2230,7 @@ class A {}
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -2279,7 +2279,7 @@ List
     String a
     String b
     String c
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2291,7 +2291,7 @@ const x = <void Function()>[];
     assertDartObjectText(result, r'''
 List
   elementType: void Function()
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2329,7 +2329,7 @@ List
     String a
     String b
     String c
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2345,11 +2345,11 @@ List
   elementType: int
   elements
     int 0
-      variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+      variable: <testLibraryFragment>::@topLevelVariable::a
     int 1
     int 2
-      variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+      variable: <testLibraryFragment>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -2378,7 +2378,7 @@ List
   elementType: String
   elements
     String anotherString
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2397,7 +2397,7 @@ List
   elements
     String anotherString
     String string
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2441,8 +2441,8 @@ const g = self.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  element: <testLibraryFragment>::@function::f
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -2455,10 +2455,10 @@ const void Function(int) g = self.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -2473,10 +2473,10 @@ const void Function(int) h = b ? g1 : g2;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::h
+  variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
 
@@ -2490,10 +2490,10 @@ const void Function(int) h = self.g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::h
+  variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
 
@@ -2507,8 +2507,8 @@ const h = self.g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function<T>(T)
-  element: <thisLibrary>::<definingUnit>::@function::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::h
+  element: <testLibraryFragment>::@function::f
+  variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
 
@@ -2542,7 +2542,7 @@ const c = ~42;
     var result = _topLevelVar('c');
     assertDartObjectText(result, '''
 int -43
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -2586,7 +2586,7 @@ const v2 = -v1;
     var result = _topLevelVar('v2');
     assertDartObjectText(result, r'''
 int -1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v2
+  variable: <testLibraryFragment>::@topLevelVariable::v2
 ''');
   }
 
@@ -2597,7 +2597,7 @@ const c = !true;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -2617,7 +2617,7 @@ const c = -42.3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double -42.3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -2628,7 +2628,7 @@ const c = -42;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int -42
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -2639,7 +2639,7 @@ const x = ('qwe' + 'rty').length;
     var result = _topLevelVar('x');
     assertDartObjectText(result, r'''
 int 6
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2650,7 +2650,7 @@ const x = 'Dvorak'.length;
     var result = _topLevelVar('x');
     assertDartObjectText(result, r'''
 int 6
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2665,8 +2665,8 @@ const g = self.C.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@class::C::@method::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  element: <testLibraryFragment>::@class::C::@method::f
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -2681,10 +2681,10 @@ const void Function(int) g = self.C.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@class::C::@method::f
+  element: <testLibraryFragment>::@class::C::@method::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -2699,8 +2699,8 @@ const g = self.E.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 int Function(String)
-  element: <thisLibrary>::<definingUnit>::@extension::E::@method::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  element: <testLibraryFragment>::@extension::E::@method::f
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -2715,8 +2715,8 @@ const g = self.ET.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 int Function(String)
-  element: <thisLibrary>::<definingUnit>::@extensionType::ET::@method::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  element: <testLibraryFragment>::@extensionType::ET::@method::f
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -2741,7 +2741,7 @@ Record(int, {int f1, double f2})
   namedFields
     f1: int 10
     f2: double 2.3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2755,7 +2755,7 @@ Record({int f1, int f2})
   namedFields
     f1: int 10
     f2: int -3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2784,7 +2784,7 @@ A<int>
     positionalFields
       $1: int 42
       $2: int 42
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -2799,7 +2799,7 @@ Record(int, int, int)
     $1: int 20
     $2: int 0
     $3: int 7
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2824,7 +2824,7 @@ Record(int, String, {bool c})
     $2: String b
   namedFields
     c: bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -2884,9 +2884,9 @@ Map
       value: int 1
     entry
       key: void Function()
-        element: <thisLibrary>::<definingUnit>::@function::fn
+        element: <testLibraryFragment>::@function::fn
       value: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2942,7 +2942,7 @@ Map
     entry
       key: String c
       value: String o
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2961,7 +2961,7 @@ Map
     entry
       key: String string
       value: int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -2993,7 +2993,7 @@ Map
     entry
       key: String anotherString
       value: int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -3015,11 +3015,11 @@ Set
   elements
     C
       x: double 0.0
-      variable: <thisLibrary>::<definingUnit>::@topLevelVariable::cp0
+      variable: <testLibraryFragment>::@topLevelVariable::cp0
     C
       x: double -0.0
-      variable: <thisLibrary>::<definingUnit>::@topLevelVariable::cm0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+      variable: <testLibraryFragment>::@topLevelVariable::cm0
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -3061,7 +3061,7 @@ Set
   elements
     String anotherString
     String string
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -3078,7 +3078,7 @@ const Set<String> x = {
 Set
   elements
     String anotherString
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -3090,7 +3090,7 @@ class C {}
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 Type C
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -3102,8 +3102,8 @@ const g = f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  element: <testLibraryFragment>::@function::f
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -3115,10 +3115,10 @@ const void Function(int) g = f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -3130,8 +3130,8 @@ const void Function(int) g = f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::g
+  element: <testLibraryFragment>::@function::f
+  variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
 
@@ -3144,10 +3144,10 @@ const void Function(int) h = g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::h
+  variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
 
@@ -3160,8 +3160,8 @@ const h = g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function<T>(T)
-  element: <thisLibrary>::<definingUnit>::@function::f
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::h
+  element: <testLibraryFragment>::@function::f
+  variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
 
@@ -3177,10 +3177,10 @@ class C {
     var result = _field('h');
     assertDartObjectText(result, '''
 void Function(int, {int? b})
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@class::C::@field::h
+  variable: <testLibraryFragment>::@class::C::@field::h
 ''');
   }
 
@@ -3199,10 +3199,10 @@ const c = C(f);
     assertDartObjectText(result, '''
 C
   h: void Function(int, {int? b})
-    element: <thisLibrary>::<definingUnit>::@function::f
+    element: <testLibraryFragment>::@function::f
     typeArguments
       int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3217,10 +3217,10 @@ const void Function(int a) h = g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int, {int? b})
-  element: <thisLibrary>::<definingUnit>::@function::f
+  element: <testLibraryFragment>::@function::f
   typeArguments
     int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::h
+  variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
 
@@ -3454,7 +3454,7 @@ const c = 'abc' 'def';
     var result = _topLevelVar('c');
     assertDartObjectText(result, '''
 String abcdef
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3541,7 +3541,7 @@ const c = 2.3 + 3.2;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double 5.5
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3566,7 +3566,7 @@ const c = 2 + 3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 5
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3577,7 +3577,7 @@ const c = 'a' + 'b';
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 String ab
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3588,7 +3588,7 @@ const c = true && false;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3676,7 +3676,7 @@ const c = 74 & 42;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 10
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3696,7 +3696,7 @@ const c = 3.2 / 2.3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double 1.3913043478260871
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3707,7 +3707,7 @@ const c = 3.2 / 0.0;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double Infinity
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3718,7 +3718,7 @@ const c = 3 / 2;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double 1.5
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3729,7 +3729,7 @@ const c = 3 / 0;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double Infinity
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3744,7 +3744,7 @@ const c = double.nan == 2.3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3759,7 +3759,7 @@ const c = 2.3 == double.nan;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3770,7 +3770,7 @@ const c = 3.2 - 2.3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double 0.9000000000000004
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3781,7 +3781,7 @@ const c = 3 - 2;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3792,7 +3792,7 @@ const c = true != false;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3803,7 +3803,7 @@ const c = 2 != 3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3834,7 +3834,7 @@ const c = 'a' != 'b';
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -3932,7 +3932,7 @@ const c = true || false;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4042,7 +4042,7 @@ const c = false;
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4054,7 +4054,7 @@ const c = true;
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4067,7 +4067,7 @@ const c = false ? 1 : 0;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4080,7 +4080,7 @@ const c = true ? 1 : 0;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4115,7 +4115,7 @@ const c = false ? 1 : 0;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4159,7 +4159,7 @@ const c = true ? 1 : 0;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 1
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4210,7 +4210,7 @@ const c = 3.45;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double 3.45
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4230,7 +4230,7 @@ const c = 3;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4242,7 +4242,7 @@ const c = foo is void Function(String);
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4253,7 +4253,7 @@ const c = false is void Function();
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4271,7 +4271,7 @@ class B extends A {
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4289,7 +4289,7 @@ class B {
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4304,7 +4304,7 @@ class A {}
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4319,7 +4319,7 @@ class A {}
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4337,7 +4337,7 @@ class B extends A {
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4355,7 +4355,7 @@ class B {
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4366,7 +4366,7 @@ const c = null;
     var result = _topLevelVar('c');
     assertDartObjectText(result, '''
 Null null
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4377,7 +4377,7 @@ const a = ('a');
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 String a
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -4397,7 +4397,7 @@ const x = prefix.E.v;
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 int 42
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -4452,7 +4452,7 @@ const v2 = v1.length;
     var result = _topLevelVar('v2');
     assertDartObjectText(result, r'''
 int 3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v2
+  variable: <testLibraryFragment>::@topLevelVariable::v2
 ''');
   }
 
@@ -4512,7 +4512,7 @@ const b = 3;''');
     var result = _evaluateConstant('a', lexicalEnvironment: environment);
     assertDartObjectText(result, r'''
 int 3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4524,7 +4524,7 @@ const b = a;
     var result = _topLevelVar('b');
     assertDartObjectText(result, '''
 int 42
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4535,7 +4535,7 @@ const b = 3;''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 int 3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -4546,7 +4546,7 @@ const c = 'abc';
     var result = _topLevelVar('c');
     assertDartObjectText(result, '''
 String abc
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4567,7 +4567,7 @@ const c = 'a${3}c';
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 String a3c
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 }
@@ -4711,7 +4711,7 @@ const a = const A(null);
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -4747,7 +4747,7 @@ const c = const A(E.b);
     var result = _topLevelVar('c');
     assertDartObjectText(result, '''
 A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::c
+  variable: <testLibraryFragment>::@topLevelVariable::c
 ''');
   }
 
@@ -4792,7 +4792,7 @@ const a = const A(0);
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -4826,7 +4826,7 @@ const v = const A(0);
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 
@@ -4862,7 +4862,7 @@ const a = const A();
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -4908,7 +4908,7 @@ const b = const B();
     assertDartObjectText(result, '''
 B
   (super): A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::b
+  variable: <testLibraryFragment>::@topLevelVariable::b
 ''');
   }
 
@@ -4985,7 +4985,7 @@ const a = const A(1);
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -4996,7 +4996,7 @@ const b = bool.fromEnvironment('b', defaultValue: true);
 ''');
     assertDartObjectText(_topLevelVar('a'), '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
     assertDartObjectText(
         _evaluateConstant('a', declaredVariables: {'a': 'true'}), '''
@@ -5024,7 +5024,7 @@ const a = bool.fromEnvironment('dart.library.js_util');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -5038,12 +5038,12 @@ const right = b == [3, 1, 2, 4];
     var leftResult = _topLevelVar('left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::left
+  variable: <testLibraryFragment>::@topLevelVariable::left
 ''');
     var rightResult = _topLevelVar('right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::right
+  variable: <testLibraryFragment>::@topLevelVariable::right
 ''');
   }
 
@@ -5057,12 +5057,12 @@ const right = b == [3, if (a) ...[1] else ...[1, 2], 4];
     var leftResult = _topLevelVar('left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::left
+  variable: <testLibraryFragment>::@topLevelVariable::left
 ''');
     var rightResult = _topLevelVar('right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::right
+  variable: <testLibraryFragment>::@topLevelVariable::right
 ''');
   }
 
@@ -5074,7 +5074,7 @@ const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 <unknown> Map<int, String>
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5088,12 +5088,12 @@ const right = b == {3:'3', 2:'2', 4:'4'};
     var leftResult = _topLevelVar('left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::left
+  variable: <testLibraryFragment>::@topLevelVariable::left
 ''');
     var rightResult = _topLevelVar('right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::right
+  variable: <testLibraryFragment>::@topLevelVariable::right
 ''');
   }
 
@@ -5107,12 +5107,12 @@ const right = b == {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
     var leftResult = _topLevelVar('left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::left
+  variable: <testLibraryFragment>::@topLevelVariable::left
 ''');
     var rightResult = _topLevelVar('right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::right
+  variable: <testLibraryFragment>::@topLevelVariable::right
 ''');
   }
 
@@ -5138,7 +5138,7 @@ const x = {3, if (a) ...[1] else ...[1, 2], 4};
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 <unknown> Set<int>
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5152,12 +5152,12 @@ const right = b == {3, 1, 4};
     var leftResult = _topLevelVar('left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::left
+  variable: <testLibraryFragment>::@topLevelVariable::left
 ''');
     var rightResult = _topLevelVar('right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::right
+  variable: <testLibraryFragment>::@topLevelVariable::right
 ''');
   }
 
@@ -5171,12 +5171,12 @@ const right = b == {3, if (a) ...[1] else ...[1, 2], 4};
     var leftResult = _topLevelVar('left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::left
+  variable: <testLibraryFragment>::@topLevelVariable::left
 ''');
     var rightResult = _topLevelVar('right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::right
+  variable: <testLibraryFragment>::@topLevelVariable::right
 ''');
   }
 
@@ -5202,7 +5202,7 @@ const x = [3, if (a) ...[1] else ...[1, 2], 4];
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 <unknown> List<int>
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5226,7 +5226,7 @@ const a = bool.hasEnvironment('a');
 ''');
     assertDartObjectText(_topLevelVar('a'), '''
 bool false
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
     assertDartObjectText(
         _evaluateConstant('a', declaredVariables: {'a': '42'}), '''
@@ -5292,10 +5292,10 @@ const a = const A<int>();
     assertDartObjectText(result, '''
 A<int>
   f: void Function(int)
-    element: <thisLibrary>::<definingUnit>::@function::g
+    element: <testLibraryFragment>::@function::g
     typeArguments
       T
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -5311,7 +5311,7 @@ const a = const A<int>();
     assertDartObjectText(result, '''
 A<int>
   f: Type int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -5327,7 +5327,7 @@ const a = const A();
     assertDartObjectText(result, '''
 A<dynamic>
   f: Type dynamic
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -5345,7 +5345,7 @@ const a = const B<String>();
 A<int, String>
   f: Type int
   g: Type String
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -5399,7 +5399,7 @@ const b = int.fromEnvironment('b', defaultValue: 42);
 
     assertDartObjectText(_topLevelVar('a'), '''
 int 0
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
     assertDartObjectText(
         _evaluateConstant('a', declaredVariables: {'a': '5'}), '''
@@ -5495,7 +5495,7 @@ const a = const A<int>();
     assertDartObjectText(result, '''
 A<int>
   f: Type int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -5505,7 +5505,7 @@ const a = String.fromEnvironment('a');
 ''');
     assertDartObjectText(_topLevelVar('a'), '''
 String <empty>
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
     assertDartObjectText(
         _evaluateConstant('a', declaredVariables: {'a': 'test'}), '''
@@ -5536,7 +5536,7 @@ B
     a: int 1
     b: int 2
   c: int 3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5563,7 +5563,7 @@ B
     a: int 1
     b: int 2
   c: int 3
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5588,7 +5588,7 @@ B
   (super): A
     a: int 1
   b: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5613,7 +5613,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5638,7 +5638,7 @@ B
   (super): A
     a: int 1
   b: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5663,7 +5663,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5688,7 +5688,7 @@ B
   (super): A
     a: int 1
   b: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5713,7 +5713,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5738,7 +5738,7 @@ B
   (super): A
     a: int 1
   b: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5763,7 +5763,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::x
+  variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
   }
 
@@ -5816,7 +5816,7 @@ const a = const B<int>();
 B<int>
   (super): A<int>
     f: Type int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 
@@ -5836,7 +5836,7 @@ const a = const B<int>();
 B<int>
   (super): A
     f: Type int
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
+  variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }
 }

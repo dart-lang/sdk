@@ -20,6 +20,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisSessionImplTest);
     defineReflectiveTests(AnalysisSessionImpl_BlazeWorkspaceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -780,7 +781,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/test.dart::@unit::package:test/a.dart
+    reference: root::package:test/test.dart::@fragment::package:test/a.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -798,7 +799,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');
@@ -825,7 +826,7 @@ unitElementResult
   path: /home/test/lib/test.dart
   uri: package:test/test.dart
   element
-    reference: root::package:test/test.dart::@unit::package:test/test.dart
+    reference: root::package:test/test.dart::@fragment::package:test/test.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -847,7 +848,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/test.dart::@unit::package:test/a.dart
+    reference: root::package:test/test.dart::@fragment::package:test/a.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -865,7 +866,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');
@@ -888,7 +889,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/test.dart::@unit::package:test/a.dart
+    reference: root::package:test/test.dart::@fragment::package:test/a.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
@@ -906,7 +907,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');
@@ -924,7 +925,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    reference: root::package:test/a.dart::@fragment::package:test/a.dart
     library: root::package:test/a.dart
     classes: A, B
 ''');

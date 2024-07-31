@@ -67,7 +67,7 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::_
+  staticElement: <testLibraryFragment>::@class::A::@getter::_
   staticType: int
 ''');
   }
@@ -92,7 +92,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <thisLibrary>::<definingUnit>::@class::C::@method::_
+  declaredElement: <testLibraryFragment>::@class::C::@method::_
     type: dynamic Function()
 ''');
   }
@@ -120,7 +120,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <thisLibrary>::<definingUnit>::@class::C::@method::_
+  declaredElement: <testLibraryFragment>::@class::C::@method::_
     type: dynamic Function()
 ''');
   }

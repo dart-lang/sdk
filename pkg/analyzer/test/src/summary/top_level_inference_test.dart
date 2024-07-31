@@ -365,136 +365,136 @@ var vMinusDoubleDouble = 1.0 - 2.0;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vPlusIntInt @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vPlusIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vPlusIntInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vPlusIntDouble @29
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vPlusIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vPlusIntDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vPlusDoubleInt @59
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vPlusDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vPlusDoubleInt
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vPlusDoubleDouble @89
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vPlusDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vPlusDoubleDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vMinusIntInt @124
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vMinusIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vMinusIntInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vMinusIntDouble @150
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vMinusIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vMinusIntDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vMinusDoubleInt @181
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vMinusDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vMinusDoubleInt
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vMinusDoubleDouble @212
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vMinusDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vMinusDoubleDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vPlusIntInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vPlusIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vPlusIntInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vPlusIntInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vPlusIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vPlusIntInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vPlusIntInt @-1
             type: int
         returnType: void
       synthetic static get vPlusIntDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vPlusIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vPlusIntDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vPlusIntDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vPlusIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vPlusIntDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vPlusIntDouble @-1
             type: double
         returnType: void
       synthetic static get vPlusDoubleInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vPlusDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vPlusDoubleInt
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vPlusDoubleInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vPlusDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vPlusDoubleInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vPlusDoubleInt @-1
             type: double
         returnType: void
       synthetic static get vPlusDoubleDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vPlusDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vPlusDoubleDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vPlusDoubleDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vPlusDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vPlusDoubleDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vPlusDoubleDouble @-1
             type: double
         returnType: void
       synthetic static get vMinusIntInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vMinusIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vMinusIntInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vMinusIntInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vMinusIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vMinusIntInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vMinusIntInt @-1
             type: int
         returnType: void
       synthetic static get vMinusIntDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vMinusIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vMinusIntDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vMinusIntDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vMinusIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vMinusIntDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vMinusIntDouble @-1
             type: double
         returnType: void
       synthetic static get vMinusDoubleInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vMinusDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vMinusDoubleInt
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vMinusDoubleInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vMinusDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vMinusDoubleInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vMinusDoubleInt @-1
             type: double
         returnType: void
       synthetic static get vMinusDoubleDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vMinusDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vMinusDoubleDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vMinusDoubleDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vMinusDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vMinusDoubleDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vMinusDoubleDouble @-1
             type: double
@@ -508,24 +508,24 @@ var V = 1 as num;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static V @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::V
+        enclosingElement: <testLibraryFragment>
         type: num
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get V @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::V
+        enclosingElement: <testLibraryFragment>
         returnType: num
       synthetic static set V= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::V
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _V @-1
             type: num
@@ -541,56 +541,56 @@ var t2 = (a += 2);
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static a @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static t1 @15
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t1
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static t2 @33
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t2
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: int
         returnType: void
       synthetic static get t1 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t1
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t1= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t1 @-1
             type: int
         returnType: void
       synthetic static get t2 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t2
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t2= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t2
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t2 @-1
             type: int
@@ -606,56 +606,56 @@ var t2 = (a[0] += 2);
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static a @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         type: List<int>
         shouldUseTypeForInitializerInference: false
       static t1 @17
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t1
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static t2 @38
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t2
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: List<int>
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: List<int>
         returnType: void
       synthetic static get t1 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t1
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t1= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t1 @-1
             type: int
         returnType: void
       synthetic static get t2 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t2
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t2= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t2
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t2 @-1
             type: int
@@ -674,81 +674,81 @@ var t2 = (a.f += 2);
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           f @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::f
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get f @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::f
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set f= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::f
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _f @-1
                 type: int
             returnType: void
     topLevelVariables
       static a @25
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         type: A
         shouldUseTypeForInitializerInference: false
       static t1 @42
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t1
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static t2 @62
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t2
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: A
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: A
         returnType: void
       synthetic static get t1 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t1
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t1= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t1 @-1
             type: int
         returnType: void
       synthetic static get t2 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t2
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t2= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t2
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t2 @-1
             type: int
@@ -768,89 +768,89 @@ var t2 = (c.f += 2);
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class I @6
-        reference: <thisLibrary>::<definingUnit>::@class::I
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::I
+        enclosingElement: <testLibraryFragment>
         fields
           f @16
-            reference: <thisLibrary>::<definingUnit>::@class::I::@field::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@field::f
+            enclosingElement: <testLibraryFragment>::@class::I
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::I
         accessors
           synthetic get f @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@getter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@getter::f
+            enclosingElement: <testLibraryFragment>::@class::I
             returnType: int
           synthetic set f= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@setter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@setter::f
+            enclosingElement: <testLibraryFragment>::@class::I
             parameters
               requiredPositional _f @-1
                 type: int
             returnType: void
       abstract class C @36
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           I
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
     topLevelVariables
       static c @56
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::c
+        enclosingElement: <testLibraryFragment>
         type: C
       static t1 @63
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t1
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static t2 @83
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t2
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get c @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::c
+        enclosingElement: <testLibraryFragment>
         returnType: C
       synthetic static set c= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::c
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _c @-1
             type: C
         returnType: void
       synthetic static get t1 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t1
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t1= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t1 @-1
             type: int
         returnType: void
       synthetic static get t2 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t2
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t2= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t2
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t2 @-1
             type: int
@@ -870,82 +870,82 @@ var t2 = (getC().f += 2);
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class I @6
-        reference: <thisLibrary>::<definingUnit>::@class::I
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::I
+        enclosingElement: <testLibraryFragment>
         fields
           f @16
-            reference: <thisLibrary>::<definingUnit>::@class::I::@field::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@field::f
+            enclosingElement: <testLibraryFragment>::@class::I
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::I
         accessors
           synthetic get f @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@getter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@getter::f
+            enclosingElement: <testLibraryFragment>::@class::I
             returnType: int
           synthetic set f= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@setter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@setter::f
+            enclosingElement: <testLibraryFragment>::@class::I
             parameters
               requiredPositional _f @-1
                 type: int
             returnType: void
       abstract class C @36
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           I
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
     topLevelVariables
       static t1 @76
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t1
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static t2 @101
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::t2
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get t1 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t1
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t1= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t1 @-1
             type: int
         returnType: void
       synthetic static get t2 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::t2
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set t2= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::t2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::t2
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _t2 @-1
             type: int
         returnType: void
     functions
       getC @56
-        reference: <thisLibrary>::<definingUnit>::@function::getC
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::getC
+        enclosingElement: <testLibraryFragment>
         returnType: C
 ''');
   }
@@ -960,60 +960,60 @@ var uFuture = () async => await fFuture();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   libraryImports
     dart:async
-      enclosingElement: <thisLibrary>
-      enclosingElement3: <thisLibrary>::<definingUnit>
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>
-        enclosingElement3: <thisLibrary>::<definingUnit>
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
     topLevelVariables
       static uValue @80
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::uValue
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::uValue
+        enclosingElement: <testLibraryFragment>
         type: Future<int> Function()
         shouldUseTypeForInitializerInference: false
       static uFuture @121
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::uFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::uFuture
+        enclosingElement: <testLibraryFragment>
         type: Future<int> Function()
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get uValue @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::uValue
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::uValue
+        enclosingElement: <testLibraryFragment>
         returnType: Future<int> Function()
       synthetic static set uValue= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::uValue
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::uValue
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _uValue @-1
             type: Future<int> Function()
         returnType: void
       synthetic static get uFuture @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::uFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::uFuture
+        enclosingElement: <testLibraryFragment>
         returnType: Future<int> Function()
       synthetic static set uFuture= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::uFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::uFuture
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _uFuture @-1
             type: Future<int> Function()
         returnType: void
     functions
       fValue @25
-        reference: <thisLibrary>::<definingUnit>::@function::fValue
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::fValue
+        enclosingElement: <testLibraryFragment>
         returnType: int
       fFuture @53 async
-        reference: <thisLibrary>::<definingUnit>::@function::fFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::fFuture
+        enclosingElement: <testLibraryFragment>
         returnType: Future<int>
 ''');
   }
@@ -1028,88 +1028,88 @@ var vBitShiftRight = 1 >> 2;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vBitXor @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vBitXor
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vBitXor
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vBitAnd @25
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vBitAnd
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vBitAnd
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vBitOr @46
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vBitOr
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vBitOr
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vBitShiftLeft @66
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vBitShiftLeft
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vBitShiftRight @94
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vBitShiftRight
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vBitShiftRight
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vBitXor @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vBitXor
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vBitXor
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vBitXor= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vBitXor
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vBitXor
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vBitXor @-1
             type: int
         returnType: void
       synthetic static get vBitAnd @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vBitAnd
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vBitAnd
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vBitAnd= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vBitAnd
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vBitAnd
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vBitAnd @-1
             type: int
         returnType: void
       synthetic static get vBitOr @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vBitOr
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vBitOr
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vBitOr= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vBitOr
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vBitOr
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vBitOr @-1
             type: int
         returnType: void
       synthetic static get vBitShiftLeft @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vBitShiftLeft
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vBitShiftLeft
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vBitShiftLeft= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vBitShiftLeft
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vBitShiftLeft
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vBitShiftLeft @-1
             type: int
         returnType: void
       synthetic static get vBitShiftRight @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vBitShiftRight
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vBitShiftRight
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vBitShiftRight= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vBitShiftRight
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vBitShiftRight
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vBitShiftRight @-1
             type: int
@@ -1129,86 +1129,86 @@ var vBoth = new A()..a = 1..m();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           a @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::a
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get a @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::a
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set a= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::a
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _a @-1
                 type: int
             returnType: void
         methods
           m @26
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: void
     topLevelVariables
       static vSetField @39
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vSetField
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vSetField
+        enclosingElement: <testLibraryFragment>
         type: A
         shouldUseTypeForInitializerInference: false
       static vInvokeMethod @71
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vInvokeMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vInvokeMethod
+        enclosingElement: <testLibraryFragment>
         type: A
         shouldUseTypeForInitializerInference: false
       static vBoth @105
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vBoth
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vBoth
+        enclosingElement: <testLibraryFragment>
         type: A
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vSetField @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vSetField
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vSetField
+        enclosingElement: <testLibraryFragment>
         returnType: A
       synthetic static set vSetField= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vSetField
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vSetField
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vSetField @-1
             type: A
         returnType: void
       synthetic static get vInvokeMethod @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vInvokeMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vInvokeMethod
+        enclosingElement: <testLibraryFragment>
         returnType: A
       synthetic static set vInvokeMethod= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vInvokeMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vInvokeMethod
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vInvokeMethod @-1
             type: A
         returnType: void
       synthetic static get vBoth @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vBoth
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vBoth
+        enclosingElement: <testLibraryFragment>
         returnType: A
       synthetic static set vBoth= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vBoth
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vBoth
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vBoth @-1
             type: A
@@ -1251,297 +1251,297 @@ C newC() => new C();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           f @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::f
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
             shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get f @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::f
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set f= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::f
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _f @-1
                 type: int
             returnType: void
       class B @31
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           a @39
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::a
+            enclosingElement: <testLibraryFragment>::@class::B
             type: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get a @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::a
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: A
           synthetic set a= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::a
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _a @-1
                 type: A
             returnType: void
       class C @50
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         fields
           b @58
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::b
+            enclosingElement: <testLibraryFragment>::@class::C
             type: B
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           synthetic get b @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::b
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: B
           synthetic set b= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::b
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _b @-1
                 type: B
             returnType: void
       class X @69
-        reference: <thisLibrary>::<definingUnit>::@class::X
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::X
+        enclosingElement: <testLibraryFragment>
         fields
           a @77
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::a
+            enclosingElement: <testLibraryFragment>::@class::X
             type: A
             shouldUseTypeForInitializerInference: true
           b @94
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::b
+            enclosingElement: <testLibraryFragment>::@class::X
             type: B
             shouldUseTypeForInitializerInference: true
           c @111
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::c
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::c
+            enclosingElement: <testLibraryFragment>::@class::X
             type: C
             shouldUseTypeForInitializerInference: true
           t01 @130
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t01
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t01
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
           t02 @147
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t02
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t02
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
           t03 @166
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t03
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t03
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
           t11 @187
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t11
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t11
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
           t12 @210
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t12
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t12
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
           t13 @235
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t13
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t13
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
           t21 @262
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t21
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t21
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
           t22 @284
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t22
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t22
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
           t23 @308
-            reference: <thisLibrary>::<definingUnit>::@class::X::@field::t23
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@field::t23
+            enclosingElement: <testLibraryFragment>::@class::X
             type: int
             shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::X
         accessors
           synthetic get a @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::a
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: A
           synthetic set a= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::a
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _a @-1
                 type: A
             returnType: void
           synthetic get b @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::b
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: B
           synthetic set b= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::b
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _b @-1
                 type: B
             returnType: void
           synthetic get c @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::c
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::c
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: C
           synthetic set c= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::c
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::c
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _c @-1
                 type: C
             returnType: void
           synthetic get t01 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t01
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t01
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t01= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t01
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t01
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t01 @-1
                 type: int
             returnType: void
           synthetic get t02 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t02
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t02
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t02= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t02
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t02
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t02 @-1
                 type: int
             returnType: void
           synthetic get t03 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t03
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t03
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t03= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t03
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t03
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t03 @-1
                 type: int
             returnType: void
           synthetic get t11 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t11
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t11
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t11= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t11
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t11
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t11 @-1
                 type: int
             returnType: void
           synthetic get t12 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t12
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t12
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t12= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t12
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t12
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t12 @-1
                 type: int
             returnType: void
           synthetic get t13 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t13
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t13
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t13= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t13
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t13
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t13 @-1
                 type: int
             returnType: void
           synthetic get t21 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t21
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t21
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t21= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t21
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t21
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t21 @-1
                 type: int
             returnType: void
           synthetic get t22 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t22
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t22
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t22= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t22
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t22
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t22 @-1
                 type: int
             returnType: void
           synthetic get t23 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@getter::t23
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@getter::t23
+            enclosingElement: <testLibraryFragment>::@class::X
             returnType: int
           synthetic set t23= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::X::@setter::t23
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::X
+            reference: <testLibraryFragment>::@class::X::@setter::t23
+            enclosingElement: <testLibraryFragment>::@class::X
             parameters
               requiredPositional _t23 @-1
                 type: int
             returnType: void
     functions
       newA @332
-        reference: <thisLibrary>::<definingUnit>::@function::newA
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::newA
+        enclosingElement: <testLibraryFragment>
         returnType: A
       newB @353
-        reference: <thisLibrary>::<definingUnit>::@function::newB
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::newB
+        enclosingElement: <testLibraryFragment>
         returnType: B
       newC @374
-        reference: <thisLibrary>::<definingUnit>::@function::newC
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::newC
+        enclosingElement: <testLibraryFragment>
         returnType: C
 ''');
   }
@@ -1552,24 +1552,24 @@ var V = true ? 1 : 2.3;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static V @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::V
+        enclosingElement: <testLibraryFragment>
         type: num
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get V @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::V
+        enclosingElement: <testLibraryFragment>
         returnType: num
       synthetic static set V= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::V
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _V @-1
             type: num
@@ -1584,40 +1584,40 @@ var vNotEq = 1 != 2;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vEq @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vEq
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static vNotEq @22
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNotEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNotEq
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vEq @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vEq
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vEq= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vEq
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vEq @-1
             type: bool
         returnType: void
       synthetic static get vNotEq @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNotEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNotEq
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vNotEq= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNotEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNotEq
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNotEq @-1
             type: bool
@@ -1632,44 +1632,44 @@ var b = a.foo();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static a @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         typeInferenceError: dependencyCycle
           arguments: [a, b]
         type: dynamic
         shouldUseTypeForInitializerInference: false
       static b @21
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::b
+        enclosingElement: <testLibraryFragment>
         typeInferenceError: dependencyCycle
           arguments: [a, b]
         type: dynamic
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: dynamic
         returnType: void
       synthetic static get b @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::b
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static set b= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::b
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _b @-1
             type: dynamic
@@ -1683,26 +1683,26 @@ var a = a.foo();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static a @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         typeInferenceError: dependencyCycle
           arguments: [a]
         type: dynamic
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: dynamic
@@ -1718,56 +1718,56 @@ var b1 = a[1];
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static a @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         type: List<num>
         shouldUseTypeForInitializerInference: false
       static b0 @22
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::b0
+        enclosingElement: <testLibraryFragment>
         type: num
         shouldUseTypeForInitializerInference: false
       static b1 @37
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::b1
+        enclosingElement: <testLibraryFragment>
         type: num
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: List<num>
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: List<num>
         returnType: void
       synthetic static get b0 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::b0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::b0
+        enclosingElement: <testLibraryFragment>
         returnType: num
       synthetic static set b0= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::b0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::b0
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _b0 @-1
             type: num
         returnType: void
       synthetic static get b1 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::b1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::b1
+        enclosingElement: <testLibraryFragment>
         returnType: num
       synthetic static set b1= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::b1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::b1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _b1 @-1
             type: num
@@ -1787,32 +1787,32 @@ var x = new C().f;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <thisLibrary>
-      enclosingElement3: <thisLibrary>::<definingUnit>
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>
-        enclosingElement3: <thisLibrary>::<definingUnit>
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
     topLevelVariables
       static x @21
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: int
@@ -1829,50 +1829,50 @@ var x = new C().f;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class C @6
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         fields
           f @16
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::f
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
             shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           synthetic get f @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::f
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
           synthetic set f= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::f
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _f @-1
                 type: int
             returnType: void
     topLevelVariables
       static x @29
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: int
@@ -1893,32 +1893,32 @@ var x = new C().f;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <thisLibrary>
-      enclosingElement3: <thisLibrary>::<definingUnit>
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>
-        enclosingElement3: <thisLibrary>::<definingUnit>
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
     topLevelVariables
       static x @21
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: int
@@ -1938,32 +1938,32 @@ var x = new C().f;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <thisLibrary>
-      enclosingElement3: <thisLibrary>::<definingUnit>
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>
-        enclosingElement3: <thisLibrary>::<definingUnit>
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
     topLevelVariables
       static x @21
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: int
@@ -1980,50 +1980,50 @@ var x = new C().f;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class C @6
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         fields
           f @16
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::f
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
             shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           synthetic get f @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::f
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
           synthetic set f= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::f
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _f @-1
                 type: int
             returnType: void
     topLevelVariables
       static x @29
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: int
@@ -2044,32 +2044,32 @@ var x = new C().f;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <thisLibrary>
-      enclosingElement3: <thisLibrary>::<definingUnit>
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>
-        enclosingElement3: <thisLibrary>::<definingUnit>
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
     topLevelVariables
       static x @21
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: int
@@ -2088,56 +2088,56 @@ class B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           f @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::f
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get f @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::f
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set f= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::f
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _f @-1
                 type: int
             returnType: void
       class B @27
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           static t @44
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::t
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::t
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
             shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic static get t @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::t
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::t
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
           synthetic static set t= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::t
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::t
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _t @-1
                 type: int
@@ -2155,64 +2155,64 @@ var x = c.b;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class C @6
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         fields
           b @17
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::b
+            enclosingElement: <testLibraryFragment>::@class::C
             type: bool
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           synthetic get b @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::b
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: bool
           synthetic set b= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::b
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _b @-1
                 type: bool
             returnType: void
     topLevelVariables
       static c @24
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::c
+        enclosingElement: <testLibraryFragment>
         type: C
       static x @31
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get c @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::c
+        enclosingElement: <testLibraryFragment>
         returnType: C
       synthetic static set c= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::c
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _c @-1
             type: C
         returnType: void
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: bool
@@ -2231,73 +2231,73 @@ var x = c.b;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class I @6
-        reference: <thisLibrary>::<definingUnit>::@class::I
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::I
+        enclosingElement: <testLibraryFragment>
         fields
           b @17
-            reference: <thisLibrary>::<definingUnit>::@class::I::@field::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@field::b
+            enclosingElement: <testLibraryFragment>::@class::I
             type: bool
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::I
         accessors
           synthetic get b @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@getter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@getter::b
+            enclosingElement: <testLibraryFragment>::@class::I
             returnType: bool
           synthetic set b= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@setter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@setter::b
+            enclosingElement: <testLibraryFragment>::@class::I
             parameters
               requiredPositional _b @-1
                 type: bool
             returnType: void
       abstract class C @37
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           I
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
     topLevelVariables
       static c @57
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::c
+        enclosingElement: <testLibraryFragment>
         type: C
       static x @64
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get c @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::c
+        enclosingElement: <testLibraryFragment>
         returnType: C
       synthetic static set c= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::c
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _c @-1
             type: C
         returnType: void
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: bool
@@ -2316,66 +2316,66 @@ var x = f().b;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class I @6
-        reference: <thisLibrary>::<definingUnit>::@class::I
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::I
+        enclosingElement: <testLibraryFragment>
         fields
           b @17
-            reference: <thisLibrary>::<definingUnit>::@class::I::@field::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@field::b
+            enclosingElement: <testLibraryFragment>::@class::I
             type: bool
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::I
         accessors
           synthetic get b @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@getter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@getter::b
+            enclosingElement: <testLibraryFragment>::@class::I
             returnType: bool
           synthetic set b= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::I::@setter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::I
+            reference: <testLibraryFragment>::@class::I::@setter::b
+            enclosingElement: <testLibraryFragment>::@class::I
             parameters
               requiredPositional _b @-1
                 type: bool
             returnType: void
       abstract class C @37
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           I
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
     topLevelVariables
       static x @74
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: bool
         returnType: void
     functions
       f @57
-        reference: <thisLibrary>::<definingUnit>::@function::f
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::f
+        enclosingElement: <testLibraryFragment>
         returnType: C
 ''');
   }
@@ -2393,67 +2393,67 @@ var y = B().foo();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           foo @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::foo
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       class B @36
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           foo @52
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::foo
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::foo
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
     topLevelVariables
       static x @70
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static y @89
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::y
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::y
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: int
         returnType: void
       synthetic static get y @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::y
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::y
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set y= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::y
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::y
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _y @-1
             type: int
@@ -2473,112 +2473,112 @@ var v_async_returnFuture = () async => vFuture;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   libraryImports
     dart:async
-      enclosingElement: <thisLibrary>
-      enclosingElement3: <thisLibrary>::<definingUnit>
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>
-        enclosingElement3: <thisLibrary>::<definingUnit>
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
     topLevelVariables
       static vFuture @25
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vFuture
+        enclosingElement: <testLibraryFragment>
         type: Future<int>
         shouldUseTypeForInitializerInference: false
       static v_noParameters_inferredReturnType @60
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v_noParameters_inferredReturnType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::v_noParameters_inferredReturnType
+        enclosingElement: <testLibraryFragment>
         type: int Function()
         shouldUseTypeForInitializerInference: false
       static v_hasParameter_withType_inferredReturnType @110
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v_hasParameter_withType_inferredReturnType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::v_hasParameter_withType_inferredReturnType
+        enclosingElement: <testLibraryFragment>
         type: int Function(String)
         shouldUseTypeForInitializerInference: false
       static v_hasParameter_withType_returnParameter @177
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v_hasParameter_withType_returnParameter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::v_hasParameter_withType_returnParameter
+        enclosingElement: <testLibraryFragment>
         type: String Function(String)
         shouldUseTypeForInitializerInference: false
       static v_async_returnValue @240
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v_async_returnValue
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::v_async_returnValue
+        enclosingElement: <testLibraryFragment>
         type: Future<int> Function()
         shouldUseTypeForInitializerInference: false
       static v_async_returnFuture @282
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v_async_returnFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::v_async_returnFuture
+        enclosingElement: <testLibraryFragment>
         type: Future<int> Function()
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vFuture @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vFuture
+        enclosingElement: <testLibraryFragment>
         returnType: Future<int>
       synthetic static set vFuture= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vFuture
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vFuture @-1
             type: Future<int>
         returnType: void
       synthetic static get v_noParameters_inferredReturnType @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::v_noParameters_inferredReturnType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::v_noParameters_inferredReturnType
+        enclosingElement: <testLibraryFragment>
         returnType: int Function()
       synthetic static set v_noParameters_inferredReturnType= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::v_noParameters_inferredReturnType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::v_noParameters_inferredReturnType
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _v_noParameters_inferredReturnType @-1
             type: int Function()
         returnType: void
       synthetic static get v_hasParameter_withType_inferredReturnType @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::v_hasParameter_withType_inferredReturnType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::v_hasParameter_withType_inferredReturnType
+        enclosingElement: <testLibraryFragment>
         returnType: int Function(String)
       synthetic static set v_hasParameter_withType_inferredReturnType= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::v_hasParameter_withType_inferredReturnType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::v_hasParameter_withType_inferredReturnType
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _v_hasParameter_withType_inferredReturnType @-1
             type: int Function(String)
         returnType: void
       synthetic static get v_hasParameter_withType_returnParameter @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::v_hasParameter_withType_returnParameter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::v_hasParameter_withType_returnParameter
+        enclosingElement: <testLibraryFragment>
         returnType: String Function(String)
       synthetic static set v_hasParameter_withType_returnParameter= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::v_hasParameter_withType_returnParameter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::v_hasParameter_withType_returnParameter
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _v_hasParameter_withType_returnParameter @-1
             type: String Function(String)
         returnType: void
       synthetic static get v_async_returnValue @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::v_async_returnValue
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::v_async_returnValue
+        enclosingElement: <testLibraryFragment>
         returnType: Future<int> Function()
       synthetic static set v_async_returnValue= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::v_async_returnValue
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::v_async_returnValue
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _v_async_returnValue @-1
             type: Future<int> Function()
         returnType: void
       synthetic static get v_async_returnFuture @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::v_async_returnFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::v_async_returnFuture
+        enclosingElement: <testLibraryFragment>
         returnType: Future<int> Function()
       synthetic static set v_async_returnFuture= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::v_async_returnFuture
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::v_async_returnFuture
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _v_async_returnFuture @-1
             type: Future<int> Function()
@@ -2593,24 +2593,24 @@ var v = (() => 42)();
     // TODO(scheglov): add more function expression tests
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static v @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::v
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get v @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::v
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::v
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set v= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::v
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::v
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _v @-1
             type: int
@@ -2626,48 +2626,48 @@ var vNoTypeArgument = f();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vHasTypeArgument @22
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vHasTypeArgument
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vHasTypeArgument
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vNoTypeArgument @55
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNoTypeArgument
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNoTypeArgument
+        enclosingElement: <testLibraryFragment>
         type: dynamic
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vHasTypeArgument @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vHasTypeArgument
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vHasTypeArgument
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vHasTypeArgument= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vHasTypeArgument
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vHasTypeArgument
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vHasTypeArgument @-1
             type: int
         returnType: void
       synthetic static get vNoTypeArgument @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNoTypeArgument
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNoTypeArgument
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static set vNoTypeArgument= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNoTypeArgument
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNoTypeArgument
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNoTypeArgument @-1
             type: dynamic
         returnType: void
     functions
       f @2
-        reference: <thisLibrary>::<definingUnit>::@function::f
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::f
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @4
             defaultType: dynamic
@@ -2683,48 +2683,48 @@ var vWrongArgumentType = f(2.0);
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vOkArgumentType @29
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vOkArgumentType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vOkArgumentType
+        enclosingElement: <testLibraryFragment>
         type: String
         shouldUseTypeForInitializerInference: false
       static vWrongArgumentType @57
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vWrongArgumentType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vWrongArgumentType
+        enclosingElement: <testLibraryFragment>
         type: String
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vOkArgumentType @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vOkArgumentType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vOkArgumentType
+        enclosingElement: <testLibraryFragment>
         returnType: String
       synthetic static set vOkArgumentType= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vOkArgumentType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vOkArgumentType
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vOkArgumentType @-1
             type: String
         returnType: void
       synthetic static get vWrongArgumentType @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vWrongArgumentType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vWrongArgumentType
+        enclosingElement: <testLibraryFragment>
         returnType: String
       synthetic static set vWrongArgumentType= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vWrongArgumentType
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vWrongArgumentType
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vWrongArgumentType @-1
             type: String
         returnType: void
     functions
       f @7
-        reference: <thisLibrary>::<definingUnit>::@function::f
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::f
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional p @13
             type: int
@@ -2754,217 +2754,217 @@ var r_instanceClassMethod = instanceOfA.instanceClassMethod;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @101
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           static staticClassVariable @118
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::staticClassVariable
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::staticClassVariable
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
             shouldUseTypeForInitializerInference: false
           synthetic static staticGetter @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::staticGetter
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::staticGetter
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic static get staticClassVariable @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::staticClassVariable
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::staticClassVariable
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic static set staticClassVariable= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::staticClassVariable
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::staticClassVariable
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _staticClassVariable @-1
                 type: int
             returnType: void
           static get staticGetter @160
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::staticGetter
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::staticGetter
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
         methods
           static staticClassMethod @195
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::staticClassMethod
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::staticClassMethod
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional p @217
                 type: int
             returnType: String
           instanceClassMethod @238
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::instanceClassMethod
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::instanceClassMethod
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional p @262
                 type: int
             returnType: String
     topLevelVariables
       static topLevelVariable @44
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::topLevelVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::topLevelVariable
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static r_topLevelFunction @280
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::r_topLevelFunction
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::r_topLevelFunction
+        enclosingElement: <testLibraryFragment>
         type: String Function(int)
         shouldUseTypeForInitializerInference: false
       static r_topLevelVariable @323
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::r_topLevelVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::r_topLevelVariable
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static r_topLevelGetter @366
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::r_topLevelGetter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::r_topLevelGetter
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static r_staticClassVariable @405
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::r_staticClassVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::r_staticClassVariable
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static r_staticGetter @456
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::r_staticGetter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::r_staticGetter
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static r_staticClassMethod @493
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::r_staticClassMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::r_staticClassMethod
+        enclosingElement: <testLibraryFragment>
         type: String Function(int)
         shouldUseTypeForInitializerInference: false
       static instanceOfA @540
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::instanceOfA
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::instanceOfA
+        enclosingElement: <testLibraryFragment>
         type: A
         shouldUseTypeForInitializerInference: false
       static r_instanceClassMethod @567
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::r_instanceClassMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::r_instanceClassMethod
+        enclosingElement: <testLibraryFragment>
         type: String Function(int)
         shouldUseTypeForInitializerInference: false
       synthetic static topLevelGetter @-1
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::topLevelGetter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::topLevelGetter
+        enclosingElement: <testLibraryFragment>
         type: int
     accessors
       synthetic static get topLevelVariable @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::topLevelVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::topLevelVariable
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set topLevelVariable= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::topLevelVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::topLevelVariable
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _topLevelVariable @-1
             type: int
         returnType: void
       synthetic static get r_topLevelFunction @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::r_topLevelFunction
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::r_topLevelFunction
+        enclosingElement: <testLibraryFragment>
         returnType: String Function(int)
       synthetic static set r_topLevelFunction= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::r_topLevelFunction
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::r_topLevelFunction
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _r_topLevelFunction @-1
             type: String Function(int)
         returnType: void
       synthetic static get r_topLevelVariable @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::r_topLevelVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::r_topLevelVariable
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set r_topLevelVariable= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::r_topLevelVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::r_topLevelVariable
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _r_topLevelVariable @-1
             type: int
         returnType: void
       synthetic static get r_topLevelGetter @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::r_topLevelGetter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::r_topLevelGetter
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set r_topLevelGetter= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::r_topLevelGetter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::r_topLevelGetter
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _r_topLevelGetter @-1
             type: int
         returnType: void
       synthetic static get r_staticClassVariable @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::r_staticClassVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::r_staticClassVariable
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set r_staticClassVariable= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::r_staticClassVariable
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::r_staticClassVariable
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _r_staticClassVariable @-1
             type: int
         returnType: void
       synthetic static get r_staticGetter @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::r_staticGetter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::r_staticGetter
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set r_staticGetter= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::r_staticGetter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::r_staticGetter
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _r_staticGetter @-1
             type: int
         returnType: void
       synthetic static get r_staticClassMethod @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::r_staticClassMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::r_staticClassMethod
+        enclosingElement: <testLibraryFragment>
         returnType: String Function(int)
       synthetic static set r_staticClassMethod= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::r_staticClassMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::r_staticClassMethod
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _r_staticClassMethod @-1
             type: String Function(int)
         returnType: void
       synthetic static get instanceOfA @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::instanceOfA
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::instanceOfA
+        enclosingElement: <testLibraryFragment>
         returnType: A
       synthetic static set instanceOfA= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::instanceOfA
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::instanceOfA
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _instanceOfA @-1
             type: A
         returnType: void
       synthetic static get r_instanceClassMethod @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::r_instanceClassMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::r_instanceClassMethod
+        enclosingElement: <testLibraryFragment>
         returnType: String Function(int)
       synthetic static set r_instanceClassMethod= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::r_instanceClassMethod
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::r_instanceClassMethod
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _r_instanceClassMethod @-1
             type: String Function(int)
         returnType: void
       static get topLevelGetter @74
-        reference: <thisLibrary>::<definingUnit>::@getter::topLevelGetter
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::topLevelGetter
+        enclosingElement: <testLibraryFragment>
         returnType: int
     functions
       topLevelFunction @7
-        reference: <thisLibrary>::<definingUnit>::@function::topLevelFunction
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::topLevelFunction
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional p @28
             type: int
@@ -2984,79 +2984,79 @@ var c = A.a;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           static a @23
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::a
+            enclosingElement: <testLibraryFragment>::@class::A
             typeInferenceError: dependencyCycle
               arguments: [a, b]
             type: dynamic
             shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic static get a @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::a
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: dynamic
           synthetic static set a= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::a
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _a @-1
                 type: dynamic
             returnType: void
       class B @40
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           static b @57
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::b
+            enclosingElement: <testLibraryFragment>::@class::B
             typeInferenceError: dependencyCycle
               arguments: [a, b]
             type: dynamic
             shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic static get b @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::b
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: dynamic
           synthetic static set b= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::b
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::b
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _b @-1
                 type: dynamic
             returnType: void
     topLevelVariables
       static c @72
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::c
+        enclosingElement: <testLibraryFragment>
         type: dynamic
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get c @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::c
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static set c= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::c
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _c @-1
             type: dynamic
@@ -3074,70 +3074,70 @@ var c = b;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           static a @23
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::a
+            enclosingElement: <testLibraryFragment>::@class::A
             typeInferenceError: dependencyCycle
               arguments: [a, b]
             type: dynamic
             shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic static get a @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::a
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: dynamic
           synthetic static set a= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::a
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::a
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _a @-1
                 type: dynamic
             returnType: void
     topLevelVariables
       static b @36
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::b
+        enclosingElement: <testLibraryFragment>
         typeInferenceError: dependencyCycle
           arguments: [a, b]
         type: dynamic
         shouldUseTypeForInitializerInference: false
       static c @49
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::c
+        enclosingElement: <testLibraryFragment>
         type: dynamic
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get b @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::b
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static set b= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::b
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _b @-1
             type: dynamic
         returnType: void
       synthetic static get c @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::c
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static set c= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::c
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _c @-1
             type: dynamic
@@ -3154,53 +3154,53 @@ final d = a;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static final a @6
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         typeInferenceError: dependencyCycle
           arguments: [a, b, c]
         type: dynamic
         shouldUseTypeForInitializerInference: false
       static final b @19
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::b
+        enclosingElement: <testLibraryFragment>
         typeInferenceError: dependencyCycle
           arguments: [a, b, c]
         type: dynamic
         shouldUseTypeForInitializerInference: false
       static final c @32
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::c
+        enclosingElement: <testLibraryFragment>
         typeInferenceError: dependencyCycle
           arguments: [a, b, c]
         type: dynamic
         shouldUseTypeForInitializerInference: false
       static final d @45
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::d
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::d
+        enclosingElement: <testLibraryFragment>
         type: dynamic
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static get b @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::b
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static get c @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::c
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::c
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static get d @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::d
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::d
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
 ''');
   }
@@ -3232,32 +3232,32 @@ var a = new A();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
     topLevelVariables
       static a @15
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         type: A
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: A
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: A
@@ -3273,48 +3273,48 @@ var h = f().hashCode;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static s @25
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::s
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::s
+        enclosingElement: <testLibraryFragment>
         type: String
         shouldUseTypeForInitializerInference: false
       static h @49
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::h
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::h
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get s @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::s
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::s
+        enclosingElement: <testLibraryFragment>
         returnType: String
       synthetic static set s= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::s
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::s
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _s @-1
             type: String
         returnType: void
       synthetic static get h @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::h
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::h
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set h= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::h
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::h
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _h @-1
             type: int
         returnType: void
     functions
       f @8
-        reference: <thisLibrary>::<definingUnit>::@function::f
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@function::f
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
 ''');
   }
@@ -3327,55 +3327,55 @@ var h = d.hashCode;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static d @8
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::d
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::d
+        enclosingElement: <testLibraryFragment>
         type: dynamic
       static s @15
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::s
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::s
+        enclosingElement: <testLibraryFragment>
         type: String
         shouldUseTypeForInitializerInference: false
       static h @37
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::h
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::h
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get d @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::d
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::d
+        enclosingElement: <testLibraryFragment>
         returnType: dynamic
       synthetic static set d= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::d
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::d
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _d @-1
             type: dynamic
         returnType: void
       synthetic static get s @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::s
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::s
+        enclosingElement: <testLibraryFragment>
         returnType: String
       synthetic static set s= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::s
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::s
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _s @-1
             type: String
         returnType: void
       synthetic static get h @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::h
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::h
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set h= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::h
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::h
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _h @-1
             type: int
@@ -3390,40 +3390,40 @@ var b = a is int;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static a @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static b @17
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::b
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: double
         returnType: void
       synthetic static get b @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::b
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set b= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::b
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _b @-1
             type: bool
@@ -3468,72 +3468,72 @@ var vInt = <int>[1, 2, 3];
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vObject @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vObject
+        enclosingElement: <testLibraryFragment>
         type: List<Object>
         shouldUseTypeForInitializerInference: false
       static vNum @37
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNum
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNum
+        enclosingElement: <testLibraryFragment>
         type: List<num>
         shouldUseTypeForInitializerInference: false
       static vNumEmpty @64
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNumEmpty
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNumEmpty
+        enclosingElement: <testLibraryFragment>
         type: List<num>
         shouldUseTypeForInitializerInference: false
       static vInt @89
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vInt
+        enclosingElement: <testLibraryFragment>
         type: List<int>
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vObject @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vObject
+        enclosingElement: <testLibraryFragment>
         returnType: List<Object>
       synthetic static set vObject= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vObject
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vObject @-1
             type: List<Object>
         returnType: void
       synthetic static get vNum @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNum
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNum
+        enclosingElement: <testLibraryFragment>
         returnType: List<num>
       synthetic static set vNum= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNum
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNum
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNum @-1
             type: List<num>
         returnType: void
       synthetic static get vNumEmpty @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNumEmpty
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNumEmpty
+        enclosingElement: <testLibraryFragment>
         returnType: List<num>
       synthetic static set vNumEmpty= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNumEmpty
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNumEmpty
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNumEmpty @-1
             type: List<num>
         returnType: void
       synthetic static get vInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vInt
+        enclosingElement: <testLibraryFragment>
         returnType: List<int>
       synthetic static set vInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vInt @-1
             type: List<int>
@@ -3549,56 +3549,56 @@ var vObject = [1, 2.0, '333'];
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vInt @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vInt
+        enclosingElement: <testLibraryFragment>
         type: List<int>
         shouldUseTypeForInitializerInference: false
       static vNum @26
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNum
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNum
+        enclosingElement: <testLibraryFragment>
         type: List<num>
         shouldUseTypeForInitializerInference: false
       static vObject @47
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vObject
+        enclosingElement: <testLibraryFragment>
         type: List<Object>
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vInt
+        enclosingElement: <testLibraryFragment>
         returnType: List<int>
       synthetic static set vInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vInt @-1
             type: List<int>
         returnType: void
       synthetic static get vNum @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNum
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNum
+        enclosingElement: <testLibraryFragment>
         returnType: List<num>
       synthetic static set vNum= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNum
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNum
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNum @-1
             type: List<num>
         returnType: void
       synthetic static get vObject @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vObject
+        enclosingElement: <testLibraryFragment>
         returnType: List<Object>
       synthetic static set vObject= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vObject
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vObject @-1
             type: List<Object>
@@ -3628,88 +3628,88 @@ var vIntString = <int, String>{};
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vObjectObject @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vObjectObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vObjectObject
+        enclosingElement: <testLibraryFragment>
         type: Map<Object, Object>
         shouldUseTypeForInitializerInference: false
       static vComparableObject @50
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vComparableObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vComparableObject
+        enclosingElement: <testLibraryFragment>
         type: Map<Comparable<int>, Object>
         shouldUseTypeForInitializerInference: false
       static vNumString @109
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNumString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNumString
+        enclosingElement: <testLibraryFragment>
         type: Map<num, String>
         shouldUseTypeForInitializerInference: false
       static vNumStringEmpty @149
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNumStringEmpty
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNumStringEmpty
+        enclosingElement: <testLibraryFragment>
         type: Map<num, String>
         shouldUseTypeForInitializerInference: false
       static vIntString @188
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIntString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIntString
+        enclosingElement: <testLibraryFragment>
         type: Map<int, String>
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vObjectObject @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vObjectObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vObjectObject
+        enclosingElement: <testLibraryFragment>
         returnType: Map<Object, Object>
       synthetic static set vObjectObject= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vObjectObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vObjectObject
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vObjectObject @-1
             type: Map<Object, Object>
         returnType: void
       synthetic static get vComparableObject @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vComparableObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vComparableObject
+        enclosingElement: <testLibraryFragment>
         returnType: Map<Comparable<int>, Object>
       synthetic static set vComparableObject= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vComparableObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vComparableObject
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vComparableObject @-1
             type: Map<Comparable<int>, Object>
         returnType: void
       synthetic static get vNumString @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNumString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNumString
+        enclosingElement: <testLibraryFragment>
         returnType: Map<num, String>
       synthetic static set vNumString= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNumString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNumString
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNumString @-1
             type: Map<num, String>
         returnType: void
       synthetic static get vNumStringEmpty @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNumStringEmpty
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNumStringEmpty
+        enclosingElement: <testLibraryFragment>
         returnType: Map<num, String>
       synthetic static set vNumStringEmpty= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNumStringEmpty
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNumStringEmpty
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNumStringEmpty @-1
             type: Map<num, String>
         returnType: void
       synthetic static get vIntString @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIntString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIntString
+        enclosingElement: <testLibraryFragment>
         returnType: Map<int, String>
       synthetic static set vIntString= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIntString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIntString
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIntString @-1
             type: Map<int, String>
@@ -3725,56 +3725,56 @@ var vIntObject = {1: 'a', 2: 3.0};
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vIntString @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIntString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIntString
+        enclosingElement: <testLibraryFragment>
         type: Map<int, String>
         shouldUseTypeForInitializerInference: false
       static vNumString @39
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNumString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNumString
+        enclosingElement: <testLibraryFragment>
         type: Map<num, String>
         shouldUseTypeForInitializerInference: false
       static vIntObject @76
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIntObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIntObject
+        enclosingElement: <testLibraryFragment>
         type: Map<int, Object>
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vIntString @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIntString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIntString
+        enclosingElement: <testLibraryFragment>
         returnType: Map<int, String>
       synthetic static set vIntString= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIntString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIntString
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIntString @-1
             type: Map<int, String>
         returnType: void
       synthetic static get vNumString @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNumString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNumString
+        enclosingElement: <testLibraryFragment>
         returnType: Map<num, String>
       synthetic static set vNumString= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNumString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNumString
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNumString @-1
             type: Map<num, String>
         returnType: void
       synthetic static get vIntObject @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIntObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIntObject
+        enclosingElement: <testLibraryFragment>
         returnType: Map<int, Object>
       synthetic static set vIntObject= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIntObject
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIntObject
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIntObject @-1
             type: Map<int, Object>
@@ -3804,88 +3804,88 @@ var vOr = a || b;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static a @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static b @18
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::b
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static vEq @32
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vEq
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static vAnd @50
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vAnd
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vAnd
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static vOr @69
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vOr
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vOr
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: bool
         returnType: void
       synthetic static get b @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::b
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set b= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::b
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::b
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _b @-1
             type: bool
         returnType: void
       synthetic static get vEq @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vEq
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vEq= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vEq
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vEq @-1
             type: bool
         returnType: void
       synthetic static get vAnd @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vAnd
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vAnd
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vAnd= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vAnd
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vAnd
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vAnd @-1
             type: bool
         returnType: void
       synthetic static get vOr @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vOr
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vOr
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vOr= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vOr
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vOr
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vOr @-1
             type: bool
@@ -3923,72 +3923,72 @@ var v2 = new A().m();
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional p @25
                 type: int
             returnType: String
     topLevelVariables
       static instanceOfA @43
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::instanceOfA
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::instanceOfA
+        enclosingElement: <testLibraryFragment>
         type: A
         shouldUseTypeForInitializerInference: false
       static v1 @70
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::v1
+        enclosingElement: <testLibraryFragment>
         type: String
         shouldUseTypeForInitializerInference: false
       static v2 @96
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::v2
+        enclosingElement: <testLibraryFragment>
         type: String
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get instanceOfA @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::instanceOfA
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::instanceOfA
+        enclosingElement: <testLibraryFragment>
         returnType: A
       synthetic static set instanceOfA= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::instanceOfA
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::instanceOfA
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _instanceOfA @-1
             type: A
         returnType: void
       synthetic static get v1 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::v1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::v1
+        enclosingElement: <testLibraryFragment>
         returnType: String
       synthetic static set v1= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::v1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::v1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _v1 @-1
             type: String
         returnType: void
       synthetic static get v2 @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::v2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::v2
+        enclosingElement: <testLibraryFragment>
         returnType: String
       synthetic static set v2= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::v2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::v2
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _v2 @-1
             type: String
@@ -4012,184 +4012,184 @@ var vFloorDivide = 1 ~/ 2;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vModuloIntInt @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vModuloIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vModuloIntInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vModuloIntDouble @31
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vModuloIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vModuloIntDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vMultiplyIntInt @63
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vMultiplyIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vMultiplyIntInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vMultiplyIntDouble @92
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vMultiplyIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vMultiplyIntDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vMultiplyDoubleInt @126
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vMultiplyDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vMultiplyDoubleInt
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vMultiplyDoubleDouble @160
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vMultiplyDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vMultiplyDoubleDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vDivideIntInt @199
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDivideIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDivideIntInt
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vDivideIntDouble @226
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDivideIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDivideIntDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vDivideDoubleInt @258
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDivideDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDivideDoubleInt
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vDivideDoubleDouble @290
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDivideDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDivideDoubleDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vFloorDivide @327
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vFloorDivide
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vFloorDivide
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vModuloIntInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vModuloIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vModuloIntInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vModuloIntInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vModuloIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vModuloIntInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vModuloIntInt @-1
             type: int
         returnType: void
       synthetic static get vModuloIntDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vModuloIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vModuloIntDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vModuloIntDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vModuloIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vModuloIntDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vModuloIntDouble @-1
             type: double
         returnType: void
       synthetic static get vMultiplyIntInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vMultiplyIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vMultiplyIntInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vMultiplyIntInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vMultiplyIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vMultiplyIntInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vMultiplyIntInt @-1
             type: int
         returnType: void
       synthetic static get vMultiplyIntDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vMultiplyIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vMultiplyIntDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vMultiplyIntDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vMultiplyIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vMultiplyIntDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vMultiplyIntDouble @-1
             type: double
         returnType: void
       synthetic static get vMultiplyDoubleInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vMultiplyDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vMultiplyDoubleInt
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vMultiplyDoubleInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vMultiplyDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vMultiplyDoubleInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vMultiplyDoubleInt @-1
             type: double
         returnType: void
       synthetic static get vMultiplyDoubleDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vMultiplyDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vMultiplyDoubleDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vMultiplyDoubleDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vMultiplyDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vMultiplyDoubleDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vMultiplyDoubleDouble @-1
             type: double
         returnType: void
       synthetic static get vDivideIntInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDivideIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDivideIntInt
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDivideIntInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDivideIntInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDivideIntInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDivideIntInt @-1
             type: double
         returnType: void
       synthetic static get vDivideIntDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDivideIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDivideIntDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDivideIntDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDivideIntDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDivideIntDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDivideIntDouble @-1
             type: double
         returnType: void
       synthetic static get vDivideDoubleInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDivideDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDivideDoubleInt
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDivideDoubleInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDivideDoubleInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDivideDoubleInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDivideDoubleInt @-1
             type: double
         returnType: void
       synthetic static get vDivideDoubleDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDivideDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDivideDoubleDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDivideDoubleDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDivideDoubleDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDivideDoubleDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDivideDoubleDouble @-1
             type: double
         returnType: void
       synthetic static get vFloorDivide @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vFloorDivide
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vFloorDivide
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vFloorDivide= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vFloorDivide
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vFloorDivide
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vFloorDivide @-1
             type: int
@@ -4205,56 +4205,56 @@ var vNotEq = a != ((a = 2) == 0);
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static a @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::a
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vEq @15
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vEq
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static vNotEq @46
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNotEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNotEq
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::a
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set a= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::a
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::a
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _a @-1
             type: int
         returnType: void
       synthetic static get vEq @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vEq
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vEq= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vEq
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vEq @-1
             type: bool
         returnType: void
       synthetic static get vNotEq @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNotEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNotEq
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vNotEq= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNotEq
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNotEq
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNotEq @-1
             type: bool
@@ -4268,24 +4268,24 @@ var V = (42);
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static V @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::V
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get V @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::V
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set V= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::V
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::V
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _V @-1
             type: int
@@ -4304,104 +4304,104 @@ var vDecDouble = vDouble--;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vInt @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vDouble @18
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vIncInt @37
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIncInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vDecInt @59
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDecInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDecInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vIncDouble @81
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIncDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vDecDouble @109
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDecDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDecDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vInt @-1
             type: int
         returnType: void
       synthetic static get vDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDouble @-1
             type: double
         returnType: void
       synthetic static get vIncInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIncInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vIncInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIncInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIncInt @-1
             type: int
         returnType: void
       synthetic static get vDecInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDecInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDecInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vDecInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDecInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDecInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDecInt @-1
             type: int
         returnType: void
       synthetic static get vIncDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIncDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vIncDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIncDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIncDouble @-1
             type: double
         returnType: void
       synthetic static get vDecDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDecDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDecDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDecDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDecDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDecDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDecDouble @-1
             type: double
@@ -4420,104 +4420,104 @@ var vDecDouble = vDouble[0]--;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vInt @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vInt
+        enclosingElement: <testLibraryFragment>
         type: List<int>
         shouldUseTypeForInitializerInference: false
       static vDouble @20
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDouble
+        enclosingElement: <testLibraryFragment>
         type: List<double>
         shouldUseTypeForInitializerInference: false
       static vIncInt @41
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIncInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vDecInt @66
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDecInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDecInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vIncDouble @91
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIncDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vDecDouble @122
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDecDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDecDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vInt
+        enclosingElement: <testLibraryFragment>
         returnType: List<int>
       synthetic static set vInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vInt @-1
             type: List<int>
         returnType: void
       synthetic static get vDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDouble
+        enclosingElement: <testLibraryFragment>
         returnType: List<double>
       synthetic static set vDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDouble @-1
             type: List<double>
         returnType: void
       synthetic static get vIncInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIncInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vIncInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIncInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIncInt @-1
             type: int
         returnType: void
       synthetic static get vDecInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDecInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDecInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vDecInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDecInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDecInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDecInt @-1
             type: int
         returnType: void
       synthetic static get vIncDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIncDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vIncDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIncDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIncDouble @-1
             type: double
         returnType: void
       synthetic static get vDecDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDecDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDecDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDecDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDecDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDecDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDecDouble @-1
             type: double
@@ -4536,104 +4536,104 @@ var vDecInt = --vDouble;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vInt @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vDouble @18
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vIncInt @37
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIncInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vDecInt @59
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDecInt::@def::0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::0
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vIncDouble @81
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIncDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vDecInt @109
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDecInt::@def::1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::1
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vInt @-1
             type: int
         returnType: void
       synthetic static get vDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDouble @-1
             type: double
         returnType: void
       synthetic static get vIncInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIncInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vIncInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIncInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIncInt @-1
             type: int
         returnType: void
       synthetic static get vDecInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDecInt::@def::0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDecInt::@def::0
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vDecInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDecInt::@def::0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDecInt::@def::0
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDecInt @-1
             type: int
         returnType: void
       synthetic static get vIncDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIncDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vIncDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIncDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIncDouble @-1
             type: double
         returnType: void
       synthetic static get vDecInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDecInt::@def::1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDecInt::@def::1
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDecInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDecInt::@def::1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDecInt::@def::1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDecInt @-1
             type: double
@@ -4670,104 +4670,104 @@ var vDecInt = --vDouble[0];
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vInt @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vInt
+        enclosingElement: <testLibraryFragment>
         type: List<int>
         shouldUseTypeForInitializerInference: false
       static vDouble @20
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDouble
+        enclosingElement: <testLibraryFragment>
         type: List<double>
         shouldUseTypeForInitializerInference: false
       static vIncInt @41
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIncInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vDecInt @66
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDecInt::@def::0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::0
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vIncDouble @91
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vIncDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vDecInt @122
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vDecInt::@def::1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::1
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vInt
+        enclosingElement: <testLibraryFragment>
         returnType: List<int>
       synthetic static set vInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vInt @-1
             type: List<int>
         returnType: void
       synthetic static get vDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDouble
+        enclosingElement: <testLibraryFragment>
         returnType: List<double>
       synthetic static set vDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDouble @-1
             type: List<double>
         returnType: void
       synthetic static get vIncInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIncInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vIncInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIncInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIncInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIncInt @-1
             type: int
         returnType: void
       synthetic static get vDecInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDecInt::@def::0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDecInt::@def::0
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vDecInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDecInt::@def::0
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDecInt::@def::0
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDecInt @-1
             type: int
         returnType: void
       synthetic static get vIncDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vIncDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vIncDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vIncDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vIncDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vIncDouble @-1
             type: double
         returnType: void
       synthetic static get vDecInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vDecInt::@def::1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vDecInt::@def::1
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vDecInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vDecInt::@def::1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vDecInt::@def::1
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vDecInt @-1
             type: double
@@ -4781,24 +4781,24 @@ var vNot = !true;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vNot @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNot
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNot
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vNot @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNot
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNot
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vNot= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNot
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNot
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNot @-1
             type: bool
@@ -4814,56 +4814,56 @@ var vComplement = ~1;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vNegateInt @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNegateInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNegateInt
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
       static vNegateDouble @25
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vNegateDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vNegateDouble
+        enclosingElement: <testLibraryFragment>
         type: double
         shouldUseTypeForInitializerInference: false
       static vComplement @51
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vComplement
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vComplement
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vNegateInt @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNegateInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNegateInt
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vNegateInt= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNegateInt
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNegateInt
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNegateInt @-1
             type: int
         returnType: void
       synthetic static get vNegateDouble @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vNegateDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vNegateDouble
+        enclosingElement: <testLibraryFragment>
         returnType: double
       synthetic static set vNegateDouble= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vNegateDouble
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vNegateDouble
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vNegateDouble @-1
             type: double
         returnType: void
       synthetic static get vComplement @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vComplement
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vComplement
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set vComplement= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vComplement
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vComplement
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vComplement @-1
             type: int
@@ -4883,69 +4883,69 @@ final x = C.d.i;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class C @6
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         fields
           static d @21
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::d
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::d
+            enclosingElement: <testLibraryFragment>::@class::C
             type: D
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           synthetic static get d @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::d
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::d
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: D
           synthetic static set d= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::d
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::d
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _d @-1
                 type: D
             returnType: void
       class D @32
-        reference: <thisLibrary>::<definingUnit>::@class::D
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::D
+        enclosingElement: <testLibraryFragment>
         fields
           i @42
-            reference: <thisLibrary>::<definingUnit>::@class::D::@field::i
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::D
+            reference: <testLibraryFragment>::@class::D::@field::i
+            enclosingElement: <testLibraryFragment>::@class::D
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::D::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::D
+            reference: <testLibraryFragment>::@class::D::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::D
         accessors
           synthetic get i @-1
-            reference: <thisLibrary>::<definingUnit>::@class::D::@getter::i
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::D
+            reference: <testLibraryFragment>::@class::D::@getter::i
+            enclosingElement: <testLibraryFragment>::@class::D
             returnType: int
           synthetic set i= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::D::@setter::i
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::D
+            reference: <testLibraryFragment>::@class::D::@setter::i
+            enclosingElement: <testLibraryFragment>::@class::D
             parameters
               requiredPositional _i @-1
                 type: int
             returnType: void
     topLevelVariables
       static final x @53
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
 ''');
   }
@@ -4962,66 +4962,66 @@ var x = C.d.i;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class C @6
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic static d @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::d
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::d
+            enclosingElement: <testLibraryFragment>::@class::C
             type: D
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           static get d @25
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::d
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::d
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: D
       class D @44
-        reference: <thisLibrary>::<definingUnit>::@class::D
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::D
+        enclosingElement: <testLibraryFragment>
         fields
           i @54
-            reference: <thisLibrary>::<definingUnit>::@class::D::@field::i
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::D
+            reference: <testLibraryFragment>::@class::D::@field::i
+            enclosingElement: <testLibraryFragment>::@class::D
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::D::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::D
+            reference: <testLibraryFragment>::@class::D::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::D
         accessors
           synthetic get i @-1
-            reference: <thisLibrary>::<definingUnit>::@class::D::@getter::i
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::D
+            reference: <testLibraryFragment>::@class::D::@getter::i
+            enclosingElement: <testLibraryFragment>::@class::D
             returnType: int
           synthetic set i= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::D::@setter::i
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::D
+            reference: <testLibraryFragment>::@class::D::@setter::i
+            enclosingElement: <testLibraryFragment>::@class::D
             parameters
               requiredPositional _i @-1
                 type: int
             returnType: void
     topLevelVariables
       static x @63
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::x
+        enclosingElement: <testLibraryFragment>
         type: int
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::x
+        enclosingElement: <testLibraryFragment>
         returnType: int
       synthetic static set x= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::x
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::x
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _x @-1
             type: int
@@ -5038,72 +5038,72 @@ var vGreaterOrEqual = 1 >= 2;
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     topLevelVariables
       static vLess @4
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vLess
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vLess
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static vLessOrEqual @23
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vLessOrEqual
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vLessOrEqual
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static vGreater @50
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vGreater
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vGreater
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
       static vGreaterOrEqual @72
-        reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vGreaterOrEqual
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@topLevelVariable::vGreaterOrEqual
+        enclosingElement: <testLibraryFragment>
         type: bool
         shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get vLess @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vLess
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vLess
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vLess= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vLess
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vLess
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vLess @-1
             type: bool
         returnType: void
       synthetic static get vLessOrEqual @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vLessOrEqual
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vLessOrEqual
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vLessOrEqual= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vLessOrEqual
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vLessOrEqual
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vLessOrEqual @-1
             type: bool
         returnType: void
       synthetic static get vGreater @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vGreater
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vGreater
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vGreater= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vGreater
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vGreater
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vGreater @-1
             type: bool
         returnType: void
       synthetic static get vGreaterOrEqual @-1
-        reference: <thisLibrary>::<definingUnit>::@getter::vGreaterOrEqual
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@getter::vGreaterOrEqual
+        enclosingElement: <testLibraryFragment>
         returnType: bool
       synthetic static set vGreaterOrEqual= @-1
-        reference: <thisLibrary>::<definingUnit>::@setter::vGreaterOrEqual
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@setter::vGreaterOrEqual
+        enclosingElement: <testLibraryFragment>
         parameters
           requiredPositional _vGreaterOrEqual @-1
             type: bool
@@ -5132,53 +5132,53 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           x @25
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _x @-1
                 type: int
             returnType: void
       class B @36
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           set x= @59
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: void
 ''');
   }
@@ -5192,39 +5192,39 @@ class A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           f @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::f
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
             shouldUseTypeForInitializerInference: false
         constructors
           @25
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               optionalPositional default final this.f @33
                 type: int
                 constantInitializer
                   SimpleStringLiteral
                     literal: 'hello' @37
-                field: <thisLibrary>::<definingUnit>::@class::A::@field::f
+                field: <testLibraryFragment>::@class::A::@field::f
         accessors
           synthetic get f @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::f
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set f= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::f
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::f
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _f @-1
                 type: int
@@ -5247,106 +5247,106 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           x @25
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
           y @34
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::y
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
           z @43
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::z
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _x @-1
                 type: int
             returnType: void
           synthetic get y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set y= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _y @-1
                 type: int
             returnType: void
           synthetic get z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::z
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set z= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::z
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _z @-1
                 type: int
             returnType: void
       class B @54
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           x @77
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::y
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
           synthetic z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::z
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _x @-1
                 type: int
             returnType: void
           get y @86
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
           set z= @103
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::z
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @105
                 type: int
@@ -5365,58 +5365,58 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: dynamic
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _x @-1
                 type: dynamic
             returnType: void
       class B @40
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           x @63
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: dynamic
             shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: dynamic
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _x @-1
                 type: dynamic
@@ -5439,71 +5439,71 @@ class B<T> implements A<T> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant E @17
             defaultType: dynamic
         fields
           x @26
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: E
           y @33
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::y
+            enclosingElement: <testLibraryFragment>::@class::A
             type: E
           z @40
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::z
+            enclosingElement: <testLibraryFragment>::@class::A
             type: E
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: E
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _x @-1
                 type: E
             returnType: void
           synthetic get y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: E
           synthetic set y= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _y @-1
                 type: E
             returnType: void
           synthetic get z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::z
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: E
           synthetic set z= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::z
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _z @-1
                 type: E
             returnType: void
       class B @51
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @53
             defaultType: dynamic
@@ -5511,40 +5511,40 @@ library
           A<T>
         fields
           x @80
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: T
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::y
+            enclosingElement: <testLibraryFragment>::@class::B
             type: T
           synthetic z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::z
+            enclosingElement: <testLibraryFragment>::@class::B
             type: T
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: T
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _x @-1
                 type: T
             returnType: void
           get y @89
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: T
           set z= @106
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::z
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @108
                 type: T
@@ -5563,58 +5563,58 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           x @25
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: dynamic
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _x @-1
                 type: dynamic
             returnType: void
       class B @36
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           x @59
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: dynamic
             shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: dynamic
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _x @-1
                 type: dynamic
@@ -5633,58 +5633,58 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           x @25
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: num
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: num
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _x @-1
                 type: num
             returnType: void
       class B @36
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           x @59
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: num
             shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: num
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _x @-1
                 type: num
@@ -5707,85 +5707,85 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::y
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
           synthetic z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::z
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           abstract get y @42
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           abstract get z @55
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::z
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       class B @66
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           x @89
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::y
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
           synthetic z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::z
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _x @-1
                 type: int
             returnType: void
           get y @98
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
           set z= @115
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::z
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @117
                 type: int
@@ -5808,50 +5808,50 @@ class B<T> implements A<T> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant E @17
             defaultType: dynamic
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: E
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::y
+            enclosingElement: <testLibraryFragment>::@class::A
             type: E
           synthetic z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::z
+            enclosingElement: <testLibraryFragment>::@class::A
             type: E
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @30
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: E
           abstract get y @41
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: E
           abstract get z @52
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::z
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: E
       class B @63
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @65
             defaultType: dynamic
@@ -5859,40 +5859,40 @@ library
           A<T>
         fields
           x @92
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: T
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::y
+            enclosingElement: <testLibraryFragment>::@class::B
             type: T
           synthetic z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::z
+            enclosingElement: <testLibraryFragment>::@class::B
             type: T
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: T
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _x @-1
                 type: T
             returnType: void
           get y @101
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: T
           set z= @118
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::z
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @120
                 type: T
@@ -5915,64 +5915,64 @@ class C implements A, B {
     // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @49
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: String
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract get x @66
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: String
       class C @77
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           get x @103
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: dynamic
 ''');
   }
@@ -5992,64 +5992,64 @@ class C implements A, B {
     // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @49
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract get x @67
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: dynamic
       class C @78
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           get x @104
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
 ''');
   }
@@ -6069,70 +6069,70 @@ class C implements A<int>, B<String> {
     // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @17
             defaultType: dynamic
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: T
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @30
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: T
       abstract class B @50
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @52
             defaultType: dynamic
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: T
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract get x @65
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: T
       class C @76
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A<int>
           B<String>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           get x @115
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: dynamic
 ''');
   }
@@ -6151,64 +6151,64 @@ class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @49
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract get x @63
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
       class C @74
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           get x @100
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
 ''');
   }
@@ -6230,101 +6230,101 @@ class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::y
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           abstract get y @42
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @62
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: String
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::y
+            enclosingElement: <testLibraryFragment>::@class::B
             type: String
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract set x= @77
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @86
                 type: String
             returnType: void
           abstract set y= @101
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::y
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @110
                 type: String
             returnType: void
       class C @122
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           x @148
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: dynamic
           final y @159
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::y
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: dynamic
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _x @-1
                 type: dynamic
             returnType: void
           synthetic get y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
 ''');
   }
@@ -6343,67 +6343,67 @@ class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @49
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: String
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract set x= @64
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @73
                 type: String
             returnType: void
       class C @85
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           get x @111
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
 ''');
   }
@@ -6423,67 +6423,67 @@ class C implements A, B {
     // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @49
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: String
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract set x= @64
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @73
                 type: String
             returnType: void
       class C @85
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: String
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           abstract set x= @111
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _ @113
                 type: String
@@ -6505,71 +6505,71 @@ class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @49
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract set x= @64
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @70
                 type: int
             returnType: void
       class C @82
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           x @108
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _x @-1
                 type: int
@@ -6591,67 +6591,67 @@ class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @49
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract set x= @64
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @70
                 type: int
             returnType: void
       class C @82
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           get x @108
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
 ''');
   }
@@ -6670,67 +6670,67 @@ class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       abstract class B @49
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract set x= @64
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @70
                 type: int
             returnType: void
       class C @82
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           abstract set x= @108
-            reference: <thisLibrary>::<definingUnit>::@class::C::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional _ @110
                 type: int
@@ -6753,94 +6753,94 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::y
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
           synthetic z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::z
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract set x= @30
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _ @36
                 type: int
             returnType: void
           abstract set y= @51
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _ @57
                 type: int
             returnType: void
           abstract set z= @72
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::z
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _ @78
                 type: int
             returnType: void
       class B @90
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           x @113
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::y
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
           synthetic z @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::z
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _x @-1
                 type: int
             returnType: void
           get y @122
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
           set z= @139
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::z
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::z
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @141
                 type: int
@@ -6862,70 +6862,70 @@ class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract set x= @30
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _ @36
                 type: int
             returnType: void
       abstract class B @57
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: String
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract set x= @72
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @81
                 type: String
             returnType: void
       class C @93
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           get x @119
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: dynamic
 ''');
   }
@@ -6944,70 +6944,70 @@ class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract set x= @30
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _ @36
                 type: int
             returnType: void
       abstract class B @57
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           abstract set x= @72
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional _ @78
                 type: int
             returnType: void
       class C @90
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@field::x
+            enclosingElement: <testLibraryFragment>::@class::C
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         accessors
           get x @116
-            reference: <thisLibrary>::<definingUnit>::@class::C::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::C
             returnType: int
 ''');
   }
@@ -7028,83 +7028,83 @@ class B extends A<int> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @23
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @25
             defaultType: dynamic
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: dynamic Function()
-              alias: <thisLibrary>::<definingUnit>::@typeAlias::F
+              alias: <testLibraryFragment>::@typeAlias::F
                 typeArguments
                   T
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::y
+            enclosingElement: <testLibraryFragment>::@class::A
             type: List<dynamic Function()>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           get x @41
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: dynamic Function()
-              alias: <thisLibrary>::<definingUnit>::@typeAlias::F
+              alias: <testLibraryFragment>::@typeAlias::F
                 typeArguments
                   T
           get y @69
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: List<dynamic Function()>
       class B @89
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A<int>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: dynamic Function()
-              alias: <thisLibrary>::<definingUnit>::@typeAlias::F
+              alias: <testLibraryFragment>::@typeAlias::F
                 typeArguments
                   int
           synthetic y @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::y
+            enclosingElement: <testLibraryFragment>::@class::B
             type: List<dynamic Function()>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+              base: <testLibraryFragment>::@class::A::@constructor::new
               substitution: {T: int}
         accessors
           get x @114
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: dynamic Function()
-              alias: <thisLibrary>::<definingUnit>::@typeAlias::F
+              alias: <testLibraryFragment>::@typeAlias::F
                 typeArguments
                   int
           get y @131
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::y
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::y
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: List<dynamic Function()>
     typeAliases
       functionTypeAliasBased F @8
-        reference: <thisLibrary>::<definingUnit>::@typeAlias::F
+        reference: <testLibraryFragment>::@typeAlias::F
         typeParameters
           unrelated T @10
             defaultType: dynamic
@@ -7126,57 +7126,57 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: num
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: num
           abstract set x= @43
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional covariant _ @59
                 type: num
             returnType: void
       class B @71
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           x @94
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           synthetic get x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: int
           synthetic set x= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional covariant _x @-1
                 type: int
@@ -7196,53 +7196,53 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::x
+            enclosingElement: <testLibraryFragment>::@class::A
             type: num
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           abstract get x @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: num
           abstract set x= @43
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional covariant _ @59
                 type: num
             returnType: void
       class B @71
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         fields
           synthetic x @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@field::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@field::x
+            enclosingElement: <testLibraryFragment>::@class::B
             type: int
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         accessors
           set x= @94
-            reference: <thisLibrary>::<definingUnit>::@class::B::@setter::x
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@setter::x
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional covariant _ @100
                 type: int
@@ -7260,64 +7260,64 @@ class A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           t1 @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::t1
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::t1
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
             shouldUseTypeForInitializerInference: false
           t2 @30
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::t2
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::t2
+            enclosingElement: <testLibraryFragment>::@class::A
             type: double
             shouldUseTypeForInitializerInference: false
           t3 @46
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::t3
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::t3
+            enclosingElement: <testLibraryFragment>::@class::A
             type: dynamic
             shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get t1 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::t1
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::t1
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set t1= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::t1
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::t1
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _t1 @-1
                 type: int
             returnType: void
           synthetic get t2 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::t2
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::t2
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: double
           synthetic set t2= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::t2
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::t2
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _t2 @-1
                 type: double
             returnType: void
           synthetic get t3 @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::t3
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::t3
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: dynamic
           synthetic set t3= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::t3
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::t3
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _t3 @-1
                 type: dynamic
@@ -7338,39 +7338,39 @@ class B extends A {
     // top-level type inference error.
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @17
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @23
                 type: int
             returnType: void
       class B @37
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @58
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @60
                 type: int
@@ -7394,56 +7394,56 @@ class C extends A implements B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @17
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @23
                 type: int
             returnType: void
       class B @37
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @48
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @57
                 type: String
             returnType: void
       class C @71
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: A
         interfaces
           B
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @100
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             typeInferenceError: overrideNoCombinedSuperSignature
             parameters
               requiredPositional a @102
@@ -7468,55 +7468,55 @@ abstract class C implements A, B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           abstract foo @25
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::foo
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional x @33
                 type: int
             returnType: int
       abstract class B @55
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           abstract foo @68
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::foo
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::foo
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional x @76
                 type: int
             returnType: double
       abstract class C @98
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
           B
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         methods
           abstract foo @126
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::foo
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::foo
+            enclosingElement: <testLibraryFragment>::@class::C
             typeInferenceError: overrideNoCombinedSuperSignature
             parameters
               requiredPositional x @130
@@ -7540,50 +7540,50 @@ class C extends A implements B {
     // TODO(scheglov): test for inference failure error
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
       class B @31
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @44
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             returnType: String
       class C @59
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: A
         interfaces
           B
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @88
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             typeInferenceError: overrideNoCombinedSuperSignature
             returnType: dynamic
 ''');
@@ -7603,64 +7603,64 @@ class C extends A<int> implements B<double> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @8
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @20
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @24
                 type: T
             returnType: void
       class B @38
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant E @40
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @52
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @56
                 type: E
             returnType: void
       class C @70
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: A<int>
         interfaces
           B<double>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+              base: <testLibraryFragment>::@class::A::@constructor::new
               substitution: {T: int}
         methods
           m @112
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             typeInferenceError: overrideNoCombinedSuperSignature
             parameters
               requiredPositional a @114
@@ -7683,14 +7683,14 @@ class C extends A<int, String> implements B<double> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant K @8
             defaultType: dynamic
@@ -7698,51 +7698,51 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @20
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @24
                 type: K
             returnType: V
       class B @38
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @40
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @49
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @55
                 type: int
             returnType: T
       class C @69
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: A<int, String>
         interfaces
           B<double>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+              base: <testLibraryFragment>::@class::A::@constructor::new
               substitution: {K: int, V: String}
         methods
           m @119
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             typeInferenceError: overrideNoCombinedSuperSignature
             parameters
               requiredPositional a @121
@@ -7762,44 +7762,44 @@ class B extends A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @17
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @23
                 type: int
             returnType: void
       class B @37
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @53
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @55
                 type: int
               optionalNamed default b @59
-                reference: <thisLibrary>::<definingUnit>::@class::B::@method::m::@parameter::b
+                reference: <testLibraryFragment>::@class::B::@method::m::@parameter::b
                 type: dynamic
             returnType: void
 ''');
@@ -7816,39 +7816,39 @@ class B extends A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @17
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @23
                 type: int
             returnType: void
       class B @37
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @53
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @55
                 type: int
@@ -7869,39 +7869,39 @@ class B extends A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @12
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @14
                 type: dynamic
             returnType: dynamic
       class B @28
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @44
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @46
                 type: dynamic
@@ -7920,39 +7920,39 @@ class B extends A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           foo @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::foo
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @27
                 type: String
             returnType: int
       class B @47
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @63
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @65
                 type: dynamic
@@ -7971,49 +7971,49 @@ class B extends A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         fields
           m @16
-            reference: <thisLibrary>::<definingUnit>::@class::A::@field::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@field::m
+            enclosingElement: <testLibraryFragment>::@class::A
             type: int
             shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         accessors
           synthetic get m @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@getter::m
+            enclosingElement: <testLibraryFragment>::@class::A
             returnType: int
           synthetic set m= @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@setter::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@setter::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional _m @-1
                 type: int
             returnType: void
       class B @32
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @48
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @50
                 type: dynamic
@@ -8033,14 +8033,14 @@ class C extends B<String> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant K @8
             defaultType: dynamic
@@ -8048,45 +8048,45 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @20
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @24
                 type: K
             returnType: V
       class B @38
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @40
             defaultType: dynamic
         supertype: A<int, T>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+              base: <testLibraryFragment>::@class::A::@constructor::new
               substitution: {K: int, V: T}
       class C @70
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: B<String>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
+              base: <testLibraryFragment>::@class::B::@constructor::new
               substitution: {T: String}
         methods
           m @94
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional a @96
                 type: int
@@ -8108,56 +8108,56 @@ class C extends B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @25
                 type: int
             returnType: String
       class B @39
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @55
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @57
                 type: int
             returnType: String
       class C @71
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: B
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
-            superConstructor: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
+            superConstructor: <testLibraryFragment>::@class::B::@constructor::new
         methods
           m @87
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional a @89
                 type: int
@@ -8179,56 +8179,56 @@ class C extends B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @25
                 type: int
             returnType: String
       class B @39
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @58
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @60
                 type: int
             returnType: String
       class C @74
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: B
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
-            superConstructor: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
+            superConstructor: <testLibraryFragment>::@class::B::@constructor::new
         methods
           m @90
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional a @92
                 type: int
@@ -8250,57 +8250,57 @@ class C extends B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @25
                 type: int
             returnType: String
       class B @39
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: Object
         mixins
           A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @67
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @69
                 type: int
             returnType: String
       class C @83
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: B
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
-            superConstructor: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
+            superConstructor: <testLibraryFragment>::@class::B::@constructor::new
         methods
           m @99
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional a @101
                 type: int
@@ -8319,14 +8319,14 @@ class B extends A<int, String> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant K @8
             defaultType: dynamic
@@ -8334,12 +8334,12 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @20
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @24
                 type: K
@@ -8347,20 +8347,20 @@ library
                 type: double
             returnType: V
       class B @48
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A<int, String>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+              base: <testLibraryFragment>::@class::A::@constructor::new
               substitution: {K: int, V: String}
         methods
           m @77
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @79
                 type: int
@@ -8381,39 +8381,39 @@ class B extends A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @25
                 type: int
             returnType: String
       class B @39
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @55
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @57
                 type: int
@@ -8432,47 +8432,47 @@ class B extends A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @25
                 type: int
               optionalNamed default b @36
-                reference: <thisLibrary>::<definingUnit>::@class::A::@method::m::@parameter::b
+                reference: <testLibraryFragment>::@class::A::@method::m::@parameter::b
                 type: double
             returnType: String
       class B @51
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @67
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @69
                 type: int
               optionalNamed default b @73
-                reference: <thisLibrary>::<definingUnit>::@class::B::@method::m::@parameter::b
+                reference: <testLibraryFragment>::@class::B::@method::m::@parameter::b
                 type: double
             returnType: String
 ''');
@@ -8489,22 +8489,22 @@ class B extends A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @25
                 type: int
@@ -8512,18 +8512,18 @@ library
                 type: double
             returnType: String
       class B @51
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @67
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @69
                 type: int
@@ -8545,14 +8545,14 @@ class C extends B<String> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant K @8
             defaultType: dynamic
@@ -8560,45 +8560,45 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @20
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @24
                 type: K
             returnType: V
       class B @38
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @40
             defaultType: dynamic
         supertype: A<int, T>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+              base: <testLibraryFragment>::@class::A::@constructor::new
               substitution: {K: int, V: T}
       class C @70
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: B<String>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
+              base: <testLibraryFragment>::@class::B::@constructor::new
               substitution: {T: String}
         methods
           m @94
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional a @96
                 type: int
@@ -8617,14 +8617,14 @@ class B implements A<int, String> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant K @17
             defaultType: dynamic
@@ -8632,29 +8632,29 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           abstract m @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @33
                 type: K
             returnType: V
       class B @45
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A<int, String>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @77
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @79
                 type: int
@@ -8673,39 +8673,39 @@ class B implements A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           abstract m @28
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @34
                 type: int
             returnType: String
       class B @46
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         interfaces
           A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @65
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @67
                 type: int
@@ -8725,14 +8725,14 @@ class C implements B<int, String> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       abstract class A @15
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant K @17
             defaultType: dynamic
@@ -8740,19 +8740,19 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           abstract m @29
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @33
                 type: K
             returnType: V
       abstract class B @54
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T1 @56
             defaultType: dynamic
@@ -8761,24 +8761,24 @@ library
         supertype: A<T2, T1>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+              base: <testLibraryFragment>::@class::A::@constructor::new
               substitution: {K: T2, V: T1}
       class C @91
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         interfaces
           B<int, String>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
         methods
           m @123
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional a @125
                 type: String
@@ -8802,44 +8802,44 @@ class A2 extends A1 {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   libraryImports
     package:test/other.dart
-      enclosingElement: <thisLibrary>
-      enclosingElement3: <thisLibrary>::<definingUnit>
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     libraryImports
       package:test/other.dart
-        enclosingElement: <thisLibrary>
-        enclosingElement3: <thisLibrary>::<definingUnit>
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
     classes
       class A1 @27
-        reference: <thisLibrary>::<definingUnit>::@class::A1
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A1
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A1::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A1
+            reference: <testLibraryFragment>::@class::A1::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A1
         methods
           _foo @38
-            reference: <thisLibrary>::<definingUnit>::@class::A1::@method::_foo
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A1
+            reference: <testLibraryFragment>::@class::A1::@method::_foo
+            enclosingElement: <testLibraryFragment>::@class::A1
             returnType: int
       class A2 @59
-        reference: <thisLibrary>::<definingUnit>::@class::A2
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A2
+        enclosingElement: <testLibraryFragment>
         supertype: A1
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A2::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A2
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A1::@constructor::new
+            reference: <testLibraryFragment>::@class::A2::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A2
+            superConstructor: <testLibraryFragment>::@class::A1::@constructor::new
         methods
           _foo @77
-            reference: <thisLibrary>::<definingUnit>::@class::A2::@method::_foo
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A2
+            reference: <testLibraryFragment>::@class::A2::@method::_foo
+            enclosingElement: <testLibraryFragment>::@class::A2
             returnType: int
 ''');
   }
@@ -8855,40 +8855,40 @@ class B extends Object with A {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @25
                 type: int
             returnType: String
       class B @39
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         supertype: Object
         mixins
           A
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @67
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @69
                 type: int
@@ -8910,14 +8910,14 @@ class C extends A<int, String> implements B<String> {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant K @8
             defaultType: dynamic
@@ -8925,51 +8925,51 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @20
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @24
                 type: K
             returnType: V
       class B @38
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         typeParameters
           covariant T @40
             defaultType: dynamic
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @49
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @55
                 type: int
             returnType: T
       class C @69
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: A<int, String>
         interfaces
           B<String>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
             superConstructor: ConstructorMember
-              base: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+              base: <testLibraryFragment>::@class::A::@constructor::new
               substitution: {K: int, V: String}
         methods
           m @119
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional a @121
                 type: int
@@ -8991,56 +8991,56 @@ class C extends A implements B {
 ''');
     checkElementText(library, r'''
 library
-  reference: <thisLibrary>
+  reference: <testLibrary>
   definingUnit
-    reference: <thisLibrary>::<definingUnit>
-    enclosingElement: <thisLibrary>
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
     classes
       class A @6
-        reference: <thisLibrary>::<definingUnit>::@class::A
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::A
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::A
         methods
           m @19
-            reference: <thisLibrary>::<definingUnit>::@class::A::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::A
+            reference: <testLibraryFragment>::@class::A::@method::m
+            enclosingElement: <testLibraryFragment>::@class::A
             parameters
               requiredPositional a @25
                 type: int
             returnType: String
       class B @39
-        reference: <thisLibrary>::<definingUnit>::@class::B
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::B
+        enclosingElement: <testLibraryFragment>
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::B
         methods
           m @52
-            reference: <thisLibrary>::<definingUnit>::@class::B::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::B
+            reference: <testLibraryFragment>::@class::B::@method::m
+            enclosingElement: <testLibraryFragment>::@class::B
             parameters
               requiredPositional a @58
                 type: int
             returnType: String
       class C @72
-        reference: <thisLibrary>::<definingUnit>::@class::C
-        enclosingElement: <thisLibrary>::<definingUnit>
+        reference: <testLibraryFragment>::@class::C
+        enclosingElement: <testLibraryFragment>
         supertype: A
         interfaces
           B
         constructors
           synthetic @-1
-            reference: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
-            superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
+            reference: <testLibraryFragment>::@class::C::@constructor::new
+            enclosingElement: <testLibraryFragment>::@class::C
+            superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         methods
           m @101
-            reference: <thisLibrary>::<definingUnit>::@class::C::@method::m
-            enclosingElement: <thisLibrary>::<definingUnit>::@class::C
+            reference: <testLibraryFragment>::@class::C::@method::m
+            enclosingElement: <testLibraryFragment>::@class::C
             parameters
               requiredPositional a @103
                 type: int

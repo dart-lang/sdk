@@ -164,7 +164,7 @@ RecordPattern
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<definingUnit>::@class::int
+          element: dart:core::@fragment::dart:core::@class::int
           type: int
         name: y
         declaredElement: y@54
@@ -254,7 +254,7 @@ RecordPattern
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<definingUnit>::@class::int
+          element: dart:core::@fragment::dart:core::@class::int
           type: int
         name: y
         declaredElement: y@49
@@ -714,7 +714,7 @@ RecordPattern
         asToken: as
         type: NamedType
           name: int
-          element: dart:core::<definingUnit>::@class::int
+          element: dart:core::@fragment::dart:core::@class::int
           type: int
         matchedValueType: int?
       element: <null>
@@ -855,7 +855,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
+    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     staticType: (int, String)
   patternTypeSchema: (_, _)
 ''');
@@ -883,7 +883,7 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::<definingUnit>::@class::int
+            element: dart:core::@fragment::dart:core::@class::int
             type: int
           name: a
           declaredElement: a@22
@@ -894,7 +894,7 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: String
-            element: dart:core::<definingUnit>::@class::String
+            element: dart:core::@fragment::dart:core::@class::String
             type: String
           name: b
           declaredElement: b@32
@@ -907,7 +907,7 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: <thisLibrary>::<definingUnit>::@function::g
+      staticElement: <testLibraryFragment>::@function::g
       staticType: (T, U) Function<T, U>()
     argumentList: ArgumentList
       leftParenthesis: (

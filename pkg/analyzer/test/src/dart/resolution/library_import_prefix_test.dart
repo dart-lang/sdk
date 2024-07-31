@@ -30,7 +30,7 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  staticElement: <thisLibrary>::<definingUnit>::@prefix::p
+  staticElement: <testLibraryFragment>::@prefix::p
   staticType: InvalidType
 ''');
   }
@@ -61,7 +61,7 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::<definingUnit>::@prefix::p
+      staticElement: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
   body: Block
@@ -93,10 +93,10 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element: <thisLibrary>::<definingUnit>::@class::C
+      element: <testLibraryFragment>::@class::C
       type: C<dynamic>
     staticElement: ConstructorMember
-      base: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
+      base: <testLibraryFragment>::@class::C::@constructor::new
       substitution: {T: dynamic}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -104,9 +104,9 @@ InstanceCreationExpression
       SimpleIdentifier
         token: p
         parameter: ParameterMember
-          base: <thisLibrary>::<definingUnit>::@class::C::@constructor::new::@parameter::a
+          base: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
           substitution: {T: dynamic}
-        staticElement: <thisLibrary>::<definingUnit>::@prefix::p
+        staticElement: <testLibraryFragment>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
@@ -207,7 +207,7 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: package:test/a.dart::<definingUnit>::@getter::a
+  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
   staticType: int
 ''');
   }
