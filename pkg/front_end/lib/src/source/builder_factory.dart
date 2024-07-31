@@ -329,7 +329,8 @@ abstract class BuilderFactory {
       bool hasThis,
       bool hasSuper,
       int charOffset,
-      Token? initializerToken);
+      Token? initializerToken,
+      {bool lowerWildcard = false});
 
   ConstructorReferenceBuilder addConstructorReference(TypeName name,
       List<TypeBuilder>? typeArguments, String? suffix, int charOffset);
