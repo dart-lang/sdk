@@ -1437,9 +1437,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                     interfaceMemberOrigin.fileOffset, noLength)
           ]);
     } else if (declaredFunction?.typeParameters != null) {
-      Map<TypeParameter, DartType> substitutionMap =
-          <TypeParameter, DartType>{};
-
       // Since the bound of `interfaceFunction!.parameter[i]` may have changed
       // during substitution, it can affect the nullabilities of the types in
       // the substitution map. The first parameter to
@@ -1458,12 +1455,25 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
         updateBoundNullabilities(interfaceTypeParameters);
       }
-      for (int i = 0; i < declaredFunction!.typeParameters.length; ++i) {
-        substitutionMap[interfaceFunction.typeParameters[i]] =
-            new TypeParameterType.forAlphaRenaming(
-                interfaceTypeParameters[i], declaredFunction.typeParameters[i]);
+
+      Substitution substitution;
+      if (declaredFunction!.typeParameters.isEmpty) {
+        substitution = Substitution.empty;
+      } else if (declaredFunction.typeParameters.length == 1) {
+        substitution = Substitution.fromSingleton(
+            interfaceFunction.typeParameters[0],
+            new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[0],
+                declaredFunction.typeParameters[0]));
+      } else {
+        Map<TypeParameter, DartType> substitutionMap =
+            <TypeParameter, DartType>{};
+        for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
+          substitutionMap[interfaceFunction.typeParameters[i]] =
+              new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[i],
+                  declaredFunction.typeParameters[i]);
+        }
+        substitution = Substitution.fromMap(substitutionMap);
       }
-      Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         TypeParameter declaredParameter = declaredFunction.typeParameters[i];
         TypeParameter interfaceParameter = interfaceFunction.typeParameters[i];
