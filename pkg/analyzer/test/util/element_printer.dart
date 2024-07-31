@@ -9,23 +9,18 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
-
-import 'tree_string_sink.dart';
 
 class ElementPrinter {
   final TreeStringSink _sink;
   final ElementPrinterConfiguration _configuration;
-  // ignore: unused_field
-  final String? _selfUriStr;
 
   ElementPrinter({
     required TreeStringSink sink,
     required ElementPrinterConfiguration configuration,
-    required String? selfUriStr,
   })  : _sink = sink,
-        _configuration = configuration,
-        _selfUriStr = selfUriStr;
+        _configuration = configuration;
 
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {

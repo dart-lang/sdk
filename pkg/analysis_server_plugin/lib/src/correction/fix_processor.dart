@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
@@ -16,16 +16,16 @@ import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_except
 class FixProcessor {
   final DartFixContext _fixContext;
 
-  final List<Fix> fixes = <Fix>[];
+  final List<Fix> _fixes = <Fix>[];
 
   FixProcessor(this._fixContext);
 
   Future<List<Fix>> compute() async {
     if (isMacroGenerated(_fixContext.resolvedResult.file.path)) {
-      return fixes;
+      return _fixes;
     }
     await _addFromProducers();
-    return fixes;
+    return _fixes;
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, CorrectionProducer producer) {
@@ -41,7 +41,7 @@ class FixProcessor {
 
     change.id = kind.id;
     change.message = formatList(kind.message, producer.fixArguments);
-    fixes.add(Fix(kind: kind, change: change));
+    _fixes.add(Fix(kind: kind, change: change));
   }
 
   Future<void> _addFromProducers() async {

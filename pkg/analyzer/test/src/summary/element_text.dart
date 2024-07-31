@@ -11,11 +11,11 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 import '../../util/element_printer.dart';
-import '../../util/tree_string_sink.dart';
 import 'resolved_ast_printer.dart';
 
 String getLibraryText({
@@ -30,7 +30,6 @@ String getLibraryText({
   var elementPrinter = ElementPrinter(
     sink: sink,
     configuration: ElementPrinterConfiguration(),
-    selfUriStr: '${library.source.uri}',
   );
   var writer = _ElementWriter(
     sink: sink,

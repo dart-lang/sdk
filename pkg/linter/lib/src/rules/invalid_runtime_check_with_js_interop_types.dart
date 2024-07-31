@@ -25,14 +25,14 @@ const _desc =
     be platform-consistent.''';
 
 const _details = r'''
-**DON'T** use 'is' checks where the type is a JS interop type.
+**DON'T** use `is` checks where the type is a JS interop type.
 
-**DON'T** use 'is' checks where the type is a generic Dart type that has JS
+**DON'T** use `is` checks where the type is a generic Dart type that has JS
 interop type arguments.
 
-**DON'T** use 'is' checks with a JS interop value.
+**DON'T** use `is` checks with a JS interop value.
 
-'dart:js_interop' types have runtime types that are different based on whether
+`dart:js_interop` types have runtime types that are different based on whether
 you are compiling to JS or to Wasm. Therefore, runtime type checks may result in
 different behavior. Runtime checks also do not necessarily check that a JS
 interop value is a particular JavaScript type.
@@ -65,7 +65,7 @@ void compute(JSAny a, bool b, List<JSObject> lo, List<String> ls, JSObject o,
 }
 ```
 
-Prefer using JS interop helpers like 'isA' from 'dart:js_interop' to check the
+Prefer using JS interop helpers like `isA` from `dart:js_interop` to check the
 underlying type of JS interop values.
 
 **GOOD:**
@@ -82,11 +82,11 @@ void compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e) {
 }
 ```
 
-**DON'T** use 'as' to cast a JS interop value to an unrelated Dart type or an
+**DON'T** use `as` to cast a JS interop value to an unrelated Dart type or an
 unrelated Dart value to a JS interop type.
 
-**DON'T** use 'as' to cast a JS interop value to a JS interop type represented
-by an incompatible 'dart:js_interop' type.
+**DON'T** use `as` to cast a JS interop value to a JS interop type represented
+by an incompatible `dart:js_interop` type.
 
 **BAD:**
 ```dart
@@ -109,7 +109,7 @@ void compute(String s, JSBoolean b, Window w, List<String> l,
 }
 ```
 
-Prefer using 'dart:js_interop' conversion methods to convert a JS interop value
+Prefer using `dart:js_interop` conversion methods to convert a JS interop value
 to a Dart value and vice versa.
 
 **GOOD:**

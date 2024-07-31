@@ -71,8 +71,8 @@ import 'package:analysis_server/src/services/correction/dart/split_and_condition
 import 'package:analysis_server/src/services/correction/dart/split_variable_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/surround_with.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
-import 'package:analysis_server/src/services/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';

@@ -12,10 +12,10 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../../util/element_printer.dart';
-import '../../../util/tree_string_sink.dart';
 import '../../summary/resolved_ast_printer.dart';
 
 sealed class DriverEvent {}
@@ -206,7 +206,6 @@ class DriverEventsPrinter {
           elementPrinter: ElementPrinter(
             sink: sink,
             configuration: ElementPrinterConfiguration(),
-            selfUriStr: null,
           ),
         ).write(result);
       default:
