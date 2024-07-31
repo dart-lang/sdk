@@ -20,7 +20,7 @@ static method foo2(core::String? x) → dynamic
 static method foo3(core::bool? x, core::num y) → dynamic
   return block {
     final core::Map<core::bool, core::num> #t5 = <core::bool, core::num>{};
-    final core::bool? #t6 = x as{TypeError} core::bool?;
+    final core::bool? #t6 = x;
     if(!(#t6 == null))
       #t5.{core::Map::[]=}{Invariant}(#t6{core::bool}, y){(core::bool, core::num) → void};
   } =>#t5;
@@ -52,23 +52,23 @@ static method bar3(core::int? x, core::List<core::String> y) → dynamic
 static method bar4(core::String x, core::bool? y) → dynamic
   return block {
     final core::Map<core::String, core::bool> #t13 = <core::String, core::bool>{};
-    final core::bool? #t14 = y as{TypeError} core::bool?;
+    final core::bool? #t14 = y;
     if(!(#t14 == null))
       #t13.{core::Map::[]=}{Invariant}(x, #t14{core::bool}){(core::String, core::bool) → void};
   } =>#t13;
 static method bar5(core::int? x, core::num y) → dynamic
   return block {
     final core::Map<core::int, core::num> #t15 = <core::int, core::num>{};
-    final core::int? #t16 = x as{TypeError} core::int?;
+    final core::int? #t16 = x;
     if(!(#t16 == null))
       #t15.{core::Map::[]=}{Invariant}(#t16{core::int}, y){(core::int, core::num) → void};
   } =>#t15;
 static method bar6(core::Symbol? x, core::String? y) → dynamic
   return block {
     final core::Map<core::Symbol, core::String> #t17 = <core::Symbol, core::String>{};
-    final core::Symbol? #t18 = x as{TypeError} core::Symbol?;
+    final core::Symbol? #t18 = x;
     if(!(#t18 == null)) {
-      final core::String? #t19 = y as{TypeError} core::String?;
+      final core::String? #t19 = y;
       if(!(#t19 == null))
         #t17.{core::Map::[]=}{Invariant}(#t18{core::Symbol}, #t19{core::String}){(core::Symbol, core::String) → void};
     }
@@ -77,9 +77,9 @@ static method bar7(core::int? x, core::double? y, core::bool b) → dynamic
   return block {
     final core::Map<core::int, core::double> #t20 = <core::int, core::double>{};
     if(b) {
-      final core::int? #t21 = x as{TypeError} core::int?;
+      final core::int? #t21 = x;
       if(!(#t21 == null)) {
-        final core::double? #t22 = y as{TypeError} core::double?;
+        final core::double? #t22 = y;
         if(!(#t22 == null))
           #t20.{core::Map::[]=}{Invariant}(#t21{core::int}, #t22{core::double}){(core::int, core::double) → void};
       }
@@ -89,9 +89,9 @@ static method bar8(core::bool? x, core::Symbol? y, core::List<core::num> z) → 
   return block {
     final core::Map<core::bool, core::Symbol> #t23 = <core::bool, core::Symbol>{};
     for (core::num _ in z) {
-      final core::bool? #t24 = x as{TypeError} core::bool?;
+      final core::bool? #t24 = x;
       if(!(#t24 == null)) {
-        final core::Symbol? #t25 = y as{TypeError} core::Symbol?;
+        final core::Symbol? #t25 = y;
         if(!(#t25 == null))
           #t23.{core::Map::[]=}{Invariant}(#t24{core::bool}, #t25{core::Symbol}){(core::bool, core::Symbol) → void};
       }

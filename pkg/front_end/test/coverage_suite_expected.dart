@@ -510,7 +510,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/constant_evaluator.dart": (
-    hitCount: 3704,
+    hitCount: 3700,
     missCount: 0,
   ),
   // 100.0%.
@@ -600,7 +600,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/internal_ast.dart": (
-    hitCount: 587,
+    hitCount: 569,
     missCount: 0,
   ),
   // 100.0%.
@@ -909,9 +909,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 166,
     missCount: 0,
   ),
-  // 99.51377633711506%.
+  // 99.51504600845561%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 7982,
+    hitCount: 8003,
     missCount: 39,
   ),
   // 99.875%.

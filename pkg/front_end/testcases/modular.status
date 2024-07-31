@@ -4,9 +4,6 @@
 
 # Status file for the modular_suite.dart test suite.
 
-# Null-aware elements are in development
-null_aware_elements/constant_null_aware_map_entry_shorting_erroneous: Crash # Should go away once inference is implemented.
-
 constructor_tearoffs/call_instantiation: TypeCheckError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
