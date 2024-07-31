@@ -10,6 +10,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
@@ -244,19 +245,17 @@ mixin LookupScopeMixin implements LookupScope {
 }
 
 /// A [LookupScope] based directly on a [NameSpace].
-class NameSpaceLookupScope implements LookupScope {
-  final LookupScope? _parent;
-
-  final NameSpace _nameSpace;
-
+abstract class BaseNameSpaceLookupScope implements LookupScope {
   @override
   final ScopeKind kind;
 
   final String classNameOrDebugName;
 
-  NameSpaceLookupScope(this._nameSpace, this.kind, this.classNameOrDebugName,
-      {LookupScope? parent})
-      : this._parent = parent;
+  BaseNameSpaceLookupScope(this.kind, this.classNameOrDebugName);
+
+  NameSpace get _nameSpace;
+
+  LookupScope? get _parent;
 
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri) {
@@ -291,27 +290,16 @@ class NameSpaceLookupScope implements LookupScope {
   }
 }
 
-// TODO(johnniwinther): Avoid this.
-class MutableNameSpaceLookupScope extends NameSpaceLookupScope {
-  MutableNameSpaceLookupScope(
-      super.nameSpace, super.kind, super.classNameOrDebugName,
-      {required super.parent});
-
-  NameSpace? _replacedNamedSpace;
-  LookupScope? _replacedParent;
-
-  /// This scope becomes equivalent to [scope]. This is used for parts to
-  /// become part of their library's scope.
-  void replaceNameSpaceAndParent(NameSpace nameSpace, LookupScope parent) {
-    _replacedNamedSpace = nameSpace;
-    _replacedParent = parent;
-  }
+class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
+  @override
+  final NameSpace _nameSpace;
 
   @override
-  LookupScope? get _parent => _replacedParent ?? super._parent;
+  final LookupScope? _parent;
 
-  @override
-  NameSpace get _nameSpace => _replacedNamedSpace ?? super._nameSpace;
+  NameSpaceLookupScope(this._nameSpace, super.kind, super.classNameOrDebugName,
+      {LookupScope? parent})
+      : _parent = parent;
 }
 
 class TypeParameterScope with LookupScopeMixin {
@@ -402,6 +390,35 @@ class FixedLookupScope implements LookupScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent?.forEachExtension(f);
   }
+}
+
+// TODO(johnniwinther): Use this instead of [SourceLibraryBuilderScope].
+class CompilationUnitScope extends BaseNameSpaceLookupScope {
+  final CompilationUnit _compilationUnit;
+
+  @override
+  final LookupScope? _parent;
+
+  CompilationUnitScope(
+      this._compilationUnit, super.kind, super.classNameOrDebugName,
+      {LookupScope? parent})
+      : _parent = parent;
+
+  @override
+  NameSpace get _nameSpace => _compilationUnit.libraryBuilder.nameSpace;
+}
+
+class SourceLibraryBuilderScope extends BaseNameSpaceLookupScope {
+  final SourceLibraryBuilder _libraryBuilder;
+
+  SourceLibraryBuilderScope(
+      this._libraryBuilder, super.kind, super.classNameOrDebugName);
+
+  @override
+  NameSpace get _nameSpace => _libraryBuilder.nameSpace;
+
+  @override
+  LookupScope? get _parent => _libraryBuilder.importScope;
 }
 
 class ConstructorScope {

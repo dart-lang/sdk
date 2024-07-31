@@ -203,10 +203,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 246,
     missCount: 0,
   ),
-  // 98.67256637168141%.
+  // 97.94117647058823%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 669,
-    missCount: 9,
+    hitCount: 666,
+    missCount: 14,
   ),
   // 100.0%.
   "package:front_end/src/base/ticker.dart": (
@@ -285,7 +285,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/formal_parameter_builder.dart": (
-    hitCount: 186,
+    hitCount: 188,
     missCount: 0,
   ),
   // 100.0%.
@@ -478,9 +478,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 0,
   ),
-  // 99.34426229508196%.
+  // 99.34566145092461%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 6969,
+    hitCount: 6984,
     missCount: 46,
   ),
   // 100.0%.
@@ -708,6 +708,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 21,
     missCount: 0,
   ),
+  // 60.0%.
+  "package:front_end/src/kernel/wildcard_lowering.dart": (
+    hitCount: 9,
+    missCount: 6,
+  ),
   // 100.0%.
   "package:front_end/src/kernel_generator_impl.dart": (
     hitCount: 51,
@@ -775,7 +780,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/outline_builder.dart": (
-    hitCount: 2295,
+    hitCount: 2297,
     missCount: 0,
   ),
   // 100.0%.
@@ -785,7 +790,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_factory.dart": (
-    hitCount: 1151,
+    hitCount: 1163,
     missCount: 0,
   ),
   // 98.13664596273291%.
@@ -793,14 +798,14 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 158,
     missCount: 3,
   ),
-  // 99.7560975609756%.
+  // 99.7584541062802%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1227,
+    hitCount: 1239,
     missCount: 3,
   ),
-  // 99.46452476572959%.
+  // 99.46308724832214%.
   "package:front_end/src/source/source_compilation_unit.dart": (
-    hitCount: 743,
+    hitCount: 741,
     missCount: 4,
   ),
   // 98.31271091113611%.
@@ -836,12 +841,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_function_builder.dart": (
-    hitCount: 296,
+    hitCount: 302,
     missCount: 0,
   ),
-  // 99.8589562764457%.
+  // 99.85925404644617%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1416,
+    hitCount: 1419,
     missCount: 2,
   ),
   // 99.89258861439313%.

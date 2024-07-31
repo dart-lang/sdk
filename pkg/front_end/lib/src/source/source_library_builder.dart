@@ -98,9 +98,9 @@ part 'source_compilation_unit.dart';
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   late final SourceCompilationUnit compilationUnit;
 
-  final LookupScope _importScope;
+  LookupScope _importScope;
 
-  final MutableNameSpaceLookupScope _scope;
+  late final LookupScope _scope;
 
   NameSpace _nameSpace;
 
@@ -231,11 +231,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         ScopeKind.typeParameters, 'omitted-types',
         getables: omittedTypes, parent: importScope);
     NameSpace libraryNameSpace = libraryTypeParameterScopeBuilder.toNameSpace();
-    MutableNameSpaceLookupScope scope = new MutableNameSpaceLookupScope(
-        libraryNameSpace,
-        ScopeKind.typeParameters,
-        libraryTypeParameterScopeBuilder.name,
-        parent: importScope);
     NameSpace exportNameSpace = origin?.exportNameSpace ?? new NameSpaceImpl();
     return new SourceLibraryBuilder._(
         loader: loader,
@@ -247,7 +242,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
         importNameSpace: importNameSpace,
         importScope: importScope,
-        scope: scope,
         libraryNameSpace: libraryNameSpace,
         exportNameSpace: exportNameSpace,
         origin: origin,
@@ -274,7 +268,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
       required NameSpace importNameSpace,
       required LookupScope importScope,
-      required MutableNameSpaceLookupScope scope,
       required NameSpace libraryNameSpace,
       required NameSpace exportNameSpace,
       required SourceLibraryBuilder? origin,
@@ -292,7 +285,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         _immediateOrigin = origin,
         _nameOrigin = nameOrigin,
         _importScope = importScope,
-        _scope = scope,
         _nameSpace = libraryNameSpace,
         _exportNameSpace = exportNameSpace,
         super(fileUri) {
@@ -309,6 +301,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Coverage-ignore(suite): Not run.
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
+    _scope = new SourceLibraryBuilderScope(
+        this, ScopeKind.typeParameters, libraryTypeParameterScopeBuilder.name);
     compilationUnit = new SourceCompilationUnitImpl(
         this, libraryTypeParameterScopeBuilder,
         importUri: importUri,
@@ -396,6 +390,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   LookupScope get scope => _scope;
+
+  LookupScope get importScope => _importScope;
 
   @override
   NameSpace get nameSpace => _nameSpace;
