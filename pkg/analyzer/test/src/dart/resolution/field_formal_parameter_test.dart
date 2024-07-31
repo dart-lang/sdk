@@ -37,7 +37,7 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: a
       declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
@@ -175,7 +175,7 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   thisKeyword: this
   period: .

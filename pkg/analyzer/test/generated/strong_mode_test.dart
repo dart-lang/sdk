@@ -2011,7 +2011,7 @@ MethodInvocation
         asOperator: as
         type: NamedType
           name: num
-          element: dart:core::@fragment::dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
         parameter: ParameterMember
           base: root::@parameter::s
@@ -3373,7 +3373,7 @@ FunctionDeclaration
           extendsKeyword: extends
           bound: NamedType
             name: num
-            element: dart:core::@fragment::dart:core::@class::num
+            element: dart:core::<fragment>::@class::num
             type: num
           declaredElement: T@4
       rightBracket: >
@@ -4081,7 +4081,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -4152,7 +4152,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList

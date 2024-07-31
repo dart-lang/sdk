@@ -1461,13 +1461,13 @@ augment abstract class C implements B {}
     assertInterfaceText(element, r'''
 overridden
   foo
-    package:test/a.dart::@fragment::package:test/a.dart::@mixin::A::@method::foo
-    package:test/a.dart::@fragment::package:test/a.dart::@class::B::@method::foo
+    package:test/a.dart::<fragment>::@mixin::A::@method::foo
+    package:test/a.dart::<fragment>::@class::B::@method::foo
 superImplemented
 conflicts
   CandidatesConflict
-    package:test/a.dart::@fragment::package:test/a.dart::@mixin::A::@method::foo
-    package:test/a.dart::@fragment::package:test/a.dart::@class::B::@method::foo
+    package:test/a.dart::<fragment>::@mixin::A::@method::foo
+    package:test/a.dart::<fragment>::@class::B::@method::foo
 ''');
   }
 

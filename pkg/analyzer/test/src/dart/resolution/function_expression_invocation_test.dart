@@ -150,7 +150,7 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -233,11 +233,11 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: bool
-        element: dart:core::@fragment::dart:core::@class::bool
+        element: dart:core::<fragment>::@class::bool
         type: bool
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -389,7 +389,7 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: String
-        element: dart:core::@fragment::dart:core::@class::String
+        element: dart:core::<fragment>::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -537,12 +537,12 @@ FunctionExpressionInvocation
     arguments
       SimpleIdentifier
         token: a
-        parameter: dart:core::@fragment::dart:core::@function::identical::@parameter::a
+        parameter: dart:core::<fragment>::@function::identical::@parameter::a
         staticElement: <testLibraryFragment>::@getter::a
         staticType: int
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@function::identical::@parameter::b
+        parameter: dart:core::<fragment>::@function::identical::@parameter::b
         staticElement: <testLibraryFragment>::@getter::b
         staticType: int
     rightParenthesis: )
@@ -574,7 +574,7 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -587,10 +587,10 @@ FunctionExpressionInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+          parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
           staticType: int
         parameter: <null>
-        staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+        staticElement: dart:core::<fragment>::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -623,7 +623,7 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -636,10 +636,10 @@ FunctionExpressionInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+          parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
           staticType: int
         parameter: <null>
-        staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+        staticElement: dart:core::<fragment>::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -724,7 +724,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: isEven
-    staticElement: dart:core::@fragment::dart:core::@class::int::@getter::isEven
+    staticElement: dart:core::<fragment>::@class::int::@getter::isEven
     staticType: bool
   staticType: bool?
 ''');

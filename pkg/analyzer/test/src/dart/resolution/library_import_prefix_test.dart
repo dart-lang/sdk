@@ -207,7 +207,7 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+  staticElement: package:test/a.dart::<fragment>::@getter::a
   staticType: int
 ''');
   }

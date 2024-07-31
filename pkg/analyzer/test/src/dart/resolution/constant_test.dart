@@ -127,7 +127,7 @@ const v = a;
 C<double Function(int)>
   typeArguments
     double Function(int)
-      alias: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::F
+      alias: package:test/a.dart::<fragment>::@typeAlias::F
         typeArguments
           double
   variable: <testLibraryFragment>::@topLevelVariable::v

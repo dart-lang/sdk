@@ -88,9 +88,9 @@ BinaryExpression
   operator: ==
   rightOperand: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::==::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::==::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::==
+  staticElement: dart:core::<fragment>::@class::num::@method::==
   staticInvokeType: bool Function(Object)
   staticType: bool
 ''');
@@ -132,9 +132,9 @@ BinaryExpression
           literal: 1
           staticType: int
     rightBracket: }
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::==::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::==::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::==
+  staticElement: dart:core::<fragment>::@class::num::@method::==
   staticInvokeType: bool Function(Object)
   staticType: bool
 ''');
@@ -426,14 +426,14 @@ augment class A {
 BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
-    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@method::+
+    element: package:test/a.dart::<fragment>::@class::A::@method::+
     staticType: A
   operator: +
   rightOperand: IntegerLiteral
     literal: 0
-    parameter: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@method::+::@parameter::a
+    parameter: package:test/a.dart::<fragment>::@class::A::@method::+::@parameter::a
     staticType: int
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@method::+
+  staticElement: package:test/a.dart::<fragment>::@class::A::@method::+
   staticInvokeType: int Function(Object?)
   staticType: int
 ''');
@@ -465,7 +465,7 @@ augment class A {
 BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
-    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@method::unary-
+    element: package:test/a.dart::<fragment>::@class::A::@method::unary-
     staticType: A
   operator: +
   rightOperand: IntegerLiteral
@@ -500,14 +500,14 @@ augment class A {
 BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
-    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@field::foo
+    element: package:test/a.dart::<fragment>::@class::A::@field::foo
     staticType: num
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: num
 ''');
@@ -537,14 +537,14 @@ augment class A {
 BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
-    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::foo
+    element: package:test/a.dart::<fragment>::@class::A::@getter::foo
     staticType: int
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: int
 ''');
@@ -576,7 +576,7 @@ augment class A {
 BinaryExpression
   leftOperand: AugmentedExpression
     augmentedKeyword: augmented
-    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@setter::foo
+    element: package:test/a.dart::<fragment>::@class::A::@setter::foo
     staticType: InvalidType
   operator: +
   rightOperand: IntegerLiteral
@@ -637,10 +637,10 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: Never
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: num
 ''');
@@ -710,9 +710,9 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: int
 ''');
@@ -754,9 +754,9 @@ BinaryExpression
           literal: 1
           staticType: int
     rightBracket: }
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: int
 ''');
@@ -839,10 +839,10 @@ BinaryExpression
   operator: *
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::*::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::*::@parameter::other
     staticElement: <null>
     staticType: InvalidType
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::*
+  staticElement: dart:core::<fragment>::@class::num::@method::*
   staticInvokeType: num Function(num)
   staticType: double
 ''');
@@ -926,10 +926,10 @@ BinaryExpression
   operator: !=
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::==::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::==::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::==
+  staticElement: dart:core::<fragment>::@class::num::@method::==
   staticInvokeType: bool Function(Object)
   staticType: bool
 ''');
@@ -1017,9 +1017,9 @@ BinaryExpression
   operator: ==
   rightOperand: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::Object::@method::==::@parameter::other
+    parameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::Object::@method::==
+  staticElement: dart:core::<fragment>::@class::Object::@method::==
   staticInvokeType: bool Function(Object)
   staticType: bool
 ''');
@@ -1080,10 +1080,10 @@ BinaryExpression
   operator: ==
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::==::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::==::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::==
+  staticElement: dart:core::<fragment>::@class::num::@method::==
   staticInvokeType: bool Function(Object)
   staticType: bool
 ''');
@@ -1108,9 +1108,9 @@ BinaryExpression
   operator: ==
   rightOperand: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::Object::@method::==::@parameter::other
+    parameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::Object::@method::==
+  staticElement: dart:core::<fragment>::@class::Object::@method::==
   staticInvokeType: bool Function(Object)
   staticType: bool
 ''');
@@ -1237,7 +1237,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::-::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::-::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -1261,10 +1261,10 @@ BinaryExpression
   operator: -
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::-::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::-::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: double
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::-
+  staticElement: dart:core::<fragment>::@class::num::@method::-
   staticInvokeType: num Function(num)
   staticType: double
 ''');
@@ -1286,10 +1286,10 @@ BinaryExpression
   operator: -
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::-::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::-::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::-
+  staticElement: dart:core::<fragment>::@class::num::@method::-
   staticInvokeType: num Function(num)
   staticType: int
 ''');
@@ -1314,7 +1314,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::%::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::%::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -1338,10 +1338,10 @@ BinaryExpression
   operator: %
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::%::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::%::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: double
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::%
+  staticElement: dart:core::<fragment>::@class::num::@method::%
   staticInvokeType: num Function(num)
   staticType: double
 ''');
@@ -1363,10 +1363,10 @@ BinaryExpression
   operator: %
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::%::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::%::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::%
+  staticElement: dart:core::<fragment>::@class::num::@method::%
   staticInvokeType: num Function(num)
   staticType: int
 ''');
@@ -1391,7 +1391,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::double::@method::+::@parameter::other
+  parameter: dart:core::<fragment>::@class::double::@method::+::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -1420,7 +1420,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::double::@method::+::@parameter::other
+  parameter: dart:core::<fragment>::@class::double::@method::+::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -1446,7 +1446,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::double::@method::+::@parameter::other
+  parameter: dart:core::<fragment>::@class::double::@method::+::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -1470,10 +1470,10 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::double::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::double::@method::+::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: dynamic
-  staticElement: dart:core::@fragment::dart:core::@class::double::@method::+
+  staticElement: dart:core::<fragment>::@class::double::@method::+
   staticInvokeType: double Function(num)
   staticType: double
 ''');
@@ -1498,7 +1498,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
   staticInvokeType: double Function()
   staticType: double
   typeArgumentTypes
@@ -1525,7 +1525,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -1552,7 +1552,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -1610,7 +1610,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -1634,10 +1634,10 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: double
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: double
 ''');
@@ -1659,10 +1659,10 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: dynamic
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: num
 ''');
@@ -1684,10 +1684,10 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: int
 ''');
@@ -1716,10 +1716,10 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: int
 ''');
@@ -1779,10 +1779,10 @@ BinaryExpression
   operator: +
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: num
 ''');
@@ -1865,7 +1865,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -2107,9 +2107,9 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticInvokeType: num Function(num)
   staticType: num
 ''');
@@ -2131,10 +2131,10 @@ BinaryExpression
   operator: /
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::/::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::/::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::/
+  staticElement: dart:core::<fragment>::@class::num::@method::/
   staticInvokeType: double Function(num)
   staticType: double
 ''');
@@ -2159,7 +2159,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::*::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::*::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -2183,10 +2183,10 @@ BinaryExpression
   operator: *
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::*::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::*::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: double
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::*
+  staticElement: dart:core::<fragment>::@class::num::@method::*
   staticInvokeType: num Function(num)
   staticType: double
 ''');
@@ -2208,10 +2208,10 @@ BinaryExpression
   operator: *
   rightOperand: SimpleIdentifier
     token: b
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::*::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::*::@parameter::other
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::*
+  staticElement: dart:core::<fragment>::@class::num::@method::*
   staticInvokeType: num Function(num)
   staticType: int
 ''');

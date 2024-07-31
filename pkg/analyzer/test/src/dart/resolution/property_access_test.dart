@@ -95,13 +95,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@extension::E::@getter::foo
   readType: int
   writeElement: <testLibraryFragment>::@extension::E::@setter::foo
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -608,13 +608,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@class::A::@getter::foo
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::foo
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -815,7 +815,7 @@ CascadeExpression
       operator: ?.
       propertyName: SimpleIdentifier
         token: isEven
-        staticElement: dart:core::@fragment::dart:core::@class::int::@getter::isEven
+        staticElement: dart:core::<fragment>::@class::int::@getter::isEven
         staticType: bool
       staticType: bool
   staticType: A
@@ -1050,7 +1050,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     staticType: int
   staticType: int
 ''');
@@ -1077,7 +1077,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: runtimeType
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@getter::runtimeType
+    staticElement: dart:core::<fragment>::@class::Object::@getter::runtimeType
     staticType: Type
   staticType: Type
 ''');
@@ -1104,7 +1104,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@method::toString
+    staticElement: dart:core::<fragment>::@class::Object::@method::toString
     staticType: String Function()
   staticType: String Function()
 ''');
@@ -1489,13 +1489,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@extension::E::@getter::foo
   readType: int
   writeElement: <testLibraryFragment>::@extension::E::@setter::foo
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1602,7 +1602,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     staticType: int
   staticType: int
 ''');
@@ -1631,7 +1631,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     staticType: int
   staticType: int
 ''');
@@ -1857,7 +1857,7 @@ void f() {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::r
+    staticElement: package:test/a.dart::<fragment>::@getter::r
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -1931,7 +1931,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     staticType: int
   staticType: int
 ''');
@@ -2130,7 +2130,7 @@ void f() {
 PropertyAccess
   target: SimpleIdentifier
     token: r
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::r
+    staticElement: package:test/a.dart::<fragment>::@getter::r
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -2277,7 +2277,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: isEven
-    staticElement: dart:core::@fragment::dart:core::@class::int::@getter::isEven
+    staticElement: dart:core::<fragment>::@class::int::@getter::isEven
     staticType: bool
   staticType: bool
 ''');
@@ -2340,13 +2340,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@class::A::@getter::foo
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::foo
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }

@@ -205,7 +205,7 @@ SwitchExpression
         pattern: ObjectPattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           leftParenthesis: (
           fields
@@ -218,7 +218,7 @@ SwitchExpression
                 declaredElement: hasImplicitType isEven@46
                   type: bool
                 matchedValueType: bool
-              element: dart:core::@fragment::dart:core::@class::int::@getter::isEven
+              element: dart:core::<fragment>::@class::int::@getter::isEven
           rightParenthesis: )
           matchedValueType: num
         whenClause: WhenClause
@@ -522,7 +522,7 @@ SwitchExpression
             arguments
               NamedType
                 name: int
-                element: dart:core::@fragment::dart:core::@class::int
+                element: dart:core::<fragment>::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -600,7 +600,7 @@ SwitchExpression
             DeclaredVariablePattern
               type: NamedType
                 name: int
-                element: dart:core::@fragment::dart:core::@class::int
+                element: dart:core::<fragment>::@class::int
                 type: int
               name: a
               declaredElement: a@58
@@ -612,7 +612,7 @@ SwitchExpression
                 token: a
                 staticElement: a@58
                 staticType: int
-              element: dart:core::@fragment::dart:core::@class::Object::@method::==
+              element: dart:core::<fragment>::@class::Object::@method::==
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -627,9 +627,9 @@ SwitchExpression
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+              parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
               staticType: int
-            staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+            staticElement: dart:core::<fragment>::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>
@@ -680,7 +680,7 @@ SwitchExpression
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@44
@@ -696,9 +696,9 @@ SwitchExpression
             operator: >
             rightOperand: IntegerLiteral
               literal: 0
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+              parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
               staticType: int
-            staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+            staticElement: dart:core::<fragment>::@class::num::@method::>
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>

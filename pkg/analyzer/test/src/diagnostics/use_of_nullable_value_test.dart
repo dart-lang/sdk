@@ -601,13 +601,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@class::A::@getter::x
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
 
@@ -635,13 +635,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@class::A::@getter::y
   readType: int?
   writeElement: <testLibraryFragment>::@class::A::@setter::y
   writeType: int?
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -691,13 +691,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@class::A::@getter::x
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int?
 ''');
 
@@ -725,13 +725,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@class::A::@getter::x
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -756,13 +756,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@function::m::@parameter::x
   readType: int
   writeElement: <testLibraryFragment>::@function::m::@parameter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
 
@@ -775,13 +775,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@function::m::@parameter::y
   readType: int?
   writeElement: <testLibraryFragment>::@function::m::@parameter::y
   writeType: int?
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1087,7 +1087,7 @@ m() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: isEven
-  staticElement: dart:core::@fragment::dart:core::@class::int::@getter::isEven
+  staticElement: dart:core::<fragment>::@class::int::@getter::isEven
   staticType: bool
 ''');
   }

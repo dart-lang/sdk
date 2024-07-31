@@ -436,7 +436,7 @@ PropertyAccess
       arguments
         NamedType
           name: num
-          element: dart:core::@fragment::dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -487,7 +487,7 @@ MethodInvocation
       arguments
         NamedType
           name: num
-          element: dart:core::@fragment::dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -551,7 +551,7 @@ PropertyAccess
       arguments
         NamedType
           name: num
-          element: dart:core::@fragment::dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -603,7 +603,7 @@ AssignmentExpression
         arguments
           NamedType
             name: num
-            element: dart:core::@fragment::dart:core::@class::num
+            element: dart:core::<fragment>::@class::num
             type: num
         rightBracket: >
       argumentList: ArgumentList

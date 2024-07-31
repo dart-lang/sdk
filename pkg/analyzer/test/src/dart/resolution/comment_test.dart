@@ -294,14 +294,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: named
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@constructor::named
+      staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::named
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@constructor::named
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -325,14 +325,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: new
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@constructor::new
+      staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@constructor::new
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::new
     staticType: null
 ''');
   }
@@ -356,14 +356,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@getter::foo
+      staticElement: package:test/foo.dart::<fragment>::@class::A::@getter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@getter::foo
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -387,14 +387,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@method::foo
+      staticElement: package:test/foo.dart::<fragment>::@class::A::@method::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@method::foo
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -418,14 +418,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@getter::foo
+      staticElement: package:test/foo.dart::<fragment>::@class::A::@getter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@getter::foo
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -449,14 +449,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@method::foo
+      staticElement: package:test/foo.dart::<fragment>::@class::A::@method::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@method::foo
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -480,14 +480,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@setter::foo
+      staticElement: package:test/foo.dart::<fragment>::@class::A::@setter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@setter::foo
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@setter::foo
     staticType: null
 ''');
   }
@@ -511,14 +511,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<fragment>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@getter::foo
+      staticElement: package:test/foo.dart::<fragment>::@extension::E::@getter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@getter::foo
+    staticElement: package:test/foo.dart::<fragment>::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -542,14 +542,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<fragment>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@method::foo
+      staticElement: package:test/foo.dart::<fragment>::@extension::E::@method::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@method::foo
+    staticElement: package:test/foo.dart::<fragment>::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -573,14 +573,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<fragment>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@setter::foo
+      staticElement: package:test/foo.dart::<fragment>::@extension::E::@setter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@setter::foo
+    staticElement: package:test/foo.dart::<fragment>::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -604,14 +604,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<fragment>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@getter::foo
+      staticElement: package:test/foo.dart::<fragment>::@extension::E::@getter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@getter::foo
+    staticElement: package:test/foo.dart::<fragment>::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -635,14 +635,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<fragment>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@method::foo
+      staticElement: package:test/foo.dart::<fragment>::@extension::E::@method::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@method::foo
+    staticElement: package:test/foo.dart::<fragment>::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -666,14 +666,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<fragment>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@setter::foo
+      staticElement: package:test/foo.dart::<fragment>::@extension::E::@setter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@extension::E::@setter::foo
+    staticElement: package:test/foo.dart::<fragment>::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -1472,7 +1472,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: int
-    staticElement: dart:core::@fragment::dart:core::@class::int
+    staticElement: dart:core::<fragment>::@class::int
     staticType: null
 ''');
 
@@ -1651,7 +1651,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@getter::foo
+    staticElement: package:test/foo.dart::<fragment>::@getter::foo
     staticType: null
 ''');
   }
@@ -1700,7 +1700,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: C
-    staticElement: package:test/one.dart::@fragment::package:test/one.dart::@class::C
+    staticElement: package:test/one.dart::<fragment>::@class::C
     staticType: null
 ''');
   }
@@ -1728,7 +1728,7 @@ CommentReference
   newKeyword: new
   expression: SimpleIdentifier
     token: A
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@constructor::new
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::new
     staticType: null
 ''');
 
@@ -1738,14 +1738,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: named
-      staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@constructor::named
+      staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::named
       staticType: null
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A::@constructor::named
+    staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -1769,7 +1769,7 @@ enum E {
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@function::foo
+    staticElement: package:test/foo.dart::<fragment>::@function::foo
     staticType: null
 ''');
   }
@@ -1790,7 +1790,7 @@ extension type ET(int it) {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@function::foo
+    staticElement: package:test/foo.dart::<fragment>::@function::foo
     staticType: null
 ''');
   }
@@ -1812,7 +1812,7 @@ class C {
 CommentReference
   expression: SimpleIdentifier
     token: A
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+    staticElement: package:test/foo.dart::<fragment>::@class::A
     staticType: null
 ''');
   }
@@ -1832,7 +1832,7 @@ library;
 CommentReference
   expression: SimpleIdentifier
     token: A
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+    staticElement: package:test/foo.dart::<fragment>::@class::A
     staticType: null
 ''');
   }
@@ -1853,7 +1853,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@function::foo
+    staticElement: package:test/foo.dart::<fragment>::@function::foo
     staticType: null
 ''');
   }
@@ -1873,7 +1873,7 @@ int x = 1;
 CommentReference
   expression: SimpleIdentifier
     token: A
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@class::A
+    staticElement: package:test/foo.dart::<fragment>::@class::A
     staticType: null
 ''');
   }
@@ -1894,7 +1894,7 @@ typedef T = int;
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@fragment::package:test/foo.dart::@function::foo
+    staticElement: package:test/foo.dart::<fragment>::@function::foo
     staticType: null
 ''');
   }

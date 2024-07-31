@@ -194,7 +194,7 @@ class ElementPrinter {
         if (libraryRef.name == 'package:test/test.dart') {
           return '<testLibraryFragment>';
         }
-        // return '${_referenceToString(libraryRef)}::<fragment>';
+        return '${_referenceToString(libraryRef)}::<fragment>';
       }
     }
 

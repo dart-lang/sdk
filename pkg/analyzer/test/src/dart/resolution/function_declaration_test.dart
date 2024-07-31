@@ -37,7 +37,7 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: dart:async::@fragment::dart:async/stream.dart::@class::Stream
@@ -87,7 +87,7 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: dart:async::@fragment::dart:async/stream.dart::@class::Stream
@@ -159,7 +159,7 @@ int get foo(double a) => 0;
 FunctionDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -169,7 +169,7 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: double
-          element: dart:core::@fragment::dart:core::@class::double
+          element: dart:core::<fragment>::@class::double
           type: double
         name: a
         declaredElement: <testLibraryFragment>::@getter::foo::@parameter::a
@@ -208,10 +208,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: dart:core::@fragment::dart:core::@class::Iterable
+    element: dart:core::<fragment>::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -256,10 +256,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: dart:core::@fragment::dart:core::@class::Iterable
+    element: dart:core::<fragment>::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression

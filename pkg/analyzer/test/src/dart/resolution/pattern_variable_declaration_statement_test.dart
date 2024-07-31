@@ -34,7 +34,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::@fragment::dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
         name: a
         declaredElement: isFinal a@24
@@ -139,7 +139,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::@fragment::dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
         name: a
         declaredElement: a@22
@@ -176,7 +176,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         name: a
         declaredElement: a@22

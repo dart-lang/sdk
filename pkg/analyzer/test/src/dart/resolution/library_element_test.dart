@@ -226,8 +226,8 @@ import 'a.dart';
 
     _assertLibraryExtensions(result.libraryElement, r'''
 extensions
-  package:test/a.dart::@fragment::package:test/a.dart::@extension::E
-  dart:core::@fragment::dart:core::@extension::EnumName
+  package:test/a.dart::<fragment>::@extension::E
+  dart:core::<fragment>::@extension::EnumName
 ''');
   }
 
@@ -244,8 +244,8 @@ import 'a.dart' as prefix;
 
     _assertLibraryExtensions(result.libraryElement, r'''
 extensions
-  package:test/a.dart::@fragment::package:test/a.dart::@extension::E
-  dart:core::@fragment::dart:core::@extension::EnumName
+  package:test/a.dart::<fragment>::@extension::E
+  dart:core::<fragment>::@extension::EnumName
 ''');
   }
 
@@ -257,7 +257,7 @@ extension E on int {}
     _assertLibraryExtensions(result.libraryElement, r'''
 extensions
   <testLibraryFragment>::@extension::E
-  dart:core::@fragment::dart:core::@extension::EnumName
+  dart:core::<fragment>::@extension::EnumName
 ''');
   }
 
@@ -279,7 +279,7 @@ extension E on int {}
     _assertLibraryExtensions(result.libraryElement, r'''
 extensions
   <testLibraryFragment>::@extension::E
-  dart:core::@fragment::dart:core::@extension::EnumName
+  dart:core::<fragment>::@extension::EnumName
 ''');
   }
 

@@ -162,7 +162,7 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -358,7 +358,7 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: _
       declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_

@@ -164,7 +164,7 @@ RecordPattern
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         name: y
         declaredElement: y@54
@@ -254,7 +254,7 @@ RecordPattern
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         name: y
         declaredElement: y@49
@@ -714,7 +714,7 @@ RecordPattern
         asToken: as
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         matchedValueType: int?
       element: <null>
@@ -883,7 +883,7 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@22
@@ -894,7 +894,7 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: String
-            element: dart:core::@fragment::dart:core::@class::String
+            element: dart:core::<fragment>::@class::String
             type: String
           name: b
           declaredElement: b@32
