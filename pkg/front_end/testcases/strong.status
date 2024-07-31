@@ -9,9 +9,6 @@
 # Macros are in development
 macros/scope_access: SemiFuzzFailure
 
-# Null-aware elements are in development
-null_aware_elements/constant_null_aware_map_entry_shorting_erroneous: Crash # Should go away once inference is implemented.
-
 # Assert failure
 general/error_recovery/issue_39202.crash: SemiFuzzAssertFailure
 

@@ -3327,8 +3327,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // non-nullable type `String`.
     //
     // Note that the type inference ensures that the static type of `expr` is a
-    // subtype of `String?`, and by that point we don't need to insert another
-    // cast to ensure it.
+    // subtype of `String?`, and by now we don't need to insert another cast to
+    // ensure it.
 
     Expression value = element.expression;
     DartType nullableElementType =
@@ -3762,9 +3762,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // variables `#keyTemp` and `#valueTemp` to the non-nullable types `String`
     // and `int` correspondingly.
     //
-    // TODO(cstefantsova): Verify the static types of [entry.key] and
-    // [entry.value] are checked by the type inference by now, and remove the
-    // cast if that's so.
+    // Note that the type inference ensures that the static type of `key` and
+    // `value` are subtypes of `String?` and `int?` correspondingly, and by now
+    // we don't need to insert another cast to ensure it.
 
     Expression keyExpression = entry.key;
     Expression valueExpression = entry.value;
@@ -3781,10 +3781,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (entry.isValueNullAware) {
       DartType nullableValueType =
           valueType.withDeclaredNullability(Nullability.nullable);
-      VariableDeclaration valueTemp = _createVariable(
-          _createImplicitAs(
-              entry.value.fileOffset, valueExpression, nullableValueType),
-          nullableValueType);
+      VariableDeclaration valueTemp =
+          _createVariable(valueExpression, nullableValueType);
       valueExpression = _createNullCheckedVariableGet(valueTemp);
 
       IfStatement ifValueNotNullStatement = _createIf(
@@ -3800,10 +3798,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (entry.isKeyNullAware) {
       DartType nullableKeyType =
           keyType.withDeclaredNullability(Nullability.nullable);
-      VariableDeclaration keyTemp = _createVariable(
-          _createImplicitAs(
-              entry.key.fileOffset, keyExpression, nullableKeyType),
-          nullableKeyType);
+      VariableDeclaration keyTemp =
+          _createVariable(keyExpression, nullableKeyType);
       keyExpression = _createNullCheckedVariableGet(keyTemp);
 
       IfStatement ifKeyNotNullStatement = _createIf(
@@ -4542,7 +4538,38 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes,
       _MapLiteralEntryOffsets offsets) {
-    // TODO(cstefantsova): Implement type inference for null-aware map entries.
+    // TODO(cstefantsova): Make sure flow analysis is invoked here when it's
+    // implemented.
+
+    DartType adjustedInferredKeyType = entry.isKeyNullAware
+        ? inferredKeyType.withDeclaredNullability(Nullability.nullable)
+        : inferredKeyType;
+    ExpressionInferenceResult keyInferenceResult = inferExpression(
+        entry.key, adjustedInferredKeyType,
+        isVoidAllowed: true);
+    Expression key = ensureAssignableResult(
+            adjustedInferredKeyType, keyInferenceResult,
+            isVoidAllowed: inferredKeyType is VoidType)
+        .expression;
+    entry.key = key..parent = entry;
+
+    DartType adjustedInferredValueType = entry.isValueNullAware
+        ? inferredValueType.withDeclaredNullability(Nullability.nullable)
+        : inferredValueType;
+    ExpressionInferenceResult valueInferenceResult =
+        inferExpression(entry.value, adjustedInferredValueType);
+    Expression value = ensureAssignableResult(
+            adjustedInferredValueType, valueInferenceResult,
+            isVoidAllowed: inferredValueType is VoidType)
+        .expression;
+    entry.value = value..parent = entry;
+
+    actualTypes.add(computeNonNull(keyInferenceResult.inferredType));
+    actualTypes.add(computeNonNull(valueInferenceResult.inferredType));
+    actualTypesForSet.add(const DynamicType());
+
+    offsets.mapEntryOffset = entry.fileOffset;
+
     return entry;
   }
 

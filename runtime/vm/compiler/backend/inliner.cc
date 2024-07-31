@@ -839,6 +839,11 @@ static bool CalleeParameterTypeMightBeMoreSpecific(
   return false;
 }
 
+static ConstantInstr* GetConstantInGraph(FlowGraph* graph,
+                                         const ConstantInstr* instr) {
+  return graph->GetConstant(instr->value(), instr->representation());
+}
+
 static void ReplaceParameterStubs(Zone* zone,
                                   FlowGraph* caller_graph,
                                   InlinedCallData* call_data,
@@ -952,8 +957,7 @@ static void ReplaceParameterStubs(Zone* zone,
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
     if (constant != nullptr && constant->HasUses()) {
-      constant->ReplaceUsesWith(caller_graph->GetConstant(
-          constant->value(), constant->representation()));
+      constant->ReplaceUsesWith(GetConstantInGraph(caller_graph, constant));
     }
   }
 
@@ -963,8 +967,7 @@ static void ReplaceParameterStubs(Zone* zone,
     if (!defn->HasUses()) continue;
 
     if (auto constant = defn->AsConstant()) {
-      constant->ReplaceUsesWith(caller_graph->GetConstant(
-          constant->value(), constant->representation()));
+      constant->ReplaceUsesWith(GetConstantInGraph(caller_graph, constant));
     }
 
     if (auto param = defn->AsParameter()) {
@@ -1113,9 +1116,8 @@ class CallSiteInliner : public ValueObject {
   Definition* CreateParameterStub(intptr_t i,
                                   Value* argument,
                                   FlowGraph* graph) {
-    ConstantInstr* constant = argument->definition()->AsConstant();
-    if (constant != nullptr) {
-      return graph->GetConstant(constant->value());
+    if (auto* constant = argument->definition()->AsConstant()) {
+      return GetConstantInGraph(graph, constant);
     }
     ParameterInstr* param = new (Z) ParameterInstr(
         graph->graph_entry(),

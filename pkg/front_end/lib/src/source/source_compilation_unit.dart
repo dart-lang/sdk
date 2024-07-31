@@ -628,8 +628,7 @@ class SourceCompilationUnitImpl
     // a name space and its import scope should be nested within its parent's
     // import scope.
     _sourceLibraryBuilder._nameSpace = libraryBuilder.nameSpace;
-    _sourceLibraryBuilder._scope.replaceNameSpaceAndParent(
-        libraryBuilder.nameSpace, libraryBuilder._importScope);
+    _sourceLibraryBuilder._importScope = libraryBuilder.importScope;
 
     // TODO(ahe): Include metadata from part?
 

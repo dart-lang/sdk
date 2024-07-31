@@ -554,8 +554,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         referencesFromIndexedClass,
         typeParameterScope,
         nameSpaceBuilder,
-        new ConstructorScope(name, constructors),
-        loader.coreLibrary);
+        new ConstructorScope(name, constructors));
     _constructorReferences.clear();
 
     addBuilder(name, enumBuilder, charOffset,
@@ -692,7 +691,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         startOffset,
         nameOffset,
         endOffset,
-        _indexedContainer,
+        _indexedContainer as IndexedClass?,
         isMixinDeclaration: isMixinDeclaration,
         isMacro: isMacro,
         isSealed: isSealed,
@@ -1376,6 +1375,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           typeVariables,
           formals,
           _parent,
+          _compilationUnit.fileUri,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
@@ -1709,6 +1709,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         formals,
         kind,
         _parent,
+        _compilationUnit.fileUri,
         startCharOffset,
         charOffset,
         charOpenParenOffset,
@@ -1884,6 +1885,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers,
         isTopLevel,
         _parent,
+        _compilationUnit.fileUri,
         charOffset,
         charEndOffset,
         nameScheme,

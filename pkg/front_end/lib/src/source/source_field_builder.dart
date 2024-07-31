@@ -86,6 +86,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.modifiers,
       this.isTopLevel,
       SourceLibraryBuilder libraryBuilder,
+      Uri fileUri,
       int charOffset,
       int charEndOffset,
       NameScheme fieldNameScheme,
@@ -108,7 +109,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
     bool isInstanceMember = fieldNameScheme.isInstanceMember;
 
-    Uri fileUri = libraryBuilder.fileUri;
     // If in mixed mode, late lowerings cannot use `null` as a sentinel on
     // non-nullable fields since they can be assigned from legacy code.
     late_lowering.IsSetStrategy isSetStrategy =

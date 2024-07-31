@@ -410,6 +410,7 @@ class DeclaredSourceConstructorBuilder
       List<NominalVariableBuilder>? typeVariables,
       this.formals,
       SourceLibraryBuilder compilationUnit,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
@@ -436,7 +437,7 @@ class DeclaredSourceConstructorBuilder
             nativeMethodName) {
     _constructor = new Constructor(new FunctionNode(null),
         name: dummyName,
-        fileUri: compilationUnit.fileUri,
+        fileUri: fileUri,
         reference: constructorReference,
         isSynthetic: isSynthetic)
       ..startFileOffset = startCharOffset

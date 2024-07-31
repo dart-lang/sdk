@@ -612,6 +612,7 @@ existentially
 exp
 expanded
 expando
+expecter
 expense
 experimentation
 explaining

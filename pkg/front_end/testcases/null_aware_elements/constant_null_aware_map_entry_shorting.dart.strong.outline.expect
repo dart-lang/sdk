@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/null_aware_elements/constant_null_aware_map_entry_shorting.dart:6:59: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+// const Map<String, int> mapLiteral = <String, int>{?key: 1 / 0}; // Ok: due to shorting, the value is never evaluated.
+//                                                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::String? key = null;
+static const field core::Map<core::String, core::int> mapLiteral = let final core::String? #t1 = self::key in #t1 == null ?{core::Map<core::String, core::int>} const <core::String, core::int>{} : const <core::String, core::int>{#t1{core::String}: invalid-expression "pkg/front_end/testcases/null_aware_elements/constant_null_aware_map_entry_shorting.dart:6:59: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+const Map<String, int> mapLiteral = <String, int>{?key: 1 / 0}; // Ok: due to shorting, the value is never evaluated.
+                                                          ^" in 1.{core::num::/}(0){(core::num) → core::double} as{TypeError} core::int};
+
+
+Extra constant evaluation status:
+Evaluated: MapConcatenation @ org-dartlang-testcase:///constant_null_aware_map_entry_shorting.dart:6:24 -> MapConstant(const <String, int>{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

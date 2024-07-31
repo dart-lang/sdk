@@ -85,6 +85,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       List<FormalParameterBuilder>? formals,
       this.kind,
       SourceLibraryBuilder libraryBuilder,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
@@ -109,7 +110,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             ? ProcedureKind.Method
             : kind,
         new FunctionNode(null),
-        fileUri: libraryBuilder.fileUri,
+        fileUri: fileUri,
         reference: procedureReference,
         isSynthetic: isSynthetic)
       ..fileStartOffset = startCharOffset
