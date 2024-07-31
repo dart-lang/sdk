@@ -1337,7 +1337,7 @@ severity: $severity
     Builder parent = libraryBuilder;
     if (enclosingClassOrExtension != null) {
       Builder? builder = dietListener.memberScope
-          .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
+          .lookupGetable(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
