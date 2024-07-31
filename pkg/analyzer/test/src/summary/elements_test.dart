@@ -7565,32 +7565,6 @@ library
 ''');
   }
 
-  test_augmentation_documented() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-/// My documentation.
-augment library 'test.dart';
-''');
-    var library = await buildLibrary(r'''
-import augment 'a.dart';
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit
-    reference: <testLibraryFragment>
-    enclosingElement: <testLibrary>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      documentationComment: /// My documentation.
-      definingUnit
-        reference: <testLibrary>::@fragment::package:test/a.dart
-        enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-        enclosingElement3: <testLibraryFragment>
-''');
-  }
-
   test_augmentation_importScope_constant() async {
     newFile('$testPackageLibPath/a.dart', r'''
 final a = 0;
@@ -47373,39 +47347,6 @@ library
 ''');
   }
 
-  test_metadata_augmentation_directive() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-@deprecated
-augment library 'test.dart';
-''');
-    var library = await buildLibrary(r'''
-import augment 'a.dart';
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit
-    reference: <testLibraryFragment>
-    enclosingElement: <testLibrary>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: deprecated @1
-            staticElement: dart:core::<fragment>::@getter::deprecated
-            staticType: null
-          element: dart:core::<fragment>::@getter::deprecated
-      definingUnit
-        reference: <testLibrary>::@fragment::package:test/a.dart
-        enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-        enclosingElement3: <testLibraryFragment>
-''');
-  }
-
   test_metadata_augmentation_exportLibrary() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
@@ -47548,39 +47489,6 @@ library
                   staticElement: dart:core::<fragment>::@getter::deprecated
                   staticType: null
                 element: dart:core::<fragment>::@getter::deprecated
-''');
-  }
-
-  test_metadata_augmentation_libraryAugmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-@deprecated
-augment library 'test.dart';
-''');
-    var library = await buildLibrary('''
-import augment 'a.dart';
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit
-    reference: <testLibraryFragment>
-    enclosingElement: <testLibrary>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: deprecated @1
-            staticElement: dart:core::<fragment>::@getter::deprecated
-            staticType: null
-          element: dart:core::<fragment>::@getter::deprecated
-      definingUnit
-        reference: <testLibrary>::@fragment::package:test/a.dart
-        enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-        enclosingElement3: <testLibraryFragment>
 ''');
   }
 
