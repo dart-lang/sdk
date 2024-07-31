@@ -517,7 +517,24 @@ void f() {
         detail: 'String');
   }
 
-  Future<void> test_local_override_annotation() async {
+  Future<void> test_local_override_annotation_equals() async {
+    var content = '''
+class Base {
+}
+
+class Derived extends Base {
+  @over^
+}
+''';
+    await expectLabels(content,
+        label: 'override ==',
+        labelDetail: '(…) → bool',
+        labelDescription: null,
+        filterText: null,
+        detail: '(Object other) → bool');
+  }
+
+  Future<void> test_local_override_annotation_method() async {
     var content = '''
 class Base {
   String aa(String a) => '';
@@ -1901,7 +1918,7 @@ void f() {
   /// the correct narrowed type in the `detail` field.
   ///
   /// https://github.com/Dart-Code/Dart-Code/issues/4499
-  Future<void> test_getter_barrowedBySubclass() async {
+  Future<void> test_getter_narrowedBySubclass() async {
     var content = '''
 void f(MyItem item) {
   item.na^
