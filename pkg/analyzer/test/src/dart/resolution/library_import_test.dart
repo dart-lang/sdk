@@ -282,7 +282,7 @@ ImportDirective
       hiddenNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::@fragment::dart:math::@class::Random
+          staticElement: dart:math::<fragment>::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -339,7 +339,7 @@ ImportDirective
       shownNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::@fragment::dart:math::@class::Random
+          staticElement: dart:math::<fragment>::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -464,9 +464,9 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A
                   type: A
-                staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -564,9 +564,9 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a_html.dart::@fragment::package:test/a_html.dart::@class::A
+                  element: package:test/a_html.dart::<fragment>::@class::A
                   type: A
-                staticElement: package:test/a_html.dart::@fragment::package:test/a_html.dart::@class::A::@constructor::new
+                staticElement: package:test/a_html.dart::<fragment>::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -786,9 +786,9 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element: package:test/a_io.dart::@fragment::package:test/a_io.dart::@class::A
+                  element: package:test/a_io.dart::<fragment>::@class::A
                   type: A
-                staticElement: package:test/a_io.dart::@fragment::package:test/a_io.dart::@class::A::@constructor::new
+                staticElement: package:test/a_io.dart::<fragment>::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )

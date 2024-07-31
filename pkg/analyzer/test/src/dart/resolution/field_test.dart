@@ -33,7 +33,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element: dart:core::@fragment::dart:core::@class::Object
+      element: dart:core::<fragment>::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -62,7 +62,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element: dart:core::@fragment::dart:core::@class::Object
+      element: dart:core::<fragment>::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -94,7 +94,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@fragment::dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     variables
       VariableDeclaration
@@ -127,7 +127,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@fragment::dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     variables
       VariableDeclaration
@@ -160,7 +160,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@fragment::dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     variables
       VariableDeclaration

@@ -34,7 +34,7 @@ AsExpression
   asOperator: as
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   staticType: int
 ''');
@@ -58,7 +58,7 @@ AsExpression
   asOperator: as
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   staticType: int
 ''');
@@ -126,7 +126,7 @@ AsExpression
   asOperator: as
   type: NamedType
     name: double
-    element: dart:core::@fragment::dart:core::@class::double
+    element: dart:core::<fragment>::@class::double
     type: double
   staticType: double
 ''');

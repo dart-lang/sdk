@@ -94,7 +94,7 @@ SuperFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: b
       declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a::@parameter::b

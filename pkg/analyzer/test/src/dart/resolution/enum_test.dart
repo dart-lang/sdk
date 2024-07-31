@@ -55,7 +55,7 @@ GenericFunctionType
     parameter: SimpleFormalParameter
       type: NamedType
         name: double
-        element: dart:core::@fragment::dart:core::@class::double
+        element: dart:core::<fragment>::@class::double
         type: double
       declaredElement: @-1
         type: double
@@ -155,7 +155,7 @@ EnumConstantDeclaration
       arguments
         NamedType
           name: double
-          element: dart:core::@fragment::dart:core::@class::double
+          element: dart:core::<fragment>::@class::double
           type: double
       rightBracket: >
     constructorSelector: ConstructorSelector
@@ -432,7 +432,7 @@ enum E<T> {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   name: foo
   typeParameters: TypeParameterList
@@ -485,7 +485,7 @@ enum E {
 MethodDeclaration
   returnType: NamedType
     name: String
-    element: dart:core::@fragment::dart:core::@class::String
+    element: dart:core::<fragment>::@class::String
     type: String
   name: toString
   parameters: FormalParameterList
@@ -542,7 +542,7 @@ WithClause
         arguments
           NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@mixin::M1
@@ -614,7 +614,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: index
-    staticElement: dart:core::@fragment::dart:core::@class::Enum::@getter::index
+    staticElement: dart:core::<fragment>::@class::Enum::@getter::index
     staticType: int
   staticType: int
 ''');

@@ -161,7 +161,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+          staticElement: dart:core::<fragment>::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -174,7 +174,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+              parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: double Function()
               staticType: double
               typeArgumentTypes
@@ -187,7 +187,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+              parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: double Function()
               staticType: double
               typeArgumentTypes
@@ -231,7 +231,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+          staticElement: dart:core::<fragment>::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -244,7 +244,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+              parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -257,7 +257,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+              parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -290,7 +290,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -303,7 +303,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -316,7 +316,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -344,19 +344,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -382,19 +382,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -420,19 +420,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -458,19 +458,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -508,7 +508,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+          staticElement: dart:core::<fragment>::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -521,7 +521,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+              parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -534,7 +534,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+              parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -576,7 +576,7 @@ MethodInvocation
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+          staticElement: dart:core::<fragment>::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -589,7 +589,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+              parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
@@ -602,7 +602,7 @@ MethodInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+              parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
@@ -635,7 +635,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -648,7 +648,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -661,7 +661,7 @@ MethodInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -689,19 +689,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -727,19 +727,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
@@ -765,19 +765,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -803,19 +803,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -841,19 +841,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -879,19 +879,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
@@ -917,19 +917,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
@@ -955,19 +955,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -989,19 +989,19 @@ MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -1078,19 +1078,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: Never
     rightParenthesis: )
@@ -1118,19 +1118,19 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<fragment>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::lowerLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: Never
       SimpleIdentifier
         token: c
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<fragment>::@class::num::@method::clamp::@parameter::upperLimit
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
@@ -1641,7 +1641,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: package:test/a.dart::@fragment::package:test/a.dart::@function::foo::@parameter::_
+        parameter: package:test/a.dart::<fragment>::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1685,7 +1685,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: package:test/a.dart::@fragment::package:test/a.dart::@function::foo::@parameter::_
+        parameter: package:test/a.dart::<fragment>::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -2094,7 +2094,7 @@ MethodInvocation
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@function::foo
+    staticElement: package:test/a.dart::<fragment>::@function::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2402,7 +2402,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -2986,7 +2986,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3020,7 +3020,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3376,10 +3376,10 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+          parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
           staticType: int
         parameter: <null>
-        staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+        staticElement: dart:core::<fragment>::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -3704,7 +3704,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@function::foo
+    staticElement: package:test/a.dart::<fragment>::@function::foo
     staticType: T Function<T extends num>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3712,13 +3712,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: package:test/a.dart::@fragment::package:test/a.dart::@function::foo::@parameter::a
+          base: package:test/a.dart::<fragment>::@function::foo::@parameter::a
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: package:test/a.dart::@fragment::package:test/a.dart::@function::foo::@parameter::b
+          base: package:test/a.dart::<fragment>::@function::foo::@parameter::b
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -3753,9 +3753,9 @@ FunctionExpressionInvocation
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+      staticElement: package:test/a.dart::<fragment>::@getter::foo
       staticType: T Function<T>(T, T)
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+    staticElement: package:test/a.dart::<fragment>::@getter::foo
     staticType: T Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4828,7 +4828,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@fragment::dart:core::@class::int::@method::toString
+    staticElement: dart:core::<fragment>::@class::int::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5106,14 +5106,14 @@ FunctionExpressionInvocation
       period: .
       identifier: SimpleIdentifier
         token: C
-        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::C
+        staticElement: package:test/a.dart::<fragment>::@class::C
         staticType: null
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::C
+      staticElement: package:test/a.dart::<fragment>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::C::@getter::foo
+      staticElement: package:test/a.dart::<fragment>::@class::C::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -5156,21 +5156,21 @@ MethodInvocation
     period: .
     identifier: SimpleIdentifier
       token: C
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::C
+      staticElement: package:test/a.dart::<fragment>::@class::C
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::C
+    staticElement: package:test/a.dart::<fragment>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::C::@method::foo
+    staticElement: package:test/a.dart::<fragment>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: package:test/a.dart::@fragment::package:test/a.dart::@class::C::@method::foo::@parameter::_
+        parameter: package:test/a.dart::<fragment>::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5383,7 +5383,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@method::foo
+    staticElement: package:test/a.dart::<fragment>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5672,7 +5672,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: abs
-    staticElement: dart:core::@fragment::dart:core::@class::int::@method::abs
+    staticElement: dart:core::<fragment>::@class::int::@method::abs
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6189,14 +6189,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: codeUnitAt
-    staticElement: dart:core::@fragment::dart:core::@class::String::@method::codeUnitAt
+    staticElement: dart:core::<fragment>::@class::String::@method::codeUnitAt
     staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: a
-        parameter: dart:core::@fragment::dart:core::@class::String::@method::codeUnitAt::@parameter::index
+        parameter: dart:core::<fragment>::@class::String::@method::codeUnitAt::@parameter::index
         staticElement: <testLibraryFragment>::@getter::a
         staticType: int
     rightParenthesis: )
@@ -7169,7 +7169,7 @@ CascadeExpression
       operator: ?.
       methodName: SimpleIdentifier
         token: abs
-        staticElement: dart:core::@fragment::dart:core::@class::int::@method::abs
+        staticElement: dart:core::<fragment>::@class::int::@method::abs
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7230,7 +7230,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@method::toString
+    staticElement: dart:core::<fragment>::@class::Object::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7259,7 +7259,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@method::toString
+    staticElement: dart:core::<fragment>::@class::Object::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7304,7 +7304,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::remainder::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7331,7 +7331,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::remainder::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -7358,7 +7358,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::remainder::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -7416,7 +7416,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@fragment::dart:core::@class::num::@method::remainder::@parameter::other
+  parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7441,14 +7441,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::remainder
+    staticElement: dart:core::<fragment>::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::remainder::@parameter::other
+        parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: double
     rightParenthesis: )
@@ -7474,14 +7474,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::remainder
+    staticElement: dart:core::<fragment>::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::remainder::@parameter::other
+        parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
@@ -7514,14 +7514,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::remainder
+    staticElement: dart:core::<fragment>::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@fragment::dart:core::@class::num::@method::remainder::@parameter::other
+        parameter: dart:core::<fragment>::@class::num::@method::remainder::@parameter::other
         staticElement: <testLibraryFragment>::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
@@ -7769,10 +7769,10 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+          parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
           staticType: int
         parameter: <null>
-        staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+        staticElement: dart:core::<fragment>::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
       ListLiteral
@@ -7986,7 +7986,7 @@ MethodInvocation
     arguments
       NamedType
         name: bool
-        element: dart:core::@fragment::dart:core::@class::bool
+        element: dart:core::<fragment>::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -8022,11 +8022,11 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       NamedType
         name: double
-        element: dart:core::@fragment::dart:core::@class::double
+        element: dart:core::<fragment>::@class::double
         type: double
     rightBracket: >
   argumentList: ArgumentList

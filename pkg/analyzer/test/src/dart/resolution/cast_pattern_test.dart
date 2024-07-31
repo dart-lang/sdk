@@ -35,7 +35,7 @@ CastPattern
   asToken: as
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   matchedValueType: dynamic
 ''');
@@ -63,7 +63,7 @@ CastPattern
   asToken: as
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   matchedValueType: dynamic
 ''');
@@ -92,7 +92,7 @@ PatternVariableDeclaration
       asToken: as
       type: NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       matchedValueType: dynamic
     rightParenthesis: )

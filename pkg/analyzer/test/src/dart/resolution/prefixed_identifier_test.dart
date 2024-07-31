@@ -122,9 +122,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: A
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::A
+    staticElement: package:test/a.dart::<fragment>::@typeAlias::A
     staticType: Type
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::A
+  staticElement: package:test/a.dart::<fragment>::@typeAlias::A
   staticType: Type
 ''');
   }
@@ -158,13 +158,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: <testLibraryFragment>::@class::A::@getter::foo
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::foo
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -456,9 +456,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: A
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+    staticElement: package:test/a.dart::<fragment>::@class::A
     staticType: Type
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+  staticElement: package:test/a.dart::<fragment>::@class::A
   staticType: Type
 ''');
   }
@@ -486,9 +486,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: F
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::F
+    staticElement: package:test/a.dart::<fragment>::@typeAlias::F
     staticType: Type
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::F
+  staticElement: package:test/a.dart::<fragment>::@typeAlias::F
   staticType: Type
 ''');
   }
@@ -516,9 +516,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@function::foo
+    staticElement: package:test/a.dart::<fragment>::@function::foo
     staticType: void Function()
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@function::foo
+  staticElement: package:test/a.dart::<fragment>::@function::foo
   staticType: void Function()
 ''');
   }
@@ -546,9 +546,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+    staticElement: package:test/a.dart::<fragment>::@getter::foo
     staticType: int
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+  staticElement: package:test/a.dart::<fragment>::@getter::foo
   staticType: int
 ''');
   }
@@ -608,9 +608,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+    staticElement: package:test/a.dart::<fragment>::@getter::foo
     staticType: int
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+  staticElement: package:test/a.dart::<fragment>::@getter::foo
   staticType: int
 ''');
   }
@@ -1070,9 +1070,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::@fragment::dart:core::@class::Object::@getter::hashCode
+    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     staticType: int
-  staticElement: dart:core::@fragment::dart:core::@class::Object::@getter::hashCode
+  staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
   staticType: int
 ''');
   }
@@ -1150,9 +1150,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: A
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::A
+    staticElement: package:test/a.dart::<fragment>::@typeAlias::A
     staticType: Type
-  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::A
+  staticElement: package:test/a.dart::<fragment>::@typeAlias::A
   staticType: Type
 ''');
   }

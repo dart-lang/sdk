@@ -36,7 +36,7 @@ MixinOnClause
         period: .
         element: <testLibraryFragment>::@prefix::math
       name: Random
-      element: dart:math::@fragment::dart:math::@class::Random
+      element: dart:math::<fragment>::@class::Random
       type: Random
 ''');
   }

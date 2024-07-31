@@ -54,7 +54,7 @@ DeclaredVariablePattern
   keyword: final
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   name: y
   declaredElement: isFinal y@46
@@ -151,7 +151,7 @@ void f() {
 ObjectPattern
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   leftParenthesis: (
   fields
@@ -164,7 +164,7 @@ ObjectPattern
         declaredElement: hasImplicitType isFinal a@63
           type: int
         matchedValueType: int
-      element: dart:core::@fragment::dart:core::@class::int::@getter::sign
+      element: dart:core::<fragment>::@class::int::@getter::sign
   rightParenthesis: )
   matchedValueType: int
 ''');
@@ -231,7 +231,7 @@ void f(x) {
 DeclaredVariablePattern
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   name: y
   declaredElement: y@40
@@ -364,7 +364,7 @@ CastPattern
   asToken: as
   type: NamedType
     name: int
-    element: dart:core::@fragment::dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   matchedValueType: num
 ''');

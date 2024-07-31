@@ -45,7 +45,7 @@ ForStatement
     loopVariable: DeclaredIdentifier
       type: NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: v
       declaredElement: v@56
@@ -403,11 +403,11 @@ ForStatement
       identifier: SimpleIdentifier
         token: first
         staticElement: PropertyAccessorMember
-          base: dart:core::@fragment::dart:core::@class::Iterable::@getter::first
+          base: dart:core::<fragment>::@class::Iterable::@getter::first
           substitution: {E: List<int>, E: List<int>}
         staticType: List<int>
       staticElement: PropertyAccessorMember
-        base: dart:core::@fragment::dart:core::@class::Iterable::@getter::first
+        base: dart:core::<fragment>::@class::Iterable::@getter::first
         substitution: {E: List<int>, E: List<int>}
       staticType: List<int>
   rightParenthesis: )
@@ -701,7 +701,7 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         name: a
         declaredElement: a@27
@@ -838,7 +838,7 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::@fragment::dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
         name: a
         declaredElement: a@38
@@ -1026,7 +1026,7 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         name: a
         declaredElement: a@39
@@ -1180,7 +1180,7 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::@fragment::dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
         name: a
         declaredElement: a@52
@@ -1385,7 +1385,7 @@ ForStatement
         readType: int
         writeElement: a@36
         writeType: int
-        staticElement: dart:core::@fragment::dart:core::@class::num::@method::-
+        staticElement: dart:core::<fragment>::@class::num::@method::-
         staticType: int
   rightParenthesis: )
   body: Block

@@ -30,7 +30,7 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::G

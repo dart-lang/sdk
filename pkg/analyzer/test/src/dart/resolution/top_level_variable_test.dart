@@ -130,9 +130,9 @@ VariableDeclaration
               period: .
               identifier: SimpleIdentifier
                 token: length
-                staticElement: dart:core::@fragment::dart:core::@class::String::@getter::length
+                staticElement: dart:core::<fragment>::@class::String::@getter::length
                 staticType: int
-              staticElement: dart:core::@fragment::dart:core::@class::String::@getter::length
+              staticElement: dart:core::<fragment>::@class::String::@getter::length
               staticType: int
           declaredElement: @107
             type: int Function(String)

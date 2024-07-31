@@ -228,7 +228,7 @@ NamedType
     period: .
     element: package:test/a.dart::@fragment::package:test/b.dart::@prefix::math
   name: Random
-  element: dart:math::@fragment::dart:math::@class::Random
+  element: dart:math::<fragment>::@class::Random
   type: Random
 ''');
     }
@@ -257,9 +257,9 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: package:test/a.dart::@fragment::package:test/a.dart::@prefix::math
+    element: package:test/a.dart::<fragment>::@prefix::math
   name: Random
-  element: dart:math::@fragment::dart:math::@class::Random
+  element: dart:math::<fragment>::@class::Random
   type: Random
 ''');
     }
@@ -347,7 +347,7 @@ A bar() => throw 0;
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+  element: package:test/a.dart::<fragment>::@class::A
   type: A
 ''');
     }
@@ -361,7 +361,7 @@ NamedType
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+  element: package:test/a.dart::<fragment>::@class::A
   type: A
 ''');
     }

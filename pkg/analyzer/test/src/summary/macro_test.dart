@@ -2951,12 +2951,12 @@ library
             atSign: @ @18
             name: SimpleIdentifier
               token: AddClassB @19
-              staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::AddClassB
+              staticElement: package:test/a.dart::<fragment>::@class::AddClassB
               staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @28
               rightParenthesis: ) @29
-            element: package:test/a.dart::@fragment::package:test/a.dart::@class::AddClassB::@constructor::new
+            element: package:test/a.dart::<fragment>::@class::AddClassB::@constructor::new
   augmentationImports
     package:test/test.macro.dart
       enclosingElement: <testLibrary>
@@ -3013,14 +3013,14 @@ augment class B {
                   period: . @93
                   identifier: SimpleIdentifier
                     token: AddMethodFoo @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::AddMethodFoo
+                    staticElement: package:test/a.dart::<fragment>::@class::AddMethodFoo
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::AddMethodFoo
+                  staticElement: package:test/a.dart::<fragment>::@class::AddMethodFoo
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @106
                   rightParenthesis: ) @107
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::AddMethodFoo::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::AddMethodFoo::@constructor::new
             augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
             augmented
               methods
@@ -3045,14 +3045,14 @@ augment class B {
                       period: . @149
                       identifier: SimpleIdentifier
                         token: AddMethodBar @150
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::AddMethodBar
+                        staticElement: package:test/a.dart::<fragment>::@class::AddMethodBar
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::AddMethodBar
+                      staticElement: package:test/a.dart::<fragment>::@class::AddMethodBar
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @162
                       rightParenthesis: ) @163
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@class::AddMethodBar::@constructor::new
+                    element: package:test/a.dart::<fragment>::@class::AddMethodBar::@constructor::new
                 returnType: void
               bar @188
                 reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::bar
@@ -3635,9 +3635,9 @@ augment class B {
                         period: . @119
                         identifier: SimpleIdentifier
                           token: a @120
-                          staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<fragment>::@getter::a
                           staticType: int
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                        staticElement: package:test/a.dart::<fragment>::@getter::a
                         staticType: int
 ''');
   }
@@ -3723,9 +3723,9 @@ augment class B {
                         period: . @126
                         identifier: SimpleIdentifier
                           token: a @127
-                          staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<fragment>::@getter::a
                           staticType: int
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                        staticElement: package:test/a.dart::<fragment>::@getter::a
                         staticType: int
                 returnType: void
 ''');
@@ -3814,11 +3814,11 @@ augment class B {
                           period: . @123
                           identifier: SimpleIdentifier
                             token: a @124
-                            staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                            staticElement: package:test/a.dart::<fragment>::@getter::a
                             staticType: null
-                          staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<fragment>::@getter::a
                           staticType: null
-                        element: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                        element: package:test/a.dart::<fragment>::@getter::a
                 returnType: void
 ''');
   }
@@ -3906,11 +3906,11 @@ augment class B {
                           period: . @122
                           identifier: SimpleIdentifier
                             token: a @123
-                            staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                            staticElement: package:test/a.dart::<fragment>::@getter::a
                             staticType: null
-                          staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<fragment>::@getter::a
                           staticType: null
-                        element: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                        element: package:test/a.dart::<fragment>::@getter::a
                 returnType: void
 ''');
   }
@@ -4003,11 +4003,11 @@ augment class B {
                           period: . @121
                           identifier: SimpleIdentifier
                             token: a @122
-                            staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                            staticElement: package:test/a.dart::<fragment>::@getter::a
                             staticType: null
-                          staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<fragment>::@getter::a
                           staticType: null
-                        element: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                        element: package:test/a.dart::<fragment>::@getter::a
                 returnType: void
 ''');
   }
@@ -4092,9 +4092,9 @@ augment class B {
                     period: . @129
                     identifier: SimpleIdentifier
                       token: a @130
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
                       staticType: int
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
                     staticType: int
             accessors
               synthetic static get x @-1
@@ -4186,9 +4186,9 @@ augment class B {
                     period: . @122
                     identifier: SimpleIdentifier
                       token: a @123
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
                       staticType: int
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
                     staticType: int
             accessors
               synthetic get x @-1
@@ -4364,7 +4364,7 @@ augment class B {
                             element: <null>
                             type: void
                         rightBracket: > @136
-                      element: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                      element: package:test/a.dart::<fragment>::@class::A
                       type: A<void>
                     staticType: Type
             accessors
@@ -4448,9 +4448,9 @@ const x = prefix0.a;
                 period: . @102
                 identifier: SimpleIdentifier
                   token: a @103
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                  staticElement: package:test/a.dart::<fragment>::@getter::a
                   staticType: int
-                staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                staticElement: package:test/a.dart::<fragment>::@getter::a
                 staticType: int
         accessors
           synthetic static get x @-1
@@ -4535,9 +4535,9 @@ const x = prefix0.a + prefix0.b;
                   period: . @102
                   identifier: SimpleIdentifier
                     token: a @103
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
                     staticType: int
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                  staticElement: package:test/a.dart::<fragment>::@getter::a
                   staticType: int
                 operator: + @105
                 rightOperand: PrefixedIdentifier
@@ -4548,11 +4548,11 @@ const x = prefix0.a + prefix0.b;
                   period: . @114
                   identifier: SimpleIdentifier
                     token: b @115
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::b
+                    staticElement: package:test/a.dart::<fragment>::@getter::b
                     staticType: int
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::b
+                  staticElement: package:test/a.dart::<fragment>::@getter::b
                   staticType: int
-                staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+                staticElement: dart:core::<fragment>::@class::num::@method::+
                 staticInvokeType: num Function(num)
                 staticType: int
         accessors
@@ -4645,14 +4645,14 @@ const x = prefix0.a, y = prefix0.a;
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -4664,9 +4664,9 @@ const x = prefix0.a, y = prefix0.a;
                 period: . @115
                 identifier: SimpleIdentifier
                   token: a @116
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                  staticElement: package:test/a.dart::<fragment>::@getter::a
                   staticType: int
-                staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                staticElement: package:test/a.dart::<fragment>::@getter::a
                 staticType: int
           static const y @119
             reference: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::y
@@ -4682,14 +4682,14 @@ const x = prefix0.a, y = prefix0.a;
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -4701,9 +4701,9 @@ const x = prefix0.a, y = prefix0.a;
                 period: . @130
                 identifier: SimpleIdentifier
                   token: a @131
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                  staticElement: package:test/a.dart::<fragment>::@getter::a
                   staticType: int
-                staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                staticElement: package:test/a.dart::<fragment>::@getter::a
                 staticType: int
         accessors
           synthetic static get x @-1
@@ -4797,7 +4797,7 @@ const x = prefix0.A<void>;
                         element: <null>
                         type: void
                     rightBracket: > @109
-                  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A
                   type: A<void>
                 staticType: Type
         accessors
@@ -4886,14 +4886,14 @@ class C {}
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -4984,14 +4984,14 @@ augment class B {
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<fragment>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<fragment>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 periodOffset: 121
                 nameEnd: 127
 ''');
@@ -5082,14 +5082,14 @@ augment class B {
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<fragment>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<fragment>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
             accessors
@@ -5185,14 +5185,14 @@ augment class B {
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<fragment>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<fragment>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
               final bar @139
@@ -5209,14 +5209,14 @@ augment class B {
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<fragment>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<fragment>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
             accessors
@@ -5321,14 +5321,14 @@ augment class B {
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<fragment>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<fragment>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 returnType: int
 ''');
   }
@@ -5418,14 +5418,14 @@ augment class B {
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<fragment>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<fragment>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 returnType: void
 ''');
   }
@@ -5520,14 +5520,14 @@ augment class B {
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<fragment>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<fragment>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 parameters
                   requiredPositional _ @132
                     type: int
@@ -5613,14 +5613,14 @@ void foo() {}
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
             returnType: void
 ''');
   }
@@ -5699,9 +5699,9 @@ void foo([x = prefix0.a]) {}
                     period: . @106
                     identifier: SimpleIdentifier
                       token: a @107
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
                       staticType: int
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
                     staticType: int
             returnType: void
 ''');
@@ -5790,14 +5790,14 @@ int get foo => 0;
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
             returnType: int
 ''');
   }
@@ -5885,14 +5885,14 @@ set foo(int _) {}
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
             parameters
               requiredPositional _ @110
                 type: int
@@ -5981,11 +5981,11 @@ set foo(@prefix0.a x) {}
                       period: . @101
                       identifier: SimpleIdentifier
                         token: a @102
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                        staticElement: package:test/a.dart::<fragment>::@getter::a
                         staticType: null
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
                       staticType: null
-                    element: package:test/a.dart::@fragment::package:test/a.dart::@getter::a
+                    element: package:test/a.dart::<fragment>::@getter::a
             returnType: void
 ''');
   }
@@ -6068,14 +6068,14 @@ final foo = 0;
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
         accessors
@@ -6164,14 +6164,14 @@ final foo = 0, bar = 1;
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
           static final bar @113
@@ -6188,14 +6188,14 @@ final foo = 0, bar = 1;
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
         accessors
@@ -6290,9 +6290,9 @@ class C {}
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
@@ -6305,12 +6305,12 @@ class C {}
                       period: . @103
                       identifier: SimpleIdentifier
                         token: foo @104
-                        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@function::foo
+                        staticElement: package:test/a.dart::<fragment>::@function::foo
                         staticType: void Function()
-                      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@function::foo
+                      staticElement: package:test/a.dart::<fragment>::@function::foo
                       staticType: void Function()
                   rightParenthesis: ) @107
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -6394,19 +6394,19 @@ class C {}
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 period: . @95
                 constructorName: SimpleIdentifier
                   token: named @96
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named
+                  staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @101
                   rightParenthesis: ) @102
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::named
 ''');
   }
 
@@ -6490,9 +6490,9 @@ class C {}
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<fragment>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<fragment>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
@@ -6512,11 +6512,11 @@ class C {}
                               element: <null>
                               type: void
                           rightBracket: > @110
-                        element: package:test/a.dart::@fragment::package:test/a.dart::@class::X
+                        element: package:test/a.dart::<fragment>::@class::X
                         type: X<void>
                       staticType: Type
                   rightParenthesis: ) @111
-                element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<fragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -10503,7 +10503,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@fragment::dart:core::@class::Object::@constructor::new
+                staticElement: dart:core::<fragment>::@class::Object::@constructor::new
     mixins
       mixin M @6
         reference: <testLibraryFragment>::@mixin::M
@@ -19019,18 +19019,18 @@ library
   libraryImports
     package:test/append.dart
       enclosingElement: package:other/other.dart
-      enclosingElement3: package:other/other.dart::@fragment::package:other/other.dart
+      enclosingElement3: package:other/other.dart::<fragment>
   definingUnit
-    reference: package:other/other.dart::@fragment::package:other/other.dart
+    reference: package:other/other.dart::<fragment>
     enclosingElement: package:other/other.dart
     libraryImports
       package:test/append.dart
         enclosingElement: package:other/other.dart
-        enclosingElement3: package:other/other.dart::@fragment::package:other/other.dart
+        enclosingElement3: package:other/other.dart::<fragment>
     classes
       class A @74
-        reference: package:other/other.dart::@fragment::package:other/other.dart::@class::A
-        enclosingElement: package:other/other.dart::@fragment::package:other/other.dart
+        reference: package:other/other.dart::<fragment>::@class::A
+        enclosingElement: package:other/other.dart::<fragment>
   augmentationImports
     package:other/other.macro.dart
       enclosingElement: package:other/other.dart
@@ -19044,7 +19044,7 @@ class B {}
       definingUnit
         reference: package:other/other.dart::@fragment::package:other/other.macro.dart
         enclosingElement: package:other/other.dart::@augmentation::package:other/other.macro.dart
-        enclosingElement3: package:other/other.dart::@fragment::package:other/other.dart
+        enclosingElement3: package:other/other.dart::<fragment>
         classes
           class B @51
             reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B

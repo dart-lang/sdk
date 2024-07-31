@@ -101,31 +101,40 @@ class AnalyzerStatePrinter {
     expect(knownFilesNotInUriFiles, isEmpty);
   }
 
+  void _writeAugmentationImport(
+    LibraryOrAugmentationFileKind container,
+    AugmentationImportState<DirectiveUri> import,
+  ) {
+    expect(import.container, same(container));
+
+    switch (import) {
+      case AugmentationImportWithFile():
+        sink.writeIndentedLine(() {
+          var file = import.importedFile;
+          var importedAugmentation = import.importedAugmentation;
+          if (importedAugmentation != null) {
+            expect(importedAugmentation.file, file);
+            sink.write(idProvider.fileKind(importedAugmentation));
+          } else {
+            sink.write('notAugmentation ${idProvider.fileState(file)}');
+          }
+        });
+      case AugmentationImportWithUri():
+        sink.writelnWithIndent('uri: ${import.uri.relativeUri}');
+      case AugmentationImportWithUriStr():
+        var uriStr = _stringOfUriStr(import.uri.relativeUriStr);
+        sink.writelnWithIndent('uriStr: $uriStr');
+      default:
+        sink.writelnWithIndent('noUriStr');
+    }
+  }
+
   void _writeAugmentationImports(LibraryOrAugmentationFileKind container) {
     _writeElements<AugmentationImportState>(
       'augmentationImports',
       container.augmentationImports,
       (import) {
-        if (import is AugmentationImportWithFile) {
-          expect(import.container, same(container));
-          sink.writeIndentedLine(() {
-            var file = import.importedFile;
-            var importedAugmentation = import.importedAugmentation;
-            if (importedAugmentation != null) {
-              expect(importedAugmentation.file, file);
-              sink.write(idProvider.fileKind(importedAugmentation));
-            } else {
-              sink.write('notAugmentation ${idProvider.fileState(file)}');
-            }
-          });
-        } else if (import is AugmentationImportWithUri) {
-          sink.writelnWithIndent('uri: ${import.uri.relativeUri}');
-        } else if (import is AugmentationImportWithUriStr) {
-          var uriStr = _stringOfUriStr(import.uri.relativeUriStr);
-          sink.writelnWithIndent('uriStr: $uriStr');
-        } else {
-          sink.writelnWithIndent('noUriStr');
-        }
+        _writeAugmentationImport(container, import);
       },
     );
   }
@@ -203,108 +212,110 @@ class AnalyzerStatePrinter {
     expect(kind.file, same(file));
 
     sink.writelnWithIndent('kind: ${idProvider.fileKind(kind)}');
-    if (kind is AugmentationKnownFileKind) {
-      sink.withIndent(() {
-        var augmented = kind.augmented;
-        if (augmented != null) {
-          var id = idProvider.fileKind(augmented);
-          sink.writelnWithIndent('augmented: $id');
-        } else {
-          var id = idProvider.fileState(kind.uriFile);
-          sink.writelnWithIndent('uriFile: $id');
-        }
+    switch (kind) {
+      case AugmentationKnownFileKind():
+        sink.withIndent(() {
+          var augmented = kind.augmented;
+          if (augmented != null) {
+            var id = idProvider.fileKind(augmented);
+            sink.writelnWithIndent('augmented: $id');
+          } else {
+            var id = idProvider.fileState(kind.uriFile);
+            sink.writelnWithIndent('uriFile: $id');
+          }
 
-        var library = kind.library;
-        if (library != null) {
-          var id = idProvider.fileKind(library);
-          sink.writelnWithIndent('library: $id');
-        }
+          var library = kind.library;
+          if (library != null) {
+            var id = idProvider.fileKind(library);
+            sink.writelnWithIndent('library: $id');
+          }
 
-        _writeLibraryImports(kind);
-        _writeLibraryExports(kind);
-        _writeAugmentationImports(kind);
-        _writeDocImports(kind);
-      });
-    } else if (kind is AugmentationUnknownFileKind) {
-      sink.withIndent(() {
-        var uri = kind.uri;
-        if (uri is DirectiveUriWithoutString) {
-          sink.writelnWithIndent('noUriStr');
-        } else if (uri is DirectiveUriWithInSummarySource) {
-          throw UnimplementedError('${uri.runtimeType}');
-        } else if (uri is DirectiveUriWithUri) {
-          sink.writelnWithIndent('uri: ${uri.relativeUri}');
-        } else if (uri is DirectiveUriWithString) {
-          var uriStr = _stringOfUriStr(uri.relativeUriStr);
-          sink.writelnWithIndent('uriStr: $uriStr');
-        }
-      });
-    } else if (kind is LibraryFileKind) {
-      expect(kind.library, same(kind));
+          _writeLibraryImports(kind);
+          _writeLibraryExports(kind);
+          _writeAugmentationImports(kind);
+          _writeDocImports(kind);
+        });
+      case AugmentationUnknownFileKind():
+        sink.withIndent(() {
+          var uri = kind.uri;
+          switch (uri) {
+            case DirectiveUriWithoutString():
+              sink.writelnWithIndent('noUriStr');
+            case DirectiveUriWithInSummarySource():
+              throw UnimplementedError('${uri.runtimeType}');
+            case DirectiveUriWithUri():
+              sink.writelnWithIndent('uri: ${uri.relativeUri}');
+            case DirectiveUriWithString():
+              var uriStr = _stringOfUriStr(uri.relativeUriStr);
+              sink.writelnWithIndent('uriStr: $uriStr');
+          }
+        });
+      case LibraryFileKind():
+        expect(kind.library, same(kind));
 
-      sink.withIndent(() {
-        var name = kind.name;
-        if (name != null) {
-          sink.writelnWithIndent('name: $name');
-        }
+        sink.withIndent(() {
+          var name = kind.name;
+          if (name != null) {
+            sink.writelnWithIndent('name: $name');
+          }
 
-        _writeLibraryImports(kind);
-        _writeLibraryExports(kind);
-        _writeAugmentationImports(kind);
-        _writePartIncludes(kind);
-        _writeDocImports(kind);
+          _writeLibraryImports(kind);
+          _writeLibraryExports(kind);
+          _writeAugmentationImports(kind);
+          _writePartIncludes(kind);
+          _writeDocImports(kind);
 
-        var filesIds = kind.fileKinds.map(idProvider.fileKind);
-        sink.writelnWithIndent('fileKinds: ${filesIds.join(' ')}');
+          var filesIds = kind.fileKinds.map(idProvider.fileKind);
+          sink.writelnWithIndent('fileKinds: ${filesIds.join(' ')}');
 
-        _writeLibraryCycle(kind);
-      });
-    } else if (kind is PartOfNameFileKind) {
-      sink.withIndent(() {
-        var libraries = kind.libraries;
-        if (libraries.isNotEmpty) {
-          var keys = libraries
-              .map(idProvider.fileKind)
-              .sorted(compareNatural)
-              .join(' ');
-          sink.writelnWithIndent('libraries: $keys');
-        }
+          _writeLibraryCycle(kind);
+        });
+      case PartOfNameFileKind():
+        sink.withIndent(() {
+          var libraries = kind.libraries;
+          if (libraries.isNotEmpty) {
+            var keys = libraries
+                .map(idProvider.fileKind)
+                .sorted(compareNatural)
+                .join(' ');
+            sink.writelnWithIndent('libraries: $keys');
+          }
 
-        var library = kind.library;
-        if (library != null) {
-          var id = idProvider.fileKind(library);
-          sink.writelnWithIndent('library: $id');
-        } else {
-          sink.writelnWithIndent('name: ${kind.unlinked.name}');
-        }
+          var library = kind.library;
+          if (library != null) {
+            var id = idProvider.fileKind(library);
+            sink.writelnWithIndent('library: $id');
+          } else {
+            sink.writelnWithIndent('name: ${kind.unlinked.name}');
+          }
 
-        _writeLibraryImports(kind);
-        _writeLibraryExports(kind);
-        _writePartIncludes(kind);
-        _writeDocImports(kind);
-      });
-    } else if (kind is PartOfUriKnownFileKind) {
-      sink.withIndent(() {
-        var uriFileId = idProvider.fileState(kind.uriFile);
-        sink.writelnWithIndent('uriFile: $uriFileId');
+          _writeLibraryImports(kind);
+          _writeLibraryExports(kind);
+          _writePartIncludes(kind);
+          _writeDocImports(kind);
+        });
+      case PartOfUriKnownFileKind():
+        sink.withIndent(() {
+          var uriFileId = idProvider.fileState(kind.uriFile);
+          sink.writelnWithIndent('uriFile: $uriFileId');
 
-        if (kind.library case var library?) {
-          var id = idProvider.fileKind(library);
-          sink.writelnWithIndent('library: $id');
-        }
+          if (kind.library case var library?) {
+            var id = idProvider.fileKind(library);
+            sink.writelnWithIndent('library: $id');
+          }
 
-        _writeLibraryImports(kind);
-        _writeLibraryExports(kind);
-        _writePartIncludes(kind);
-        _writeDocImports(kind);
-      });
-    } else if (kind is PartOfUriUnknownFileKind) {
-      sink.withIndent(() {
-        sink.writelnWithIndent('uri: ${kind.unlinked.uri}');
-        expect(kind.library, isNull);
-      });
-    } else {
-      throw UnimplementedError('${kind.runtimeType}');
+          _writeLibraryImports(kind);
+          _writeLibraryExports(kind);
+          _writePartIncludes(kind);
+          _writeDocImports(kind);
+        });
+      case PartOfUriUnknownFileKind():
+        sink.withIndent(() {
+          sink.writelnWithIndent('uri: ${kind.unlinked.uri}');
+          expect(kind.library, isNull);
+        });
+      default:
+        throw UnimplementedError('${kind.runtimeType}');
     }
   }
 
@@ -510,39 +521,40 @@ class AnalyzerStatePrinter {
   ) {
     expect(export.container, same(container));
 
-    if (export is LibraryExportWithFile) {
-      sink.writeIndentedLine(() {
-        var file = export.exportedFile;
-        var exportedLibrary = export.exportedLibrary;
-        if (exportedLibrary != null) {
-          expect(exportedLibrary.file, file);
-          sink.write(idProvider.fileKind(exportedLibrary));
-        } else {
-          sink.write('notLibrary ${idProvider.fileState(file)}');
-        }
+    switch (export) {
+      case LibraryExportWithFile():
+        sink.writeIndentedLine(() {
+          var file = export.exportedFile;
+          var exportedLibrary = export.exportedLibrary;
+          if (exportedLibrary != null) {
+            expect(exportedLibrary.file, file);
+            sink.write(idProvider.fileKind(exportedLibrary));
+          } else {
+            sink.write('notLibrary ${idProvider.fileState(file)}');
+          }
 
-        if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
-          sink.write(' ${file.uri}');
-        }
-      });
-    } else if (export is LibraryExportWithInSummarySource) {
-      sink.writeIndentedLine(() {
-        sink.write('inSummary ${export.exportedSource.uri}');
+          if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
+            sink.write(' ${file.uri}');
+          }
+        });
+      case LibraryExportWithInSummarySource():
+        sink.writeIndentedLine(() {
+          sink.write('inSummary ${export.exportedSource.uri}');
 
-        var librarySource = export.exportedLibrarySource;
-        if (librarySource != null) {
-          expect(librarySource, same(export.exportedSource));
-        } else {
-          sink.write(' notLibrary');
-        }
-      });
-    } else if (export is LibraryExportWithUri) {
-      sink.writelnWithIndent('uri: ${export.selectedUri.relativeUri}');
-    } else if (export is LibraryExportWithUriStr) {
-      var uriStr = _stringOfUriStr(export.selectedUri.relativeUriStr);
-      sink.writelnWithIndent('uriStr: $uriStr');
-    } else {
-      sink.writelnWithIndent('noUriStr');
+          var librarySource = export.exportedLibrarySource;
+          if (librarySource != null) {
+            expect(librarySource, same(export.exportedSource));
+          } else {
+            sink.write(' notLibrary');
+          }
+        });
+      case LibraryExportWithUri():
+        sink.writelnWithIndent('uri: ${export.selectedUri.relativeUri}');
+      case LibraryExportWithUriStr():
+        var uriStr = _stringOfUriStr(export.selectedUri.relativeUriStr);
+        sink.writelnWithIndent('uriStr: $uriStr');
+      default:
+        sink.writelnWithIndent('noUriStr');
     }
   }
 
@@ -562,60 +574,61 @@ class AnalyzerStatePrinter {
   ) {
     expect(import.container, same(container));
 
-    if (import is LibraryImportWithFile) {
-      sink.writeIndentedLine(() {
-        var file = import.importedFile;
-        var importedLibrary = import.importedLibrary;
-        if (importedLibrary != null) {
-          expect(importedLibrary.file, file);
-          sink.write(idProvider.fileKind(importedLibrary));
-        } else {
-          sink.write('notLibrary ${idProvider.fileState(file)}');
-        }
+    switch (import) {
+      case LibraryImportWithFile():
+        sink.writeIndentedLine(() {
+          var file = import.importedFile;
+          var importedLibrary = import.importedLibrary;
+          if (importedLibrary != null) {
+            expect(importedLibrary.file, file);
+            sink.write(idProvider.fileKind(importedLibrary));
+          } else {
+            sink.write('notLibrary ${idProvider.fileState(file)}');
+          }
 
-        if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
-          sink.write(' ${file.uri}');
-        }
-        if (file.uriStr == _macroUriStr) {
-          sink.write(' $_macroUriStr');
-        }
+          if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
+            sink.write(' ${file.uri}');
+          }
+          if (file.uriStr == _macroUriStr) {
+            sink.write(' $_macroUriStr');
+          }
 
-        if (import.isSyntheticDartCore) {
-          sink.write(' synthetic');
-        }
-      });
-    } else if (import is LibraryImportWithInSummarySource) {
-      sink.writeIndentedLine(() {
-        sink.write('inSummary ${import.importedSource.uri}');
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+        });
+      case LibraryImportWithInSummarySource():
+        sink.writeIndentedLine(() {
+          sink.write('inSummary ${import.importedSource.uri}');
 
-        var librarySource = import.importedLibrarySource;
-        if (librarySource != null) {
-          expect(librarySource, same(import.importedSource));
-        } else {
-          sink.write(' notLibrary');
-        }
+          var librarySource = import.importedLibrarySource;
+          if (librarySource != null) {
+            expect(librarySource, same(import.importedSource));
+          } else {
+            sink.write(' notLibrary');
+          }
 
-        if (import.isSyntheticDartCore) {
-          sink.write(' synthetic');
-        }
-      });
-    } else if (import is LibraryImportWithUri) {
-      sink.writeIndentedLine(() {
-        sink.write('uri: ${import.selectedUri.relativeUri}');
-        if (import.isSyntheticDartCore) {
-          sink.write(' synthetic');
-        }
-      });
-    } else if (import is LibraryImportWithUriStr) {
-      sink.writeIndentedLine(() {
-        var uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
-        sink.write('uriStr: $uriStr');
-        if (import.isSyntheticDartCore) {
-          sink.write(' synthetic');
-        }
-      });
-    } else {
-      sink.writelnWithIndent('noUriStr');
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+        });
+      case LibraryImportWithUri():
+        sink.writeIndentedLine(() {
+          sink.write('uri: ${import.selectedUri.relativeUri}');
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+        });
+      case LibraryImportWithUriStr():
+        sink.writeIndentedLine(() {
+          var uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
+          sink.write('uriStr: $uriStr');
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+        });
+      default:
+        sink.writelnWithIndent('noUriStr');
     }
   }
 
@@ -635,22 +648,23 @@ class AnalyzerStatePrinter {
       container.partIncludes,
       (part) {
         expect(part.container, same(container));
-        if (part is PartIncludeWithFile) {
-          sink.writeIndentedLine(() {
-            var file = part.includedFile;
-            var includedPart = part.includedPart;
-            if (includedPart != null) {
-              expect(includedPart.file, file);
-              sink.write(idProvider.fileKind(includedPart));
-            } else {
-              sink.write('notPart ${idProvider.fileState(file)}');
-            }
-          });
-        } else if (part is PartIncludeWithUri) {
-          var uriStr = _stringOfUriStr(part.uri.relativeUriStr);
-          sink.writelnWithIndent('uri: $uriStr');
-        } else {
-          sink.writelnWithIndent('noUri');
+        switch (part) {
+          case PartIncludeWithFile():
+            sink.writeIndentedLine(() {
+              var file = part.includedFile;
+              var includedPart = part.includedPart;
+              if (includedPart != null) {
+                expect(includedPart.file, file);
+                sink.write(idProvider.fileKind(includedPart));
+              } else {
+                sink.write('notPart ${idProvider.fileState(file)}');
+              }
+            });
+          case PartIncludeWithUri():
+            var uriStr = _stringOfUriStr(part.uri.relativeUriStr);
+            sink.writelnWithIndent('uri: $uriStr');
+          default:
+            sink.writelnWithIndent('noUri');
         }
       },
     );
@@ -743,20 +757,21 @@ class IdProvider {
       throw StateError('$kind');
     }
     return _fileKind[kind] ??= () {
-      if (kind is AugmentationKnownFileKind) {
-        return 'augmentation_${_fileKind.length}';
-      } else if (kind is AugmentationUnknownFileKind) {
-        return 'augmentationUnknown_${_fileKind.length}';
-      } else if (kind is LibraryFileKind) {
-        return 'library_${_fileKind.length}';
-      } else if (kind is PartOfNameFileKind) {
-        return 'partOfName_${_fileKind.length}';
-      } else if (kind is PartOfUriKnownFileKind) {
-        return 'partOfUriKnown_${_fileKind.length}';
-      } else if (kind is PartFileKind) {
-        return 'partOfUriUnknown_${_fileKind.length}';
-      } else {
-        throw UnimplementedError('${kind.runtimeType}');
+      switch (kind) {
+        case AugmentationKnownFileKind():
+          return 'augmentation_${_fileKind.length}';
+        case AugmentationUnknownFileKind():
+          return 'augmentationUnknown_${_fileKind.length}';
+        case LibraryFileKind():
+          return 'library_${_fileKind.length}';
+        case PartOfNameFileKind():
+          return 'partOfName_${_fileKind.length}';
+        case PartOfUriKnownFileKind():
+          return 'partOfUriKnown_${_fileKind.length}';
+        case PartFileKind():
+          return 'partOfUriUnknown_${_fileKind.length}';
+        default:
+          throw UnimplementedError('${kind.runtimeType}');
       }
     }();
   }

@@ -166,7 +166,7 @@ ObjectPattern
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::A
@@ -503,7 +503,7 @@ ObjectPattern
         asToken: as
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         matchedValueType: int?
       element: <testLibraryFragment>::@class::A::@getter::foo
@@ -652,7 +652,7 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: Object
-    element: dart:core::@fragment::dart:core::@class::Object
+    element: dart:core::<fragment>::@class::Object
     type: Object
   leftParenthesis: (
   fields
@@ -960,7 +960,7 @@ ObjectPattern
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::A
@@ -1062,7 +1062,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@90
           type: int
         matchedValueType: int
-      element: dart:core::@fragment::dart:core::@class::Object::@getter::hashCode
+      element: dart:core::<fragment>::@class::Object::@getter::hashCode
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1257,7 +1257,7 @@ PatternVariableDeclaration
         arguments
           NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
@@ -1328,7 +1328,7 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@28

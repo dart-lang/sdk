@@ -36,7 +36,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::-
+  staticElement: dart:core::<fragment>::@class::num::@method::-
   staticType: int
 ''');
   }
@@ -63,7 +63,7 @@ PostfixExpression
     readType: int
     writeElement: <testLibraryFragment>::@function::f::@parameter::x
     writeType: int
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+    staticElement: dart:core::<fragment>::@class::num::@method::+
     staticType: int
   operator: ++
   readElement: <null>
@@ -150,7 +150,7 @@ PrefixExpression
     readType: int
     writeElement: <testLibraryFragment>::@function::f::@parameter::x
     writeType: int
-    staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+    staticElement: dart:core::<fragment>::@class::num::@method::+
     staticType: int
   readElement: <null>
   readType: InvalidType
@@ -194,7 +194,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -233,7 +233,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -270,7 +270,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -321,9 +321,9 @@ PostfixExpression
     staticElement: <null>
     staticType: null
   operator: ++
-  readElement: dart:core::@fragment::dart:core::@class::int
+  readElement: dart:core::<fragment>::@class::int
   readType: InvalidType
-  writeElement: dart:core::@fragment::dart:core::@class::int
+  writeElement: dart:core::<fragment>::@class::int
   writeType: InvalidType
   staticElement: <null>
   staticType: InvalidType
@@ -388,7 +388,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@extensionType::A::@setter::foo
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -424,7 +424,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -457,11 +457,11 @@ PostfixExpression
     staticElement: <null>
     staticType: null
   operator: ++
-  readElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::x
+  readElement: package:test/a.dart::<fragment>::@getter::x
   readType: int
-  writeElement: package:test/a.dart::@fragment::package:test/a.dart::@setter::x
+  writeElement: package:test/a.dart::<fragment>::@setter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -503,7 +503,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -537,7 +537,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::foo
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int?
 ''');
   }
@@ -577,7 +577,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::x
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -612,7 +612,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::x
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -668,7 +668,7 @@ PostfixExpression
   readType: double
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
   writeType: double
-  staticElement: dart:core::@fragment::dart:core::@class::double::@method::+
+  staticElement: dart:core::<fragment>::@class::double::@method::+
   staticType: double
 ''');
   }
@@ -692,7 +692,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
   writeType: int
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -716,7 +716,7 @@ PostfixExpression
   readType: num
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: num
 ''');
   }
@@ -747,7 +747,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@class::A::@setter::x
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -775,7 +775,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@setter::x
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -805,7 +805,7 @@ PostfixExpression
   readType: int
   writeElement: <testLibraryFragment>::@setter::x
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -954,7 +954,7 @@ IndexExpression
     literal: 'foo'
   rightBracket: ]
   staticElement: MethodMember
-    base: dart:core::@fragment::dart:core::@class::Map::@method::[]
+    base: dart:core::<fragment>::@class::Map::@method::[]
     substitution: {K: String, V: int}
   staticType: int?
 ''');
@@ -971,7 +971,7 @@ PostfixExpression
       literal: 'foo'
     rightBracket: ]
     staticElement: MethodMember
-      base: dart:core::@fragment::dart:core::@class::Map::@method::[]
+      base: dart:core::<fragment>::@class::Map::@method::[]
       substitution: {K: String, V: int}
     staticType: int?
   operator: !

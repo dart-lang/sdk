@@ -34,7 +34,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::C
@@ -66,10 +66,10 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@fragment::package:test/a.dart::@class::C
+    element: package:test/a.dart::<fragment>::@class::C
     type: C<int>
   staticType: Type
 ''');
@@ -93,7 +93,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::C
@@ -120,11 +120,11 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::C
@@ -152,7 +152,7 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::@fragment::dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@class::C
@@ -178,7 +178,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
@@ -207,7 +207,7 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::@fragment::dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
@@ -282,12 +282,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::CA
+    element: package:test/a.dart::<fragment>::@typeAlias::CA
     type: C<int>
-      alias: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::CA
+      alias: package:test/a.dart::<fragment>::@typeAlias::CA
         typeArguments
           int
   staticType: Type
@@ -314,7 +314,7 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::@fragment::dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
@@ -342,7 +342,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@extensionType::A
@@ -375,10 +375,10 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@fragment::package:test/a.dart::@extensionType::A
+    element: package:test/a.dart::<fragment>::@extensionType::A
     type: A<int>
   staticType: Type
 ''');
@@ -400,7 +400,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -435,12 +435,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::Fn
+    element: package:test/a.dart::<fragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::Fn
+      alias: package:test/a.dart::<fragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -472,7 +472,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -516,12 +516,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::Fn
+    element: package:test/a.dart::<fragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::Fn
+      alias: package:test/a.dart::<fragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -551,7 +551,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -588,7 +588,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -623,7 +623,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -660,7 +660,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -695,7 +695,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -725,7 +725,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -756,11 +756,11 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         NamedType
           name: String
-          element: dart:core::@fragment::dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -791,7 +791,7 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::@fragment::dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
@@ -819,7 +819,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@mixin::M
@@ -844,7 +844,7 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::T

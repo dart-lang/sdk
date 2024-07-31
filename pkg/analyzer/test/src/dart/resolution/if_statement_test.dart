@@ -72,7 +72,7 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -85,7 +85,7 @@ IfStatement
             DeclaredVariablePattern
               type: NamedType
                 name: int
-                element: dart:core::@fragment::dart:core::@class::int
+                element: dart:core::<fragment>::@class::int
                 type: int
               name: a
               declaredElement: a@47
@@ -105,9 +105,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -153,7 +153,7 @@ IfStatement
           arguments
             NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
           rightBracket: >
         leftBracket: [
@@ -186,9 +186,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -233,7 +233,7 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -247,7 +247,7 @@ IfStatement
               keyword: final
               type: NamedType
                 name: int
-                element: dart:core::@fragment::dart:core::@class::int
+                element: dart:core::<fragment>::@class::int
                 type: int
               name: a
               declaredElement: isFinal a@53
@@ -267,9 +267,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -314,7 +314,7 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@37
@@ -327,7 +327,7 @@ IfStatement
             DeclaredVariablePattern
               type: NamedType
                 name: double
-                element: dart:core::@fragment::dart:core::@class::double
+                element: dart:core::<fragment>::@class::double
                 type: double
               name: a
               declaredElement: a@50
@@ -395,7 +395,7 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -425,9 +425,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -472,7 +472,7 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -482,7 +482,7 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@46
@@ -506,9 +506,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -551,7 +551,7 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -561,7 +561,7 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@46
@@ -572,7 +572,7 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@55
@@ -589,9 +589,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -636,7 +636,7 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@37
@@ -653,7 +653,7 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@51
@@ -670,9 +670,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -724,7 +724,7 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@42
@@ -748,9 +748,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -801,7 +801,7 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@42
@@ -812,7 +812,7 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@fragment::dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@51
@@ -829,9 +829,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -889,7 +889,7 @@ IfStatement
           DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@51
@@ -901,7 +901,7 @@ IfStatement
               token: a
               staticElement: a@51
               staticType: int
-            element: dart:core::@fragment::dart:core::@class::Object::@method::==
+            element: dart:core::<fragment>::@class::Object::@method::==
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object?
@@ -916,9 +916,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -977,7 +977,7 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: bool
-            element: dart:core::@fragment::dart:core::@class::bool
+            element: dart:core::<fragment>::@class::bool
             type: bool
           name: a
           declaredElement: a@51
@@ -1050,7 +1050,7 @@ IfStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         name: a
         declaredElement: a@37
@@ -1066,9 +1066,9 @@ IfStatement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )

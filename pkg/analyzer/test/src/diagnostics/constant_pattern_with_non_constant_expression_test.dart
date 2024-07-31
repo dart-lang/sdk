@@ -126,14 +126,14 @@ GuardedPattern
         period: .
         identifier: SimpleIdentifier
           token: A
-          staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+          staticElement: package:test/a.dart::<fragment>::@class::A
           staticType: null
-        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+        staticElement: package:test/a.dart::<fragment>::@class::A
         staticType: null
       operator: .
       propertyName: SimpleIdentifier
         token: a
-        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::a
+        staticElement: package:test/a.dart::<fragment>::@class::A::@getter::a
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -168,14 +168,14 @@ GuardedPattern
         period: .
         identifier: SimpleIdentifier
           token: A
-          staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+          staticElement: package:test/a.dart::<fragment>::@class::A
           staticType: null
-        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+        staticElement: package:test/a.dart::<fragment>::@class::A
         staticType: null
       operator: .
       propertyName: SimpleIdentifier
         token: a
-        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::a
+        staticElement: package:test/a.dart::<fragment>::@class::A::@getter::a
         staticType: int
       staticType: int
     matchedValueType: dynamic

@@ -186,14 +186,14 @@ ConstantPattern
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+        staticElement: package:test/a.dart::<fragment>::@class::A
         staticType: null
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::foo
+      staticElement: package:test/a.dart::<fragment>::@class::A::@getter::foo
       staticType: int
     staticType: int
   matchedValueType: dynamic
@@ -224,9 +224,9 @@ ConstantPattern
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+      staticElement: package:test/a.dart::<fragment>::@getter::foo
       staticType: int
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+    staticElement: package:test/a.dart::<fragment>::@getter::foo
     staticType: int
   matchedValueType: dynamic
 ''');
@@ -289,7 +289,7 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       name: int
-      element: dart:core::@fragment::dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     staticType: Type
   matchedValueType: Object?
@@ -316,7 +316,7 @@ ListPattern
       expression: TypeLiteral
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         staticType: Type
       matchedValueType: Object?
@@ -366,7 +366,7 @@ ConstantPattern
         period: .
         element: <testLibraryFragment>::@prefix::math
       name: Random
-      element: dart:math::@fragment::dart:math::@class::Random
+      element: dart:math::<fragment>::@class::Random
       type: Random
     staticType: Type
   matchedValueType: Object?
@@ -396,9 +396,9 @@ ConstantPattern
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      element: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::A
+      element: package:test/a.dart::<fragment>::@typeAlias::A
       type: int
-        alias: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::A
+        alias: package:test/a.dart::<fragment>::@typeAlias::A
     staticType: Type
   matchedValueType: Object?
 ''');

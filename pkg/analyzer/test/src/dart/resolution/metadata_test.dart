@@ -238,19 +238,19 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+    staticElement: package:test/a.dart::<fragment>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
-        parameter: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new::@parameter::a
+        parameter: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
-  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+  element: package:test/a.dart::<fragment>::@class::A::@constructor::new
 ''');
 
     var localVariable = findElement.class_('B');
@@ -1034,7 +1034,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   period: .
@@ -1088,7 +1088,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1447,7 +1447,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1587,24 +1587,24 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+    staticElement: package:test/a.dart::<fragment>::@class::A
     staticType: null
   period: .
   constructorName: SimpleIdentifier
     token: named
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
-        parameter: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named::@parameter::f
+        parameter: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::f
         staticType: int
     rightParenthesis: )
-  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named
+  element: package:test/a.dart::<fragment>::@class::A::@constructor::named
 ''');
 
     _assertAnnotationValueText(node, '''
@@ -1638,21 +1638,21 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+    staticElement: package:test/a.dart::<fragment>::@class::A
     staticType: null
   period: .
   constructorName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::foo
+    staticElement: package:test/a.dart::<fragment>::@class::A::@getter::foo
     staticType: null
-  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::foo
+  element: package:test/a.dart::<fragment>::@class::A::@getter::foo
 ''');
 
     _assertAnnotationValueText(node, '''
 int 42
-  variable: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@field::foo
+  variable: package:test/a.dart::<fragment>::@class::A::@field::foo
 ''');
   }
 
@@ -1683,19 +1683,19 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A
+    staticElement: package:test/a.dart::<fragment>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
-        parameter: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new::@parameter::f
+        parameter: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::f
         staticType: int
     rightParenthesis: )
-  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+  element: package:test/a.dart::<fragment>::@class::A::@constructor::new
 ''');
 
     _assertAnnotationValueText(node, '''
@@ -1728,16 +1728,16 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+      staticElement: package:test/a.dart::<fragment>::@getter::foo
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+    staticElement: package:test/a.dart::<fragment>::@getter::foo
     staticType: null
-  element: package:test/a.dart::@fragment::package:test/a.dart::@getter::foo
+  element: package:test/a.dart::<fragment>::@getter::foo
 ''');
 
     _assertAnnotationValueText(node, '''
 int 42
-  variable: package:test/a.dart::@fragment::package:test/a.dart::@topLevelVariable::foo
+  variable: package:test/a.dart::<fragment>::@topLevelVariable::foo
 ''');
   }
 
@@ -1768,20 +1768,20 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: B
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+      staticElement: package:test/a.dart::<fragment>::@typeAlias::B
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+    staticElement: package:test/a.dart::<fragment>::@typeAlias::B
     staticType: null
   period: .
   constructorName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::foo
+    staticElement: package:test/a.dart::<fragment>::@class::A::@getter::foo
     staticType: null
-  element: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@getter::foo
+  element: package:test/a.dart::<fragment>::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@field::foo
+  variable: package:test/a.dart::<fragment>::@class::A::@field::foo
 ''');
   }
 
@@ -1813,15 +1813,15 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: B
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+      staticElement: package:test/a.dart::<fragment>::@typeAlias::B
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+    staticElement: package:test/a.dart::<fragment>::@typeAlias::B
     staticType: null
   period: .
   constructorName: SimpleIdentifier
     token: named
     staticElement: ConstructorMember
-      base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named
+      base: package:test/a.dart::<fragment>::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
   arguments: ArgumentList
@@ -1830,12 +1830,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named::@parameter::f
+          base: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named
+    base: package:test/a.dart::<fragment>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1872,9 +1872,9 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: B
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+      staticElement: package:test/a.dart::<fragment>::@typeAlias::B
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+    staticElement: package:test/a.dart::<fragment>::@typeAlias::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1882,12 +1882,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new::@parameter::f
+          base: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+    base: package:test/a.dart::<fragment>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1924,23 +1924,23 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: B
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+      staticElement: package:test/a.dart::<fragment>::@typeAlias::B
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+    staticElement: package:test/a.dart::<fragment>::@typeAlias::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   period: .
   constructorName: SimpleIdentifier
     token: named
     staticElement: ConstructorMember
-      base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named
+      base: package:test/a.dart::<fragment>::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
   arguments: ArgumentList
@@ -1949,12 +1949,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named::@parameter::f
+          base: package:test/a.dart::<fragment>::@class::A::@constructor::named::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::named
+    base: package:test/a.dart::<fragment>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1991,16 +1991,16 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: B
-      staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+      staticElement: package:test/a.dart::<fragment>::@typeAlias::B
       staticType: null
-    staticElement: package:test/a.dart::@fragment::package:test/a.dart::@typeAlias::B
+    staticElement: package:test/a.dart::<fragment>::@typeAlias::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2009,12 +2009,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new::@parameter::f
+          base: package:test/a.dart::<fragment>::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@fragment::package:test/a.dart::@class::A::@constructor::new
+    base: package:test/a.dart::<fragment>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -2097,7 +2097,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2161,7 +2161,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2311,7 +2311,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2367,7 +2367,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element: dart:core::@fragment::dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList

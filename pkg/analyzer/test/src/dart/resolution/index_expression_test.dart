@@ -342,13 +342,13 @@ IndexExpression
   index: SimpleIdentifier
     token: b
     parameter: ParameterMember
-      base: dart:core::@fragment::dart:core::@class::List::@method::[]::@parameter::index
+      base: dart:core::<fragment>::@class::List::@method::[]::@parameter::index
       substitution: {E: int}
     staticElement: <null>
     staticType: InvalidType
   rightBracket: ]
   staticElement: MethodMember
-    base: dart:core::@fragment::dart:core::@class::List::@method::[]
+    base: dart:core::<fragment>::@class::List::@method::[]
     substitution: {E: int}
   staticType: int
 ''');
@@ -586,13 +586,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: double
   readElement: <testLibraryFragment>::@class::A::@method::[]
   readType: num
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: double
 ''');
   }
@@ -631,7 +631,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: dart:core::@fragment::dart:core::@class::double::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::double::@method::+::@parameter::other
     staticType: double
   readElement: MethodMember
     base: <testLibraryFragment>::@class::A::@method::[]
@@ -641,7 +641,7 @@ AssignmentExpression
     base: <testLibraryFragment>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double
-  staticElement: dart:core::@fragment::dart:core::@class::double::@method::+
+  staticElement: dart:core::<fragment>::@class::double::@method::+
   staticType: double
 ''');
   }
@@ -678,13 +678,13 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: dart:core::@fragment::dart:core::@class::num::@method::+::@parameter::other
+    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: double
   readElement: <testLibraryFragment>::@class::A::@method::[]
   readType: num
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
   writeType: num
-  staticElement: dart:core::@fragment::dart:core::@class::num::@method::+
+  staticElement: dart:core::<fragment>::@class::num::@method::+
   staticType: double?
 ''');
   }

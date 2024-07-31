@@ -125,7 +125,7 @@ IfElement
           DeclaredVariablePattern
             type: NamedType
               name: int
-              element: dart:core::@fragment::dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
             name: a
             declaredElement: a@56
@@ -137,7 +137,7 @@ IfElement
               token: a
               staticElement: a@56
               staticType: int
-            element: dart:core::@fragment::dart:core::@class::Object::@method::==
+            element: dart:core::<fragment>::@class::Object::@method::==
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object
@@ -152,9 +152,9 @@ IfElement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
@@ -199,7 +199,7 @@ IfElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@fragment::dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         name: a
         declaredElement: a@42
@@ -215,9 +215,9 @@ IfElement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            parameter: dart:core::@fragment::dart:core::@class::num::@method::>::@parameter::other
+            parameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other
             staticType: int
-          staticElement: dart:core::@fragment::dart:core::@class::num::@method::>
+          staticElement: dart:core::<fragment>::@class::num::@method::>
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )

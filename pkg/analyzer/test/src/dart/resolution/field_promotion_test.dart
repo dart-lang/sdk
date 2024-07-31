@@ -67,7 +67,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@fragment::dart:core::@class::int::@method::toString
+    staticElement: dart:core::<fragment>::@class::int::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
