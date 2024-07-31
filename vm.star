@@ -472,14 +472,12 @@ _vm_builder(
 _vm_builder(
     "vm-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qa",
-    dimensions = jammy,
+    dimensions = jammy,  # Pre-Jammy ARM QEMU has flaky crashes
 )
 _vm_builder(
     "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
-    dimensions = [jammy, arm64],
-    properties = {"clobber": False},
-    rbe = False,  # b/306641265
+    dimensions = noble,  # Pre-Noble RISC-V QEMU is missing extensions
 )
 
 # Isolate stress test builder
