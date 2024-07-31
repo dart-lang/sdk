@@ -1915,7 +1915,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       bool hasThis,
       bool hasSuper,
       int charOffset,
-      Token? initializerToken) {
+      Token? initializerToken,
+      {bool lowerWildcard = false}) {
     assert(
         !hasThis || !hasSuper,
         // Coverage-ignore(suite): Not run.
@@ -1929,7 +1930,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     String formalName = name;
     bool isWildcard =
         libraryFeatures.wildcardVariables.isEnabled && formalName == '_';
-    if (isWildcard) {
+    if (isWildcard && lowerWildcard) {
       formalName = createWildcardFormalParameterName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
@@ -2003,8 +2004,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
-        .resolveNamedTypesWithStructuralVariables(
-            structuralVariableBuilders, _problemReporting);
+        .resolveNamedTypes(structuralVariableBuilders, _problemReporting);
     return builder;
   }
 

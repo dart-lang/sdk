@@ -478,9 +478,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 0,
   ),
-  // 99.34566145092461%.
+  // 99.34556835965287%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 6984,
+    hitCount: 6983,
     missCount: 46,
   ),
   // 100.0%.

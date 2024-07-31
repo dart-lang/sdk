@@ -1724,9 +1724,6 @@ class OutlineBuilder extends StackListenerImpl {
         if (formal.isNamed) {
           firstNamedParameterOffset = formal.charOffset;
         }
-        // Primary constructors should not have a lowered wildcard name.
-        String formalName =
-            isWildcardLoweredFormalParameter(formal.name) ? '_' : formal.name;
         _builderFactory.addPrimaryConstructorField(
             // TODO(johnniwinther): Support annotations on annotations on fields
             // defined through a primary constructor. This is not needed for
@@ -1734,7 +1731,7 @@ class OutlineBuilder extends StackListenerImpl {
             // be needed when primary constructors are generally supported.
             metadata: null,
             type: formal.type,
-            name: formalName,
+            name: formal.name,
             charOffset: formal.charOffset);
         formals[i] = formal.forPrimaryConstructor(_builderFactory);
       }
@@ -2797,7 +2794,11 @@ class OutlineBuilder extends StackListenerImpl {
           thisKeyword != null,
           superKeyword != null,
           identifier?.nameOffset ?? nameToken.charOffset,
-          initializerStart));
+          initializerStart,
+          // Extension type parameters should not have a lowered name for
+          // wildcard variables.
+          lowerWildcard:
+              declarationContext != DeclarationContext.ExtensionType));
     }
   }
 
@@ -3706,8 +3707,8 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endTypeVariable");
     TypeBuilder? bound = nullIfParserRecovery(pop()) as TypeBuilder?;
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilderBase>? typeParameters =
-        peek() as List<TypeVariableBuilderBase>?;
+    List<TypeVariableBuilder>? typeParameters =
+        peek() as List<TypeVariableBuilder>?;
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {

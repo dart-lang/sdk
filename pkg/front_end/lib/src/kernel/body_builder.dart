@@ -454,7 +454,7 @@ class BodyBuilder extends StackListenerImpl
         _localScopes = new LocalStack([enclosingScope]),
         _labelScopes = new LocalStack([new LabelScopeImpl()]) {
     if (formalParameterScope != null) {
-      for (Builder builder in formalParameterScope!.localMembers) {
+      for (Builder builder in formalParameterScope!.localVariables) {
         if (builder is VariableBuilder) {
           typeInferrer.assignedVariables.declare(builder.variable!);
         }
@@ -562,7 +562,7 @@ class BodyBuilder extends StackListenerImpl
         "${expectedScopeKinds.map((k) => "'${k}'").join(", ")}, "
         "but got '${_localScope.kind}'.");
     if (isGuardScope(_localScope) && declaredInCurrentGuard != null) {
-      for (Builder builder in _localScope.localMembers) {
+      for (Builder builder in _localScope.localVariables) {
         if (builder is VariableBuilder) {
           declaredInCurrentGuard!.remove(builder.variable);
         }
@@ -886,7 +886,7 @@ class BodyBuilder extends StackListenerImpl
 
   void declareVariable(VariableDeclaration variable, LocalScope scope) {
     String name = variable.name!;
-    Builder? existing = scope.lookupLocalMember(name, setter: false);
+    Builder? existing = scope.lookupLocalVariable(name);
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
@@ -902,8 +902,8 @@ class BodyBuilder extends StackListenerImpl
       (declaredInCurrentGuard ??= {}).add(variable);
     }
     String variableName = variable.name!;
-    List<int>? previousOffsets = scope.declare(
-        variableName, new VariableBuilderImpl(variable, uri), uri);
+    List<int>? previousOffsets =
+        scope.declare(variableName, new VariableBuilderImpl(variable, uri));
     if (previousOffsets != null && previousOffsets.isNotEmpty) {
       // This case is different from the above error. In this case, the problem
       // is using `x` before it's declared: `{ var x; { print(x); var x;
@@ -3400,7 +3400,7 @@ class BodyBuilder extends StackListenerImpl
           this, nameToken, fasta.messageSyntheticToken);
     }
     bool isQualified = prefixToken != null;
-    Builder? declaration = scope.lookup(name, nameOffset, uri);
+    Builder? declaration = scope.lookupGetable(name, nameOffset, uri);
     if (declaration == null && prefix == null && _context.isAugmentationClass) {
       // The scope of an augmented method includes the origin class.
       declaration = _context.lookupStaticOriginMember(name, nameOffset, uri);
@@ -3585,11 +3585,11 @@ class BodyBuilder extends StackListenerImpl
     if (declaration.isSetter) {
       setter = declaration;
     } else if (declaration.isGetter) {
-      setter = scope.lookupSetter(name, charOffset, uri);
+      setter = scope.lookupSetable(name, charOffset, uri);
     } else if (declaration.isField) {
       MemberBuilder fieldBuilder = declaration as MemberBuilder;
       if (!fieldBuilder.isAssignable) {
-        setter = scope.lookupSetter(name, charOffset, uri);
+        setter = scope.lookupSetable(name, charOffset, uri);
       } else {
         setter = declaration;
       }
@@ -5301,10 +5301,9 @@ class BodyBuilder extends StackListenerImpl
       for (NominalVariableBuilder builder in nominalVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
-        NominalVariableBuilder? existing = _localScope.lookupLocalMember(name,
-            setter: false) as NominalVariableBuilder?;
+        Builder? existing = _localScope.lookupLocalVariable(name);
         if (existing == null) {
-          _localScope.addLocalMember(name, builder, setter: false);
+          _localScope.addLocalVariable(name, builder);
         } else {
           // Coverage-ignore-block(suite): Not run.
           reportDuplicatedDeclaration(existing, name, builder.charOffset);
@@ -5322,11 +5321,9 @@ class BodyBuilder extends StackListenerImpl
       for (StructuralVariableBuilder builder in structuralVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
-        StructuralVariableBuilder? existing =
-            _localScope.lookupLocalMember(name, setter: false)
-                as StructuralVariableBuilder?;
+        Builder? existing = _localScope.lookupLocalVariable(name);
         if (existing == null) {
-          _localScope.addLocalMember(name, builder, setter: false);
+          _localScope.addLocalVariable(name, builder);
         } else {
           // Coverage-ignore-block(suite): Not run.
           reportDuplicatedDeclaration(existing, name, builder.charOffset);
@@ -7465,7 +7462,7 @@ class BodyBuilder extends StackListenerImpl
       ..fileOffset = name.nameOffset;
     // TODO(ahe): Why are we looking up in local scope, but declaring in parent
     // scope?
-    Builder? existing = _localScope.lookupLocalMember(name.name, setter: false);
+    Builder? existing = _localScope.lookupLocalVariable(name.name);
     if (existing != null) {
       // Coverage-ignore-block(suite): Not run.
       reportDuplicatedDeclaration(existing, name.name, name.nameOffset);
@@ -9048,7 +9045,7 @@ class BodyBuilder extends StackListenerImpl
       typeVariableName = createWildcardTypeVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    TypeVariableBuilderBase variable = inFunctionType
+    TypeVariableBuilder variable = inFunctionType
         ? new StructuralVariableBuilder(
             typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
             isWildcard: isWildcard)
@@ -9099,10 +9096,10 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("TypeVariable");
     TypeBuilder? bound = pop() as TypeBuilder?;
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilderBase> typeVariables =
-        peek() as List<TypeVariableBuilderBase>;
+    List<TypeVariableBuilder> typeVariables =
+        peek() as List<TypeVariableBuilder>;
 
-    TypeVariableBuilderBase variable = typeVariables[index];
+    TypeVariableBuilder variable = typeVariables[index];
     variable.bound = bound;
     if (variance != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -9117,8 +9114,8 @@ class BodyBuilder extends StackListenerImpl
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilderBase> typeVariables =
-        peek() as List<TypeVariableBuilderBase>;
+    List<TypeVariableBuilder> typeVariables =
+        peek() as List<TypeVariableBuilder>;
     libraryBuilder.checkTypeVariableDependencies(typeVariables);
 
     List<TypeBuilder> unboundTypes = [];

@@ -111,8 +111,8 @@ enum ScopeKind {
 
 abstract class LookupScope {
   ScopeKind get kind;
-  Builder? lookup(String name, int charOffset, Uri fileUri);
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri);
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri);
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri);
   // TODO(johnniwinther): Should this be moved to an outer scope interface?
   void forEachExtension(void Function(ExtensionBuilder) f);
 }
@@ -219,7 +219,7 @@ Builder? _normalizeCrossLookup(Builder? builder,
 mixin LookupScopeMixin implements LookupScope {
   String get classNameOrDebugName;
 
-  Builder? lookupIn(
+  Builder? lookupGetableIn(
       String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
     return normalizeLookup(
         getable: getables[name],
@@ -231,7 +231,7 @@ mixin LookupScopeMixin implements LookupScope {
         isSetter: false);
   }
 
-  Builder? lookupSetterIn(String name, int charOffset, Uri fileUri,
+  Builder? lookupSetableIn(String name, int charOffset, Uri fileUri,
       Map<String, Builder>? getables) {
     return normalizeLookup(
         getable: getables?[name],
@@ -258,7 +258,7 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   LookupScope? get _parent;
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
         getable: _nameSpace.lookupLocalMember(name, setter: false),
         setable: _nameSpace.lookupLocalMember(name, setter: true),
@@ -267,11 +267,11 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
         fileUri: fileUri,
         classNameOrDebugName: classNameOrDebugName,
         isSetter: false);
-    return builder ?? _parent?.lookup(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
         getable: _nameSpace.lookupLocalMember(name, setter: false),
         setable: _nameSpace.lookupLocalMember(name, setter: true),
@@ -280,7 +280,7 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
         fileUri: fileUri,
         classNameOrDebugName: classNameOrDebugName,
         isSetter: true);
-    return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
   @override
@@ -312,26 +312,26 @@ class TypeParameterScope with LookupScopeMixin {
   ScopeKind get kind => ScopeKind.typeParameters;
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
-    return lookupIn(name, charOffset, fileUri, _typeParameters) ??
-        _parent.lookup(name, charOffset, fileUri);
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
+    return lookupGetableIn(name, charOffset, fileUri, _typeParameters) ??
+        _parent.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? builder =
-        lookupSetterIn(name, charOffset, fileUri, _typeParameters);
-    return builder ?? _parent.lookupSetter(name, charOffset, fileUri);
+        lookupSetableIn(name, charOffset, fileUri, _typeParameters);
+    return builder ?? _parent.lookupSetable(name, charOffset, fileUri);
   }
 
   @override
   String get classNameOrDebugName => "type parameter";
 
   static LookupScope fromList(
-      LookupScope parent, List<TypeVariableBuilderBase>? typeVariableBuilders) {
+      LookupScope parent, List<TypeVariableBuilder>? typeVariableBuilders) {
     if (typeVariableBuilders == null) return parent;
     Map<String, Builder> map = {};
-    for (TypeVariableBuilderBase typeVariableBuilder in typeVariableBuilders) {
+    for (TypeVariableBuilder typeVariableBuilder in typeVariableBuilders) {
       if (typeVariableBuilder.isWildcard) continue;
       map[typeVariableBuilder.name] = typeVariableBuilder;
     }
@@ -361,7 +361,7 @@ class FixedLookupScope implements LookupScope {
         this._parent = parent;
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
         getable: _getables?[name],
         setable: _setables?[name],
@@ -370,11 +370,11 @@ class FixedLookupScope implements LookupScope {
         fileUri: fileUri,
         classNameOrDebugName: classNameOrDebugName,
         isSetter: false);
-    return builder ?? _parent?.lookup(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
         getable: _getables?[name],
         setable: _setables?[name],
@@ -383,7 +383,7 @@ class FixedLookupScope implements LookupScope {
         fileUri: fileUri,
         classNameOrDebugName: classNameOrDebugName,
         isSetter: true);
-    return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
   @override

@@ -2206,8 +2206,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is SourceFieldBuilder) {
         declaration.checkTypes(this, typeEnvironment);
       } else if (declaration is SourceProcedureBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeVariables;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeVariables;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
@@ -2221,29 +2220,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         }
       } else if (declaration is SourceClassBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeVariables;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeVariables;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeParameters;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeParameters;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeParameters;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeParameters;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeVariables;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeVariables;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
@@ -2259,12 +2254,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     checkPendingBoundsChecks(typeEnvironment);
   }
 
-  void checkTypeVariableDependencies(
-      List<TypeVariableBuilderBase> typeVariables) {
-    Map<TypeVariableBuilderBase, TypeVariableTraversalState>
+  void checkTypeVariableDependencies(List<TypeVariableBuilder> typeVariables) {
+    Map<TypeVariableBuilder, TypeVariableTraversalState>
         typeVariablesTraversalState =
-        <TypeVariableBuilderBase, TypeVariableTraversalState>{};
-    for (TypeVariableBuilderBase typeVariable in typeVariables) {
+        <TypeVariableBuilder, TypeVariableTraversalState>{};
+    for (TypeVariableBuilder typeVariable in typeVariables) {
       if ((typeVariablesTraversalState[typeVariable] ??=
               TypeVariableTraversalState.unvisited) ==
           TypeVariableTraversalState.unvisited) {

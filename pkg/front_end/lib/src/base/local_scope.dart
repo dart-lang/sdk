@@ -18,25 +18,24 @@ abstract class LocalScope implements LookupScope {
       required Map<String, Builder> local,
       required ScopeKind kind});
 
-  Iterable<Builder> get localMembers;
+  Iterable<Builder> get localVariables;
 
-  Builder? lookupLocalMember(String name, {required bool setter});
+  Builder? lookupLocalVariable(String name);
 
   /// Declares that the meaning of [name] in this scope is [builder].
   ///
-  /// If name was used previously in this scope, this method returns a message
-  /// that can be used as context for reporting a compile-time error about
-  /// [name] being used before its declared. [fileUri] is used to bind the
-  /// location of this message.
-  List<int>? declare(String name, Builder builder, Uri uri);
+  /// If name was used previously in this scope, this method returns the read
+  /// offsets which can be used for reporting a compile-time error about
+  /// [name] being used before its declared.
+  List<int>? declare(String name, Builder builder);
 
-  void addLocalMember(String name, Builder member, {required bool setter});
-
-  @override
-  Builder? lookup(String name, int charOffset, Uri fileUri);
+  void addLocalVariable(String name, Builder builder);
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri uri);
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri);
+
+  @override
+  Builder? lookupSetable(String name, int charOffset, Uri uri);
 
   Map<String, List<int>>? get usedNames;
 }
@@ -67,32 +66,32 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
   String get classNameOrDebugName;
 
   @override
-  Iterable<Builder> get localMembers => _local?.values ?? const {};
+  Iterable<Builder> get localVariables => _local?.values ?? const {};
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
-    recordUse(name, charOffset);
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
+    _recordUse(name, charOffset);
     Builder? builder;
     if (_local != null) {
-      builder = lookupIn(name, charOffset, fileUri, _local!);
+      builder = lookupGetableIn(name, charOffset, fileUri, _local!);
       if (builder != null) return builder;
     }
-    return builder ?? _parent?.lookup(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
-  Builder? lookupLocalMember(String name, {required bool setter}) {
-    return setter ? null : (_local?[name]);
+  Builder? lookupLocalVariable(String name) {
+    return _local?[name];
   }
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
-    recordUse(name, charOffset);
-    Builder? builder = lookupSetterIn(name, charOffset, fileUri, _local);
-    return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
+    _recordUse(name, charOffset);
+    Builder? builder = lookupSetableIn(name, charOffset, fileUri, _local);
+    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
-  void recordUse(String name, int charOffset) {}
+  void _recordUse(String name, int charOffset) {}
 
   @override
   void forEachExtension(void Function(ExtensionBuilder) f) {
@@ -122,12 +121,12 @@ final class LocalScopeImpl extends BaseLocalScope
   LocalScopeImpl(this._parent, this.kind, this.classNameOrDebugName);
 
   @override
-  void addLocalMember(String name, Builder member, {required bool setter}) {
-    (_local ??= {})[name] = member;
+  void addLocalVariable(String name, Builder builder) {
+    (_local ??= {})[name] = builder;
   }
 
   @override
-  List<int>? declare(String name, Builder builder, Uri uri) {
+  List<int>? declare(String name, Builder builder) {
     List<int>? previousOffsets = usedNames?[name];
     if (previousOffsets != null && previousOffsets.isNotEmpty) {
       return previousOffsets;
@@ -137,7 +136,7 @@ final class LocalScopeImpl extends BaseLocalScope
   }
 
   @override
-  void recordUse(String name, int charOffset) {
+  void _recordUse(String name, int charOffset) {
     usedNames ??= <String, List<int>>{};
     // Don't use putIfAbsent to avoid the context allocation needed
     // for the closure.
@@ -151,12 +150,12 @@ final class LocalScopeImpl extends BaseLocalScope
 
 mixin ImmutableLocalScopeMixin implements LocalScope {
   @override
-  void addLocalMember(String name, Builder member, {required bool setter}) {
+  void addLocalVariable(String name, Builder builder) {
     throw new UnsupportedError('$runtimeType($kind).addLocalMember');
   }
 
   @override
-  List<int>? declare(String name, Builder builder, Uri uri) {
+  List<int>? declare(String name, Builder builder) {
     throw new UnsupportedError('$runtimeType($kind).declare');
   }
 
@@ -224,19 +223,19 @@ final class EnclosingLocalScope extends BaseLocalScope
   ScopeKind get kind => _scope.kind;
 
   @override
-  Iterable<Builder> get localMembers => const [];
+  Iterable<Builder> get localVariables => const [];
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
-    return _scope.lookup(name, charOffset, fileUri);
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
+    return _scope.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
-  Builder? lookupLocalMember(String name, {required bool setter}) => null;
+  Builder? lookupLocalVariable(String name) => null;
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri uri) {
-    return _scope.lookupSetter(name, charOffset, uri);
+  Builder? lookupSetable(String name, int charOffset, Uri uri) {
+    return _scope.lookupSetable(name, charOffset, uri);
   }
 
   @override

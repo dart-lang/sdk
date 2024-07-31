@@ -265,7 +265,8 @@ class _MacroListener implements Listener {
   void handleIdentifier(Token token, IdentifierContext context) {
     switch (context) {
       case IdentifierContext.metadataReference:
-        Builder? builder = scope.lookup(token.lexeme, token.charOffset, uri);
+        Builder? builder =
+            scope.lookupGetable(token.lexeme, token.charOffset, uri);
         if (builder is ClassBuilder && _isMacroOrMacroAnnotation(builder)) {
           _macroClassBuilder ??= builder;
           push(new _MacroClassNode(token, builder));

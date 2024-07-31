@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -21,7 +20,7 @@ import 'package:dart_style/dart_style.dart';
 
 /// Checks whether a string contains only characters that are allowed to differ
 /// between unformattedformatted code (such as whitespace, commas, semicolons).
-final _isValidFormatterChange = RegExp(r'^[\s,;]*$').hasMatch;
+final _isValidFormatterChange = RegExp(r'^[\s,;<>]*$').hasMatch;
 
 /// Transforms a sequence of LSP document change events to a sequence of source
 /// edits used by analysis plugins.
@@ -207,6 +206,34 @@ class _MinimalEditComputer {
     TokenType.SEMICOLON,
   };
 
+  // A set of tokens that the formatter may alter the lexem for but must still
+  // match types.
+  static const allowedLexemeDifferences = {
+    // Comments may have trailing spaces removed from lines.
+    TokenType.MULTI_LINE_COMMENT,
+    TokenType.SINGLE_LINE_COMMENT,
+  };
+
+  // A map of tokens that are allowed to be substituted as a result of
+  // format changes and the set of possible sequences they may be replaced
+  // with.
+  static const allowedSubstitutions = {
+    TokenType.GT_GT_GT: {
+      [TokenType.GT, TokenType.GT, TokenType.GT],
+      [TokenType.GT, TokenType.GT_GT],
+      [TokenType.GT_GT, TokenType.GT],
+    },
+    TokenType.GT_GT: {
+      [TokenType.GT, TokenType.GT]
+    },
+    TokenType.LT_LT: {
+      [TokenType.LT, TokenType.LT]
+    },
+    TokenType.INDEX: {
+      [TokenType.OPEN_SQUARE_BRACKET, TokenType.CLOSE_SQUARE_BRACKET]
+    }
+  };
+
   final LineInfo _lineInfo;
   final String _unformatted;
   final String _formatted;
@@ -278,74 +305,83 @@ class _MinimalEditComputer {
       var formattedEnd = formattedToken.offset;
       var allowAnyContentDifferences = false;
 
-      /// Helper to advance the formatted stream by one token if it is not at
-      /// the end.
-      void advanceFormatted() {
+      /// Helper to advance the formatted stream by [count] tokens if it is not
+      /// at the end.
+      void advanceFormatted([int count = 1]) {
         // Don't use `formattedToken.next?.offset`, that would skip comments.
         formattedEnd = formattedToken.end;
-        if (formattedHasMore = formattedTokens.moveNext()) {
-          formattedToken = formattedTokens.current;
-          formattedEnd = formattedToken.offset;
+        for (int i = 0; i < count; i++) {
+          if (formattedHasMore = formattedTokens.moveNext()) {
+            formattedToken = formattedTokens.current;
+            formattedEnd = formattedToken.offset;
+          }
         }
       }
 
-      /// Helper to advance the unformatted stream by one token if it is not at
-      /// the end.
-      void advanceUnformatted() {
+      /// Helper to advance the unformatted stream by [count] tokens if it is
+      /// not at the end.
+      void advanceUnformatted([int count = 1]) {
         // Don't use `unformattedToken.next?.offset`, that would skip comments.
         unformattedEnd = unformattedToken.end;
-        if (unformattedHasMore = unformattedTokens.moveNext()) {
-          unformattedToken = unformattedTokens.current;
-          unformattedEnd = unformattedToken.offset;
+        for (int i = 0; i < count; i++) {
+          if (unformattedHasMore = unformattedTokens.moveNext()) {
+            unformattedToken = unformattedTokens.current;
+            unformattedEnd = unformattedToken.offset;
+          }
         }
       }
 
       // We may need to advance multiple times if multiple allowed tokens are
       // added/removed consecutively.
-      var continueLoop = true;
-      while (continueLoop && unformattedHasMore && formattedHasMore) {
-        continueLoop = false;
-
+      while (unformattedHasMore && formattedHasMore) {
         var sameTokenTypes = formattedToken.type == unformattedToken.type;
 
-        if (!sameTokenTypes && _isAllowedOptional(formattedToken)) {
+        // Handle differences allowed when tokens are different types.
+        if (!sameTokenTypes) {
           // The formatter added an allowed token, advance over it.
-          advanceFormatted();
-          continueLoop = true;
-        } else if (!sameTokenTypes && _isAllowedOptional(unformattedToken)) {
-          // The formatter removed an allowed token, advance over it.
-          advanceUnformatted();
-          continueLoop = true;
-        } else if (!sameTokenTypes &&
-            unformattedToken is BeginToken &&
-            unformattedToken.next == unformattedToken.endGroup) {
-          if (unformattedToken.endGroup case var endGroup?) {
-            // The formatter may unwrap empty collections across lines which
-            // will change from two tokens (begin/end) to a single simple token
-            // for the collection. If the next two unformatted tokens are
-            // begin/end and match the formatted token, advance over both.
-            var unformattedLexeme =
-                '${unformattedToken.lexeme}${endGroup.lexeme}';
-            if (unformattedLexeme == formattedToken.lexeme) {
-              advanceUnformatted(); // open token
-              advanceUnformatted(); // close token
-              advanceFormatted(); // simple token (open+close)
-              continueLoop = true;
-            }
+          if (_isAllowedOptional(formattedToken)) {
+            advanceFormatted();
+            continue;
           }
-        } else if (sameTokenTypes &&
-            (unformattedToken.type == TokenType.SINGLE_LINE_COMMENT ||
-                unformattedToken.type == TokenType.MULTI_LINE_COMMENT)) {
-          // The formatter may remove trailing whitespace from comments which
-          // are part of the lexeme (and not between tokens), so if the content is
-          // different, allow the whole comments to be replaced.
-          if (unformattedToken.lexeme != formattedToken.lexeme) {
+
+          // The formatter removed an allowed token, advance over it.
+          if (_isAllowedOptional(unformattedToken)) {
+            advanceUnformatted();
+            continue;
+          }
+
+          // The formatter substituted `unformattedToken` for some other tokens
+          // starting at `formattedToken`.
+          if (_substitutes(unformattedToken, formattedToken) case var num?) {
+            advanceUnformatted();
+            advanceFormatted(num);
+            continue;
+          }
+
+          // The formatter collapsed tokens in `unformattedToken` for a new
+          // `formattedToken`. This is the opposite of the case above.
+          if (_substitutes(formattedToken, unformattedToken) case var num?) {
+            advanceFormatted();
+            advanceUnformatted(num);
+            continue;
+          }
+        }
+
+        // Handle differences allowed when tokens are the same type.
+        if (sameTokenTypes) {
+          // The formatter made a change to the lexeme of a token type we allow.
+          if (allowedLexemeDifferences.contains(unformattedToken.type) &&
+              unformattedToken.lexeme != formattedToken.lexeme) {
             advanceUnformatted();
             advanceFormatted();
             allowAnyContentDifferences = true;
-            continueLoop = true;
+            continue;
           }
         }
+
+        // If we didn't hit any `continue` above to restart the loop, then we
+        // are done.
+        break;
       }
 
       if (unformattedToken.lexeme != formattedToken.lexeme) {
@@ -552,6 +588,41 @@ class _MinimalEditComputer {
       yield token;
       token = token.next!;
     }
+  }
+
+  /// A helper to check whether the token [left] has been substituted in [right]
+  /// and returns the total number of tokens it was subtituted with.
+  ///
+  /// For example, if [left] is a `GT_GT_GT` token and [right] is a sequence
+  /// starting `GT`, `GT, `GT`, returns 3.
+  ///
+  /// Returns `null` if [right] does not begin with an allowed substitution.
+  int? _substitutes(Token left, Token right) {
+    var possibleSubstitutions = allowedSubstitutions[left.type];
+    if (possibleSubstitutions == null) return null;
+
+    // For each possible sequence of substitutes...
+    for (var possibleSubstitution in possibleSubstitutions) {
+      var numSubtitutes = possibleSubstitution.length;
+      var match = true;
+      Token? current = right;
+
+      // Check if the first `possibleSubstitution.length` tokens match the
+      // allowed substitution.
+      for (int i = 0; i < numSubtitutes && match; i++) {
+        if (possibleSubstitution[i] != current?.type) {
+          match = false;
+          break;
+        }
+        current = current?.next;
+      }
+
+      if (match) {
+        return numSubtitutes;
+      }
+    }
+
+    return null;
   }
 
   /// Parse and return the first of the given Dart source, `null` if code cannot

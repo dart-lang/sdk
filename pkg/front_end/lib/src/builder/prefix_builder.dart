@@ -60,7 +60,7 @@ class PrefixBuilder extends BuilderImpl {
 
   /// Lookup a member with [name] in the export scope.
   Builder? lookup(String name, int charOffset, Uri fileUri) {
-    return _exportScope.lookup(name, charOffset, fileUri);
+    return _exportScope.lookupGetable(name, charOffset, fileUri);
   }
 
   void addToExportScope(String name, Builder member, int charOffset) {
