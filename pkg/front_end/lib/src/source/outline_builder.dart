@@ -3706,8 +3706,8 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endTypeVariable");
     TypeBuilder? bound = nullIfParserRecovery(pop()) as TypeBuilder?;
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilderBase>? typeParameters =
-        peek() as List<TypeVariableBuilderBase>?;
+    List<TypeVariableBuilder>? typeParameters =
+        peek() as List<TypeVariableBuilder>?;
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {

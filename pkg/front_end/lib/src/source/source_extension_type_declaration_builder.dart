@@ -404,7 +404,7 @@ class SourceExtensionTypeDeclarationBuilder
             }
           }
         } else if (declaration != null && declaration.typeVariablesCount > 0) {
-          List<TypeVariableBuilderBase>? typeParameters;
+          List<TypeVariableBuilder>? typeParameters;
           switch (declaration) {
             case ClassBuilder():
               typeParameters = declaration.typeVariables;
@@ -418,11 +418,11 @@ class SourceExtensionTypeDeclarationBuilder
             case InvalidTypeDeclarationBuilder():
             case OmittedTypeDeclarationBuilder():
             case ExtensionBuilder():
-            case TypeVariableBuilderBase():
+            case TypeVariableBuilder():
           }
           if (typeParameters != null) {
             for (int i = 0; i < typeParameters.length; i++) {
-              TypeVariableBuilderBase typeParameter = typeParameters[i];
+              TypeVariableBuilder typeParameter = typeParameters[i];
               if (_checkRepresentationDependency(
                   typeParameter.defaultType!,
                   rootExtensionTypeDeclaration,

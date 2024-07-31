@@ -84,7 +84,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       type = new InvalidTypeBuilderImpl(fileUri, charOffset);
     }
     if (typeVariables != null) {
-      for (TypeVariableBuilderBase typeVariable in typeVariables!) {
+      for (TypeVariableBuilder typeVariable in typeVariables!) {
         if (_checkCyclicTypedefDependency(typeVariable.bound, this, {this})) {
           // The bound is erroneous and should be set to [InvalidType].
           typeVariable.parameterBound = new InvalidType();
@@ -148,7 +148,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 return true;
               }
               if (declaration.typeVariables != null) {
-                for (TypeVariableBuilderBase typeVariable
+                for (TypeVariableBuilder typeVariable
                     in declaration.typeVariables!) {
                   if (_checkCyclicTypedefDependency(
                       typeVariable.bound,
@@ -169,7 +169,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             }
           }
         } else if (declaration != null && declaration.typeVariablesCount > 0) {
-          List<TypeVariableBuilderBase>? typeParameters;
+          List<TypeVariableBuilder>? typeParameters;
           switch (declaration) {
             case ClassBuilder():
               typeParameters = declaration.typeVariables;
@@ -183,11 +183,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             case InvalidTypeDeclarationBuilder():
             case OmittedTypeDeclarationBuilder():
             case ExtensionBuilder():
-            case TypeVariableBuilderBase():
+            case TypeVariableBuilder():
           }
           if (typeParameters != null) {
             for (int i = 0; i < typeParameters.length; i++) {
-              TypeVariableBuilderBase typeParameter = typeParameters[i];
+              TypeVariableBuilder typeParameter = typeParameters[i];
               if (_checkCyclicTypedefDependency(typeParameter.defaultType!,
                   rootTypeAliasBuilder, seenTypeAliasBuilders)) {
                 return true;

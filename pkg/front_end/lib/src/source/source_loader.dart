@@ -1877,13 +1877,13 @@ severity: $severity
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List<TypeVariableBuilderBase> sortedTypeVariables =
+    List<TypeVariableBuilder> sortedTypeVariables =
         sortAllTypeVariablesTopologically([
       ...unboundFunctionTypeTypeVariableBuilders.keys,
       ...unboundTypeVariableBuilders.keys
     ]);
 
-    for (TypeVariableBuilderBase builder in sortedTypeVariables) {
+    for (TypeVariableBuilder builder in sortedTypeVariables) {
       switch (builder) {
         case NominalVariableBuilder():
           SourceLibraryBuilder? libraryBuilder =

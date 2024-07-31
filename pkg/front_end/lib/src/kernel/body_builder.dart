@@ -9045,7 +9045,7 @@ class BodyBuilder extends StackListenerImpl
       typeVariableName = createWildcardTypeVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    TypeVariableBuilderBase variable = inFunctionType
+    TypeVariableBuilder variable = inFunctionType
         ? new StructuralVariableBuilder(
             typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
             isWildcard: isWildcard)
@@ -9096,10 +9096,10 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("TypeVariable");
     TypeBuilder? bound = pop() as TypeBuilder?;
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilderBase> typeVariables =
-        peek() as List<TypeVariableBuilderBase>;
+    List<TypeVariableBuilder> typeVariables =
+        peek() as List<TypeVariableBuilder>;
 
-    TypeVariableBuilderBase variable = typeVariables[index];
+    TypeVariableBuilder variable = typeVariables[index];
     variable.bound = bound;
     if (variance != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -9114,8 +9114,8 @@ class BodyBuilder extends StackListenerImpl
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilderBase> typeVariables =
-        peek() as List<TypeVariableBuilderBase>;
+    List<TypeVariableBuilder> typeVariables =
+        peek() as List<TypeVariableBuilder>;
     libraryBuilder.checkTypeVariableDependencies(typeVariables);
 
     List<TypeBuilder> unboundTypes = [];

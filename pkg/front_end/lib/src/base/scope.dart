@@ -328,10 +328,10 @@ class TypeParameterScope with LookupScopeMixin {
   String get classNameOrDebugName => "type parameter";
 
   static LookupScope fromList(
-      LookupScope parent, List<TypeVariableBuilderBase>? typeVariableBuilders) {
+      LookupScope parent, List<TypeVariableBuilder>? typeVariableBuilders) {
     if (typeVariableBuilders == null) return parent;
     Map<String, Builder> map = {};
-    for (TypeVariableBuilderBase typeVariableBuilder in typeVariableBuilders) {
+    for (TypeVariableBuilder typeVariableBuilder in typeVariableBuilders) {
       if (typeVariableBuilder.isWildcard) continue;
       map[typeVariableBuilder.name] = typeVariableBuilder;
     }

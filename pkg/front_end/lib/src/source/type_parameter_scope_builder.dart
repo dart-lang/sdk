@@ -340,12 +340,12 @@ class TypeParameterScopeBuilder {
 
   /// Resolves type variables in [unresolvedNamedTypes] and propagate other
   /// types to [parent].
-  void resolveNamedTypes(List<NominalVariableBuilder>? typeVariables,
+  void resolveNamedTypes(List<TypeVariableBuilder>? typeVariables,
       ProblemReporting problemReporting) {
-    Map<String, NominalVariableBuilder>? map;
+    Map<String, Builder>? map;
     if (typeVariables != null) {
-      map = <String, NominalVariableBuilder>{};
-      for (NominalVariableBuilder builder in typeVariables) {
+      map = <String, Builder>{};
+      for (TypeVariableBuilder builder in typeVariables) {
         if (builder.isWildcard) continue;
         map[builder.name] = builder;
       }
@@ -388,60 +388,7 @@ class TypeParameterScopeBuilder {
     unresolvedNamedTypes.clear();
   }
 
-  /// Resolves type variables in [unresolvedNamedTypes] and propagate other
-  /// types to [parent].
-  void resolveNamedTypesWithStructuralVariables(
-      List<StructuralVariableBuilder>? typeVariables,
-      ProblemReporting problemReporting) {
-    Map<String, StructuralVariableBuilder>? map;
-    if (typeVariables != null) {
-      map = <String, StructuralVariableBuilder>{};
-      for (StructuralVariableBuilder builder in typeVariables) {
-        map[builder.name] = builder;
-      }
-    }
-    LookupScope? lookupScope;
-    for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
-      TypeName typeName = namedTypeBuilder.typeName;
-      String? qualifier = typeName.qualifier;
-      String name = qualifier ?? typeName.name;
-      Builder? declaration;
-      if (members != null) {
-        // Coverage-ignore-block(suite): Not run.
-        declaration = members![name];
-      }
-      if (declaration == null && map != null) {
-        declaration = map[name];
-      }
-      if (declaration == null) {
-        // Since name didn't resolve in this scope, propagate it to the
-        // parent declaration.
-        parent!.registerUnresolvedNamedType(namedTypeBuilder);
-      } else if (qualifier != null) {
-        // Coverage-ignore-block(suite): Not run.
-        // Attempt to use a member or type variable as a prefix.
-        int nameOffset = typeName.fullNameOffset;
-        int nameLength = typeName.fullNameLength;
-        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
-            qualifier, namedTypeBuilder.typeName.name);
-        problemReporting.addProblem(
-            message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
-        namedTypeBuilder.bind(
-            problemReporting,
-            namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
-                message.withLocation(
-                    namedTypeBuilder.fileUri!, nameOffset, nameLength)));
-      } else {
-        lookupScope ??= toLookupScope(typeVariables);
-        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!, problemReporting);
-      }
-    }
-    unresolvedNamedTypes.clear();
-  }
-
-  LookupScope toLookupScope(
-      List<TypeVariableBuilderBase>? typeVariableBuilders) {
+  LookupScope toLookupScope(List<TypeVariableBuilder>? typeVariableBuilders) {
     LookupScope lookupScope = new FixedLookupScope(
         ScopeKind.typeParameters, name,
         getables: members, setables: setters);

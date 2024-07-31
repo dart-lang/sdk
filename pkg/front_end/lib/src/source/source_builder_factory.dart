@@ -2003,8 +2003,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
-        .resolveNamedTypesWithStructuralVariables(
-            structuralVariableBuilders, _problemReporting);
+        .resolveNamedTypes(structuralVariableBuilders, _problemReporting);
     return builder;
   }
 
