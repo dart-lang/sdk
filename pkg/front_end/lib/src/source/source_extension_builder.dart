@@ -34,6 +34,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   MergedClassMemberScope? _mergedScope;
 
+  final NameSpaceBuilder _nameSpaceBuilder;
+
   late final LookupScope _scope;
 
   late final NameSpace _nameSpace;
@@ -59,7 +61,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       this.typeParameters,
       this.onType,
       this.typeParameterScope,
-      NameSpaceBuilder nameSpaceBuilder,
+      this._nameSpaceBuilder,
       SourceLibraryBuilder parent,
       int startOffset,
       int nameOffset,
@@ -76,11 +78,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         constructorScope = new ConstructorScope(extensionName.name, const {}),
         super(metadata, modifiers, extensionName.name, parent, nameOffset) {
     extensionName.attachExtension(_extension);
-
-    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
-    _scope = new NameSpaceLookupScope(
-        nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
-        parent: typeParameterScope);
   }
 
   @override
@@ -88,6 +85,14 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   @override
   NameSpace get nameSpace => _nameSpace;
+
+  @override
+  void buildScopes(LibraryBuilder coreLibrary) {
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(this);
+    _scope = new NameSpaceLookupScope(
+        nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
+        parent: typeParameterScope);
+  }
 
   @override
   SourceLibraryBuilder get libraryBuilder =>

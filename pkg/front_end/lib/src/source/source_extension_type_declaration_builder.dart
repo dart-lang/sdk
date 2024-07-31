@@ -57,6 +57,8 @@ class SourceExtensionTypeDeclarationBuilder
 
   MergedClassMemberScope? _mergedScope;
 
+  final NameSpaceBuilder _nameSpaceBuilder;
+
   late final LookupScope _scope;
 
   late final NameSpace _nameSpace;
@@ -84,7 +86,7 @@ class SourceExtensionTypeDeclarationBuilder
       this.typeParameters,
       this.interfaceBuilders,
       this.typeParameterScope,
-      NameSpaceBuilder nameSpaceBuilder,
+      this._nameSpaceBuilder,
       this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
@@ -100,18 +102,21 @@ class SourceExtensionTypeDeclarationBuilder
                 typeParameters),
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset) {
-    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
-    _scope = new NameSpaceLookupScope(
-        nameSpace, ScopeKind.declaration, "extension type $name",
-        parent: typeParameterScope);
-  }
+        super(metadata, modifiers, name, parent, nameOffset) {}
 
   @override
   LookupScope get scope => _scope;
 
   @override
   NameSpace get nameSpace => _nameSpace;
+
+  @override
+  void buildScopes(LibraryBuilder coreLibrary) {
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(this);
+    _scope = new NameSpaceLookupScope(
+        nameSpace, ScopeKind.declaration, "extension type $name",
+        parent: typeParameterScope);
+  }
 
   @override
   SourceLibraryBuilder get libraryBuilder =>

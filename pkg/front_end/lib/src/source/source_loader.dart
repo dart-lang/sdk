@@ -1381,6 +1381,7 @@ severity: $severity
         /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
+        libraryBuilder.fileUri,
         /* start char offset = */ 0,
         /* char offset = */ 0,
         /* open paren offset = */ -1,
@@ -1473,7 +1474,6 @@ severity: $severity
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
       _compilationUnits.remove(augmentationLibrary.fileUri);
       augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
-      augmentationLibrary.applyAugmentations();
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
@@ -1507,6 +1507,13 @@ severity: $severity
                 .join(', ') +
             ".");
     ticker.logMs("Applied augmentations");
+  }
+
+  void buildScopes(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
+    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
+      sourceLibraryBuilder.buildScopes(coreLibrary);
+    }
+    ticker.logMs("Resolved scopes");
   }
 
   /// Compute library scopes for [libraryBuilders].

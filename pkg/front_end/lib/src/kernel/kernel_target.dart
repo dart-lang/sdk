@@ -358,6 +358,11 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_buildScopes);
+      loader.buildScopes(loader.sourceLibraryBuilders);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
       NeededPrecompilations? result =
           context.options.globalFeatures.macros.isEnabled
@@ -383,6 +388,9 @@ class KernelTarget {
       // we instead apply them directly here.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.compilationUnit.createLibrary();
+      }
+      loader.buildScopes(augmentationLibraries);
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.applyAugmentations();
       }
       loader.computeLibraryScopes(augmentationLibraries);
@@ -996,7 +1004,7 @@ class KernelTarget {
       if (proc.isFactory) return;
     }
 
-    IndexedContainer? indexedClass = builder.indexedContainer;
+    IndexedContainer? indexedClass = builder.indexedClass;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -1054,7 +1062,7 @@ class KernelTarget {
       installForwardingConstructors(supertype);
     }
 
-    IndexedContainer? indexedClass = builder.indexedContainer;
+    IndexedContainer? indexedClass = builder.indexedClass;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {

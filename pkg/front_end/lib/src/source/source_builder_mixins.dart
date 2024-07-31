@@ -28,7 +28,12 @@ import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 
-mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
+abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
+  void buildScopes(LibraryBuilder coreLibrary);
+}
+
+mixin SourceDeclarationBuilderMixin
+    implements DeclarationBuilderMixin, SourceDeclarationBuilder {
   @override
   SourceLibraryBuilder get libraryBuilder;
 

@@ -160,8 +160,9 @@ enum BenchmarkPhases {
   dill_finalizeExports,
 
   outline_kernelBuildOutlines,
-  outline_becomeCoreLibrary,
   outline_resolveParts,
+  outline_becomeCoreLibrary,
+  outline_buildScopes,
   outline_computeMacroDeclarations,
   outline_computeLibraryScopes,
   outline_computeMacroApplications,

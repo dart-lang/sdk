@@ -78,6 +78,7 @@ import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'outline_builder.dart';
 import 'source_builder_factory.dart';
+import 'source_builder_mixins.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_extension_builder.dart';
@@ -745,6 +746,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           unhandled(
               'member', 'exportScope', builder.charOffset, builder.fileUri);
         }
+      }
+    }
+  }
+
+  void buildScopes(LibraryBuilder coreLibrary) {
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.buildScopes(coreLibrary);
+      }
+    }
+
+    Iterator<Builder> iterator = localMembersIterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      if (builder is SourceDeclarationBuilder) {
+        builder.buildScopes(coreLibrary);
+      }
+    }
+
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.applyAugmentations();
       }
     }
   }

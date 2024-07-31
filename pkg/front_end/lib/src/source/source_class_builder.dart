@@ -9,7 +9,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show equalsName;
-import 'package:kernel/reference_from_index.dart' show IndexedContainer;
+import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart'
@@ -56,16 +56,15 @@ import 'source_member_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 Class initializeClass(
-    Class? cls,
     List<NominalVariableBuilder>? typeVariables,
     String name,
     SourceLibraryBuilder parent,
     int startCharOffset,
     int charOffset,
     int charEndOffset,
-    IndexedContainer? referencesFrom,
+    IndexedClass? indexedClass,
     {required bool isAugmentation}) {
-  cls ??= new Class(
+  Class cls = new Class(
       name: name,
       typeParameters:
           NominalVariableBuilder.typeParametersFromBuilders(typeVariables),
@@ -73,7 +72,7 @@ Class initializeClass(
       // from index even when available.
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
       // that we end up creating unneeded nodes.
-      reference: isAugmentation ? null : referencesFrom?.reference,
+      reference: isAugmentation ? null : indexedClass?.reference,
       fileUri: parent.fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -90,8 +89,13 @@ Class initializeClass(
 
 class SourceClassBuilder extends ClassBuilderImpl
     with ClassDeclarationMixin, SourceTypedDeclarationBuilderMixin
-    implements Comparable<SourceClassBuilder>, ClassDeclaration {
+    implements
+        Comparable<SourceClassBuilder>,
+        ClassDeclaration,
+        SourceDeclarationBuilder {
   final Class actualCls;
+
+  final NameSpaceBuilder nameSpaceBuilder;
 
   late final LookupScope _scope;
 
@@ -121,7 +125,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? mixedInTypeBuilder;
 
-  final IndexedContainer? indexedContainer;
+  final IndexedClass? indexedClass;
 
   @override
   final bool isMacro;
@@ -176,16 +180,15 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       this.typeParameterScope,
-      NameSpaceBuilder nameSpaceBuilder,
+      this.nameSpaceBuilder,
       this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
-      this.indexedContainer,
-      {Class? cls,
-      this.mixedInTypeBuilder,
+      this.indexedClass,
+      {this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
       this.isMacro = false,
       this.isSealed = false,
@@ -194,16 +197,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isFinal = false,
       bool isAugmentation = false,
       this.isMixinClass = false})
-      : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset, indexedContainer,
+      : actualCls = initializeClass(typeVariables, name, parent,
+            startCharOffset, nameOffset, charEndOffset, indexedClass,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
         super(metadata, modifiers, name, parent, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
-    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
-    _scope = new NameSpaceLookupScope(
-        nameSpace, ScopeKind.declaration, "class $name",
-        parent: typeParameterScope);
   }
 
   @override
@@ -211,6 +210,14 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   NameSpace get nameSpace => _nameSpace;
+
+  @override
+  void buildScopes(LibraryBuilder coreLibrary) {
+    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
+    _scope = new NameSpaceLookupScope(
+        nameSpace, ScopeKind.declaration, "class $name",
+        parent: typeParameterScope);
+  }
 
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ?
