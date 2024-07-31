@@ -107,12 +107,12 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
       typeParameters.length,
       (i) => new TypeParameter(typeParameters[i].name)
         ..flags = typeParameters[i].flags,
-      growable: true);
+      growable: false);
   List<DartType> freshTypeArguments =
       new List<DartType>.generate(typeParameters.length, (int i) {
     return new TypeParameterType.forAlphaRenaming(
         typeParameters[i], freshParameters[i]);
-  }, growable: true);
+  }, growable: false);
   Substitution substitution =
       Substitution.fromPairs(typeParameters, freshTypeArguments);
   for (int i = 0; i < typeParameters.length; ++i) {
@@ -165,16 +165,22 @@ FreshStructuralParametersFromTypeParameters
             ..flags = typeParameters[i].flags
             ..uri = typeParameters[i].location?.file
             ..fileOffset = typeParameters[i].fileOffset,
-          growable: true);
+          growable: false);
   List<StructuralParameterType> freshTypeArguments =
       new List<StructuralParameterType>.generate(
           typeParameters.length,
           (int i) =>
               new StructuralParameterType.forAlphaRenamingFromTypeParameters(
                   typeParameters[i], freshParameters[i]),
-          growable: true);
-  Substitution substitution = Substitution.fromMap(
-      new Map.fromIterables(typeParameters, freshTypeArguments));
+          growable: false);
+  Substitution substitution;
+  if (typeParameters.length == 1) {
+    substitution =
+        Substitution.fromSingleton(typeParameters[0], freshTypeArguments[0]);
+  } else {
+    substitution = Substitution.fromMap(
+        new Map.fromIterables(typeParameters, freshTypeArguments));
+  }
   for (int i = 0; i < typeParameters.length; ++i) {
     TypeParameter typeParameter = typeParameters[i];
     StructuralParameter freshTypeParameter = freshParameters[i];
@@ -224,12 +230,12 @@ FreshTypeParametersFromStructuralParameters
       typeParameters.length,
       (i) => new TypeParameter(typeParameters[i].name)
         ..flags = typeParameters[i].flags,
-      growable: true);
+      growable: false);
   List<DartType> freshTypeArguments =
       new List<DartType>.generate(typeParameters.length, (int i) {
     return new TypeParameterType.forAlphaRenamingFromStructuralParameters(
         typeParameters[i], freshParameters[i]);
-  }, growable: true);
+  }, growable: false);
   FunctionTypeInstantiator instantiator =
       FunctionTypeInstantiator.fromIterables(
           typeParameters, freshTypeArguments);
@@ -275,12 +281,12 @@ FreshStructuralParameters? getFreshStructuralParametersSubstitutingBounds(
           typeParameters.length,
           (i) => new StructuralParameter(typeParameters[i].name)
             ..flags = typeParameters[i].flags,
-          growable: true);
+          growable: false);
   List<DartType> freshTypeArguments = new List<DartType>.generate(
       typeParameters.length,
       (int i) => new StructuralParameterType.forAlphaRenaming(
           typeParameters[i], freshParameters[i]),
-      growable: true);
+      growable: false);
   FunctionTypeInstantiator instantiator =
       FunctionTypeInstantiator.fromIterables(
           typeParameters, freshTypeArguments);
@@ -339,12 +345,12 @@ FreshStructuralParameters getFreshStructuralParametersReusingBounds(
             ..variance = typeParameters[i].isLegacyCovariant
                 ? null
                 : typeParameters[i].variance,
-          growable: true);
+          growable: false);
   List<DartType> freshTypeArguments = new List<DartType>.generate(
       typeParameters.length,
       (int i) => new StructuralParameterType.forAlphaRenaming(
           typeParameters[i], freshParameters[i]),
-      growable: true);
+      growable: false);
   FunctionTypeInstantiator instantiator =
       FunctionTypeInstantiator.fromIterables(
           typeParameters, freshTypeArguments);
@@ -406,6 +412,12 @@ abstract class Substitution {
     return new _MapSubstitution(map, map);
   }
 
+  /// Substitutes the [typeParameter] to the [type].
+  static Substitution fromSingleton(
+      TypeParameter typeParameter, DartType type) {
+    return new _SingletonSubstitution(typeParameter, type);
+  }
+
   /// Substitutes all occurrences of the given type parameters with the
   /// corresponding upper or lower bound, depending on the variance of the
   /// context where it occurs.
@@ -434,6 +446,10 @@ abstract class Substitution {
   /// of [type] with the type arguments provided in [type].
   static Substitution fromTypeDeclarationType(TypeDeclarationType type) {
     if (type.typeArguments.isEmpty) return _NullSubstitution.instance;
+    if (type.typeArguments.length == 1) {
+      return fromSingleton(
+          type.typeDeclaration.typeParameters[0], type.typeArguments[0]);
+    }
     return fromMap(new Map<TypeParameter, DartType>.fromIterables(
         type.typeDeclaration.typeParameters, type.typeArguments));
   }
@@ -442,6 +458,10 @@ abstract class Substitution {
   /// type arguments provided in [type].
   static Substitution fromInterfaceType(InterfaceType type) {
     if (type.typeArguments.isEmpty) return _NullSubstitution.instance;
+    if (type.typeArguments.length == 1) {
+      return fromSingleton(
+          type.classNode.typeParameters[0], type.typeArguments[0]);
+    }
     return fromMap(new Map<TypeParameter, DartType>.fromIterables(
         type.classNode.typeParameters, type.typeArguments));
   }
@@ -470,6 +490,7 @@ abstract class Substitution {
     // substitution based on parallel pairwise lists instead of Maps.
     assert(parameters.length == types.length);
     if (parameters.isEmpty) return _NullSubstitution.instance;
+    if (parameters.length == 1) return fromSingleton(parameters[0], types[0]);
     return fromMap(
         new Map<TypeParameter, DartType>.fromIterables(parameters, types));
   }
@@ -638,6 +659,21 @@ class _MapSubstitution extends Substitution {
 
   @override
   String toString() => "_MapSubstitution($upper, $lower)";
+}
+
+class _SingletonSubstitution extends Substitution {
+  final TypeParameter typeParameter;
+  final DartType type;
+
+  _SingletonSubstitution(this.typeParameter, this.type);
+
+  @override
+  DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
+    return (parameter == typeParameter) ? type : null;
+  }
+
+  @override
+  String toString() => "_SingletonSubstitution($typeParameter, $type)";
 }
 
 class _TopSubstitutor extends _TypeSubstitutor {
