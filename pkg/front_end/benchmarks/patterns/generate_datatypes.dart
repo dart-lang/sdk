@@ -44,7 +44,7 @@ void generateDataTypeTests(Uri dataFolder) {
   Uri fileUri = dataFolder.resolve('${dataTypeOutputPrefix}.dart');
   StringBuffer sb = new StringBuffer();
   sb.writeln('''
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -70,7 +70,8 @@ List<Test> tests = [''');
       createData$size, 
       {dynamicDispatchStrategy: incByDynamicDispatch$size, 
        ifThenElseStrategy: incByIfThenElseDispatch$size,
-       visitorStrategy: incByVisitorDispatch$size}),
+       visitorStrategy: incByVisitorDispatch$size,
+       patternStrategy: incByPatternDispatch$size}),
 ''');
   }
 
@@ -86,7 +87,7 @@ void generateDataTypeHierarchy(Uri dataFolder, int size) {
   Uri fileUri = dataFolder.resolve('${dataTypeOutputPrefix}${size}.dart');
   StringBuffer sb = new StringBuffer();
   sb.writeln('''
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -118,7 +119,11 @@ class Sub$i extends Base$size {
   void visitorDispatch$i(Counter counter) {
     counter.inc();
   }
-  
+
+  void patternDispatch$i(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor$size<R, A> visitor, A arg) {
     return visitor.visitSub$i(this, arg);
@@ -167,6 +172,20 @@ const Visitor$size<void, Counter> visitor = CounterVisitor$size();
 
 void incByVisitorDispatch$size(Base$size base, Counter counter) {
   base.accept(visitor, counter);
+}
+''');
+
+  sb.writeln('''
+void incByPatternDispatch$size(Base$size base, Counter counter) {
+  switch (base) {''');
+  for (int i = 0; i < size; i++) {
+    sb.writeln('''
+    case Sub$i():
+      base.patternDispatch$i(counter);
+''');
+  }
+  sb.writeln('''
+  }
 }
 ''');
 

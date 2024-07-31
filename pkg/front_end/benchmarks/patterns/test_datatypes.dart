@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.14
-
 import 'generated/datatype.dart';
 import 'util.dart';
 
@@ -20,29 +18,38 @@ class Counter {
   }
 }
 
-const Strategy ifThenElseStrategy = Strategy('if-then-else', '''
+const Strategy ifThenElseStrategy =
+    Strategy('ifThenElseStrategy', 'if-then-else', '''
 Implements functionality in helper method. Invocation is done by an if-then-else
 sequence that uses is-tests to match functionality with subclasses.''');
 
-const Strategy dynamicDispatchStrategy = Strategy('dynamic-dispatch', '''
+const Strategy dynamicDispatchStrategy =
+    Strategy('dynamicDispatchStrategy', 'dynamic-dispatch', '''
 Implements functionality by adding a method to each subclass that implements an
 interface method. Invocation is done as a dynamic dispatch on the interface 
 method.''');
 
-const Strategy visitorStrategy = Strategy('visitor', '''
-Implements functionality in helper method. Invocation is done by an if-then-else
-sequence that uses is-tests to match functionality with subclasses.''');
+const Strategy visitorStrategy = Strategy('visitorStrategy', 'visitor', '''
+Implements functionality in a visitor. Invocation is done by invocation an
+accept method on the object which in turn calls the corresponding visit method
+on the visitor.''');
 
-const Scenario increasingScenario = Scenario('increasing', '''
+const Strategy patternStrategy =
+    Strategy('patternStrategy', 'pattern-matching', '''
+Implements functionality in helper method. Invocation is done by a pattern
+matching on the subclasses to match functionality with subclasses.''');
+
+const Scenario increasingScenario =
+    Scenario('increasingScenario', 'increasing', '''
 Implementation is called equally between all subclasses.''');
 // TODO(johnniwinther): Should Zipf's Law be used for 'first' and 'last'
 //  scenarios?
-const Scenario firstScenario = Scenario('first', '''
+const Scenario firstScenario = Scenario('firstScenario', 'first', '''
 Implementation is only called for the first two subclasses. For the 
 'if-then-else' strategy, this mimics when the order of the subclasses in the 
 if-then-else sequence aligns with the frequency of use, always finding a
 matching case early in the if-then-else sequence.''');
-const Scenario lastScenario = Scenario('last', '''
+const Scenario lastScenario = Scenario('lastScenario', 'last', '''
 Implementation is only called for the last two subclasses. For the 
 'if-then-else' strategy, this mimics when the order of the subclasses in the 
 if-then-else sequence *mis-aligns* with the frequency of use, always finding a
@@ -125,11 +132,16 @@ void main() {
         registry: registry, runs: 10, iterations: 100000, scenarios: scenarios);
   }
   SeriesSet seriesSet = registry.generateSeriesSet();
-  print('== Raw data ==');
+  print(seriesSet.toDartCode());
+  printSeriesSet(seriesSet);
+}
+
+void printSeriesSet(SeriesSet seriesSet) {
+  print('== Raw data (${seriesSet.name}) ==');
   for (Scenario scenario in scenarios.keys) {
-    print(seriesSet.getFullSpreadByScenario(scenario));
+    print(seriesSet.getFullSpreadByScenarioTable(scenario));
   }
-  print('== Reduced averages ==');
+  print('== Reduced averages (${seriesSet.name}) ==');
   SeriesSet reducedSeriesSet = seriesSet.filter((list) => removeMax(list, 3));
   for (Scenario scenario in scenarios.keys) {
     print(reducedSeriesSet.getAveragedSpreadByScenario(scenario));

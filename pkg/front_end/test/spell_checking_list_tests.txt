@@ -176,6 +176,7 @@ confident
 confirm
 consecutive
 considering
+constantly
 constr
 constrains
 consts
@@ -424,6 +425,7 @@ inaccessible
 inclosure
 inconsistencies
 increasing
+increasingly
 incrementally
 increments
 indention
@@ -884,6 +886,7 @@ wording
 workers
 workflow
 worlds
+worse
 wrongly
 ws
 x's
