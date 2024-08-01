@@ -162,6 +162,8 @@ import 'prefer_asserts_in_initializer_lists_test.dart'
     as prefer_asserts_in_initializer_lists;
 import 'prefer_asserts_with_message_test.dart' as prefer_asserts_with_message;
 import 'prefer_collection_literals_test.dart' as prefer_collection_literals;
+import 'prefer_conditional_assignment_test.dart'
+    as prefer_conditional_assignment;
 import 'prefer_const_constructors_in_immutables_test.dart'
     as prefer_const_constructors_in_immutables;
 import 'prefer_const_constructors_test.dart' as prefer_const_constructors;
@@ -408,6 +410,7 @@ void main() {
   prefer_asserts_in_initializer_lists.main();
   prefer_asserts_with_message.main();
   prefer_collection_literals.main();
+  prefer_conditional_assignment.main();
   prefer_const_constructors_in_immutables.main();
   prefer_const_constructors.main();
   prefer_const_declarations.main();
