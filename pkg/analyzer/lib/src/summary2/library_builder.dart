@@ -1097,15 +1097,13 @@ class LibraryBuilder with MacroApplicationsContainer {
       }).toFixedList();
     }
 
-    if (containerLibrary is LibraryElementImpl) {
-      containerLibrary.parts = kind.partIncludes.map((partState) {
-        return _buildPartInclude(
-          containerLibrary: containerLibrary,
-          containerUnit: containerUnit,
-          state: partState,
-        );
-      }).toFixedList();
-    }
+    containerUnit.parts = kind.partIncludes.map((partState) {
+      return _buildPartInclude(
+        containerLibrary: element,
+        containerUnit: containerUnit,
+        state: partState,
+      );
+    }).toFixedList();
   }
 
   LibraryExportElementImpl _buildLibraryExport(LibraryExportState state) {

@@ -15045,6 +15045,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     classes
       class C @34
         reference: <testLibraryFragment>::@class::C
@@ -15065,7 +15067,8 @@ library
             enclosingElement: <testLibraryFragment>::@class::C
             returnType: double
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -21740,8 +21743,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -39535,8 +39541,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -46690,12 +46699,17 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
+      part_1
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
-    package:test/b.dart
+    part_1
+      uri: package:test/b.dart
       reference: <testLibrary>::@fragment::package:test/b.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -46712,8 +46726,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    noRelativeUriString
+    part_0
+      uri: noRelativeUriString
 ''');
   }
 
@@ -46735,6 +46752,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     classes
       class A @37
         reference: <testLibraryFragment>::@class::A
@@ -46744,7 +46763,8 @@ library
             reference: <testLibraryFragment>::@class::A::@constructor::new
             enclosingElement: <testLibraryFragment>::@class::A
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -46774,6 +46794,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     classes
       class A @21
         reference: <testLibraryFragment>::@class::A
@@ -46783,7 +46805,8 @@ library
             reference: <testLibraryFragment>::@class::A::@constructor::new
             enclosingElement: <testLibraryFragment>::@class::A
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -46808,8 +46831,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    relativeUri 'foo:bar'
+    part_0
+      uri: relativeUri 'foo:bar'
 ''');
   }
 
@@ -46823,8 +46849,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    source 'package:test/test.dart'
+    part_0
+      uri: source 'package:test/test.dart'
 ''');
   }
 
@@ -46839,8 +46868,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    source 'package:test/a.dart'
+    part_0
+      uri: source 'package:test/a.dart'
 ''');
   }
 
@@ -46854,8 +46886,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    source 'package:test/a.dart'
+    part_0
+      uri: source 'package:test/a.dart'
 ''');
   }
 
@@ -46869,8 +46904,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    relativeUriString ':'
+    part_0
+      uri: relativeUriString ':'
 ''');
   }
 
@@ -46909,8 +46947,11 @@ library
       dart:io
         enclosingElement: <testLibrary>
         enclosingElement3: <testLibraryFragment>
+    parts
+      part_0
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -46946,8 +46987,11 @@ library
       dart:io
         enclosingElement: <testLibrary>
         enclosingElement3: <testLibraryFragment>
+    parts
+      part_0
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -46975,8 +47019,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -52463,6 +52510,9 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
+      part_1
     topLevelVariables
       static const foo @65
         reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -52479,7 +52529,8 @@ library
         enclosingElement: <testLibraryFragment>
         returnType: int
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       metadata
         Annotation
           atSign: @ @17
@@ -52491,7 +52542,8 @@ library
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
-    package:test/b.dart
+    part_1
+      uri: package:test/b.dart
       metadata
         Annotation
           atSign: @ @38
@@ -52776,6 +52828,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     topLevelVariables
       static const a @37
         reference: <testLibraryFragment>::@topLevelVariable::a
@@ -52792,7 +52846,8 @@ library
         enclosingElement: <testLibraryFragment>
         returnType: dynamic
   parts
-    package:test/foo.dart
+    part_0
+      uri: package:test/foo.dart
       metadata
         Annotation
           atSign: @ @11
@@ -60269,6 +60324,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     topLevelVariables
       static c @28
         reference: <testLibraryFragment>::@topLevelVariable::c
@@ -60320,7 +60377,8 @@ library
               alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
         returnType: void
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -60403,6 +60461,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     classes
       class C @32
         reference: <testLibraryFragment>::@class::C
@@ -60468,7 +60528,8 @@ library
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -60539,8 +60600,12 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
+      part_1
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -60608,7 +60673,8 @@ library
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
-    package:test/b.dart
+    part_1
+      uri: package:test/b.dart
       reference: <testLibrary>::@fragment::package:test/b.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -60677,8 +60743,11 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -65652,6 +65721,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     topLevelVariables
       synthetic static x @-1
         reference: <testLibraryFragment>::@topLevelVariable::x
@@ -65663,7 +65734,8 @@ library
         enclosingElement: <testLibraryFragment>
         returnType: int
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -65701,6 +65773,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     topLevelVariables
       synthetic static x @-1
         reference: <testLibraryFragment>::@topLevelVariable::x
@@ -65715,7 +65789,8 @@ library
             type: int
         returnType: void
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -65746,8 +65821,12 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
+      part_1
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -65761,7 +65840,8 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::x
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
-    package:test/b.dart
+    part_1
+      uri: package:test/b.dart
       reference: <testLibrary>::@fragment::package:test/b.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -66168,6 +66248,8 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
     topLevelVariables
       static final b @34
         reference: <testLibraryFragment>::@topLevelVariable::b
@@ -66180,7 +66262,8 @@ library
         enclosingElement: <testLibraryFragment>
         returnType: double
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -66267,8 +66350,12 @@ library
   definingUnit
     reference: <testLibraryFragment>
     enclosingElement: <testLibrary>
+    parts
+      part_0
+      part_1
   parts
-    package:test/a.dart
+    part_0
+      uri: package:test/a.dart
       reference: <testLibrary>::@fragment::package:test/a.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
@@ -66285,7 +66372,8 @@ library
             requiredPositional _ @31
               type: int
           returnType: void
-    package:test/b.dart
+    part_1
+      uri: package:test/b.dart
       reference: <testLibrary>::@fragment::package:test/b.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>

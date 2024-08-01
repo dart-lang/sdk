@@ -740,13 +740,6 @@ class LibraryReader {
       unitSource: librarySource,
     );
 
-    libraryElement.parts = _reader.readTypedList(() {
-      return _readPartElement(
-          libraryElement: libraryElement,
-          containerLibrary: libraryElement,
-          containerUnit: libraryElement.definingCompilationUnit);
-    });
-
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     _readLibraryOrAugmentationElement(
       libraryElement: libraryElement,
@@ -1868,6 +1861,14 @@ class LibraryReader {
       return _readExportElement(
         libraryElement: libraryElement,
         containerLibrary: containerLibrary,
+        containerUnit: unitElement,
+      );
+    });
+
+    unitElement.parts = _reader.readTypedList(() {
+      return _readPartElement(
+        libraryElement: libraryElement,
+        containerLibrary: libraryElement,
         containerUnit: unitElement,
       );
     });

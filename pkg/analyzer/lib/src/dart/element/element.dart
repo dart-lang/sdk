@@ -1044,12 +1044,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   set parts(List<PartElementImpl> parts) {
     for (var part in parts) {
       part.enclosingElement3 = this;
-      part.enclosingElement = this;
+      part.enclosingElement = library;
       var uri = part.uri;
       if (uri is DirectiveUriWithUnitImpl) {
-        uri.unit.libraryOrAugmentationElement = libraryOrAugmentationElement;
+        uri.unit.libraryOrAugmentationElement = library;
         uri.unit.enclosingElement3 = this;
-        uri.unit.enclosingElement = this;
+        uri.unit.enclosingElement = library;
       }
     }
     _parts = parts;
@@ -4474,9 +4474,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// an entry point.
   FunctionElement? _entryPoint;
 
-  /// The list of `part` directives of this library.
-  List<PartElementImpl> _parts = const <PartElementImpl>[];
-
   /// The element representing the synthetic function `loadLibrary` that is
   /// defined for this library, or `null` if the element has not yet been
   /// created.
@@ -4805,20 +4802,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   String get name => super.name!;
 
   @override
-  List<PartElementImpl> get parts => _parts;
-
-  set parts(List<PartElementImpl> parts) {
-    for (var part in parts) {
-      part.enclosingElement3 = this;
-      part.enclosingElement = this;
-      var uri = part.uri;
-      if (uri is DirectiveUriWithUnitImpl) {
-        uri.unit.libraryOrAugmentationElement = this;
-        uri.unit.enclosingElement3 = this;
-        uri.unit.enclosingElement = this;
-      }
-    }
-    _parts = parts;
+  List<PartElementImpl> get parts {
+    return definingCompilationUnit.parts;
   }
 
   @override
