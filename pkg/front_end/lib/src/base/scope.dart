@@ -26,7 +26,6 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
-import '../util/helpers.dart' show DelayedActionPerformer;
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -773,9 +772,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   ProcedureKind? get kind => null;
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     throw new UnsupportedError('$runtimeType.buildOutlineExpressions');
   }

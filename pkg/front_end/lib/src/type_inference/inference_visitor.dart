@@ -1415,15 +1415,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isConst: node.isConst,
         staticTarget: node.target);
     node.hasBeenInferred = true;
-    Expression resultNode = node;
     SourceLibraryBuilder library = libraryBuilder;
     if (!hadExplicitTypeArguments) {
       library.checkBoundsInFactoryInvocation(
           node, typeSchemaEnvironment, helper.uri,
           inferred: true);
     }
-    return new ExpressionInferenceResult(
-        result.inferredType, result.applyResult(resultNode));
+    Expression resolvedExpression = helper.resolveRedirectingFactoryTarget(
+        node.target, node.arguments, node.fileOffset, node.isConst)!;
+    Expression resultExpression = result.applyResult(resolvedExpression);
+
+    return new ExpressionInferenceResult(result.inferredType, resultExpression);
   }
 
   /// Returns the function type of [constructor] when called through [typedef].
@@ -1481,10 +1483,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isConst: node.isConst,
         staticTarget: node.target);
     node.hasBeenInferred = true;
-    Expression resultNode = node;
+
+    Expression resolvedExpression =
+        helper.unaliasSingleTypeAliasedConstructorInvocation(node);
+    Expression resultingExpression = result.applyResult(resolvedExpression);
 
     return new ExpressionInferenceResult(
-        result.inferredType, result.applyResult(resultNode));
+        result.inferredType, resultingExpression);
   }
 
   /// Returns the function type of [factory] when called through [typedef].
@@ -1547,10 +1552,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.arguments as ArgumentsImpl,
         isConst: node.isConst,
         staticTarget: node.target);
+
+    Expression resolvedExpression =
+        helper.unaliasSingleTypeAliasedFactoryInvocation(node)!;
+    Expression resultExpression = result.applyResult(resolvedExpression);
+
     node.hasBeenInferred = true;
-    Expression resultNode = node;
-    return new ExpressionInferenceResult(
-        result.inferredType, result.applyResult(resultNode));
+    return new ExpressionInferenceResult(result.inferredType, resultExpression);
   }
 
   @override

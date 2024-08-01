@@ -563,18 +563,74 @@ class CatchVariables {
   CatchVariables._(this.exception, this.stackTrace);
 }
 
+abstract class StateMachineEntryCodeGenerator extends CodeGenerator {
+  final w.FunctionBuilder function;
+
+  StateMachineEntryCodeGenerator(
+      Translator translator, this.function, Reference reference)
+      : super(translator, function.type, function.body, reference,
+            paramLocals: function.locals.toList());
+
+  @override
+  void generate() {
+    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
+    closures = Closures(translator, member);
+    setSourceMapSource(source);
+    setSourceMapFileOffset(member.fileOffset);
+    setupParametersAndContexts(member.reference);
+    _generateBody(member.function!, source);
+  }
+
+  @override
+  void generateLambda(Lambda lambda, Closures closures) {
+    final source = lambda.functionNodeSource;
+    this.closures = closures;
+    setSourceMapSource(source);
+    setSourceMapFileOffset(lambda.functionNode.fileOffset);
+    setupLambdaParametersAndContexts(lambda);
+    _generateBody(lambda.functionNode, source);
+  }
+
+  void _generateBody(FunctionNode functionNode, Source functionSource) {
+    Context? context = closures.contexts[functionNode];
+    if (context != null && context.isEmpty) context = context.parent;
+
+    generateOuter(functionNode, context, functionSource);
+  }
+
+  /// Generate the outer function.
+  ///
+  /// - Outer function: the `async` or `sync*` function.
+  ///
+  ///   In case of `async` this function should return a future.
+  ///
+  ///   In case of `sync*`, this function should return an iterable.
+  ///
+  void generateOuter(
+      FunctionNode functionNode, Context? context, Source functionSource);
+}
+
 /// A [CodeGenerator] that compiles the function to a state machine based on
 /// the suspension points in the function (`await` expressions and `yield`
 /// statements).
 ///
 /// This is used to compile `async` and `sync*` functions.
 abstract class StateMachineCodeGenerator extends CodeGenerator {
-  w.FunctionBuilder function;
+  final w.FunctionBuilder function;
+  final FunctionNode functionNode;
+  final Source functionSource;
 
   StateMachineCodeGenerator(
-      Translator translator, this.function, Reference reference)
+      Translator translator,
+      this.function,
+      Reference reference,
+      this.functionNode,
+      this.functionSource,
+      Closures closures)
       : super(translator, function.type, function.body, reference,
-            paramLocals: function.locals.toList());
+            paramLocals: function.locals.toList()) {
+    this.closures = closures;
+  }
 
   /// Targets of the CFG, indexed by target index.
   late final List<StateTarget> targets;
@@ -612,23 +668,9 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
 
   @override
   void generate() {
-    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
-    setSourceMapSource(source);
-    setSourceMapFileOffset(member.fileOffset);
-    closures = Closures(translator, member);
-    setupParametersAndContexts(member.reference);
-    _generateBodies(member.function!);
-  }
+    setSourceMapSource(functionSource);
+    setSourceMapFileOffset(functionNode.fileOffset);
 
-  @override
-  void generateLambda(Lambda lambda, Closures closures) {
-    this.closures = closures;
-    setSourceMapSource(lambda.functionNodeSource);
-    setupLambdaParametersAndContexts(lambda);
-    _generateBodies(lambda.functionNode);
-  }
-
-  void _generateBodies(FunctionNode functionNode) {
     // Number and categorize CFG targets.
     targets = _YieldFinder(translator.options.enableAsserts).find(functionNode);
     for (final target in targets) {
@@ -647,7 +689,14 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
     Context? context = closures.contexts[functionNode];
     if (context != null && context.isEmpty) context = context.parent;
 
-    generateFunctions(functionNode, context);
+    generateInner(functionNode, context);
+  }
+
+  @override
+  void generateLambda(Lambda lambda, Closures closures) {
+    // This is only invoked for the actual async/async*/sync* code generator and
+    // not for the (inner) state machine code generator.
+    throw UnsupportedError('This should not be reachable');
   }
 
   /// Store the exception value emitted by [emitValue] in suspension state.
@@ -679,23 +728,10 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
   /// iteration by returning `false`.
   void emitReturn(void Function() emitValue);
 
-  /// Generate the outer and inner functions.
-  ///
-  /// - Outer function: the `async` or `sync*` function.
-  ///
-  ///   In case of `async` this function should return a future.
-  ///
-  ///   In case of `sync*`, this function should return an iterable.
-  ///
-  ///   Note that when generating the outer function we can't use the
-  ///   [StateMachineCodeGenerator] methods, as the outer functions are not the
-  ///   state machines used to implement suspension and resumption.
+  /// Generate the inner functions.
   ///
   /// - Inner function: the function that will be called for resumption.
-  ///
-  ///   [StateMachineCodeGenerator] methods (visitors etc.) are for generating
-  ///   this function.
-  void generateFunctions(FunctionNode functionNode, Context? context);
+  void generateInner(FunctionNode functionNode, Context? context);
 
   void emitTargetLabel(StateTarget target) {
     currentTargetIndex++;

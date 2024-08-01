@@ -25,7 +25,6 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
-import '../util/helpers.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart';
 
@@ -335,9 +334,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         inConstFields: inConstFields);
   }
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
         typedef,
@@ -358,7 +355,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 inMetadata: true,
                 inConstFields: false),
             classHierarchy,
-            delayedActionPerformers,
             computeTypeParameterScope(libraryBuilder.scope));
       }
     }

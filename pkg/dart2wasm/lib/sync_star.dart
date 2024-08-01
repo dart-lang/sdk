@@ -10,6 +10,57 @@ import 'closures.dart';
 import 'code_generator.dart';
 import 'state_machine.dart';
 
+class SyncStarCodeGenerator extends StateMachineEntryCodeGenerator {
+  SyncStarCodeGenerator(super.translator, super.function, super.reference);
+
+  late final ClassInfo suspendStateInfo =
+      translator.classInfo[translator.suspendStateClass]!;
+
+  late final ClassInfo syncStarIterableInfo =
+      translator.classInfo[translator.syncStarIterableClass]!;
+
+  @override
+  void generateOuter(
+      FunctionNode functionNode, Context? context, Source functionSource) {
+    final resumeFun = _defineInnerBodyFunction(functionNode);
+
+    // Instantiate a [_SyncStarIterable] containing the context and resume
+    // function for this `sync*` function.
+    DartType elementType = functionNode.emittedValueType!;
+    translator.functions.recordClassAllocation(syncStarIterableInfo.classId);
+    b.i32_const(syncStarIterableInfo.classId);
+    b.i32_const(initialIdentityHash);
+    types.makeType(this, elementType);
+    if (context != null) {
+      assert(!context.isEmpty);
+      b.local_get(context.currentLocal);
+    } else {
+      b.ref_null(w.HeapType.struct);
+    }
+    b.global_get(translator.makeFunctionRef(resumeFun));
+    b.struct_new(syncStarIterableInfo.struct);
+    b.return_();
+    b.end();
+
+    SyncStarStateMachineCodeGenerator(translator, resumeFun, reference,
+            functionNode, functionSource, closures)
+        .generate();
+  }
+
+  w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
+      m.functions.define(
+          m.types.defineFunction([
+            suspendStateInfo.nonNullableType, // _SuspendState
+            translator.topInfo.nullableType, // Object?, error value
+            translator.stackTraceInfo.repr
+                .nullableType // StackTrace?, error stack trace
+          ], const [
+            // bool for whether the generator has more to do
+            w.NumType.i32
+          ]),
+          "${function.functionName} inner");
+}
+
 /// A specialized code generator for generating code for `sync*` functions.
 ///
 /// This will create an "outer" function which is a small function that just
@@ -25,8 +76,14 @@ import 'state_machine.dart';
 /// Local state is preserved via the closure contexts, which will implicitly
 /// capture all local variables in a `sync*` function even if they are not
 /// captured by any lambdas.
-class SyncStarCodeGenerator extends StateMachineCodeGenerator {
-  SyncStarCodeGenerator(super.translator, super.function, super.reference);
+class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
+  SyncStarStateMachineCodeGenerator(
+      super.translator,
+      super.function,
+      super.reference,
+      super.functionNode,
+      super.functionSource,
+      super.closures);
 
   late final ClassInfo suspendStateInfo =
       translator.classInfo[translator.suspendStateClass]!;
@@ -41,19 +98,6 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
   w.Local get _suspendStateLocal => function.locals[0];
   w.Local get _pendingExceptionLocal => function.locals[1];
   w.Local get _pendingStackTraceLocal => function.locals[2];
-
-  w.FunctionBuilder _defineBodyFunction(FunctionNode functionNode) =>
-      m.functions.define(
-          m.types.defineFunction([
-            suspendStateInfo.nonNullableType, // _SuspendState
-            translator.topInfo.nullableType, // Object?, error value
-            translator.stackTraceInfo.repr
-                .nullableType // StackTrace?, error stack trace
-          ], const [
-            // bool for whether the generator has more to do
-            w.NumType.i32
-          ]),
-          "${function.functionName} inner");
 
   @override
   void setSuspendStateCurrentException(void Function() emitValue) {
@@ -104,47 +148,7 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
   }
 
   @override
-  void generateFunctions(FunctionNode functionNode, Context? context) {
-    final resumeFun = _defineBodyFunction(functionNode);
-
-    _generateOuter(functionNode, context, resumeFun);
-
-    // Forget about the outer function locals containing the type arguments,
-    // so accesses to the type arguments in the inner function will fetch them
-    // from the context.
-    typeLocals.clear();
-
-    _generateInner(functionNode, context, resumeFun);
-  }
-
-  void _generateOuter(
-      FunctionNode functionNode, Context? context, w.BaseFunction resumeFun) {
-    // Instantiate a [_SyncStarIterable] containing the context and resume
-    // function for this `sync*` function.
-    DartType elementType = functionNode.emittedValueType!;
-    translator.functions.recordClassAllocation(syncStarIterableInfo.classId);
-    b.i32_const(syncStarIterableInfo.classId);
-    b.i32_const(initialIdentityHash);
-    types.makeType(this, elementType);
-    if (context != null) {
-      assert(!context.isEmpty);
-      b.local_get(context.currentLocal);
-    } else {
-      b.ref_null(w.HeapType.struct);
-    }
-    b.global_get(translator.makeFunctionRef(resumeFun));
-    b.struct_new(syncStarIterableInfo.struct);
-    b.end();
-  }
-
-  void _generateInner(FunctionNode functionNode, Context? context,
-      w.FunctionBuilder resumeFun) {
-    // Set the current Wasm function for the code generator to the inner
-    // function of the `sync*`, which is to contain the body.
-    function = resumeFun;
-    b = resumeFun.body;
-    functionType = resumeFun.type;
-
+  void generateInner(FunctionNode functionNode, Context? context) {
     // Set up locals for contexts and `this`.
     thisLocal = null;
     Context? localContext = context;
@@ -197,6 +201,7 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
     emitReturn(() {});
     b.end(); // masterLoop
 
+    b.return_();
     b.end(); // inner function
   }
 

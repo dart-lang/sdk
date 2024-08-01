@@ -40,8 +40,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     with ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>
     implements InitializerVisitor<void>, StatementVisitor<void> {
   final Translator translator;
-  w.FunctionType functionType;
-  w.InstructionsBuilder b;
+  final w.FunctionType functionType;
+  final w.InstructionsBuilder b;
   final Reference reference;
   late final List<w.Local> paramLocals;
   final w.Label? returnLabel;

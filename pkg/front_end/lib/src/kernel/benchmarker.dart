@@ -189,6 +189,7 @@ enum BenchmarkPhases {
   outline_buildClassHierarchyMembers,
   outline_computeHierarchy,
   outline_installTypedefTearOffs,
+  outline_performRedirectingFactoryInference,
   outline_performTopLevelInference,
   outline_checkOverrides,
   outline_checkAbstractMembers,
@@ -279,7 +280,6 @@ enum BenchmarkSubdivides {
   inferRedirectingFactoryTypeArguments,
 
   buildOutlineExpressions,
-  delayedActionPerformer,
 
   computeMacroApplications_macroExecutorProvider,
   macroApplications_macroExecutorLoadMacro,
