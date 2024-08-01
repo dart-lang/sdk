@@ -261,23 +261,6 @@ A
 ''');
   }
 
-  test_location_libraryAugmentationDirective() async {
-    newFile('$testPackageLibPath/test.dart', r'''
-import augment 'a.dart';
-const foo = 42;
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-@foo
-augment library 'test.dart';
-''');
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
-
-    _assertAtFoo42();
-  }
-
   test_location_libraryDirective() async {
     await assertNoErrorsInCode(r'''
 @foo

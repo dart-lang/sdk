@@ -222,15 +222,17 @@ class LibraryBuilder with MacroApplicationsContainer {
     for (var linkingUnit in units) {
       var elementBuilder = ElementBuilder(
         libraryBuilder: this,
-        container: linkingUnit.container,
+        augmentationImports: linkingUnit.container.augmentationImports,
         unitReference: linkingUnit.reference,
         unitElement: linkingUnit.element,
       );
-      if (linkingUnit is DefiningLinkingUnit) {
-        elementBuilder.buildLibraryElementChildren(linkingUnit.node);
-      }
+      elementBuilder.buildDirectiveElements(linkingUnit.node);
       elementBuilder.buildDeclarationElements(linkingUnit.node);
+      if (linkingUnit is DefiningLinkingUnit) {
+        elementBuilder.buildLibraryMetadata(linkingUnit.node);
+      }
     }
+
     _declareDartCoreDynamicNever();
   }
 
@@ -933,7 +935,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     performance.run('elements + types', (performance) {
       ElementBuilder(
         libraryBuilder: this,
-        container: macroLinkingUnit.container,
+        augmentationImports: macroLinkingUnit.container.augmentationImports,
         unitReference: macroLinkingUnit.reference,
         unitElement: macroLinkingUnit.element,
       ).buildDeclarationElements(macroLinkingUnit.node);
@@ -994,7 +996,7 @@ class LibraryBuilder with MacroApplicationsContainer {
             reference.getChild('@augmentation').getChild(importedFile.uriStr);
 
         units.add(
-          DefiningLinkingUnit(
+          LinkingUnit(
             reference: unitReference,
             node: unitNode,
             element: unitElement,

@@ -6,11 +6,19 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+
+Future<List<Fix>> computeFixes(DartFixContext context) async {
+  return [
+    ...await FixProcessor(context).compute(),
+    ...await FixInFileProcessor(context).compute(),
+  ];
+}
 
 /// The computer for Dart fixes.
 class FixProcessor {

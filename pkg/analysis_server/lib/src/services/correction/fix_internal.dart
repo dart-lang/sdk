@@ -239,19 +239,12 @@ import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dar
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
-import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
-import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/ffi_code.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/always_put_control_body_on_new_line.dart';
 import 'package:linter/src/rules/always_put_required_named_parameters_first.dart';
@@ -2001,13 +1994,6 @@ final _builtInParseLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
 };
 
-Future<List<Fix>> computeFixes(DartFixContext context) async {
-  return [
-    ...await FixProcessor(context).compute(),
-    ...await FixInFileProcessor(context).compute(),
-  ];
-}
-
 /// Registers each mapping of diagnostic -> list-of-producers with
 /// [FixProcessor].
 void registerBuiltInProducers() {
@@ -2025,163 +2011,4 @@ void registerBuiltInProducers() {
     IgnoreDiagnosticInFile.new,
     IgnoreDiagnosticInAnalysisOptionsFile.new,
   ]);
-}
-
-/// Computer for Dart "fix all in file" fixes.
-class FixInFileProcessor {
-  final DartFixContext context;
-
-  FixInFileProcessor(this.context);
-
-  Future<List<Fix>> compute() async {
-    var error = context.error;
-    var errors = context.resolvedResult.errors
-        .where((e) => error.errorCode.name == e.errorCode.name);
-    if (errors.length < 2) {
-      return const <Fix>[];
-    }
-
-    var instrumentationService = context.instrumentationService;
-    var workspace = context.workspace;
-    var resolvedResult = context.resolvedResult;
-
-    /// Helper to create a [DartFixContextImpl] for a given error.
-    DartFixContext createFixContext(AnalysisError error) {
-      return DartFixContext(
-        instrumentationService: instrumentationService,
-        workspace: workspace,
-        resolvedResult: resolvedResult,
-        error: error,
-      );
-    }
-
-    var generators = _getGenerators(error.errorCode);
-
-    var fixes = <Fix>[];
-    for (var generator in generators) {
-      if (generator(context: StubCorrectionProducerContext.instance)
-          .canBeAppliedAcrossSingleFile) {
-        _FixState fixState = _EmptyFixState(
-          ChangeBuilder(workspace: workspace),
-        );
-
-        // First try to fix the specific error we started from. We should only
-        // include fix-all-in-file when we produce an individual fix at this
-        // location.
-        fixState = await _fixError(
-            createFixContext(error), fixState, generator, error);
-
-        // The original error was not fixable, don't continue.
-        if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {
-          continue;
-        }
-
-        // Compute fixes for the rest of the errors.
-        for (var error in errors.where((item) => item != error)) {
-          var fixContext = createFixContext(error);
-          fixState = await _fixError(fixContext, fixState, generator, error);
-        }
-        if (fixState is _NotEmptyFixState) {
-          var sourceChange = fixState.builder.sourceChange;
-          if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
-            var fixKind = fixState.fixKind;
-            sourceChange.id = fixKind.id;
-            sourceChange.message = fixKind.message;
-            fixes.add(Fix(kind: fixKind, change: sourceChange));
-          }
-        }
-      }
-    }
-    return fixes;
-  }
-
-  Future<_FixState> _fixError(
-    DartFixContext fixContext,
-    _FixState fixState,
-    ProducerGenerator generator,
-    AnalysisError diagnostic,
-  ) async {
-    var context = CorrectionProducerContext.createResolved(
-      applyingBulkFixes: true,
-      dartFixContext: fixContext,
-      diagnostic: diagnostic,
-      resolvedResult: fixContext.resolvedResult,
-      selectionOffset: diagnostic.offset,
-      selectionLength: diagnostic.length,
-    );
-
-    var producer = generator(context: context);
-
-    try {
-      var localBuilder = fixState.builder.copy();
-      var fixKind = producer.fixKind;
-      await producer.compute(localBuilder);
-      assert(
-        !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
-        'Producers used in bulk fixes must not modify the FixKind during '
-        'computation. $producer changed from $fixKind to ${producer.fixKind}.',
-      );
-
-      var multiFixKind = producer.multiFixKind;
-      if (multiFixKind == null) {
-        return fixState;
-      }
-
-      // TODO(pq): consider discarding the change if the producer's fixKind
-      // doesn't match a previously cached one.
-      return _NotEmptyFixState(
-        builder: localBuilder,
-        fixKind: multiFixKind,
-        fixCount: fixState.fixCount + 1,
-      );
-    } on ConflictingEditException {
-      // If a conflicting edit was added in [compute], then the [localBuilder]
-      // is discarded and we revert to the previous state of the builder.
-      return fixState;
-    }
-  }
-
-  List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
-    if (errorCode is LintCode) {
-      return registeredFixGenerators.lintProducers[errorCode] ?? [];
-    } else {
-      // TODO(pq): consider support for multi-generators.
-      return registeredFixGenerators.nonLintProducers[errorCode] ?? [];
-    }
-  }
-}
-
-/// [_FixState] that is still empty.
-class _EmptyFixState implements _FixState {
-  @override
-  final ChangeBuilder builder;
-
-  _EmptyFixState(this.builder);
-
-  @override
-  int get fixCount => 0;
-}
-
-/// State associated with producing fix-all-in-file fixes.
-abstract class _FixState {
-  ChangeBuilder get builder;
-
-  int get fixCount;
-}
-
-/// [_FixState] that has a fix, so knows its kind.
-class _NotEmptyFixState implements _FixState {
-  @override
-  final ChangeBuilder builder;
-
-  final FixKind fixKind;
-
-  @override
-  final int fixCount;
-
-  _NotEmptyFixState({
-    required this.builder,
-    required this.fixKind,
-    required this.fixCount,
-  });
 }
