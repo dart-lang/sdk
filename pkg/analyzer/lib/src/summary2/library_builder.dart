@@ -216,7 +216,8 @@ class LibraryBuilder with MacroApplicationsContainer {
   void buildElements() {
     _buildDirectives(
       kind: kind,
-      container: element,
+      containerLibrary: element,
+      containerUnit: element.definingCompilationUnit,
     );
 
     for (var linkingUnit in units) {
@@ -614,7 +615,8 @@ class LibraryBuilder with MacroApplicationsContainer {
 
     _buildDirectives(
       kind: importedAugmentation,
-      container: augmentation,
+      containerLibrary: augmentation,
+      containerUnit: unitElement,
     );
 
     MacroElementsMerger(
@@ -1006,7 +1008,8 @@ class LibraryBuilder with MacroApplicationsContainer {
 
         _buildDirectives(
           kind: importedAugmentation,
-          container: augmentation,
+          containerLibrary: augmentation,
+          containerUnit: unitElement,
         );
 
         uri = DirectiveUriWithAugmentationImpl(
@@ -1065,30 +1068,42 @@ class LibraryBuilder with MacroApplicationsContainer {
   /// Builds directive elements, for the library and recursively for its
   /// augmentations.
   void _buildDirectives({
-    required LibraryOrAugmentationFileKind kind,
-    required LibraryOrAugmentationElementImpl container,
+    required FileKind kind,
+    required LibraryOrAugmentationElementImpl containerLibrary,
+    required CompilationUnitElementImpl containerUnit,
   }) {
-    var definingUnit = container.definingCompilationUnit;
-
-    definingUnit.libraryExports = kind.libraryExports.map((state) {
+    containerUnit.libraryExports = kind.libraryExports.map((state) {
       return _buildLibraryExport(state);
     }).toFixedList();
 
-    definingUnit.libraryImports = kind.libraryImports.map((state) {
+    containerUnit.libraryImports = kind.libraryImports.map((state) {
       return _buildLibraryImport(
-        containerLibrary: container,
-        containerUnit: definingUnit,
+        containerLibrary: containerLibrary,
+        containerUnit: containerUnit,
         state: state,
       );
     }).toFixedList();
 
-    container.augmentationImports = kind.augmentationImports.map((state) {
-      return _buildAugmentationImport(
-        container,
-        state,
-        performance: OperationPerformanceImpl('<root>'),
-      );
-    }).toFixedList();
+    if (containerLibrary.definingCompilationUnit == containerUnit) {
+      containerLibrary.augmentationImports =
+          kind.augmentationImports.map((state) {
+        return _buildAugmentationImport(
+          containerLibrary,
+          state,
+          performance: OperationPerformanceImpl('<root>'),
+        );
+      }).toFixedList();
+    }
+
+    if (containerLibrary is LibraryElementImpl) {
+      containerLibrary.parts = kind.partIncludes.map((partState) {
+        return _buildPartInclude(
+          containerLibrary: containerLibrary,
+          containerUnit: containerUnit,
+          state: partState,
+        );
+      }).toFixedList();
+    }
   }
 
   LibraryExportElementImpl _buildLibraryExport(LibraryExportState state) {
@@ -1274,6 +1289,85 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
   }
 
+  PartElementImpl _buildPartInclude({
+    required LibraryElementImpl containerLibrary,
+    required CompilationUnitElementImpl containerUnit,
+    required file_state.PartIncludeState state,
+  }) {
+    var uriState = state.uri;
+    DirectiveUri directiveUri;
+    if (state is PartIncludeWithFile) {
+      var includedPart = state.includedPart;
+      if (includedPart != null) {
+        var partFile = includedPart.file;
+        var partUnitNode = partFile.parse(
+          performance: OperationPerformanceImpl('<root>'),
+        );
+        var unitElement = CompilationUnitElementImpl(
+          library: containerLibrary,
+          source: partFile.source,
+          lineInfo: partUnitNode.lineInfo,
+        );
+        partUnitNode.declaredElement = unitElement;
+        unitElement.isSynthetic = !partFile.exists;
+        unitElement.uri = partFile.uriStr;
+        unitElement.setCodeRange(0, partUnitNode.length);
+
+        var unitReference =
+            reference.getChild('@fragment').getChild(partFile.uriStr);
+        _bindReference(unitReference, unitElement);
+
+        units.add(
+          LinkingUnit(
+            reference: unitReference,
+            node: partUnitNode,
+            container: containerLibrary,
+            element: unitElement,
+          ),
+        );
+
+        _buildDirectives(
+          kind: includedPart,
+          containerLibrary: element,
+          containerUnit: unitElement,
+        );
+
+        directiveUri = DirectiveUriWithUnitImpl(
+          relativeUriString: state.uri.relativeUriStr,
+          relativeUri: state.uri.relativeUri,
+          unit: unitElement,
+        );
+      } else {
+        directiveUri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.uri.relativeUriStr,
+          relativeUri: state.uri.relativeUri,
+          source: state.includedFile.source,
+        );
+      }
+    } else if (uriState is file_state.DirectiveUriWithSource) {
+      directiveUri = DirectiveUriWithSourceImpl(
+        relativeUriString: uriState.relativeUriStr,
+        relativeUri: uriState.relativeUri,
+        source: uriState.source,
+      );
+    } else if (uriState is file_state.DirectiveUriWithUri) {
+      directiveUri = DirectiveUriWithRelativeUriImpl(
+        relativeUriString: uriState.relativeUriStr,
+        relativeUri: uriState.relativeUri,
+      );
+    } else if (uriState is file_state.DirectiveUriWithString) {
+      directiveUri = DirectiveUriWithRelativeUriStringImpl(
+        relativeUriString: uriState.relativeUriStr,
+      );
+    } else {
+      directiveUri = DirectiveUriImpl();
+    }
+
+    return PartElementImpl(
+      uri: directiveUri,
+    );
+  }
+
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
@@ -1361,75 +1455,6 @@ class LibraryBuilder with MacroApplicationsContainer {
 
       libraryElement.definingCompilationUnit = unitElement;
     }
-
-    libraryElement.parts = inputLibrary.partIncludes.map((partState) {
-      var uriState = partState.uri;
-      DirectiveUri directiveUri;
-      if (partState is PartIncludeWithFile) {
-        var includedPart = partState.includedPart;
-        if (includedPart != null) {
-          var partFile = includedPart.file;
-          var partUnitNode = partFile.parse(
-            performance: OperationPerformanceImpl('<root>'),
-          );
-          var unitElement = CompilationUnitElementImpl(
-            library: libraryElement,
-            source: partFile.source,
-            lineInfo: partUnitNode.lineInfo,
-          );
-          partUnitNode.declaredElement = unitElement;
-          unitElement.isSynthetic = !partFile.exists;
-          unitElement.uri = partFile.uriStr;
-          unitElement.setCodeRange(0, partUnitNode.length);
-
-          var unitReference = unitContainerRef.getChild(partFile.uriStr);
-          _bindReference(unitReference, unitElement);
-
-          linkingUnits.add(
-            LinkingUnit(
-              reference: unitReference,
-              node: partUnitNode,
-              container: libraryElement,
-              element: unitElement,
-            ),
-          );
-
-          directiveUri = DirectiveUriWithUnitImpl(
-            relativeUriString: partState.uri.relativeUriStr,
-            relativeUri: partState.uri.relativeUri,
-            unit: unitElement,
-          );
-        } else {
-          directiveUri = DirectiveUriWithSourceImpl(
-            relativeUriString: partState.uri.relativeUriStr,
-            relativeUri: partState.uri.relativeUri,
-            source: partState.includedFile.source,
-          );
-        }
-      } else if (uriState is file_state.DirectiveUriWithSource) {
-        directiveUri = DirectiveUriWithSourceImpl(
-          relativeUriString: uriState.relativeUriStr,
-          relativeUri: uriState.relativeUri,
-          source: uriState.source,
-        );
-      } else if (uriState is file_state.DirectiveUriWithUri) {
-        directiveUri = DirectiveUriWithRelativeUriImpl(
-          relativeUriString: uriState.relativeUriStr,
-          relativeUri: uriState.relativeUri,
-        );
-      } else if (uriState is file_state.DirectiveUriWithString) {
-        directiveUri = DirectiveUriWithRelativeUriStringImpl(
-          relativeUriString: uriState.relativeUriStr,
-        );
-      } else {
-        directiveUri = DirectiveUriImpl();
-      }
-      return directiveUri;
-    }).map((directiveUri) {
-      return PartElementImpl(
-        uri: directiveUri,
-      );
-    }).toFixedList();
 
     var builder = LibraryBuilder._(
       linker: linker,

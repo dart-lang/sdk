@@ -46884,6 +46884,117 @@ import 'dart:math' as p1;
     expect(prefixNames, unorderedEquals(['p1', 'p2']));
   }
 
+  test_libraryExports_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+export 'dart:math';
+''');
+
+    var library = await buildLibrary(r'''
+export 'dart:io';
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  libraryExports
+    dart:io
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+  definingUnit
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
+    libraryExports
+      dart:io
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
+  parts
+    package:test/a.dart
+      reference: <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryExports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+''');
+  }
+
+  test_libraryImports_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+import 'dart:math';
+''');
+
+    var library = await buildLibrary(r'''
+import 'dart:io';
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  libraryImports
+    dart:io
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+  definingUnit
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
+    libraryImports
+      dart:io
+        enclosingElement: <testLibrary>
+        enclosingElement3: <testLibraryFragment>
+  parts
+    package:test/a.dart
+      reference: <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryImports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+''');
+  }
+
+  test_libraryImports_part_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+@deprecated
+import 'dart:math';
+''');
+
+    var library = await buildLibrary(r'''
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit
+    reference: <testLibraryFragment>
+    enclosingElement: <testLibrary>
+  parts
+    package:test/a.dart
+      reference: <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryImports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+''');
+  }
+
   test_localFunctions() async {
     var library = await buildLibrary(r'''
 f() {
