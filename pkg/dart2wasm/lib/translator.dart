@@ -374,8 +374,8 @@ class Translator with KernelNodes {
       codeGen.generate();
 
       if (options.printWasm) {
-        print(codeGen.function.type);
-        print(codeGen.function.body.trace);
+        print(function.type);
+        print(function.body.trace);
       }
 
       // The constructor allocator, initializer, and body functions all
@@ -385,10 +385,11 @@ class Translator with KernelNodes {
       // constructor initializer methods are generated.
       if (member is! Constructor || reference.isInitializerReference) {
         for (Lambda lambda in codeGen.closures.lambdas.values) {
-          w.BaseFunction lambdaFunction = CodeGenerator.forFunction(
-                  this, lambda.functionNode, lambda.function, reference)
+          final lambdaFunction = lambda.function;
+          CodeGenerator.forFunction(
+                  this, lambda.functionNode, lambdaFunction, reference)
               .generateLambda(lambda, codeGen.closures);
-          _printFunction(lambdaFunction, "$canonicalName (closure)");
+          _printFunction(function, "$canonicalName (closure)");
         }
       }
 
@@ -826,9 +827,7 @@ class Translator with KernelNodes {
     return (from == voidMarker) ^ (to == voidMarker) || !from.isSubtypeOf(to);
   }
 
-  void convertType(
-      w.FunctionBuilder function, w.ValueType from, w.ValueType to) {
-    final b = function.body;
+  void convertType(w.InstructionsBuilder b, w.ValueType from, w.ValueType to) {
     if (from == voidMarker || to == voidMarker) {
       if (from != voidMarker) {
         b.drop();
@@ -856,7 +855,7 @@ class Translator with KernelNodes {
         // Boxing
         ClassInfo info = classInfo[boxedClasses[from]!]!;
         assert(info.struct.isSubtypeOf(to.heapType));
-        w.Local temp = function.addLocal(from);
+        w.Local temp = b.addLocal(from);
         b.local_set(temp);
         b.i32_const(info.classId);
         b.local_get(temp);
@@ -1117,10 +1116,8 @@ class Translator with KernelNodes {
     return null;
   }
 
-  w.ValueType makeArray(w.FunctionBuilder function, w.ArrayType arrayType,
+  w.ValueType makeArray(w.InstructionsBuilder b, w.ArrayType arrayType,
       int length, void Function(w.ValueType, int) generateItem) {
-    final b = function.body;
-
     final w.ValueType elementType = arrayType.elementType.type.unpacked;
     final arrayTypeRef = w.RefType.def(arrayType, nullable: false);
 
@@ -1129,7 +1126,7 @@ class Translator with KernelNodes {
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {
-        final w.Local arrayLocal = function.addLocal(arrayTypeRef);
+        final w.Local arrayLocal = b.addLocal(arrayTypeRef);
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
@@ -1216,7 +1213,7 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       w.Local receiver = trampoline.locals[0];
       b.local_get(receiver);
       translator.convertType(
-          trampoline, receiver.type, target.type.inputs[targetIndex++]);
+          b, receiver.type, target.type.inputs[targetIndex++]);
     }
     int argIndex = 1;
     for (int i = 0; i < typeCount; i++) {
@@ -1227,11 +1224,10 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       if (i < posArgCount) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(
-            trampoline, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
       } else {
-        translator.constants.instantiateConstant(trampoline, b,
-            paramInfo.positional[i]!, target.type.inputs[targetIndex++]);
+        translator.constants.instantiateConstant(
+            b, paramInfo.positional[i]!, target.type.inputs[targetIndex++]);
       }
     }
     int argNameIndex = 0;
@@ -1240,12 +1236,11 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       if (argNameIndex < argNames.length && argNames[argNameIndex] == argName) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(
-            trampoline, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
         argNameIndex++;
       } else {
-        translator.constants.instantiateConstant(trampoline, b,
-            paramInfo.named[argName]!, target.type.inputs[targetIndex++]);
+        translator.constants.instantiateConstant(
+            b, paramInfo.named[argName]!, target.type.inputs[targetIndex++]);
       }
     }
     assert(argIndex == trampoline.type.inputs.length);
@@ -1254,9 +1249,7 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
 
     b.call(target);
 
-    translator.convertType(
-        trampoline,
-        translator.outputOrVoid(target.type.outputs),
+    translator.convertType(b, translator.outputOrVoid(target.type.outputs),
         translator.outputOrVoid(trampoline.type.outputs));
     b.end();
   }
@@ -1308,11 +1301,10 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
 
       // Get context, downcast it to expected type
       b.local_get(closureLocal);
-      translator.convertType(function, closureLocal.type, closureBaseType);
+      translator.convertType(b, closureLocal.type, closureBaseType);
       b.struct_get(translator.closureLayouter.closureBaseStruct,
           FieldIndex.closureContext);
-      translator.convertType(
-          function, closureContextType, targetInputs[inputIdx]);
+      translator.convertType(b, closureContextType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -1322,7 +1314,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       b.i32_const(typeIdx);
       b.array_get(translator.typeArrayType);
       translator.convertType(
-          function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+          b, translator.topInfo.nullableType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -1344,12 +1336,12 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         b.i32_const(posIdx);
         b.array_get(translator.nullableObjectArrayType);
         b.else_();
-        translator.constants.instantiateConstant(function, b,
-            paramInfo.positional[posIdx]!, translator.topInfo.nullableType);
+        translator.constants.instantiateConstant(
+            b, paramInfo.positional[posIdx]!, translator.topInfo.nullableType);
         b.end();
       }
       translator.convertType(
-          function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+          b, translator.topInfo.nullableType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -1364,7 +1356,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       return null;
     }
 
-    final namedArgValueIndexLocal = function
+    final namedArgValueIndexLocal = b
         .addLocal(translator.classInfo[translator.boxedIntClass]!.nullableType);
 
     for (String paramName in paramInfo.names) {
@@ -1375,7 +1367,6 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       // Get passed value
       b.local_get(namedArgsListLocal);
       translator.constants.instantiateConstant(
-          function,
           b,
           SymbolConstant(paramName, null),
           translator.classInfo[translator.symbolClass]!.nonNullableType);
@@ -1387,12 +1378,11 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         // Shape check passed, parameter must be passed
         b.local_get(namedArgsListLocal);
         b.local_get(namedArgValueIndexLocal);
-        translator.convertType(
-            function, namedArgValueIndexLocal.type, w.NumType.i64);
+        translator.convertType(b, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
         translator.convertType(
-            function,
+            b,
             translator.nullableObjectArrayType.elementType.type.unpacked,
             target.type.inputs[inputIdx]);
       } else {
@@ -1403,14 +1393,12 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         if (functionNodeDefaultValue != null) {
           // Used by the member, has a default value
           translator.constants.instantiateConstant(
-              function,
               b,
               (functionNodeDefaultValue as ConstantExpression).constant,
               translator.topInfo.nullableType);
         } else {
           // Not used by the member
           translator.constants.instantiateConstant(
-            function,
             b,
             paramInfoDefaultValue!,
             translator.topInfo.nullableType,
@@ -1419,22 +1407,19 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         b.else_(); // value index not null
         b.local_get(namedArgsListLocal);
         b.local_get(namedArgValueIndexLocal);
-        translator.convertType(
-            function, namedArgValueIndexLocal.type, w.NumType.i64);
+        translator.convertType(b, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
         b.end();
         translator.convertType(
-            function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+            b, translator.topInfo.nullableType, targetInputs[inputIdx]);
       }
       inputIdx += 1;
     }
 
     b.call(target);
 
-    translator.convertType(
-        function,
-        translator.outputOrVoid(target.type.outputs),
+    translator.convertType(b, translator.outputOrVoid(target.type.outputs),
         translator.outputOrVoid(function.type.outputs));
 
     b.end(); // end function
@@ -1503,8 +1488,8 @@ class PartialInstantiator {
           ),
           name);
       final b = function.body;
-      translator.constants.instantiateConstant(function, b,
-          TypeLiteralConstant(type), translator.types.nonNullableTypeType);
+      translator.constants.instantiateConstant(
+          b, TypeLiteralConstant(type), translator.types.nonNullableTypeType);
       for (int i = 1; i < wasmTarget.type.inputs.length; ++i) {
         b.local_get(b.locals[i - 1]);
       }
@@ -1531,10 +1516,10 @@ class PartialInstantiator {
           ),
           name);
       final b = function.body;
-      translator.constants.instantiateConstant(function, b,
-          TypeLiteralConstant(type1), translator.types.nonNullableTypeType);
-      translator.constants.instantiateConstant(function, b,
-          TypeLiteralConstant(type2), translator.types.nonNullableTypeType);
+      translator.constants.instantiateConstant(
+          b, TypeLiteralConstant(type1), translator.types.nonNullableTypeType);
+      translator.constants.instantiateConstant(
+          b, TypeLiteralConstant(type2), translator.types.nonNullableTypeType);
       for (int i = 2; i < wasmTarget.type.inputs.length; ++i) {
         b.local_get(b.locals[i - 2]);
       }
