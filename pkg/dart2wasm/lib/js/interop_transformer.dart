@@ -79,6 +79,8 @@ class InteropTransformer extends Transformer {
       return _callbackSpecializer.allowInterop(node);
     } else if (target == _util.functionToJSTarget) {
       return _callbackSpecializer.functionToJS(node);
+    } else if (target == _util.functionToJSCaptureThisTarget) {
+      return _callbackSpecializer.functionToJS(node, captureThis: true);
     } else if (target == _util.inlineJSTarget) {
       return _inlineExpander.expand(node);
     } else {

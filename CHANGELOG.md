@@ -17,6 +17,8 @@
 - Added constructors for `JSArrayBuffer`, `JSDataView`, and concrete typed array
   types e.g. `JSInt8Array`.
 - Added `length` and `[]`/`[]=` operators to `JSArray`.
+- Added `toJSCaptureThis` so `this` is passed in from JavaScript to the
+  callback as the first parameter.
 
 ## 3.5.0
 

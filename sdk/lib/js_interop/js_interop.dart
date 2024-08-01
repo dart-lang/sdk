@@ -123,8 +123,9 @@ extension type JSFunction._(JSFunctionRepType _jsFunction)
 
 /// A JavaScript callable function created from a Dart function.
 ///
-/// See [FunctionToJSExportedDartFunction.toJS] for more details on how to
-/// convert a Dart function.
+/// See [FunctionToJSExportedDartFunction.toJS] or
+/// [FunctionToJSExportedDartFunction.toJSCaptureThis] for more details on how
+/// to convert a Dart function.
 @JS('Function')
 extension type JSExportedDartFunction._(
         JSExportedDartFunctionRepType _jsExportedDartFunction)
@@ -591,7 +592,8 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   /// The Dart [Function] that this [JSExportedDartFunction] wrapped.
   ///
   /// Must be a function that was wrapped with
-  /// [FunctionToJSExportedDartFunction.toJS].
+  /// [FunctionToJSExportedDartFunction.toJS] or
+  /// [FunctionToJSExportedDartFunction.toJSCaptureThis].
   external Function get toDart;
 }
 
@@ -614,6 +616,16 @@ extension FunctionToJSExportedDartFunction on Function {
   /// Calling this on the same [Function] again will always result in a new
   /// JavaScript function.
   external JSExportedDartFunction get toJS;
+
+  /// A callable JavaScript function that wraps this [Function] and captures the
+  /// `this` value when called.
+  ///
+  /// Identical to [toJS], except the resulting [JSExportedDartFunction] will
+  /// pass `this` from JavaScript as the first argument to the converted
+  /// [Function]. Any [Function] that is converted with this member should take
+  /// in an extra parameter at the beginning of the parameter list to handle
+  /// this.
+  external JSExportedDartFunction get toJSCaptureThis;
 }
 
 /// Conversions from [JSBoxedDartObject] to [Object].

@@ -77,6 +77,12 @@ extension FunctionToJSExportedDartFunction on Function {
   JSExportedDartFunction get toJS => throw UnimplementedError(
       "'toJS' should never directly be called. Calls to 'toJS' should have "
       'been transformed by the interop transformer.');
+
+  @patch
+  JSExportedDartFunction get toJSCaptureThis => throw UnimplementedError(
+      "'toJSCaptureThis' should never directly be called. Calls to "
+      "'toJSCaptureThis' should have been transformed by the interop "
+      'transformer.');
 }
 
 // Embedded global property for wrapped Dart objects passed via JS interop.

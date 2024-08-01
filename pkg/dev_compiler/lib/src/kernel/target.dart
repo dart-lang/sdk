@@ -209,8 +209,9 @@ class DevCompilerTarget extends Target {
         jsInteropReporter,
         jsInteropChecks.exportChecker,
         jsInteropChecks.extensionIndex);
-    final jsUtilOptimizer =
-        JsUtilOptimizer(coreTypes, hierarchy, jsInteropChecks.extensionIndex);
+    final jsUtilOptimizer = JsUtilOptimizer(
+        coreTypes, hierarchy, jsInteropChecks.extensionIndex,
+        isDart2JS: false);
     for (var node in nodes) {
       _CovarianceTransformer(node).transform();
       // Shared interop transformer has static checks, so we still visit.

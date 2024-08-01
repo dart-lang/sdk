@@ -103,6 +103,25 @@ JavaScriptFunction _functionToJS0(Function f) {
   return result;
 }
 
+JavaScriptFunction _functionToJSCaptureThis0(Function f) {
+  if (isJSFunction(f)) {
+    throw ArgumentError('Attempting to rewrap a JS function.');
+  }
+  final result = JS(
+      'JavaScriptFunction',
+      '''
+        function(_call, f) {
+          return function() {
+            return _call(f, this, 1);
+          }
+        }(#, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunctionFast1),
+      f);
+  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  return result;
+}
+
 JavaScriptFunction _functionToJS1(Function f) {
   if (isJSFunction(f)) {
     throw ArgumentError('Attempting to rewrap a JS function.');
@@ -117,6 +136,25 @@ JavaScriptFunction _functionToJS1(Function f) {
         }(#, #)
       ''',
       DART_CLOSURE_TO_JS(_callDartFunctionFast1),
+      f);
+  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  return result;
+}
+
+JavaScriptFunction _functionToJSCaptureThis1(Function f) {
+  if (isJSFunction(f)) {
+    throw ArgumentError('Attempting to rewrap a JS function.');
+  }
+  final result = JS(
+      'JavaScriptFunction',
+      '''
+        function(_call, f) {
+          return function(arg1) {
+            return _call(f, this, arg1, arguments.length + 1);
+          }
+        }(#, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunctionFast2),
       f);
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
@@ -141,6 +179,25 @@ JavaScriptFunction _functionToJS2(Function f) {
   return result;
 }
 
+JavaScriptFunction _functionToJSCaptureThis2(Function f) {
+  if (isJSFunction(f)) {
+    throw ArgumentError('Attempting to rewrap a JS function.');
+  }
+  final result = JS(
+      'JavaScriptFunction',
+      '''
+        function(_call, f) {
+          return function(arg1, arg2) {
+            return _call(f, this, arg1, arg2, arguments.length + 1);
+          }
+        }(#, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunctionFast3),
+      f);
+  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  return result;
+}
+
 JavaScriptFunction _functionToJS3(Function f) {
   if (isJSFunction(f)) {
     throw ArgumentError('Attempting to rewrap a JS function.');
@@ -160,6 +217,25 @@ JavaScriptFunction _functionToJS3(Function f) {
   return result;
 }
 
+JavaScriptFunction _functionToJSCaptureThis3(Function f) {
+  if (isJSFunction(f)) {
+    throw ArgumentError('Attempting to rewrap a JS function.');
+  }
+  final result = JS(
+      'JavaScriptFunction',
+      '''
+        function(_call, f) {
+          return function(arg1, arg2, arg3) {
+            return _call(f, this, arg1, arg2, arg3, arguments.length + 1);
+          }
+        }(#, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunctionFast4),
+      f);
+  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  return result;
+}
+
 JavaScriptFunction _functionToJS4(Function f) {
   if (isJSFunction(f)) {
     throw ArgumentError('Attempting to rewrap a JS function.');
@@ -174,6 +250,25 @@ JavaScriptFunction _functionToJS4(Function f) {
         }(#, #)
       ''',
       DART_CLOSURE_TO_JS(_callDartFunctionFast4),
+      f);
+  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  return result;
+}
+
+JavaScriptFunction _functionToJSCaptureThis4(Function f) {
+  if (isJSFunction(f)) {
+    throw ArgumentError('Attempting to rewrap a JS function.');
+  }
+  final result = JS(
+      'JavaScriptFunction',
+      '''
+        function(_call, f) {
+          return function(arg1, arg2, arg3, arg4) {
+            return _call(f, this, arg1, arg2, arg3, arg4, arguments.length + 1);
+          }
+        }(#, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunctionFast5),
       f);
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
@@ -206,9 +301,36 @@ JavaScriptFunction _functionToJSN(Function f, int maxLength) {
       'JavaScriptFunction',
       '''
         function(_call, f, maxLength) {
-          return function () {
+          return function() {
               return _call(f, Array.prototype.slice.call(arguments, 0,
                   Math.min(arguments.length, maxLength)));
+          }
+        }(#, #, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunctionFastN),
+      f,
+      maxLength);
+  JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
+  return result;
+}
+
+// TODO(srujzs): It would be nice if we can generate these and the
+// `Function.toJS` stubs dynamically as needed in the interop transformer. It
+// would reduce the potential of accidentally introducing bugs in specific
+// stubs.
+JavaScriptFunction _functionToJSCaptureThisN(Function f, int maxLength) {
+  if (isJSFunction(f)) {
+    throw ArgumentError('Attempting to rewrap a JS function.');
+  }
+  final result = JS(
+      'JavaScriptFunction',
+      '''
+        function(_call, f, maxLength) {
+          return function() {
+              var args = [this];
+              args.push.apply(args, arguments);
+              return _call(f, Array.prototype.slice.call(args, 0,
+                  Math.min(args.length, maxLength)));
           }
         }(#, #, #)
       ''',

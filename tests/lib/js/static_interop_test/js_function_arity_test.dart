@@ -7,9 +7,11 @@
 import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 const isDDC = const bool.fromEnvironment('dart.library._ddc_only');
 const isDart2JS = const bool.fromEnvironment('dart.tool.dart2js');
+const soundNullSafety = !unsoundNullSafety;
 
 @JS('call')
 external String _call(JSFunction f, JSArray<JSAny?> args);
@@ -22,16 +24,21 @@ external void eval(String code);
 
 // Zero.
 String zeroArgs() => '0';
+String zeroArgsThis([JSObject? this_]) => '0';
 
 // One.
 String oneRequired(String arg1) => arg1;
 String oneOptional([String arg1 = 'default']) => '$arg1';
+String oneOptionalThis(JSObject? this_, [String arg1 = 'default']) => '$arg1';
 
 // Two.
 String twoRequired(String arg1, String? arg2) => '$arg1$arg2';
 String oneRequiredOneOptional(String arg1, [String? arg2 = 'default']) =>
     '$arg1$arg2';
 String twoOptional([String arg1 = 'default', String? arg2 = 'default']) =>
+    '$arg1$arg2';
+String oneRequiredOneOptionalThis(JSObject? this_, String arg1,
+        [String? arg2 = 'default']) =>
     '$arg1$arg2';
 
 // Three.
@@ -45,6 +52,12 @@ String oneRequiredTwoOptional(String arg1,
     '$arg1$arg2$arg3';
 String threeOptional(
         [String arg1 = 'default',
+        String? arg2 = 'default',
+        String arg3 = 'default']) =>
+    '$arg1$arg2$arg3';
+String threeOptionalThis(
+        [JSObject? this_,
+        String arg1 = 'default',
         String? arg2 = 'default',
         String arg3 = 'default']) =>
     '$arg1$arg2$arg3';
@@ -66,6 +79,11 @@ String oneRequiredThreeOptional(String arg1,
 String fourOptional(
         [String arg1 = 'default',
         String? arg2 = 'default',
+        String arg3 = 'default',
+        String arg4 = 'default']) =>
+    '$arg1$arg2$arg3$arg4';
+String oneRequiredThreeOptionalThis(JSObject? this_, String arg1,
+        [String? arg2 = 'default',
         String arg3 = 'default',
         String arg4 = 'default']) =>
     '$arg1$arg2$arg3$arg4';
@@ -98,6 +116,10 @@ String fiveOptional(
         String arg3 = 'default',
         String arg4 = 'default',
         String arg5 = 'default']) =>
+    '$arg1$arg2$arg3$arg4$arg5';
+String threeRequiredTwoOptionalThis(
+        JSObject? this_, String arg1, String? arg2, String arg3,
+        [String arg4 = 'default', String arg5 = 'default']) =>
     '$arg1$arg2$arg3$arg4$arg5';
 
 // Six.
@@ -138,29 +160,45 @@ String sixOptional(
         String arg5 = 'default',
         String arg6 = 'default']) =>
     '$arg1$arg2$arg3$arg4$arg5$arg6';
+String sixOptionalThis(
+        [JSObject? this_,
+        String arg1 = 'default',
+        String? arg2 = 'default',
+        String arg3 = 'default',
+        String arg4 = 'default',
+        String arg5 = 'default',
+        String arg6 = 'default']) =>
+    '$arg1$arg2$arg3$arg4$arg5$arg6';
 
 void testZero() {
   // Arity tests.
   Expect.equals(call(zeroArgs.toJS, []), '0');
   Expect.equals(call(zeroArgs.toJS, ['extra']), '0');
   Expect.equals(call(zeroArgs.toJS, [1.0]), '0');
+  Expect.equals(call(zeroArgsThis.toJSCaptureThis, []), '0');
+  Expect.equals(call(zeroArgs.toJSCaptureThis, []), '0');
 
   // Conversion round-trip test.
   final tearOff = zeroArgs;
-  Expect.equals(tearOff, tearOff.toJS.toDart);
+  Expect.identical(tearOff, tearOff.toJS.toDart);
+  final tearOffThis = zeroArgsThis;
+  Expect.identical(tearOffThis, tearOffThis.toJSCaptureThis.toDart);
 
   // Avoid rewrapping test.
   if (isDDC || isDart2JS) {
-    Expect.throws(() => (zeroArgs.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(() => (zeroArgs.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(() =>
+        (zeroArgsThis.toJSCaptureThis as String Function()).toJSCaptureThis);
   }
 }
 
 void testOne() {
   // Type tests.
   Expect.throws(() => call(oneRequired.toJS, [0]));
-  Expect.throwsWhen(hasSoundNullSafety, () => call(oneOptional.toJS, [null]));
+  Expect.throwsWhen(soundNullSafety, () => call(oneOptional.toJS, [null]));
   Expect.throwsWhen(
-      hasSoundNullSafety, () => call(oneOptional.toJS, ['undefined']));
+      soundNullSafety, () => call(oneOptional.toJS, ['undefined']));
+  Expect.throws(() => call(oneOptionalThis.toJSCaptureThis, [true]));
 
   // Arity tests.
   Expect.throws(() => call(oneRequired.toJS, []));
@@ -169,20 +207,32 @@ void testOne() {
   Expect.equals(call(oneOptional.toJS, []), 'default');
   Expect.equals(call(oneOptional.toJS, ['a']), 'a');
   Expect.equals(call(oneOptional.toJS, ['a', 'extra']), 'a');
+  Expect.equals(call(oneOptionalThis.toJSCaptureThis, ['a']), 'a');
+  Expect.throws(() => call(oneRequired.toJSCaptureThis, []));
 
   // Function subtyping tests.
   Expect.equals(call((oneOptional as String Function()).toJS, []), 'default');
   // Throws away the additional args due to the static typing.
   Expect.equals(
       call((oneOptional as String Function()).toJS, ['a']), 'default');
+  Expect.equals(
+      call((oneOptionalThis as String Function(JSObject?)).toJSCaptureThis,
+          ['a']),
+      'default');
 
   // Conversion round-trip test.
   final tearOff = oneRequired;
-  Expect.equals(tearOff, tearOff.toJS.toDart);
+  Expect.identical(tearOff, tearOff.toJS.toDart);
+  final tearOffThis = oneOptionalThis;
+  Expect.identical(tearOffThis, tearOffThis.toJSCaptureThis.toDart);
 
   // Avoid rewrapping test.
   if (isDDC || isDart2JS) {
-    Expect.throws(() => (oneOptional.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(
+        () => (oneOptional.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(() =>
+        (oneOptionalThis.toJSCaptureThis as String Function(JSObject?))
+            .toJSCaptureThis);
   }
 }
 
@@ -190,11 +240,12 @@ void testTwo() {
   // Type tests.
   Expect.throws(() => call(twoOptional.toJS, [false, 'b']));
   Expect.throws(() => call(twoOptional.toJS, ['a', 1.0]));
-  Expect.throwsWhen(hasSoundNullSafety,
+  Expect.throwsWhen(soundNullSafety,
       () => call(oneRequiredOneOptional.toJS, ['undefined', 'b']));
   Expect.throws(() => call(oneRequiredOneOptional.toJS, ['a', true]));
   Expect.throws(() => call(twoRequired.toJS, [0, 'b']));
   Expect.throws(() => call(twoRequired.toJS, ['a', 0]));
+  Expect.throws(() => call(oneRequiredOneOptional.toJSCaptureThis, [0]));
 
   // Arity tests.
   Expect.throws(() => call(twoRequired.toJS, []));
@@ -209,6 +260,11 @@ void testTwo() {
   Expect.equals(call(twoOptional.toJS, ['a']), 'adefault');
   Expect.equals(call(twoOptional.toJS, ['a', 'b']), 'ab');
   Expect.equals(call(twoOptional.toJS, ['a', 'b', 'extra']), 'ab');
+  Expect.equals(
+      call(oneRequiredOneOptionalThis.toJSCaptureThis, ['a', 'b', 'extra']),
+      'ab');
+  Expect.equals(
+      call(oneRequiredOneOptionalThis.toJSCaptureThis, ['a']), 'adefault');
 
   // Function subtyping tests.
   // TODO(55881): dart2wasm's type conversions are based on the static type,
@@ -242,6 +298,12 @@ void testTwo() {
   Expect.equals(
       call((twoOptional as String Function([String])).toJS, ['a', false]),
       'adefault');
+  Expect.equals(
+      call(
+          (oneRequiredOneOptionalThis as String Function(JSObject?, String))
+              .toJSCaptureThis,
+          ['a', 'b']),
+      'adefault');
 
   // `undefined` tests.
   Expect.equals(call(twoRequired.toJS, ['a', 'undefined']), 'anull');
@@ -255,12 +317,17 @@ void testTwo() {
 
   // Conversion round-trip test.
   final tearOff = twoRequired;
-  Expect.equals(tearOff, tearOff.toJS.toDart);
+  Expect.identical(tearOff, tearOff.toJS.toDart);
+  final tearOffThis = oneRequiredOneOptionalThis;
+  Expect.identical(tearOffThis, tearOffThis.toJSCaptureThis.toDart);
 
   // Avoid rewrapping test.
   if (isDDC || isDart2JS) {
-    Expect.throws(
-        () => (oneRequiredOneOptional.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(
+        () => (oneRequiredOneOptional.toJS as String Function(String)).toJS);
+    Expect.throwsArgumentError(() => (oneRequiredOneOptionalThis.toJSCaptureThis
+            as String Function(JSObject?, String))
+        .toJSCaptureThis);
   }
 }
 
@@ -270,10 +337,13 @@ void testThree() {
   // Type tests.
   Expect.throws(() => call(threeRequired.toJS, [0, 'b', 'c']));
   Expect.throws(() => call(oneRequiredTwoOptional.toJS, ['a', false]));
+  Expect.throws(() => call(threeOptionalThis.toJSCaptureThis, [true]));
 
   // Arity tests.
   Expect.equals(call(twoRequiredOneOptional.toJS, ['a', 'b']), 'abdefault');
   Expect.throws(() => call(oneRequiredTwoOptional.toJS, []));
+  Expect.equals(
+      call(threeOptionalThis.toJSCaptureThis, ['a', 'b']), 'abdefault');
 
   // Function subtyping tests.
   var closure = () => call(
@@ -287,6 +357,12 @@ void testThree() {
   Expect.equals(
       call((threeOptional as String Function([String])).toJS, ['a', 0, true]),
       'adefaultdefault');
+  Expect.equals(
+      call(
+          (threeOptionalThis as String Function([JSObject?, String, String?]))
+              .toJSCaptureThis,
+          ['a', 'b', false]),
+      'abdefault');
 
   // `undefined` tests.
   Expect.equals(call(threeOptional.toJS, ['a', 'undefined']),
@@ -294,12 +370,17 @@ void testThree() {
 
   // Conversion round-trip test.
   final tearOff = threeRequired;
-  Expect.equals(tearOff, tearOff.toJS.toDart);
+  Expect.identical(tearOff, tearOff.toJS.toDart);
+  final tearOffThis = threeOptionalThis;
+  Expect.identical(tearOffThis, tearOffThis.toJSCaptureThis.toDart);
 
   // Avoid rewrapping test.
   if (isDDC || isDart2JS) {
-    Expect.throws(
-        () => (twoRequiredOneOptional.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(() =>
+        (twoRequiredOneOptional.toJS as String Function(String, String?)).toJS);
+    Expect.throwsArgumentError(() =>
+        (threeOptionalThis.toJSCaptureThis as String Function(JSObject?))
+            .toJSCaptureThis);
   }
 }
 
@@ -308,10 +389,13 @@ void testFour() {
   Expect.throws(
       () => call(threeRequiredOneOptional.toJS, ['a', 'b', 'c', true]));
   Expect.throws(() => call(oneRequiredThreeOptional.toJS, [false]));
+  Expect.throws(() => call(oneRequiredThreeOptional.toJSCaptureThis, ['a']));
 
   // Arity tests.
   Expect.equals(call(fourRequired.toJS, ['a', 'b', 'c', 'd', false]), 'abcd');
   Expect.equals(call(fourOptional.toJS, ['a']), 'adefaultdefaultdefault');
+  Expect.equals(call(oneRequiredThreeOptionalThis.toJSCaptureThis, ['a', 'b']),
+      'abdefaultdefault');
 
   // Function subtyping tests.
   final closure = () => call(
@@ -329,6 +413,12 @@ void testFour() {
               .toJS,
           ['a', null]),
       'anulldefaultdefault');
+  Expect.equals(
+      call(
+          (oneRequiredThreeOptionalThis as String Function(JSObject?, String))
+              .toJSCaptureThis,
+          ['a', 'b']),
+      'adefaultdefaultdefault');
 
   // `undefined` tests.
   Expect.equals(call(oneRequiredThreeOptional.toJS, ['a', 'undefined', 'c']),
@@ -336,12 +426,17 @@ void testFour() {
 
   // Conversion round-trip test.
   final tearOff = fourRequired;
-  Expect.equals(tearOff, tearOff.toJS.toDart);
+  Expect.identical(tearOff, tearOff.toJS.toDart);
+  final tearOffThis = oneRequiredThreeOptionalThis;
+  Expect.identical(tearOffThis, tearOffThis.toJSCaptureThis.toDart);
 
   // Avoid rewrapping test.
   if (isDDC || isDart2JS) {
-    Expect.throws(
-        () => (oneRequiredThreeOptional.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(
+        () => (oneRequiredThreeOptional.toJS as String Function(String)).toJS);
+    Expect.throwsArgumentError(() => (oneRequiredThreeOptionalThis
+            .toJSCaptureThis as String Function(JSObject?, String))
+        .toJSCaptureThis);
   }
 }
 
@@ -349,11 +444,16 @@ void testFive() {
   // Type tests.
   Expect.throws(() => call(twoRequiredThreeOptional.toJS, ['a', 0]));
   Expect.throws(() => call(fiveOptional.toJS, [false]));
+  Expect.throws(() =>
+      call(threeRequiredTwoOptionalThis.toJSCaptureThis, ['a', 'b', 1.0]));
 
   // Arity tests.
   Expect.equals(call(fiveRequired.toJS, ['a', 'b', 'c', 'd', 'e', 0]), 'abcde');
   Expect.equals(call(fourRequiredOneOptional.toJS, ['a', null, 'c', 'd']),
       'anullcddefault');
+  Expect.equals(
+      call(threeRequiredTwoOptionalThis.toJSCaptureThis, ['a', 'b', 'c', 'd']),
+      'abcddefault');
 
   // Function subtyping tests.
   final closure = () => call(
@@ -373,6 +473,13 @@ void testFive() {
               .toJS,
           ['a', null, 'c']),
       'anullcdefaultdefault');
+  Expect.equals(
+      call(
+          (threeRequiredTwoOptionalThis as String Function(
+                  JSObject?, String, String?, String))
+              .toJSCaptureThis,
+          ['a', 'b', 'c', 'd']),
+      'abcdefaultdefault');
 
   // `undefined` tests.
   Expect.equals(
@@ -381,12 +488,19 @@ void testFive() {
 
   // Conversion round-trip test.
   final tearOff = fiveRequired;
-  Expect.equals(tearOff, tearOff.toJS.toDart);
+  Expect.identical(tearOff, tearOff.toJS.toDart);
+  final tearOffThis = threeRequiredTwoOptionalThis;
+  Expect.identical(tearOffThis, tearOffThis.toJSCaptureThis.toDart);
 
   // Avoid rewrapping test.
   if (isDDC || isDart2JS) {
-    Expect.throws(
-        () => (twoRequiredThreeOptional.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(() =>
+        (twoRequiredThreeOptional.toJS as String Function(String, String?))
+            .toJS);
+    Expect.throwsArgumentError(() =>
+        (threeRequiredTwoOptionalThis.toJSCaptureThis as String Function(
+                JSObject?, String, String?, String))
+            .toJSCaptureThis);
   }
 }
 
@@ -395,6 +509,8 @@ void testSix() {
   // Type tests.
   Expect.throws(() => call(sixRequired.toJS, ['a', 'b', 0.0, 'd', 'e', 'f']));
   Expect.throws(() => call(threeRequiredThreeOptional.toJS, ['undefined']));
+  Expect.throwsWhen(
+      soundNullSafety, () => call(sixOptionalThis.toJSCaptureThis, [null]));
 
   // Arity tests.
   // Verify that we appropriately truncate arguments even though we don't have
@@ -403,6 +519,9 @@ void testSix() {
       call(fourRequiredTwoOptional.toJS, ['a', 'b', 'c', 'd', 'e', 'f', 0]),
       'abcdef');
   Expect.throws(() => call(twoRequiredFourOptional.toJS, []));
+  Expect.equals(
+      call(sixOptionalThis.toJSCaptureThis, ['a', 'b', 'c', 'd', 'e', 'f', 0]),
+      'abcdef');
 
   // Function subtyping tests.
   var closure = () => call(
@@ -419,6 +538,10 @@ void testSix() {
       call((oneRequiredFiveOptional as String Function(String, [String?])).toJS,
           ['a', 'b', 0, 0.0, false]),
       'abdefaultdefaultdefaultdefault');
+  Expect.equals(
+      call((sixOptionalThis as String Function()).toJSCaptureThis,
+          [true, 0, 0.0]),
+      'defaultdefaultdefaultdefaultdefaultdefault');
 
   // `undefined` tests.
   Expect.equals(call(sixOptional.toJS, ['a', 'undefined', 'c', 'd', 'e']),
@@ -426,11 +549,17 @@ void testSix() {
 
   // Conversion round-trip test.
   final tearOff = sixRequired;
-  Expect.equals(tearOff, tearOff.toJS.toDart);
+  Expect.identical(tearOff, tearOff.toJS.toDart);
+  final tearOffThis = sixOptionalThis;
+  Expect.identical(tearOffThis, tearOffThis.toJSCaptureThis.toDart);
 
   // Avoid rewrapping test.
   if (isDDC || isDart2JS) {
-    Expect.throws(() => (sixOptional.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(
+        () => (sixOptional.toJS as String Function()).toJS);
+    Expect.throwsArgumentError(() =>
+        (sixOptionalThis.toJSCaptureThis as String Function(JSObject?))
+            .toJSCaptureThis);
   }
 }
 
