@@ -1,6 +1,7 @@
 # 4.2.5
 - Fixed DevTools URI not including a trailing '/' before the query parameters, which could prevent DevTools from loading properly.
 - [DAP] Fixed an issue where format specifiers and `format.hex` in `variablesRequest` would not apply to values from lists such as `Uint8List` from `dart:typed_data`.
+- Added `package:dds/dds_launcher.dart`, a library which can be used to launch DDS instances using `dart development-service`.
 
 # 4.2.4+1
 - Added missing type to `Event` in `postEvent`.
