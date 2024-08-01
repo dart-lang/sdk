@@ -102,7 +102,7 @@ vars = {
   "boringssl_rev": "2db0eb3f96a5756298dcd7f9319e56a98585bd10",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "e77d6ce142b7bc737af3652f5727e449e84b7b03",
+  "devtools_rev": "14084d20946268f2d22c5ed55bd53e0176748368",
   "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -182,7 +182,7 @@ vars = {
   "sync_http_rev": "ab8377eba79baff3d77e8c75d502efc2b85a9342",
   "tar_rev": "32ceb55e673141abff4e84b99483fe5eb881c291",
   "term_glyph_rev": "38a158f55006cf30942c928171ea601ee5e0308f",
-  "test_rev": "d0dc83372a65dffe164242213639a40d5bb7a9bb",
+  "test_rev": "9fbbfdbee18a686e3f84a386a01960ea0543ba01",
   "test_descriptor_rev": "90743bc16bc00526a1b9a64f813614be9b2479d9",
   "test_process_rev": "6223572ca16d7585d5f08d9281de6a5734e45150",
   "test_reflective_loader_rev": "6e648863b39aab8d0204e769d25805eea9db0ac4",
@@ -207,7 +207,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "127.0.6533.43",
+  "chrome_tag": "128.0.6613.5",
   "download_firefox": False,
   "firefox_tag": "128.0",
 

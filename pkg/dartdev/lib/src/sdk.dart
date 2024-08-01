@@ -30,15 +30,25 @@ class Sdk {
   // Assume that we want to use the same Dart executable that we used to spawn
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
   // if the SDK isn't completely built.
-  String get dart => path.absolute(
-        _runFromBuildRoot
-            ? sdkPath
-            : path.absolute(
-                sdkPath,
-                'bin',
-              ),
-        path.basename(Platform.executable),
-      );
+  String get dart {
+    var basename = path.basename(Platform.executable);
+    // It's possible that Platform.executable won't include the .exe extension
+    // on Windows (e.g., launching `dart` from cmd.exe where `dart` is on the
+    // PATH). Append .exe in this case so the `checkArtifactExists` check won't
+    // fail.
+    if (Platform.isWindows && !basename.endsWith('.exe')) {
+      basename += '.exe';
+    }
+    return path.absolute(
+      _runFromBuildRoot
+          ? sdkPath
+          : path.absolute(
+              sdkPath,
+              'bin',
+            ),
+      basename,
+    );
+  }
 
   String get dartAotRuntime => _runFromBuildRoot
       ? path.absolute(
