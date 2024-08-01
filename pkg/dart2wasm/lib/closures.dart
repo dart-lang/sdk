@@ -529,7 +529,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
     // Cast context reference to actual context type.
     w.RefType contextType = w.RefType.def(contextStruct, nullable: false);
-    w.Local contextLocal = trampoline.addLocal(contextType);
+    w.Local contextLocal = b.addLocal(contextType);
     b.local_get(trampoline.locals[0]);
     b.ref_cast(contextType);
     b.local_tee(contextLocal);
@@ -579,7 +579,7 @@ class ClosureLayouter extends RecursiveVisitor {
     final w.RefType instantiationContextType =
         w.RefType.def(instantiationContextStruct, nullable: false);
     final w.Local instantiationContextLocal =
-        function.addLocal(instantiationContextType);
+        b.addLocal(instantiationContextType);
     b.local_get(instantiatedClosureLocal);
     b.struct_get(closureBaseStruct, FieldIndex.closureContext);
     b.ref_cast(instantiationContextType);
@@ -590,7 +590,7 @@ class ClosureLayouter extends RecursiveVisitor {
         instantiationContextStruct, FieldIndex.instantiationContextInner);
 
     // Push types
-    translator.makeArray(function, translator.typeArrayType, typeCount,
+    translator.makeArray(b, translator.typeArrayType, typeCount,
         (elementType, elementIdx) {
       b.local_get(instantiationContextLocal);
       b.struct_get(instantiationContextStruct,
@@ -641,8 +641,8 @@ class ClosureLayouter extends RecursiveVisitor {
     ib.end();
 
     final instantiationFunction = m.functions.define(functionType, name);
-    w.Local preciseClosure = instantiationFunction.addLocal(genericClosureType);
     final b = instantiationFunction.body;
+    w.Local preciseClosure = b.addLocal(genericClosureType);
 
     // Parameters to the instantiation function
     final w.Local closureParam = instantiationFunction.locals[0];
@@ -703,8 +703,8 @@ class ClosureLayouter extends RecursiveVisitor {
     final thisContext = function.locals[0];
     final otherContext = function.locals[1];
 
-    final thisContextLocal = function.addLocal(contextRefType);
-    final otherContextLocal = function.addLocal(contextRefType);
+    final thisContextLocal = b.addLocal(contextRefType);
+    final otherContextLocal = b.addLocal(contextRefType);
 
     // Call site (`_Closure._equals`) checks that closures are instantiations
     // of the same function, so we can assume they have the right instantiation
@@ -751,7 +751,7 @@ class ClosureLayouter extends RecursiveVisitor {
     final contextRefType = w.RefType.def(contextStructType, nullable: false);
 
     final thisContext = function.locals[0];
-    final thisContextLocal = function.addLocal(contextRefType);
+    final thisContextLocal = b.addLocal(contextRefType);
 
     b.local_get(thisContext);
     b.ref_cast(contextRefType);

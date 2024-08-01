@@ -115,8 +115,8 @@ class AsyncCodeGenerator extends StateMachineCodeGenerator {
 
     // (1) Create async state.
 
-    final asyncStateLocal = function
-        .addLocal(w.RefType(asyncSuspendStateInfo.struct, nullable: false));
+    final asyncStateLocal =
+        b.addLocal(w.RefType(asyncSuspendStateInfo.struct, nullable: false));
 
     // AsyncResumeFun _resume
     b.global_get(translator.makeFunctionRef(resumeFun));
@@ -157,7 +157,7 @@ class AsyncCodeGenerator extends StateMachineCodeGenerator {
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     translator.convertType(
-        function,
+        b,
         asyncSuspendStateInfo.struct.fields[5].type.unpacked,
         completerFutureGetterType.inputs[0]);
     call(translator.completerFuture.getterReference);
@@ -171,17 +171,19 @@ class AsyncCodeGenerator extends StateMachineCodeGenerator {
     // Set the current Wasm function for the code generator to the inner
     // function of the `async`, which is to contain the body.
     function = resumeFun;
+    b = resumeFun.body;
+    functionType = resumeFun.type;
 
     // Set up locals for contexts and `this`.
     thisLocal = null;
     Context? localContext = context;
     while (localContext != null) {
       if (!localContext.isEmpty) {
-        localContext.currentLocal = function
-            .addLocal(w.RefType.def(localContext.struct, nullable: true));
+        localContext.currentLocal =
+            b.addLocal(w.RefType.def(localContext.struct, nullable: true));
         if (localContext.containsThis) {
           assert(thisLocal == null);
-          thisLocal = function.addLocal(localContext
+          thisLocal = b.addLocal(localContext
               .struct.fields[localContext.thisFieldIndex].type.unpacked
               .withNullability(false));
           translator.globals.instantiateDummyValue(b, thisLocal!.type);
@@ -375,7 +377,7 @@ class AsyncCodeGenerator extends StateMachineCodeGenerator {
     setVariable(awaitValueVar, () {
       b.local_get(_awaitValueLocal);
       translator.convertType(
-          function, _awaitValueLocal.type, translateType(awaitValueVar.type));
+          b, _awaitValueLocal.type, translateType(awaitValueVar.type));
     });
   }
 }

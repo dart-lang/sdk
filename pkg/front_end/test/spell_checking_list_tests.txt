@@ -838,6 +838,7 @@ unassignment
 unawaited
 unbreak
 uncaught
+uncommitted
 uncompiled
 unconverted
 uncover

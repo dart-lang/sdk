@@ -7,6 +7,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'closures.dart';
 import 'code_generator.dart';
+import 'translator.dart';
 
 /// Placement of a control flow graph target within a statement. This
 /// distinction is necessary since some statements need to have two targets
@@ -308,12 +309,13 @@ class ExceptionHandlerStack {
   /// Call this right before terminating a CFG block.
   void _terminateTryBlocks() {
     int nextHandlerIdx = _handlers.length - 1;
+    final b = codeGen.b;
     for (final int nCoveredHandlers in _tryBlockNumHandlers.reversed) {
-      final stackTraceLocal = codeGen
-          .addLocal(codeGen.translator.stackTraceInfo.repr.nonNullableType);
+      final stackTraceLocal =
+          b.addLocal(codeGen.translator.stackTraceInfo.repr.nonNullableType);
 
       final exceptionLocal =
-          codeGen.addLocal(codeGen.translator.topInfo.nonNullableType);
+          b.addLocal(codeGen.translator.topInfo.nonNullableType);
 
       void generateCatchBody() {
         // Set continuations of finalizers that can be reached by this `catch`
@@ -321,26 +323,25 @@ class ExceptionHandlerStack {
         for (int i = 0; i < nCoveredHandlers; i += 1) {
           final handler = _handlers[nextHandlerIdx - i];
           if (handler is Finalizer) {
-            handler.setContinuationRethrow(
-                () => codeGen.b.local_get(exceptionLocal),
-                () => codeGen.b.local_get(stackTraceLocal));
+            handler.setContinuationRethrow(() => b.local_get(exceptionLocal),
+                () => b.local_get(stackTraceLocal));
           }
         }
 
         // Set the untyped "current exception" variable. Catch blocks will do the
         // type tests as necessary using this variable and set their exception
         // and stack trace locals.
-        codeGen.setSuspendStateCurrentException(
-            () => codeGen.b.local_get(exceptionLocal));
+        codeGen
+            .setSuspendStateCurrentException(() => b.local_get(exceptionLocal));
         codeGen.setSuspendStateCurrentStackTrace(
-            () => codeGen.b.local_get(stackTraceLocal));
+            () => b.local_get(stackTraceLocal));
 
         codeGen._jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
-      codeGen.b.catch_(codeGen.translator.exceptionTag);
-      codeGen.b.local_set(stackTraceLocal);
-      codeGen.b.local_set(exceptionLocal);
+      b.catch_(codeGen.translator.exceptionTag);
+      b.local_set(stackTraceLocal);
+      b.local_set(exceptionLocal);
 
       generateCatchBody();
 
@@ -355,21 +356,21 @@ class ExceptionHandlerStack {
       }
 
       if (canHandleJSExceptions) {
-        codeGen.b.catch_all();
+        b.catch_all();
 
         // We can't inspect the thrown object in a `catch_all` and get a stack
         // trace, so we just attach the current stack trace.
         codeGen.call(codeGen.translator.stackTraceCurrent.reference);
-        codeGen.b.local_set(stackTraceLocal);
+        b.local_set(stackTraceLocal);
 
         // We create a generic JavaScript error.
         codeGen.call(codeGen.translator.javaScriptErrorFactory.reference);
-        codeGen.b.local_set(exceptionLocal);
+        b.local_set(exceptionLocal);
 
         generateCatchBody();
       }
 
-      codeGen.b.end(); // end catch
+      b.end(); // end catch
 
       nextHandlerIdx -= nCoveredHandlers;
     }
@@ -568,7 +569,12 @@ class CatchVariables {
 ///
 /// This is used to compile `async` and `sync*` functions.
 abstract class StateMachineCodeGenerator extends CodeGenerator {
-  StateMachineCodeGenerator(super.translator, super.function, super.reference);
+  w.FunctionBuilder function;
+
+  StateMachineCodeGenerator(
+      Translator translator, this.function, Reference reference)
+      : super(translator, function.type, function.body, reference,
+            paramLocals: function.locals.toList());
 
   /// Targets of the CFG, indexed by target index.
   late final List<StateTarget> targets;
@@ -615,12 +621,11 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
   }
 
   @override
-  w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
+  void generateLambda(Lambda lambda, Closures closures) {
     this.closures = closures;
     setSourceMapSource(lambda.functionNodeSource);
     setupLambdaParametersAndContexts(lambda);
     _generateBodies(lambda.functionNode);
-    return function;
   }
 
   void _generateBodies(FunctionNode functionNode) {
@@ -832,8 +837,8 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
       b.local_get(switchValueNullableLocal);
       b.ref_as_non_null();
       // Unbox if necessary
-      translator.convertType(function, switchValueNullableLocal.type,
-          switchValueNonNullableLocal.type);
+      translator.convertType(
+          b, switchValueNullableLocal.type, switchValueNonNullableLocal.type);
       b.local_set(switchValueNonNullableLocal);
     }
 
@@ -950,7 +955,7 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
       setVariable(catch_.exception!, () {
         getSuspendStateCurrentException();
         // Type test already passed, convert the exception.
-        translator.convertType(function, translator.topInfo.nullableType,
+        translator.convertType(b, translator.topInfo.nullableType,
             translator.translateType(catch_.exception!.type));
       });
       setVariable(catch_.stackTrace!, () => getSuspendStateCurrentStackTrace());
@@ -1215,6 +1220,6 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
   /// Same as [_getVariable], but boxes the value if it's not already boxed.
   void _getVariableBoxed(VariableDeclaration variable) {
     final varType = _getVariable(variable);
-    translator.convertType(function, varType, translator.topInfo.nullableType);
+    translator.convertType(b, varType, translator.topInfo.nullableType);
   }
 }

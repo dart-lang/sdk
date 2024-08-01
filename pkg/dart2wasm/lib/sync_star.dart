@@ -142,17 +142,19 @@ class SyncStarCodeGenerator extends StateMachineCodeGenerator {
     // Set the current Wasm function for the code generator to the inner
     // function of the `sync*`, which is to contain the body.
     function = resumeFun;
+    b = resumeFun.body;
+    functionType = resumeFun.type;
 
     // Set up locals for contexts and `this`.
     thisLocal = null;
     Context? localContext = context;
     while (localContext != null) {
       if (!localContext.isEmpty) {
-        localContext.currentLocal = function
-            .addLocal(w.RefType.def(localContext.struct, nullable: true));
+        localContext.currentLocal =
+            b.addLocal(w.RefType.def(localContext.struct, nullable: true));
         if (localContext.containsThis) {
           assert(thisLocal == null);
-          thisLocal = function.addLocal(localContext
+          thisLocal = b.addLocal(localContext
               .struct.fields[localContext.thisFieldIndex].type.unpacked
               .withNullability(false));
           translator.globals.instantiateDummyValue(b, thisLocal!.type);

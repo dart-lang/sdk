@@ -149,7 +149,7 @@ class Globals {
         final global =
             m.globals.define(w.GlobalType(type, mutable: !field.isFinal));
         translator.constants
-            .instantiateConstant(null, global.initializer, init, type);
+            .instantiateConstant(global.initializer, init, type);
         global.initializer.end();
         return global;
       } else {

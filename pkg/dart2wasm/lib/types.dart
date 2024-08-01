@@ -168,7 +168,7 @@ class Types {
   /// stack.
   void _makeTypeArray(CodeGenerator codeGen, Iterable<DartType> types) {
     if (types.every(isTypeConstant)) {
-      translator.constants.instantiateConstant(codeGen.function, codeGen.b,
+      translator.constants.instantiateConstant(codeGen.b,
           translator.constants.makeTypeArray(types), typeArrayExpectedType);
     } else {
       for (DartType type in types) {
@@ -194,7 +194,7 @@ class Types {
         type.named.map((t) => StringConstant(t.name)).toList());
 
     translator.constants.instantiateConstant(
-        codeGen.function, codeGen.b, names, recordTypeNamesFieldExpectedType);
+        codeGen.b, names, recordTypeNamesFieldExpectedType);
     _makeTypeArray(
         codeGen, type.positional.followedBy(type.named.map((t) => t.type)));
   }
@@ -267,7 +267,6 @@ class Types {
     // WasmArray<_NamedParameter> namedParameters
     if (type.namedParameters.every((n) => isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
-          codeGen.function,
           b,
           translator.constants.makeNamedParametersArray(type),
           namedParametersExpectedType);
@@ -291,8 +290,8 @@ class Types {
       }
       w.ValueType namedParametersListType =
           codeGen.makeArrayFromExpressions(expressions, namedParameterType);
-      translator.convertType(codeGen.function, namedParametersListType,
-          namedParametersExpectedType);
+      translator.convertType(
+          b, namedParametersListType, namedParametersExpectedType);
     }
   }
 
@@ -305,7 +304,7 @@ class Types {
     final b = codeGen.b;
     if (isTypeConstant(type)) {
       translator.constants.instantiateConstant(
-          codeGen.function, b, TypeLiteralConstant(type), nonNullableTypeType);
+          b, TypeLiteralConstant(type), nonNullableTypeType);
       return nonNullableTypeType;
     }
     // All of the singleton types represented by canonical objects should be
@@ -385,8 +384,7 @@ class Types {
     b.comment("type check against $testedAgainstType");
     w.Local? operandTemp;
     if (translator.options.verifyTypeChecks) {
-      operandTemp =
-          b.addLocal(translator.topInfo.nullableType, isParameter: false);
+      operandTemp = b.addLocal(translator.topInfo.nullableType);
       b.local_tee(operandTemp);
     }
     final (typeToCheck, :checkArguments) =
@@ -431,8 +429,8 @@ class Types {
       if (location != null) {
         w.FunctionType verifyFunctionType = translator.signatureForDirectCall(
             translator.verifyOptimizedTypeCheck.reference);
-        translator.constants.instantiateConstant(codeGen.function, b,
-            StringConstant('$location'), verifyFunctionType.inputs.last);
+        translator.constants.instantiateConstant(
+            b, StringConstant('$location'), verifyFunctionType.inputs.last);
       } else {
         b.ref_null(w.HeapType.none);
       }
@@ -458,7 +456,7 @@ class Types {
       return translator.translateType(testedAgainstType);
     }
 
-    w.Local operand = b.addLocal(boxedOperandType, isParameter: false);
+    w.Local operand = b.addLocal(boxedOperandType);
     b.local_tee(operand);
 
     late List<w.ValueType> outputsToDrop;
@@ -609,7 +607,7 @@ class Types {
       final b = function.body;
 
       w.Local operand = b.locals[0];
-      w.Local boolTemp = function.addLocal(w.NumType.i32);
+      w.Local boolTemp = b.addLocal(w.NumType.i32);
 
       final w.Label resultLabel = b.block(const [], const [w.NumType.i32]);
       if (operandIsNullable) {
@@ -617,7 +615,7 @@ class Types {
         b.local_get(operand);
         b.br_on_null(nullLabel);
         final nonNullableOperand =
-            function.addLocal(translator.topInfo.nonNullableType);
+            b.addLocal(translator.topInfo.nonNullableType);
         b.local_get(operand);
         b.ref_cast(nonNullableOperand.type as w.RefType);
         b.local_set(nonNullableOperand);
@@ -644,7 +642,7 @@ class Types {
         // Otherwise we have to check each argument.
 
         // Call Object._getArguments()
-        w.Local typeArguments = function.addLocal(typeArrayExpectedType);
+        w.Local typeArguments = b.addLocal(typeArrayExpectedType);
         b.local_get(operand);
         b.call(translator.functions
             .getFunction(translator.objectGetTypeArguments.reference));
@@ -778,8 +776,8 @@ class Types {
         }
       } else {
         b.local_get(b.locals[0]);
-        translator.constants.instantiateConstant(function, b,
-            TypeLiteralConstant(testedAgainstType), nonNullableTypeType);
+        translator.constants.instantiateConstant(
+            b, TypeLiteralConstant(testedAgainstType), nonNullableTypeType);
         b.call(translator.functions
             .getFunction(translator.throwAsCheckError.reference));
       }
@@ -788,7 +786,7 @@ class Types {
       b.end();
 
       b.local_get(b.locals[0]);
-      translator.convertType(function, argumentType, returnType);
+      translator.convertType(b, argumentType, returnType);
       b.return_();
       b.end();
 
