@@ -177,11 +177,12 @@ class CallbackSpecializer {
   /// Create a [Procedure] that will wrap a Dart callback in a JS wrapper.
   ///
   /// [node] is the conversion function that is called by the user (either
-  /// `allowInterop` or `Function.toJS`). [type] is the static type of the
-  /// callback. [boxExternRef] determines if the trampoline should box the
-  /// arguments and return value or convert every value. [needsCastClosure]
-  /// determines if a cast closure is needed in order to validate the types of
-  /// some arguments.
+  /// `allowInterop`, `Function.toJS`, or `Function.toJSCaptureThis`). [type] is
+  /// the static type of the callback. [boxExternRef] determines if the
+  /// trampoline should box the arguments and return value or convert every
+  /// value. [needsCastClosure] determines if a cast closure is needed in order
+  /// to validate the types of some arguments. [captureThis] determines if
+  /// `this` needs to be passed into the trampoline from the JS wrapper.
   ///
   /// The procedure will call a JS method that will create a wrapper, cache the
   /// callback, and call the trampoline function with the callback, the JS
@@ -190,20 +191,30 @@ class CallbackSpecializer {
   ///
   /// Returns the created [Procedure].
   Procedure _getJSWrapperFunction(Procedure node, FunctionType type,
-      {required bool boxExternRef, required bool needsCastClosure}) {
+      {required bool boxExternRef,
+      required bool needsCastClosure,
+      required bool captureThis}) {
     final functionTrampolineName =
         _createFunctionTrampoline(node, type, boxExternRef: boxExternRef);
     List<String> jsParameters = [];
-    for (int i = 0; i < type.positionalParameters.length; i++) {
+    var jsParametersLength = type.positionalParameters.length;
+    if (captureThis) jsParametersLength--;
+    for (int i = 0; i < jsParametersLength; i++) {
       jsParameters.add('x$i');
     }
     String jsWrapperParams = jsParameters.join(',');
-    String dartArguments = 'f,arguments.length';
+    // We could avoid incrementing the arguments length in the case of
+    // `captureThis` and have the function trampoline account for the extra
+    // argument, but there's no benefit in doing that.
+    String argumentsLength =
+        captureThis ? 'arguments.length + 1' : 'arguments.length';
+    String dartArguments = 'f,$argumentsLength';
     String jsMethodParams = 'f';
     if (needsCastClosure) {
       dartArguments = '$dartArguments,castClosure';
       jsMethodParams = '($jsMethodParams,castClosure)';
     }
+    if (captureThis) dartArguments = '$dartArguments,this';
     if (jsParameters.isNotEmpty) {
       dartArguments = '$dartArguments,$jsWrapperParams';
     }
@@ -263,7 +274,7 @@ class CallbackSpecializer {
     final type = argument.getStaticType(_staticTypeContext) as FunctionType;
     final jsWrapperFunction = _getJSWrapperFunction(
         staticInvocation.target, type,
-        boxExternRef: false, needsCastClosure: false);
+        boxExternRef: false, needsCastClosure: false, captureThis: false);
     final v = VariableDeclaration('#var',
         initializer: argument, type: type, isSynthesized: true);
     return Let(
@@ -332,7 +343,7 @@ class CallbackSpecializer {
             returnType: VoidType()));
   }
 
-  /// Given an invocation of `<Function>.toJS`, returns an [Expression]
+  /// Given an invocation of `Function.toJS`, returns an [Expression]
   /// representing:
   ///
   ///   JSValue(jsWrapperFunction(<Function>))
@@ -340,13 +351,19 @@ class CallbackSpecializer {
   /// or if a cast closure is needed:
   ///
   ///   JSValue(jsWrapperFunction(<Function>, <CastClosure>))
-  Expression functionToJS(StaticInvocation staticInvocation) {
+  ///
+  /// If [captureThis] is true, this is assumed to be an invocation of
+  /// `Function.toJSCaptureThis`.
+  Expression functionToJS(StaticInvocation staticInvocation,
+      {bool captureThis = false}) {
     final argument = staticInvocation.arguments.positional.single;
     final type = argument.getStaticType(_staticTypeContext) as FunctionType;
     final castClosure = _createCastClosure(type);
     final jsWrapperFunction = _getJSWrapperFunction(
         staticInvocation.target, type,
-        boxExternRef: true, needsCastClosure: castClosure != null);
+        boxExternRef: true,
+        needsCastClosure: castClosure != null,
+        captureThis: captureThis);
     return _createJSValue(StaticInvocation(
         jsWrapperFunction,
         Arguments([

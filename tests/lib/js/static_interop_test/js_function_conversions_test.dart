@@ -215,8 +215,12 @@ void main() {
   expect(anyF(zero), zero);
 
   void setBoundNonNullAnyMultipleParametersFunction<T extends JSAny,
-      U extends JSAny, V extends JSAny>() {
-    jsFunction = ((T t, U u, [V? v]) => t).toJS;
+      U extends JSAny, V extends JSAny>({bool captureThis = false}) {
+    if (captureThis) {
+      jsFunction = ((T this_, U u, [V? v]) => this_).toJSCaptureThis;
+    } else {
+      jsFunction = ((T t, U u, [V? v]) => t).toJS;
+    }
   }
 
   setBoundNonNullAnyMultipleParametersFunction();
@@ -224,6 +228,17 @@ void main() {
   Expect.throwsWhen(soundNullSafety, () => anyF(zero, null, zero));
   anyF(zero, zero, null);
   anyF(zero, zero, zero);
+
+  setBoundNonNullAnyMultipleParametersFunction(captureThis: true);
+  Expect.throwsWhen(soundNullSafety, () => anyF(null, zero));
+  anyF(zero, null);
+  anyF(zero, zero);
+  // TODO(srujzs): It'd be nice if we can test that passing a null value for
+  // `this` throws. However, unless we're in strict mode, that isn't possible
+  // on all backends. While we can define local functions in strict mode, the
+  // wrapping of the function when converting a Dart function to JS may not be
+  // in a strict mode context, and therefore `this` will still be non-nullable.
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call#thisarg
 
   void setBoundExternalDartReference<T extends ExternalDartReference<U>?, U>() {
     jsFunction = ((T t) => t?.toDartObject.toExternalReference).toJS;

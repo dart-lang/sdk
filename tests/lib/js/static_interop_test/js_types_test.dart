@@ -184,12 +184,23 @@ void syncTests() {
               'foo'.toJS, 'bar'.toJS)
           .toDart,
       'foobar');
-  Expect.equals(edf.toDart, dartFunction);
-  Expect.isTrue(identical(edf.toDart, dartFunction));
+  Expect.identical(edf.toDart, dartFunction);
   // Two wrappers should not be the same.
   Expect.notEquals(edf, dartFunction.toJS);
   // Converting a non-function should throw.
   Expect.throws(() => ('foo'.toJS as JSExportedDartFunction).toDart);
+  // `this` should be captured correctly in `toJSCaptureThis`.
+  final this_ = JSObject();
+  final dartFunctionThis = (JSObject this__, JSString a, JSString b) {
+    Expect.equals(this_, this__);
+    return (a.toDart + b.toDart).toJS;
+  };
+  edf = dartFunctionThis.toJSCaptureThis;
+  Expect.equals(
+      (edf.callAsFunction(this_, 'foo'.toJS, 'bar'.toJS) as JSString).toDart,
+      'foobar');
+  Expect.identical(edf.toDart, dartFunctionThis);
+  Expect.notEquals(edf, dartFunctionThis.toJSCaptureThis);
 
   // [JSBoxedDartObject] <-> [Object]
   edo = DartObject().toJSBox;
