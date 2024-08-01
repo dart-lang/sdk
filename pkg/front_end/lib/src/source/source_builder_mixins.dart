@@ -20,7 +20,6 @@ import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
-import '../util/helpers.dart';
 import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
@@ -159,9 +158,7 @@ mixin SourceDeclarationBuilderMixin
       required bool inMetadata,
       required bool inConstFields});
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
         annotatable,
@@ -182,7 +179,6 @@ mixin SourceDeclarationBuilderMixin
                 inMetadata: true,
                 inConstFields: false),
             classHierarchy,
-            delayedActionPerformers,
             typeParameterScope);
       }
     }
@@ -190,8 +186,8 @@ mixin SourceDeclarationBuilderMixin
     Iterator<SourceMemberBuilder> iterator = nameSpace.filteredIterator(
         parent: this, includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
-      iterator.current.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+      iterator.current
+          .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
   }
 

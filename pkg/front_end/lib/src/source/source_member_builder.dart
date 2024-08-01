@@ -18,7 +18,6 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
-import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
 
@@ -34,9 +33,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   /// Builds the core AST structures for this member as needed for the outline.
   void buildOutlineNodes(BuildNodesCallback f);
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 
   /// Builds the AST nodes for this member as needed for the full compilation.
@@ -171,9 +168,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override

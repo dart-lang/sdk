@@ -616,6 +616,15 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
+          ?.enterPhase(
+              BenchmarkPhases.outline_performRedirectingFactoryInference);
+      // TODO(johnniwinther): Add an interface for registering delayed actions.
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
+      loader.inferRedirectingFactories(
+          loader.hierarchy, delayedDefaultValueCloners);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
       loader.performTopLevelInference(sortedSourceClassBuilders);
 
@@ -637,8 +646,6 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
-      // TODO(johnniwinther): Add an interface for registering delayed actions.
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
       loader.buildOutlineExpressions(
           loader.hierarchy, delayedDefaultValueCloners);
       delayedDefaultValueCloners.forEach(registerDelayedDefaultValueCloner);

@@ -1519,6 +1519,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           procedureNameScheme,
           nativeMethodName,
           redirectionTarget);
+      (_parent.redirectingFactoryBuilders ??= [])
+          .add(procedureBuilder as RedirectingFactoryBuilder);
     } else {
       procedureBuilder = new SourceFactoryBuilder(
           metadata,

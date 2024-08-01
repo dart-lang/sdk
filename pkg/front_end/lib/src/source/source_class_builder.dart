@@ -44,7 +44,6 @@ import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
@@ -383,14 +382,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         inConstFields: inConstFields);
   }
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     void build(Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+          classHierarchy, delayedDefaultValueCloners);
     }
 
     MetadataBuilder.buildAnnotations(
@@ -413,7 +410,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                 inMetadata: true,
                 inConstFields: false),
             classHierarchy,
-            delayedActionPerformers,
             typeParameterScope);
       }
     }

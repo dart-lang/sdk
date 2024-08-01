@@ -79,6 +79,7 @@ records/issue51940: semiFuzzFailureOnForceRebuildBodies # can't split because of
 regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # private fields in class.
 records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+general/constructor_inference_interdependence: semiFuzzFailureOnForceRebuildBodies # sealed class ending up in another library.
 
 # FUZZ FRAMEWORK FAILURES
 general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
