@@ -692,7 +692,16 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// print(numbers); // [three, four]
   /// ```
   /// The list must be growable.
-  void removeWhere(bool test(E element));
+  void removeWhere(bool test(E element)){
+    
+    for (int i = length - 1; i >= 0; i--) {
+    E value = this[i];
+    if (test(value) && value == element) { // Added value == element check
+      removeAt(i);
+    }
+  }
+
+  };
 
   /// Removes all objects from this list that fail to satisfy [test].
   ///
