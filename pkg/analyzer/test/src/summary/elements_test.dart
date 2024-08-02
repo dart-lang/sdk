@@ -47615,6 +47615,135 @@ library
 ''');
   }
 
+  test_library_parts_nested() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+part 'a11.dart';
+part 'a12.dart';
+class A {}
+''');
+
+    newFile('$testPackageLibPath/a11.dart', r'''
+part of 'a.dart';
+class A11 {}
+''');
+
+    newFile('$testPackageLibPath/a12.dart', r'''
+part of 'a.dart';
+class A12 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+part 'b11.dart';
+part 'b12.dart';
+''');
+
+    newFile('$testPackageLibPath/b11.dart', r'''
+part of 'b.dart';
+class B11 {}
+''');
+
+    newFile('$testPackageLibPath/b12.dart', r'''
+part of 'b.dart';
+class B12 {}
+''');
+
+    var library = await buildLibrary('''
+part 'a.dart';
+part 'b.dart';
+class Z {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+    part_1
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
+      classes
+        class Z @36
+          reference: <testLibraryFragment>::@class::Z
+          enclosingElement: <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      parts
+        part_2
+          uri: package:test/a11.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a11.dart
+        part_3
+          uri: package:test/a12.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a12.dart
+      classes
+        class A @61
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a11.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class A11 @24
+          reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
+          enclosingElement: <testLibrary>::@fragment::package:test/a11.dart
+    <testLibrary>::@fragment::package:test/a12.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class A12 @24
+          reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
+          enclosingElement: <testLibrary>::@fragment::package:test/a12.dart
+    <testLibrary>::@fragment::package:test/b.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      parts
+        part_4
+          uri: package:test/b11.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b11.dart
+        part_5
+          uri: package:test/b12.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b12.dart
+    <testLibrary>::@fragment::package:test/b11.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class B11 @24
+          reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
+          enclosingElement: <testLibrary>::@fragment::package:test/b11.dart
+    <testLibrary>::@fragment::package:test/b12.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class B12 @24
+          reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
+          enclosingElement: <testLibrary>::@fragment::package:test/b12.dart
+''');
+  }
+
   test_library_parts_noRelativeUriStr() async {
     var library = await buildLibrary(r'''
 part '${'foo'}.dart';

@@ -4876,11 +4876,20 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   List<CompilationUnitElementImpl> get _partUnits {
-    return parts
-        .map((e) => e.uri)
-        .whereType<DirectiveUriWithUnitImpl>()
-        .map((e) => e.unit)
-        .toList();
+    var result = <CompilationUnitElementImpl>[];
+
+    void visitParts(CompilationUnitElementImpl unit) {
+      for (var part in unit.parts) {
+        if (part.uri case DirectiveUriWithUnitImpl uri) {
+          var unit = uri.unit;
+          result.add(unit);
+          visitParts(unit);
+        }
+      }
+    }
+
+    visitParts(definingCompilationUnit);
+    return result;
   }
 
   @override
