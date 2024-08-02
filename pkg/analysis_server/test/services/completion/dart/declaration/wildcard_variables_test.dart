@@ -9,6 +9,7 @@ import '../../../../client/completion_driver_test.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WildcardFieldTest);
+    defineReflectiveTests(WildcardForLoopTest);
     defineReflectiveTests(WildcardImportPrefixTest);
     defineReflectiveTests(WildcardLocalVariableTest);
     defineReflectiveTests(WildcardParameterTest);
@@ -42,7 +43,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(reason: "the local '_' is shadowing the field")
   Future<void> test_argumentList_withLocal() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -63,14 +63,86 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardImportPrefixTest extends AbstractCompletionDriverTest {
+class WildcardForLoopTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_', 'isBlank'};
+  Set<String> allowedIdentifiers = {'_', '__'};
 
   @override
   bool get includeKeywords => false;
 
-  @FailingTest(reason: "'_' shouldn't be suggested")
+  Future<void> test_forEach_argumentList() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  for (var _ in []) {
+    p(^);
+  }
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_forEach_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  for (var __ in []) {
+    p(^);
+  }
+}
+''');
+    assertResponse('''
+suggestions
+  __
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_forParts_argumentList() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  for (var _ = 0; ;) {
+    p(^);
+  }
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_forParts_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  for (var __ = 0; ;) {
+    p(^);
+  }
+}
+''');
+    assertResponse('''
+suggestions
+  __
+    kind: localVariable
+''');
+  }
+}
+
+@reflectiveTest
+class WildcardImportPrefixTest extends AbstractCompletionDriverTest {
+  @override
+  Set<String> allowedIdentifiers = {'_', '__', 'isBlank'};
+
+  @override
+  bool get includeKeywords => false;
+
   Future<void> test_argumentList() async {
     newFile('$testPackageLibPath/ext.dart', '''
 extension ES on String {
@@ -90,6 +162,31 @@ void f() {
     // `_` should not appear.
     assertResponse('''
 suggestions
+''');
+  }
+
+  Future<void> test_argumentList_underscores() async {
+    newFile('$testPackageLibPath/ext.dart', '''
+extension ES on String {
+  bool get isBlank => false;
+}
+''');
+
+    await computeSuggestions('''
+import 'ext.dart' as __;
+
+void p(Object o) {}
+
+void f() {
+  p(^);
+}
+''');
+    assertResponse('''
+suggestions
+  __.ES
+    kind: extensionInvocation
+  __
+    kind: library
 ''');
   }
 
@@ -120,12 +217,11 @@ suggestions
 @reflectiveTest
 class WildcardLocalVariableTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_', 'b'};
+  Set<String> allowedIdentifiers = {'_', '__', 'b'};
 
   @override
   bool get includeKeywords => false;
 
-  @FailingTest(reason: "'_' shouldn't be suggested")
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -136,8 +232,38 @@ void f() {
 }
 ''');
     assertResponse(r'''
-  suggestions
+suggestions
   b
+    kind: localVariable
+''');
+  }
+
+  Future<void> test_argumentList_function() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  _() {}
+  p(^);
+}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  var __ = 0;
+  p(^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  __
     kind: localVariable
 ''');
   }
@@ -146,7 +272,7 @@ void f() {
 @reflectiveTest
 class WildcardParameterTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_', 'b'};
+  Set<String> allowedIdentifiers = {'_', '__', 'b'};
 
   @override
   bool get includeKeywords => false;
@@ -162,6 +288,21 @@ void f(int _, int b) {
     assertResponse('''
 suggestions
   b
+    kind: parameter
+''');
+  }
+
+  Future<void> test_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f(int __) {
+  p(^);
+}
+''');
+    assertResponse('''
+suggestions
+  __
     kind: parameter
 ''');
   }
