@@ -4158,7 +4158,7 @@ class BodyBuilder extends StackListenerImpl
       assert(conditionStatement is EmptyStatement);
     }
     if (entry is MapLiteralEntry) {
-      ForMapEntry result;
+      TreeNode result;
       if (variableOrExpression is PatternVariableDeclaration) {
         result = forest.createPatternForMapEntry(offsetForToken(forToken),
             patternVariableDeclaration: variableOrExpression,
@@ -4174,7 +4174,7 @@ class BodyBuilder extends StackListenerImpl
       typeInferrer.assignedVariables.endNode(result);
       push(result);
     } else {
-      ForElement result;
+      TreeNode result;
       if (variableOrExpression is PatternVariableDeclaration) {
         result = forest.createPatternForElement(offsetForToken(forToken),
             patternVariableDeclaration: variableOrExpression,
@@ -4653,11 +4653,9 @@ class BodyBuilder extends StackListenerImpl
       for (int i = 0; i < setOrMapEntries.length; ++i) {
         if (setOrMapEntries[i] is MapLiteralEntry) {
           mapEntries[i] = setOrMapEntries[i];
-        } else if (setOrMapEntries[i] is ControlFlowElement) {
+        } else {
           mapEntries[i] = convertToMapEntry(setOrMapEntries[i], this,
               typeInferrer.assignedVariables.reassignInfo);
-        } else {
-          mapEntries[i] = convertToErroneousMapEntry(setOrMapEntries[i], this);
         }
       }
       buildLiteralMap(typeArguments, constKeyword, leftBrace, mapEntries);

@@ -478,20 +478,20 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 0,
   ),
-  // 99.14393499709809%.
+  // 99.18687382024103%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 6833,
-    missCount: 59,
+    hitCount: 6831,
+    missCount: 56,
   ),
   // 98.26086956521739%.
   "package:front_end/src/kernel/body_builder_context.dart": (
     hitCount: 339,
     missCount: 6,
   ),
-  // 81.57894736842105%.
+  // 82.11586901763224%.
   "package:front_end/src/kernel/collections.dart": (
-    hitCount: 310,
-    missCount: 70,
+    hitCount: 326,
+    missCount: 71,
   ),
   // 100.0%.
   "package:front_end/src/kernel/combined_member_signature.dart": (
@@ -508,10 +508,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 205,
     missCount: 0,
   ),
-  // 100.0%.
+  // 99.1891891891892%.
   "package:front_end/src/kernel/constant_evaluator.dart": (
-    hitCount: 3700,
-    missCount: 0,
+    hitCount: 3670,
+    missCount: 30,
   ),
   // 100.0%.
   "package:front_end/src/kernel/constant_int_folder.dart": (
@@ -598,9 +598,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 1,
     missCount: 0,
   ),
-  // 99.12126537785588%.
+  // 99.10554561717353%.
   "package:front_end/src/kernel/internal_ast.dart": (
-    hitCount: 564,
+    hitCount: 554,
     missCount: 5,
   ),
   // 100.0%.
@@ -909,10 +909,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 166,
     missCount: 0,
   ),
-  // 99.51564828614009%.
+  // 99.12507701786815%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 8013,
-    missCount: 39,
+    hitCount: 8044,
+    missCount: 71,
   ),
   // 99.875%.
   "package:front_end/src/type_inference/inference_visitor_base.dart": (
@@ -1004,9 +1004,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 78,
     missCount: 0,
   ),
-  // 100.0%.
+  // 99.13606911447084%.
   "package:front_end/src/util/textual_outline.dart": (
-    hitCount: 463,
-    missCount: 0,
+    hitCount: 459,
+    missCount: 4,
   ),
 };
