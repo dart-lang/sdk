@@ -8,6 +8,7 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(WildcardCatchClauseTest);
     defineReflectiveTests(WildcardFieldTest);
     defineReflectiveTests(WildcardForLoopTest);
     defineReflectiveTests(WildcardImportPrefixTest);
@@ -17,15 +18,56 @@ void main() {
   });
 }
 
-/// Fields are binding so not technically wildcards but look just like them.
-@reflectiveTest
-class WildcardFieldTest extends AbstractCompletionDriverTest {
+class AbstractWildCardTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_'};
+  Set<String> allowedIdentifiers = {'_', '__', '___'};
 
   @override
   bool get includeKeywords => false;
+}
 
+@reflectiveTest
+class WildcardCatchClauseTest extends AbstractWildCardTest {
+  Future<void> test_argumentList() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  try {
+  } catch(_, _) {
+    p(^);
+  }
+}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  try {
+  } catch(__, ___) {
+    p(^);
+  }
+}
+''');
+    assertResponse(r'''
+suggestions
+  __
+    kind: localVariable
+  ___
+    kind: localVariable
+''');
+  }
+}
+
+/// Fields are binding so not technically wildcards but look just like them.
+@reflectiveTest
+class WildcardFieldTest extends AbstractWildCardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -63,13 +105,7 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardForLoopTest extends AbstractCompletionDriverTest {
-  @override
-  Set<String> allowedIdentifiers = {'_', '__'};
-
-  @override
-  bool get includeKeywords => false;
-
+class WildcardForLoopTest extends AbstractWildCardTest {
   Future<void> test_forEach_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -136,12 +172,12 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardImportPrefixTest extends AbstractCompletionDriverTest {
+class WildcardImportPrefixTest extends AbstractWildCardTest {
   @override
-  Set<String> allowedIdentifiers = {'_', '__', 'isBlank'};
-
-  @override
-  bool get includeKeywords => false;
+  Future<void> setUp() async {
+    await super.setUp();
+    allowedIdentifiers.add('isBlank');
+  }
 
   Future<void> test_argumentList() async {
     newFile('$testPackageLibPath/ext.dart', '''
@@ -215,25 +251,19 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardLocalVariableTest extends AbstractCompletionDriverTest {
-  @override
-  Set<String> allowedIdentifiers = {'_', '__', 'b'};
-
-  @override
-  bool get includeKeywords => false;
-
+class WildcardLocalVariableTest extends AbstractWildCardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
 
 void f() {
-  var _, b = 0;
+  var _, b0 = 0;
   p(^);
 }
 ''');
     assertResponse(r'''
 suggestions
-  b
+  b0
     kind: localVariable
 ''');
   }
@@ -270,24 +300,18 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardParameterTest extends AbstractCompletionDriverTest {
-  @override
-  Set<String> allowedIdentifiers = {'_', '__', 'b'};
-
-  @override
-  bool get includeKeywords => false;
-
+class WildcardParameterTest extends AbstractWildCardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
 
-void f(int _, int b) {
+void f(int _, int b0) {
   p(^);
 }
 ''');
     assertResponse('''
 suggestions
-  b
+  b0
     kind: parameter
 ''');
   }
@@ -311,13 +335,7 @@ suggestions
 /// Top level variables are binding so not technically wildcards but look just
 /// like them.
 @reflectiveTest
-class WildcardTopLevelVariableTest extends AbstractCompletionDriverTest {
-  @override
-  Set<String> allowedIdentifiers = {'_'};
-
-  @override
-  bool get includeKeywords => false;
-
+class WildcardTopLevelVariableTest extends AbstractWildCardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 int _ = 0;
