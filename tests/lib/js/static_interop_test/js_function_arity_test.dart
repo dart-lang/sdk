@@ -208,7 +208,12 @@ void testOne() {
   Expect.equals(call(oneOptional.toJS, ['a']), 'a');
   Expect.equals(call(oneOptional.toJS, ['a', 'extra']), 'a');
   Expect.equals(call(oneOptionalThis.toJSCaptureThis, ['a']), 'a');
-  Expect.throws(() => call(oneRequired.toJSCaptureThis, []));
+  if (soundNullSafety) {
+    // `this` can be null or a JSObject depending on strict mode, which in turn
+    // depends on the compiler. To make this consistent, only run when sound
+    // null safety is enabled.
+    Expect.throws(() => call(oneRequired.toJSCaptureThis, []));
+  }
 
   // Function subtyping tests.
   Expect.equals(call((oneOptional as String Function()).toJS, []), 'default');
@@ -389,7 +394,12 @@ void testFour() {
   Expect.throws(
       () => call(threeRequiredOneOptional.toJS, ['a', 'b', 'c', true]));
   Expect.throws(() => call(oneRequiredThreeOptional.toJS, [false]));
-  Expect.throws(() => call(oneRequiredThreeOptional.toJSCaptureThis, ['a']));
+  if (soundNullSafety) {
+    // `this` can be null or a JSObject depending on strict mode, which in turn
+    // depends on the compiler. To make this consistent, only run when sound
+    // null safety is enabled.
+    Expect.throws(() => call(oneRequiredThreeOptional.toJSCaptureThis, ['a']));
+  }
 
   // Arity tests.
   Expect.equals(call(fourRequired.toJS, ['a', 'b', 'c', 'd', false]), 'abcd');
