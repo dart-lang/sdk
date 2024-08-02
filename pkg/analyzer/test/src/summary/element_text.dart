@@ -105,7 +105,9 @@ class _ElementWriter {
         }
       }
 
-      _writeElements('parts', e.parts, _writePartElement);
+      _writeElements('parts', e.parts, (part) {
+        _writePartElement(part, onlyId: false);
+      });
 
       // All fragments have this library.
       for (var unit in e.units) {
@@ -484,6 +486,7 @@ class _ElementWriter {
         }
       case LibraryImportElementImpl():
       case LibraryExportElementImpl():
+      case PartElementImpl():
       case PrefixElementImpl():
         expect(
           e.enclosingElement3,
@@ -1253,13 +1256,21 @@ class _ElementWriter {
     _writeElements('parameters', elements, _writeParameterElement);
   }
 
-  void _writePartElement(PartElement e) {
-    var uri = e.uri;
-    _sink.writeIndentedLine(() {
-      _writeDirectiveUri(e.uri);
-    });
+  void _writePartElement(
+    PartElementImpl e, {
+    required bool onlyId,
+  }) {
+    _sink.writelnWithIndent(_idMap[e]);
+    if (onlyId) {
+      return;
+    }
 
     _sink.withIndent(() {
+      var uri = e.uri;
+      _sink.writeIndentedLine(() {
+        _sink.write('uri: ');
+        _writeDirectiveUri(e.uri);
+      });
       _writeMetadata(e);
       if (uri is DirectiveUriWithUnitImpl) {
         _writeUnitElement(uri.unit);
@@ -1587,7 +1598,10 @@ class _ElementWriter {
     );
     _writeElements(
         'libraryExports', e.libraryExports, _writeLibraryExportElement);
-    _writeElements('partIncludes', e.parts, _writePartElement);
+
+    _writeElements('parts', e.parts, (part) {
+      _writePartElement(part, onlyId: true);
+    });
 
     _writeElements('classes', e.classes, _writeInterfaceElement);
     _writeElements('enums', e.enums, _writeInterfaceElement);
@@ -1616,6 +1630,7 @@ class _ElementWriter {
 class _IdMap {
   final Map<Element, String> fieldMap = Map.identity();
   final Map<Element, String> getterMap = Map.identity();
+  final Map<Element, String> partMap = Map.identity();
   final Map<Element, String> setterMap = Map.identity();
 
   String operator [](Element element) {
@@ -1625,6 +1640,8 @@ class _IdMap {
       return fieldMap[element] ??= 'variable_${fieldMap.length}';
     } else if (element is PropertyAccessorElement && element.isGetter) {
       return getterMap[element] ??= 'getter_${getterMap.length}';
+    } else if (element is PartElementImpl) {
+      return partMap[element] ??= 'part_${partMap.length}';
     } else if (element is PropertyAccessorElement && element.isSetter) {
       return setterMap[element] ??= 'setter_${setterMap.length}';
     } else {

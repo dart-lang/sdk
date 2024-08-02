@@ -1,3 +1,6 @@
+# 4.2.5+1
+- Fix issue where `DartDevelopmentServiceException.fromJson` would throw a `StateError` whenever called, except when called to create an `ExistingDartDevelopmentServiceException`.
+
 # 4.2.5
 - Fixed DevTools URI not including a trailing '/' before the query parameters, which could prevent DevTools from loading properly.
 - [DAP] Fixed an issue where format specifiers and `format.hex` in `variablesRequest` would not apply to values from lists such as `Uint8List` from `dart:typed_data`.
