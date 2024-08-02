@@ -868,6 +868,7 @@ val
 verbatim
 versioned
 vf
+virtually
 visualization
 vp
 vt
