@@ -264,10 +264,19 @@ class IfElement extends ControlFlowElement with ControlFlowElementMixin {
 }
 
 /// A 'for' element in a list or set literal.
-class ForElement extends ControlFlowElement with ControlFlowElementMixin {
+class ForElement extends ControlFlowElement
+    with ControlFlowElementMixin
+    implements ForElementBase {
+  @override
   final List<VariableDeclaration> variables; // May be empty, but not null.
+
+  @override
   Expression? condition; // May be null.
+
+  @override
   final List<Expression> updates; // May be empty, but not null.
+
+  @override
   Expression body;
 
   ForElement(this.variables, this.condition, this.updates, this.body) {
@@ -555,9 +564,19 @@ class IfCaseElement extends ControlFlowElementImpl
   }
 }
 
+abstract interface class ForElementBase implements AuxiliaryExpression {
+  List<VariableDeclaration> get variables;
+
+  abstract Expression? condition;
+
+  List<Expression> get updates;
+
+  abstract Expression body;
+}
+
 class PatternForElement extends ControlFlowElementImpl
     with ControlFlowElementMixin
-    implements ForElement {
+    implements ForElementBase {
   PatternVariableDeclaration patternVariableDeclaration;
   List<VariableDeclaration> intermediateVariables;
 
@@ -1257,6 +1276,8 @@ bool isConvertibleToMapEntry(Expression element) {
             (element.otherwise == null ||
                 isConvertibleToMapEntry(element.otherwise!));
       case ForElement():
+        return isConvertibleToMapEntry(element.body);
+      case PatternForElement():
         return isConvertibleToMapEntry(element.body);
       case ForInElement():
         return isConvertibleToMapEntry(element.body);

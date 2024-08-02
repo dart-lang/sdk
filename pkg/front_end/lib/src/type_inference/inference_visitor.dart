@@ -38,6 +38,7 @@ import '../kernel/collections.dart'
         ControlFlowElement,
         ControlFlowMapEntry,
         ForElement,
+        ForElementBase,
         ForInElement,
         ForInMapEntry,
         ForMapEntry,
@@ -2547,54 +2548,71 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         element);
   }
 
+  ExpressionInferenceResult _inferPatternForElement(
+      PatternForElement element,
+      DartType inferredTypeArgument,
+      Map<TreeNode, DartType> inferredSpreadTypes,
+      Map<Expression, DartType> inferredConditionTypes) {
+    int? stackBase;
+    assert(checkStackBase(element, stackBase = stackHeight));
+
+    PatternVariableDeclaration patternVariableDeclaration =
+        element.patternVariableDeclaration;
+    PatternVariableDeclarationAnalysisResult<DartType, DartType>
+        analysisResult = analyzePatternVariableDeclaration(
+            patternVariableDeclaration,
+            patternVariableDeclaration.pattern,
+            patternVariableDeclaration.initializer,
+            isFinal: patternVariableDeclaration.isFinal);
+    patternVariableDeclaration.matchedValueType =
+        analysisResult.initializerType;
+
+    assert(checkStack(element, stackBase, [
+      /* pattern = */ ValueKinds.Pattern,
+      /* initializer = */ ValueKinds.Expression,
+    ]));
+
+    Object? rewrite = popRewrite(NullValues.Expression);
+    if (!identical(patternVariableDeclaration.pattern, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
+      patternVariableDeclaration.pattern = (rewrite as Pattern)
+        ..parent = patternVariableDeclaration;
+    }
+
+    rewrite = popRewrite();
+    if (!identical(patternVariableDeclaration.initializer, rewrite)) {
+      patternVariableDeclaration.initializer = (rewrite as Expression)
+        ..parent = patternVariableDeclaration;
+    }
+
+    List<VariableDeclaration> declaredVariables =
+        patternVariableDeclaration.pattern.declaredVariables;
+    assert(declaredVariables.length == element.intermediateVariables.length);
+    assert(declaredVariables.length == element.variables.length);
+    for (int i = 0; i < declaredVariables.length; i++) {
+      DartType type = declaredVariables[i].type;
+      element.intermediateVariables[i].type = type;
+      element.variables[i].type = type;
+    }
+
+    return _inferForElementBase(element, inferredTypeArgument,
+        inferredSpreadTypes, inferredConditionTypes);
+  }
+
   ExpressionInferenceResult _inferForElement(
       ForElement element,
       DartType inferredTypeArgument,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes) {
-    if (element is PatternForElement) {
-      int? stackBase;
-      assert(checkStackBase(element, stackBase = stackHeight));
+    return _inferForElementBase(element, inferredTypeArgument,
+        inferredSpreadTypes, inferredConditionTypes);
+  }
 
-      PatternVariableDeclaration patternVariableDeclaration =
-          element.patternVariableDeclaration;
-      PatternVariableDeclarationAnalysisResult<DartType, DartType>
-          analysisResult = analyzePatternVariableDeclaration(
-              patternVariableDeclaration,
-              patternVariableDeclaration.pattern,
-              patternVariableDeclaration.initializer,
-              isFinal: patternVariableDeclaration.isFinal);
-      patternVariableDeclaration.matchedValueType =
-          analysisResult.initializerType;
-
-      assert(checkStack(element, stackBase, [
-        /* pattern = */ ValueKinds.Pattern,
-        /* initializer = */ ValueKinds.Expression,
-      ]));
-
-      Object? rewrite = popRewrite(NullValues.Expression);
-      if (!identical(patternVariableDeclaration.pattern, rewrite)) {
-        // Coverage-ignore-block(suite): Not run.
-        patternVariableDeclaration.pattern = (rewrite as Pattern)
-          ..parent = patternVariableDeclaration;
-      }
-
-      rewrite = popRewrite();
-      if (!identical(patternVariableDeclaration.initializer, rewrite)) {
-        patternVariableDeclaration.initializer = (rewrite as Expression)
-          ..parent = patternVariableDeclaration;
-      }
-
-      List<VariableDeclaration> declaredVariables =
-          patternVariableDeclaration.pattern.declaredVariables;
-      assert(declaredVariables.length == element.intermediateVariables.length);
-      assert(declaredVariables.length == element.variables.length);
-      for (int i = 0; i < declaredVariables.length; i++) {
-        DartType type = declaredVariables[i].type;
-        element.intermediateVariables[i].type = type;
-        element.variables[i].type = type;
-      }
-    }
+  ExpressionInferenceResult _inferForElementBase(
+      ForElementBase element,
+      DartType inferredTypeArgument,
+      Map<TreeNode, DartType> inferredSpreadTypes,
+      Map<Expression, DartType> inferredConditionTypes) {
     // TODO(johnniwinther): Use _visitStatements instead.
     List<VariableDeclaration>? variables;
     for (int index = 0; index < element.variables.length; index++) {
@@ -2727,6 +2745,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ForElement():
           return _inferForElement(element, inferredTypeArgument,
               inferredSpreadTypes, inferredConditionTypes);
+        case PatternForElement():
+          return _inferPatternForElement(element, inferredTypeArgument,
+              inferredSpreadTypes, inferredConditionTypes);
         case ForInElement():
           return _inferForInElement(element, inferredTypeArgument,
               inferredSpreadTypes, inferredConditionTypes);
@@ -2799,6 +2820,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferredConditionTypes);
         }
       case ForElement(:Expression? condition, :Expression body):
+        if (condition != null) {
+          DartType conditionType = inferredConditionTypes[condition]!;
+          Expression assignableCondition = ensureAssignable(
+              coreTypes.boolRawType(Nullability.nonNullable),
+              conditionType,
+              condition);
+          item.condition = assignableCondition..parent = item;
+        }
+        if (body is ControlFlowElement) {
+          checkElement(body, item, typeArgument, inferredSpreadTypes,
+              inferredConditionTypes);
+        }
+      case PatternForElement(:Expression? condition, :Expression body):
         if (condition != null) {
           DartType conditionType = inferredConditionTypes[condition]!;
           Expression assignableCondition = ensureAssignable(
@@ -3054,15 +3088,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               element, receiverType, elementType, result, body,
               isSet: isSet);
         case ForElement():
-          if (element is PatternForElement) {
-            _translatePatternForElement(
-                element, receiverType, elementType, result, body,
-                isSet: isSet);
-          } else {
-            _translateForElement(
-                element, receiverType, elementType, result, body,
-                isSet: isSet);
-          }
+          _translateForElement(element, receiverType, elementType, result, body,
+              isSet: isSet);
+        case PatternForElement():
+          _translatePatternForElement(
+              element, receiverType, elementType, result, body,
+              isSet: isSet);
         case ForInElement():
           _translateForInElement(
               element, receiverType, elementType, result, body,
@@ -3934,6 +3965,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore(suite): Not run.
           case IfCaseElement():
           case ForElement():
+          case PatternForElement():
           case ForInElement():
             // Rejected earlier.
             problems.unhandled("${element.runtimeType}",
