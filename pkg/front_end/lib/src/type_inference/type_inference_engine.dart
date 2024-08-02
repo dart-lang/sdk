@@ -985,6 +985,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   NullabilitySuffix typeSchemaNullabilitySuffix(DartType typeSchema) {
     return typeSchema.nullabilitySuffix;
   }

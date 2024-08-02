@@ -254,6 +254,7 @@ class SourceLoader extends Loader {
     };
     assert(
         expectedFutureProblemsForCurrentPhase.isEmpty || hasSeenError,
+        // Coverage-ignore(suite): Not run.
         "Expected problems to be reported, but there were none.\n"
         "Current compilation phase: ${currentPhase}\n"
         "Expected at these locations:\n"
@@ -1477,9 +1478,8 @@ severity: $severity
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
-        _compilationUnits.values.every(
-            (compilationUnit) => !(compilationUnit is SourceCompilationUnit &&
-                // Coverage-ignore(suite): Not run.
+        _compilationUnits.values.every((compilationUnit) =>
+            !(compilationUnit is SourceCompilationUnit &&
                 compilationUnit.isAugmenting)),
         // Coverage-ignore(suite): Not run.
         "Augmentation library found in libraryBuilders: " +

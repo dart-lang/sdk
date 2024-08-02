@@ -265,6 +265,7 @@ mixin SourceDeclarationBuilderMixin
     }
 
     if (arguments != null && arguments.length != typeVariablesCount) {
+      // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "SourceDeclarationBuilderMixin.buildAliasedTypeArguments: "
           "the numbers of type parameters and type arguments don't match.",

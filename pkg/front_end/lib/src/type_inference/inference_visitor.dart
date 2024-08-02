@@ -2775,6 +2775,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       case NullAwareElement(:Expression expression):
         if (expression is ControlFlowElement) {
+          // Coverage-ignore-block(suite): Not run.
           checkElement(expression, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
@@ -2793,6 +2794,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferredConditionTypes);
         }
         if (otherwise is ControlFlowElement) {
+          // Coverage-ignore-block(suite): Not run.
           checkElement(otherwise, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
@@ -3904,6 +3906,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             }
           case NullAwareElement():
             if (currentPart != null) {
+              // Coverage-ignore-block(suite): Not run.
               parts.add(makeLiteral(node.fileOffset, currentPart));
               currentPart = null;
             }
@@ -3913,8 +3916,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 makeLiteral(element.fileOffset, []), iterableType,
                 nullCheckedValue: makeLiteral(element.fileOffset,
                     [_createNullCheckedVariableGet(temp)])));
+          // Coverage-ignore(suite): Not run.
           case IfElement():
-            // Coverage-ignore-block(suite): Not run.
             if (currentPart != null) {
               parts.add(makeLiteral(node.fileOffset, currentPart));
               currentPart = null;
@@ -3928,10 +3931,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 : makeLiteral(element.fileOffset, []);
             parts.add(_createConditionalExpression(
                 element.fileOffset, condition, then, otherwise, iterableType));
+          // Coverage-ignore(suite): Not run.
           case IfCaseElement():
           case ForElement():
           case ForInElement():
-            // Coverage-ignore-block(suite): Not run.
             // Rejected earlier.
             problems.unhandled("${element.runtimeType}",
                 "_translateConstListOrSet", element.fileOffset, helper.uri);
@@ -3999,6 +4002,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case NullAwareMapEntry():
             assert(entry.isKeyNullAware || entry.isValueNullAware);
             if (currentPart != null) {
+              // Coverage-ignore-block(suite): Not run.
               parts.add(makeLiteral(node.fileOffset, currentPart));
               currentPart = null;
             }
@@ -4059,8 +4063,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 desugaredExpression is! NullLiteral);
 
             parts.add(desugaredExpression);
+          // Coverage-ignore(suite): Not run.
           case IfMapEntry():
-            // Coverage-ignore-block(suite): Not run.
             if (currentPart != null) {
               parts.add(makeLiteral(node.fileOffset, currentPart));
               currentPart = null;
@@ -4072,11 +4076,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 : makeLiteral(node.fileOffset, []);
             parts.add(_createConditionalExpression(
                 entry.fileOffset, condition, then, otherwise, collectionType));
+          // Coverage-ignore(suite): Not run.
           case IfCaseMapEntry():
           case PatternForMapEntry():
           case ForMapEntry():
           case ForInMapEntry():
-            // Coverage-ignore-block(suite): Not run.
             // Rejected earlier.
             problems.unhandled("${entry.runtimeType}", "_translateConstMap",
                 entry.fileOffset, helper.uri);
@@ -4118,7 +4122,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new VariableGet(variable, promotedType)
         ..fileOffset = variable.fileOffset;
     }
-    // Coverage-ignore(suite): Not run.
     return _createVariableGet(variable);
   }
 

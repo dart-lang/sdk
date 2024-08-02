@@ -133,30 +133,35 @@ class NullAwareElement extends ControlFlowElement with ControlFlowElementMixin {
   NullAwareElement(this.expression);
 
   @override
+  // Coverage-ignore(suite): Not run.
   MapLiteralEntry? toMapLiteralEntry(
       void Function(TreeNode from, TreeNode to) onConvertElement) {
     return unsupported("toMapLiteralEntry", fileOffset, getFileUri(this));
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('?');
     printer.writeExpression(expression);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
     expression = v.transform(expression);
     expression.parent = this;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
     expression = v.transform(expression);
     expression.parent = this;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
     expression.accept(v);
   }
@@ -677,6 +682,7 @@ class NullAwareMapEntry extends TreeNode
       required this.value});
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isKeyNullAware) {
       printer.write('?');
@@ -690,6 +696,7 @@ class NullAwareMapEntry extends TreeNode
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
     key = v.transform(key);
     key.parent = this;
@@ -698,6 +705,7 @@ class NullAwareMapEntry extends TreeNode
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
     key = v.transform(key);
     key.parent = this;
@@ -706,6 +714,7 @@ class NullAwareMapEntry extends TreeNode
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
     key.accept(v);
     value.accept(v);
@@ -1157,6 +1166,7 @@ Expression convertToElement(
         onConvertMapEntry(entry, result);
         return result;
       case NullAwareMapEntry():
+        // Coverage-ignore(suite): Not run.
         return _convertToErroneousElement(entry, helper);
       case IfCaseMapEntry():
         IfCaseElement result = new IfCaseElement(
@@ -1245,7 +1255,6 @@ bool isConvertibleToMapEntry(Expression element) {
       case IfCaseElement():
         return isConvertibleToMapEntry(element.then) &&
             (element.otherwise == null ||
-                // Coverage-ignore(suite): Not run.
                 isConvertibleToMapEntry(element.otherwise!));
       case ForElement():
         return isConvertibleToMapEntry(element.body);
@@ -1274,6 +1283,7 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
           ..fileOffset = element.expression.fileOffset;
 
       case NullAwareElement():
+        // Coverage-ignore(suite): Not run.
         return _convertToErroneousMapEntry(element, helper);
 
       case IfElement():
@@ -1296,9 +1306,8 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
             then: convertToMapEntry(element.then, helper, onConvertElement),
             otherwise: element.otherwise == null
                 ? null
-                :
-                // Coverage-ignore(suite): Not run.
-                convertToMapEntry(element.otherwise!, helper, onConvertElement))
+                : convertToMapEntry(
+                    element.otherwise!, helper, onConvertElement))
           ..matchedValueType = element.matchedValueType
           ..fileOffset = element.fileOffset;
         onConvertElement(element, result);
@@ -1340,10 +1349,12 @@ MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
         return result;
     }
   } else {
+    // Coverage-ignore-block(suite): Not run.
     return _convertToErroneousMapEntry(element, helper);
   }
 }
 
+// Coverage-ignore(suite): Not run.
 MapLiteralEntry _convertToErroneousMapEntry(
     Expression element, InferenceHelper helper) {
   return new MapLiteralEntry(

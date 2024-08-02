@@ -1583,8 +1583,8 @@ class BodyBuilder extends StackListenerImpl
       // Coverage-ignore-block(suite): Not run.
       temporaryParent = new ListLiteral(expressions);
     }
-    // Coverage-ignore(suite): Not run.
     performBacklogComputations();
+    // Coverage-ignore(suite): Not run.
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
@@ -3424,6 +3424,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleLiteralIntWithSeparators(Token token) {
     debugEvent("LiteralIntWithSeparators");
 
@@ -4751,6 +4752,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleLiteralDoubleWithSeparators(Token token) {
     debugEvent("LiteralDoubleWithSeparators");
 
@@ -10184,6 +10186,7 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
   _BodyBuilderCloner(this.bodyBuilder);
 
   @override
+  // Coverage-ignore(suite): Not run.
   TreeNode visitStaticInvocation(StaticInvocation node) {
     if (node is FactoryConstructorInvocation) {
       FactoryConstructorInvocation result = new FactoryConstructorInvocation(
@@ -10191,16 +10194,13 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
           isConst: node.isConst)
         ..hasBeenInferred = node.hasBeenInferred;
       return result;
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (node is TypeAliasedFactoryInvocation) {
+    } else if (node is TypeAliasedFactoryInvocation) {
       TypeAliasedFactoryInvocation result = new TypeAliasedFactoryInvocation(
           node.typeAliasBuilder, node.target, clone(node.arguments),
           isConst: node.isConst)
         ..hasBeenInferred = node.hasBeenInferred;
       return result;
     }
-    // Coverage-ignore(suite): Not run.
     return super.visitStaticInvocation(node);
   }
 
@@ -10229,6 +10229,7 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Returns `true` if [node] is not part of its parent member.
 ///
 /// This computation is costly and should only be used in assertions to verify
@@ -10246,7 +10247,6 @@ bool isOrphaned(TreeNode node) {
   if (member == null) {
     return true;
   }
-  // Coverage-ignore-block(suite): Not run.
   _FindChildVisitor visitor = new _FindChildVisitor(node);
   member.accept(visitor);
   return !visitor.foundNode;

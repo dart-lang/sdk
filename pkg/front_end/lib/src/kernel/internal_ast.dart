@@ -3196,6 +3196,7 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
     value = v.transform(value)..parent = this;
   }

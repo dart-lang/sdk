@@ -89,6 +89,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   LookupScope get scope => _scope;
 
   @override

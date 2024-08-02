@@ -134,6 +134,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       ConstructorScope constructorScope) {
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
+    // Coverage-ignore(suite): Not run.
     supertypeBuilder ??= new NamedTypeBuilderImpl(
         const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
@@ -186,7 +187,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
     objectType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    // Coverage-ignore(suite): Not run.
     selfType = new NamedTypeBuilderImpl(new SyntheticTypeName(name, charOffset),
         const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected,

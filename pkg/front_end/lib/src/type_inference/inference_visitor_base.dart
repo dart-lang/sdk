@@ -3448,6 +3448,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   .withDeclaredNullability(Nullability.nullable)
             ], functionType.returnType, functionType.declaredNullability));
           }
+        // Coverage-ignore(suite): Not run.
         case InvocationTargetDynamicType():
         case InvocationTargetNeverType():
         case InvocationTargetInvalidType():
