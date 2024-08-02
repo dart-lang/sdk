@@ -116,6 +116,7 @@ main() {
       callA2(obj);
     }
   }
+  testCallInTryWithControlFlow(getMyString(), int.parse('1'));
 }
 
 void matchIL$callA1(FlowGraph graph) {
@@ -225,5 +226,115 @@ void matchIL$testIsA2(FlowGraph graph) {
       match.StaticCall('test3'),
       match.DartReturn(match.any),
     ]),
+  ]);
+}
+
+@pragma('dyn-module:extendable')
+class MyString {
+  @pragma('dyn-module:can-be-overridden')
+  @pragma('vm:never-inline')
+  int get length => int.parse('2');
+
+  @pragma('dyn-module:can-be-overridden')
+  @pragma('vm:never-inline')
+  String substring(int start) => 42.toString();
+}
+
+MyString getMyString() => [MyString()][int.parse('0')];
+
+@pragma('vm:never-inline')
+int intParse(String str) => int.parse(str);
+
+@pragma('vm:never-inline')
+@pragma('vm:testing:print-flow-graph')
+void testCallInTryWithControlFlow(MyString value, int pos) {
+  if (pos == value.length) {
+  } else {
+    try {
+      intParse(value.substring(pos));
+    } catch (e) {}
+  }
+}
+
+void matchIL$testCallInTryWithControlFlow(FlowGraph graph) {
+  graph.dump();
+  graph.match([
+    match.block('Graph', []),
+    match.block('Function', [
+      'value' << match.Parameter(index: 0),
+      'pos' << match.Parameter(index: 1),
+      match.CheckStackOverflow(),
+      'cid1' << match.LoadClassId('value'),
+      match.Branch(match.TestRange('cid1'), ifTrue: 'B9', ifFalse: 'B10'),
+    ]),
+    'B9' <<
+        match.block('Target', [
+          match.MoveArgument('value'),
+          'value_length1' << match.DispatchTableCall('cid1'),
+          match.Goto('B11'),
+        ]),
+    'B10' <<
+        match.block('Target', [
+          match.MoveArgument('value'),
+          'value_length2' << match.InstanceCall('value'),
+          match.Goto('B11'),
+        ]),
+    'B11' <<
+        match.block('Join', [
+          'value_length' << match.Phi('value_length1', 'value_length2'),
+          'value_length_unboxed' << match.UnboxInt64('value_length'),
+          match.Branch(
+              match.EqualityCompare('pos', 'value_length_unboxed', kind: '=='),
+              ifTrue: 'B3',
+              ifFalse: 'B4'),
+        ]),
+    'B3' <<
+        match.block('Target', [
+          match.Goto('B8'),
+        ]),
+    'B4' <<
+        match.block('Target', [
+          match.Goto('B5'),
+        ]),
+    'B5' <<
+        match.block('Join', [
+          'pos_boxed' << match.BoxInt64('pos'),
+          'cid2' << match.LoadClassId('value'),
+          match.Branch(match.TestRange('cid2'), ifTrue: 'B12', ifFalse: 'B13'),
+        ]),
+    'B12' <<
+        match.block('Target', [
+          match.MoveArgument('value'),
+          match.MoveArgument('pos_boxed'),
+          'value_substring1' << match.DispatchTableCall('cid2'),
+          match.Goto('B14'),
+        ]),
+    'B13' <<
+        match.block('Target', [
+          match.MoveArgument('value'),
+          match.MoveArgument('pos_boxed'),
+          'value_substring2' << match.InstanceCall('value', 'pos_boxed'),
+          match.Goto('B14'),
+        ]),
+    'B14' <<
+        match.block('Join', [
+          'value_substring' <<
+              match.Phi('value_substring1', 'value_substring2'),
+          match.MoveArgument('value_substring'),
+          match.StaticCall('value_substring'),
+          match.Goto('B6'),
+        ]),
+    'B7' <<
+        match.block('CatchBlock', [
+          match.Goto('B6'),
+        ]),
+    'B6' <<
+        match.block('Join', [
+          match.Goto('B8'),
+        ]),
+    'B8' <<
+        match.block('Join', [
+          match.DartReturn(match.any),
+        ]),
   ]);
 }
