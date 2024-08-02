@@ -15,6 +15,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
@@ -315,6 +316,10 @@ class DeclarationHelper {
       }
 
       if (prefixElement.name.isEmpty) {
+        continue;
+      }
+
+      if (prefixElement.isWildcardVariable) {
         continue;
       }
 
@@ -661,6 +666,9 @@ class DeclarationHelper {
     required Namespace namespace,
     required String? prefix,
   }) {
+    // Don't suggest declarations in wildcard prefixed namespaces.
+    if (prefix == '_') return;
+
     var importData = ImportData(
       libraryUri: library.source.uri,
       prefix: prefix,
@@ -1622,6 +1630,8 @@ class DeclarationHelper {
           (mustBeNonVoid && element.returnType is VoidType)) {
         return;
       }
+      // Don't suggest wildcard local functions.
+      if (element.name == '_') return;
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = LocalFunctionSuggestion(
@@ -1918,6 +1928,7 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the local variable represented by the [element].
   void _suggestVariable(LocalVariableElement element) {
+    if (element.isWildcardVariable) return;
     if (visibilityTracker.isVisible(element: element, importData: null)) {
       if (mustBeConstant && !element.isConst) {
         return;

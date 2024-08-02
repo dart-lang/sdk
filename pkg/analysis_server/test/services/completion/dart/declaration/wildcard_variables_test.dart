@@ -9,6 +9,7 @@ import '../../../../client/completion_driver_test.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WildcardFieldTest);
+    defineReflectiveTests(WildcardForLoopTest);
     defineReflectiveTests(WildcardImportPrefixTest);
     defineReflectiveTests(WildcardLocalVariableTest);
     defineReflectiveTests(WildcardParameterTest);
@@ -42,7 +43,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(reason: "the local '_' is shadowing the field")
   Future<void> test_argumentList_withLocal() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -63,6 +63,45 @@ suggestions
 }
 
 @reflectiveTest
+class WildcardForLoopTest extends AbstractCompletionDriverTest {
+  @override
+  Set<String> allowedIdentifiers = {'_'};
+
+  @override
+  bool get includeKeywords => false;
+
+  Future<void> test_forEach_argumentList() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  for (var _ in []) {
+    p(^);
+  }
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+
+  Future<void> test_forParts_argumentList() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  for (var _ = 0; ;) {
+    p(^);
+  }
+}
+''');
+    assertResponse('''
+suggestions
+''');
+  }
+}
+
+@reflectiveTest
 class WildcardImportPrefixTest extends AbstractCompletionDriverTest {
   @override
   Set<String> allowedIdentifiers = {'_', 'isBlank'};
@@ -70,7 +109,6 @@ class WildcardImportPrefixTest extends AbstractCompletionDriverTest {
   @override
   bool get includeKeywords => false;
 
-  @FailingTest(reason: "'_' shouldn't be suggested")
   Future<void> test_argumentList() async {
     newFile('$testPackageLibPath/ext.dart', '''
 extension ES on String {
@@ -125,7 +163,6 @@ class WildcardLocalVariableTest extends AbstractCompletionDriverTest {
   @override
   bool get includeKeywords => false;
 
-  @FailingTest(reason: "'_' shouldn't be suggested")
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -136,9 +173,23 @@ void f() {
 }
 ''');
     assertResponse(r'''
-  suggestions
+suggestions
   b
     kind: localVariable
+''');
+  }
+
+  Future<void> test_argumentList_function() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  _() {}
+  p(^);
+}
+''');
+    assertResponse(r'''
+suggestions
 ''');
   }
 }
