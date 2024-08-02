@@ -237,7 +237,9 @@ class DartDocTest {
             message.toString().substring("$_portMessageBad: ".length);
         result.add(new TestResult(currentTest!, TestOutcome.Failed)
           ..message = strippedMessage);
-        _print(strippedMessage);
+        _print("Failure:\n"
+            "Test from ${currentTest!.location} failed with this message:\n"
+            "$strippedMessage\n");
       } else if (message.toString().startsWith("$_portMessageCrash: ")) {
         String strippedMessage =
             message.toString().substring("$_portMessageCrash: ".length);
@@ -457,39 +459,47 @@ const int $LF = 10;
 const int $SPACE = 32;
 const int $STAR = 42;
 
-class Test {}
+sealed class Test {
+  String get location;
+}
 
 class ExpectTest implements Test {
   final String call;
   final String result;
+  @override
+  final String location;
 
-  ExpectTest(this.call, this.result);
+  ExpectTest(this.call, this.result, this.location);
 
   @override
   bool operator ==(Object other) {
     if (other is! ExpectTest) return false;
     if (other.call != call) return false;
     if (other.result != result) return false;
+    if (other.location != location) return false;
     return true;
   }
 
   @override
   String toString() {
-    return "ExpectTest[$call, $result]";
+    return "ExpectTest[$call, $result, $location]";
   }
 }
 
 class TestParseError implements Test {
   final String message;
   final int position;
+  @override
+  final String location;
 
-  TestParseError(this.message, this.position);
+  TestParseError(this.message, this.position, this.location);
 
   @override
   bool operator ==(Object other) {
     if (other is! TestParseError) return false;
     if (other.message != message) return false;
     if (other.position != position) return false;
+    if (other.location != location) return false;
     return true;
   }
 
@@ -544,6 +554,12 @@ List<Test> extractTestsFromComment(
     return result;
   }
 
+  String getLocation(int offset) {
+    return source
+        .getLocation(source.importUri ?? source.fileUri!, offset)
+        .toString();
+  }
+
   Test scanDartDoc(int scanOffset) {
     final Token firstToken =
         scanRawBytes(utf8.encode(comments.substring(scanOffset)));
@@ -569,13 +585,18 @@ List<Test> extractTestsFromComment(
       StringBuffer sb = new StringBuffer();
       int firstPosition = _createParseErrorMessages(
           listener, sb, commentsData, scanOffset, source);
-      return new TestParseError(sb.toString(), firstPosition);
+      return new TestParseError(
+        sb.toString(),
+        firstPosition,
+        getLocation(firstPosition),
+      );
     } else if (!identical(",", comma.stringValue)) {
       int position = commentsData.charOffset + scanOffset + comma.charOffset;
       Message message = codes.templateExpectedButGot.withArguments(',');
       return new TestParseError(
         _createParseErrorMessage(source, position, comma, comma, message),
         position,
+        getLocation(position),
       );
     }
 
@@ -586,13 +607,18 @@ List<Test> extractTestsFromComment(
       StringBuffer sb = new StringBuffer();
       int firstPosition = _createParseErrorMessages(
           listener, sb, commentsData, scanOffset, source);
-      return new TestParseError(sb.toString(), firstPosition);
+      return new TestParseError(
+        sb.toString(),
+        firstPosition,
+        getLocation(firstPosition),
+      );
     } else if (!identical(")", endParen.stringValue)) {
       int position = commentsData.charOffset + scanOffset + endParen.charOffset;
       Message message = codes.templateExpectedButGot.withArguments(')');
       return new TestParseError(
         _createParseErrorMessage(source, position, comma, comma, message),
         position,
+        getLocation(position),
       );
     }
 
@@ -606,6 +632,7 @@ List<Test> extractTestsFromComment(
     return new ExpectTest(
       comments.substring(startPos, midEndPos),
       comments.substring(midStartPos, endPos),
+      getLocation(commentsData.charOffset + startPos),
     );
   }
 
