@@ -106,7 +106,15 @@ class _ElementWriter {
       }
 
       _writeElements('parts', e.parts, (part) {
-        _writePartElement(part, onlyId: false);
+        _sink.writelnWithIndent(_idMap[part]);
+      });
+
+      _writeElements('units', e.units, (unit) {
+        _sink.writeIndent();
+        _elementPrinter.writeElement(unit);
+        _sink.withIndent(() {
+          _writeUnitElement(unit);
+        });
       });
 
       // All fragments have this library.
@@ -820,10 +828,7 @@ class _ElementWriter {
     var definingUnit = e.definingCompilationUnit;
     expect(definingUnit.libraryOrAugmentationElement, same(e));
     if (configuration.filter(definingUnit)) {
-      _sink.writelnWithIndent('definingUnit');
-      _sink.withIndent(() {
-        _writeUnitElement(definingUnit);
-      });
+      _elementPrinter.writeNamedElement('definingUnit', definingUnit);
     }
 
     if (e is LibraryElementImpl) {
@@ -1256,14 +1261,8 @@ class _ElementWriter {
     _writeElements('parameters', elements, _writeParameterElement);
   }
 
-  void _writePartElement(
-    PartElementImpl e, {
-    required bool onlyId,
-  }) {
+  void _writePartElement(PartElementImpl e) {
     _sink.writelnWithIndent(_idMap[e]);
-    if (onlyId) {
-      return;
-    }
 
     _sink.withIndent(() {
       var uri = e.uri;
@@ -1271,9 +1270,12 @@ class _ElementWriter {
         _sink.write('uri: ');
         _writeDirectiveUri(e.uri);
       });
+
+      _writeEnclosingElement(e);
       _writeMetadata(e);
+
       if (uri is DirectiveUriWithUnitImpl) {
-        _writeUnitElement(uri.unit);
+        _elementPrinter.writeNamedElement('unit', uri.unit);
       }
     });
   }
@@ -1582,7 +1584,6 @@ class _ElementWriter {
   }
 
   void _writeUnitElement(CompilationUnitElementImpl e) {
-    _writeReference(e);
     _writeEnclosingElement(e);
 
     if (configuration.withImports) {
@@ -1598,10 +1599,7 @@ class _ElementWriter {
     );
     _writeElements(
         'libraryExports', e.libraryExports, _writeLibraryExportElement);
-
-    _writeElements('parts', e.parts, (part) {
-      _writePartElement(part, onlyId: true);
-    });
+    _writeElements('parts', e.parts, _writePartElement);
 
     _writeElements('classes', e.classes, _writeInterfaceElement);
     _writeElements('enums', e.enums, _writeInterfaceElement);
