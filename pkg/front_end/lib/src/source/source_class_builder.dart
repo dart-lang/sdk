@@ -94,14 +94,13 @@ class SourceClassBuilder extends ClassBuilderImpl
         SourceDeclarationBuilder {
   final Class actualCls;
 
-  final NameSpaceBuilder nameSpaceBuilder;
+  final DeclarationNameSpaceBuilder nameSpaceBuilder;
 
   late final LookupScope _scope;
 
-  late final NameSpace _nameSpace;
+  late final DeclarationNameSpace _nameSpace;
 
-  @override
-  final ConstructorScope constructorScope;
+  late final ConstructorScope _constructorScope;
 
   @override
   List<NominalVariableBuilder>? typeVariables;
@@ -180,7 +179,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.onTypes,
       this.typeParameterScope,
       this.nameSpaceBuilder,
-      this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
       int startCharOffset,
@@ -208,14 +206,19 @@ class SourceClassBuilder extends ClassBuilderImpl
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
     _nameSpace = nameSpaceBuilder.buildNameSpace(this);
     _scope = new NameSpaceLookupScope(
-        nameSpace, ScopeKind.declaration, "class $name",
+        _nameSpace, ScopeKind.declaration, "class $name",
         parent: typeParameterScope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
   }
 
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
@@ -279,7 +282,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     nameSpace.unfilteredIterator.forEach(buildBuilders);
-    constructorScope.unfilteredIterator.forEach(buildBuilders);
+    nameSpace.unfilteredConstructorIterator.forEach(buildBuilders);
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
@@ -414,8 +417,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructorScope
-        .filteredIterator(
+    nameSpace
+        .filteredConstructorIterator(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .forEach(build);
     nameSpace
@@ -468,7 +471,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       name = new Name("", name.library);
     }
 
-    Builder? builder = constructorScope.lookupLocalMember(name.text);
+    Builder? builder = nameSpace.lookupConstructor(name.text);
     if (builder is SourceConstructorBuilder) {
       return builder;
     }
@@ -980,8 +983,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Iterator<SourceFactoryBuilder> iterator = constructorScope.filteredIterator(
-        parent: this, includeDuplicates: true, includeAugmentations: true);
+    Iterator<SourceFactoryBuilder> iterator =
+        nameSpace.filteredConstructorIterator(
+            parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -1156,8 +1160,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   void addSyntheticConstructor(
       SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
-    constructorBuilder.next = constructorScope.lookupLocalMember(name);
-    constructorScope.addLocalMember(name, constructorBuilder);
+    constructorBuilder.next = nameSpace.lookupConstructor(name);
+    nameSpace.addConstructor(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);
@@ -1196,8 +1200,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         .filteredIterator(
             parent: this, includeDuplicates: true, includeAugmentations: true)
         .forEach(buildMembers);
-    constructorScope
-        .filteredIterator(
+    nameSpace
+        .filteredConstructorIterator(
             parent: this, includeDuplicates: true, includeAugmentations: true)
         .forEach(buildMembers);
     return count;

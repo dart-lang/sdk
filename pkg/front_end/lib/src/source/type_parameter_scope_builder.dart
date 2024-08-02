@@ -400,9 +400,9 @@ class TypeParameterScopeBuilder {
         getables: members, setables: setters, extensions: extensions);
   }
 
-  NameSpaceBuilder toNameSpaceBuilder(
+  DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
       Map<String, NominalVariableBuilder>? typeVariables) {
-    return new NameSpaceBuilder._(
+    return new DeclarationNameSpaceBuilder._(
         members, setters, constructors, extensions, typeVariables);
   }
 
@@ -410,22 +410,22 @@ class TypeParameterScopeBuilder {
   String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
 }
 
-class NameSpaceBuilder {
+class DeclarationNameSpaceBuilder {
   final Map<String, Builder>? _getables;
   final Map<String, MemberBuilder>? _setables;
   final Map<String, MemberBuilder>? _constructors;
   final Set<ExtensionBuilder>? _extensions;
   final Map<String, NominalVariableBuilder>? _typeVariables;
 
-  NameSpaceBuilder.empty()
+  DeclarationNameSpaceBuilder.empty()
       : _getables = null,
         _setables = null,
         _constructors = null,
         _extensions = null,
         _typeVariables = null;
 
-  NameSpaceBuilder._(this._getables, this._setables, this._constructors,
-      this._extensions, this._typeVariables);
+  DeclarationNameSpaceBuilder._(this._getables, this._setables,
+      this._constructors, this._extensions, this._typeVariables);
 
   void addLocalMember(String name, MemberBuilder builder,
       {required bool setter}) {
@@ -444,7 +444,16 @@ class NameSpaceBuilder {
         : _getables)![name] as MemberBuilder?;
   }
 
-  NameSpace buildNameSpace(IDeclarationBuilder parent) {
+  void addConstructor(String name, MemberBuilder builder) {
+    _constructors![name] = builder;
+  }
+
+  Iterable<MemberBuilder> get constructors =>
+      _constructors?.values ?? // Coverage-ignore(suite): Not run.
+      [];
+
+  DeclarationNameSpace buildNameSpace(IDeclarationBuilder parent,
+      {bool includeConstructors = true}) {
     void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = parent;
@@ -473,7 +482,13 @@ class NameSpaceBuilder {
     _setables?.forEach(setParentAndCheckConflicts);
     _constructors?.forEach(setParentAndCheckConflicts);
 
-    return new NameSpaceImpl(
-        getables: _getables, setables: _setables, extensions: _extensions);
+    return new DeclarationNameSpaceImpl(
+        getables: _getables,
+        setables: _setables,
+        extensions: _extensions,
+        // TODO(johnniwinther): Handle constructors in extensions consistently.
+        // Currently they are not part of the name space but still processed
+        // for instance when inferring redirecting factories.
+        constructors: includeConstructors ? _constructors : null);
   }
 }

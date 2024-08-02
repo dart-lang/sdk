@@ -7,7 +7,9 @@ part of 'declaration_builders.dart';
 abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   LookupScope get scope;
 
-  NameSpace get nameSpace;
+  DeclarationNameSpace get nameSpace;
+
+  ConstructorScope get constructorScope;
 
   LibraryBuilder get libraryBuilder;
 
@@ -41,8 +43,6 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// reported.
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false});
-
-  ConstructorScope get constructorScope;
 
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);

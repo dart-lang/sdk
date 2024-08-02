@@ -34,14 +34,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   MergedClassMemberScope? _mergedScope;
 
-  final NameSpaceBuilder _nameSpaceBuilder;
+  final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
   late final LookupScope _scope;
 
-  late final NameSpace _nameSpace;
+  late final DeclarationNameSpace _nameSpace;
 
-  @override
-  final ConstructorScope constructorScope;
+  late final ConstructorScope _constructorScope;
 
   @override
   final List<NominalVariableBuilder>? typeParameters;
@@ -75,7 +74,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             reference: referenceFrom?.reference)
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
-        constructorScope = new ConstructorScope(extensionName.name, const {}),
         super(metadata, modifiers, extensionName.name, parent, nameOffset) {
     extensionName.attachExtension(_extension);
   }
@@ -84,14 +82,21 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = _nameSpaceBuilder.buildNameSpace(this);
+    _nameSpace =
+        _nameSpaceBuilder.buildNameSpace(this, includeConstructors: false);
     _scope = new NameSpaceLookupScope(
-        nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
+        _nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
         parent: typeParameterScope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
   }
 
   @override
