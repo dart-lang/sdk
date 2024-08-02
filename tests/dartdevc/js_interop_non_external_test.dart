@@ -7,6 +7,7 @@
 @JS()
 library js_interop_non_external_test;
 
+import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:js/js.dart';
 
@@ -41,7 +42,12 @@ class JSClass {
 
   static String method() => field;
 
-  static T genericMethod<T>(T t) => t;
+  static T genericMethod<T extends num>(T t) {
+    // Do a simple test using T.
+    Expect.type<T>(t);
+    Expect.notType<T>('');
+    return t;
+  }
 }
 
 @JS('JSClass')
@@ -103,10 +109,10 @@ void testLocal() {
 
   // Test methods and their tear-offs.
   expect(JSClass.method(), JSClass.field);
-  expect(JSClass.genericMethod(JSClass.field), JSClass.field);
+  expect(JSClass.genericMethod(0), 0);
 
   expect((JSClass.method)(), JSClass.field);
-  expect((JSClass.genericMethod)(JSClass.field), JSClass.field);
+  expect((JSClass.genericMethod)(0), 0);
 
   // Briefly check that other interop classes work too.
   expect(StaticInterop.field, '');
@@ -133,17 +139,17 @@ void testNonLocal() {
 
   OtherJSClass<int>(0);
   expect(OtherJSClass.field, 'unnamed');
-  OtherJSClass.named('');
+  OtherJSClass.named(0);
   expect(OtherJSClass.field, 'named');
-  OtherJSClass<bool>.redirecting(true);
+  OtherJSClass<double>.redirecting(0.1);
   expect(OtherJSClass.field, 'unnamed');
 
   (OtherJSClass.cons)(0);
   (OtherJSClass<int>.new)(0);
   expect(OtherJSClass.field, 'unnamed');
-  (OtherJSClass.named)('');
+  (OtherJSClass.named)(0);
   expect(OtherJSClass.field, 'named');
-  (OtherJSClass<bool>.redirecting)(true);
+  (OtherJSClass<double>.redirecting)(0.1);
   expect(OtherJSClass.field, 'unnamed');
 
   expect(OtherJSClass.getSet, OtherJSClass.field);
@@ -151,10 +157,10 @@ void testNonLocal() {
   expect(OtherJSClass.field, 'set');
 
   expect(OtherJSClass.method(), OtherJSClass.field);
-  expect(OtherJSClass.genericMethod(OtherJSClass.field), OtherJSClass.field);
+  expect(OtherJSClass.genericMethod(0), 0);
 
   expect((OtherJSClass.method)(), OtherJSClass.field);
-  expect((OtherJSClass.genericMethod)(OtherJSClass.field), OtherJSClass.field);
+  expect((OtherJSClass.genericMethod)(0), 0);
 }
 
 void main() {
