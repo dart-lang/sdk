@@ -237,6 +237,7 @@ import 'rules/use_string_in_part_of_directives.dart';
 import 'rules/use_super_parameters.dart';
 import 'rules/use_test_throws_matchers.dart';
 import 'rules/use_to_and_as_if_applicable.dart';
+import 'rules/use_truncating_division.dart';
 import 'rules/valid_regexps.dart';
 import 'rules/void_checks.dart';
 
@@ -476,6 +477,7 @@ void registerLintRules() {
     ..register(UseSuperParameters())
     ..register(UseTestThrowsMatchers())
     ..register(UseToAndAsIfApplicable())
+    ..register(UseTruncatingDivision())
     ..register(ValidRegexps())
     ..register(VoidChecks());
 }
