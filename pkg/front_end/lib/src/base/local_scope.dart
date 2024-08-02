@@ -94,6 +94,7 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
   void _recordUse(String name, int charOffset) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent?.forEachExtension(f);
   }
@@ -160,6 +161,7 @@ mixin ImmutableLocalScopeMixin implements LocalScope {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Map<String, List<int>>? get usedNames => null;
 }
 
@@ -223,6 +225,7 @@ final class EnclosingLocalScope extends BaseLocalScope
   ScopeKind get kind => _scope.kind;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Builder> get localVariables => const [];
 
   @override
@@ -231,6 +234,7 @@ final class EnclosingLocalScope extends BaseLocalScope
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupLocalVariable(String name) => null;
 
   @override
@@ -239,6 +243,7 @@ final class EnclosingLocalScope extends BaseLocalScope
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _scope.forEachExtension(f);
   }

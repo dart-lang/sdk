@@ -21,6 +21,22 @@ import 'sync_star.dart';
 import 'translator.dart';
 import 'types.dart';
 
+abstract class CodeGenerator {
+  // The two parameters here are used for inlining:
+  //
+  // If the user
+  //
+  //   * inlines the code, it will provide locals and a return label
+  //
+  //   * doesn't inline (i.e. makes new function with this code) it will provide
+  //     the parameters of the function and no return label.
+  //
+  void generate(List<w.Local> paramLocals, w.Label? returnLabel);
+
+  // TODO(kustermann): Remove this again.
+  Closures get closures;
+}
+
 /// Main code generator for member bodies.
 ///
 /// The [generate] method first collects all local functions and function
@@ -36,19 +52,24 @@ import 'types.dart';
 /// code generation for every expression or subexpression is done via the [wrap]
 /// method, which emits appropriate conversion code if the produced type is not
 /// a subtype of the expected type.
-class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
+abstract class AstCodeGenerator
+    extends ExpressionVisitor1<w.ValueType, w.ValueType>
     with ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>
-    implements InitializerVisitor<void>, StatementVisitor<void> {
+    implements InitializerVisitor<void>, StatementVisitor<void>, CodeGenerator {
   final Translator translator;
   final w.FunctionType functionType;
   final w.InstructionsBuilder b;
-  final Reference reference;
+  final Member enclosingMember;
+
+  // To be initialized in `generate()`
   late final List<w.Local> paramLocals;
-  final w.Label? returnLabel;
+  late final w.Label? returnLabel;
 
-  late final Intrinsifier intrinsifier;
-  late final StaticTypeContext typeContext;
+  late final Intrinsifier intrinsifier = Intrinsifier(this);
+  late final StaticTypeContext typeContext =
+      StaticTypeContext(enclosingMember, translator.typeEnvironment);
 
+  @override
   late final Closures closures;
 
   bool exceptionLocationPrinted = false;
@@ -82,44 +103,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       {};
 
   /// Create a code generator for a member or one of its lambdas.
-  ///
-  /// The [paramLocals] and [returnLabel] parameters can be used to generate
-  /// code for an inlined function by specifying the locals containing the
-  /// parameters (instead of the function inputs) and the label to jump to on
-  /// return (instead of emitting a `return` instruction).
-  CodeGenerator(this.translator, this.functionType, this.b, this.reference,
-      {required this.paramLocals, this.returnLabel}) {
-    intrinsifier = Intrinsifier(this);
-    typeContext = StaticTypeContext(member, translator.typeEnvironment);
-  }
-
-  /// Factory constructor for instantiating a code generator appropriate for
-  /// generating code for the given function. This will either return a
-  /// [CodeGenerator] or a [SyncStarCodeGenerator].
-  factory CodeGenerator.forFunction(
-      Translator translator,
-      FunctionNode? functionNode,
-      w.FunctionBuilder function,
-      Reference reference) {
-    bool isSyncStar = functionNode?.asyncMarker == AsyncMarker.SyncStar &&
-        !reference.isTearOffReference;
-    bool isAsync = functionNode?.asyncMarker == AsyncMarker.Async &&
-        !reference.isTearOffReference;
-    bool isTypeChecker = reference.isTypeCheckerReference;
-
-    if (!isTypeChecker && isSyncStar) {
-      return SyncStarCodeGenerator(translator, function, reference);
-    } else if (!isTypeChecker && isAsync) {
-      return AsyncCodeGenerator(translator, function, reference);
-    } else {
-      return CodeGenerator(translator, function.type, function.body, reference,
-          paramLocals: function.locals.toList());
-    }
-  }
+  AstCodeGenerator(
+      this.translator, this.functionType, this.b, this.enclosingMember);
 
   w.ModuleBuilder get m => translator.m;
-
-  Member get member => reference.asMember;
 
   List<w.ValueType> get outputs => functionType.outputs;
 
@@ -206,8 +193,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final location = source.getLocation(fileUri, fileOffset);
     final old = _sourceMapFileOffset;
     _sourceMapFileOffset = fileOffset;
-    b.startSourceMapping(
-        fileUri, location.line - 1, location.column - 1, member.name.text);
+    b.startSourceMapping(fileUri, location.line - 1, location.column - 1,
+        enclosingMember.name.text);
     return old;
   }
 
@@ -219,152 +206,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return (oldSource, oldFileOffset);
   }
 
-  /// Generate code for the member.
-  void generate() {
-    Member member = this.member;
+  /// Generate code while preventing recursive inlining.
+  @override
+  void generate(List<w.Local> paramLocals, w.Label? returnLabel) {
+    this.paramLocals = paramLocals;
+    this.returnLabel = returnLabel;
 
-    if (member is Constructor) {
-      // Closures are built when constructor functions are added to worklist.
-      closures = translator.constructorClosures[member.reference]!;
-    } else {
-      // Build closure information.
-      closures = Closures(translator, this.member);
-    }
-
-    if (reference.isTearOffReference) {
-      return generateTearOffGetter(member as Procedure);
-    }
-
-    if (reference.isTypeCheckerReference) {
-      if (member is Field || (member is Procedure && member.isSetter)) {
-        return _generateFieldSetterTypeCheckerMethod();
-      } else {
-        return _generateProcedureTypeCheckerMethod();
-      }
-    }
-
-    if (intrinsifier.generateMemberIntrinsic(
-        reference, functionType, paramLocals, returnLabel)) {
-      b.end();
-      return;
-    }
-
-    if (member.isExternal) {
-      b.comment("Unimplemented external member $member at ${member.location}");
-      if (member.isInstanceMember) {
-        b.local_get(paramLocals[0]);
-      } else {
-        b.ref_null(w.HeapType.none);
-      }
-      translator.constants.instantiateConstant(
-          b,
-          SymbolConstant(member.name.text, null),
-          translator.classInfo[translator.symbolClass]!.nonNullableType);
-      call(translator
-          .noSuchMethodErrorThrowUnimplementedExternalMemberError.reference);
-      b.unreachable();
-      b.end();
-      return;
-    }
-
-    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
-    setSourceMapSourceAndFileOffset(source, member.fileOffset);
-
-    if (member is Constructor) {
-      translator.membersBeingGenerated.add(member);
-      if (reference.isConstructorBodyReference) {
-        generateConstructorBody(reference);
-      } else if (reference.isInitializerReference) {
-        generateInitializerList(reference);
-      } else {
-        generateConstructorAllocator(member);
-      }
-      translator.membersBeingGenerated.remove(member);
-      return;
-    }
-
-    if (member is Field) {
-      if (member.isStatic) {
-        return generateStaticFieldInitializer(member);
-      } else {
-        return generateImplicitAccessor(member);
-      }
-    }
-
-    assert(member.function!.asyncMarker != AsyncMarker.SyncStar);
-    assert(member.function!.asyncMarker != AsyncMarker.Async);
-
-    translator.membersBeingGenerated.add(member);
-    generateBody(member);
-    translator.membersBeingGenerated.remove(member);
+    translator.membersBeingGenerated.add(enclosingMember);
+    generateInternal();
+    translator.membersBeingGenerated.remove(enclosingMember);
   }
 
-  void generateTearOffGetter(Procedure procedure) {
-    _initializeThis(member.reference);
-    DartType functionType = translator.getTearOffType(procedure);
-    ClosureImplementation closure = translator.getTearOffClosure(procedure);
-    w.StructType struct = closure.representation.closureStruct;
-
-    ClassInfo info = translator.closureInfo;
-    translator.functions.recordClassAllocation(info.classId);
-
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
-    b.local_get(paramLocals[0]); // `this` as context
-    b.global_get(closure.vtable);
-    types.makeType(this, functionType);
-    b.struct_new(struct);
-    b.end();
-  }
-
-  void generateStaticFieldInitializer(Field field) {
-    // Static field initializer function
-    assert(reference == field.fieldReference);
-    closures.findCaptures(field);
-    closures.collectContexts(field);
-    closures.buildContexts();
-
-    w.Global global = translator.globals.getGlobal(field);
-    w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
-    wrap(field.initializer!, global.type.type);
-    b.global_set(global);
-    if (flag != null) {
-      b.i32_const(1);
-      b.global_set(flag);
-    }
-    b.global_get(global);
-    translator.convertType(b, global.type.type, outputs.single);
-    b.end();
-  }
-
-  void generateImplicitAccessor(Field field) {
-    // Implicit getter or setter
-    w.StructType struct = translator.classInfo[field.enclosingClass!]!.struct;
-    int fieldIndex = translator.fieldIndex[field]!;
-    w.ValueType fieldType = struct.fields[fieldIndex].type.unpacked;
-
-    void getThis() {
-      w.Local thisLocal = paramLocals[0];
-      w.RefType structType = w.RefType.def(struct, nullable: false);
-      b.local_get(thisLocal);
-      translator.convertType(b, thisLocal.type, structType);
-    }
-
-    if (reference.isImplicitGetter) {
-      // Implicit getter
-      getThis();
-      b.struct_get(struct, fieldIndex);
-      translator.convertType(b, fieldType, returnType);
-    } else {
-      // Implicit setter
-      w.Local valueLocal = paramLocals[1];
-      getThis();
-      b.local_get(valueLocal);
-      translator.convertType(b, valueLocal.type, fieldType);
-      b.struct_set(struct, fieldIndex);
-    }
-    b.end();
-  }
+  void generateInternal();
 
   void _setupLocalParameters(Member member, ParameterInfo paramInfo,
       int parameterOffset, int implicitParams,
@@ -506,8 +359,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         isForwarder: isForwarder);
   }
 
-  void setupParametersAndContexts(Reference reference) {
-    setupParameters(reference);
+  void setupParametersAndContexts(Member member) {
+    setupParameters(member.reference);
 
     closures.findCaptures(member);
     closures.collectContexts(member);
@@ -515,37 +368,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     allocateContext(member.function!);
     captureParameters();
-  }
-
-  void setupInitializerListParametersAndContexts(Reference reference) {
-    setupParameters(reference, isForwarder: true);
-    allocateContext(member);
-    captureParameters();
-  }
-
-  void setupConstructorBodyParametersAndContexts(Reference reference) {
-    Constructor member = reference.asConstructor;
-    ParameterInfo paramInfo = translator.paramInfoForDirectCall(reference);
-
-    // For constructor body functions, the first parameter is always the
-    // receiver parameter, and the second parameter is a reference to the
-    // current context (if it exists).
-    Context? context = closures.contexts[member];
-    bool hasConstructorContext = context != null;
-
-    if (hasConstructorContext) {
-      assert(!context.isEmpty);
-      _initializeContextLocals(member, contextParamIndex: 1);
-    }
-
-    // Skips the receiver param (_initializeThis will return 1), and the
-    // context param if this exists.
-    int parameterOffset =
-        _initializeThis(reference) + (hasConstructorContext ? 1 : 0);
-    int implicitParams = parameterOffset + paramInfo.typeParamCount;
-
-    _setupLocalParameters(member, paramInfo, parameterOffset, implicitParams);
-    allocateContext(member.function);
   }
 
   void _setupDefaultFieldValues(ClassInfo info) {
@@ -567,62 +389,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         setSourceMapSourceAndFileOffset(oldSource, oldFileOffset);
       }
     }
-  }
-
-  List<w.Local> _generateInitializers(Constructor member) {
-    Class cls = member.enclosingClass;
-    ClassInfo info = translator.classInfo[cls]!;
-    List<w.Local> superclassFields = [];
-
-    _setupDefaultFieldValues(info);
-
-    // Generate initializer list
-    for (Initializer initializer in member.initializers) {
-      visitInitializer(initializer);
-
-      if (initializer is SuperInitializer) {
-        // Save super classes' fields to locals
-        ClassInfo superInfo = info.superInfo!;
-
-        for (w.ValueType outputType
-            in superInfo.getClassFieldTypes().reversed) {
-          w.Local local = addLocal(outputType);
-          b.local_set(local);
-          superclassFields.add(local);
-        }
-      } else if (initializer is RedirectingInitializer) {
-        // Save redirected classes' fields to locals
-        List<w.Local> redirectedFields = [];
-
-        for (w.ValueType outputType in info.getClassFieldTypes().reversed) {
-          w.Local local = addLocal(outputType);
-          b.local_set(local);
-          redirectedFields.add(local);
-        }
-
-        return redirectedFields.reversed.toList();
-      }
-    }
-
-    List<w.Local> typeFields = [];
-
-    for (TypeParameter typeParam in cls.typeParameters) {
-      TypeParameter? match = info.typeParameterMatch[typeParam];
-
-      if (match == null) {
-        // Type is not contained in super class' fields
-        typeFields.add(typeLocals[typeParam]!);
-      }
-    }
-
-    List<w.Local> orderedFieldLocals = Map.fromEntries(
-            fieldLocals.entries.toList()
-              ..sort((x, y) => translator.fieldIndex[x.key]!
-                  .compareTo(translator.fieldIndex[y.key]!)))
-        .values
-        .toList();
-
-    return superclassFields.reversed.toList() + typeFields + orderedFieldLocals;
   }
 
   List<w.Local> _getConstructorArgumentLocals(Reference target,
@@ -661,113 +427,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return constructorArgs;
   }
 
-  void generateBody(Member member) {
-    assert(member is! Constructor);
-    setupParametersAndContexts(member.reference);
-
-    Statement? body = member.function!.body;
-    if (body != null) {
-      visitStatement(body);
-    }
-
-    _implicitReturn();
-    b.end();
-  }
-
-  // Generates a function for allocating an object. This calls the separate
-  // initializer list and constructor body methods, and allocates a struct for
-  // the object.
-  void generateConstructorAllocator(Constructor member) {
-    setupParameters(member.reference, isForwarder: true);
-
-    w.FunctionType initializerMethodType =
-        translator.signatureForDirectCall(member.initializerReference);
-
-    List<w.Local> constructorArgs =
-        _getConstructorArgumentLocals(member.reference);
-
-    for (w.Local local in constructorArgs) {
-      b.local_get(local);
-    }
-
-    b.comment("Direct call of '$member Initializer'");
-    call(member.initializerReference);
-
-    ClassInfo info = translator.classInfo[member.enclosingClass]!;
-
-    // Add evaluated fields to locals
-    List<w.Local> orderedFieldLocals = [];
-
-    List<w.FieldType> fieldTypes = info.struct.fields
-        .sublist(FieldIndex.objectFieldBase)
-        .reversed
-        .toList();
-
-    for (w.FieldType field in fieldTypes) {
-      w.Local local = addLocal(field.type.unpacked);
-      orderedFieldLocals.add(local);
-      b.local_set(local);
-    }
-
-    Context? context = closures.contexts[member];
-    w.Local? contextLocal;
-
-    bool hasContext = context != null;
-
-    if (hasContext) {
-      assert(!context.isEmpty);
-      w.ValueType contextRef = w.RefType.struct(nullable: true);
-      contextLocal = addLocal(contextRef);
-      b.local_set(contextLocal);
-    }
-
-    List<w.ValueType> initializerOutputTypes = initializerMethodType.outputs;
-    int numConstructorBodyArgs = initializerOutputTypes.length -
-        fieldTypes.length -
-        (hasContext ? 1 : 0);
-
-    // Pop all arguments to constructor body
-    List<w.ValueType> constructorArgTypes =
-        initializerOutputTypes.sublist(0, numConstructorBodyArgs);
-
-    List<w.Local> constructorArguments = [];
-
-    for (w.ValueType argType in constructorArgTypes.reversed) {
-      w.Local local = addLocal(argType);
-      b.local_set(local);
-      constructorArguments.add(local);
-    }
-
-    // Set field values
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
-
-    for (w.Local local in orderedFieldLocals.reversed) {
-      b.local_get(local);
-    }
-
-    // create new struct with these fields and set to local
-    w.Local temp = addLocal(info.nonNullableType);
-    b.struct_new(info.struct);
-    b.local_tee(temp);
-
-    // Push context local if it is present
-    if (contextLocal != null) {
-      b.local_get(contextLocal);
-    }
-
-    // Push all constructor arguments
-    for (w.Local constructorArg in constructorArguments) {
-      b.local_get(constructorArg);
-    }
-
-    b.comment("Direct call of $member Constructor Body");
-    call(member.constructorBodyReference);
-
-    b.local_get(temp);
-    b.end();
-  }
-
   void setupLambdaParametersAndContexts(Lambda lambda) {
     FunctionNode functionNode = lambda.functionNode;
     _initializeContextLocals(functionNode);
@@ -785,22 +444,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     allocateContext(functionNode);
     captureParameters();
-  }
-
-  /// Generate code for the body of a lambda.
-  void generateLambda(Lambda lambda, Closures closures) {
-    // Initialize closure information from enclosing member.
-    this.closures = closures;
-
-    setSourceMapSource(lambda.functionNodeSource);
-
-    assert(lambda.functionNode.asyncMarker != AsyncMarker.Async);
-
-    setupLambdaParametersAndContexts(lambda);
-
-    visitStatement(lambda.functionNode.body!);
-    _implicitReturn();
-    b.end();
   }
 
   /// Initialize locals containing `this` in constructors and instance members.
@@ -1005,9 +648,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   List<w.ValueType> call(Reference target) {
-    if (translator.shouldInline(target)) {
-      w.FunctionType targetFunctionType =
-          translator.signatureForDirectCall(target);
+    w.FunctionType targetFunctionType =
+        translator.signatureForDirectCall(target);
+    final inliningCodeGen =
+        translator.getInliningCodeGenerator(target, targetFunctionType, b);
+    if (inliningCodeGen != null) {
       List<w.Local> inlinedLocals =
           targetFunctionType.inputs.map((t) => addLocal(t)).toList();
       for (w.Local local in inlinedLocals.reversed) {
@@ -1015,9 +660,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
       w.Label block = b.block(const [], targetFunctionType.outputs);
       b.comment("Inlined ${target.asMember}");
-      CodeGenerator(translator, targetFunctionType, b, target,
-              paramLocals: inlinedLocals, returnLabel: block)
-          .generate();
+      inliningCodeGen.generate(inlinedLocals, block);
       return targetFunctionType.outputs;
     } else {
       w.BaseFunction targetFunction = translator.functions.getFunction(target);
@@ -1879,7 +1522,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   Member _lookupSuperTarget(Member interfaceTarget, {required bool setter}) {
     return translator.hierarchy.getDispatchTarget(
-        member.enclosingClass!.superclass!, interfaceTarget.name,
+        enclosingMember.enclosingClass!.superclass!, interfaceTarget.name,
         setter: setter)!;
   }
 
@@ -3187,22 +2830,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType instantiateTypeParameter(TypeParameter parameter) {
     w.ValueType resultType;
 
-    // `this` will not be initialized yet for constructor initializer lists
-    if (parameter.declaration is GenericFunction ||
-        reference.isInitializerReference) {
-      // Type argument to function
-      w.Local? local = typeLocals[parameter];
-      if (local != null) {
-        b.local_get(local);
-        resultType = local.type;
-      } else {
-        Capture capture = closures.captures[parameter]!;
-        b.local_get(capture.context.currentLocal);
-        b.struct_get(capture.context.struct, capture.fieldIndex);
-        resultType = capture.type;
-      }
+    w.Local? local = typeLocals[parameter];
+    Capture? capture = closures.captures[parameter];
+    if (local != null) {
+      b.local_get(local);
+      resultType = local.type;
+    } else if (capture != null) {
+      Capture capture = closures.captures[parameter]!;
+      b.local_get(capture.context.currentLocal);
+      b.struct_get(capture.context.struct, capture.fieldIndex);
+      resultType = capture.type;
     } else {
-      // Type argument of class
       Class cls = parameter.declaration as Class;
       ClassInfo info = translator.classInfo[cls]!;
       int fieldIndex = translator.typeParameterIndex[parameter]!;
@@ -3210,6 +2848,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.struct_get(info.struct, fieldIndex);
       resultType = info.struct.fields[fieldIndex].type.unpacked;
     }
+
     translator.convertType(b, resultType, types.nonNullableTypeType);
     return types.nonNullableTypeType;
   }
@@ -3267,199 +2906,317 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return wrap(node.expression, expectedType);
   }
 
-  // Generates a function for a constructor's body, where the allocated struct
-  // object is passed to this function.
-  void generateConstructorBody(Reference target) {
-    assert(target.isConstructorBodyReference);
-    Constructor member = target.asConstructor;
+  /// Generate code that checks type of an argument against an expected type
+  /// and throws a `TypeError` on failure.
+  ///
+  /// Does not expect any values on stack and does not leave any values on
+  /// stack.
+  ///
+  /// Locals [argLocal] are used to store values pushed by [pushArg]
+  /// and reuse the values.
+  ///
+  /// [argName] is used in the type error as the name of the argument that
+  /// doesn't match the expected type.
+  void _generateArgumentTypeCheck(
+    String argName,
+    void Function() pushArg,
+    DartType testedAgainstType,
+    w.Local argLocal,
+  ) {
+    if (translator.options.minify) {
+      // We don't need to include the name in the error message, so we can use
+      // the optimized `as` checks.
+      pushArg();
+      types.emitAsCheck(
+          this,
+          testedAgainstType,
+          translator.coreTypes.objectNullableRawType,
+          argLocal.type as w.RefType);
+      b.drop();
+    } else {
+      pushArg();
+      b.local_tee(argLocal);
+      types.emitIsTest(
+          this, testedAgainstType, translator.coreTypes.objectNullableRawType);
+      b.i32_eqz();
+      b.if_();
+      b.local_get(argLocal);
+      types.makeType(this, testedAgainstType);
+      _emitString(argName);
+      call(translator.stackTraceCurrent.reference);
+      call(translator.throwArgumentTypeCheckError.reference);
+      b.unreachable();
+      b.end();
+    }
+  }
 
-    setupConstructorBodyParametersAndContexts(target);
+  void _generateTypeArgumentBoundCheck(
+    String argName,
+    w.Local typeLocal,
+    DartType bound,
+  ) {
+    b.local_get(typeLocal);
+    final boundLocal =
+        b.addLocal(translator.classInfo[translator.typeClass]!.nonNullableType);
+    types.makeType(this, bound);
+    b.local_tee(boundLocal);
+    call(translator.isTypeSubtype.reference);
 
-    int getStartIndexForSuperOrRedirectedConstructorArguments() {
-      // Skips the receiver param and the current constructor's context
-      // (if it exists)
-      Context? context = closures.contexts[member];
-      bool hasContext = context != null;
+    b.i32_eqz();
+    b.if_();
+    // Type check failed
+    b.local_get(typeLocal);
+    b.local_get(boundLocal);
+    _emitString(argName);
+    call(translator.stackTraceCurrent.reference);
+    call(translator.throwTypeArgumentBoundCheckError.reference);
+    b.unreachable();
+    b.end();
+  }
 
-      if (hasContext) {
-        assert(!context.isEmpty);
-      }
+  void _emitString(String str) => wrap(StringLiteral(str),
+      translator.translateType(translator.coreTypes.stringNonNullableRawType));
 
-      int numSkippedParams = hasContext ? 2 : 1;
+  @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError("CodeGenerator.visitPatternSwitchStatement");
+  }
 
-      // Skips the current constructor's arguments
-      int numConstructorArgs = _getConstructorArgumentLocals(target).length;
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError("CodeGenerator.visitPatternVariableDeclaration");
+  }
 
-      return numSkippedParams + numConstructorArgs;
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    // This node is internal to the front end and removed by the constant
+    // evaluator.
+    throw UnsupportedError("CodeGenerator.visitIfCaseStatement");
+  }
+
+  void debugRuntimePrint(String s) {
+    final printFunction =
+        translator.functions.getFunction(translator.printToConsole.reference);
+    translator.constants.instantiateConstant(
+        b, StringConstant(s), printFunction.type.inputs[0]);
+    b.call(printFunction);
+  }
+
+  @override
+  void visitAuxiliaryStatement(AuxiliaryStatement node) {
+    throw UnsupportedError(
+        "Unsupported auxiliary statement $node (${node.runtimeType}).");
+  }
+
+  @override
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    throw UnsupportedError(
+        "Unsupported auxiliary initializer $node (${node.runtimeType}).");
+  }
+
+  void emitUnimplementedExternalError(Member member) {
+    b.comment("Unimplemented external member $member at ${member.location}");
+    if (member.isInstanceMember) {
+      b.local_get(paramLocals[0]);
+    } else {
+      b.ref_null(w.HeapType.none);
+    }
+    translator.constants.instantiateConstant(
+        b,
+        SymbolConstant(member.name.text, null),
+        translator.classInfo[translator.symbolClass]!.nonNullableType);
+    call(translator
+        .noSuchMethodErrorThrowUnimplementedExternalMemberError.reference);
+    b.unreachable();
+  }
+}
+
+CodeGenerator getMemberCodeGenerator(Translator translator,
+    w.FunctionBuilder functionBuilder, Reference memberReference) {
+  final member = memberReference.asMember;
+  final asyncMarker = member.function?.asyncMarker ?? AsyncMarker.Sync;
+  final codeGen = getInlinableMemberCodeGenerator(translator, asyncMarker,
+      functionBuilder.type, functionBuilder.body, memberReference);
+  if (codeGen != null) return codeGen;
+
+  final procedure = member as Procedure;
+
+  if (asyncMarker == AsyncMarker.SyncStar) {
+    return SyncStarProcedureCodeGenerator(
+        translator, functionBuilder, procedure);
+  }
+  assert(asyncMarker == AsyncMarker.Async);
+  return AsyncProcedureCodeGenerator(translator, functionBuilder, procedure);
+}
+
+CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda,
+    Member enclosingMember, Closures enclosingMemberClosures) {
+  final asyncMarker = lambda.functionNode.asyncMarker;
+
+  if (asyncMarker == AsyncMarker.Async) {
+    return AsyncLambdaCodeGenerator(
+        translator, enclosingMember, lambda, enclosingMemberClosures);
+  }
+  if (asyncMarker == AsyncMarker.SyncStar) {
+    return SyncStarLambdaCodeGenerator(
+        translator, enclosingMember, lambda, enclosingMemberClosures);
+  }
+  assert(asyncMarker == AsyncMarker.Sync);
+  return SynchronousLambdaCodeGenerator(
+      translator, enclosingMember, lambda, enclosingMemberClosures);
+}
+
+/// Returns a [CodeGenerator] for the given member iff that member can be
+/// inlined.
+CodeGenerator? getInlinableMemberCodeGenerator(
+    Translator translator,
+    AsyncMarker asyncMarker,
+    w.FunctionType functionType,
+    w.InstructionsBuilder b,
+    Reference reference) {
+  final Member member = reference.asMember;
+
+  if (reference.isTearOffReference) {
+    return TearOffCodeGenerator(translator, functionType, b, member);
+  }
+  if (reference.isTypeCheckerReference) {
+    return TypeCheckerCodeGenerator(translator, functionType, b, member);
+  }
+
+  if (member is Constructor) {
+    if (reference.isConstructorBodyReference) {
+      return ConstructorCodeGenerator(translator, functionType, b, member);
+    } else if (reference.isInitializerReference) {
+      return InitializerListCodeGenerator(translator, functionType, b, member);
+    } else {
+      return ConstructorAllocatorCodeGenerator(
+          translator, functionType, b, member);
+    }
+  }
+
+  if (member is Field) {
+    if (member.isStatic) {
+      return StaticFieldInitializerCodeGenerator(
+          translator, functionType, b, member);
+    }
+    return ImplicitFieldAccessorCodeGenerator(
+        translator, functionType, b, member, reference.isImplicitGetter);
+  }
+
+  if (member is Procedure && asyncMarker == AsyncMarker.Sync) {
+    return SynchronousProcedureCodeGenerator(
+        translator, functionType, b, member);
+  }
+  assert(
+      asyncMarker == AsyncMarker.SyncStar || asyncMarker == AsyncMarker.Async);
+  return null;
+}
+
+class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
+  final Procedure member;
+
+  SynchronousProcedureCodeGenerator(Translator translator,
+      w.FunctionType functionType, w.InstructionsBuilder b, this.member)
+      : super(translator, functionType, b, member);
+
+  @override
+  void generateInternal() {
+    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, member.fileOffset);
+
+    // Build closure information.
+    closures = Closures(translator, member);
+
+    if (intrinsifier.generateMemberIntrinsic(
+        member.reference, functionType, paramLocals, returnLabel)) {
+      b.end();
+      return;
     }
 
-    // Call super class' constructor body, or redirected constructor
-    for (Initializer initializer in member.initializers) {
-      if (initializer is SuperInitializer ||
-          initializer is RedirectingInitializer) {
-        Constructor target = initializer is SuperInitializer
-            ? initializer.target
-            : (initializer as RedirectingInitializer).target;
-
-        Supertype? supersupertype = target.enclosingClass.supertype;
-
-        if (supersupertype == null) {
-          break;
-        }
-
-        int startIndex =
-            getStartIndexForSuperOrRedirectedConstructorArguments();
-
-        List<w.Local> superOrRedirectedConstructorArgs =
-            paramLocals.sublist(startIndex);
-
-        w.Local object = thisLocal!;
-        b.local_get(object);
-
-        for (w.Local local in superOrRedirectedConstructorArgs) {
-          b.local_get(local);
-        }
-
-        call(target.constructorBodyReference);
-        break;
-      }
+    if (member.isExternal) {
+      emitUnimplementedExternalError(member);
+      b.end();
+      return;
     }
+
+    setupParametersAndContexts(member);
 
     Statement? body = member.function.body;
-
     if (body != null) {
       visitStatement(body);
     }
 
+    _implicitReturn();
     b.end();
   }
+}
 
-  // Generates a constructor's initializer list method, and returns:
-  // 1. Arguments and contexts returned from a super or redirecting initializer
-  //    method (in reverse order).
-  // 2. Arguments for this constructor (in reverse order).
-  // 3. A reference to the context for this constructor (or null if there is no
-  //    context).
-  // 4. Class fields (including superclass fields, excluding class id and
-  //    identity hash).
-  void generateInitializerList(Reference target) {
-    assert(target.isInitializerReference);
-    Constructor member = target.asConstructor;
+class TearOffCodeGenerator extends AstCodeGenerator {
+  final Member member;
 
-    setupInitializerListParametersAndContexts(target);
+  TearOffCodeGenerator(Translator translator, w.FunctionType functionType,
+      w.InstructionsBuilder b, this.member)
+      : super(translator, functionType, b, member);
 
-    Class cls = member.enclosingClass;
-    ClassInfo info = translator.classInfo[cls]!;
-
-    List<w.Local> initializedFields = _generateInitializers(member);
-    bool containsSuperInitializer = false;
-    bool containsRedirectingInitializer = false;
-
-    for (Initializer initializer in member.initializers) {
-      if (initializer is SuperInitializer) {
-        containsSuperInitializer = true;
-      } else if (initializer is RedirectingInitializer) {
-        containsRedirectingInitializer = true;
-      }
+  @override
+  void generateInternal() {
+    if (member is Constructor) {
+      // Closures are built when constructor functions are added to worklist.
+      closures = translator.constructorClosures[member.reference]!;
+    } else {
+      // Build closure information.
+      closures = Closures(translator, member);
     }
 
-    if (cls.superclass != null && !containsRedirectingInitializer) {
-      // checks if a SuperInitializer was dropped because the constructor body
-      // throws an error
-      if (!containsSuperInitializer) {
-        b.unreachable();
-        b.end();
-        return;
-      }
-
-      // checks if a FieldInitializer was dropped because the constructor body
-      // throws an error
-      for (Field field in info.cls!.fields) {
-        if (field.isInstanceMember && !fieldLocals.containsKey(field)) {
-          b.unreachable();
-          b.end();
-          return;
-        }
-      }
-    }
-
-    // push constructor arguments
-    List<w.Local> constructorArgs =
-        _getConstructorArgumentLocals(member.reference, true);
-
-    for (w.Local arg in constructorArgs) {
-      b.local_get(arg);
-    }
-
-    // push reference to context
-    Context? context = closures.contexts[member];
-    if (context != null) {
-      assert(!context.isEmpty);
-      b.local_get(context.currentLocal);
-    }
-
-    // push initialized fields
-    for (w.Local field in initializedFields) {
-      b.local_get(field);
-    }
-
-    b.end();
+    return generateTearOffGetter(member as Procedure);
   }
 
-  /// Generate type checker method for a setter.
-  ///
-  /// This function will be called by a setter forwarder in a dynamic set to
-  /// type check the setter argument before calling the actual setter.
-  void _generateFieldSetterTypeCheckerMethod() {
-    final receiverLocal = paramLocals[0];
-    final positionalArgLocal = paramLocals[1];
-
+  void generateTearOffGetter(Procedure procedure) {
     _initializeThis(member.reference);
+    DartType functionType = translator.getTearOffType(procedure);
+    ClosureImplementation closure = translator.getTearOffClosure(procedure);
+    w.StructType struct = closure.representation.closureStruct;
 
-    // Local for the argument.
-    final argLocal = addLocal(translator.topInfo.nullableType);
+    ClassInfo info = translator.closureInfo;
+    translator.functions.recordClassAllocation(info.classId);
 
-    final member_ = member;
-    DartType paramType;
-    if (member_ is Field) {
-      paramType = member_.type;
+    b.i32_const(info.classId);
+    b.i32_const(initialIdentityHash);
+    b.local_get(paramLocals[0]); // `this` as context
+    b.global_get(closure.vtable);
+    types.makeType(this, functionType);
+    b.struct_new(struct);
+    b.end();
+  }
+}
+
+class TypeCheckerCodeGenerator extends AstCodeGenerator {
+  final Member member;
+
+  TypeCheckerCodeGenerator(Translator translator, w.FunctionType functionType,
+      w.InstructionsBuilder b, this.member)
+      : super(translator, functionType, b, member);
+
+  @override
+  void generateInternal() {
+    if (member is Constructor) {
+      // Closures are built when constructor functions are added to worklist.
+      closures = translator.constructorClosures[member.reference]!;
     } else {
-      paramType = (member_ as Procedure).setterType;
+      // Build closure information.
+      closures = Closures(translator, member);
     }
 
-    if (!translator.options.omitImplicitTypeChecks) {
-      _generateArgumentTypeCheck(
-        member.name.text,
-        () => b.local_get(positionalArgLocal),
-        paramType,
-        argLocal,
-      );
-    }
-
-    ClassInfo info = translator.classInfo[member_.enclosingClass]!;
-    if (member_ is Field) {
-      int fieldIndex = translator.fieldIndex[member_]!;
-      b.local_get(receiverLocal);
-      translator.convertType(b, receiverLocal.type, info.nonNullableType);
-      b.local_get(argLocal);
-      translator.convertType(
-          b, argLocal.type, info.struct.fields[fieldIndex].type.unpacked);
-      b.struct_set(info.struct, fieldIndex);
+    if (member is Field ||
+        (member is Procedure && (member as Procedure).isSetter)) {
+      return _generateFieldSetterTypeCheckerMethod();
     } else {
-      final setterProcedure = member_ as Procedure;
-      final setterProcedureWasmType =
-          translator.signatureForDirectCall(setterProcedure.reference);
-      final setterWasmInputs = setterProcedureWasmType.inputs;
-      assert(setterWasmInputs.length == 2);
-      b.local_get(receiverLocal);
-      translator.convertType(b, receiverLocal.type, setterWasmInputs[0]);
-      b.local_get(argLocal);
-      translator.convertType(b, argLocal.type, setterWasmInputs[1]);
-      call(setterProcedure.reference);
+      return _generateProcedureTypeCheckerMethod();
     }
-
-    b.local_get(argLocal);
-    b.end(); // end function
   }
 
   /// Generate type checker method for a method.
@@ -3632,116 +3389,544 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.end();
   }
 
-  /// Generate code that checks type of an argument against an expected type
-  /// and throws a `TypeError` on failure.
+  /// Generate type checker method for a setter.
   ///
-  /// Does not expect any values on stack and does not leave any values on
-  /// stack.
-  ///
-  /// Locals [argLocal] are used to store values pushed by [pushArg]
-  /// and reuse the values.
-  ///
-  /// [argName] is used in the type error as the name of the argument that
-  /// doesn't match the expected type.
-  void _generateArgumentTypeCheck(
-    String argName,
-    void Function() pushArg,
-    DartType testedAgainstType,
-    w.Local argLocal,
-  ) {
-    if (translator.options.minify) {
-      // We don't need to include the name in the error message, so we can use
-      // the optimized `as` checks.
-      pushArg();
-      types.emitAsCheck(
-          this,
-          testedAgainstType,
-          translator.coreTypes.objectNullableRawType,
-          argLocal.type as w.RefType);
-      b.drop();
+  /// This function will be called by a setter forwarder in a dynamic set to
+  /// type check the setter argument before calling the actual setter.
+  void _generateFieldSetterTypeCheckerMethod() {
+    final receiverLocal = paramLocals[0];
+    final positionalArgLocal = paramLocals[1];
+
+    _initializeThis(member.reference);
+
+    // Local for the argument.
+    final argLocal = addLocal(translator.topInfo.nullableType);
+
+    final member_ = member;
+    DartType paramType;
+    if (member_ is Field) {
+      paramType = member_.type;
     } else {
-      pushArg();
-      b.local_tee(argLocal);
-      types.emitIsTest(
-          this, testedAgainstType, translator.coreTypes.objectNullableRawType);
-      b.i32_eqz();
-      b.if_();
-      b.local_get(argLocal);
-      types.makeType(this, testedAgainstType);
-      _emitString(argName);
-      call(translator.stackTraceCurrent.reference);
-      call(translator.throwArgumentTypeCheckError.reference);
-      b.unreachable();
-      b.end();
+      paramType = (member_ as Procedure).setterType;
     }
+
+    if (!translator.options.omitImplicitTypeChecks) {
+      _generateArgumentTypeCheck(
+        member.name.text,
+        () => b.local_get(positionalArgLocal),
+        paramType,
+        argLocal,
+      );
+    }
+
+    ClassInfo info = translator.classInfo[member_.enclosingClass]!;
+    if (member_ is Field) {
+      int fieldIndex = translator.fieldIndex[member_]!;
+      b.local_get(receiverLocal);
+      translator.convertType(b, receiverLocal.type, info.nonNullableType);
+      b.local_get(argLocal);
+      translator.convertType(
+          b, argLocal.type, info.struct.fields[fieldIndex].type.unpacked);
+      b.struct_set(info.struct, fieldIndex);
+    } else {
+      final setterProcedure = member_ as Procedure;
+      final setterProcedureWasmType =
+          translator.signatureForDirectCall(setterProcedure.reference);
+      final setterWasmInputs = setterProcedureWasmType.inputs;
+      assert(setterWasmInputs.length == 2);
+      b.local_get(receiverLocal);
+      translator.convertType(b, receiverLocal.type, setterWasmInputs[0]);
+      b.local_get(argLocal);
+      translator.convertType(b, argLocal.type, setterWasmInputs[1]);
+      call(setterProcedure.reference);
+    }
+
+    b.local_get(argLocal);
+    b.end(); // end function
+  }
+}
+
+class InitializerListCodeGenerator extends AstCodeGenerator {
+  final Constructor member;
+
+  InitializerListCodeGenerator(Translator translator,
+      w.FunctionType functionType, w.InstructionsBuilder b, this.member)
+      : super(translator, functionType, b, member);
+
+  @override
+  void generateInternal() {
+    // Closures are built when constructor functions are added to worklist.
+    closures = translator.constructorClosures[member.reference]!;
+
+    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, member.fileOffset);
+
+    if (member.isExternal) {
+      emitUnimplementedExternalError(member);
+      b.end();
+      return;
+    }
+
+    generateInitializerList();
   }
 
-  void _generateTypeArgumentBoundCheck(
-    String argName,
-    w.Local typeLocal,
-    DartType bound,
-  ) {
-    b.local_get(typeLocal);
-    final boundLocal =
-        b.addLocal(translator.classInfo[translator.typeClass]!.nonNullableType);
-    types.makeType(this, bound);
-    b.local_tee(boundLocal);
-    call(translator.isTypeSubtype.reference);
+  // Generates a constructor's initializer list method, and returns:
+  // 1. Arguments and contexts returned from a super or redirecting initializer
+  //    method (in reverse order).
+  // 2. Arguments for this constructor (in reverse order).
+  // 3. A reference to the context for this constructor (or null if there is no
+  //    context).
+  // 4. Class fields (including superclass fields, excluding class id and
+  //    identity hash).
+  void generateInitializerList() {
+    _setupInitializerListParametersAndContexts();
 
-    b.i32_eqz();
-    b.if_();
-    // Type check failed
-    b.local_get(typeLocal);
-    b.local_get(boundLocal);
-    _emitString(argName);
-    call(translator.stackTraceCurrent.reference);
-    call(translator.throwTypeArgumentBoundCheckError.reference);
-    b.unreachable();
+    Class cls = member.enclosingClass;
+    ClassInfo info = translator.classInfo[cls]!;
+
+    List<w.Local> initializedFields = _generateInitializers(member);
+    bool containsSuperInitializer = false;
+    bool containsRedirectingInitializer = false;
+
+    for (Initializer initializer in member.initializers) {
+      if (initializer is SuperInitializer) {
+        containsSuperInitializer = true;
+      } else if (initializer is RedirectingInitializer) {
+        containsRedirectingInitializer = true;
+      }
+    }
+
+    if (cls.superclass != null && !containsRedirectingInitializer) {
+      // checks if a SuperInitializer was dropped because the constructor body
+      // throws an error
+      if (!containsSuperInitializer) {
+        b.unreachable();
+        b.end();
+        return;
+      }
+
+      // checks if a FieldInitializer was dropped because the constructor body
+      // throws an error
+      for (Field field in info.cls!.fields) {
+        if (field.isInstanceMember && !fieldLocals.containsKey(field)) {
+          b.unreachable();
+          b.end();
+          return;
+        }
+      }
+    }
+
+    // push constructor arguments
+    List<w.Local> constructorArgs =
+        _getConstructorArgumentLocals(member.reference, true);
+
+    for (w.Local arg in constructorArgs) {
+      b.local_get(arg);
+    }
+
+    // push reference to context
+    Context? context = closures.contexts[member];
+    if (context != null) {
+      assert(!context.isEmpty);
+      b.local_get(context.currentLocal);
+    }
+
+    // push initialized fields
+    for (w.Local field in initializedFields) {
+      b.local_get(field);
+    }
+
     b.end();
   }
 
-  void _emitString(String str) => wrap(StringLiteral(str),
-      translator.translateType(translator.coreTypes.stringNonNullableRawType));
-
-  @override
-  void visitPatternSwitchStatement(PatternSwitchStatement node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError("CodeGenerator.visitPatternSwitchStatement");
+  void _setupInitializerListParametersAndContexts() {
+    setupParameters(member.initializerReference, isForwarder: true);
+    allocateContext(member);
+    captureParameters();
   }
 
-  @override
-  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError("CodeGenerator.visitPatternVariableDeclaration");
+  List<w.Local> _generateInitializers(Constructor member) {
+    Class cls = member.enclosingClass;
+    ClassInfo info = translator.classInfo[cls]!;
+    List<w.Local> superclassFields = [];
+
+    _setupDefaultFieldValues(info);
+
+    // Generate initializer list
+    for (Initializer initializer in member.initializers) {
+      visitInitializer(initializer);
+
+      if (initializer is SuperInitializer) {
+        // Save super classes' fields to locals
+        ClassInfo superInfo = info.superInfo!;
+
+        for (w.ValueType outputType
+            in superInfo.getClassFieldTypes().reversed) {
+          w.Local local = addLocal(outputType);
+          b.local_set(local);
+          superclassFields.add(local);
+        }
+      } else if (initializer is RedirectingInitializer) {
+        // Save redirected classes' fields to locals
+        List<w.Local> redirectedFields = [];
+
+        for (w.ValueType outputType in info.getClassFieldTypes().reversed) {
+          w.Local local = addLocal(outputType);
+          b.local_set(local);
+          redirectedFields.add(local);
+        }
+
+        return redirectedFields.reversed.toList();
+      }
+    }
+
+    List<w.Local> typeFields = [];
+
+    for (TypeParameter typeParam in cls.typeParameters) {
+      TypeParameter? match = info.typeParameterMatch[typeParam];
+
+      if (match == null) {
+        // Type is not contained in super class' fields
+        typeFields.add(typeLocals[typeParam]!);
+      }
+    }
+
+    List<w.Local> orderedFieldLocals = Map.fromEntries(
+            fieldLocals.entries.toList()
+              ..sort((x, y) => translator.fieldIndex[x.key]!
+                  .compareTo(translator.fieldIndex[y.key]!)))
+        .values
+        .toList();
+
+    return superclassFields.reversed.toList() + typeFields + orderedFieldLocals;
   }
+}
+
+class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
+  final Constructor member;
+
+  ConstructorAllocatorCodeGenerator(Translator translator,
+      w.FunctionType functionType, w.InstructionsBuilder b, this.member)
+      : super(translator, functionType, b, member);
 
   @override
-  void visitIfCaseStatement(IfCaseStatement node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError("CodeGenerator.visitIfCaseStatement");
+  void generateInternal() {
+    // Closures are built when constructor functions are added to worklist.
+    closures = translator.constructorClosures[member.reference]!;
+
+    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, member.fileOffset);
+
+    generateConstructorAllocator();
   }
 
-  void debugRuntimePrint(String s) {
-    final printFunction =
-        translator.functions.getFunction(translator.printToConsole.reference);
-    translator.constants.instantiateConstant(
-        b, StringConstant(s), printFunction.type.inputs[0]);
-    b.call(printFunction);
+  // Generates a function for allocating an object. This calls the separate
+  // initializer list and constructor body methods, and allocates a struct for
+  // the object.
+  void generateConstructorAllocator() {
+    setupParameters(member.reference, isForwarder: true);
+
+    w.FunctionType initializerMethodType =
+        translator.signatureForDirectCall(member.initializerReference);
+
+    List<w.Local> constructorArgs =
+        _getConstructorArgumentLocals(member.reference);
+
+    for (w.Local local in constructorArgs) {
+      b.local_get(local);
+    }
+
+    b.comment("Direct call of '$member Initializer'");
+    call(member.initializerReference);
+
+    ClassInfo info = translator.classInfo[member.enclosingClass]!;
+
+    // Add evaluated fields to locals
+    List<w.Local> orderedFieldLocals = [];
+
+    List<w.FieldType> fieldTypes = info.struct.fields
+        .sublist(FieldIndex.objectFieldBase)
+        .reversed
+        .toList();
+
+    for (w.FieldType field in fieldTypes) {
+      w.Local local = addLocal(field.type.unpacked);
+      orderedFieldLocals.add(local);
+      b.local_set(local);
+    }
+
+    Context? context = closures.contexts[member];
+    w.Local? contextLocal;
+
+    bool hasContext = context != null;
+
+    if (hasContext) {
+      assert(!context.isEmpty);
+      w.ValueType contextRef = w.RefType.struct(nullable: true);
+      contextLocal = addLocal(contextRef);
+      b.local_set(contextLocal);
+    }
+
+    List<w.ValueType> initializerOutputTypes = initializerMethodType.outputs;
+    int numConstructorBodyArgs = initializerOutputTypes.length -
+        fieldTypes.length -
+        (hasContext ? 1 : 0);
+
+    // Pop all arguments to constructor body
+    List<w.ValueType> constructorArgTypes =
+        initializerOutputTypes.sublist(0, numConstructorBodyArgs);
+
+    List<w.Local> constructorArguments = [];
+
+    for (w.ValueType argType in constructorArgTypes.reversed) {
+      w.Local local = addLocal(argType);
+      b.local_set(local);
+      constructorArguments.add(local);
+    }
+
+    // Set field values
+    b.i32_const(info.classId);
+    b.i32_const(initialIdentityHash);
+
+    for (w.Local local in orderedFieldLocals.reversed) {
+      b.local_get(local);
+    }
+
+    // create new struct with these fields and set to local
+    w.Local temp = addLocal(info.nonNullableType);
+    b.struct_new(info.struct);
+    b.local_tee(temp);
+
+    // Push context local if it is present
+    if (contextLocal != null) {
+      b.local_get(contextLocal);
+    }
+
+    // Push all constructor arguments
+    for (w.Local constructorArg in constructorArguments) {
+      b.local_get(constructorArg);
+    }
+
+    b.comment("Direct call of $member Constructor Body");
+    call(member.constructorBodyReference);
+
+    b.local_get(temp);
+    b.end();
   }
+}
+
+class ConstructorCodeGenerator extends AstCodeGenerator {
+  final Constructor member;
+
+  ConstructorCodeGenerator(Translator translator, w.FunctionType functionType,
+      w.InstructionsBuilder b, this.member)
+      : super(translator, functionType, b, member);
 
   @override
-  void visitAuxiliaryStatement(AuxiliaryStatement node) {
-    throw UnsupportedError(
-        "Unsupported auxiliary statement $node (${node.runtimeType}).");
+  void generateInternal() {
+    super.generate;
+    // Closures are built when constructor functions are added to worklist.
+    closures = translator.constructorClosures[member.reference]!;
+
+    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, member.fileOffset);
+
+    generateConstructorBody();
   }
 
+  // Generates a function for a constructor's body, where the allocated struct
+  // object is passed to this function.
+  void generateConstructorBody() {
+    _setupConstructorBodyParametersAndContexts();
+
+    int getStartIndexForSuperOrRedirectedConstructorArguments() {
+      // Skips the receiver param and the current constructor's context
+      // (if it exists)
+      Context? context = closures.contexts[member];
+      bool hasContext = context != null;
+
+      if (hasContext) {
+        assert(!context.isEmpty);
+      }
+
+      int numSkippedParams = hasContext ? 2 : 1;
+
+      // Skips the current constructor's arguments
+      int numConstructorArgs =
+          _getConstructorArgumentLocals(member.constructorBodyReference).length;
+
+      return numSkippedParams + numConstructorArgs;
+    }
+
+    // Call super class' constructor body, or redirected constructor
+    for (Initializer initializer in member.initializers) {
+      if (initializer is SuperInitializer ||
+          initializer is RedirectingInitializer) {
+        Constructor target = initializer is SuperInitializer
+            ? initializer.target
+            : (initializer as RedirectingInitializer).target;
+
+        Supertype? supersupertype = target.enclosingClass.supertype;
+
+        if (supersupertype == null) {
+          break;
+        }
+
+        int startIndex =
+            getStartIndexForSuperOrRedirectedConstructorArguments();
+
+        List<w.Local> superOrRedirectedConstructorArgs =
+            paramLocals.sublist(startIndex);
+
+        w.Local object = thisLocal!;
+        b.local_get(object);
+
+        for (w.Local local in superOrRedirectedConstructorArgs) {
+          b.local_get(local);
+        }
+
+        call(target.constructorBodyReference);
+        break;
+      }
+    }
+
+    Statement? body = member.function.body;
+
+    if (body != null) {
+      visitStatement(body);
+    }
+
+    b.end();
+  }
+
+  void _setupConstructorBodyParametersAndContexts() {
+    ParameterInfo paramInfo =
+        translator.paramInfoForDirectCall(member.constructorBodyReference);
+
+    // For constructor body functions, the first parameter is always the
+    // receiver parameter, and the second parameter is a reference to the
+    // current context (if it exists).
+    Context? context = closures.contexts[member];
+    bool hasConstructorContext = context != null;
+
+    if (hasConstructorContext) {
+      assert(!context.isEmpty);
+      _initializeContextLocals(member, contextParamIndex: 1);
+    }
+
+    // Skips the receiver param (_initializeThis will return 1), and the
+    // context param if this exists.
+    int parameterOffset = _initializeThis(member.constructorBodyReference) +
+        (hasConstructorContext ? 1 : 0);
+    int implicitParams = parameterOffset + paramInfo.typeParamCount;
+
+    _setupLocalParameters(member, paramInfo, parameterOffset, implicitParams);
+    allocateContext(member.function);
+  }
+}
+
+class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
+  final Field field;
+
+  StaticFieldInitializerCodeGenerator(Translator translator,
+      w.FunctionType functionType, w.InstructionsBuilder b, this.field)
+      : super(translator, functionType, b, field);
+
   @override
-  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
-    throw UnsupportedError(
-        "Unsupported auxiliary initializer $node (${node.runtimeType}).");
+  void generateInternal() {
+    final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, field.fileOffset);
+
+    // Static field initializer function
+    closures = Closures(translator, field);
+    closures.findCaptures(field);
+    closures.collectContexts(field);
+    closures.buildContexts();
+
+    w.Global global = translator.globals.getGlobal(field);
+    w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
+    wrap(field.initializer!, global.type.type);
+    b.global_set(global);
+    if (flag != null) {
+      b.i32_const(1);
+      b.global_set(flag);
+    }
+    b.global_get(global);
+    translator.convertType(b, global.type.type, outputs.single);
+    b.end();
+  }
+}
+
+class ImplicitFieldAccessorCodeGenerator extends AstCodeGenerator {
+  final Field field;
+  final bool isImplicitGetter;
+
+  ImplicitFieldAccessorCodeGenerator(
+    Translator translator,
+    w.FunctionType functionType,
+    w.InstructionsBuilder b,
+    this.field,
+    this.isImplicitGetter,
+  ) : super(translator, functionType, b, field);
+
+  @override
+  void generateInternal() {
+    closures = Closures(translator, field);
+
+    final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, field.fileOffset);
+
+    // Implicit getter or setter
+    w.StructType struct = translator.classInfo[field.enclosingClass!]!.struct;
+    int fieldIndex = translator.fieldIndex[field]!;
+    w.ValueType fieldType = struct.fields[fieldIndex].type.unpacked;
+
+    void getThis() {
+      w.Local thisLocal = paramLocals[0];
+      w.RefType structType = w.RefType.def(struct, nullable: false);
+      b.local_get(thisLocal);
+      translator.convertType(b, thisLocal.type, structType);
+    }
+
+    if (isImplicitGetter) {
+      // Implicit getter
+      getThis();
+      b.struct_get(struct, fieldIndex);
+      translator.convertType(b, fieldType, returnType);
+    } else {
+      // Implicit setter
+      w.Local valueLocal = paramLocals[1];
+      getThis();
+      b.local_get(valueLocal);
+      translator.convertType(b, valueLocal.type, fieldType);
+      b.struct_set(struct, fieldIndex);
+    }
+    b.end();
+  }
+}
+
+class SynchronousLambdaCodeGenerator extends AstCodeGenerator {
+  final Lambda lambda;
+  final Closures enclosingMemberClosures;
+
+  SynchronousLambdaCodeGenerator(Translator translator, Member enclosingMember,
+      this.lambda, this.enclosingMemberClosures)
+      : super(translator, lambda.function.type, lambda.function.body,
+            enclosingMember);
+
+  @override
+  void generateInternal() {
+    closures = enclosingMemberClosures;
+
+    setSourceMapSource(lambda.functionNodeSource);
+
+    assert(lambda.functionNode.asyncMarker != AsyncMarker.Async);
+
+    setupLambdaParametersAndContexts(lambda);
+
+    visitStatement(lambda.functionNode.body!);
+    _implicitReturn();
+    b.end();
   }
 }
 
@@ -3805,7 +3990,7 @@ class SwitchInfo {
   /// The `null: ...` case, if exists.
   late final SwitchCase? nullCase;
 
-  SwitchInfo(CodeGenerator codeGen, SwitchStatement node) {
+  SwitchInfo(AstCodeGenerator codeGen, SwitchStatement node) {
     final translator = codeGen.translator;
 
     final switchExprType = codeGen.dartTypeOf(node.expression);

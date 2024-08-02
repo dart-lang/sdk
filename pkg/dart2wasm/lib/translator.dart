@@ -369,9 +369,10 @@ class Translator with KernelNodes {
         m.exports.export(canonicalName, function);
       }
 
-      final CodeGenerator codeGen = CodeGenerator.forFunction(
-          this, member.function, function as w.FunctionBuilder, reference);
-      codeGen.generate();
+      final functionBuilder = function as w.FunctionBuilder;
+      final codeGen = getMemberCodeGenerator(this, functionBuilder, reference);
+      codeGen.generate(functionBuilder.locals.toList(), null);
+      final memberClosures = codeGen.closures;
 
       if (options.printWasm) {
         print(function.type);
@@ -384,11 +385,10 @@ class Translator with KernelNodes {
       // the lambda functions once, so we only generate lambdas when the
       // constructor initializer methods are generated.
       if (member is! Constructor || reference.isInitializerReference) {
-        for (Lambda lambda in codeGen.closures.lambdas.values) {
-          final lambdaFunction = lambda.function;
-          CodeGenerator.forFunction(
-                  this, lambda.functionNode, lambdaFunction, reference)
-              .generateLambda(lambda, codeGen.closures);
+        final enclosingMember = member;
+        for (Lambda lambda in memberClosures.lambdas.values) {
+          getLambdaCodeGenerator(this, lambda, enclosingMember, memberClosures)
+              .generate(lambda.function.locals.toList(), null);
           _printFunction(function, "$canonicalName (closure)");
         }
       }
@@ -1084,6 +1084,13 @@ class Translator with KernelNodes {
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
+  }
+
+  CodeGenerator? getInliningCodeGenerator(
+      Reference target, w.FunctionType functionType, w.InstructionsBuilder b) {
+    if (!shouldInline(target)) return null;
+    return getInlinableMemberCodeGenerator(
+        this, AsyncMarker.Sync, functionType, b, target);
   }
 
   T? getPragma<T>(Annotatable node, String name, [T? defaultValue]) {

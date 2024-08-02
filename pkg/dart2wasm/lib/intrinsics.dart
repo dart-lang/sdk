@@ -12,14 +12,14 @@ import 'dynamic_forwarders.dart';
 import 'translator.dart';
 import 'types.dart';
 
-typedef CodeGenCallback = void Function(CodeGenerator);
+typedef CodeGenCallback = void Function(AstCodeGenerator);
 
 /// Specialized code generation for external members.
 ///
 /// The code is generated either inlined at the call site, or as the body of
 /// the member in [generateMemberIntrinsic].
 class Intrinsifier {
-  final CodeGenerator codeGen;
+  final AstCodeGenerator codeGen;
 
   static const w.ValueType boolType = w.NumType.i32;
   static const w.ValueType intType = w.NumType.i64;

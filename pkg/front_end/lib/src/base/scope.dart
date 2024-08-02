@@ -182,15 +182,8 @@ Builder? _normalizeBuilderLookup(Builder? builder,
     required bool forStaticAccess}) {
   if (builder == null) return null;
   if (builder.next != null) {
-    return new AmbiguousBuilder(
-        name.isEmpty
-            ?
-            // Coverage-ignore(suite): Not run.
-            classNameOrDebugName
-            : name,
-        builder,
-        charOffset,
-        fileUri);
+    return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
+        builder, charOffset, fileUri);
   } else if (forStaticAccess && builder.isDeclarationInstanceMember) {
     return null;
   } else if (builder is MemberBuilder && builder.isConflictingSetter) {
@@ -308,6 +301,7 @@ class TypeParameterScope with LookupScopeMixin {
   TypeParameterScope(this._parent, this._typeParameters);
 
   @override
+  // Coverage-ignore(suite): Not run.
   ScopeKind get kind => ScopeKind.typeParameters;
 
   @override
@@ -338,6 +332,7 @@ class TypeParameterScope with LookupScopeMixin {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent.forEachExtension(f);
   }
@@ -375,8 +370,12 @@ class FixedLookupScope implements LookupScope {
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
-        getable: _getables?[name],
-        setable: _setables?[name],
+        getable: _getables
+            // Coverage-ignore(suite): Not run.
+            ?[name],
+        setable: _setables
+            // Coverage-ignore(suite): Not run.
+            ?[name],
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,
@@ -391,6 +390,7 @@ class FixedLookupScope implements LookupScope {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 // TODO(johnniwinther): Use this instead of [SourceLibraryBuilderScope].
 class CompilationUnitScope extends BaseNameSpaceLookupScope {
   final CompilationUnit _compilationUnit;
@@ -447,6 +447,7 @@ class ConstructorScope {
     _local[name] = builder;
   }
 
+  // Coverage-ignore(suite): Not run.
   void addLocalMembers(Map<String, MemberBuilder> map) {
     _local.addAll(map);
   }

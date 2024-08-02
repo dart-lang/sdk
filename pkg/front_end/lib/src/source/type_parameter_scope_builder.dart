@@ -429,11 +429,19 @@ class NameSpaceBuilder {
 
   void addLocalMember(String name, MemberBuilder builder,
       {required bool setter}) {
-    (setter ? _setables : _getables)![name] = builder;
+    (setter
+        ?
+        // Coverage-ignore(suite): Not run.
+        _setables
+        : _getables)![name] = builder;
   }
 
   MemberBuilder? lookupLocalMember(String name, {required bool setter}) {
-    return (setter ? _setables : _getables)![name] as MemberBuilder?;
+    return (setter
+        ?
+        // Coverage-ignore(suite): Not run.
+        _setables
+        : _getables)![name] as MemberBuilder?;
   }
 
   NameSpace buildNameSpace(IDeclarationBuilder parent) {
@@ -448,7 +456,6 @@ class NameSpaceBuilder {
       if (_typeVariables != null) {
         NominalVariableBuilder? tv = _typeVariables![name];
         if (tv != null) {
-          // Coverage-ignore-block(suite): Not run.
           parent.addProblem(
               templateConflictsWithTypeVariable.withArguments(name),
               member.charOffset,

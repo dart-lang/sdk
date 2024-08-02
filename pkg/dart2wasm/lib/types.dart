@@ -166,7 +166,7 @@ class Types {
 
   /// Allocates a `WasmArray<_Type>` from [types] and pushes it to the
   /// stack.
-  void _makeTypeArray(CodeGenerator codeGen, Iterable<DartType> types) {
+  void _makeTypeArray(AstCodeGenerator codeGen, Iterable<DartType> types) {
     if (types.every(isTypeConstant)) {
       translator.constants.instantiateConstant(codeGen.b,
           translator.constants.makeTypeArray(types), typeArrayExpectedType);
@@ -178,7 +178,7 @@ class Types {
     }
   }
 
-  void _makeInterfaceType(CodeGenerator codeGen, InterfaceType type) {
+  void _makeInterfaceType(AstCodeGenerator codeGen, InterfaceType type) {
     final b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     b.i32_const(encodedNullability(type));
@@ -186,7 +186,7 @@ class Types {
     _makeTypeArray(codeGen, type.typeArguments);
   }
 
-  void _makeRecordType(CodeGenerator codeGen, RecordType type) {
+  void _makeRecordType(AstCodeGenerator codeGen, RecordType type) {
     codeGen.b.i32_const(encodedNullability(type));
 
     final names = translator.constants.makeArrayOf(
@@ -236,14 +236,14 @@ class Types {
     return FutureOrType(s, declaredNullability);
   }
 
-  void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
+  void _makeFutureOrType(AstCodeGenerator codeGen, FutureOrType type) {
     final b = codeGen.b;
     b.i32_const(encodedNullability(type));
     makeType(codeGen, type.typeArgument);
     codeGen.call(translator.createNormalizedFutureOrType.reference);
   }
 
-  void _makeFunctionType(CodeGenerator codeGen, FunctionType type) {
+  void _makeFunctionType(AstCodeGenerator codeGen, FunctionType type) {
     int typeParameterOffset = computeFunctionTypeParameterOffset(type);
     final b = codeGen.b;
     b.i32_const(encodedNullability(type));
@@ -298,7 +298,7 @@ class Types {
   /// Makes a `_Type` object on the stack.
   /// TODO(joshualitt): Refactor this logic to remove the dependency on
   /// CodeGenerator.
-  w.ValueType makeType(CodeGenerator codeGen, DartType type) {
+  w.ValueType makeType(AstCodeGenerator codeGen, DartType type) {
     // Always ensure type is normalized before making a type.
     type = normalize(type);
     final b = codeGen.b;
@@ -377,8 +377,8 @@ class Types {
   /// Emit code for testing a value against a Dart type. Expects the value on
   /// the stack as a (ref null #Top) and leaves the result on the stack as an
   /// i32.
-  void emitIsTest(
-      CodeGenerator codeGen, DartType testedAgainstType, DartType operandType,
+  void emitIsTest(AstCodeGenerator codeGen, DartType testedAgainstType,
+      DartType operandType,
       [Location? location]) {
     final b = codeGen.b;
     b.comment("type check against $testedAgainstType");
@@ -438,7 +438,7 @@ class Types {
     }
   }
 
-  w.ValueType emitAsCheck(CodeGenerator codeGen, DartType testedAgainstType,
+  w.ValueType emitAsCheck(AstCodeGenerator codeGen, DartType testedAgainstType,
       DartType operandType, w.RefType boxedOperandType,
       [Location? location]) {
     final b = codeGen.b;

@@ -10,9 +10,7 @@ import 'closures.dart';
 import 'code_generator.dart';
 import 'state_machine.dart';
 
-class AsyncCodeGenerator extends StateMachineEntryCodeGenerator {
-  AsyncCodeGenerator(super.translator, super.function, super.reference);
-
+mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   late final ClassInfo asyncSuspendStateInfo =
       translator.classInfo[translator.asyncSuspendStateClass]!;
 
@@ -76,9 +74,9 @@ class AsyncCodeGenerator extends StateMachineEntryCodeGenerator {
     b.return_();
     b.end();
 
-    AsyncStateMachineCodeGenerator(translator, resumeFun, reference,
+    AsyncStateMachineCodeGenerator(translator, resumeFun, enclosingMember,
             functionNode, functionSource, closures)
-        .generate();
+        .generate(resumeFun.locals.toList(), null);
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
@@ -98,11 +96,26 @@ class AsyncCodeGenerator extends StateMachineEntryCodeGenerator {
           "${function.functionName} inner");
 }
 
+/// Generates code for async procedures.
+class AsyncProcedureCodeGenerator
+    extends ProcedureStateMachineEntryCodeGenerator
+    with AsyncCodeGeneratorMixin {
+  AsyncProcedureCodeGenerator(
+      super.translator, super.function, super.enclosingMember);
+}
+
+/// Generates code for async closures.
+class AsyncLambdaCodeGenerator extends LambdaStateMachineEntryCodeGenerator
+    with AsyncCodeGeneratorMixin {
+  AsyncLambdaCodeGenerator(
+      super.translator, super.enclosingMember, super.lambda, super.closures);
+}
+
 class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
   AsyncStateMachineCodeGenerator(
       super.translator,
       super.function,
-      super.reference,
+      super.enclosingMember,
       super.functionNode,
       super.functionSource,
       super.closures);

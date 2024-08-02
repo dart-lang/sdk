@@ -563,40 +563,11 @@ class CatchVariables {
   CatchVariables._(this.exception, this.stackTrace);
 }
 
-abstract class StateMachineEntryCodeGenerator extends CodeGenerator {
+abstract class StateMachineEntryAstCodeGenerator extends AstCodeGenerator {
   final w.FunctionBuilder function;
-
-  StateMachineEntryCodeGenerator(
-      Translator translator, this.function, Reference reference)
-      : super(translator, function.type, function.body, reference,
-            paramLocals: function.locals.toList());
-
-  @override
-  void generate() {
-    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
-    closures = Closures(translator, member);
-    setSourceMapSource(source);
-    setSourceMapFileOffset(member.fileOffset);
-    setupParametersAndContexts(member.reference);
-    _generateBody(member.function!, source);
-  }
-
-  @override
-  void generateLambda(Lambda lambda, Closures closures) {
-    final source = lambda.functionNodeSource;
-    this.closures = closures;
-    setSourceMapSource(source);
-    setSourceMapFileOffset(lambda.functionNode.fileOffset);
-    setupLambdaParametersAndContexts(lambda);
-    _generateBody(lambda.functionNode, source);
-  }
-
-  void _generateBody(FunctionNode functionNode, Source functionSource) {
-    Context? context = closures.contexts[functionNode];
-    if (context != null && context.isEmpty) context = context.parent;
-
-    generateOuter(functionNode, context, functionSource);
-  }
+  StateMachineEntryAstCodeGenerator(
+      Translator translator, Member enclosingMember, this.function)
+      : super(translator, function.type, function.body, enclosingMember);
 
   /// Generate the outer function.
   ///
@@ -610,12 +581,59 @@ abstract class StateMachineEntryCodeGenerator extends CodeGenerator {
       FunctionNode functionNode, Context? context, Source functionSource);
 }
 
+abstract class ProcedureStateMachineEntryCodeGenerator
+    extends StateMachineEntryAstCodeGenerator {
+  final Procedure member;
+
+  ProcedureStateMachineEntryCodeGenerator(
+      Translator translator, w.FunctionBuilder function, this.member)
+      : super(translator, member, function);
+
+  @override
+  void generateInternal() {
+    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
+    closures = Closures(translator, member);
+    setSourceMapSource(source);
+    setSourceMapFileOffset(member.fileOffset);
+    setupParametersAndContexts(member);
+
+    Context? context = closures.contexts[member.function];
+    if (context != null && context.isEmpty) context = context.parent;
+
+    generateOuter(member.function, context, source);
+  }
+}
+
+abstract class LambdaStateMachineEntryCodeGenerator
+    extends StateMachineEntryAstCodeGenerator {
+  final Lambda lambda;
+
+  LambdaStateMachineEntryCodeGenerator(Translator translator,
+      Member enclosingMember, this.lambda, Closures closures)
+      : super(translator, enclosingMember, lambda.function) {
+    this.closures = closures;
+  }
+
+  @override
+  void generateInternal() {
+    final source = lambda.functionNodeSource;
+    setSourceMapSource(source);
+    setSourceMapFileOffset(lambda.functionNode.fileOffset);
+    setupLambdaParametersAndContexts(lambda);
+
+    Context? context = closures.contexts[lambda.functionNode];
+    if (context != null && context.isEmpty) context = context.parent;
+
+    generateOuter(lambda.functionNode, context, source);
+  }
+}
+
 /// A [CodeGenerator] that compiles the function to a state machine based on
 /// the suspension points in the function (`await` expressions and `yield`
 /// statements).
 ///
 /// This is used to compile `async` and `sync*` functions.
-abstract class StateMachineCodeGenerator extends CodeGenerator {
+abstract class StateMachineCodeGenerator extends AstCodeGenerator {
   final w.FunctionBuilder function;
   final FunctionNode functionNode;
   final Source functionSource;
@@ -623,12 +641,11 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
   StateMachineCodeGenerator(
       Translator translator,
       this.function,
-      Reference reference,
+      Member enclosingMember,
       this.functionNode,
       this.functionSource,
       Closures closures)
-      : super(translator, function.type, function.body, reference,
-            paramLocals: function.locals.toList()) {
+      : super(translator, function.type, function.body, enclosingMember) {
     this.closures = closures;
   }
 
@@ -667,7 +684,7 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
   List<CatchVariables> catchVariableStack = [];
 
   @override
-  void generate() {
+  void generateInternal() {
     setSourceMapSource(functionSource);
     setSourceMapFileOffset(functionNode.fileOffset);
 
@@ -690,13 +707,6 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
     if (context != null && context.isEmpty) context = context.parent;
 
     generateInner(functionNode, context);
-  }
-
-  @override
-  void generateLambda(Lambda lambda, Closures closures) {
-    // This is only invoked for the actual async/async*/sync* code generator and
-    // not for the (inner) state machine code generator.
-    throw UnsupportedError('This should not be reachable');
   }
 
   /// Store the exception value emitted by [emitValue] in suspension state.

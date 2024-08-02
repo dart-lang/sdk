@@ -64,12 +64,13 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
   print("Run finished.");
 
   Map<Uri, coverageMerger.CoverageInfo>? coverageData =
-      coverageMerger.mergeFromDirUri(
+      await coverageMerger.mergeFromDirUri(
     Uri.base.resolve(".dart_tool/package_config.json"),
     coverageTmpDir.uri,
     silent: true,
     extraCoverageIgnores: ["coverage-ignore(suite):"],
     extraCoverageBlockIgnores: ["coverage-ignore-block(suite):"],
+    addAndRemoveCommentsInFiles: options.addAndRemoveCommentsInFiles,
   );
   if (coverageData == null) throw "Failure in coverage.";
 
@@ -167,7 +168,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
           sb.write("\n\n   Or update the expectations directly via");
           sb.write(
               "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
-              "--tasks=${options.numberOfWorkers} --updateExpectations");
+              "--tasks=${options.numberOfWorkers} "
+              "--add-and-remove-comments "
+              "--update-expectations");
         }
       }
       addResult(coverageEntry.key.toString(), pass,
@@ -229,6 +232,7 @@ class Options {
   final bool verbose;
   final bool debug;
   final bool updateExpectations;
+  final bool addAndRemoveCommentsInFiles;
   final Uri outputDirectory;
   final int numberOfWorkers;
 
@@ -237,6 +241,7 @@ class Options {
     this.verbose,
     this.debug,
     this.updateExpectations,
+    this.addAndRemoveCommentsInFiles,
     this.outputDirectory, {
     required this.numberOfWorkers,
   });
@@ -255,8 +260,12 @@ class Options {
           abbr: "j",
           help: "The number of parallel tasks to run.",
           defaultsTo: "${getDefaultThreads()}")
-      ..addFlag("updateExpectations",
+      ..addFlag("update-expectations",
           help: "update expectations", defaultsTo: false)
+      ..addFlag("add-and-remove-comments",
+          help: "Automatically remove old and then "
+              "re-add ignore comments in files",
+          defaultsTo: false)
       // These are not used but are here for compatibility with the test system.
       ..addOption("shards", help: "(Ignored) Number of shards", defaultsTo: "1")
       ..addOption("shard",
@@ -273,7 +282,8 @@ class Options {
     if (tasks == null || tasks < 1) {
       throw "--tasks (-j) has to be an integer >= 1";
     }
-    bool updateExpectations = parsedOptions["updateExpectations"];
+    bool updateExpectations = parsedOptions["update-expectations"];
+    bool addAndRemoveCommentsInFiles = parsedOptions["add-and-remove-comments"];
 
     if (verbose) {
       print("NOTE: Created with options\n  "
@@ -282,7 +292,8 @@ class Options {
           "debug = ${debug},\n  "
           "${outputDirectory},\n  "
           "numberOfWorkers: ${tasks},\n  "
-          "updateExpectations = ${updateExpectations}");
+          "updateExpectations = ${updateExpectations}\n  "
+          "addAndRemoveCommentsInFiles = ${addAndRemoveCommentsInFiles}");
     }
 
     return Options(
@@ -290,6 +301,7 @@ class Options {
       verbose,
       debug,
       updateExpectations,
+      addAndRemoveCommentsInFiles,
       outputDirectory,
       numberOfWorkers: tasks,
     );

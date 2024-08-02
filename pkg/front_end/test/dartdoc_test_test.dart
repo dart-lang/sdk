@@ -46,7 +46,7 @@ Future<void> testRunningTests() async {
   memoryFileSystem.entityForUri(test1).writeAsStringSync(test);
   expect(await dartDocTest.process(test1), expected);
 
-// Mixed good/bad.
+  // Mixed good/bad.
   Uri test2 = new Uri(scheme: "darttest", path: "/test2.dart");
   test = """
 // DartDocTest(1+1, 3)
@@ -72,7 +72,7 @@ int _internal() {
   memoryFileSystem.entityForUri(test2).writeAsStringSync(test);
   expect(await dartDocTest.process(test2), expected);
 
-// Good case using await.
+  // Good case using await.
   Uri test3 = new Uri(scheme: "darttest", path: "/test3.dart");
   test = """
 // DartDocTest(await _internal(), 42)
@@ -120,7 +120,7 @@ void _internal() {
   return;
 }
 """;
-  tests = extractTests(test);
+  tests = extractTests(test, test5);
   expect(tests.length, 2);
   expected = [
     new impl.TestResult(null, impl.TestOutcome.CompilationError)
@@ -145,7 +145,7 @@ dynamic _internal() {
   return "hello";
 }
 """;
-  tests = extractTests(test);
+  tests = extractTests(test, test6);
   expect(tests.length, 2);
   expected = [
     new impl.TestResult(tests[0], impl.TestOutcome.Crash)
@@ -183,8 +183,12 @@ void testTestExtraction() {
   expect(extractTests(""), <impl.Test>[]);
 
   // One test.
-  expect(extractTests("// DartDocTest(1+1, 2)"), <impl.Test>[
-    new impl.ExpectTest("1+1", "2"),
+  expect(extractTests("""
+    // not a test comment
+    void foo_bar_long_name() {}
+
+    // DartDocTest(1+1, 2)"""), <impl.Test>[
+    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:4:20"),
   ]);
 
   // Two tests.
@@ -192,8 +196,8 @@ void testTestExtraction() {
 // DartDocTest(1+1, 2)
 // DartDocTest(2+40, 42)
 """), <impl.Test>[
-    new impl.ExpectTest("1+1", "2"),
-    new impl.ExpectTest("2+40", "42"),
+    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:1:16"),
+    new impl.ExpectTest("2+40", "42", "darttest:/foo.dart:2:16"),
   ]);
 
   // Two valid tests. Four invalid ones.
@@ -205,26 +209,48 @@ void testTestExtraction() {
 // DartDocTest(2+40, 42)
 // DartDocTest(2+40, 42+)
 """), <impl.Test>[
-    new impl.ExpectTest("1+1", "2"),
+    new impl.ExpectTest(
+      "1+1",
+      "2",
+      "darttest:/foo.dart:1:16",
+    ),
     new impl.TestParseError(
-        """darttest:/foo.dart:2:20: Expected ',' before this.
+      """darttest:/foo.dart:2:20: Expected ',' before this.
 // DartDocTest(2+40; 42]
-                   ^""", 42),
-    new impl.TestParseError("""Parse error(s):
+                   ^""",
+      42,
+      "darttest:/foo.dart:2:20",
+    ),
+    new impl.TestParseError(
+      """Parse error(s):
 
 darttest:/foo.dart:3:21: Expected an identifier, but got ','.
 // DartDocTest(2+40+, 42]
-                    ^""", 68),
+                    ^""",
+      68,
+      "darttest:/foo.dart:3:21",
+    ),
     new impl.TestParseError(
-        """darttest:/foo.dart:4:24: Expected ')' before this.
+      """darttest:/foo.dart:4:24: Expected ')' before this.
 // DartDocTest(2+40, 42]
-                       ^""", 97),
-    new impl.ExpectTest("2+40", "42"),
-    new impl.TestParseError("""Parse error(s):
+                       ^""",
+      97,
+      "darttest:/foo.dart:4:24",
+    ),
+    new impl.ExpectTest(
+      "2+40",
+      "42",
+      "darttest:/foo.dart:5:16",
+    ),
+    new impl.TestParseError(
+      """Parse error(s):
 
 darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
 // DartDocTest(2+40, 42+)
-                        ^""", 148),
+                        ^""",
+      148,
+      "darttest:/foo.dart:6:25",
+    ),
   ]);
 
   // Two tests in block comments with back-ticks around tests.
@@ -240,8 +266,8 @@ darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
  * ```
  */
 """), <impl.Test>[
-    new impl.ExpectTest("1+1", "2"),
-    new impl.ExpectTest("2+40", "42"),
+    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:4:16"),
+    new impl.ExpectTest("2+40", "42", "darttest:/foo.dart:8:16"),
   ]);
 
   // Two tests --- include linebreaks.
@@ -256,9 +282,9 @@ darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
   42)
  */
 """), <impl.Test>[
-    new impl.ExpectTest("1+1", "2"),
+    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:3:15"),
     // The linebreak etc here is not stripped (at the moment at least)
-    new impl.ExpectTest("2+\n  40", "42"),
+    new impl.ExpectTest("2+\n  40", "42", "darttest:/foo.dart:6:15"),
   ]);
 
   // Two tests --- with parens and commas as string...
@@ -267,15 +293,15 @@ darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
 // and so is this:
 // DartDocTest(",)", ",)")
 """), <impl.Test>[
-    new impl.ExpectTest('"("', '"("'),
-    new impl.ExpectTest('",)"', '",)"'),
+    new impl.ExpectTest('"("', '"("', "darttest:/foo.dart:1:16"),
+    new impl.ExpectTest('",)"', '",)"', "darttest:/foo.dart:3:16"),
   ]);
 
   // Await expression.
   expect(extractTests("""
 // DartDocTest(await foo(), 42)
 """), <impl.Test>[
-    new impl.ExpectTest('await foo()', '42'),
+    new impl.ExpectTest('await foo()', '42', "darttest:/foo.dart:1:16"),
   ]);
 }
 

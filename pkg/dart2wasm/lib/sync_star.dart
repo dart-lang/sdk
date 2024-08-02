@@ -10,9 +10,7 @@ import 'closures.dart';
 import 'code_generator.dart';
 import 'state_machine.dart';
 
-class SyncStarCodeGenerator extends StateMachineEntryCodeGenerator {
-  SyncStarCodeGenerator(super.translator, super.function, super.reference);
-
+mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   late final ClassInfo suspendStateInfo =
       translator.classInfo[translator.suspendStateClass]!;
 
@@ -42,9 +40,9 @@ class SyncStarCodeGenerator extends StateMachineEntryCodeGenerator {
     b.return_();
     b.end();
 
-    SyncStarStateMachineCodeGenerator(translator, resumeFun, reference,
+    SyncStarStateMachineCodeGenerator(translator, resumeFun, enclosingMember,
             functionNode, functionSource, closures)
-        .generate();
+        .generate(resumeFun.locals.toList(), null);
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
@@ -59,6 +57,21 @@ class SyncStarCodeGenerator extends StateMachineEntryCodeGenerator {
             w.NumType.i32
           ]),
           "${function.functionName} inner");
+}
+
+/// Generates code for sync* procedures.
+class SyncStarProcedureCodeGenerator
+    extends ProcedureStateMachineEntryCodeGenerator
+    with SyncStarCodeGeneratorMixin {
+  SyncStarProcedureCodeGenerator(
+      super.translator, super.function, super.enclosingMember);
+}
+
+/// Generates code for sync* closures.
+class SyncStarLambdaCodeGenerator extends LambdaStateMachineEntryCodeGenerator
+    with SyncStarCodeGeneratorMixin {
+  SyncStarLambdaCodeGenerator(
+      super.translator, super.enclosingMember, super.lambda, super.closures);
 }
 
 /// A specialized code generator for generating code for `sync*` functions.
@@ -80,7 +93,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
   SyncStarStateMachineCodeGenerator(
       super.translator,
       super.function,
-      super.reference,
+      super.enclosingMember,
       super.functionNode,
       super.functionSource,
       super.closures);

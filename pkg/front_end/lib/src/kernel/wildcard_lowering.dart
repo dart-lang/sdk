@@ -27,12 +27,14 @@ bool isWildcardLoweredFormalParameter(String name) {
   return name.startsWith(wildcardPrefix) && name.endsWith(wildcardFormalSuffix);
 }
 
+// Coverage-ignore(suite): Not run.
 /// Whether the given [name] is a wildcard type variable.
 bool isWildcardLoweredTypeVariable(String name) {
   return name.startsWith(wildcardPrefix) &&
       name.endsWith(wildcardTypeVariableSuffix);
 }
 
+// Coverage-ignore(suite): Not run.
 /// Whether the given [name] is a wildcard variable.
 bool isWildcardLoweredVariable(String name) {
   return name.startsWith(wildcardPrefix) &&

@@ -373,8 +373,8 @@ class PrefixNameSpace extends NameSpaceImpl {
       nameSpace._getables?.forEach(mergeMember);
     }
     if (nameSpace._setables != null) {
-      map = _setables ??= // Coverage-ignore(suite): Not run.
-          {};
+      // Coverage-ignore-block(suite): Not run.
+      map = _setables ??= {};
       nameSpace._setables?.forEach(mergeMember);
     }
     if (nameSpace._extensions != null) {

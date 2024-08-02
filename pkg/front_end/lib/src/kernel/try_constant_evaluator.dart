@@ -104,9 +104,11 @@ class _ErrorReporter implements ErrorReporter {
   _ErrorReporter(this._reportError);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get supportsTrackingReportedErrors => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasSeenError {
     return unsupported("_ErrorReporter.hasSeenError", -1, null);
   }

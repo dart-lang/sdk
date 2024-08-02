@@ -197,52 +197,62 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
   const InvocationTargetNonFunctionType();
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get equalsFunctionType {
     return _oneParameterFunctionApproximation;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get sublistFunctionType {
     return _oneParameterFunctionApproximation;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get minusFunctionType {
     return _oneParameterFunctionApproximation;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get indexGetFunctionType {
     return _oneParameterFunctionApproximation;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get greaterThanOrEqualsFunctionType {
     return _oneParameterFunctionApproximation;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get lessThanOrEqualsFunctionType {
     return _oneParameterFunctionApproximation;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get relationalFunctionType {
     return _oneParameterFunctionApproximation;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get containsKeyFunctionType {
     return _oneParameterFunctionApproximation;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get indexSetFunctionType {
     return new FunctionType(
         [const DynamicType()], returnType, Nullability.nonNullable);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   FunctionType get binaryOperationFunctionType {
     return _oneParameterFunctionApproximation;
   }
@@ -254,6 +264,7 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
     return FunctionAccessKind.Function;
   }
 
+  // Coverage-ignore(suite): Not run.
   FunctionType get _oneParameterFunctionApproximation {
     return new FunctionType(
         [const DynamicType()], returnType, Nullability.nonNullable);
@@ -540,6 +551,7 @@ abstract class ObjectAccessTarget {
         calleeType is DynamicType) {
       return const InvocationTargetDynamicType();
     } else if (calleeType is NeverType) {
+      // Coverage-ignore-block(suite): Not run.
       // TODO(cstefantsova): Should we insert the nullability assert somewhere
       // earlier?
       assert(calleeType.nullability == Nullability.nonNullable);
@@ -769,6 +781,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
         } else {
           return const DynamicType();
         }
+      // Coverage-ignore(suite): Not run.
       case InvocationTargetDynamicType():
       case InvocationTargetInvalidType():
       case InvocationTargetNeverType():
@@ -790,6 +803,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
         } else {
           return const DynamicType();
         }
+      // Coverage-ignore(suite): Not run.
       case InvocationTargetDynamicType():
       case InvocationTargetInvalidType():
       case InvocationTargetNeverType():
@@ -816,6 +830,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
         } else {
           return const DynamicType();
         }
+      // Coverage-ignore(suite): Not run.
       case InvocationTargetDynamicType():
       case InvocationTargetInvalidType():
       case InvocationTargetNeverType():

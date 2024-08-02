@@ -13,6 +13,7 @@ import 'package:macros/src/executor.dart';
 /// If set, overrides the CFE's macro implementation.
 MacroImplementation? macroImplementation;
 
+// Coverage-ignore(suite): Not run.
 /// An injected macro implementation.
 class MacroImplementation {
   final MacroPackageConfigs packageConfigs;

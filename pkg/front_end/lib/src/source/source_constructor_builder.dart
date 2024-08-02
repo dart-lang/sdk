@@ -596,6 +596,7 @@ class DeclaredSourceConstructorBuilder
         if (declaration is ClassBuilder) {
           superclassBuilder = declaration;
         } else {
+          // Coverage-ignore-block(suite): Not run.
           assert(libraryBuilder.loader.assertProblemReportedElsewhere(
               "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
               "Unaliased 'declaration' isn't a ClassBuilder.",
@@ -610,6 +611,7 @@ class DeclaredSourceConstructorBuilder
         return null;
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
           "'supertype' isn't a NamedTypeBuilder.",
@@ -641,6 +643,7 @@ class DeclaredSourceConstructorBuilder
     if (constructorBuilder is ConstructorBuilder) {
       return constructorBuilder;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
           "Can't find a constructor with name '${superTarget.name.text}' in "
@@ -775,6 +778,7 @@ class DeclaredSourceConstructorBuilder
               (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
+            // Coverage-ignore-block(suite): Not run.
             assert(libraryBuilder.loader.assertProblemReportedElsewhere(
                 "DeclaredSourceConstructorBuilder"
                 ".finalizeSuperInitializingFormals: "

@@ -1812,7 +1812,9 @@ class KernelTarget {
 
   void readPatchFiles(SourceLibraryBuilder libraryBuilder,
       CompilationUnit compilationUnit, Uri originImportUri) {
-    assert(originImportUri.isScheme("dart"),
+    assert(
+        originImportUri.isScheme("dart"),
+        // Coverage-ignore(suite): Not run.
         "Unexpected origin import uri: $originImportUri");
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {

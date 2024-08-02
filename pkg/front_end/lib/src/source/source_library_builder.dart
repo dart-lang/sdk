@@ -2172,6 +2172,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (typeArguments.isEmpty) return;
 
     if (functionType.typeParameters.length != typeArguments.length) {
+      // Coverage-ignore-block(suite): Not run.
       assert(loader.assertProblemReportedElsewhere(
           "SourceLibraryBuilder.checkBoundsInInstantiation: "
           "the numbers of type parameters and type arguments don't match.",
