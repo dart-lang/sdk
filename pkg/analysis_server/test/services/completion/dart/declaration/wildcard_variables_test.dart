@@ -65,7 +65,7 @@ suggestions
 @reflectiveTest
 class WildcardForLoopTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_'};
+  Set<String> allowedIdentifiers = {'_', '__'};
 
   @override
   bool get includeKeywords => false;
@@ -85,6 +85,23 @@ suggestions
 ''');
   }
 
+  Future<void> test_forEach_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  for (var __ in []) {
+    p(^);
+  }
+}
+''');
+    assertResponse('''
+suggestions
+  __
+    kind: localVariable
+''');
+  }
+
   Future<void> test_forParts_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -99,12 +116,29 @@ void f() {
 suggestions
 ''');
   }
+
+  Future<void> test_forParts_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  for (var __ = 0; ;) {
+    p(^);
+  }
+}
+''');
+    assertResponse('''
+suggestions
+  __
+    kind: localVariable
+''');
+  }
 }
 
 @reflectiveTest
 class WildcardImportPrefixTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_', 'isBlank'};
+  Set<String> allowedIdentifiers = {'_', '__', 'isBlank'};
 
   @override
   bool get includeKeywords => false;
@@ -128,6 +162,31 @@ void f() {
     // `_` should not appear.
     assertResponse('''
 suggestions
+''');
+  }
+
+  Future<void> test_argumentList_underscores() async {
+    newFile('$testPackageLibPath/ext.dart', '''
+extension ES on String {
+  bool get isBlank => false;
+}
+''');
+
+    await computeSuggestions('''
+import 'ext.dart' as __;
+
+void p(Object o) {}
+
+void f() {
+  p(^);
+}
+''');
+    assertResponse('''
+suggestions
+  __.ES
+    kind: extensionInvocation
+  __
+    kind: library
 ''');
   }
 
@@ -158,7 +217,7 @@ suggestions
 @reflectiveTest
 class WildcardLocalVariableTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_', 'b'};
+  Set<String> allowedIdentifiers = {'_', '__', 'b'};
 
   @override
   bool get includeKeywords => false;
@@ -192,12 +251,28 @@ void f() {
 suggestions
 ''');
   }
+
+  Future<void> test_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f() {
+  var __ = 0;
+  p(^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  __
+    kind: localVariable
+''');
+  }
 }
 
 @reflectiveTest
 class WildcardParameterTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_', 'b'};
+  Set<String> allowedIdentifiers = {'_', '__', 'b'};
 
   @override
   bool get includeKeywords => false;
@@ -213,6 +288,21 @@ void f(int _, int b) {
     assertResponse('''
 suggestions
   b
+    kind: parameter
+''');
+  }
+
+  Future<void> test_argumentList_underscores() async {
+    await computeSuggestions('''
+void p(Object o) {}
+
+void f(int __) {
+  p(^);
+}
+''');
+    assertResponse('''
+suggestions
+  __
     kind: parameter
 ''');
   }

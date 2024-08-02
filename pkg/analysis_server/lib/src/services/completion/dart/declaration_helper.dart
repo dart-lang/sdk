@@ -26,10 +26,6 @@ import 'package:analyzer/src/workspace/pub.dart';
 /// A helper class that produces candidate suggestions for all of the
 /// declarations that are in scope at the completion location.
 class DeclarationHelper {
-  /// The regular expression used to detect an unused identifier (a sequence of
-  /// one or more underscores with no other characters).
-  static final RegExp UnusedIdentifier = RegExp(r'^_+$');
-
   /// The completion request being processed.
   final DartCompletionRequest request;
 
@@ -667,7 +663,7 @@ class DeclarationHelper {
     required String? prefix,
   }) {
     // Don't suggest declarations in wildcard prefixed namespaces.
-    if (prefix == '_') return;
+    if (_isWildcard(prefix)) return;
 
     var importData = ImportData(
       libraryUri: library.source.uri,
@@ -1392,9 +1388,8 @@ class DeclarationHelper {
     return true;
   }
 
-  /// Returns `true` if the [identifier] is composed of one or more underscore
-  /// characters and nothing else.
-  bool _isUnused(String identifier) => UnusedIdentifier.hasMatch(identifier);
+  /// Returns `true` if the [identifier] is a wildcard (a single `_`).
+  bool _isWildcard(String? identifier) => identifier == '_';
 
   /// Record that the given [operation] should be performed in the second pass.
   void _recordOperation(NotImportedOperation operation) {
@@ -1631,7 +1626,7 @@ class DeclarationHelper {
         return;
       }
       // Don't suggest wildcard local functions.
-      if (element.name == '_') return;
+      if (_isWildcard(element.name)) return;
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = LocalFunctionSuggestion(
@@ -1705,7 +1700,7 @@ class DeclarationHelper {
   /// Adds a suggestion for the parameter represented by the [element].
   void _suggestParameter(ParameterElement element) {
     if (visibilityTracker.isVisible(element: element, importData: null)) {
-      if (mustBeConstant || _isUnused(element.name)) {
+      if (mustBeConstant || _isWildcard(element.name)) {
         return;
       }
       var matcherScore = state.matcher.score(element.displayName);
