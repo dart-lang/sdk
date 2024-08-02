@@ -17,7 +17,6 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl, DartLinkedEditBuilderImpl;
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -3830,8 +3829,6 @@ class B extends A {
   }
 
   Future<void> test_method_wildcardParams() async {
-    createAnalysisOptionsFile(experiments: experimentsForTests);
-
     await _assertWriteOverride(
       content: '''
 class A {
