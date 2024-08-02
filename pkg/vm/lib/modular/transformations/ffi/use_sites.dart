@@ -1510,7 +1510,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ('', parameterType, argument);
     }
 
-    if(argument is InstanceInvocation && argument.name.text == "cast" && argument.functionType.returnType == parameterType ) {
+    if(argument is InstanceInvocation && argument.interfaceTarget == castMethod && argument.functionType.returnType == parameterType ) {
       final subExpression = argument.receiver;
       return _replaceNativeCallParameterAndArgument(parameter, parameterType, subExpression, fileOffset);
     }
