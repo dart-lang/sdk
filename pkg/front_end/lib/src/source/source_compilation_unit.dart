@@ -967,8 +967,8 @@ class SourceCompilationUnitImpl
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
 
-        Iterator<SourceMemberBuilder> iterator = declaration.constructorScope
-            .filteredIterator<SourceMemberBuilder>(
+        Iterator<SourceMemberBuilder> iterator = declaration.nameSpace
+            .filteredConstructorIterator<SourceMemberBuilder>(
                 includeDuplicates: false, includeAugmentations: true);
         while (iterator.moveNext()) {
           processSourceMemberBuilder(iterator.current,
@@ -1019,8 +1019,8 @@ class SourceCompilationUnitImpl
         count += computeDefaultTypesForVariables(declaration.typeParameters,
             inErrorRecovery: issues.isNotEmpty);
 
-        Iterator<SourceMemberBuilder> iterator = declaration.constructorScope
-            .filteredIterator<SourceMemberBuilder>(
+        Iterator<SourceMemberBuilder> iterator = declaration.nameSpace
+            .filteredConstructorIterator<SourceMemberBuilder>(
                 includeDuplicates: false, includeAugmentations: true);
         while (iterator.moveNext()) {
           processSourceMemberBuilder(iterator.current,

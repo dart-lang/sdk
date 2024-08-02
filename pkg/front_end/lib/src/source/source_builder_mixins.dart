@@ -100,7 +100,7 @@ mixin SourceDeclarationBuilderMixin
     }
 
     nameSpace.unfilteredNameIterator.forEach(buildBuilders);
-    constructorScope.unfilteredNameIterator.forEach(buildBuilders);
+    nameSpace.unfilteredConstructorNameIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
@@ -108,7 +108,7 @@ mixin SourceDeclarationBuilderMixin
     Iterator<SourceMemberBuilder> iterator = nameSpace
         .filteredIterator<SourceMemberBuilder>(
             parent: this, includeDuplicates: false, includeAugmentations: true)
-        .join(constructorScope.filteredIterator<SourceMemberBuilder>(
+        .join(nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
             parent: this,
             includeDuplicates: false,
             includeAugmentations: true));
@@ -297,7 +297,7 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
   /// in this type declaration.
   void checkConstructorStaticConflict() {
     NameIterator<MemberBuilder> iterator =
-        constructorScope.filteredNameIterator(
+        nameSpace.filteredConstructorNameIterator(
             includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
       String name = iterator.name;
@@ -324,7 +324,7 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
     }
 
     nameSpace.forEachLocalSetter((String name, Builder setter) {
-      Builder? constructor = constructorScope.lookupLocalMember(name);
+      Builder? constructor = nameSpace.lookupConstructor(name);
       if (constructor == null || !setter.isStatic) return;
       // Coverage-ignore-block(suite): Not run.
       addProblem(templateConflictsWithConstructor.withArguments(name),

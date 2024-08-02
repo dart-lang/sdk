@@ -176,8 +176,7 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   MemberBuilder? memberBuilder;
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
-      memberBuilder =
-          classBuilder.constructorScope.lookupLocalMember(memberName);
+      memberBuilder = classBuilder.nameSpace.lookupConstructor(memberName);
     } else {
       memberBuilder = classBuilder.nameSpace.lookupLocalMember(memberName,
           setter: member is Procedure && member.isSetter) as MemberBuilder?;

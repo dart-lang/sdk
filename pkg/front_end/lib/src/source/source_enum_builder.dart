@@ -89,8 +89,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       TypeBuilder supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
       LookupScope typeParameterScope,
-      NameSpaceBuilder nameSpaceBuilder,
-      ConstructorScope constructors,
+      DeclarationNameSpaceBuilder nameSpaceBuilder,
       this.enumConstantInfos,
       SourceLibraryBuilder parent,
       List<ConstructorReferenceBuilder> constructorReferences,
@@ -108,7 +107,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
             /* onTypes = */ null,
             typeParameterScope,
             nameSpaceBuilder,
-            constructors,
             parent,
             constructorReferences,
             startCharOffset,
@@ -130,8 +128,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       int charEndOffset,
       IndexedClass? referencesFromIndexed,
       LookupScope typeParameterScope,
-      NameSpaceBuilder nameSpaceBuilder,
-      ConstructorScope constructorScope) {
+      DeclarationNameSpaceBuilder nameSpaceBuilder) {
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
     // Coverage-ignore(suite): Not run.
@@ -146,7 +143,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
         interfaceBuilders,
         typeParameterScope,
         nameSpaceBuilder,
-        constructorScope,
         enumConstantInfos,
         libraryBuilder,
         constructorReferences,
@@ -161,6 +157,49 @@ class SourceEnumBuilder extends SourceClassBuilder {
   void buildScopes(LibraryBuilder coreLibrary) {
     _createSynthesizedMembers(coreLibrary);
     super.buildScopes(coreLibrary);
+
+    Iterator<MemberBuilder> iterator =
+        nameSpace.filteredConstructorNameIterator(
+            includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      MemberBuilder member = iterator.current;
+      if (member is DeclaredSourceConstructorBuilder) {
+        member.ensureGrowableFormals();
+        member.formals!.insert(
+            0,
+            new FormalParameterBuilder(
+                FormalParameterKind.requiredPositional,
+                /* modifiers = */ 0,
+                stringType,
+                "#name",
+                libraryBuilder,
+                charOffset,
+                fileUri: fileUri,
+                hasImmediatelyDeclaredInitializer: false));
+        member.formals!.insert(
+            0,
+            new FormalParameterBuilder(
+                FormalParameterKind.requiredPositional,
+                /* modifiers = */ 0,
+                intType,
+                "#index",
+                libraryBuilder,
+                charOffset,
+                fileUri: fileUri,
+                hasImmediatelyDeclaredInitializer: false));
+      }
+    }
+
+    Iterator<MemberBuilder> constructorIterator =
+        nameSpace.filteredConstructorIterator(
+            includeDuplicates: false, includeAugmentations: true);
+    while (constructorIterator.moveNext()) {
+      MemberBuilder constructorBuilder = constructorIterator.current;
+      if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
+        libraryBuilder.addProblem(messageEnumNonConstConstructor,
+            constructorBuilder.charOffset, noLength, fileUri);
+      }
+    }
   }
 
   void _createSynthesizedMembers(LibraryBuilder coreLibrary) {
@@ -298,16 +337,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // The default constructor is added if no generative or unnamed factory
     // constructors are declared.
     bool needsSynthesizedDefaultConstructor = true;
-    Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
-        includeDuplicates: false, includeAugmentations: true);
-    while (iterator.moveNext()) {
-      MemberBuilder constructorBuilder = iterator.current;
+    for (MemberBuilder constructorBuilder in nameSpaceBuilder.constructors) {
       if (!constructorBuilder.isFactory || constructorBuilder.name == "") {
         needsSynthesizedDefaultConstructor = false;
         break;
       }
     }
-
     if (needsSynthesizedDefaultConstructor) {
       synthesizedDefaultConstructorBuilder =
           new DeclaredSourceConstructorBuilder(
@@ -315,28 +350,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
               constMask,
               /* returnType = */ libraryBuilder.loader.inferableTypes
                   .addInferableType(),
-              "",
+              /* name = */ "",
               /* typeParameters = */ null,
-              <FormalParameterBuilder>[
-                new FormalParameterBuilder(
-                    FormalParameterKind.requiredPositional,
-                    0,
-                    intType,
-                    "#index",
-                    libraryBuilder,
-                    charOffset,
-                    fileUri: fileUri,
-                    hasImmediatelyDeclaredInitializer: false),
-                new FormalParameterBuilder(
-                    FormalParameterKind.requiredPositional,
-                    0,
-                    stringType,
-                    "#name",
-                    libraryBuilder,
-                    charOffset,
-                    fileUri: fileUri,
-                    hasImmediatelyDeclaredInitializer: false)
-              ],
+              /* formals = */ [],
               libraryBuilder,
               fileUri,
               charOffset,
@@ -354,39 +370,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
               isSynthetic: true);
       synthesizedDefaultConstructorBuilder!
           .registerInitializedField(valuesBuilder);
-      constructorScope.addLocalMember(
+      nameSpaceBuilder.addConstructor(
           "", synthesizedDefaultConstructorBuilder!);
-    } else {
-      Iterator<MemberBuilder> iterator = constructorScope.filteredNameIterator(
-          includeDuplicates: false, includeAugmentations: true);
-      while (iterator.moveNext()) {
-        MemberBuilder member = iterator.current;
-        if (member is DeclaredSourceConstructorBuilder) {
-          member.ensureGrowableFormals();
-          member.formals!.insert(
-              0,
-              new FormalParameterBuilder(
-                  FormalParameterKind.requiredPositional,
-                  /* modifiers = */ 0,
-                  stringType,
-                  "#name",
-                  libraryBuilder,
-                  charOffset,
-                  fileUri: fileUri,
-                  hasImmediatelyDeclaredInitializer: false));
-          member.formals!.insert(
-              0,
-              new FormalParameterBuilder(
-                  FormalParameterKind.requiredPositional,
-                  /* modifiers = */ 0,
-                  intType,
-                  "#index",
-                  libraryBuilder,
-                  charOffset,
-                  fileUri: fileUri,
-                  hasImmediatelyDeclaredInitializer: false));
-        }
-      }
     }
 
     ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
@@ -497,35 +482,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
 
-    void setParent(MemberBuilder? builder) {
-      while (builder != null) {
-        builder.parent = this;
-        builder = builder.next as MemberBuilder?;
-      }
-    }
-
-    Map<String, NominalVariableBuilder>? typeVariablesByName;
-    if (typeVariables != null) {
-      typeVariablesByName = {};
-      for (NominalVariableBuilder typeVariable in typeVariables!) {
-        typeVariablesByName[typeVariable.name] = typeVariable;
-      }
-    }
-
-    constructorScope
-        .filteredIterator(includeDuplicates: false, includeAugmentations: true)
-        .forEach(setParent);
     selfType.bind(libraryBuilder, this);
-
-    Iterator<MemberBuilder> constructorIterator = constructorScope
-        .filteredIterator(includeDuplicates: false, includeAugmentations: true);
-    while (constructorIterator.moveNext()) {
-      MemberBuilder constructorBuilder = constructorIterator.current;
-      if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
-        libraryBuilder.addProblem(messageEnumNonConstConstructor,
-            constructorBuilder.charOffset, noLength, fileUri);
-      }
-    }
 
     if (name == "values") {
       libraryBuilder.addProblem(
@@ -656,7 +613,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         enumConstantInfo.charOffset;
     constructorName = constructorName == "new" ? "" : constructorName;
     MemberBuilder? constructorBuilder =
-        constructorScope.lookupLocalMember(constructorName);
+        nameSpace.lookupConstructor(constructorName);
 
     ArgumentsImpl arguments;
     List<Expression> enumSyntheticArguments = <Expression>[

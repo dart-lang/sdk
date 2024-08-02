@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method testList(dynamic x, dynamic list) → dynamic {
+  return block {
+    final core::List<dynamic> #t1 = core::_GrowableList::•<dynamic>(0);
+    {
+      final synthesized dynamic #0#0 = list;
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is core::int)
+        #t1.{core::List::addAll}{Invariant}(x as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
+      else
+        #t1.{core::List::addAll}{Invariant}(x as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
+    }
+  } =>#t1;
+}
+static method testSet(dynamic x, dynamic list) → dynamic {
+  return block {
+    final core::Set<dynamic> #t2 = new col::_Set::•<dynamic>();
+    #t2.{core::Set::add}{Invariant}(0){(dynamic) → core::bool};
+    {
+      final synthesized dynamic #0#0 = list;
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is core::int)
+        #t2.{core::Set::addAll}{Invariant}(x as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
+      else
+        #t2.{core::Set::addAll}{Invariant}(x as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
+    }
+  } =>#t2;
+}
+static method main() → dynamic {
+  self::testList(core::_GrowableList::_literal1<core::int>(0), core::_GrowableList::_literal1<core::int>(0));
+  self::expectThrows<core::TypeError>(() → void {
+    self::testList(null, core::_GrowableList::_literal1<core::int>(0));
+  });
+  self::testSet(core::_GrowableList::_literal1<core::int>(0), core::_GrowableList::_literal1<core::int>(0));
+  self::expectThrows<core::TypeError>(() → void {
+    self::testSet(null, core::_GrowableList::_literal1<core::int>(0));
+  });
+}
+static method expectThrows<Exception extends core::Object? = dynamic>(() → void f) → dynamic {
+  core::String? message;
+  try {
+    f(){() → void};
+    message = "Expected the function to throw an exception, but it didn't.";
+  }
+  on self::expectThrows::Exception% catch(final self::expectThrows::Exception% _) {
+  }
+  on dynamic catch(final dynamic e) {
+    message = "Expected the function to throw an exception of type '${self::expectThrows::Exception%}', but got '${e.{core::Object::runtimeType}{<object>}.{core::Type}}'.";
+  }
+  if(!(message == null)) {
+    throw message{core::String};
+  }
+}
+
+constants  {
+  #C1 = 1
+}

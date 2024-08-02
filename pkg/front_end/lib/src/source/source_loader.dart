@@ -1736,8 +1736,8 @@ severity: $severity
             Map<String, List<String>>? constructorMap;
             for (ClassBuilder macroClass in macroClasses) {
               List<String> constructors = [];
-              NameIterator<MemberBuilder> iterator = macroClass.constructorScope
-                  .filteredNameIterator(
+              NameIterator<MemberBuilder> iterator = macroClass.nameSpace
+                  .filteredConstructorNameIterator(
                       includeDuplicates: false, includeAugmentations: true);
               while (iterator.moveNext()) {
                 constructors.add(iterator.name);
@@ -2087,8 +2087,9 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    Iterator<MemberBuilder> iterator = builder.constructorScope
-        .filteredIterator(includeDuplicates: false, includeAugmentations: true);
+    Iterator<MemberBuilder> iterator = builder.nameSpace
+        .filteredConstructorIterator(
+            includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
       MemberBuilder constructor = iterator.current;
       if (constructor.isConstructor && !constructor.isSynthetic) {

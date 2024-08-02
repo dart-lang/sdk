@@ -512,8 +512,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
           ..resolveNamedTypes(typeVariables, _problemReporting);
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
-
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables,
             ownerName: name, allowNameConflict: false);
@@ -521,8 +519,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     LookupScope typeParameterScope = typeVariablesByName != null
         ? new TypeParameterScope(_scope, typeVariablesByName)
         : _scope;
-    NameSpaceBuilder nameSpaceBuilder =
-        declaration.toNameSpaceBuilder(typeVariablesByName);
+    DeclarationNameSpaceBuilder nameSpaceBuilder =
+        declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
@@ -553,8 +551,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charEndOffset,
         referencesFromIndexedClass,
         typeParameterScope,
-        nameSpaceBuilder,
-        new ConstructorScope(name, constructors));
+        nameSpaceBuilder);
     _constructorReferences.clear();
 
     addBuilder(name, enumBuilder, charOffset,
@@ -639,7 +636,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         endNestedDeclaration(kind, className)
           ..resolveNamedTypes(typeVariables, _problemReporting);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
 
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables,
@@ -648,13 +644,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     LookupScope typeParameterScope = typeVariablesByName != null
         ? new TypeParameterScope(_scope, typeVariablesByName)
         : _scope;
-    NameSpaceBuilder nameSpace =
-        declaration.toNameSpaceBuilder(typeVariablesByName);
+    DeclarationNameSpaceBuilder nameSpaceBuilder =
+        declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
 
-    // When looking up a constructor, we don't consider type variables or the
-    // library scope.
-    ConstructorScope constructorScope =
-        new ConstructorScope(className, constructors);
     bool isMixinDeclaration = false;
     if (modifiers & mixinDeclarationMask != 0) {
       isMixinDeclaration = true;
@@ -684,8 +676,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // here.
         null,
         typeParameterScope,
-        nameSpace,
-        constructorScope,
+        nameSpaceBuilder,
         _parent,
         new List<ConstructorReferenceBuilder>.of(_constructorReferences),
         startOffset,
@@ -1017,7 +1008,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
         LookupScope typeParameterScope =
             TypeParameterScope.fromList(_scope, typeVariables);
-        NameSpaceBuilder nameSpaceBuilder = new NameSpaceBuilder.empty();
+        DeclarationNameSpaceBuilder nameSpaceBuilder =
+            new DeclarationNameSpaceBuilder.empty();
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
             isNamedMixinApplication
@@ -1034,7 +1026,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             null, // No `on` clause types.
             typeParameterScope,
             nameSpaceBuilder,
-            new ConstructorScope(fullname, <String, MemberBuilder>{}),
             _parent,
             <ConstructorReferenceBuilder>[],
             computedStartCharOffset,
@@ -1108,8 +1099,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     LookupScope typeParameterScope = typeVariablesByName != null
         ? new TypeParameterScope(_scope, typeVariablesByName)
         : _scope;
-    NameSpaceBuilder extensionNameSpace =
-        declaration.toNameSpaceBuilder(typeVariablesByName);
+    DeclarationNameSpaceBuilder extensionNameSpace =
+        declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
 
     Extension? referenceFrom;
     ExtensionName extensionName = declaration.extensionName!;
@@ -1157,7 +1148,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         TypeParameterScopeKind.extensionTypeDeclaration, name)
       ..resolveNamedTypes(typeVariables, _problemReporting);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables,
             ownerName: name, allowNameConflict: false);
@@ -1165,10 +1155,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     LookupScope typeParameterScope = typeVariablesByName != null
         ? new TypeParameterScope(_scope, typeVariablesByName)
         : _scope;
-    NameSpaceBuilder nameSpaceBuilder =
-        declaration.toNameSpaceBuilder(typeVariablesByName);
-    ConstructorScope constructorScope =
-        new ConstructorScope(name, constructors);
+    DeclarationNameSpaceBuilder nameSpaceBuilder =
+        declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
 
     IndexedContainer? indexedContainer =
         indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
@@ -1190,7 +1178,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             interfaces,
             typeParameterScope,
             nameSpaceBuilder,
-            constructorScope,
             _parent,
             new List<ConstructorReferenceBuilder>.of(_constructorReferences),
             startOffset,
