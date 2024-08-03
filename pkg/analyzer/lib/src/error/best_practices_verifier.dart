@@ -852,6 +852,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// Checks the passed binary expression for [HintCode.DIVISION_OPTIMIZATION].
   ///
   /// Returns whether a hint code is generated.
+  // TODO(srawlins): Remove this ASAP, as it is being replaced by the
+  // 'use_truncating_division' lint rule, to avoid double reporting.
   bool _checkForDivisionOptimizationHint(BinaryExpression node) {
     if (node.operator.type != TokenType.SLASH) return false;
 

@@ -383,6 +383,7 @@ import 'package:linter/src/rules/use_raw_strings.dart';
 import 'package:linter/src/rules/use_rethrow_when_possible.dart';
 import 'package:linter/src/rules/use_string_in_part_of_directives.dart';
 import 'package:linter/src/rules/use_super_parameters.dart';
+import 'package:linter/src/rules/use_truncating_division.dart';
 
 final _builtInLintMultiProducers = {
   CommentReferences.code: [
@@ -858,6 +859,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
   UseSuperParameters.multipleParams: [
     ConvertToSuperParameters.new,
+  ],
+  UseTruncatingDivision.code: [
+    UseEffectiveIntegerDivision.new,
   ],
 };
 

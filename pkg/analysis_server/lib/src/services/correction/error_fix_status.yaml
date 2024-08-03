@@ -2485,6 +2485,8 @@ LintCode.use_to_and_as_if_applicable:
   status: noFix
   notes: |-
     This would require renaming the method, which is a refactoring.
+LintCode.use_truncating_division:
+  status: hasFix
 LintCode.valid_regexps:
   status: noFix
 LintCode.void_checks:
