@@ -12168,7 +12168,11 @@ import 'a.dart';
 class X {}
 ''');
 
-    var expectedLibraryText = r'''
+    void assertElementText(LibraryElementImpl element) {
+      configuration
+        ..withConstructors = false
+        ..withMetadata = false;
+      checkElementText(element, r'''
 library
   reference: <testLibrary>
   libraryImports
@@ -12223,12 +12227,10 @@ augment class X {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X::@method::foo
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X
               returnType: void
-''';
+''');
+    }
 
-    configuration
-      ..withConstructors = false
-      ..withMetadata = false;
-    checkElementText(library1, expectedLibraryText);
+    assertElementText(library1);
 
     // Generated and put into the cache.
     _assertMacroCachedGenerated(testFile, r'''
@@ -12245,7 +12247,7 @@ class A2 {}
     await contextFor(testFile).applyPendingFileChanges();
 
     var library2 = await buildFileLibrary(testFile);
-    checkElementText(library2, expectedLibraryText);
+    assertElementText(library2);
 
     // Used cached, no new generated.
     _assertMacroCachedGenerated(testFile, r'''
@@ -12270,7 +12272,11 @@ import 'a.dart';
 class X {}
 ''');
 
-    var expectedLibraryText = r'''
+    void assertElementText(LibraryElementImpl element) {
+      configuration
+        ..withConstructors = false
+        ..withMetadata = false;
+      checkElementText(element, r'''
 library
   reference: <testLibrary>
   libraryImports
@@ -12345,12 +12351,10 @@ augment class X {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X::@method::foo
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X
               returnType: A
-''';
+''');
+    }
 
-    configuration
-      ..withConstructors = false
-      ..withMetadata = false;
-    checkElementText(library1, expectedLibraryText);
+    assertElementText(library1);
 
     // Generated and put into the cache.
     _assertMacroCachedGenerated(testFile, r'''
@@ -12368,7 +12372,7 @@ class B {}
     await contextFor(testFile).applyPendingFileChanges();
 
     var library2 = await buildFileLibrary(testFile);
-    checkElementText(library2, expectedLibraryText);
+    assertElementText(library2);
 
     // Cannot prove that `package:test/test.dart@A` is still there.
     // So, not used cached.
