@@ -1033,8 +1033,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // Since we are allowing .address.cast(), we need to traverse up one level
     // to get the ffi Invocation (.cast() nested down one level the expression)
-    if(parent is MethodInvocation && parent?.methodName.name == "cast") {
-      parent = parent?.parent;
+    if(parent is MethodInvocation && parent.methodName.name == "cast") {
+      parent = parent.parent;
     }
     var grandParent = parent?.parent;
     if (parent is! ArgumentList ||
