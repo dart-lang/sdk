@@ -9,17 +9,24 @@
 @JS()
 library js_interop_non_external_lib;
 
+import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
 @JS('JSClass')
-class OtherJSClass<T> {
+class OtherJSClass<T extends num> {
   external OtherJSClass.cons(T t);
   factory OtherJSClass(T t) {
+    // Do a simple test using T.
+    Expect.type<T>(t);
+    Expect.notType<T>('');
     field = 'unnamed';
     return OtherJSClass.cons(t);
   }
 
   factory OtherJSClass.named(T t) {
+    // Do a simple test using T.
+    Expect.type<T>(t);
+    Expect.notType<T>('');
     field = 'named';
     return OtherJSClass.cons(t);
   }
@@ -37,5 +44,10 @@ class OtherJSClass<T> {
 
   static String method() => field;
 
-  static T genericMethod<T>(T t) => t;
+  static T genericMethod<T extends num>(T t) {
+    // Do a simple test using T.
+    Expect.type<T>(t);
+    Expect.notType<T>('');
+    return t;
+  }
 }

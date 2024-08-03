@@ -1836,8 +1836,6 @@ HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
     Should probably be able to use `DataDriven`.
 HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
-HintCode.DIVISION_OPTIMIZATION:
-  status: hasFix
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
   status: noFix
 HintCode.MACRO_INFO:

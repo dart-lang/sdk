@@ -1552,9 +1552,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
     ReplaceColonWithEquals.new,
   ],
-  HintCode.DIVISION_OPTIMIZATION: [
-    UseEffectiveIntegerDivision.new,
-  ],
   HintCode.UNNECESSARY_IMPORT: [
     RemoveUnusedImport.new,
   ],

@@ -31,8 +31,6 @@ void f(int x, int y) {
   (x / y).toInt();
 }
 ''', [
-      // TODO(srawlins): ASAP, remove this Hint.
-      error(HintCode.DIVISION_OPTIMIZATION, 25, 15),
       lint(25, 15),
     ]);
   }
@@ -43,8 +41,6 @@ void f(int x, int y) {
   (((x / y))).toInt();
 }
 ''', [
-      // TODO(srawlins): ASAP, remove this Hint.
-      error(HintCode.DIVISION_OPTIMIZATION, 25, 19),
       lint(25, 19),
     ]);
   }
@@ -55,8 +51,6 @@ void f(int x, int y) {
   ((x + 1) / (y - 1)).toInt();
 }
 ''', [
-      // TODO(srawlins): ASAP, remove this Hint.
-      error(HintCode.DIVISION_OPTIMIZATION, 25, 27),
       lint(25, 27),
     ]);
   }

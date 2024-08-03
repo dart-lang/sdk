@@ -293,6 +293,7 @@ import 'use_string_in_part_of_directives_test.dart'
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
 import 'use_to_and_as_if_applicable_test.dart' as use_to_and_as_if_applicable;
+import 'use_truncating_division_test.dart' as use_truncating_division;
 import 'valid_regexps_test.dart' as valid_regexps;
 import 'void_checks_test.dart' as void_checks;
 
@@ -507,6 +508,7 @@ void main() {
   use_super_parameters.main();
   use_test_throws_matchers.main();
   use_to_and_as_if_applicable.main();
+  use_truncating_division.main();
   valid_regexps.main();
   void_checks.main();
 }
