@@ -86,15 +86,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const HintCode DIVISION_OPTIMIZATION = HintCode(
-    'DIVISION_OPTIMIZATION',
-    "The operator x ~/ y is more efficient than (x / y).toInt().",
-    correctionMessage:
-        "Try re-writing the expression to use the '~/' operator.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = HintCode(
     'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
     "The imported library defines a top-level function named 'loadLibrary' "

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,6 +18,9 @@ void main() {
 
 @reflectiveTest
 class UseEffectiveIntegerDivisionMultiTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.use_truncating_division;
+
   Future<void> test_singleFile() async {
     await resolveTestCode('''
 void f() {
@@ -53,9 +57,12 @@ void f() {
 }
 
 @reflectiveTest
-class UseEffectiveIntegerDivisionTest extends FixProcessorTest {
+class UseEffectiveIntegerDivisionTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION;
+
+  @override
+  String get lintCode => LintNames.use_truncating_division;
 
   Future<void> test_normalDivision() async {
     await resolveTestCode('''

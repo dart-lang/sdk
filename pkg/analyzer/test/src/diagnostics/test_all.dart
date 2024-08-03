@@ -185,7 +185,6 @@ import 'deprecated_implements_function_test.dart'
     as deprecated_implements_function;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
-import 'division_optimization_test.dart' as division_optimization;
 import 'doc_directive_argument_wrong_format_test.dart'
     as doc_directive_argument_wrong_format;
 import 'doc_directive_has_extra_arguments_test.dart'
@@ -1049,7 +1048,6 @@ main() {
     deprecated_implements_function.main();
     deprecated_member_use.main();
     deprecated_mixin_function.main();
-    division_optimization.main();
     doc_directive_argument_wrong_format.main();
     doc_directive_has_extra_arguments.main();
     doc_directive_has_unexpected_named_argument.main();

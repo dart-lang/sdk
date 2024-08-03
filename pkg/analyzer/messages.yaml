@@ -20977,6 +20977,7 @@ HintCode:
       This code is deprecated in favor of the
       'deprecated_member_from_same_package' lint rule, and will be removed.
   DIVISION_OPTIMIZATION:
+    removedIn: "3.5"
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
     correctionMessage: "Try re-writing the expression to use the '~/' operator."
     hasPublishedDocs: true

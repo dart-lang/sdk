@@ -207,4 +207,5 @@ abstract final class LintNames {
   static const String use_string_in_part_of_directives =
       'use_string_in_part_of_directives';
   static const String use_super_parameters = 'use_super_parameters';
+  static const String use_truncating_division = 'use_truncating_division';
 }
