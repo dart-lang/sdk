@@ -139,14 +139,14 @@ library
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a11.dart
       enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
+      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A11 @24
           reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
           enclosingElement: <testLibrary>::@fragment::package:test/a11.dart
     <testLibrary>::@fragment::package:test/a12.dart
       enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
+      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A12 @24
           reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
@@ -167,14 +167,14 @@ library
           unit: <testLibrary>::@fragment::package:test/b12.dart
     <testLibrary>::@fragment::package:test/b11.dart
       enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
+      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       classes
         class B11 @24
           reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
           enclosingElement: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b12.dart
       enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
+      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       classes
         class B12 @24
           reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12

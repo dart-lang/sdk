@@ -3783,53 +3783,6 @@ elementFactory
 ''');
   }
 
-  test_newFile_partOfUri_docImports() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-/// @docImport 'dart:async';
-/// @docImport 'dart:math';
-part of 'a.dart';
-''');
-
-    fileStateFor(b);
-
-    assertDriverStateString(testFile, r'''
-files
-  /home/test/lib/a.dart
-    uri: package:test/a.dart
-    current
-      id: file_0
-      kind: library_0
-        libraryImports
-          library_2 dart:core synthetic
-        partIncludes
-          partOfUriKnown_1
-        fileKinds: library_0 partOfUriKnown_1
-        cycle_0
-          dependencies: dart:core
-          libraries: library_0
-          apiSignature_0
-      unlinkedKey: k00
-  /home/test/lib/b.dart
-    uri: package:test/b.dart
-    current
-      id: file_1
-      kind: partOfUriKnown_1
-        uriFile: file_0
-        library: library_0
-        docImports
-          library_4 dart:async
-          library_6 dart:math
-      referencingFiles: file_0
-      unlinkedKey: k01
-libraryCycles
-elementFactory
-''');
-  }
-
   test_newFile_partOfUri_doesNotExist() async {
     var a = getFile('$testPackageLibPath/a.dart');
 
@@ -4058,105 +4011,6 @@ elementFactory
 ''');
   }
 
-  test_newFile_partOfUri_exports_library_dart() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-export 'dart:collection';
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-export 'dart:async';
-export 'dart:math';
-''');
-
-    fileStateFor(b);
-
-    assertDriverStateString(testFile, r'''
-files
-  /home/test/lib/a.dart
-    uri: package:test/a.dart
-    current
-      id: file_0
-      kind: library_0
-        libraryImports
-          library_2 dart:core synthetic
-        libraryExports
-          library_6 dart:collection
-        partIncludes
-          partOfUriKnown_1
-        fileKinds: library_0 partOfUriKnown_1
-        cycle_0
-          dependencies: dart:collection dart:core
-          libraries: library_0
-          apiSignature_0
-      unlinkedKey: k00
-  /home/test/lib/b.dart
-    uri: package:test/b.dart
-    current
-      id: file_1
-      kind: partOfUriKnown_1
-        uriFile: file_0
-        library: library_0
-        libraryExports
-          library_4 dart:async
-          library_7 dart:math
-      referencingFiles: file_0
-      unlinkedKey: k01
-libraryCycles
-elementFactory
-''');
-  }
-
-  test_newFile_partOfUri_imports_library_dart() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:collection';
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-import 'dart:async';
-import 'dart:math';
-''');
-
-    fileStateFor(b);
-
-    assertDriverStateString(testFile, r'''
-files
-  /home/test/lib/a.dart
-    uri: package:test/a.dart
-    current
-      id: file_0
-      kind: library_0
-        libraryImports
-          library_6 dart:collection
-          library_2 dart:core synthetic
-        partIncludes
-          partOfUriKnown_1
-        fileKinds: library_0 partOfUriKnown_1
-        cycle_0
-          dependencies: dart:collection dart:core
-          libraries: library_0
-          apiSignature_0
-      unlinkedKey: k00
-  /home/test/lib/b.dart
-    uri: package:test/b.dart
-    current
-      id: file_1
-      kind: partOfUriKnown_1
-        uriFile: file_0
-        library: library_0
-        libraryImports
-          library_4 dart:async
-          library_7 dart:math
-      referencingFiles: file_0
-      unlinkedKey: k01
-libraryCycles
-elementFactory
-''');
-  }
-
   test_newFile_partOfUri_invalid() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'da:';
@@ -4209,67 +4063,6 @@ files
         uri: da:
       referencingFiles: file_1
       unlinkedKey: k00
-libraryCycles
-elementFactory
-''');
-  }
-
-  test_newFile_partOfUri_parts() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-part 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-part of 'b.dart';
-import 'dart:io';
-''');
-
-    fileStateFor(a);
-
-    assertDriverStateString(testFile, r'''
-files
-  /home/test/lib/a.dart
-    uri: package:test/a.dart
-    current
-      id: file_0
-      kind: library_0
-        libraryImports
-          library_3 dart:core synthetic
-        partIncludes
-          partOfUriKnown_1
-        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_2
-        cycle_0
-          dependencies: dart:core dart:io
-          libraries: library_0
-          apiSignature_0
-      unlinkedKey: k00
-  /home/test/lib/b.dart
-    uri: package:test/b.dart
-    current
-      id: file_1
-      kind: partOfUriKnown_1
-        uriFile: file_0
-        library: library_0
-        partIncludes
-          partOfUriKnown_2
-      referencingFiles: file_0
-      unlinkedKey: k01
-  /home/test/lib/c.dart
-    uri: package:test/c.dart
-    current
-      id: file_2
-      kind: partOfUriKnown_2
-        uriFile: file_1
-        library: library_0
-        libraryImports
-          library_8 dart:io
-      referencingFiles: file_1
-      unlinkedKey: k02
 libraryCycles
 elementFactory
 ''');
@@ -4643,6 +4436,882 @@ files
         library: library_13
       referencingFiles: file_0 file_7
       unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_part_docImports() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+part of 'a.dart';
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        docImports
+          library_4 dart:async
+          library_6 dart:math
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+
+    // Remove 'dart:math'.
+    modifyFile2(b, r'''
+/// @docImport 'dart:async';
+part of 'a.dart';
+''');
+    fileStateFor(b).refresh();
+
+    // The API signature of the cycle is the same.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        partIncludes
+          partOfUriKnown_7
+        fileKinds: library_0 partOfUriKnown_7
+        cycle_2
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_7
+        uriFile: file_0
+        library: library_0
+        docImports
+          library_4 dart:async
+      referencingFiles: file_0
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_part_libraryExports() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+export 'dart:collection';
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'dart:async';
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        libraryExports
+          library_6 dart:collection
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1
+        cycle_0
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        libraryExports
+          library_4 dart:async
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+
+    // Add export 'dart:math'.
+    modifyFile2(b, r'''
+part of 'a.dart';
+export 'dart:async';
+export 'dart:math';
+''');
+    fileStateFor(b).refresh();
+
+    // New library cycle, with new 'apiSignature'.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        libraryExports
+          library_6 dart:collection
+        partIncludes
+          partOfUriKnown_8
+        fileKinds: library_0 partOfUriKnown_8
+        cycle_3
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_8
+        uriFile: file_0
+        library: library_0
+        libraryExports
+          library_4 dart:async
+          library_7 dart:math
+      referencingFiles: file_0
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+
+    // Remove import 'dart:math'.
+    modifyFile2(b, r'''
+part of 'a.dart';
+export 'dart:async';
+''');
+    fileStateFor(b).refresh();
+
+    // New library cycle, with the initial 'apiSignature'.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        libraryExports
+          library_6 dart:collection
+        partIncludes
+          partOfUriKnown_9
+        fileKinds: library_0 partOfUriKnown_9
+        cycle_4
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_9
+        uriFile: file_0
+        library: library_0
+        libraryExports
+          library_4 dart:async
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_part_libraryExports_nestedPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+export 'dart:collection';
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+export 'dart:async';
+''');
+
+    fileStateFor(c);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        libraryExports
+          library_7 dart:collection
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_2
+        cycle_0
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_2
+      referencingFiles: file_0
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_1
+        library: library_0
+        libraryExports
+          library_5 dart:async
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+
+    // Add import 'dart:math'.
+    modifyFile2(c, r'''
+part of 'b.dart';
+export 'dart:async';
+export 'dart:math';
+''');
+    fileStateFor(c).refresh();
+
+    // New library cycle, with new 'apiSignature'.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        libraryExports
+          library_7 dart:collection
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_9
+        cycle_3
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_9
+      referencingFiles: file_0
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_9
+        uriFile: file_1
+        library: library_0
+        libraryExports
+          library_5 dart:async
+          library_8 dart:math
+      referencingFiles: file_1
+      unlinkedKey: k03
+libraryCycles
+elementFactory
+''');
+
+    // Remove import 'dart:math'.
+    modifyFile2(c, r'''
+part of 'b.dart';
+export 'dart:async';
+''');
+    fileStateFor(c).refresh();
+
+    // New library cycle, with the initial 'apiSignature'.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        libraryExports
+          library_7 dart:collection
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_10
+        cycle_4
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_10
+      referencingFiles: file_0
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_10
+        uriFile: file_1
+        library: library_0
+        libraryExports
+          library_5 dart:async
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_part_libraryImports() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:collection';
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'dart:async';
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_6 dart:collection
+          library_2 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1
+        cycle_0
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        libraryImports
+          library_4 dart:async
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+
+    // Add import 'dart:math'.
+    modifyFile2(b, r'''
+part of 'a.dart';
+import 'dart:async';
+import 'dart:math';
+''');
+    fileStateFor(b).refresh();
+
+    // New library cycle, with new 'apiSignature'.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_6 dart:collection
+          library_2 dart:core synthetic
+        partIncludes
+          partOfUriKnown_8
+        fileKinds: library_0 partOfUriKnown_8
+        cycle_3
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_8
+        uriFile: file_0
+        library: library_0
+        libraryImports
+          library_4 dart:async
+          library_7 dart:math
+      referencingFiles: file_0
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+
+    // Remove import 'dart:math'.
+    modifyFile2(b, r'''
+part of 'a.dart';
+import 'dart:async';
+''');
+    fileStateFor(b).refresh();
+
+    // New library cycle, with the initial 'apiSignature'.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_6 dart:collection
+          library_2 dart:core synthetic
+        partIncludes
+          partOfUriKnown_9
+        fileKinds: library_0 partOfUriKnown_9
+        cycle_4
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_9
+        uriFile: file_0
+        library: library_0
+        libraryImports
+          library_4 dart:async
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_part_libraryImports_nestedPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:collection';
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+import 'dart:async';
+''');
+
+    fileStateFor(c);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_7 dart:collection
+          library_3 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_2
+        cycle_0
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_2
+      referencingFiles: file_0
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_1
+        library: library_0
+        libraryImports
+          library_5 dart:async
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+
+    // Add import 'dart:math'.
+    modifyFile2(c, r'''
+part of 'b.dart';
+import 'dart:async';
+import 'dart:math';
+''');
+    fileStateFor(c).refresh();
+
+    // New library cycle, with new 'apiSignature'.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_7 dart:collection
+          library_3 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_9
+        cycle_3
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_9
+      referencingFiles: file_0
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_9
+        uriFile: file_1
+        library: library_0
+        libraryImports
+          library_5 dart:async
+          library_8 dart:math
+      referencingFiles: file_1
+      unlinkedKey: k03
+libraryCycles
+elementFactory
+''');
+
+    // Remove import 'dart:math'.
+    modifyFile2(c, r'''
+part of 'b.dart';
+import 'dart:async';
+''');
+    fileStateFor(c).refresh();
+
+    // New library cycle, with the initial 'apiSignature'.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_7 dart:collection
+          library_3 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_10
+        cycle_4
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_10
+      referencingFiles: file_0
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_10
+        uriFile: file_1
+        library: library_0
+        libraryImports
+          library_5 dart:async
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_part_parts() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+import 'dart:io';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_2
+        cycle_0
+          dependencies: dart:core dart:io
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_2
+      referencingFiles: file_0
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_1
+        library: library_0
+        libraryImports
+          library_8 dart:io
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+
+    // Add new 'd.dart' as a part of 'b.dart'.
+    newFile('$testPackageLibPath/d.dart', r'''
+part of 'b.dart';
+''');
+
+    modifyFile2(b, r'''
+part of 'a.dart';
+part 'c.dart';
+part 'd.dart';
+''');
+    fileStateFor(b).refresh();
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        partIncludes
+          partOfUriKnown_10
+        fileKinds: library_0 partOfUriKnown_10 partOfUriKnown_2 partOfUriKnown_11
+        cycle_4
+          dependencies: dart:core dart:io
+          libraries: library_0
+          apiSignature_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_10
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_2
+          partOfUriKnown_11
+      referencingFiles: file_0
+      unlinkedKey: k03
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_1
+        library: library_0
+        libraryImports
+          library_8 dart:io
+      referencingFiles: file_1
+      unlinkedKey: k02
+  /home/test/lib/d.dart
+    uri: package:test/d.dart
+    current
+      id: file_10
+      kind: partOfUriKnown_11
+        uriFile: file_1
+        library: library_0
+      referencingFiles: file_1
+      unlinkedKey: k04
+libraryCycles
+elementFactory
+''');
+
+    // Remove 'c.dart' as a part of 'b.dart'.
+    modifyFile2(b, r'''
+part of 'a.dart';
+part 'd.dart';
+''');
+    fileStateFor(b).refresh();
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        partIncludes
+          partOfUriKnown_12
+        fileKinds: library_0 partOfUriKnown_12 partOfUriKnown_11
+        cycle_5
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_2
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_12
+        uriFile: file_0
+        library: library_0
+        partIncludes
+          partOfUriKnown_11
+      referencingFiles: file_0
+      unlinkedKey: k05
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_1
+        libraryImports
+          library_8 dart:io
+      unlinkedKey: k02
+  /home/test/lib/d.dart
+    uri: package:test/d.dart
+    current
+      id: file_10
+      kind: partOfUriKnown_11
+        uriFile: file_1
+        library: library_0
+      referencingFiles: file_1
+      unlinkedKey: k04
 libraryCycles
 elementFactory
 ''');
