@@ -1,0 +1,263 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:13:5: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+// var @annotation v1; // Error
+//     ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:13:1: Error: Expected ';' after this.
+// var @annotation v1; // Error
+// ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:13:17: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// var @annotation v1; // Error
+//                 ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:14:9: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+// var v2, @annotation v3; // Error
+//         ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:14:9: Error: Expected ';' after this.
+// var v2, @annotation v3; // Error
+//         ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:17:1: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// int @annotation v5 = -1; // Error --- I think this is where the bad recovery happens.
+// ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:17:1: Error: Expected ';' after this.
+// int @annotation v5 = -1; // Error --- I think this is where the bad recovery happens.
+// ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:17:17: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// int @annotation v5 = -1; // Error --- I think this is where the bad recovery happens.
+//                 ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:18:14: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+// int v6 = -1, @annotation v7 = -1; // Error
+//              ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:18:14: Error: Expected ';' after this.
+// int v6 = -1, @annotation v7 = -1; // Error
+//              ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:22:7: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//   var @annotation f1; // Error
+//       ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:22:3: Error: Expected ';' after this.
+//   var @annotation f1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:22:19: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   var @annotation f1; // Error
+//                   ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:23:11: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//   var f2, @annotation f3; // Error
+//           ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:23:9: Error: Expected ';' after this.
+//   var f2, @annotation f3; // Error
+//         ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:23:23: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   var f2, @annotation f3; // Error
+//                       ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   int @annotation f5 = -1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:3: Error: Expected ';' after this.
+//   int @annotation f5 = -1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:19: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   int @annotation f5 = -1; // Error
+//                   ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:27:16: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//   int f6 = -1, @annotation f7 = -1; // Error
+//                ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:27:14: Error: Expected ';' after this.
+//   int f6 = -1, @annotation f7 = -1; // Error
+//              ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:27:28: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   int f6 = -1, @annotation f7 = -1; // Error
+//                            ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:25:3: Error: 'int' isn't a type.
+//   int f4 = -1; // This should by itself be fine, but recovery is bad.
+//   ^^^
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:3: Context: This isn't a type.
+//   int @annotation f5 = -1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:27:3: Error: 'int' isn't a type.
+//   int f6 = -1, @annotation f7 = -1; // Error
+//   ^^^
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:3: Context: This isn't a type.
+//   int @annotation f5 = -1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:14:10: Error: 'annotation' isn't a type.
+// var v2, @annotation v3; // Error
+//          ^^^^^^^^^^
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:10:7: Context: This isn't a type.
+// const annotation = null;
+//       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:16:1: Error: 'int' isn't a type.
+// int v4 = -1;  // This should by itself be fine, but recovery is bad.
+// ^^^
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:17:1: Context: This isn't a type.
+// int @annotation v5 = -1; // Error --- I think this is where the bad recovery happens.
+// ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:18:1: Error: 'int' isn't a type.
+// int v6 = -1, @annotation v7 = -1; // Error
+// ^^^
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:17:1: Context: This isn't a type.
+// int @annotation v5 = -1; // Error --- I think this is where the bad recovery happens.
+// ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:18:15: Error: 'annotation' isn't a type.
+// int v6 = -1, @annotation v7 = -1; // Error
+//               ^^^^^^^^^^
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:10:7: Context: This isn't a type.
+// const annotation = null;
+//       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:32:7: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//   var @annotation l1; // Error
+//       ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:32:3: Error: Expected ';' after this.
+//   var @annotation l1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:32:19: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   var @annotation l1; // Error
+//                   ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:33:11: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//   var l2, @annotation l3; // Error
+//           ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:33:9: Error: Expected ';' after this.
+//   var l2, @annotation l3; // Error
+//         ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:33:23: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   var l2, @annotation l3; // Error
+//                       ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:35:3: Error: 'int' isn't a type.
+//   int l4 = -1; // This should by itself be fine, but recovery is bad.
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:36:3: Error: Expected ';' after this.
+//   int @annotation l5 = -1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:36:19: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   int @annotation l5 = -1; // Error
+//                   ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:37:3: Error: 'int' isn't a type.
+//   int l6 = -1, @annotation l7 = -1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:37:16: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//   int l6 = -1, @annotation l7 = -1; // Error
+//                ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:37:14: Error: Expected ';' after this.
+//   int l6 = -1, @annotation l7 = -1; // Error
+//              ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:37:28: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   int l6 = -1, @annotation l7 = -1; // Error
+//                            ^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:40:9: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//     var @annotation i1 = 0, @annotation i2 = 0 // Error
+//         ^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:40:5: Error: Expected ';' after this.
+//     var @annotation i1 = 0, @annotation i2 = 0 // Error
+//     ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:40:9: Error: Unexpected token '@'.
+//     var @annotation i1 = 0, @annotation i2 = 0 // Error
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic f0 = null;
+  @#C1
+  field dynamic f1 = null;
+  @#C1
+  field dynamic f3 = null;
+  field invalid-type f4 = 1.{core::int::unary-}(){() → core::int};
+  field dynamic int = null;
+  @#C1
+  field core::int f5 = 1.{core::int::unary-}(){() → core::int};
+  @#C1
+  field core::int f7 = 1.{core::int::unary-}(){() → core::int};
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static const field dynamic annotation = #C1;
+static field dynamic v0;
+@#C1
+static field dynamic v1;
+static field invalid-type v3;
+static field invalid-type v4 = 1.{core::int::unary-}(){() → core::int};
+static field dynamic int;
+@#C1
+static field core::int v5 = 1.{core::int::unary-}(){() → core::int};
+static field invalid-type v7 = 1.{core::int::unary-}(){() → core::int};
+static method foo() → void {}
+
+constants  {
+  #C1 = null
+}
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///metadata_variable_declaration.dart:25:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///metadata_variable_declaration.dart:26:24 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///metadata_variable_declaration.dart:27:33 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///metadata_variable_declaration.dart:16:10 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///metadata_variable_declaration.dart:17:22 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///metadata_variable_declaration.dart:18:31 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 6, effectively constant: 6

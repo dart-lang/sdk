@@ -2224,7 +2224,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     int? intValue = node.asInt64();
     if (intValue == null) {
-      // Coverage-ignore-block(suite): Not run.
       Expression replacement = helper.buildProblem(
           templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
           node.fileOffset,
@@ -2815,7 +2814,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               inferredConditionTypes);
         }
         if (otherwise is ControlFlowElement) {
-          // Coverage-ignore-block(suite): Not run.
           checkElement(otherwise, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
@@ -9841,7 +9839,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           int? intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            // Coverage-ignore-block(suite): Not run.
             Expression error = helper.buildProblem(
                 templateIntegerLiteralIsOutOfRange
                     .withArguments(receiver.literal),

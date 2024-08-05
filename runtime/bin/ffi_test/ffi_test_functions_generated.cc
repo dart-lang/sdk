@@ -4876,6 +4876,25 @@ PassInt64x7Struct12BytesHomogeneousInt32(int64_t a0,
 }
 
 // Used for testing structs and unions by value.
+// Passing a pointer to a struct
+DART_EXPORT int64_t
+PassPointerStruct12BytesHomogeneousInt32(Struct12BytesHomogeneousInt32* a0) {
+  std::cout << "PassPointerStruct12BytesHomogeneousInt32"
+            << "((" << a0->a0 << ", " << a0->a1 << ", " << a0->a2 << "))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0->a0;
+  result += a0->a1;
+  result += a0->a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
 // Smallest struct with data.
 DART_EXPORT Struct1ByteInt ReturnStruct1ByteInt(int8_t a0) {
   std::cout << "ReturnStruct1ByteInt"
@@ -12600,6 +12619,45 @@ DART_EXPORT intptr_t TestPassInt64x7Struct12BytesHomogeneousInt32(
   a0 = 84;
 
   result = f(a0, a1, a2, a3, a4, a5, a6, a7);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Passing a pointer to a struct
+DART_EXPORT intptr_t TestPassPointerStruct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct12BytesHomogeneousInt32* a0)) {
+  Struct12BytesHomogeneousInt32 a0_value = {};
+  Struct12BytesHomogeneousInt32* a0 = &a0_value;
+
+  a0->a0 = -1;
+  a0->a1 = 2;
+  a0->a2 = -3;
+
+  std::cout << "Calling TestPassPointerStruct12BytesHomogeneousInt32("
+            << "((" << a0->a0 << ", " << a0->a1 << ", " << a0->a2 << "))"
+            << ")\n";
+
+  int64_t result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(-2, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0->a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0->a0 = 84;
+
+  result = f(a0);
 
   CHECK_EQ(0, result);
 
@@ -21222,6 +21280,25 @@ DART_EXPORT void TestAsyncPassInt64x7Struct12BytesHomogeneousInt32(
             << ")\n";
 
   f(a0, a1, a2, a3, a4, a5, a6, a7);
+}
+
+// Used for testing structs and unions by value.
+// Passing a pointer to a struct
+DART_EXPORT void TestAsyncPassPointerStruct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct12BytesHomogeneousInt32* a0)) {
+  Struct12BytesHomogeneousInt32 a0_value = {};
+  Struct12BytesHomogeneousInt32* a0 = &a0_value;
+
+  a0->a0 = -1;
+  a0->a1 = 2;
+  a0->a2 = -3;
+
+  std::cout << "Calling TestAsyncPassPointerStruct12BytesHomogeneousInt32("
+            << "((" << a0->a0 << ", " << a0->a1 << ", " << a0->a2 << "))"
+            << ")\n";
+
+  f(a0);
 }
 
 // Used for testing structs and unions by value.

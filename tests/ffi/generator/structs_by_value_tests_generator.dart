@@ -63,6 +63,14 @@ extension on CType {
         final this_ = this as StructType;
         return this_.members.coutExpression("$variableName.");
 
+      case PointerType:
+        final this_ = this as PointerType;
+        final pointerTo = this_.pointerTo;
+        switch (pointerTo) {
+          case StructType _:
+            return pointerTo.members.coutExpression("$variableName->");
+        }
+
       case UnionType:
         final this_ = this as UnionType;
         return this_.members.take(1).toList().coutExpression("$variableName.");
@@ -105,7 +113,7 @@ extension on CType {
   /// A list of statements adding all members recursively to `result`.
   ///
   /// Both valid in Dart and C.
-  String addToResultStatements(String variableName) {
+  String addToResultStatements(String variableName, bool isDart) {
     switch (this.runtimeType) {
       case FundamentalType:
         final this_ = this as FundamentalType;
@@ -114,20 +122,33 @@ extension on CType {
 
       case StructType:
         final this_ = this as StructType;
-        return this_.members.addToResultStatements("$variableName.");
+        return this_.members.addToResultStatements(isDart, "$variableName.");
+
+      case PointerType:
+        final this_ = this as PointerType;
+        final pointerTo = this_.pointerTo;
+        switch (pointerTo) {
+          case StructType _:
+            if (isDart) {
+              return pointerTo.members
+                  .addToResultStatements(isDart, "$variableName.ref.");
+            }
+            return pointerTo.members
+                .addToResultStatements(isDart, "$variableName->");
+        }
 
       case UnionType:
         final this_ = this as UnionType;
         final member = this_.members.first;
         return member.type
-            .addToResultStatements("$variableName.${member.name}");
+            .addToResultStatements("$variableName.${member.name}", isDart);
 
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
         final indices = [for (var i = 0; i < this_.length; i += 1) i];
         return indices
-            .map((i) =>
-                this_.elementType.addToResultStatements("$variableName[$i]"))
+            .map((i) => this_.elementType
+                .addToResultStatements("$variableName[$i]", isDart))
             .join();
     }
 
@@ -139,8 +160,9 @@ extension on List<Member> {
   /// A list of statements adding all members recursively to `result`.
   ///
   /// Both valid in Dart and C.
-  String addToResultStatements([String namePrefix = ""]) {
-    return map((m) => m.type.addToResultStatements("$namePrefix${m.name}"))
+  String addToResultStatements(bool isDart, [String namePrefix = ""]) {
+    return map(
+            (m) => m.type.addToResultStatements("$namePrefix${m.name}", isDart))
         .join();
   }
 }
@@ -149,7 +171,11 @@ extension on CType {
   /// A list of statements recursively assigning all members with [a].
   ///
   /// Both valid in Dart and C.
-  String assignValueStatements(ArgumentValueAssigner a, String variableName) {
+  String assignValueStatements(
+    ArgumentValueAssigner a,
+    String variableName,
+    bool isDart,
+  ) {
     switch (this.runtimeType) {
       case FundamentalType:
         final this_ = this as FundamentalType;
@@ -157,21 +183,33 @@ extension on CType {
 
       case StructType:
         final this_ = this as StructType;
-        return this_.members.assignValueStatements(a, "$variableName.");
+        return this_.members.assignValueStatements(a, isDart, "$variableName.");
 
       case UnionType:
         final this_ = this as UnionType;
         final member = this_.members.first;
         return member.type
-            .assignValueStatements(a, "$variableName.${member.name}");
+            .assignValueStatements(a, "$variableName.${member.name}", isDart);
 
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
         final indices = [for (var i = 0; i < this_.length; i += 1) i];
         return indices
-            .map((i) =>
-                this_.elementType.assignValueStatements(a, "$variableName[$i]"))
+            .map((i) => this_.elementType
+                .assignValueStatements(a, "$variableName[$i]", isDart))
             .join();
+      case PointerType:
+        final this_ = this as PointerType;
+        final pointerTo = this_.pointerTo;
+        switch (pointerTo) {
+          case StructType _:
+            if (isDart) {
+              return pointerTo.members
+                  .assignValueStatements(a, isDart, "$variableName.ref.");
+            }
+            return pointerTo.members
+                .assignValueStatements(a, isDart, "$variableName->");
+        }
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -198,10 +236,16 @@ extension on List<Member> {
   /// A list of statements recursively assigning all members with [a].
   ///
   /// Both valid in Dart and C.
-  String assignValueStatements(ArgumentValueAssigner a,
-      [String namePrefix = ""]) {
-    return map((m) => m.type.assignValueStatements(a, "$namePrefix${m.name}"))
-        .join();
+  String assignValueStatements(
+    ArgumentValueAssigner a,
+    bool isDart, [
+    String namePrefix = "",
+  ]) {
+    return map((m) => m.type.assignValueStatements(
+          a,
+          "$namePrefix${m.name}",
+          isDart,
+        )).join();
   }
 
   /// A list of statements recursively coping all members from [source].
@@ -252,6 +296,17 @@ extension on CType {
   /// A list of Dart statements recursively allocating all members.
   String dartAllocateStatements(String variableName) {
     switch (this.runtimeType) {
+      case PointerType:
+        final this_ = this as PointerType;
+        final pointerTo = this_.pointerTo;
+        switch (pointerTo) {
+          case StructType _:
+            return '''
+  final ${variableName} = calloc<${pointerTo.dartType}>();
+  ''';
+        }
+        return "\n";
+
       case FundamentalType:
         return "  ${dartType} ${variableName};\n";
 
@@ -290,6 +345,9 @@ extension on CType {
         } else {
           return "${dartType} ${variableName} = Pointer<${dartType}>.fromAddress(0).ref;\n";
         }
+
+      case PointerType:
+        return "${dartType} ${variableName} = nullptr;\n";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -320,6 +378,9 @@ extension on CType {
       case StructType:
       case UnionType:
         return "calloc.free(${variableName}Pointer);\n";
+
+      case PointerType:
+        return "calloc.free(${variableName});\n";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -342,6 +403,16 @@ extension on CType {
       case StructType:
       case UnionType:
         return "${cType} ${variableName} = {};\n";
+      case PointerType:
+        final this_ = this as PointerType;
+        final pointerTo = this_.pointerTo;
+        switch (pointerTo) {
+          case StructType _:
+            return '''
+${pointerTo.cType} ${variableName}_value = {};
+${cType} ${variableName} = &${variableName}_value;
+''';
+        }
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -474,7 +545,7 @@ extension on CType {
   /// Expression denoting the first FundamentalType field.
   ///
   /// Both valid in Dart and C.
-  String firstArgumentName(String variableName) {
+  String firstArgumentName(String variableName, bool isDart) {
     switch (this.runtimeType) {
       case FundamentalType:
         return variableName;
@@ -482,11 +553,24 @@ extension on CType {
       case StructType:
       case UnionType:
         final this_ = this as CompositeType;
-        return this_.members.firstArgumentName("$variableName.");
+        return this_.members.firstArgumentName(isDart, "$variableName.");
+
+      case PointerType:
+        final this_ = this as PointerType;
+        final pointerTo = this_.pointerTo;
+        switch (pointerTo) {
+          case StructType _:
+            if (isDart) {
+              return pointerTo.members
+                  .firstArgumentName(isDart, "$variableName.ref.");
+            }
+            return pointerTo.members
+                .firstArgumentName(isDart, "$variableName->");
+        }
 
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
-        return this_.elementType.firstArgumentName("$variableName[0]");
+        return this_.elementType.firstArgumentName("$variableName[0]", isDart);
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -497,8 +581,8 @@ extension on List<Member> {
   /// Expression denoting the first FundamentalType field.
   ///
   /// Both valid in Dart and C.
-  String firstArgumentName([String prefix = ""]) {
-    return this[0].type.firstArgumentName("$prefix${this[0].name}");
+  String firstArgumentName(bool isDart, [String prefix = ""]) {
+    return this[0].type.firstArgumentName("$prefix${this[0].name}", isDart);
   }
 }
 
@@ -565,7 +649,7 @@ extension CompositeTypeGenerator on CompositeType {
 extension on FunctionType {
   String dartCallCode({required bool isLeaf, required bool isNative}) {
     final a = ArgumentValueAssigner();
-    final assignValues = arguments.assignValueStatements(a);
+    final assignValues = arguments.assignValueStatements(a, true);
     final argumentFrees = arguments.dartFreeStatements();
 
     final argumentNames = arguments.map((e) => e.name).join(", ");
@@ -639,7 +723,7 @@ ${assignValues}
         buildReturnValue = """
   $returnValueType result = 0;
 
-${arguments.addToResultStatements('${dartName}_')}
+${arguments.addToResultStatements(true, '${dartName}_')}
   """;
         assignReturnGlobal = "${dartName}Result = $result;";
         break;
@@ -664,13 +748,21 @@ ${arguments.addToResultStatements('${dartName}_')}
 
     final globals = arguments.dartAllocateZeroStatements("${dartName}_");
 
-    final copyToGlobals =
-        arguments.map((a) => '${dartName}_${a.name} = ${a.name};').join("\n  ");
+    final copyToGlobals = arguments.map((a) {
+      final type = a.type;
+      switch (type) {
+        case PointerType _:
+          // Copy the pointer, but don't use after callback returned.
+          return '${dartName}_${a.name} = ${a.name};';
+        default:
+          return '${dartName}_${a.name} = ${a.name};';
+      }
+    }).join("\n  ");
 
     // Simulate assigning values the same way as in C, so that we know what the
     // final return value should be.
     final a = ArgumentValueAssigner();
-    arguments.assignValueStatements(a);
+    arguments.assignValueStatements(a, true);
     String afterCallbackExpects = "";
     String afterCallbackFrees = "";
     switch (testType) {
@@ -711,8 +803,8 @@ ${returnValue.dartType} $dartName($argumentString) {
   print("$dartName($prints)");
 
   // Possibly throw.
-  if (${arguments.firstArgumentName()} == $throwExceptionValue ||
-      ${arguments.firstArgumentName()} == $returnNullValue) {
+  if (${arguments.firstArgumentName(true)} == $throwExceptionValue ||
+      ${arguments.firstArgumentName(true)} == $returnNullValue) {
     print("throwing!");
     throw Exception("$cName throwing on purpose!");
   }
@@ -726,6 +818,7 @@ ${returnValue.dartType} $dartName($argumentString) {
   return result;
 }
 
+${this.arguments.containsPointers ? '' : '''
 void ${dartName}AfterCallback() {
   $afterCallbackFrees
 
@@ -737,6 +830,7 @@ void ${dartName}AfterCallback() {
 
   $afterCallbackFrees
 }
+'''}
 
 """;
   }
@@ -760,10 +854,14 @@ void ${dartName}AfterCallback() {
     final constructor = isNativeCallable
         ? 'NativeCallable<$T>.isolateLocal'
         : 'Pointer.fromFunction<$T>';
+    final afterCallback = this.arguments.containsPointers
+        ? 'noChecks'
+        : '${dartName}AfterCallback';
+
     return """
   CallbackTest.withCheck("$cName",
     $constructor($dartName$exceptionalReturn),
-    ${dartName}AfterCallback),
+    $afterCallback),
 """;
   }
 
@@ -778,7 +876,7 @@ void ${dartName}AfterCallback() {
         FunctionType(argumentTypes, void_, reason, varArgsIndex: varArgsIndex);
 
     final a = ArgumentValueAssigner();
-    arguments.assignValueStatements(a);
+    arguments.assignValueStatements(a, true);
     final expectedResult = a.sumValue(int64);
 
     return """
@@ -793,7 +891,7 @@ void $dartName($argumentString) {
 
   double result = 0;
 
-${arguments.addToResultStatements()}
+${arguments.addToResultStatements(true)}
 
   print("result = \$result");
   ${cName}Result.complete(result);
@@ -812,10 +910,13 @@ Future<void> ${dartName}AfterCallback() async {
     final T = '${cName}Type';
     final constructor =
         isAsync ? 'NativeCallable<$T>.listener' : 'Pointer.fromFunction<$T>';
+    final afterCallback = this.arguments.containsPointers
+        ? 'noChecksAsync'
+        : '${dartName}AfterCallback';
     return """
   AsyncCallbackTest("$cName",
     $constructor($dartName),
-    ${dartName}AfterCallback),
+    $afterCallback),
 """;
   }
 
@@ -833,7 +934,7 @@ Future<void> ${dartName}AfterCallback() async {
         body = """
         $returnValueType result = 0;
 
-        ${arguments.addToResultStatements()}
+        ${arguments.addToResultStatements(false)}
         """;
         break;
       case TestType.structReturn:
@@ -892,7 +993,7 @@ $varArgsUnpack
   String get cCallbackCode {
     final a = ArgumentValueAssigner();
     final argumentAllocations = arguments.cAllocateStatements();
-    final assignValues = arguments.assignValueStatements(a);
+    final assignValues = arguments.assignValueStatements(a, false);
 
     final argumentString = [
       for (final argument in arguments.take(varArgsIndex ?? arguments.length))
@@ -948,14 +1049,14 @@ $varArgsUnpack
       $expects
 
       // Pass argument that will make the Dart callback throw.
-      ${arguments.firstArgumentName()} = $throwExceptionValue;
+      ${arguments.firstArgumentName(false)} = $throwExceptionValue;
 
       result = f($argumentNames);
 
       $expectsZero
 
       // Pass argument that will make the Dart callback return null.
-      ${arguments.firstArgumentName()} = $returnNullValue;
+      ${arguments.firstArgumentName(false)} = $returnNullValue;
 
       result = f($argumentNames);
 
@@ -970,7 +1071,7 @@ $varArgsUnpack
   String get cAsyncCallbackCode {
     final a = ArgumentValueAssigner();
     final argumentAllocations = arguments.cAllocateStatements();
-    final assignValues = arguments.assignValueStatements(a);
+    final assignValues = arguments.assignValueStatements(a, false);
 
     final argumentString = [
       for (final argument in arguments.take(varArgsIndex ?? arguments.length))
@@ -1245,10 +1346,15 @@ Future<void> main() async {
 """;
 }
 
-Future<void> writeDartNativeCallableListenerTest(List<FunctionType> functions,
-    {required bool isAsync}) async {
+Future<void> writeDartNativeCallableListenerTest(
+  List<FunctionType> functions, {
+  required bool isAsync,
+}) async {
   final StringBuffer buffer = StringBuffer();
   buffer.write(headerDartAsyncCallbackTest());
+  if (isAsync) {
+    functions = functions.where((f) => !f.arguments.containsPointers).toList();
+  }
   final constructors = functions
       .map((e) => e.dartNativeCallableListenerTestConstructor(isAsync: isAsync))
       .join("\n");

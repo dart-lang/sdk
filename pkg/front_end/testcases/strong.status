@@ -109,6 +109,7 @@ nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
 nnbd/platform_optional_parameters/main: SemiFuzzFailure
 
 # UNSORTED ONES:
+coverage/static2_test: TypeCheckError
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
 general/bad_import: SemiFuzzCrash # missing end token on import
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441

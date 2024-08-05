@@ -71,3 +71,7 @@ rasta/issue_000046: UnknownChunk # Test has parser errors
 rasta/malformed_const_constructor: UnknownChunk # Test has parser errors
 regress/ambiguous_builder_01: UnknownChunk # Test has parser errors
 regress/issue_34850: UnknownChunk # Test has parser errors
+
+coverage/external_test: FormatterCrash
+coverage/metadata_test: FormatterCrash
+coverage/operator_unsupported_test: EmptyOutput

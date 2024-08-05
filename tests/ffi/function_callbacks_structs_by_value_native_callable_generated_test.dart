@@ -452,6 +452,12 @@ final testCases = [
           exceptionalReturn: 0),
       passInt64x7Struct12BytesHomogeneousInt32AfterCallback),
   CallbackTest.withCheck(
+      "PassPointerStruct12BytesHomogeneousInt32",
+      NativeCallable<PassPointerStruct12BytesHomogeneousInt32Type>.isolateLocal(
+          passPointerStruct12BytesHomogeneousInt32,
+          exceptionalReturn: 0),
+      noChecks),
+  CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       NativeCallable<ReturnStruct1ByteIntType>.isolateLocal(
           returnStruct1ByteInt),
@@ -8004,6 +8010,49 @@ void passInt64x7Struct12BytesHomogeneousInt32AfterCallback() {
   print("after callback result = $result");
 
   Expect.equals(5, result);
+}
+
+typedef PassPointerStruct12BytesHomogeneousInt32Type = Int64 Function(
+    Pointer<Struct12BytesHomogeneousInt32>);
+
+// Global variables to be able to test inputs after callback returned.
+Pointer<Struct12BytesHomogeneousInt32>
+    passPointerStruct12BytesHomogeneousInt32_a0 = nullptr;
+
+// Result variable also global, so we can delete it after the callback.
+int passPointerStruct12BytesHomogeneousInt32Result = 0;
+
+int passPointerStruct12BytesHomogeneousInt32CalculateResult() {
+  int result = 0;
+
+  result += passPointerStruct12BytesHomogeneousInt32_a0.ref.a0;
+  result += passPointerStruct12BytesHomogeneousInt32_a0.ref.a1;
+  result += passPointerStruct12BytesHomogeneousInt32_a0.ref.a2;
+
+  passPointerStruct12BytesHomogeneousInt32Result = result;
+
+  return result;
+}
+
+/// Passing a pointer to a struct
+int passPointerStruct12BytesHomogeneousInt32(
+    Pointer<Struct12BytesHomogeneousInt32> a0) {
+  print("passPointerStruct12BytesHomogeneousInt32(${a0})");
+
+  // Possibly throw.
+  if (a0.ref.a0 == 42 || a0.ref.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassPointerStruct12BytesHomogeneousInt32 throwing on purpose!");
+  }
+
+  passPointerStruct12BytesHomogeneousInt32_a0 = a0;
+
+  final result = passPointerStruct12BytesHomogeneousInt32CalculateResult();
+
+  print("result = $result");
+
+  return result;
 }
 
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);

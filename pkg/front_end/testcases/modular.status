@@ -72,4 +72,4 @@ nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
 no_such_method_forwarders/mixin_nsm: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
-
+coverage/static2_test: TypeCheckError

@@ -1,0 +1,18 @@
+class C<T> {
+  C(this.t);
+  T t;
+}
+
+const int meta = 1;
+
+@meta
+typedef CAlias1 = C;
+
+@meta
+typedef CAlias2<T> = C<T>;
+
+typedef CAlias3 = C<String>;
+
+typedef CAlias4<T> = C<int>;
+
+void foo() {}

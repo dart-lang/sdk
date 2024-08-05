@@ -450,6 +450,13 @@ Returning a wchar."""),
       int64,
       """
 Struct stradles last argument register"""),
+  FunctionType(
+      [
+        PointerType(struct12bytesInt),
+      ],
+      int64,
+      """
+Passing a pointer to a struct"""),
 ];
 
 /// Functions that return a struct by value.

@@ -355,7 +355,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     hasBodyBeenBuilt = true;
     if (!hasInitializer &&
         initializer != null &&
-        // Coverage-ignore(suite): Not run.
         initializer is! NullLiteral &&
         // Coverage-ignore(suite): Not run.
         !isConst &&
