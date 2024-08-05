@@ -95,6 +95,7 @@ void main() {
     testPassUint8Struct1ByteBoolNative();
     testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNative();
     testPassInt64x7Struct12BytesHomogeneousInt32Native();
+    testPassPointerStruct12BytesHomogeneousInt32Native();
   }
 }
 
@@ -5471,4 +5472,26 @@ void testPassInt64x7Struct12BytesHomogeneousInt32Native() {
   Expect.equals(5, result);
 
   calloc.free(a7Pointer);
+}
+
+@Native<Int64 Function(Pointer<Struct12BytesHomogeneousInt32>)>(
+    symbol: 'PassPointerStruct12BytesHomogeneousInt32')
+external int passPointerStruct12BytesHomogeneousInt32Native(
+    Pointer<Struct12BytesHomogeneousInt32> a0);
+
+/// Passing a pointer to a struct
+void testPassPointerStruct12BytesHomogeneousInt32Native() {
+  final a0 = calloc<Struct12BytesHomogeneousInt32>();
+
+  a0.ref.a0 = -1;
+  a0.ref.a1 = 2;
+  a0.ref.a2 = -3;
+
+  final result = passPointerStruct12BytesHomogeneousInt32Native(a0);
+
+  print("result = $result");
+
+  Expect.equals(-2, result);
+
+  calloc.free(a0);
 }

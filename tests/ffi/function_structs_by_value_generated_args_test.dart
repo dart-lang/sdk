@@ -92,6 +92,7 @@ void main() {
     testPassUint8Struct1ByteBool();
     testPassWCharStructInlineArrayIntUintPtrx2LongUnsigned();
     testPassInt64x7Struct12BytesHomogeneousInt32();
+    testPassPointerStruct12BytesHomogeneousInt32();
   }
 }
 
@@ -5419,4 +5420,27 @@ void testPassInt64x7Struct12BytesHomogeneousInt32() {
   Expect.equals(5, result);
 
   calloc.free(a7Pointer);
+}
+
+final passPointerStruct12BytesHomogeneousInt32 =
+    ffiTestFunctions.lookupFunction<
+            Int64 Function(Pointer<Struct12BytesHomogeneousInt32>),
+            int Function(Pointer<Struct12BytesHomogeneousInt32>)>(
+        "PassPointerStruct12BytesHomogeneousInt32");
+
+/// Passing a pointer to a struct
+void testPassPointerStruct12BytesHomogeneousInt32() {
+  final a0 = calloc<Struct12BytesHomogeneousInt32>();
+
+  a0.ref.a0 = -1;
+  a0.ref.a1 = 2;
+  a0.ref.a2 = -3;
+
+  final result = passPointerStruct12BytesHomogeneousInt32(a0);
+
+  print("result = $result");
+
+  Expect.equals(-2, result);
+
+  calloc.free(a0);
 }

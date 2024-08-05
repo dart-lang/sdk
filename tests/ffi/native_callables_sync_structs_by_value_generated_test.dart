@@ -378,6 +378,11 @@ final testCases = [
           passInt64x7Struct12BytesHomogeneousInt32),
       passInt64x7Struct12BytesHomogeneousInt32AfterCallback),
   AsyncCallbackTest(
+      "PassPointerStruct12BytesHomogeneousInt32",
+      Pointer.fromFunction<PassPointerStruct12BytesHomogeneousInt32Type>(
+          passPointerStruct12BytesHomogeneousInt32),
+      noChecksAsync),
+  AsyncCallbackTest(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -5133,6 +5138,33 @@ Future<void> passInt64x7Struct12BytesHomogeneousInt32AfterCallback() async {
   final result = await PassInt64x7Struct12BytesHomogeneousInt32Result.future;
   print("after callback result = $result");
   Expect.approxEquals(5, result);
+}
+
+typedef PassPointerStruct12BytesHomogeneousInt32Type = Void Function(
+    Pointer<Struct12BytesHomogeneousInt32>);
+
+// Global variable that stores the result.
+final PassPointerStruct12BytesHomogeneousInt32Result = Completer<double>();
+
+/// Passing a pointer to a struct
+void passPointerStruct12BytesHomogeneousInt32(
+    Pointer<Struct12BytesHomogeneousInt32> a0) {
+  print("passPointerStruct12BytesHomogeneousInt32(${a0})");
+
+  double result = 0;
+
+  result += a0.ref.a0;
+  result += a0.ref.a1;
+  result += a0.ref.a2;
+
+  print("result = $result");
+  PassPointerStruct12BytesHomogeneousInt32Result.complete(result);
+}
+
+Future<void> passPointerStruct12BytesHomogeneousInt32AfterCallback() async {
+  final result = await PassPointerStruct12BytesHomogeneousInt32Result.future;
+  print("after callback result = $result");
+  Expect.approxEquals(-2, result);
 }
 
 typedef ReturnStruct1ByteIntType = Void Function(Int8);

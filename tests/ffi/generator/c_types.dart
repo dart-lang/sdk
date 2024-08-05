@@ -588,7 +588,9 @@ class FunctionType extends CType {
     }
 
     for (final group in argumentsGrouped) {
-      result += group.first.type.dartCType;
+      final dartCType =
+          group.first.type.dartCType.replaceAll('<', '').replaceAll('>', '');
+      result += dartCType;
       if (group.length > 1) {
         result += "x${group.length}";
       }
@@ -606,8 +608,22 @@ class FunctionType extends CType {
 }
 
 extension MemberList on List<Member> {
-  bool get containsComposites =>
-      map((m) => m.type is CompositeType).contains(true);
+  bool get containsComposites => map((m) {
+        final type = m.type;
+        switch (type) {
+          case CompositeType _:
+            return true;
+          case PointerType _:
+            final pointerTo = type.pointerTo;
+            switch (pointerTo) {
+              case CompositeType _:
+                return true;
+            }
+        }
+        return false;
+      }).contains(true);
+
+  bool get containsPointers => any((m) => m.type is PointerType);
 }
 
 extension ListT<T> on List<T> {
