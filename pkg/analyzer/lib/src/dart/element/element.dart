@@ -844,17 +844,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   CompilationUnitElementImpl? get enclosingElement3 {
-    switch (libraryOrAugmentationElement) {
-      case LibraryElementImpl library:
-        if (identical(library.definingCompilationUnit, this)) {
-          return null;
-        }
-        return library.definingCompilationUnit;
-      default:
-        return (libraryOrAugmentationElement.enclosingElement3
-                as LibraryOrAugmentationElementImpl)
-            .definingCompilationUnit;
+    if (libraryOrAugmentationElement is LibraryAugmentationElementImpl) {
+      return (libraryOrAugmentationElement.enclosingElement
+              as LibraryOrAugmentationElementImpl)
+          .definingCompilationUnit;
     }
+    return super.enclosingElement3 as CompilationUnitElementImpl?;
   }
 
   @override
