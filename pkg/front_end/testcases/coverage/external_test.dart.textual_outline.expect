@@ -1,0 +1,5 @@
+class Foo {
+  var x = -1;
+  Foo() : x = 0;
+  external Foo.n24(this.x);
+}

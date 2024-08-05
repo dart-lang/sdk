@@ -93,12 +93,13 @@
         ".crash_dart"
       ],
       "exclude": [
-        "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/agnostic/",
         "/testcases/class_modifiers/",
         "/testcases/const_functions/",
         "/testcases/constructor_tearoffs/",
+        "/testcases/coverage/",
         "/testcases/dart2wasm/",
         "/testcases/dartdevc/",
         "/testcases/dartino/",
@@ -110,11 +111,11 @@
         "/testcases/generic_metadata/",
         "/testcases/implicit_getter_calls/",
         "/testcases/incremental/",
-        "/testcases/inference/",
         "/testcases/inference_new/",
         "/testcases/inference_update_1/",
         "/testcases/inference_update_2/",
         "/testcases/inference_update_3/",
+        "/testcases/inference/",
         "/testcases/instantiate_to_bound/",
         "/testcases/late_lowering/",
         "/testcases/late_lowering_sentinel/",
@@ -124,6 +125,7 @@
         "/testcases/no_such_method_forwarders/",
         "/testcases/none/",
         "/testcases/nonfunction_type_aliases/",
+        "/testcases/null_aware_elements/",
         "/testcases/offsets/",
         "/testcases/patterns/",
         "/testcases/rasta/",
@@ -139,8 +141,7 @@
         "/testcases/unified_collections/",
         "/testcases/unscheduled_experiments/",
         "/testcases/variance/",
-        "/testcases/wildcard_variables/",
-	"/testcases/null_aware_elements/"
+        "/testcases/wildcard_variables/"
       ]
     },
     {

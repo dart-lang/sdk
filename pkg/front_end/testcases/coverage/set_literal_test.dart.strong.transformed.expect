@@ -1,0 +1,21 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/set_literal_test.dart:9:18: Error: Expected ',' before this.
+//   var y = <int>{1: 1}; // Error
+//                  ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method foo() → void {
+  core::Set<core::int> x = block {
+    final core::Set<core::int> #t1 = new col::_Set::•<core::int>();
+    #t1.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+  } =>#t1;
+  core::Set<core::int> y = block {
+    final core::Set<core::int> #t2 = new col::_Set::•<core::int>();
+  } =>#t2;
+}
