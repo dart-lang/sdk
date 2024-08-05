@@ -176,6 +176,39 @@ dynamic _internal() {
   ];
   memoryFileSystem.entityForUri(test7).writeAsStringSync(test);
   expect(await dartDocTest.process(test7), expected);
+
+  // Throws test
+  Uri test8 = new Uri(scheme: "darttest", path: "/test8.dart");
+  test = """
+  // DartDocTestThrows(1~/0)
+  main() {
+    print("Hello from main");
+  }
+  """;
+  tests = extractTests(test, test8);
+  expect(tests.length, 1);
+  expected = [
+    new impl.TestResult(tests[0], impl.TestOutcome.Pass),
+  ];
+  memoryFileSystem.entityForUri(test8).writeAsStringSync(test);
+  expect(await dartDocTest.process(test8), expected);
+
+  // Good throws case using await.
+  Uri test9 = new Uri(scheme: "darttest", path: "/test9.dart");
+  test = """
+// DartDocTestThrows(await _internal())
+Future<void> _internal() async {
+  await Future.delayed(new Duration(milliseconds: 1));
+  if (1+1==2) throw "I threw!";
+}
+""";
+  tests = extractTests(test, test9);
+  expect(tests.length, 1);
+  expected = [
+    new impl.TestResult(tests[0], impl.TestOutcome.Pass),
+  ];
+  memoryFileSystem.entityForUri(test9).writeAsStringSync(test);
+  expect(await dartDocTest.process(test9), expected);
 }
 
 void testTestExtraction() {
@@ -303,6 +336,31 @@ darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
 """), <impl.Test>[
     new impl.ExpectTest('await foo()', '42', "darttest:/foo.dart:1:16"),
   ]);
+
+  // One throws test.
+  expect(extractTests("""
+    // not a test comment
+    void foo_bar_long_name() {}
+
+    // DartDocTestThrows(1~/0)"""), <impl.Test>[
+    new impl.ThrowsTest("1~/0", "darttest:/foo.dart:4:26"),
+  ]);
+
+  // Mixture of expect and throws tests.
+  expect(extractTests("""
+    // not a test comment
+    void foo_bar_long_name() {}
+
+    // DartDocTestThrows(1~/0)
+    // DartDocTest(1+1, 2)
+    // DartDocTest(2+2, 4)
+    // DartDocTestThrows(2~/0)"""), <impl.Test>[
+    // For now the order is expect tests first.
+    new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:5:20"),
+    new impl.ExpectTest("2+2", "4", "darttest:/foo.dart:6:20"),
+    new impl.ThrowsTest("1~/0", "darttest:/foo.dart:4:26"),
+    new impl.ThrowsTest("2~/0", "darttest:/foo.dart:7:26"),
+  ]);
 }
 
 void testCommentExtraction() {
@@ -311,7 +369,9 @@ void testCommentExtraction() {
 
   // Simple line comment at position 0.
   expect(
-      extractFirstComment("// Hello"), new impl.CommentString("   Hello", 0));
+    extractFirstComment("// Hello"),
+    new impl.CommentString("   Hello", 0),
+  );
 
   // Simple line comment at position 5.
   expect(extractFirstComment("     // Hello"),

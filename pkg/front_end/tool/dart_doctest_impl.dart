@@ -115,17 +115,23 @@ class DartDocTest {
       sb.writeln(
           r"Future<void> $dart$doc$test$tester(dynamic dartDocTest) async {");
       for (Test test in tests) {
-        if (test is TestParseError) {
-          sb.writeln(
-              "dartDocTest.parseError(\"Parse error @ ${test.position}\");");
-        } else if (test is ExpectTest) {
-          sb.writeln("try {");
-          sb.writeln("  dartDocTest.test(${test.call}, ${test.result});");
-          sb.writeln("} catch (e) {");
-          sb.writeln("  dartDocTest.crash(e);");
-          sb.writeln("}");
-        } else {
-          throw "Unknown test type: ${test.runtimeType}";
+        switch (test) {
+          case TestParseError():
+            sb.writeln(
+                "dartDocTest.parseError(\"Parse error @ ${test.position}\");");
+          case ExpectTest():
+            sb.writeln("try {");
+            sb.writeln("  dartDocTest.test(${test.call}, ${test.result});");
+            sb.writeln("} catch (e) {");
+            sb.writeln("  dartDocTest.crash(e);");
+            sb.writeln("}");
+          case ThrowsTest():
+            sb.writeln("try {");
+            sb.writeln(
+                "  await dartDocTest.throws(() async { ${test.call}; });");
+            sb.writeln("} catch (e) {");
+            sb.writeln("  dartDocTest.crash(e);");
+            sb.writeln("}");
         }
       }
       sb.writeln("}");
@@ -357,6 +363,16 @@ class DartDocTest {
     }
   }
 
+  Future<void> throws(Function() computation) async {
+    port.send("$_portMessageTest");
+    try {
+      await computation();
+      port.send("$_portMessageBad: Expected a crash, but didn't get one.");
+    } catch(e) {
+      port.send("$_portMessageGood");
+    }
+  }
+
   void crash(dynamic error) {
     port.send("$_portMessageTest");
     port.send("$_portMessageCrash: \$error");
@@ -486,6 +502,27 @@ class ExpectTest implements Test {
   }
 }
 
+class ThrowsTest implements Test {
+  final String call;
+  @override
+  final String location;
+
+  ThrowsTest(this.call, this.location);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! ThrowsTest) return false;
+    if (other.call != call) return false;
+    if (other.location != location) return false;
+    return true;
+  }
+
+  @override
+  String toString() {
+    return "ThrowsTest[$call, $location]";
+  }
+}
+
 class TestParseError implements Test {
   final String message;
   final int position;
@@ -548,11 +585,7 @@ List<Test> extractTestsFromComment(
     CommentToken comment, String rawString, kernel.Source source) {
   CommentString commentsData = extractComments(comment, rawString);
   final String comments = commentsData.string;
-  List<Test> result = [];
-  int index = comments.indexOf("DartDocTest(");
-  if (index < 0) {
-    return result;
-  }
+  int index = -1;
 
   String getLocation(int offset) {
     return source
@@ -560,7 +593,11 @@ List<Test> extractTestsFromComment(
         .toString();
   }
 
-  Test scanDartDoc(int scanOffset) {
+  Test scanVariableDartDoc(
+      int scanOffset,
+      String expectedLexeme,
+      int expressionCount,
+      Test Function(List<String> expressions, String location) testCreator) {
     final Token firstToken =
         scanRawBytes(utf8.encode(comments.substring(scanOffset)));
     final ErrorListener listener = new ErrorListener();
@@ -570,7 +607,7 @@ List<Test> extractTestsFromComment(
 
     final Token pastErrors = parser.skipErrorTokens(firstToken);
     assert(pastErrors.isIdentifier);
-    assert(pastErrors.lexeme == "DartDocTest");
+    assert(pastErrors.lexeme == expectedLexeme);
 
     final Token startParen = pastErrors.next!;
     assert(identical("(", startParen.stringValue));
@@ -578,67 +615,74 @@ List<Test> extractTestsFromComment(
     // Advance index so we don't parse the same thing again (for error cases).
     index = scanOffset + startParen.charEnd;
 
-    final Token beforeComma = parser.parseExpression(startParen);
-    final Token comma = beforeComma.next!;
+    Token parseFrom = startParen;
+    final Token firstExpressionToken = parseFrom.next!;
+    List<String> expressionsText = [];
 
-    if (listener.hasErrors) {
-      StringBuffer sb = new StringBuffer();
-      int firstPosition = _createParseErrorMessages(
-          listener, sb, commentsData, scanOffset, source);
-      return new TestParseError(
-        sb.toString(),
-        firstPosition,
-        getLocation(firstPosition),
-      );
-    } else if (!identical(",", comma.stringValue)) {
-      int position = commentsData.charOffset + scanOffset + comma.charOffset;
-      Message message = codes.templateExpectedButGot.withArguments(',');
-      return new TestParseError(
-        _createParseErrorMessage(source, position, comma, comma, message),
-        position,
-        getLocation(position),
-      );
+    for (int i = 1; i <= expressionCount; i++) {
+      final Token expressionFirstToken = parseFrom.next!;
+      final Token beforeNextSeparator = parser.parseExpression(parseFrom);
+      final Token nextSeparator = parseFrom = beforeNextSeparator.next!;
+      final String expectedSeparator = i == expressionCount ? ")" : ",";
+
+      if (listener.hasErrors) {
+        StringBuffer sb = new StringBuffer();
+        int firstPosition = _createParseErrorMessages(
+            listener, sb, commentsData, scanOffset, source);
+        return new TestParseError(
+          sb.toString(),
+          firstPosition,
+          getLocation(firstPosition),
+        );
+      } else if (!identical(expectedSeparator, nextSeparator.stringValue)) {
+        int position =
+            commentsData.charOffset + scanOffset + nextSeparator.charOffset;
+        Message message =
+            codes.templateExpectedButGot.withArguments(expectedSeparator);
+        return new TestParseError(
+          _createParseErrorMessage(
+              source, position, nextSeparator, nextSeparator, message),
+          position,
+          getLocation(position),
+        );
+      } else {
+        // Good.
+        expressionsText.add(comments.substring(
+            scanOffset + expressionFirstToken.charOffset,
+            scanOffset + beforeNextSeparator.charEnd));
+      }
     }
 
-    Token beforeEndParen = parser.parseExpression(comma);
-    Token endParen = beforeEndParen.next!;
+    assert(expressionsText.length == expressionCount);
 
-    if (listener.hasErrors) {
-      StringBuffer sb = new StringBuffer();
-      int firstPosition = _createParseErrorMessages(
-          listener, sb, commentsData, scanOffset, source);
-      return new TestParseError(
-        sb.toString(),
-        firstPosition,
-        getLocation(firstPosition),
-      );
-    } else if (!identical(")", endParen.stringValue)) {
-      int position = commentsData.charOffset + scanOffset + endParen.charOffset;
-      Message message = codes.templateExpectedButGot.withArguments(')');
-      return new TestParseError(
-        _createParseErrorMessage(source, position, comma, comma, message),
-        position,
-        getLocation(position),
-      );
-    }
-
-    // Advance index so we don't parse the same thing again (success case).
-    index = scanOffset + endParen.charEnd;
-
-    int startPos = scanOffset + startParen.next!.charOffset;
-    int midEndPos = scanOffset + beforeComma.charEnd;
-    int midStartPos = scanOffset + comma.next!.charOffset;
-    int endPos = scanOffset + beforeEndParen.charEnd;
-    return new ExpectTest(
-      comments.substring(startPos, midEndPos),
-      comments.substring(midStartPos, endPos),
-      getLocation(commentsData.charOffset + startPos),
+    return testCreator(
+      expressionsText,
+      getLocation(
+        commentsData.charOffset + scanOffset + firstExpressionToken.charOffset,
+      ),
     );
   }
 
+  List<Test> result = [];
+  index = comments.indexOf("DartDocTest(");
   while (index >= 0) {
-    result.add(scanDartDoc(index));
+    result.add(scanVariableDartDoc(
+        index,
+        "DartDocTest",
+        2,
+        (List<String> expressions, String location) =>
+            new ExpectTest(expressions[0], expressions[1], location)));
     index = comments.indexOf("DartDocTest(", index);
+  }
+  index = comments.indexOf("DartDocTestThrows(");
+  while (index >= 0) {
+    result.add(scanVariableDartDoc(
+        index,
+        "DartDocTestThrows",
+        1,
+        (List<String> expressions, String location) =>
+            new ThrowsTest(expressions[0], location)));
+    index = comments.indexOf("DartDocTestThrows(", index);
   }
   return result;
 }

@@ -16,6 +16,7 @@ extension type LocalStack<T>(List<T> _list) {
   /// Return the current top of the stack.
   ///
   /// ```
+  /// DartDocTestThrows(LocalStack<int>([]).current)
   /// DartDocTest(LocalStack<int>([0]).current, 0)
   /// DartDocTest(LocalStack<int>([0, 1]).current, 1)
   /// ```
@@ -33,6 +34,8 @@ extension type LocalStack<T>(List<T> _list) {
   /// Returns the second-most element on the stack.
   ///
   /// ```
+  /// DartDocTestThrows(LocalStack<int>([]).previous)
+  /// DartDocTestThrows(LocalStack<int>([0]).previous)
   /// DartDocTest(LocalStack<int>([0, 1]).previous, 0)
   /// DartDocTest(LocalStack<int>([0, 1, 2]).previous, 1)
   /// ```
@@ -55,6 +58,7 @@ extension type LocalStack<T>(List<T> _list) {
   /// Pops the top of the stack.
   ///
   /// ```
+  /// DartDocTestThrows(LocalStack<int>([]).pop())
   /// DartDocTest(LocalStack<int>([0]).pop(), 0)
   /// DartDocTest((LocalStack<int>([0, 1, 2])..pop()).pop(), 1)
   /// ```
