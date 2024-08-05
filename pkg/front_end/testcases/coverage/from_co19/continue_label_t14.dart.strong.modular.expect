@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/from_co19/continue_label_t14.dart:11:9: Error: A continue statement can't be used outside of a loop or switch statement.
+// Try removing the continue statement.
+//         continue L; // Error
+//         ^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/from_co19/continue_label_t14.dart:11:18: Error: Can't continue at 'L'.
+//         continue L; // Error
+//                  ^
+//
+import self as self;
+
+static method foo() → void {
+  invalid-expression "pkg/front_end/testcases/coverage/from_co19/continue_label_t14.dart:11:18: Error: Can't continue at 'L'.
+        continue L; // Error
+                 ^";
+}

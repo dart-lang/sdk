@@ -3290,7 +3290,6 @@ class BodyBuilder extends StackListenerImpl
       // Coverage-ignore-block(suite): Not run.
       push(qualifier);
     } else if (node is ParserRecovery) {
-      // Coverage-ignore-block(suite): Not run.
       push(node);
     } else {
       Identifier identifier = node as Identifier;
@@ -6223,7 +6222,6 @@ class BodyBuilder extends StackListenerImpl
           typeArguments, name, arguments, nameToken, nameLastToken, constness,
           inImplicitCreationContext: inImplicitCreationContext));
     } else if (type is ParserRecovery) {
-      // Coverage-ignore-block(suite): Not run.
       push(new ParserErrorGenerator(
           this, nameToken, fasta.messageSyntheticToken));
     } else if (type is InvalidExpression) {
@@ -6341,7 +6339,6 @@ class BodyBuilder extends StackListenerImpl
       int numberOfTypeArguments = typeArguments?.length ?? 0;
       if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
-        // Coverage-ignore-block(suite): Not run.
         // TODO(eernst): Use position of type arguments, not nameToken.
         return evaluateArgumentsBefore(
             arguments,
@@ -6573,7 +6570,6 @@ class BodyBuilder extends StackListenerImpl
               forest.argumentsSetTypeArguments(arguments, []);
             } else {
               if (forest.argumentsTypeArguments(arguments).isEmpty) {
-                // Coverage-ignore-block(suite): Not run.
                 // No type arguments provided to unaliased class, use defaults.
                 List<DartType> result = new List<DartType>.generate(
                     typeVariables.length,
@@ -6976,7 +6972,6 @@ class BodyBuilder extends StackListenerImpl
     // TODO(cstefantsova): Replace the following no-op with the node for
     // handling null-aware elements.
     if (!libraryFeatures.nullAwareElements.isEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       addProblem(
           templateExperimentNotEnabledOffByDefault
               .withArguments(ExperimentalFlag.nullAwareElements.name),
@@ -7959,7 +7954,6 @@ class BodyBuilder extends StackListenerImpl
         if (_labelScope.hasLocalLabel(labelName)) {
           // TODO(ahe): Should validate this is a goto target.
           if (!_labelScope.claimLabel(labelName)) {
-            // Coverage-ignore-block(suite): Not run.
             addProblem(
                 fasta.templateDuplicateLabelInSwitchStatement
                     .withArguments(labelName),
@@ -8594,7 +8588,6 @@ class BodyBuilder extends StackListenerImpl
           template.withArguments(name), offsetForToken(keyword),
           length: lengthOfSpan(keyword, keyword.next));
     } else {
-      // Coverage-ignore-block(suite): Not run.
       Message message = isBreak
           ? fasta.messageAnonymousBreakTargetOutsideFunction
           : fasta.messageAnonymousContinueTargetOutsideFunction;
@@ -8641,14 +8634,12 @@ class BodyBuilder extends StackListenerImpl
           fasta.messageContinueWithoutLabelInCase, continueKeyword.charOffset,
           length: continueKeyword.length));
     } else if (!target.isContinueTarget) {
-      // Coverage-ignore-block(suite): Not run.
       Token labelToken = continueKeyword.next!;
       push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.templateInvalidContinueTarget.withArguments(name!),
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
-      // Coverage-ignore-block(suite): Not run.
       push(buildProblemTargetOutsideLocalFunction(name, continueKeyword));
     } else {
       Statement statement = forest.createContinueStatement(
