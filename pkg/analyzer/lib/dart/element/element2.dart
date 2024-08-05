@@ -680,13 +680,22 @@ abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
   TypeSystem get typeSystem;
 }
 
+/// An export directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class LibraryExport {
+  /// The combinators that were specified as part of the `export` directive.
+  ///
+  /// The combinators are in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement2? get exportedLibrary2;
 
+  /// The offset of the `export` keyword.
   int get exportKeywordOffset;
 
+  /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
 }
 
@@ -725,6 +734,9 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   /// The fragments of the mixins declared in this fragment.
   List<MixinFragment> get mixins2;
 
+  @override
+  LibraryFragment? get nextFragment;
+
   /// The parts included by this unit.
   List<PartInclude> get partIncludes;
 
@@ -732,6 +744,9 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   ///
   /// Each prefix can be used in more than one `import` directive.
   List<PrefixElement2> get prefixes;
+
+  @override
+  LibraryFragment? get previousFragment;
 
   /// The scope used to resolve names within the fragment.
   ///
@@ -750,17 +765,37 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   List<TypeAliasFragment> get typeAliases2;
 }
 
+/// An import directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class LibraryImport {
+  /// The combinators that were specified as part of the `import` directive.
+  ///
+  /// The combinators are in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement2? get importedLibrary2;
 
+  /// The offset of the `import` keyword.
   int get importKeywordOffset;
 
+  /// Whether this import is synthetic.
+  ///
+  /// A synthetic import is an import that is not represented in the source
+  /// code explicitly, but is implied by the source code. This only happens for
+  /// an implicit import of `dart:core`.
+  bool get isSynthetic;
+
+  /// The [Namespace] that this directive contributes to the containing library.
   Namespace get namespace;
 
+  /// The prefix that was specified as part of the import directive.
+  ///
+  /// Returns `null` if there was no prefix specified.
   ImportElementPrefix? get prefix;
 
+  /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
 }
 
@@ -807,7 +842,11 @@ abstract class MultiplyInheritedExecutableElement2
   List<ExecutableElement2> get inheritedElements2;
 }
 
+/// A 'part' directive within a library fragment.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class PartInclude {
+  /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
 }
 
@@ -815,15 +854,25 @@ abstract class PatternVariableElement2 implements LocalVariableElement2 {
   JoinPatternVariableElement2? get join2;
 }
 
+/// A prefix used to import one or more libraries into another library.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement2 implements Element2 {
+  /// The library that encloses this element.
   @override
   LibraryElement2 get enclosingElement2;
 
+  /// The imports that share this prefix.
   List<LibraryImport> get imports2;
 
   @override
   LibraryElement2 get library2;
 
+  /// The name lookup scope for this import prefix.
+  ///
+  /// It consists of elements imported into the enclosing library with this
+  /// prefix. The namespace combinators of the import directives are taken
+  /// into account.
   Scope get scope;
 }
 

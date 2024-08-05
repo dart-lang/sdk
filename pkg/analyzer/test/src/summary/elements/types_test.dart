@@ -38,6 +38,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -71,6 +76,11 @@ library
               type: dynamic Function(int)
                 alias: <testLibraryFragment>::@typeAlias::F
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -108,6 +118,13 @@ library
             requiredPositional _x @-1
               type: FutureOr<int>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
@@ -148,6 +165,13 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: Type
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
@@ -217,6 +241,13 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: FutureOr<int>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(2));
@@ -272,6 +303,11 @@ library
                 requiredPositional w @45
                   type: W
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -346,6 +382,11 @@ library
               parameters
                 requiredPositional f @105
                   type: void Function()
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -376,6 +417,11 @@ library
             requiredPositional _v @-1
               type: int Function()
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -406,6 +452,11 @@ library
             requiredPositional _v @-1
               type: Future<dynamic> Function(dynamic)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -448,6 +499,13 @@ library
             requiredPositional _v @-1
               type: Future<int> Function(Future<Future<Future<int>>>)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
   }
 
@@ -489,6 +547,13 @@ library
             requiredPositional _v @-1
               type: Future<int> Function(Future<int>)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
   }
 
@@ -530,6 +595,13 @@ library
             requiredPositional _v @-1
               type: Future<dynamic> Function(Future<dynamic>)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
   }
 
@@ -572,6 +644,11 @@ library
                 requiredPositional _v @-1
                   type: int Function()
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -594,6 +671,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -688,6 +770,13 @@ library
                 requiredPositional other @216
                   type: int
               returnType: bool
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/nullSafe.dart
 ''');
   }
 
@@ -735,6 +824,11 @@ library
             requiredPositional _c @-1
               type: C<num, C<num, dynamic>>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -824,6 +918,11 @@ library
             requiredPositional _c2 @-1
               type: C<C<Object?>>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -871,6 +970,11 @@ library
             requiredPositional _c @-1
               type: C<C<dynamic, num>, num>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -919,6 +1023,13 @@ library
                 alias: package:test/a.dart::<fragment>::@typeAlias::F
                   typeArguments
                     O
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/b.dart
 ''');
   }
 
@@ -973,6 +1084,11 @@ library
                   typeArguments
                     num
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1031,6 +1147,11 @@ library
             requiredPositional _b @-1
               type: B<int Function(), A<int Function()>>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1087,6 +1208,11 @@ library
                   typeArguments
                     num
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1138,6 +1264,11 @@ library
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::B
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1182,6 +1313,11 @@ library
             requiredPositional _c @-1
               type: C<num>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1242,6 +1378,16 @@ library
                 requiredPositional _v @-1
                   type: List<dynamic>
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
+      prefixes
+        ppp
+          reference: <testLibraryFragment>::@prefix::ppp
 ''');
   }
 
@@ -1287,6 +1433,14 @@ library
                   staticElement: <null>
                   staticType: InvalidType
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+        package:test/b.dart
 ''');
   }
 
@@ -1329,6 +1483,13 @@ library
                   staticElement: package:test/a.dart::<fragment>::@function::V
                   staticType: dynamic Function()
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/c.dart
 ''');
   }
 
@@ -1379,6 +1540,11 @@ library
           reference: <testLibraryFragment>::@function::V
           enclosingElement: <testLibraryFragment>
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1425,6 +1591,13 @@ library
             requiredPositional _v @-1
               type: C
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/c.dart
 ''');
   }
 
@@ -1472,6 +1645,13 @@ library
             requiredPositional _v @-1
               type: C
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/d.dart
 ''');
   }
 
@@ -1523,6 +1703,13 @@ library
             requiredPositional _v @-1
               type: C
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/c.dart
 ''');
   }
 
@@ -1565,6 +1752,11 @@ library
                 covariant W @28
                   defaultType: dynamic
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1613,6 +1805,11 @@ library
                 covariant W @28
                   defaultType: dynamic
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1642,6 +1839,11 @@ library
             covariant U @10
               defaultType: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1677,6 +1879,11 @@ library
             covariant U @10
               defaultType: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1699,6 +1906,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1730,6 +1942,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: bool
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1759,6 +1976,11 @@ library
             requiredPositional b @18
               type: bool
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1812,6 +2034,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: bool
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1841,6 +2068,11 @@ library
             requiredPositional b @18
               type: bool
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1872,6 +2104,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: bool
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1903,6 +2140,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: bool
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1932,6 +2174,11 @@ library
             requiredPositional _m @-1
               type: Map<dynamic, dynamic>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1961,6 +2208,11 @@ library
             requiredPositional _m @-1
               type: Map<dynamic, int>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1990,6 +2242,11 @@ library
             requiredPositional _m @-1
               type: Map<String, dynamic>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2019,6 +2276,11 @@ library
             requiredPositional _m @-1
               type: Map<String, int>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2048,6 +2310,11 @@ library
             requiredPositional _m @-1
               type: Map<dynamic, dynamic>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2077,6 +2344,11 @@ library
             requiredPositional _d @-1
               type: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2106,6 +2378,11 @@ library
             requiredPositional _c @-1
               type: InvalidType
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2153,6 +2430,16 @@ library
             requiredPositional _c @-1
               type: InvalidType
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:core
+      prefixes
+        core
+          reference: <testLibraryFragment>::@prefix::core
 ''');
   }
 

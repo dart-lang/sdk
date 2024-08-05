@@ -198,6 +198,13 @@ library
                   element: <testLibraryFragment>::@class::A2
                   annotationIndex: 0
                   introspectedElement: <testLibraryFragment>::@class::A1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/order.dart
 ''');
   }
 
@@ -353,6 +360,13 @@ library
                   element: <testLibraryFragment>::@class::A2
                   annotationIndex: 0
                   introspectedElement: <testLibraryFragment>::@class::A1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/order.dart
 ''');
   }
 
@@ -507,6 +521,13 @@ library
                   element: <testLibraryFragment>::@class::A2
                   annotationIndex: 0
                   introspectedElement: <testLibraryFragment>::@class::A1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/order.dart
 ''');
   }
 
@@ -591,6 +612,13 @@ library
                   element: <testLibraryFragment>::@class::A3
                   annotationIndex: 0
                   introspectedElement: <testLibraryFragment>::@class::A2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/order.dart
 ''');
   }
 
@@ -671,6 +699,9 @@ augment library 'package:test/test.dart';
 class A1 {}
 void f1() {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -704,6 +735,9 @@ augment library 'package:test/test.dart';
 class A2 {}
 class A1 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -739,6 +773,9 @@ augment library 'package:test/test.dart';
 class A1 {}
 class A2 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -770,6 +807,9 @@ augment library 'package:test/test.dart';
 class A2 {}
 class A1 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -803,6 +843,9 @@ augment library 'package:test/test.dart';
 class A1 {}
 class A2 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -862,6 +905,9 @@ augment library 'package:test/test.dart';
 class A2 {}
 class A1 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -895,6 +941,9 @@ augment library 'package:test/test.dart';
 class A2 {}
 class A1 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -928,6 +977,9 @@ augment library 'package:test/test.dart';
 class A2 {}
 class A1 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -961,6 +1013,9 @@ augment library 'package:test/test.dart';
 class A2 {}
 class A1 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -996,6 +1051,9 @@ augment library 'package:test/test.dart';
 class A1 {}
 class A2 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -1027,6 +1085,9 @@ augment library 'package:test/test.dart';
 class A2 {}
 class A1 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 
@@ -1060,6 +1121,9 @@ augment library 'package:test/test.dart';
 class A1 {}
 class A2 {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
 ''');
   }
 }
@@ -1115,6 +1179,13 @@ library
               annotationIndex: 0
               argumentIndex: 1
               message: Not supported: InstanceCreationExpressionImpl
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/arguments_text.dart
 ''',
     );
   }
@@ -3064,6 +3135,19 @@ augment class B {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -3146,6 +3230,14 @@ augment class A {
                 requiredPositional final this.f @76
                   type: int
                   field: <testLibraryFragment>::@class::A::@field::f
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -3211,6 +3303,14 @@ augment class A {
               parameters
                 requiredPositional a @75
                   type: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -3274,6 +3374,14 @@ augment class A {
               parameters
                 requiredPositional a @69
                   type: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -3353,6 +3461,14 @@ augment class A {
                 requiredPositional _foo @-1
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -3423,6 +3539,14 @@ augment class A {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -3489,6 +3613,14 @@ augment class A {
                 requiredPositional a @78
                   type: double
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -3562,6 +3694,14 @@ augment class A {
                 requiredPositional a @75
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -3653,6 +3793,16 @@ augment class B {
                         staticType: int
                       staticElement: package:test/a.dart::<fragment>::@getter::a
                       staticType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -3743,6 +3893,16 @@ augment class B {
                       staticElement: package:test/a.dart::<fragment>::@getter::a
                       staticType: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -3836,6 +3996,16 @@ augment class B {
                         staticType: null
                       element: package:test/a.dart::<fragment>::@getter::a
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -3929,6 +4099,16 @@ augment class B {
                         staticType: null
                       element: package:test/a.dart::<fragment>::@getter::a
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4027,6 +4207,16 @@ augment class B {
                         staticType: null
                       element: package:test/a.dart::<fragment>::@getter::a
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4120,6 +4310,16 @@ augment class B {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4215,6 +4415,16 @@ augment class B {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4295,6 +4505,16 @@ augment class B {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4394,6 +4614,16 @@ augment class B {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
               returnType: Type
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4480,6 +4710,16 @@ const x = prefix0.a;
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4584,6 +4824,16 @@ const x = prefix0.a + prefix0.b;
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4739,6 +4989,16 @@ const x = prefix0.a, y = prefix0.a;
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::y
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4831,6 +5091,16 @@ const x = prefix0.A<void>;
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: Type
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -4921,6 +5191,16 @@ class C {}
                 leftParenthesis: ( @95
                 rightParenthesis: ) @96
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5022,6 +5302,16 @@ augment class B {
                   element: package:test/a.dart::<fragment>::@class::A::@constructor::new
               periodOffset: 121
               nameEnd: 127
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5126,6 +5416,16 @@ augment class B {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5258,6 +5558,16 @@ augment class B {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::bar
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5361,6 +5671,16 @@ augment class B {
                     rightParenthesis: ) @116
                   element: package:test/a.dart::<fragment>::@class::A::@constructor::new
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5459,6 +5779,16 @@ augment class B {
                     rightParenthesis: ) @116
                   element: package:test/a.dart::<fragment>::@class::A::@constructor::new
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5565,6 +5895,16 @@ augment class B {
                 requiredPositional _ @132
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5656,6 +5996,16 @@ void foo() {}
                 rightParenthesis: ) @96
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5739,6 +6089,16 @@ void foo([x = prefix0.a]) {}
                   staticElement: package:test/a.dart::<fragment>::@getter::a
                   staticType: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5835,6 +6195,16 @@ int get foo => 0;
                 rightParenthesis: ) @96
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -5934,6 +6304,16 @@ set foo(int _) {}
             requiredPositional _ @110
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -6025,6 +6405,16 @@ set foo(@prefix0.a x) {}
                     staticType: null
                   element: package:test/a.dart::<fragment>::@getter::a
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -6122,6 +6512,16 @@ final foo = 0;
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -6247,6 +6647,16 @@ final foo = 0, bar = 1;
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::bar
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -6352,6 +6762,16 @@ class C {}
                     staticType: void Function()
                 rightParenthesis: ) @107
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -6449,6 +6869,16 @@ class C {}
                 leftParenthesis: ( @101
                 rightParenthesis: ) @102
               element: package:test/a.dart::<fragment>::@class::A::@constructor::named
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -6560,6 +6990,16 @@ class C {}
                     staticType: Type
                 rightParenthesis: ) @111
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -6655,6 +7095,19 @@ void foo(prefix0.X x1, prefix1.X x2) {}
             requiredPositional x2 @159
               type: X
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+        package:test/b.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        prefix1
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
 ''');
   }
 
@@ -6727,6 +7180,16 @@ void foo(prefix0.X x) {}
             requiredPositional x @104
               type: X
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -6801,6 +7264,15 @@ augment class B {
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::B
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -6855,6 +7327,20 @@ void foo() {}
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: void
+  exportedReferences
+    declared <testLibraryFragment>::@class::A
+    declared <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+  exportNamespace
+    A: <testLibraryFragment>::@class::A
+    foo: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
@@ -6925,6 +7411,20 @@ final x = 42;
           returnType: int
           id: getter_0
           variable: variable_0
+  exportedReferences
+    declared <testLibraryFragment>::@class::A
+    declared <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+  exportNamespace
+    A: <testLibraryFragment>::@class::A
+    x: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
@@ -7041,6 +7541,19 @@ augment class A {
               periodOffset: 159
               nameEnd: 165
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -7177,6 +7690,22 @@ augment class A {
               returnType: void
               id: setter_0
               variable: field_0
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+        dart:core
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        prefix1
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
 ''');
   }
 
@@ -7302,6 +7831,22 @@ augment class A {
               id: getter_1
               variable: field_0
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+        dart:core
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        prefix1
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
 ''');
   }
 
@@ -7413,6 +7958,22 @@ augment class A {
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+        dart:core
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        prefix1
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
 ''');
   }
 
@@ -7544,6 +8105,22 @@ augment class A {
               id: setter_1
               variable: field_0
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+        dart:core
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        prefix1
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
 ''');
   }
 }
@@ -7712,6 +8289,13 @@ library
         class A @78
           reference: <testLibraryFragment>::@class::A
           enclosingElement: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -7753,6 +8337,13 @@ library
               reference: <testLibraryFragment>::@class::A::@method::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -7787,6 +8378,13 @@ library
         class A @76
           reference: <testLibraryFragment>::@class::A
           enclosingElement: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -7842,6 +8440,14 @@ class B {}
         class B @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -7910,6 +8516,13 @@ library
                     annotationIndex: 0
               severity: error
               correctionMessage: Try reporting the failure to the macro author.
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
 ''');
   }
 
@@ -7955,6 +8568,13 @@ library
               supportedKinds
                 classType
                 mixinType
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -7989,6 +8609,19 @@ library
         package:test/diagnostic.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+  macroDiagnostics
+    InvalidMacroTargetDiagnostic
+      annotationIndex: 0
+      supportedKinds
+        classType
+        mixinType
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
   macroDiagnostics
     InvalidMacroTargetDiagnostic
       annotationIndex: 0
@@ -8055,6 +8688,14 @@ library
                   annotationIndex: 1
               severity: warning
               correctionMessage: Correction message
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
+        package:test/a.dart
 ''');
   }
 
@@ -8113,6 +8754,14 @@ library
                   annotationIndex: 1
               severity: warning
               correctionMessage: Correction message
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
+        package:test/a.dart
 ''');
   }
 
@@ -8159,6 +8808,13 @@ library
                   element: <testLibraryFragment>::@class::A
               severity: warning
               correctionMessage: Correction message
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8216,6 +8872,13 @@ library
                     target: ElementMacroDiagnosticTarget
                       element: T@101
                   severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8270,6 +8933,13 @@ library
                 target: ElementMacroDiagnosticTarget
                   element: U@85
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8320,6 +8990,13 @@ library
                       element: <testLibraryFragment>::@class::A::@constructor::new
                   severity: warning
                   correctionMessage: Correction message
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8379,6 +9056,13 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8430,6 +9114,13 @@ library
                 target: ElementMacroDiagnosticTarget
                   element: T@83
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8483,6 +9174,13 @@ library
                       element: <testLibraryFragment>::@class::A::@method::foo
                   severity: warning
                   correctionMessage: Correction message
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8531,6 +9229,13 @@ library
               correctionMessage: Correction message
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8583,6 +9288,13 @@ library
               severity: warning
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8633,6 +9345,13 @@ library
                 target: ElementMacroDiagnosticTarget
                   element: T@84
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8685,6 +9404,13 @@ library
               reference: <testLibraryFragment>::@class::A::@method::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8734,6 +9460,13 @@ library
                     element: <testLibraryFragment>::@class::A
                   ExtendsClauseTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8796,6 +9529,13 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8857,6 +9597,13 @@ library
                     index: 1
                   VariableTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8914,6 +9661,13 @@ library
                     index: 1
                   VariableTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -8964,6 +9718,13 @@ library
                     element: <testLibraryFragment>::@function::foo
                   ReturnTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9017,6 +9778,13 @@ library
                   FormalParameterTypeLocation
                     index: 2
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9070,6 +9838,13 @@ library
                   FormalParameterTypeLocation
                     index: 1
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9122,6 +9897,13 @@ library
                   ReturnTypeLocation
                   ReturnTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9172,6 +9954,13 @@ library
                     element: <testLibraryFragment>::@function::foo
                   ReturnTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9234,6 +10023,13 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9289,6 +10085,13 @@ library
                     index: 0
                   VariableTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9339,6 +10142,13 @@ library
                     element: <testLibraryFragment>::@function::foo
                   ReturnTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9395,6 +10205,13 @@ library
                         element: <testLibraryFragment>::@class::A::@method::foo
                       ReturnTypeLocation
                   severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9451,6 +10268,13 @@ library
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9501,6 +10325,13 @@ library
                     element: <testLibraryFragment>::@function::foo
                   ReturnTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9558,6 +10389,13 @@ library
                     element: <testLibraryFragment>::@function::foo
                   ReturnTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9621,6 +10459,13 @@ library
                         index: 1
                       VariableTypeLocation
                   severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9677,6 +10522,13 @@ library
                         element: <testLibraryFragment>::@class::A::@method::foo
                       ReturnTypeLocation
                   severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9730,6 +10582,13 @@ library
                   ListIndexTypeLocation
                     index: 1
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9795,6 +10654,13 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: (bool, {int a, String b})?
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9860,6 +10726,13 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: (int, String)?
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9909,6 +10782,13 @@ library
                     element: <testLibraryFragment>::@typeAlias::A
                   AliasedTypeLocation
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -9976,6 +10856,13 @@ library
               reference: <testLibraryFragment>::@class::A::@method::bar
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10021,6 +10908,13 @@ library
                 target: ApplicationMacroDiagnosticTarget
                   annotationIndex: 0
               severity: error
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10066,6 +10960,13 @@ library
                 target: ApplicationMacroDiagnosticTarget
                   annotationIndex: 0
               severity: info
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10111,6 +11012,13 @@ library
                 target: ApplicationMacroDiagnosticTarget
                   annotationIndex: 0
               severity: warning
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10164,6 +11072,13 @@ My declarations phase
                     annotationIndex: 0
               severity: error
               correctionMessage: Try reporting the failure to the macro author.
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10221,6 +11136,13 @@ My declarations phase
                         annotationIndex: 0
                   severity: error
                   correctionMessage: Try reporting the failure to the macro author.
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10294,6 +11216,13 @@ My declarations phase
                 requiredPositional _foo @-1
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10354,6 +11283,13 @@ My declarations phase
                         annotationIndex: 0
                   severity: error
                   correctionMessage: Try reporting the failure to the macro author.
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10407,6 +11343,13 @@ My definitions phase
                     annotationIndex: 0
               severity: error
               correctionMessage: Try reporting the failure to the macro author.
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10457,6 +11400,13 @@ library
                 NoSuchMethodError
                 Closure call with mismatched arguments
                 Tried calling: MacroWithArguments.MacroWithArguments()
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10505,6 +11455,13 @@ library
             ExceptionMacroDiagnostic
               annotationIndex: 0
               message: Intentional exception
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10558,6 +11515,13 @@ My types phase
                     annotationIndex: 0
               severity: error
               correctionMessage: Try reporting the failure to the macro author.
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/diagnostic.dart
 ''');
   }
 
@@ -10580,6 +11544,11 @@ library
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -10619,6 +11588,11 @@ library
           enclosingElement: <testLibraryFragment>
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -10708,6 +11682,19 @@ augment class B extends prefix0.A {
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::B
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/test.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -10763,6 +11750,13 @@ augment library 'package:test/test.dart';
 
 class B {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
 
     assertDriverStateString(testFile, r'''
@@ -10862,6 +11856,13 @@ augment library 'package:test/test.dart';
 
 enum B {v}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -10921,6 +11922,14 @@ extension B on int {}
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
           extendedType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -10971,6 +11980,13 @@ augment library 'package:test/test.dart';
 
 extension type B(int it) {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11021,6 +12037,13 @@ augment library 'package:test/test.dart';
 
 mixin B {}
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11071,6 +12094,13 @@ augment library 'package:test/test.dart';
 
 typedef B = int;
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11123,6 +12153,13 @@ augment class A {
   augment void foo() ;} class B {}
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11175,6 +12212,13 @@ augment class A {
   augment void foo() ; A.named();
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11227,6 +12271,13 @@ augment class A {
   augment void foo() ; int bar = 0;
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11279,6 +12330,13 @@ augment class A {
   augment void foo() ; void bar() {}
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11331,6 +12389,13 @@ augment class A {
   augment void foo() ;} enum B {v}
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11410,6 +12475,13 @@ augment class A {
               reference: <testLibraryFragment>::@enum::B::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::B
               returnType: List<B>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11462,6 +12534,13 @@ augment class A {
   augment void foo() ;} extension B on int {}
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11514,6 +12593,13 @@ augment class A {
   augment void foo() ;} extension type B(int it) {}
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11586,6 +12672,14 @@ augment class A {
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@class::A::@method::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -11638,6 +12732,13 @@ augment class A {
   augment void foo() ;} void bar() {}
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11690,6 +12791,13 @@ augment class A {
   augment void foo() ;} mixin B {}
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11742,6 +12850,13 @@ augment class A {
   augment void foo() ;} int bar = 0;
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 
@@ -11794,6 +12909,13 @@ augment class A {
   augment void foo() ;} typedef B = int;
 }
 ---
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
 ''');
   }
 }
@@ -11940,6 +13062,19 @@ A {
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: String
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/auto_to_string.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        dart:core
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
   }
 
@@ -12105,6 +13240,22 @@ json['bar'] = this.bar;
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: Map<String, Object?>
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/json_serializable.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/json_serializable.dart
+        dart:core
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        prefix1
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
 ''');
   }
 
@@ -12227,6 +13378,15 @@ augment class X {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X::@method::foo
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
     }
 
@@ -12351,6 +13511,20 @@ augment class X {
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X::@method::foo
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X
               returnType: A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
     }
 
@@ -17274,6 +18448,14 @@ class MyClass {}
         class MyClass @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -17331,6 +18513,14 @@ class MyClass {}
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -17398,6 +18588,17 @@ class MyClass {}
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+      prefixes
+        prefix
+          reference: <testLibraryFragment>::@prefix::prefix
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -17465,6 +18666,17 @@ class MyClass {}
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+      prefixes
+        prefix
+          reference: <testLibraryFragment>::@prefix::prefix
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -17518,6 +18730,20 @@ class B {}
         class B @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+  exportedReferences
+    declared <testLibraryFragment>::@class::A
+    declared <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+  exportNamespace
+    A: <testLibraryFragment>::@class::A
+    B: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
@@ -17722,6 +18948,14 @@ class MyClass {}
         class MyClass @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
     }
   }
@@ -17835,6 +19069,19 @@ class MyClass {
                 requiredPositional _ @122
                   type: A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/b.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
 
     analyzerStatePrinterConfiguration.filesToPrintContent.add(
@@ -18242,6 +19489,19 @@ class B {}
         class B @124
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
+      libraryImports
+        package:test/a.dart
+      prefixes
+        prefix0
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
 ''');
 
     analyzerStatePrinterConfiguration.filesToPrintContent.add(
@@ -18469,6 +19729,15 @@ class X {}
         class X @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
           enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/append.dart
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/test.macro.dart
 ''');
   }
 
@@ -19196,6 +20465,14 @@ class B {}
         class B @51
           reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
           enclosingElement: package:other/other.dart::@fragment::package:other/other.macro.dart
+----------------------------------------
+library
+  reference: package:other/other.dart
+  fragments
+    package:other/other.dart::<fragment>
+      libraryImports
+        package:test/append.dart
+    package:other/other.dart::@fragment::package:other/other.macro.dart
 ''');
   }
 }

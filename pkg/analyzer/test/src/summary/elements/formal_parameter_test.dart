@@ -33,6 +33,11 @@ library
             requiredPositional p @14
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -66,6 +71,11 @@ library
                   reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
                   type: A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -98,6 +108,11 @@ library
                 optionalPositional default covariant a @32
                   type: A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -130,6 +145,11 @@ library
                 requiredPositional covariant a @31
                   type: A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -190,6 +210,11 @@ library
                 requiredPositional covariant t @79
                   type: T
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -244,6 +269,11 @@ library
                   reference: <testLibraryFragment>::@class::B::@method::m::@parameter::a
                   type: B
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -277,6 +307,11 @@ library
                     requiredPositional y @17
                       type: dynamic
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -313,6 +348,11 @@ library
                     requiredPositional x @24
                       type: B
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -341,6 +381,11 @@ library
                 requiredPositional g @16
                   type: int Function()
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -369,6 +414,11 @@ library
                 requiredPositional g @17
                   type: void Function()
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -397,6 +447,11 @@ library
                 requiredPositional u @19
                   type: U
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -446,6 +501,11 @@ library
                     IntegerLiteral
                       literal: 1 @49
                       staticType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -515,6 +575,11 @@ library
                 requiredPositional _x @-1
                   type: dynamic
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -566,6 +631,11 @@ library
                       literal: 1 @71
                       staticType: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -608,6 +678,11 @@ library
                   literal: 1 @43
                   staticType: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

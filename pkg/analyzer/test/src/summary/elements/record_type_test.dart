@@ -47,6 +47,11 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::x
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: (int, String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -82,6 +87,11 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::x
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: (int, bool)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -114,6 +124,11 @@ library
                 requiredPositional a @35
                   type: (int, String)
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -143,6 +158,11 @@ library
               reference: <testLibraryFragment>::@class::A::@method::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: (int, String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -169,6 +189,11 @@ library
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -188,6 +213,11 @@ library
           reference: <testLibraryFragment>::@extension::IntStringExtension
           enclosingElement: <testLibraryFragment>
           extendedType: (int, String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -210,6 +240,11 @@ library
             requiredPositional b @38
               type: void Function((int, String))
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -232,6 +267,11 @@ library
             requiredPositional a @32
               type: (int, String) Function()
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -254,6 +294,11 @@ library
             requiredPositional a @21
               type: (int, String)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -273,6 +318,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: ()
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -295,6 +345,11 @@ library
             covariant T @11
               defaultType: dynamic
           returnType: (int, T)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -314,6 +369,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: (int, String, {bool c})
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -333,6 +393,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: ({int a, String b})
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -352,6 +417,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: ((int, String), (bool, double))
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -371,6 +441,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: (int, String)?
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -390,6 +465,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: (int, String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -409,6 +489,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: (int,)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -433,6 +518,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: (int, String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -458,6 +548,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: (int, bool)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -514,6 +609,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: Type
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -566,6 +666,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: Type
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

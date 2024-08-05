@@ -150,6 +150,11 @@ library
               reference: <testLibraryFragment>::@class::A::@def::2::@getter::f22
               enclosingElement: <testLibraryFragment>::@class::A::@def::2
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -183,6 +188,11 @@ library
               enclosingElement: <testLibraryFragment>::@class::A
               periodOffset: 26
               nameEnd: 32
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -255,6 +265,11 @@ library
               returnType: void
               id: setter_1
               variable: field_1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -290,6 +305,11 @@ library
               reference: <testLibraryFragment>::@class::A::@method::foo::@def::1
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -365,6 +385,11 @@ library
           enclosingElement: <testLibraryFragment>
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -555,6 +580,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E::@def::1
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -624,6 +654,11 @@ library
                 requiredPositional _y @-1
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -689,6 +724,11 @@ library
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it
               enclosingElement: <testLibraryFragment>::@extensionType::E::@def::1
               returnType: double
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -727,6 +767,11 @@ library
             optionalPositional default c @51
               type: double
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -754,6 +799,11 @@ library
               reference: <testLibraryFragment>::@function::f::@parameter::a::@def::1
               type: double
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -795,6 +845,11 @@ library
               optionalPositional c @71
                 type: double
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -867,6 +922,11 @@ library
                 requiredPositional _y @-1
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -967,6 +1027,11 @@ library
           returnType: void
           id: setter_2
           variable: variable_3
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1003,6 +1068,11 @@ library
           returnType: double
           id: getter_0
           variable: variable_0
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1045,6 +1115,11 @@ library
           returnType: void
           id: setter_0
           variable: variable_0
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

@@ -25,6 +25,11 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -44,6 +49,13 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: test
+  documentationComment: /// aaa\n/// bbb
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -64,6 +76,13 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: test
+  documentationComment: /**\n * aaa\n * bbb\n */
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -78,6 +97,12 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: foo.bar
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -92,6 +117,12 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: foo.bar
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

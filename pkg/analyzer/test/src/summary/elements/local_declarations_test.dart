@@ -37,6 +37,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -63,6 +68,11 @@ library
             @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::C
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -94,6 +104,11 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement: <testLibraryFragment>::@class::C
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -120,6 +135,11 @@ library
           reference: <testLibraryFragment>::@getter::g
           enclosingElement: <testLibraryFragment>
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -150,6 +170,11 @@ library
             @12
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::C
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -185,6 +210,11 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement: <testLibraryFragment>::@class::C
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -210,6 +240,11 @@ library
           reference: <testLibraryFragment>::@function::main
           enclosingElement: <testLibraryFragment>
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

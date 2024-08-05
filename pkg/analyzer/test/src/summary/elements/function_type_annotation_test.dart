@@ -44,6 +44,11 @@ library
             requiredPositional _f @-1
               type: void Function()
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -75,6 +80,11 @@ library
             requiredPositional _f @-1
               type: void Function()?
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -94,6 +104,11 @@ library
           reference: <testLibraryFragment>::@function::f
           enclosingElement: <testLibraryFragment>
           returnType: int Function(int, String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -119,6 +134,11 @@ library
                 requiredPositional c @43
                   type: num
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -142,6 +162,11 @@ library
               requiredPositional b @49
                 type: int
             returnType: void Function(String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -171,6 +196,11 @@ library
               reference: <testLibraryFragment>::@class::C::@method::m
               enclosingElement: <testLibraryFragment>::@class::C
               returnType: int Function(int, String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -193,6 +223,11 @@ library
             requiredPositional p @37
               type: int Function(int, String)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -224,6 +259,11 @@ library
             requiredPositional _v @-1
               type: int Function(int, String)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -303,6 +343,11 @@ library
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::B
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -393,6 +438,11 @@ library
             requiredPositional _v @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -482,6 +532,11 @@ library
           reference: <testLibraryFragment>::@getter::v
           enclosingElement: <testLibraryFragment>
           returnType: A<String Function({int? a})>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -571,6 +626,11 @@ library
           reference: <testLibraryFragment>::@getter::v
           enclosingElement: <testLibraryFragment>
           returnType: A<String Function([int?])>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -660,6 +720,11 @@ library
           reference: <testLibraryFragment>::@getter::v
           enclosingElement: <testLibraryFragment>
           returnType: A<String Function({required int a})>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -743,6 +808,11 @@ library
           reference: <testLibraryFragment>::@getter::v
           enclosingElement: <testLibraryFragment>
           returnType: A<String Function(int)>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -767,6 +837,11 @@ library
               defaultType: void Function()
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -820,6 +895,11 @@ library
           enclosingElement: <testLibraryFragment>
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -857,6 +937,11 @@ library
           aliasedType: V2 Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: V2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

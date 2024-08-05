@@ -153,6 +153,11 @@ library
             synthetic @-1
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::CommentAroundAnnotation
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -381,6 +386,11 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -524,6 +534,11 @@ library
               codeLength: 59
               periodOffset: 331
               nameEnd: 355
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -667,6 +682,11 @@ library
               codeLength: 76
               periodOffset: 443
               nameEnd: 467
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -801,6 +821,11 @@ library
           codeOffset: 318
           codeLength: 66
           extendedType: A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -922,6 +947,11 @@ library
                 requiredPositional _multiWithInit2 @-1
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1237,6 +1267,11 @@ library
                 requiredPositional _commentAroundAnnotation2 @-1
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1359,6 +1394,11 @@ library
           codeOffset: 266
           codeLength: 58
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1493,6 +1533,11 @@ library
               codeOffset: 308
               codeLength: 62
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1539,6 +1584,11 @@ library
                   literal: 2 @32
                   staticType: int
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1596,6 +1646,11 @@ library
               codeOffset: 29
               codeLength: 15
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1705,6 +1760,11 @@ library
             requiredPositional _multiWithInit2 @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2008,6 +2068,11 @@ library
             requiredPositional _commentAroundAnnotation2 @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2052,6 +2117,11 @@ library
               bound: num
               defaultType: num
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2082,6 +2152,11 @@ library
               enclosingElement: <testLibraryFragment>::@class::A
               periodOffset: 20
               nameEnd: 26
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2109,6 +2184,11 @@ library
               parameters
                 requiredPositional a @18
                   type: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2151,6 +2231,11 @@ library
                 requiredPositional _foo @-1
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2185,6 +2270,11 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@class::A
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2220,6 +2310,11 @@ library
                 requiredPositional a @28
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2257,6 +2352,11 @@ library
                 requiredPositional x @24
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2282,6 +2382,11 @@ library
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2304,6 +2409,11 @@ library
             covariant T @12
               defaultType: dynamic
           extendedType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2331,6 +2441,11 @@ library
                 requiredPositional a @21
                   type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2359,6 +2474,11 @@ library
                 requiredPositional a @31
                   type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2381,6 +2501,11 @@ library
             covariant T @7
               defaultType: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2404,6 +2529,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2427,6 +2557,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2450,6 +2585,11 @@ library
               defaultType: dynamic
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2474,6 +2614,11 @@ library
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

@@ -836,7 +836,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ClassFragment> get classes2 => classes.cast<ClassFragment>();
 
   @override
-  LibraryElement2 get element => enclosingElement as LibraryElement2;
+  LibraryElement2 get element => library as LibraryElement2;
 
   @override
   LibraryOrAugmentationElement get enclosingElement =>
@@ -1027,7 +1027,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<MixinFragment> get mixins2 => mixins.cast<MixinFragment>();
 
   @override
-  Fragment? get nextFragment => throw UnsupportedError('Not yet implemented');
+  LibraryFragment? get nextFragment {
+    var units = library.units;
+    var index = units.indexOf(this);
+    return units.elementAtOrNull(index + 1);
+  }
 
   @override
   List<PartInclude> get partIncludes =>
@@ -1055,8 +1059,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       libraryImportPrefixes.cast<PrefixElement2>();
 
   @override
-  Fragment? get previousFragment =>
-      throw UnsupportedError('Not yet implemented');
+  LibraryFragment? get previousFragment {
+    var units = library.units;
+    var index = units.indexOf(this);
+    if (index >= 1) {
+      return units[index - 1];
+    }
+    return null;
+  }
 
   @override
   Scope get scope => enclosingElement.scope;
@@ -5079,7 +5089,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 }
 
 class LibraryExportElementImpl extends _ExistingElementImpl
-    implements LibraryExportElement {
+    implements LibraryExportElement, LibraryExport {
   @override
   final List<NamespaceCombinator> combinators;
 
@@ -5103,6 +5113,9 @@ class LibraryExportElementImpl extends _ExistingElementImpl
     }
     return null;
   }
+
+  @override
+  LibraryElement2? get exportedLibrary2 => exportedLibrary;
 
   @override
   int get hashCode => identityHashCode(this);
@@ -5130,7 +5143,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 }
 
 class LibraryImportElementImpl extends _ExistingElementImpl
-    implements LibraryImportElement {
+    implements LibraryImportElement, LibraryImport {
   @override
   final List<NamespaceCombinator> combinators;
 
@@ -5166,6 +5179,9 @@ class LibraryImportElementImpl extends _ExistingElementImpl
     }
     return null;
   }
+
+  @override
+  LibraryElement2? get importedLibrary2 => importedLibrary;
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
@@ -6647,7 +6663,8 @@ mixin ParameterElementMixin implements ParameterElement {
   }
 }
 
-class PartElementImpl extends _ExistingElementImpl implements PartElement {
+class PartElementImpl extends _ExistingElementImpl
+    implements PartElement, PartInclude {
   @override
   final DirectiveUri uri;
 
@@ -6694,7 +6711,8 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
 }
 
 /// A concrete implementation of a [PrefixElement].
-class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
+class PrefixElementImpl extends _ExistingElementImpl
+    implements PrefixElement, PrefixElement2 {
   /// The scope of this prefix, `null` if it has not been created yet.
   PrefixScope? _scope;
 
@@ -6710,6 +6728,9 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
       super.enclosingElement as LibraryOrAugmentationElementImpl;
 
   @override
+  LibraryElement2 get enclosingElement2 => enclosingElement as LibraryElement2;
+
+  @override
   List<LibraryImportElementImpl> get imports {
     return enclosingElement.libraryImports
         .where((import) => import.prefix?.element == this)
@@ -6717,7 +6738,13 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   }
 
   @override
+  List<LibraryImport> get imports2 => imports.cast<LibraryImport>();
+
+  @override
   ElementKind get kind => ElementKind.PREFIX;
+
+  @override
+  LibraryElement2 get library2 => library as LibraryElement2;
 
   @override
   String get name {

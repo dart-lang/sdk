@@ -61,6 +61,11 @@ library
                   nonSynthetic: <testLibraryFragment>::@class::C::@field::foo
               returnType: void
               nonSynthetic: <testLibraryFragment>::@class::C::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -99,6 +104,11 @@ library
               enclosingElement: <testLibraryFragment>::@class::C
               returnType: int
               nonSynthetic: <testLibraryFragment>::@class::C::@getter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -141,6 +151,11 @@ library
                   nonSynthetic: <testLibraryFragment>::@class::C::@setter::foo::@parameter::value
               returnType: void
               nonSynthetic: <testLibraryFragment>::@class::C::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -240,6 +255,11 @@ library
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
               nonSynthetic: <testLibraryFragment>::@enum::E
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -285,6 +305,11 @@ library
                   nonSynthetic: <testLibraryFragment>::@mixin::M::@field::foo
               returnType: void
               nonSynthetic: <testLibraryFragment>::@mixin::M::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -320,6 +345,11 @@ library
               enclosingElement: <testLibraryFragment>::@mixin::M
               returnType: int
               nonSynthetic: <testLibraryFragment>::@mixin::M::@getter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -359,6 +389,11 @@ library
                   nonSynthetic: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::value
               returnType: void
               nonSynthetic: <testLibraryFragment>::@mixin::M::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -386,6 +421,11 @@ library
           enclosingElement: <testLibraryFragment>
           returnType: int
           nonSynthetic: <testLibraryFragment>::@getter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -423,6 +463,11 @@ library
               nonSynthetic: <testLibraryFragment>::@setter::foo::@parameter::value
           returnType: void
           nonSynthetic: <testLibraryFragment>::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -454,6 +499,11 @@ library
               nonSynthetic: <testLibraryFragment>::@setter::foo::@parameter::value
           returnType: void
           nonSynthetic: <testLibraryFragment>::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -491,6 +541,11 @@ library
               nonSynthetic: <testLibraryFragment>::@topLevelVariable::foo
           returnType: void
           nonSynthetic: <testLibraryFragment>::@topLevelVariable::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }
