@@ -33,7 +33,7 @@ Run gclient sync to install the Android NDK and SDK. This may take 10 minutes or
 
 Once you've set up your build tree, you can build the Dart VM for Android by using the standard Dart build script with the addition of the --os android build flag:
 
-`$ tools/build.py --no-goma --arch=arm,arm64,ia32,x64 --os=android runtime`
+`$ tools/build.py --no-rbe --arch=arm,arm64,ia32,x64 --os=android runtime`
 
 # Testing the result
 
