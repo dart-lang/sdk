@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -130,6 +131,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var declaredElement = param.declaredElement;
         if (declaredElement != null &&
             !declaredElement.isInitializingFormal &&
+            !declaredElement.isWildcardVariable &&
             !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportLint(param, arguments: [param.name!.lexeme]);
         }
