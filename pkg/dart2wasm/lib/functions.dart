@@ -138,6 +138,15 @@ class FunctionCollector {
   }
 
   w.FunctionType getFunctionType(Reference target) {
+    // We first try to get the function type by seeing if we already
+    // compiled the [target] function.
+    //
+    // We do that because [target] may refer to a imported/exported function
+    // which get their function type translated differently (it would be
+    // incorrect to use [_getFunctionType]).
+    final existingFunction = getExistingFunction(target);
+    if (existingFunction != null) return existingFunction.type;
+
     return _getFunctionType(target);
   }
 
