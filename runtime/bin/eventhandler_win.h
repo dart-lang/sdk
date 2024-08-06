@@ -24,12 +24,13 @@ namespace dart {
 namespace bin {
 
 // Forward declarations.
-class EventHandlerImplementation;
-class Handle;
-class FileHandle;
-class SocketHandle;
 class ClientSocket;
+class EventHandlerImplementation;
+class FileHandle;
+class Handle;
 class ListenSocket;
+class MonitorLocker;
+class SocketHandle;
 
 // An OverlappedBuffer encapsulates the OVERLAPPED structure and the
 // associated data buffer. For accept it also contains the pre-created
@@ -390,11 +391,10 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 
   // Socket interface exposing normal socket operations.
   ClientSocket* Accept();
-  bool CanAccept();
+  bool StartAccept();
 
   // Internal interface used by the event handler.
   bool HasPendingAccept() { return pending_accept_count_ > 0; }
-  bool IssueAccept();
   void AcceptComplete(std::unique_ptr<OverlappedBuffer> buffer);
 
   virtual void DoClose();
@@ -404,7 +404,13 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 
   int accepted_count() { return accepted_count_; }
 
+  void DispatchCompletedAcceptsLocked(MonitorLocker* ml);
+
  private:
+  static constexpr intptr_t kMinIssuedAccepts = 5;
+
+  bool IssueAccept();
+
   // The number of asynchronous `IssueAccept` operations which haven't completed
   // yet.
   int pending_accept_count_;
@@ -560,7 +566,6 @@ class EventHandlerImplementation {
 
   void HandleAccept(ListenSocket* listen_socket,
                     std::unique_ptr<OverlappedBuffer> buffer);
-  void TryDispatchingPendingAccepts(ListenSocket* listen_socket);
   void HandleRead(Handle* handle,
                   int bytes,
                   std::unique_ptr<OverlappedBuffer> buffer);

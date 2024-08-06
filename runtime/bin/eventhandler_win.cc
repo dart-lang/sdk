@@ -503,6 +503,19 @@ bool ListenSocket::IssueAccept() {
   return false;
 }
 
+bool ListenSocket::StartAccept() {
+  MonitorLocker ml(&monitor_);
+
+  // Always keep 5 outstanding accepts going, to enhance performance.
+  for (intptr_t i = 0; i < kMinIssuedAccepts; i++) {
+    if (!IssueAccept()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void ListenSocket::AcceptComplete(std::unique_ptr<OverlappedBuffer> buffer) {
   MonitorLocker ml(&monitor_);
   if (!IsClosing()) {
@@ -546,6 +559,19 @@ void ListenSocket::AcceptComplete(std::unique_ptr<OverlappedBuffer> buffer) {
   }
 
   pending_accept_count_--;
+  DispatchCompletedAcceptsLocked(&ml);
+}
+
+void ListenSocket::DispatchCompletedAcceptsLocked(MonitorLocker* ml) {
+  if (IsClosing()) {
+    return;
+  }
+
+  for (int i = 0; i < accepted_count(); i++) {
+    if (!DispatchInEventIfEnabled(this)) {
+      break;
+    }
+  }
 }
 
 static void NotifyDestroyedIfClosed(Handle* handle) {
@@ -558,22 +584,20 @@ static void NotifyDestroyedIfClosed(Handle* handle) {
 void ListenSocket::DoClose() {
   closesocket(socket());
   handle_ = INVALID_HANDLE_VALUE;
-  while (CanAccept()) {
-    // Get rid of connections already accepted.
-    ClientSocket* client = Accept();
-    if (client != nullptr) {
-      client->Close();
-      NotifyDestroyedIfClosed(client);
-      client->Release();
-    } else {
-      break;
-    }
-  }
-}
 
-bool ListenSocket::CanAccept() {
-  MonitorLocker ml(&monitor_);
-  return accepted_head_ != nullptr;
+  // Get rid of connections already accepted.
+  ClientSocket* next_client = accepted_head_;
+  while (next_client != nullptr) {
+    ClientSocket* client = next_client;
+    next_client = client->next();
+    client->set_next(nullptr);
+
+    client->Close();
+    NotifyDestroyedIfClosed(client);
+    client->Release();
+  }
+  accepted_head_ = accepted_tail_ = nullptr;
+  accepted_count_ = 0;
 }
 
 ClientSocket* ListenSocket::Accept() {
@@ -590,13 +614,10 @@ ClientSocket* ListenSocket::Accept() {
     accepted_count_--;
   }
 
-  if (pending_accept_count_ < 5) {
-    // We have less than 5 pending accepts, queue another.
-    if (!IsClosing()) {
-      if (!IssueAccept()) {
-        HandleError(this);
-      }
-    }
+  // We have less than 5 pending accepts and are not closing try to queue
+  // another accept.
+  if (!IsClosing() && (pending_accept_count_ < kMinIssuedAccepts)) {
+    IssueAccept();
   }
 
   return result;
@@ -1032,7 +1053,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         intptr_t events = msg->data & EVENT_MASK;
         ASSERT(0 == (events & ~(kInEventMask | kOutEventMask)));
         listen_socket->SetPortAndMask(msg->dart_port, events);
-        TryDispatchingPendingAccepts(listen_socket);
+        listen_socket->DispatchCompletedAcceptsLocked(&ml);
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
         if (msg->dart_port != ILLEGAL_PORT) {
           listen_socket->RemovePort(msg->dart_port);
@@ -1130,22 +1151,6 @@ void EventHandlerImplementation::HandleAccept(
     ListenSocket* listen_socket,
     std::unique_ptr<OverlappedBuffer> buffer) {
   listen_socket->AcceptComplete(std::move(buffer));
-
-  {
-    MonitorLocker ml(&listen_socket->monitor_);
-    TryDispatchingPendingAccepts(listen_socket);
-  }
-}
-
-void EventHandlerImplementation::TryDispatchingPendingAccepts(
-    ListenSocket* listen_socket) {
-  if (!listen_socket->IsClosing() && listen_socket->CanAccept()) {
-    for (int i = 0; i < listen_socket->accepted_count(); i++) {
-      if (!DispatchInEventIfEnabled(listen_socket)) {
-        break;
-      }
-    }
-  }
 }
 
 void EventHandlerImplementation::HandleRead(

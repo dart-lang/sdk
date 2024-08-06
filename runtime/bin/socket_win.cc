@@ -276,20 +276,15 @@ intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
 }
 
 bool ServerSocket::StartAccept(intptr_t fd) {
-  ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(fd);
-  // Always keep 5 outstanding accepts going, to enhance performance.
-  for (int i = 0; i < 5; i++) {
-    if (!listen_socket->IssueAccept()) {
-      DWORD rc = WSAGetLastError();
-      listen_socket->Close();
-      if (!listen_socket->HasPendingAccept()) {
-        // Delete socket now, if there are no pending accepts. Otherwise,
-        // the event-handler will take care of deleting it.
-        listen_socket->Release();
-      }
-      SetLastError(rc);
-      return false;
-    }
+  auto socket = reinterpret_cast<ListenSocket*>(fd);
+  if (!socket->StartAccept()) {
+    DWORD error = socket->last_error();
+    socket->Close();
+    // Release the reference to socket - it is not going to be attached
+    // to a |Socket| object because |StartAccept| returns |false|.
+    socket->Release();
+    SetLastError(error);
+    return false;
   }
   return true;
 }
