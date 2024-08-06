@@ -2512,7 +2512,6 @@ class AllocationProfile extends Response {
 ///
 /// If the field is uninitialized, the `value` will be the `NotInitialized`
 /// [Sentinel].
-///
 class BoundField {
   static BoundField? parse(Map<String, dynamic>? json) =>
       json == null ? null : BoundField._fromJson(json);
@@ -3073,10 +3072,15 @@ class CodeRef extends ObjRef {
   /// What kind of code object is this?
   /*CodeKind*/ String? kind;
 
+  /// This code object's corresponding function.
+  @optional
+  FuncRef? function;
+
   CodeRef({
     this.name,
     this.kind,
     required String id,
+    this.function,
   }) : super(
           id: id,
         );
@@ -3084,6 +3088,8 @@ class CodeRef extends ObjRef {
   CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'] ?? '';
     kind = json['kind'] ?? '';
+    function =
+        createServiceObject(json['function'], const ['FuncRef']) as FuncRef?;
   }
 
   @override
@@ -3097,6 +3103,7 @@ class CodeRef extends ObjRef {
       'name': name ?? '',
       'kind': kind ?? '',
     });
+    _setIfNotNull(json, 'function', function?.toJson());
     return json;
   }
 
@@ -3123,10 +3130,16 @@ class Code extends Obj implements CodeRef {
   @override
   /*CodeKind*/ String? kind;
 
+  /// This code object's corresponding function.
+  @optional
+  @override
+  FuncRef? function;
+
   Code({
     this.name,
     this.kind,
     required String id,
+    this.function,
   }) : super(
           id: id,
         );
@@ -3134,6 +3147,8 @@ class Code extends Obj implements CodeRef {
   Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'] ?? '';
     kind = json['kind'] ?? '';
+    function =
+        createServiceObject(json['function'], const ['FuncRef']) as FuncRef?;
   }
 
   @override
@@ -3147,6 +3162,7 @@ class Code extends Obj implements CodeRef {
       'name': name ?? '',
       'kind': kind ?? '',
     });
+    _setIfNotNull(json, 'function', function?.toJson());
     return json;
   }
 

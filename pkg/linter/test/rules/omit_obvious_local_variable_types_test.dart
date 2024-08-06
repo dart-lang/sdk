@@ -17,6 +17,18 @@ class OmitObviousLocalVariableTypesTest extends LintRuleTest {
   @override
   String get lintRule => 'omit_obvious_local_variable_types';
 
+  test_as() async {
+    await assertDiagnostics(r'''
+f() {
+  int i = n as int;
+}
+
+num n = 1;
+''', [
+      lint(8, 3),
+    ]);
+  }
+
   test_cascade() async {
     await assertDiagnostics(r'''
 f() {
@@ -42,14 +54,12 @@ f() {
   }
 
   test_forEach_listWithNonObviousElement() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 f() {
   var j = "Hello".length;
   for (int i in [j, 1, j + 1]) { }
 }
-''', [
-      lint(39, 3),
-    ]);
+''');
   }
 
   test_forEach_noDeclaredType() async {
@@ -146,6 +156,35 @@ class A {}
     ]);
   }
 
+  test_list() async {
+    await assertDiagnostics(r'''
+f() {
+  List<int> a = [1, 2, (3 as dynamic) as int];
+}
+''', [
+      lint(8, 9),
+    ]);
+  }
+
+  test_list_ok1() async {
+    await assertNoDiagnostics(r'''
+f() {
+  List<Object> a = [1, true, 2];
+}
+
+''');
+  }
+
+  test_list_ok2() async {
+    await assertNoDiagnostics(r'''
+f() {
+  List<Object> a = [1, foo(2), 3];
+}
+
+List<X> foo<X>(X x) => [x];
+''');
+  }
+
   test_literal_bool() async {
     await assertDiagnostics(r'''
 f() {
@@ -229,6 +268,52 @@ f() {
 f() {
   var a = 'a', b = 'b';
 }
+''');
+  }
+
+  test_map() async {
+    await assertDiagnostics(r'''
+f() {
+  Map<int, String> a = {1: 'a'};
+}
+''', [
+      lint(8, 16),
+    ]);
+  }
+
+  test_map_ok1() async {
+    await assertNoDiagnostics(r'''
+f() {
+  Map<Object, String> a = {1: 'a', true: 'b'};
+}
+''');
+  }
+
+  test_map_ok2() async {
+    await assertNoDiagnostics(r'''
+f() {
+  Map<int, Object> a = {1: 'a', 2: #b};
+}
+''');
+  }
+
+  test_map_ok3() async {
+    await assertNoDiagnostics(r'''
+f() {
+  Map<int, String> a = {1: 'a', i: 'b'};
+}
+
+var i = 2;
+''');
+  }
+
+  test_map_ok4() async {
+    await assertNoDiagnostics(r'''
+f() {
+  Map<int, String> a = {1: 'a', 2: b};
+}
+
+var b = 'b';
 ''');
   }
 

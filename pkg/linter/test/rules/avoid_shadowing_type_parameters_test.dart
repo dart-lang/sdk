@@ -38,6 +38,14 @@ extension type E<T>(int i) {
     ]);
   }
 
+  test_wildcards() async {
+    await assertNoDiagnostics(r'''
+class A<_> {
+  void f<_>() {}
+}
+''');
+  }
+
   test_wrongNumberOfTypeArguments() async {
     await assertDiagnostics(r'''
 typedef Predicate = bool <E>(E element);
