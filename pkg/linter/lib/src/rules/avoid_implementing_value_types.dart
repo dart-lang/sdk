@@ -74,7 +74,7 @@ class ExtendedSize extends Size {
 }
 ```
 
-**GOOD:**:
+**GOOD:**
 ```dart
 import 'package:test/test.dart';
 import 'size.dart';
