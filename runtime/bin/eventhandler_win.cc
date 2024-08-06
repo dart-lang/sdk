@@ -43,6 +43,25 @@ static constexpr int kAcceptExAddressAdditionalBytes = 16;
 static constexpr int kAcceptExAddressStorageSize =
     sizeof(SOCKADDR_STORAGE) + kAcceptExAddressAdditionalBytes;
 
+static constexpr intptr_t kOutEventMask = 1 << kOutEvent;
+static constexpr intptr_t kInEventMask = 1 << kInEvent;
+
+static bool DispatchEventIfEnabled(Handle* handle, intptr_t event_mask) {
+  if ((handle->Mask() & event_mask) != 0) {
+    DartUtils::PostInt32(handle->NextNotifyDartPort(event_mask), event_mask);
+    return true;
+  }
+  return false;
+}
+
+static bool DispatchOutEventIfEnabled(Handle* handle) {
+  return DispatchEventIfEnabled(handle, kOutEventMask);
+}
+
+static bool DispatchInEventIfEnabled(Handle* handle) {
+  return DispatchEventIfEnabled(handle, kInEventMask);
+}
+
 OverlappedBuffer::OverlappedBuffer(Handle* handle,
                                    int buffer_size,
                                    Operation operation)
@@ -389,8 +408,7 @@ bool Handle::IssueSendTo(std::unique_ptr<OverlappedBuffer> buffer,
 
 static void HandleClosed(Handle* handle) {
   if (!handle->IsClosing()) {
-    int event_mask = 1 << kCloseEvent;
-    handle->NotifyAllDartPorts(event_mask);
+    handle->NotifyAllDartPorts(1 << kCloseEvent);
   }
 }
 
@@ -910,12 +928,11 @@ void ClientSocket::ConnectComplete() {
   setsockopt(socket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, nullptr, 0);
   // If the port is set, we already listen for this socket in Dart.
   // Handle the cases here.
-  if (!IsClosedRead() && ((Mask() & (1 << kInEvent)) != 0)) {
+  if (!IsClosedRead() && ((Mask() & kInEventMask) != 0)) {
     IssueRead();
   }
-  if (!IsClosedWrite() && ((Mask() & (1 << kOutEvent)) != 0)) {
-    Dart_Port port = NextNotifyDartPort(1 << kOutEvent);
-    DartUtils::PostInt32(port, 1 << kOutEvent);
+  if (!IsClosedWrite()) {
+    DispatchOutEventIfEnabled(this);
   }
 }
 
@@ -1013,7 +1030,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       } else if (IS_COMMAND(msg->data, kSetEventMaskCommand)) {
         // `events` can only have kInEvent/kOutEvent flags set.
         intptr_t events = msg->data & EVENT_MASK;
-        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+        ASSERT(0 == (events & ~(kInEventMask | kOutEventMask)));
         listen_socket->SetPortAndMask(msg->dart_port, events);
         TryDispatchingPendingAccepts(listen_socket);
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
@@ -1044,12 +1061,12 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       } else if (IS_COMMAND(msg->data, kSetEventMaskCommand)) {
         // `events` can only have kInEvent/kOutEvent flags set.
         intptr_t events = msg->data & EVENT_MASK;
-        ASSERT(0 == (events & ~(1 << kInEvent | 1 << kOutEvent)));
+        ASSERT(0 == (events & ~(kInEventMask | kOutEventMask)));
 
         handle->SetPortAndMask(msg->dart_port, events);
 
         // Issue a read.
-        if ((handle->Mask() & (1 << kInEvent)) != 0) {
+        if ((handle->Mask() & kInEventMask) != 0) {
           if (handle->is_datagram_socket()) {
             handle->IssueRecvFrom();
           } else if (handle->is_client_socket()) {
@@ -1064,35 +1081,23 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         // If out events (can write events) have been requested, and there
         // are no pending writes, meaning any writes are already complete,
         // post an out event immediately.
-        intptr_t out_event_mask = 1 << kOutEvent;
-        if ((events & out_event_mask) != 0) {
+        if ((events & kOutEventMask) != 0) {
           if (!handle->HasPendingWrite()) {
             if (handle->is_client_socket()) {
               if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
-                intptr_t event_mask = 1 << kOutEvent;
-                if ((handle->Mask() & event_mask) != 0) {
-                  Dart_Port port = handle->NextNotifyDartPort(event_mask);
-                  DartUtils::PostInt32(port, event_mask);
-                }
+                DispatchOutEventIfEnabled(handle);
               }
             } else {
-              if ((handle->Mask() & out_event_mask) != 0) {
-                Dart_Port port = handle->NextNotifyDartPort(out_event_mask);
-                DartUtils::PostInt32(port, out_event_mask);
-              }
+              DispatchOutEventIfEnabled(handle);
             }
           }
         }
         // Similarly, if in events (can read events) have been requested, and
         // there is pending data available, post an in event immediately.
-        intptr_t in_event_mask = 1 << kInEvent;
-        if ((events & in_event_mask) != 0) {
+        if ((events & kInEventMask) != 0) {
           if (handle->data_ready_ != nullptr &&
               !handle->data_ready_->IsEmpty()) {
-            if ((handle->Mask() & in_event_mask) != 0) {
-              Dart_Port port = handle->NextNotifyDartPort(in_event_mask);
-              DartUtils::PostInt32(port, in_event_mask);
-            }
+            DispatchInEventIfEnabled(handle);
           }
         }
       } else if (IS_COMMAND(msg->data, kShutdownReadCommand)) {
@@ -1135,12 +1140,10 @@ void EventHandlerImplementation::HandleAccept(
 void EventHandlerImplementation::TryDispatchingPendingAccepts(
     ListenSocket* listen_socket) {
   if (!listen_socket->IsClosing() && listen_socket->CanAccept()) {
-    intptr_t event_mask = 1 << kInEvent;
-    for (int i = 0; (i < listen_socket->accepted_count()) &&
-                    (listen_socket->Mask() == event_mask);
-         i++) {
-      Dart_Port port = listen_socket->NextNotifyDartPort(event_mask);
-      DartUtils::PostInt32(port, event_mask);
+    for (int i = 0; i < listen_socket->accepted_count(); i++) {
+      if (!DispatchInEventIfEnabled(listen_socket)) {
+        break;
+      }
     }
   }
 }
@@ -1153,11 +1156,7 @@ void EventHandlerImplementation::HandleRead(
   handle->ReadComplete(std::move(buffer));
   if (bytes > 0) {
     if (!handle->IsClosing()) {
-      int event_mask = 1 << kInEvent;
-      if ((handle->Mask() & event_mask) != 0) {
-        Dart_Port port = handle->NextNotifyDartPort(event_mask);
-        DartUtils::PostInt32(port, event_mask);
-      }
+      DispatchInEventIfEnabled(handle);
     }
   } else {
     handle->MarkClosedRead();
@@ -1178,11 +1177,7 @@ void EventHandlerImplementation::HandleRecvFrom(
     buffer->set_data_length(bytes);
     handle->ReadComplete(std::move(buffer));
     if (!handle->IsClosing()) {
-      int event_mask = 1 << kInEvent;
-      if ((handle->Mask() & event_mask) != 0) {
-        Dart_Port port = handle->NextNotifyDartPort(event_mask);
-        DartUtils::PostInt32(port, event_mask);
-      }
+      DispatchInEventIfEnabled(handle);
     }
   } else {
     HandleError(handle);
@@ -1197,13 +1192,9 @@ void EventHandlerImplementation::HandleWrite(
 
   if (bytes >= 0) {
     if (!handle->IsError() && !handle->IsClosing()) {
-      int event_mask = 1 << kOutEvent;
       ASSERT(!handle->is_client_socket() ||
              reinterpret_cast<ClientSocket*>(handle)->is_connected());
-      if ((handle->Mask() & event_mask) != 0) {
-        Dart_Port port = handle->NextNotifyDartPort(event_mask);
-        DartUtils::PostInt32(port, event_mask);
-      }
+      DispatchOutEventIfEnabled(handle);
     }
   } else {
     HandleError(handle);
