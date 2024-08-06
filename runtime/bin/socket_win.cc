@@ -79,20 +79,19 @@ static intptr_t Connect(intptr_t fd,
     return -1;
   }
 
-  OverlappedBuffer* overlapped =
-      OverlappedBuffer::AllocateConnectBuffer(handle);
+  auto buffer = OverlappedBuffer::AllocateConnectBuffer(handle);
   status = EventHandler::delegate()->connect_ex()(
       s, &addr.addr, SocketAddress::GetAddrLength(addr), nullptr, 0, nullptr,
-      overlapped->GetCleanOverlapped());
+      buffer->GetCleanOverlapped());
   if (status == TRUE) {
-    handle->ConnectComplete(overlapped);
+    handle->ConnectComplete();
     return fd;
   } else if (WSAGetLastError() == ERROR_IO_PENDING) {
+    buffer.release();  // Ownership passed to event handler.
     return fd;
   }
   const int rc = WSAGetLastError();
   // Cleanup in case of error.
-  OverlappedBuffer::DisposeBuffer(overlapped);
   handle->Close();
   handle->Release();
   SetLastError(rc);

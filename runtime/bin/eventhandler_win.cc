@@ -79,55 +79,61 @@ OverlappedBuffer::~OverlappedBuffer() {
   if (handle_ != nullptr) {
     handle_->Release();
   }
+
+  if (client_ != INVALID_SOCKET) {
+    closesocket(client_);
+  }
 }
 
-OverlappedBuffer* OverlappedBuffer::AllocateBuffer(Handle* handle,
-                                                   int buffer_size,
-                                                   Operation operation) {
+std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateBuffer(
+    Handle* handle,
+    int buffer_size,
+    Operation operation) {
   OverlappedBuffer* buffer =
       new (buffer_size) OverlappedBuffer(handle, buffer_size, operation);
-  return buffer;
+  return std::unique_ptr<OverlappedBuffer>{buffer};
 }
 
-OverlappedBuffer* OverlappedBuffer::AllocateAcceptBuffer(Handle* handle,
-                                                         int buffer_size) {
-  OverlappedBuffer* buffer = AllocateBuffer(handle, buffer_size, kAccept);
-  return buffer;
+std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateAcceptBuffer(
+    Handle* handle) {
+  return AllocateBuffer(handle, 2 * kAcceptExAddressStorageSize, kAccept);
 }
 
-OverlappedBuffer* OverlappedBuffer::AllocateReadBuffer(Handle* handle,
-                                                       int buffer_size) {
+std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateReadBuffer(
+    Handle* handle,
+    int buffer_size) {
   return AllocateBuffer(handle, buffer_size, kRead);
 }
 
-OverlappedBuffer* OverlappedBuffer::AllocateRecvFromBuffer(Handle* handle,
-                                                           int buffer_size) {
+std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateRecvFromBuffer(
+    Handle* handle,
+    int buffer_size) {
   // For calling recvfrom additional buffer space is needed for the source
   // address information.
   buffer_size += sizeof(socklen_t) + sizeof(struct sockaddr_storage);
   return AllocateBuffer(handle, buffer_size, kRecvFrom);
 }
 
-OverlappedBuffer* OverlappedBuffer::AllocateWriteBuffer(Handle* handle,
-                                                        int buffer_size) {
+std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateWriteBuffer(
+    Handle* handle,
+    int buffer_size) {
   return AllocateBuffer(handle, buffer_size, kWrite);
 }
 
-OverlappedBuffer* OverlappedBuffer::AllocateSendToBuffer(Handle* handle,
-                                                         int buffer_size) {
+std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateSendToBuffer(
+    Handle* handle,
+    int buffer_size) {
   return AllocateBuffer(handle, buffer_size, kSendTo);
 }
 
-OverlappedBuffer* OverlappedBuffer::AllocateDisconnectBuffer(Handle* handle) {
+std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateDisconnectBuffer(
+    Handle* handle) {
   return AllocateBuffer(handle, 0, kDisconnect);
 }
 
-OverlappedBuffer* OverlappedBuffer::AllocateConnectBuffer(Handle* handle) {
+std::unique_ptr<OverlappedBuffer> OverlappedBuffer::AllocateConnectBuffer(
+    Handle* handle) {
   return AllocateBuffer(handle, 0, kConnect);
-}
-
-void OverlappedBuffer::DisposeBuffer(OverlappedBuffer* buffer) {
-  delete buffer;
 }
 
 OverlappedBuffer* OverlappedBuffer::GetFromOverlapped(OVERLAPPED* overlapped) {
@@ -245,32 +251,25 @@ void Handle::WaitForReadThreadFinished() {
   }
 }
 
-void Handle::ReadComplete(OverlappedBuffer* buffer) {
+void Handle::ReadComplete(std::unique_ptr<OverlappedBuffer> buffer) {
   WaitForReadThreadStarted();
   {
     MonitorLocker ml(&monitor_);
     // Currently only one outstanding read at the time.
-    ASSERT(pending_read_ == buffer);
+    ASSERT(pending_read_ == buffer.get());
     ASSERT(data_ready_ == nullptr);
     if (!IsClosing()) {
-      data_ready_.reset(pending_read_);
-    } else {
-      OverlappedBuffer::DisposeBuffer(buffer);
+      data_ready_ = std::move(buffer);
     }
     pending_read_ = nullptr;
   }
   WaitForReadThreadFinished();
 }
 
-void Handle::RecvFromComplete(OverlappedBuffer* buffer) {
-  ReadComplete(buffer);
-}
-
-void Handle::WriteComplete(OverlappedBuffer* buffer) {
+void Handle::WriteComplete(std::unique_ptr<OverlappedBuffer> buffer) {
   MonitorLocker ml(&monitor_);
   // Currently only one outstanding write at the time.
-  ASSERT(pending_write_ == buffer);
-  OverlappedBuffer::DisposeBuffer(buffer);
+  ASSERT(pending_write_ == buffer.get());
   pending_write_ = nullptr;
 }
 
@@ -320,24 +319,26 @@ void Handle::ReadSyncCompleteAsync() {
 bool Handle::IssueRead() {
   ASSERT(type_ != kListenSocket);
   ASSERT(!HasPendingRead());
-  OverlappedBuffer* buffer =
-      OverlappedBuffer::AllocateReadBuffer(this, kBufferSize);
+  auto buffer = OverlappedBuffer::AllocateReadBuffer(this, kBufferSize);
+  // Must initialize pending_read_ before issuing async operation, because
+  // completion will race with this code.
+  pending_read_ = buffer.get();
   if (supports_overlapped_io()) {
     BOOL ok =
         ReadFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
                  nullptr, buffer->GetCleanOverlapped());
     if (ok || (GetLastError() == ERROR_IO_PENDING)) {
       // Completing asynchronously.
-      pending_read_ = buffer;
+      buffer.release();  // HandleIOCompletion will take ownership.
       return true;
     }
-    OverlappedBuffer::DisposeBuffer(buffer);
+    pending_read_ = nullptr;
     HandleIssueError();
     return false;
   } else {
     // Completing asynchronously through thread.
     Retain();
-    pending_read_ = buffer;
+    buffer.release();  // HandleIOCompletion will take ownership.
     read_thread_starting_ = true;
     int result = Thread::Start(
         "dart:io ReadFile",
@@ -358,27 +359,31 @@ bool Handle::IssueRecvFrom() {
   return false;
 }
 
-bool Handle::IssueWrite() {
+bool Handle::IssueWrite(std::unique_ptr<OverlappedBuffer> buffer) {
   MonitorLocker ml(&monitor_);
   ASSERT(type_ != kListenSocket);
-  ASSERT(HasPendingWrite());
-  ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
+  ASSERT(!HasPendingWrite());
+  ASSERT(buffer->operation() == OverlappedBuffer::kWrite);
 
-  OverlappedBuffer* buffer = pending_write_;
+  // Must initialize pending_write_ before issuing asynchronous operation,
+  // because completion will race with this code.
+  pending_write_ = buffer.get();
   BOOL ok =
       WriteFile(handle_, buffer->GetBufferStart(), buffer->GetBufferSize(),
                 nullptr, buffer->GetCleanOverlapped());
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
-    pending_write_ = buffer;
+    buffer.release();  // HandleIOCompletion will take ownership.
     return true;
   }
-  OverlappedBuffer::DisposeBuffer(buffer);
+  pending_write_ = nullptr;
   HandleIssueError();
   return false;
 }
 
-bool Handle::IssueSendTo(struct sockaddr* sa, socklen_t sa_len) {
+bool Handle::IssueSendTo(std::unique_ptr<OverlappedBuffer> buffer,
+                         struct sockaddr* sa,
+                         socklen_t sa_len) {
   return false;
 }
 
@@ -421,28 +426,27 @@ bool DirectoryWatchHandle::IssueRead() {
   if (HasPendingRead() || (data_ready_ != nullptr)) {
     return true;
   }
-  OverlappedBuffer* buffer =
-      OverlappedBuffer::AllocateReadBuffer(this, kBufferSize);
+  auto buffer = OverlappedBuffer::AllocateReadBuffer(this, kBufferSize);
   // Set up pending_read_ before ReadDirectoryChangesW because it might be
   // needed in ReadComplete invoked on event loop thread right away if data is
   // also ready right away.
-  pending_read_ = buffer;
+  pending_read_ = buffer.get();
   BOOL ok = ReadDirectoryChangesW(
       handle_, buffer->GetBufferStart(), buffer->GetBufferSize(), recursive_,
       events_, nullptr, buffer->GetCleanOverlapped(), nullptr);
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
+    buffer.release();  // HandleIOCompletion will take ownership.
     return true;
   }
   pending_read_ = nullptr;
-  OverlappedBuffer::DisposeBuffer(buffer);
   return false;
 }
 
 void DirectoryWatchHandle::Stop() {
   MonitorLocker ml(&monitor_);
-  // Stop the outstanding read, so we can close the handle.
 
+  // Stop the outstanding read, so we can close the handle.
   if (HasPendingRead()) {
     CancelIoEx(handle(), pending_read_->GetCleanOverlapped());
     // Don't dispose of the buffer, as it will still complete (with length 0).
@@ -464,8 +468,7 @@ void SocketHandle::HandleIssueError() {
 bool ListenSocket::IssueAccept() {
   MonitorLocker ml(&monitor_);
 
-  OverlappedBuffer* buffer = OverlappedBuffer::AllocateAcceptBuffer(
-      this, 2 * kAcceptExAddressStorageSize);
+  auto buffer = OverlappedBuffer::AllocateAcceptBuffer(this);
   DWORD received;
   BOOL ok;
   ok = EventHandler::delegate()->accept_ex()(
@@ -475,17 +478,14 @@ bool ListenSocket::IssueAccept() {
       buffer->GetCleanOverlapped());
   if (ok || WSAGetLastError() == WSA_IO_PENDING) {
     pending_accept_count_++;
+    buffer.release();  // HandleIOCompletion will take ownership.
     return true;
   }
-
-  int error = WSAGetLastError();
-  closesocket(buffer->client());
-  OverlappedBuffer::DisposeBuffer(buffer);
-  WSASetLastError(error);
+  HandleError(this);
   return false;
 }
 
-void ListenSocket::AcceptComplete(OverlappedBuffer* buffer) {
+void ListenSocket::AcceptComplete(std::unique_ptr<OverlappedBuffer> buffer) {
   MonitorLocker ml(&monitor_);
   if (!IsClosing()) {
     // Update the accepted socket to support the full range of API calls.
@@ -493,6 +493,9 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer) {
     int rc = setsockopt(buffer->client(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
                         reinterpret_cast<char*>(&s), sizeof(s));
     if (rc == NO_ERROR) {
+      SOCKET client = buffer->client();
+      buffer->DetachClient();
+
       // getpeername() returns incorrect results when used with a socket that
       // was accepted using overlapped I/O. AcceptEx includes the remote
       // address in its result so retrieve it using GetAcceptExSockaddrs and
@@ -509,8 +512,8 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer) {
       memmove(raw_remote_addr, remote_addr, remote_addr_length);
 
       // Insert the accepted socket into the list.
-      ClientSocket* client_socket = new ClientSocket(
-          buffer->client(), std::unique_ptr<RawAddr>(raw_remote_addr));
+      ClientSocket* client_socket =
+          new ClientSocket(client, std::unique_ptr<RawAddr>(raw_remote_addr));
       client_socket->mark_connected();
       if (accepted_head_ == nullptr) {
         accepted_head_ = client_socket;
@@ -521,16 +524,10 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer) {
         accepted_tail_ = client_socket;
       }
       accepted_count_++;
-    } else {
-      closesocket(buffer->client());
     }
-  } else {
-    // Close the socket, as it's already accepted.
-    closesocket(buffer->client());
   }
 
   pending_accept_count_--;
-  OverlappedBuffer::DisposeBuffer(buffer);
 }
 
 static void NotifyDestroyedIfClosed(Handle* handle) {
@@ -565,7 +562,6 @@ ClientSocket* ListenSocket::Accept() {
   MonitorLocker ml(&monitor_);
 
   ClientSocket* result = nullptr;
-
   if (accepted_head_ != nullptr) {
     result = accepted_head_;
     accepted_head_ = accepted_head_->next();
@@ -647,7 +643,7 @@ intptr_t Handle::RecvFrom(void* buffer,
   return num_bytes;
 }
 
-intptr_t Handle::Write(const void* buffer, intptr_t num_bytes) {
+intptr_t Handle::Write(const void* data, intptr_t num_bytes) {
   MonitorLocker ml(&monitor_);
   if (HasPendingWrite() || IsClosed()) {
     return 0;
@@ -657,15 +653,15 @@ intptr_t Handle::Write(const void* buffer, intptr_t num_bytes) {
   }
   ASSERT(supports_overlapped_io());
   int truncated_bytes = Utils::Minimum<intptr_t>(num_bytes, INT_MAX);
-  pending_write_ = OverlappedBuffer::AllocateWriteBuffer(this, truncated_bytes);
-  pending_write_->Write(buffer, truncated_bytes);
-  if (!IssueWrite()) {
+  auto buffer = OverlappedBuffer::AllocateWriteBuffer(this, truncated_bytes);
+  buffer->Write(data, truncated_bytes);
+  if (!IssueWrite(std::move(buffer))) {
     return -1;
   }
   return truncated_bytes;
 }
 
-intptr_t Handle::SendTo(const void* buffer,
+intptr_t Handle::SendTo(const void* data,
                         intptr_t num_bytes,
                         struct sockaddr* sa,
                         socklen_t sa_len) {
@@ -682,13 +678,9 @@ intptr_t Handle::SendTo(const void* buffer,
     SetLastError(ERROR_INVALID_USER_BUFFER);
     return -1;
   }
-  pending_write_ = OverlappedBuffer::AllocateSendToBuffer(this, num_bytes);
-  pending_write_->Write(buffer, num_bytes);
-  if (!IssueSendTo(sa, sa_len)) {
-    if (pending_write_ != nullptr) {
-      OverlappedBuffer::DisposeBuffer(pending_write_);
-      pending_write_ = nullptr;
-    }
+  auto buffer = OverlappedBuffer::AllocateSendToBuffer(this, num_bytes);
+  buffer->Write(data, num_bytes);
+  if (!IssueSendTo(std::move(buffer), sa, sa_len)) {
     return -1;
   }
   return num_bytes;
@@ -788,7 +780,8 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
   // Only queue up to INT_MAX bytes.
   int truncated_bytes = Utils::Minimum<intptr_t>(num_bytes, INT_MAX);
   // Create buffer and notify thread about the new handle.
-  pending_write_ = OverlappedBuffer::AllocateWriteBuffer(this, truncated_bytes);
+  pending_write_ =
+      OverlappedBuffer::AllocateWriteBuffer(this, truncated_bytes).release();
   pending_write_->Write(buffer, truncated_bytes);
   ml.Notify();
   return 0;
@@ -841,51 +834,53 @@ void ClientSocket::DoClose() {
 }
 
 bool ClientSocket::IssueRead() {
-  MonitorLocker ml(&monitor_);
   ASSERT(!HasPendingRead());
 
   // TODO(sgjesse): Use a MTU value here. Only the loopback adapter can
   // handle 64k datagrams.
-  OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(this, 65536);
+  auto buffer = OverlappedBuffer::AllocateReadBuffer(this, 65536);
 
   DWORD flags;
   flags = 0;
+  pending_read_ = buffer.get();
   int rc = WSARecv(socket(), buffer->GetWASBUF(), 1, nullptr, &flags,
                    buffer->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
-    pending_read_ = buffer;
+    buffer.release();  // HandleIOCompletion will take ownership.
     return true;
   }
-  OverlappedBuffer::DisposeBuffer(buffer);
   pending_read_ = nullptr;
   HandleIssueError();
   return false;
 }
 
-bool ClientSocket::IssueWrite() {
-  MonitorLocker ml(&monitor_);
-  ASSERT(HasPendingWrite());
-  ASSERT(pending_write_->operation() == OverlappedBuffer::kWrite);
+bool ClientSocket::IssueWrite(std::unique_ptr<OverlappedBuffer> buffer) {
+  ASSERT(!HasPendingWrite());
+  ASSERT(buffer->operation() == OverlappedBuffer::kWrite);
 
+  pending_write_ = buffer.get();
   int rc = WSASend(socket(), pending_write_->GetWASBUF(), 1, nullptr, 0,
                    pending_write_->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
+    buffer.release();  // HandleIOCompletion will take ownership.
     return true;
   }
-  OverlappedBuffer::DisposeBuffer(pending_write_);
   pending_write_ = nullptr;
   HandleIssueError();
   return false;
 }
 
 void ClientSocket::IssueDisconnect() {
-  OverlappedBuffer* buffer = OverlappedBuffer::AllocateDisconnectBuffer(this);
+  auto buffer = OverlappedBuffer::AllocateDisconnectBuffer(this);
   BOOL ok = EventHandler::delegate()->disconnect_ex()(
       socket(), buffer->GetCleanOverlapped(), TF_REUSE_SOCKET, 0);
   // DisconnectEx works like other OverlappedIO APIs, where we can get either an
   // immediate success or delayed operation by WSA_IO_PENDING being set.
   if (ok || (WSAGetLastError() != WSA_IO_PENDING)) {
-    DisconnectComplete(buffer);
+    DisconnectComplete();
+  } else {
+    // Completing asynchronously.
+    buffer.release();  // HandleIOCompletion will take ownership.
   }
   // When the Dart side receives this event, it may decide to close its Dart
   // ports. When all ports are closed, the VM will shut down. The EventHandler
@@ -901,8 +896,7 @@ void ClientSocket::IssueDisconnect() {
 #endif
 }
 
-void ClientSocket::DisconnectComplete(OverlappedBuffer* buffer) {
-  OverlappedBuffer::DisposeBuffer(buffer);
+void ClientSocket::DisconnectComplete() {
   closesocket(socket());
   data_ready_ = nullptr;
   mark_closed();
@@ -911,8 +905,7 @@ void ClientSocket::DisconnectComplete(OverlappedBuffer* buffer) {
 #endif
 }
 
-void ClientSocket::ConnectComplete(OverlappedBuffer* buffer) {
-  OverlappedBuffer::DisposeBuffer(buffer);
+void ClientSocket::ConnectComplete() {
   // Update socket to support full socket API, after ConnectEx completed.
   setsockopt(socket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, nullptr, 0);
   // If the port is set, we already listen for this socket in Dart.
@@ -938,17 +931,21 @@ bool ClientSocket::PopulateRemoteAddr(RawAddr& addr) {
   return true;
 }
 
-bool DatagramSocket::IssueSendTo(struct sockaddr* sa, socklen_t sa_len) {
+bool DatagramSocket::IssueSendTo(std::unique_ptr<OverlappedBuffer> buffer,
+                                 struct sockaddr* sa,
+                                 socklen_t sa_len) {
   MonitorLocker ml(&monitor_);
-  ASSERT(HasPendingWrite());
-  ASSERT(pending_write_->operation() == OverlappedBuffer::kSendTo);
 
+  ASSERT(!HasPendingWrite());
+  ASSERT(buffer->operation() == OverlappedBuffer::kSendTo);
+
+  pending_write_ = buffer.get();
   int rc = WSASendTo(socket(), pending_write_->GetWASBUF(), 1, nullptr, 0, sa,
                      sa_len, pending_write_->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
+    buffer.release();  // HandleIOCompletion will take ownership.
     return true;
   }
-  OverlappedBuffer::DisposeBuffer(pending_write_);
   pending_write_ = nullptr;
   HandleIssueError();
   return false;
@@ -958,19 +955,18 @@ bool DatagramSocket::IssueRecvFrom() {
   MonitorLocker ml(&monitor_);
   ASSERT(!HasPendingRead());
 
-  OverlappedBuffer* buffer =
+  auto buffer =
       OverlappedBuffer::AllocateRecvFromBuffer(this, kMaxUDPPackageLength);
 
-  DWORD flags;
-  flags = 0;
+  pending_read_ = buffer.get();
+  DWORD flags = 0;
   int rc = WSARecvFrom(socket(), buffer->GetWASBUF(), 1, nullptr, &flags,
                        buffer->from(), buffer->from_len_addr(),
                        buffer->GetCleanOverlapped(), nullptr);
   if ((rc == NO_ERROR) || (WSAGetLastError() == WSA_IO_PENDING)) {
-    pending_read_ = buffer;
+    buffer.release();  // HandleIOCompletion will take ownership.
     return true;
   }
-  OverlappedBuffer::DisposeBuffer(buffer);
   pending_read_ = nullptr;
   HandleIssueError();
   return false;
@@ -1125,9 +1121,10 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   }
 }
 
-void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
-                                              OverlappedBuffer* buffer) {
-  listen_socket->AcceptComplete(buffer);
+void EventHandlerImplementation::HandleAccept(
+    ListenSocket* listen_socket,
+    std::unique_ptr<OverlappedBuffer> buffer) {
+  listen_socket->AcceptComplete(std::move(buffer));
 
   {
     MonitorLocker ml(&listen_socket->monitor_);
@@ -1148,11 +1145,12 @@ void EventHandlerImplementation::TryDispatchingPendingAccepts(
   }
 }
 
-void EventHandlerImplementation::HandleRead(Handle* handle,
-                                            int bytes,
-                                            OverlappedBuffer* buffer) {
+void EventHandlerImplementation::HandleRead(
+    Handle* handle,
+    int bytes,
+    std::unique_ptr<OverlappedBuffer> buffer) {
   buffer->set_data_length(bytes);
-  handle->ReadComplete(buffer);
+  handle->ReadComplete(std::move(buffer));
   if (bytes > 0) {
     if (!handle->IsClosing()) {
       int event_mask = 1 << kInEvent;
@@ -1171,13 +1169,14 @@ void EventHandlerImplementation::HandleRead(Handle* handle,
   }
 }
 
-void EventHandlerImplementation::HandleRecvFrom(Handle* handle,
-                                                int bytes,
-                                                OverlappedBuffer* buffer) {
+void EventHandlerImplementation::HandleRecvFrom(
+    Handle* handle,
+    int bytes,
+    std::unique_ptr<OverlappedBuffer> buffer) {
   ASSERT(handle->is_datagram_socket());
   if (bytes >= 0) {
     buffer->set_data_length(bytes);
-    handle->ReadComplete(buffer);
+    handle->ReadComplete(std::move(buffer));
     if (!handle->IsClosing()) {
       int event_mask = 1 << kInEvent;
       if ((handle->Mask() & event_mask) != 0) {
@@ -1190,10 +1189,11 @@ void EventHandlerImplementation::HandleRecvFrom(Handle* handle,
   }
 }
 
-void EventHandlerImplementation::HandleWrite(Handle* handle,
-                                             int bytes,
-                                             OverlappedBuffer* buffer) {
-  handle->WriteComplete(buffer);
+void EventHandlerImplementation::HandleWrite(
+    Handle* handle,
+    int bytes,
+    std::unique_ptr<OverlappedBuffer> buffer) {
+  handle->WriteComplete(std::move(buffer));
 
   if (bytes >= 0) {
     if (!handle->IsError() && !handle->IsClosing()) {
@@ -1210,20 +1210,21 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
   }
 }
 
-void EventHandlerImplementation::HandleDisconnect(ClientSocket* client_socket,
-                                                  int bytes,
-                                                  OverlappedBuffer* buffer) {
-  client_socket->DisconnectComplete(buffer);
+void EventHandlerImplementation::HandleDisconnect(
+    ClientSocket* client_socket,
+    int bytes,
+    std::unique_ptr<OverlappedBuffer> buffer) {
+  client_socket->DisconnectComplete();
 }
 
-void EventHandlerImplementation::HandleConnect(ClientSocket* client_socket,
-                                               int bytes,
-                                               OverlappedBuffer* buffer) {
+void EventHandlerImplementation::HandleConnect(
+    ClientSocket* client_socket,
+    int bytes,
+    std::unique_ptr<OverlappedBuffer> buffer) {
   if (bytes < 0) {
     HandleError(client_socket);
-    OverlappedBuffer::DisposeBuffer(buffer);
   } else {
-    client_socket->ConnectComplete(buffer);
+    client_socket->ConnectComplete();
   }
   client_socket->mark_connected();
 }
@@ -1256,36 +1257,39 @@ static const char* OperationName(OverlappedBuffer::Operation op) {
   return "?";
 }
 
-void EventHandlerImplementation::HandleIOCompletion(DWORD bytes,
+void EventHandlerImplementation::HandleIOCompletion(int32_t bytes,
                                                     ULONG_PTR key,
                                                     OVERLAPPED* overlapped) {
-  OverlappedBuffer* buffer = OverlappedBuffer::GetFromOverlapped(overlapped);
+  std::unique_ptr<OverlappedBuffer> buffer(
+      OverlappedBuffer::GetFromOverlapped(overlapped));
   Handle* handle = reinterpret_cast<Handle*>(key);
   RefCntReleaseScope<Handle> release(buffer->StealHandle());
   switch (buffer->operation()) {
     case OverlappedBuffer::kAccept: {
-      HandleAccept(static_cast<ListenSocket*>(handle), buffer);
+      HandleAccept(static_cast<ListenSocket*>(handle), std::move(buffer));
       break;
     }
     case OverlappedBuffer::kRead: {
-      HandleRead(handle, bytes, buffer);
+      HandleRead(handle, bytes, std::move(buffer));
       break;
     }
     case OverlappedBuffer::kRecvFrom: {
-      HandleRecvFrom(handle, bytes, buffer);
+      HandleRecvFrom(handle, bytes, std::move(buffer));
       break;
     }
     case OverlappedBuffer::kWrite:
     case OverlappedBuffer::kSendTo: {
-      HandleWrite(handle, bytes, buffer);
+      HandleWrite(handle, bytes, std::move(buffer));
       break;
     }
     case OverlappedBuffer::kDisconnect: {
-      HandleDisconnect(static_cast<ClientSocket*>(handle), bytes, buffer);
+      HandleDisconnect(static_cast<ClientSocket*>(handle), bytes,
+                       std::move(buffer));
       break;
     }
     case OverlappedBuffer::kConnect: {
-      HandleConnect(static_cast<ClientSocket*>(handle), bytes, buffer);
+      HandleConnect(static_cast<ClientSocket*>(handle), bytes,
+                    std::move(buffer));
       break;
     }
     default:
