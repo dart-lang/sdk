@@ -273,6 +273,12 @@ void Platform::SetProcessName(const char* name) {
   pthread_setname_np(name);
 
 #if !defined(DART_HOST_OS_IOS)
+
+  if (__builtin_available(macOS 15.0, *)) {
+    // The code below causes extra 'exec' icon show up bouncing in task bar.
+    return;
+  }
+
   // Attempt to set the name displayed in ActivityMonitor.
   // https://codereview.chromium.org/659007
 
