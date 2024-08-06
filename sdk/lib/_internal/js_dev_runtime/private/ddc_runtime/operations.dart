@@ -53,15 +53,14 @@ bind(obj, name, method) {
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundMethod = #', f, method);
-  var objType = getType(obj);
-  var methodType = getMethodType(objType, name);
+  var methodType = getMethodType(obj, name);
   // Native JavaScript methods do not have Dart signatures attached that need
   // to be copied.
   if (methodType != null) {
     if (rti.isGenericFunctionType(methodType)) {
       // Attach the default type argument values to the new function in case
       // they are needed for a dynamic call.
-      var defaultTypeArgs = getMethodDefaultTypeArgs(objType, name);
+      var defaultTypeArgs = getMethodDefaultTypeArgs(obj, name);
       JS('', '#._defaultTypeArgs = #', f, defaultTypeArgs);
     }
     JS('', '#[#] = #', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME), methodType);
@@ -80,8 +79,7 @@ bind(obj, name, method) {
 /// a native type/interface with `call`.
 bindCall(obj, name) {
   if (obj == null) return null;
-  var objType = getType(obj);
-  var ftype = getMethodType(objType, name);
+  var ftype = getMethodType(obj, name);
   if (ftype == null) return null;
   var method = JS('', '#[#]', obj, name);
   var f = JS('', '#.bind(#)', method, obj);
@@ -92,7 +90,7 @@ bindCall(obj, name) {
   if (rti.isGenericFunctionType(ftype)) {
     // Attach the default type argument values to the new function in case
     // they are needed for a dynamic call.
-    var defaultTypeArgs = getMethodDefaultTypeArgs(objType, name);
+    var defaultTypeArgs = getMethodDefaultTypeArgs(obj, name);
     JS('', '#._defaultTypeArgs = #', f, defaultTypeArgs);
   }
   return f;
@@ -104,8 +102,8 @@ bindCall(obj, name) {
 /// associated function type.
 gbind(f, @rest List<Object> typeArgs) {
   Object fnType = JS('!', '#[#]', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
-  var instantiationBinding =
-      rti.bindingRtiFromList(JS<JSArray>('!', '#', typeArgs));
+  var typeArgsAsJSArray = JS<JSArray<Object>>('!', '#', typeArgs);
+  var instantiationBinding = rti.bindingRtiFromList(typeArgsAsJSArray);
   var instantiatedType = rti.instantiatedGenericFunctionType(
       JS<rti.Rti>('!', '#', fnType), instantiationBinding);
   // Create a JS wrapper function that will also pass the type arguments.
@@ -114,7 +112,7 @@ gbind(f, @rest List<Object> typeArgs) {
   // Tag the wrapper with the original function to be used for equality
   // checks.
   JS('', '#["_originalFn"] = #', result, f);
-  JS('', '#["_typeArgs"] = #', result, constList(typeArgs, Object));
+  JS('', '#["_typeArgs"] = #', result, constList<Object>(typeArgsAsJSArray));
 
   // Tag the wrapper with the instantiated function type.
   return fn(result, instantiatedType);
@@ -133,10 +131,11 @@ dload(obj, field) {
 
   trackCall(obj);
   if (f != null) {
-    var type = getType(obj);
+    var typeSigHolder = getTypeSignatureContainer(obj);
 
-    if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
-    if (hasMethod(type, f)) return bind(obj, f, null);
+    if (hasField(typeSigHolder, f) || hasGetter(typeSigHolder, f))
+      return JS('', '#[#]', obj, f);
+    if (hasMethod(typeSigHolder, f)) return bind(obj, f, null);
 
     // Handle record types by trying to access [f] via convenience getters.
     if (_jsInstanceOf(obj, RecordImpl) && f is String) {
@@ -152,19 +151,13 @@ dload(obj, field) {
   return noSuchMethod(obj, InvocationImpl(field, JS('', '[]'), isGetter: true));
 }
 
-_stripGenericArguments(type) {
-  var genericClass = getGenericClass(type);
-  if (genericClass != null) return JS('', '#()', genericClass);
-  return type;
-}
-
 dputRepl(obj, field, value) => dput(obj, replNameLookup(obj, field), value);
 
 dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
   trackCall(obj);
   if (f != null) {
-    var setterType = getSetterType(getType(obj), f);
+    var setterType = getSetterType(obj, f);
     if (setterType != null) {
       return JS('', '#[#] = #.#(#)', obj, f, setterType,
           JS_GET_NAME(JsGetName.RTI_FIELD_AS), value);
@@ -504,11 +497,10 @@ callMethod(obj, name, typeArgs, args, named, displayName) {
     return noSuchMethod(obj, InvocationImpl(displayName, args, isMethod: true));
   }
   var f = obj != null ? JS('', '#[#]', obj, symbol) : null;
-  var type = getType(obj);
-  var ftype = getMethodType(type, symbol);
+  var ftype = getMethodType(obj, symbol);
   if (ftype != null && rti.isGenericFunctionType(ftype) && typeArgs == null) {
     // No type arguments were provided, use the default values in this call.
-    typeArgs = getMethodDefaultTypeArgs(type, symbol);
+    typeArgs = getMethodDefaultTypeArgs(obj, symbol);
   }
   // No such method if dart object and ftype is missing.
   return _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName);
@@ -607,9 +599,6 @@ nullCheck(x) {
   return x;
 }
 
-/// The global constant map table.
-final constantMaps = JS<Object>('!', 'new Map()');
-
 // TODO(leafp): This table gets quite large in apps.
 // Keeping the paths is probably expensive.  It would probably
 // be more space efficient to just use a direct hash table with
@@ -620,6 +609,30 @@ Object _lookupNonTerminal(Object map, Object? key) {
   JS('', '#.set(#, # = new Map())', map, key, result);
   return result!;
 }
+
+/// The global constant list table.
+/// This maps the number of elements in the list (n)
+/// to a path of length n of maps indexed by the value
+/// of the field.  The final map is indexed by the element
+/// type and contains the canonical version of the list.
+final constantLists = JS<Object>('!', 'new Map()');
+
+/// Canonicalize a constant list
+List<E> constList<E>(JSArray elements) {
+  var count = elements.length;
+  var map = _lookupNonTerminal(constantLists, count);
+  for (var i = 0; i <= count; i++) {
+    map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
+  }
+  List<E>? result = JS('', '#.get(#)', map, E);
+  if (result != null) return result;
+  result = JSArray.unmodifiable(elements);
+  JS('', '#.set(#, #)', map, E, result);
+  return result;
+}
+
+/// The global constant map table.
+final constantMaps = JS<Object>('!', 'new Map()');
 
 Map<K, V> constMap<K, V>(JSArray elements) {
   var count = elements.length;
@@ -726,28 +739,6 @@ const_(obj) => JS('', '''(() => {
   if (value) return value;
   map.set(type, $obj);
   return $obj;
-})()''');
-
-/// The global constant list table.
-/// This maps the number of elements in the list (n)
-/// to a path of length n of maps indexed by the value
-/// of the field.  The final map is indexed by the element
-/// type and contains the canonical version of the list.
-final constantLists = JS('', 'new Map()');
-
-/// Canonicalize a constant list
-constList(elements, elementType) => JS('', '''(() => {
-  let count = $elements.length;
-  let map = $_lookupNonTerminal($constantLists, count);
-  for (let i = 0; i < count; i++) {
-    map = $_lookupNonTerminal(map, elements[i]);
-  }
-  let value = map.get($elementType);
-  if (value) return value;
-
-  ${getGenericClassStatic<JSArray>()}($elementType).unmodifiable($elements);
-  map.set($elementType, elements);
-  return elements;
 })()''');
 
 constFn(x) => JS('', '() => x');
