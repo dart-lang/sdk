@@ -35,7 +35,7 @@ class MonitorData {
   MonitorData() {}
   ~MonitorData() {}
 
-  CRITICAL_SECTION cs_;
+  SRWLOCK lock_;
   CONDITION_VARIABLE cond_;
 
   friend class Monitor;

@@ -9,6 +9,7 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'state_machine.dart';
+import 'translator.dart' show CompilationTask;
 
 mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   late final ClassInfo asyncSuspendStateInfo =
@@ -74,9 +75,10 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     b.return_();
     b.end();
 
-    AsyncStateMachineCodeGenerator(translator, resumeFun, enclosingMember,
-            functionNode, functionSource, closures)
-        .generate(resumeFun.locals.toList(), null);
+    translator.compilationQueue.add(CompilationTask(
+        resumeFun,
+        AsyncStateMachineCodeGenerator(translator, resumeFun, enclosingMember,
+            functionNode, functionSource, closures)));
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>

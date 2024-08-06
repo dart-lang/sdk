@@ -9,6 +9,7 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'state_machine.dart';
+import 'translator.dart' show CompilationTask;
 
 mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   late final ClassInfo suspendStateInfo =
@@ -40,9 +41,10 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     b.return_();
     b.end();
 
-    SyncStarStateMachineCodeGenerator(translator, resumeFun, enclosingMember,
-            functionNode, functionSource, closures)
-        .generate(resumeFun.locals.toList(), null);
+    translator.compilationQueue.add(CompilationTask(
+        resumeFun,
+        SyncStarStateMachineCodeGenerator(translator, resumeFun,
+            enclosingMember, functionNode, functionSource, closures)));
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>

@@ -71,7 +71,7 @@ static intptr_t Connect(intptr_t fd,
   int status =
       bind(s, &bind_addr.addr, SocketAddress::GetAddrLength(bind_addr));
   if (status != NO_ERROR) {
-    int rc = WSAGetLastError();
+    const int rc = WSAGetLastError();
     handle->mark_closed();  // Destructor asserts that socket is marked closed.
     handle->Release();
     closesocket(s);
@@ -79,34 +79,19 @@ static intptr_t Connect(intptr_t fd,
     return -1;
   }
 
-  LPFN_CONNECTEX connectEx = nullptr;
-  GUID guid_connect_ex = WSAID_CONNECTEX;
-  DWORD bytes;
-  status = WSAIoctl(s, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid_connect_ex,
-                    sizeof(guid_connect_ex), &connectEx, sizeof(connectEx),
-                    &bytes, nullptr, nullptr);
-  DWORD rc;
-  if (status != SOCKET_ERROR) {
-    handle->EnsureInitialized(EventHandler::delegate());
-
-    OverlappedBuffer* overlapped = OverlappedBuffer::AllocateConnectBuffer();
-
-    status = connectEx(s, &addr.addr, SocketAddress::GetAddrLength(addr),
-                       nullptr, 0, nullptr, overlapped->GetCleanOverlapped());
-
-    if (status == TRUE) {
-      handle->ConnectComplete(overlapped);
-      return fd;
-    } else if (WSAGetLastError() == ERROR_IO_PENDING) {
-      return fd;
-    }
-    rc = WSAGetLastError();
-    // Cleanup in case of error.
-    OverlappedBuffer::DisposeBuffer(overlapped);
-    handle->Release();
-  } else {
-    rc = WSAGetLastError();
+  auto buffer = OverlappedBuffer::AllocateConnectBuffer(handle);
+  status = EventHandler::delegate()->connect_ex()(
+      s, &addr.addr, SocketAddress::GetAddrLength(addr), nullptr, 0, nullptr,
+      buffer->GetCleanOverlapped());
+  if (status == TRUE) {
+    handle->ConnectComplete();
+    return fd;
+  } else if (WSAGetLastError() == ERROR_IO_PENDING) {
+    buffer.release();  // Ownership passed to event handler.
+    return fd;
   }
+  const int rc = WSAGetLastError();
+  // Cleanup in case of error.
   handle->Close();
   handle->Release();
   SetLastError(rc);
@@ -218,8 +203,6 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
   }
 
   DatagramSocket* datagram_socket = new DatagramSocket(s);
-  datagram_socket->EnsureInitialized(EventHandler::delegate());
-
   return reinterpret_cast<intptr_t>(datagram_socket);
 }
 
@@ -293,21 +276,15 @@ intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
 }
 
 bool ServerSocket::StartAccept(intptr_t fd) {
-  ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(fd);
-  listen_socket->EnsureInitialized(EventHandler::delegate());
-  // Always keep 5 outstanding accepts going, to enhance performance.
-  for (int i = 0; i < 5; i++) {
-    if (!listen_socket->IssueAccept()) {
-      DWORD rc = WSAGetLastError();
-      listen_socket->Close();
-      if (!listen_socket->HasPendingAccept()) {
-        // Delete socket now, if there are no pending accepts. Otherwise,
-        // the event-handler will take care of deleting it.
-        listen_socket->Release();
-      }
-      SetLastError(rc);
-      return false;
-    }
+  auto socket = reinterpret_cast<ListenSocket*>(fd);
+  if (!socket->StartAccept()) {
+    DWORD error = socket->last_error();
+    socket->Close();
+    // Release the reference to socket - it is not going to be attached
+    // to a |Socket| object because |StartAccept| returns |false|.
+    socket->Release();
+    SetLastError(error);
+    return false;
   }
   return true;
 }
