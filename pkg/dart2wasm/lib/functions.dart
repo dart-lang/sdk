@@ -7,13 +7,14 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
 import 'closures.dart';
+import 'code_generator.dart';
 import 'dispatch_table.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
 
 /// This class is responsible for collecting import and export annotations.
-/// It also creates Wasm functions for Dart members and manages the worklist
-/// used to achieve tree shaking.
+/// It also creates Wasm functions for Dart members and manages the compilation
+/// queue used to achieve tree shaking.
 class FunctionCollector {
   final Translator translator;
 
@@ -21,14 +22,12 @@ class FunctionCollector {
   final Map<Reference, w.BaseFunction> _functions = {};
   // Names of exported functions
   final Map<Reference, String> _exports = {};
-  // Functions for which code has not yet been generated
-  final List<Reference> _worklist = [];
   // Selector IDs that are invoked via GDT.
   final Set<int> _calledSelectors = {};
   // Class IDs for classes that are allocated somewhere in the program
   final Set<int> _allocatedClasses = {};
-  // For each class ID, which functions should be added to the worklist if an
-  // allocation of that class is encountered
+  // For each class ID, which functions should be added to the compilation queue
+  // if an allocation of that class is encountered
   final Map<int, List<Reference>> _pendingAllocation = {};
 
   FunctionCollector(this.translator);
@@ -44,10 +43,6 @@ class FunctionCollector {
       }
     }
   }
-
-  bool isWorkListEmpty() => _worklist.isEmpty;
-
-  Reference popWorkList() => _worklist.removeLast();
 
   void _importOrExport(Member member) {
     String? importName =
@@ -97,19 +92,20 @@ class FunctionCollector {
   String? getExport(Reference target) => _exports[target];
 
   void initialize() {
-    // Add exports to the module and add exported functions to the worklist
+    // Add exports to the module and add exported functions to the compilationQueue
     for (var export in _exports.entries) {
       Reference target = export.key;
       Member node = target.asMember;
       if (node is Procedure) {
-        _worklist.add(target);
         assert(!node.isInstanceMember);
         assert(!node.isGetter);
         w.FunctionType ftype =
             _makeFunctionType(translator, target, null, isImportOrExport: true);
-        w.BaseFunction function = m.functions.define(ftype, "$node");
+        w.FunctionBuilder function = m.functions.define(ftype, "$node");
         _functions[target] = function;
         m.exports.export(export.value, function);
+        translator.compilationQueue.add(AstCompilationTask(function,
+            getMemberCodeGenerator(translator, function, target), target));
       } else if (node is Field) {
         w.Table? table = translator.getTable(node);
         if (table != null) {
@@ -133,9 +129,11 @@ class FunctionCollector {
 
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
-      _worklist.add(target);
-      return m.functions.define(
+      final function = m.functions.define(
           translator.signatureForDirectCall(target), _getFunctionName(target));
+      translator.compilationQueue.add(AstCompilationTask(function,
+          getMemberCodeGenerator(translator, function, target), target));
+      return function;
     });
   }
 

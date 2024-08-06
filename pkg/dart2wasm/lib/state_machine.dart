@@ -567,7 +567,7 @@ abstract class StateMachineEntryAstCodeGenerator extends AstCodeGenerator {
   final w.FunctionBuilder function;
   StateMachineEntryAstCodeGenerator(
       Translator translator, Member enclosingMember, this.function)
-      : super(translator, function.type, function.body, enclosingMember);
+      : super(translator, function.type, enclosingMember);
 
   /// Generate the outer function.
   ///
@@ -601,6 +601,7 @@ abstract class ProcedureStateMachineEntryCodeGenerator
     if (context != null && context.isEmpty) context = context.parent;
 
     generateOuter(member.function, context, source);
+    addNestedClosuresToCompilationQueue();
   }
 }
 
@@ -645,7 +646,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       this.functionNode,
       this.functionSource,
       Closures closures)
-      : super(translator, function.type, function.body, enclosingMember) {
+      : super(translator, function.type, enclosingMember) {
     this.closures = closures;
   }
 

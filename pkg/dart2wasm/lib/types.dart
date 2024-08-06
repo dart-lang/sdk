@@ -604,95 +604,10 @@ class Types {
           ),
           name);
 
-      final b = function.body;
-
-      w.Local operand = b.locals[0];
-      w.Local boolTemp = b.addLocal(w.NumType.i32);
-
-      final w.Label resultLabel = b.block(const [], const [w.NumType.i32]);
-      if (operandIsNullable) {
-        w.Label nullLabel = b.block(const [], const []);
-        b.local_get(operand);
-        b.br_on_null(nullLabel);
-        final nonNullableOperand =
-            b.addLocal(translator.topInfo.nonNullableType);
-        b.local_get(operand);
-        b.ref_cast(nonNullableOperand.type as w.RefType);
-        b.local_set(nonNullableOperand);
-        operand = nonNullableOperand;
-      }
-
-      if (checkArguments) {
-        b.local_get(operand);
-        b.call(_generateIsChecker(testedAgainstType, false, false));
-        b.local_set(boolTemp);
-
-        // If cid ranges fail, we fail
-        {
-          final w.Label okBlock = b.block(const [], const []);
-          b.local_get(boolTemp);
-          b.i32_const(1);
-          b.i32_eq();
-          b.br_if(okBlock);
-          b.i32_const(0);
-          b.br(resultLabel);
-          b.end();
-        }
-
-        // Otherwise we have to check each argument.
-
-        // Call Object._getArguments()
-        w.Local typeArguments = b.addLocal(typeArrayExpectedType);
-        b.local_get(operand);
-        b.call(translator.functions
-            .getFunction(translator.objectGetTypeArguments.reference));
-        b.local_set(typeArguments);
-        for (int i = 0; i < argumentCount; ++i) {
-          b.local_get(typeArguments);
-          b.i32_const(i);
-          b.array_get(typeArrayArrayType);
-          b.local_get(b.locals[1 + i]);
-          b.call(translator.functions
-              .getFunction(translator.isTypeSubtype.reference));
-          {
-            b.local_set(boolTemp);
-            final w.Label okBlock = b.block(const [], const []);
-            b.local_get(boolTemp);
-            b.i32_const(1);
-            b.i32_eq();
-            b.br_if(okBlock);
-            b.i32_const(0);
-            b.br(resultLabel);
-            b.end();
-          }
-        }
-        b.i32_const(1);
-        b.br(resultLabel);
-      } else {
-        if (interfaceClass == coreTypes.objectClass) {
-          b.drop();
-          b.i32_const(1);
-        } else if (interfaceClass == coreTypes.functionClass) {
-          b.local_get(operand);
-          b.ref_test(translator.closureInfo.nonNullableType);
-        } else {
-          final ranges = translator.classIdNumbering
-              .getConcreteClassIdRanges(interfaceClass);
-          b.local_get(operand);
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-          b.emitClassIdRangeCheck(ranges);
-        }
-        b.br(resultLabel);
-      }
-
-      if (operandIsNullable) {
-        b.end(); // nullLabel
-        b.i32_const(encodedNullability(testedAgainstType));
-      }
-      b.end(); // resultLabel
-
-      b.return_();
-      b.end();
+      translator.compilationQueue.add(CompilationTask(
+          function,
+          IsCheckerCodeGenerator(translator, testedAgainstType,
+              operandIsNullable, checkArguments, argumentCount)));
 
       return function;
     });
@@ -741,61 +656,209 @@ class Types {
           ),
           name);
 
-      final b = function.body;
-      w.Label asCheckBlock = b.block();
-      b.local_get(b.locals[0]);
-      for (int i = 0; i < argumentCount; ++i) {
-        b.local_get(b.locals[1 + i]);
-      }
-      b.call(_generateIsChecker(
-          testedAgainstType, checkArguments, operandIsNullable));
-      b.br_if(asCheckBlock);
-
-      if (checkArguments) {
-        final testedAgainstClassId =
-            translator.classInfo[testedAgainstType.classNode]!.classId;
-        b.local_get(b.locals[0]);
-        b.i32_const(encodedNullability(testedAgainstType));
-        b.i32_const(testedAgainstClassId);
-        if (argumentCount == 1) {
-          b.local_get(b.locals[1]);
-          b.call(translator.functions.getFunction(
-              translator.throwInterfaceTypeAsCheckError1.reference));
-        } else if (argumentCount == 2) {
-          b.local_get(b.locals[1]);
-          b.local_get(b.locals[2]);
-          b.call(translator.functions.getFunction(
-              translator.throwInterfaceTypeAsCheckError2.reference));
-        } else {
-          for (int i = 0; i < argumentCount; ++i) {
-            b.local_get(b.locals[1 + i]);
-          }
-          b.array_new_fixed(typeArrayArrayType, argumentCount);
-          b.call(translator.functions.getFunction(
-              translator.throwInterfaceTypeAsCheckError.reference));
-        }
-      } else {
-        b.local_get(b.locals[0]);
-        translator.constants.instantiateConstant(
-            b, TypeLiteralConstant(testedAgainstType), nonNullableTypeType);
-        b.call(translator.functions
-            .getFunction(translator.throwAsCheckError.reference));
-      }
-      b.unreachable();
-
-      b.end();
-
-      b.local_get(b.locals[0]);
-      translator.convertType(b, argumentType, returnType);
-      b.return_();
-      b.end();
+      translator.compilationQueue.add(CompilationTask(
+          function,
+          AsCheckerCodeGenerator(
+              translator,
+              argumentType,
+              returnType,
+              testedAgainstType,
+              operandIsNullable,
+              checkArguments,
+              argumentCount)));
 
       return function;
     });
   }
+}
 
-  int encodedNullability(DartType type) =>
-      type.declaredNullability == Nullability.nullable ? 1 : 0;
+int encodedNullability(DartType type) =>
+    type.declaredNullability == Nullability.nullable ? 1 : 0;
+
+class IsCheckerCodeGenerator implements CodeGenerator {
+  final Translator translator;
+
+  final InterfaceType testedAgainstType;
+  final bool operandIsNullable;
+  final bool checkArguments;
+  final int argumentCount;
+
+  IsCheckerCodeGenerator(this.translator, this.testedAgainstType,
+      this.operandIsNullable, this.checkArguments, this.argumentCount);
+
+  @override
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    assert(returnLabel == null);
+
+    final interfaceClass = testedAgainstType.classNode;
+
+    w.Local operand = b.locals[0];
+    w.Local boolTemp = b.addLocal(w.NumType.i32);
+
+    final w.Label resultLabel = b.block(const [], const [w.NumType.i32]);
+    if (operandIsNullable) {
+      w.Label nullLabel = b.block(const [], const []);
+      b.local_get(operand);
+      b.br_on_null(nullLabel);
+      final nonNullableOperand = b.addLocal(translator.topInfo.nonNullableType);
+      b.local_get(operand);
+      b.ref_cast(nonNullableOperand.type as w.RefType);
+      b.local_set(nonNullableOperand);
+      operand = nonNullableOperand;
+    }
+
+    if (checkArguments) {
+      b.local_get(operand);
+      b.call(
+          translator.types._generateIsChecker(testedAgainstType, false, false));
+      b.local_set(boolTemp);
+
+      // If cid ranges fail, we fail
+      {
+        final w.Label okBlock = b.block(const [], const []);
+        b.local_get(boolTemp);
+        b.i32_const(1);
+        b.i32_eq();
+        b.br_if(okBlock);
+        b.i32_const(0);
+        b.br(resultLabel);
+        b.end();
+      }
+
+      // Otherwise we have to check each argument.
+
+      // Call Object._getArguments()
+      w.Local typeArguments =
+          b.addLocal(translator.types.typeArrayExpectedType);
+      b.local_get(operand);
+      b.call(translator.functions
+          .getFunction(translator.objectGetTypeArguments.reference));
+      b.local_set(typeArguments);
+      for (int i = 0; i < argumentCount; ++i) {
+        b.local_get(typeArguments);
+        b.i32_const(i);
+        b.array_get(translator.types.typeArrayArrayType);
+        b.local_get(b.locals[1 + i]);
+        b.call(translator.functions
+            .getFunction(translator.isTypeSubtype.reference));
+        {
+          b.local_set(boolTemp);
+          final w.Label okBlock = b.block(const [], const []);
+          b.local_get(boolTemp);
+          b.i32_const(1);
+          b.i32_eq();
+          b.br_if(okBlock);
+          b.i32_const(0);
+          b.br(resultLabel);
+          b.end();
+        }
+      }
+      b.i32_const(1);
+      b.br(resultLabel);
+    } else {
+      if (interfaceClass == translator.coreTypes.objectClass) {
+        b.drop();
+        b.i32_const(1);
+      } else if (interfaceClass == translator.coreTypes.functionClass) {
+        b.local_get(operand);
+        b.ref_test(translator.closureInfo.nonNullableType);
+      } else {
+        final ranges = translator.classIdNumbering
+            .getConcreteClassIdRanges(interfaceClass);
+        b.local_get(operand);
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.emitClassIdRangeCheck(ranges);
+      }
+      b.br(resultLabel);
+    }
+
+    if (operandIsNullable) {
+      b.end(); // nullLabel
+      b.i32_const(encodedNullability(testedAgainstType));
+    }
+    b.end(); // resultLabel
+
+    b.return_();
+    b.end();
+  }
+}
+
+class AsCheckerCodeGenerator implements CodeGenerator {
+  final Translator translator;
+
+  final w.ValueType argumentType;
+  final w.ValueType returnType;
+
+  final InterfaceType testedAgainstType;
+  final bool operandIsNullable;
+  final bool checkArguments;
+  final int argumentCount;
+
+  AsCheckerCodeGenerator(
+      this.translator,
+      this.argumentType,
+      this.returnType,
+      this.testedAgainstType,
+      this.operandIsNullable,
+      this.checkArguments,
+      this.argumentCount);
+
+  @override
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    assert(returnLabel == null);
+
+    w.Label asCheckBlock = b.block();
+    b.local_get(b.locals[0]);
+    for (int i = 0; i < argumentCount; ++i) {
+      b.local_get(b.locals[1 + i]);
+    }
+    b.call(translator.types._generateIsChecker(
+        testedAgainstType, checkArguments, operandIsNullable));
+    b.br_if(asCheckBlock);
+
+    if (checkArguments) {
+      final testedAgainstClassId =
+          translator.classInfo[testedAgainstType.classNode]!.classId;
+      b.local_get(b.locals[0]);
+      b.i32_const(encodedNullability(testedAgainstType));
+      b.i32_const(testedAgainstClassId);
+      if (argumentCount == 1) {
+        b.local_get(b.locals[1]);
+        b.call(translator.functions
+            .getFunction(translator.throwInterfaceTypeAsCheckError1.reference));
+      } else if (argumentCount == 2) {
+        b.local_get(b.locals[1]);
+        b.local_get(b.locals[2]);
+        b.call(translator.functions
+            .getFunction(translator.throwInterfaceTypeAsCheckError2.reference));
+      } else {
+        for (int i = 0; i < argumentCount; ++i) {
+          b.local_get(b.locals[1 + i]);
+        }
+        b.array_new_fixed(translator.types.typeArrayArrayType, argumentCount);
+        b.call(translator.functions
+            .getFunction(translator.throwInterfaceTypeAsCheckError.reference));
+      }
+    } else {
+      b.local_get(b.locals[0]);
+      translator.constants.instantiateConstant(
+          b,
+          TypeLiteralConstant(testedAgainstType),
+          translator.types.nonNullableTypeType);
+      b.call(translator.functions
+          .getFunction(translator.throwAsCheckError.reference));
+    }
+    b.unreachable();
+
+    b.end();
+
+    b.local_get(b.locals[0]);
+    translator.convertType(b, argumentType, returnType);
+    b.return_();
+    b.end();
+  }
 }
 
 /// Builds up data structures that the Runtime Type System implementation uses.
