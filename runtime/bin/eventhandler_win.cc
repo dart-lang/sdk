@@ -210,6 +210,10 @@ Handle::~Handle() {}
 
 void Handle::Close() {
   MonitorLocker ml(&monitor_);
+  CloseLocked(&ml);
+}
+
+void Handle::CloseLocked(MonitorLocker* ml) {
   if (!supports_overlapped_io()) {
     // If the handle uses synchronous I/O (e.g. stdin), cancel any pending
     // operation before closing the handle, so the read thread is not blocked.
@@ -221,12 +225,12 @@ void Handle::Close() {
     // called again if this socket has pending IO operations in flight.
     MarkClosing();
     // Perform handle type specific closing.
-    DoClose();
+    DoCloseLocked(ml);
   }
   ASSERT(IsHandleClosed());
 }
 
-void Handle::DoClose() {
+void Handle::DoCloseLocked(MonitorLocker* ml) {
   if (!IsHandleClosed()) {
     CloseHandle(handle_);
     handle_ = INVALID_HANDLE_VALUE;
@@ -335,7 +339,7 @@ void Handle::ReadSyncCompleteAsync() {
   NotifyReadThreadFinished();
 }
 
-bool Handle::IssueRead() {
+bool Handle::IssueReadLocked(MonitorLocker* ml) {
   ASSERT(type_ != kListenSocket);
   ASSERT(!HasPendingRead());
   auto buffer = OverlappedBuffer::AllocateReadBuffer(this, kBufferSize);
@@ -374,12 +378,12 @@ bool Handle::IssueRead() {
   }
 }
 
-bool Handle::IssueRecvFrom() {
+bool Handle::IssueRecvFromLocked(MonitorLocker* ml) {
   return false;
 }
 
-bool Handle::IssueWrite(std::unique_ptr<OverlappedBuffer> buffer) {
-  MonitorLocker ml(&monitor_);
+bool Handle::IssueWriteLocked(MonitorLocker* ml,
+                              std::unique_ptr<OverlappedBuffer> buffer) {
   ASSERT(type_ != kListenSocket);
   ASSERT(!HasPendingWrite());
   ASSERT(buffer->operation() == OverlappedBuffer::kWrite);
@@ -400,9 +404,10 @@ bool Handle::IssueWrite(std::unique_ptr<OverlappedBuffer> buffer) {
   return false;
 }
 
-bool Handle::IssueSendTo(std::unique_ptr<OverlappedBuffer> buffer,
-                         struct sockaddr* sa,
-                         socklen_t sa_len) {
+bool Handle::IssueSendToLocked(MonitorLocker* ml,
+                               std::unique_ptr<OverlappedBuffer> buffer,
+                               struct sockaddr* sa,
+                               socklen_t sa_len) {
   return false;
 }
 
@@ -434,11 +439,16 @@ bool FileHandle::IsClosed() {
   return IsClosing() && !HasPendingRead() && !HasPendingWrite();
 }
 
+void DirectoryWatchHandle::Start() {
+  MonitorLocker ml(&monitor_);
+  IssueReadLocked(&ml);
+}
+
 bool DirectoryWatchHandle::IsClosed() {
   return IsClosing() && !HasPendingRead();
 }
 
-bool DirectoryWatchHandle::IssueRead() {
+bool DirectoryWatchHandle::IssueReadLocked(MonitorLocker* ml) {
   // It may have been started before, as we start the directory-handler when
   // we create it.
   if (HasPendingRead() || (data_ready_ != nullptr)) {
@@ -470,7 +480,7 @@ void DirectoryWatchHandle::Stop() {
     // Don't dispose of the buffer, as it will still complete (with length 0).
   }
 
-  DoClose();
+  DoCloseLocked(&ml);
 }
 
 void SocketHandle::HandleIssueError() {
@@ -483,9 +493,7 @@ void SocketHandle::HandleIssueError() {
   WSASetLastError(error);
 }
 
-bool ListenSocket::IssueAccept() {
-  MonitorLocker ml(&monitor_);
-
+bool ListenSocket::IssueAcceptLocked(MonitorLocker* ml) {
   auto buffer = OverlappedBuffer::AllocateAcceptBuffer(this);
   DWORD received;
   BOOL ok;
@@ -508,7 +516,7 @@ bool ListenSocket::StartAccept() {
 
   // Always keep 5 outstanding accepts going, to enhance performance.
   for (intptr_t i = 0; i < kMinIssuedAccepts; i++) {
-    if (!IssueAccept()) {
+    if (!IssueAcceptLocked(&ml)) {
       return false;
     }
   }
@@ -581,7 +589,7 @@ static void NotifyDestroyedIfClosed(Handle* handle) {
   }
 }
 
-void ListenSocket::DoClose() {
+void ListenSocket::DoCloseLocked(MonitorLocker* ml) {
   closesocket(socket());
   handle_ = INVALID_HANDLE_VALUE;
 
@@ -617,7 +625,7 @@ ClientSocket* ListenSocket::Accept() {
   // We have less than 5 pending accepts and are not closing try to queue
   // another accept.
   if (!IsClosing() && (pending_accept_count_ < kMinIssuedAccepts)) {
-    IssueAccept();
+    IssueAcceptLocked(&ml);
   }
 
   return result;
@@ -649,7 +657,7 @@ intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
   if (data_ready_->IsEmpty()) {
     data_ready_ = nullptr;
     if (!IsClosing() && !IsClosedRead()) {
-      IssueRead();
+      IssueReadLocked(&ml);
     }
   }
   return num_bytes;
@@ -677,7 +685,7 @@ intptr_t Handle::RecvFrom(void* buffer,
   // entirety to match how recvfrom works in a socket.
   data_ready_ = nullptr;
   if (!IsClosing() && !IsClosedRead()) {
-    IssueRecvFrom();
+    IssueRecvFromLocked(&ml);
   }
   return num_bytes;
 }
@@ -694,7 +702,7 @@ intptr_t Handle::Write(const void* data, intptr_t num_bytes) {
   int truncated_bytes = Utils::Minimum<intptr_t>(num_bytes, INT_MAX);
   auto buffer = OverlappedBuffer::AllocateWriteBuffer(this, truncated_bytes);
   buffer->Write(data, truncated_bytes);
-  if (!IssueWrite(std::move(buffer))) {
+  if (!IssueWriteLocked(&ml, std::move(buffer))) {
     return -1;
   }
   return truncated_bytes;
@@ -719,7 +727,7 @@ intptr_t Handle::SendTo(const void* data,
   }
   auto buffer = OverlappedBuffer::AllocateSendToBuffer(this, num_bytes);
   buffer->Write(data, num_bytes);
-  if (!IssueSendTo(std::move(buffer), sa, sa_len)) {
+  if (!IssueSendToLocked(&ml, std::move(buffer), sa, sa_len)) {
     return -1;
   }
   return num_bytes;
@@ -826,23 +834,21 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
   return 0;
 }
 
-void StdHandle::DoClose() {
-  {
-    MonitorLocker ml(&monitor_);
-    if (write_thread_exists_) {
-      write_thread_running_ = false;
-      ml.Notify();
-      while (write_thread_exists_) {
-        ml.Wait(Monitor::kNoTimeout);
-      }
-      // Join the thread.
-      DWORD res = WaitForSingleObject(thread_handle_, INFINITE);
-      CloseHandle(thread_handle_);
-      ASSERT(res == WAIT_OBJECT_0);
+void StdHandle::DoCloseLocked(MonitorLocker* ml) {
+  if (write_thread_exists_) {
+    write_thread_running_ = false;
+    ml->Notify();
+    while (write_thread_exists_) {
+      ml->Wait(Monitor::kNoTimeout);
     }
-    Handle::DoClose();
+    // Join the thread.
+    DWORD res = WaitForSingleObject(thread_handle_, INFINITE);
+    CloseHandle(thread_handle_);
+    ASSERT(res == WAIT_OBJECT_0);
   }
-  MutexLocker ml(stdin_mutex_);
+  Handle::DoCloseLocked(ml);
+
+  MutexLocker stdin_mutex_locker(stdin_mutex_);
   stdin_->Release();
   StdHandle::stdin_ = nullptr;
 }
@@ -865,14 +871,14 @@ void ClientSocket::Shutdown(int how) {
   }
 }
 
-void ClientSocket::DoClose() {
+void ClientSocket::DoCloseLocked(MonitorLocker* ml) {
   // Always do a shutdown before initiating a disconnect.
   shutdown(socket(), SD_BOTH);
-  IssueDisconnect();
+  IssueDisconnectLocked(ml);
   handle_ = INVALID_HANDLE_VALUE;
 }
 
-bool ClientSocket::IssueRead() {
+bool ClientSocket::IssueReadLocked(MonitorLocker* ml) {
   ASSERT(!HasPendingRead());
 
   // TODO(sgjesse): Use a MTU value here. Only the loopback adapter can
@@ -893,7 +899,8 @@ bool ClientSocket::IssueRead() {
   return false;
 }
 
-bool ClientSocket::IssueWrite(std::unique_ptr<OverlappedBuffer> buffer) {
+bool ClientSocket::IssueWriteLocked(MonitorLocker* ml,
+                                    std::unique_ptr<OverlappedBuffer> buffer) {
   ASSERT(!HasPendingWrite());
   ASSERT(buffer->operation() == OverlappedBuffer::kWrite);
 
@@ -909,7 +916,7 @@ bool ClientSocket::IssueWrite(std::unique_ptr<OverlappedBuffer> buffer) {
   return false;
 }
 
-void ClientSocket::IssueDisconnect() {
+void ClientSocket::IssueDisconnectLocked(MonitorLocker* ml) {
   auto buffer = OverlappedBuffer::AllocateDisconnectBuffer(this);
   BOOL ok = EventHandler::delegate()->disconnect_ex()(
       socket(), buffer->GetCleanOverlapped(), TF_REUSE_SOCKET, 0);
@@ -950,7 +957,8 @@ void ClientSocket::ConnectComplete() {
   // If the port is set, we already listen for this socket in Dart.
   // Handle the cases here.
   if (!IsClosedRead() && ((Mask() & kInEventMask) != 0)) {
-    IssueRead();
+    MonitorLocker ml(&monitor_);
+    IssueReadLocked(&ml);
   }
   if (!IsClosedWrite()) {
     DispatchOutEventIfEnabled(this);
@@ -969,11 +977,10 @@ bool ClientSocket::PopulateRemoteAddr(RawAddr& addr) {
   return true;
 }
 
-bool DatagramSocket::IssueSendTo(std::unique_ptr<OverlappedBuffer> buffer,
-                                 struct sockaddr* sa,
-                                 socklen_t sa_len) {
-  MonitorLocker ml(&monitor_);
-
+bool DatagramSocket::IssueSendToLocked(MonitorLocker* ml,
+                                       std::unique_ptr<OverlappedBuffer> buffer,
+                                       struct sockaddr* sa,
+                                       socklen_t sa_len) {
   ASSERT(!HasPendingWrite());
   ASSERT(buffer->operation() == OverlappedBuffer::kSendTo);
 
@@ -989,8 +996,7 @@ bool DatagramSocket::IssueSendTo(std::unique_ptr<OverlappedBuffer> buffer,
   return false;
 }
 
-bool DatagramSocket::IssueRecvFrom() {
-  MonitorLocker ml(&monitor_);
+bool DatagramSocket::IssueRecvFromLocked(MonitorLocker* ml) {
   ASSERT(!HasPendingRead());
 
   auto buffer =
@@ -1014,7 +1020,7 @@ bool DatagramSocket::IsClosed() {
   return IsClosing() && !HasPendingRead() && !HasPendingWrite();
 }
 
-void DatagramSocket::DoClose() {
+void DatagramSocket::DoCloseLocked(MonitorLocker* ml) {
   // Just close the socket. This will cause any queued requests to be aborted.
   closesocket(socket());
   MarkClosedRead();
@@ -1041,106 +1047,107 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
     handle->Retain();
     RefCntReleaseScope<Handle> rh(handle);
 
-    if (handle->is_listen_socket()) {
-      ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(handle);
-
-      MonitorLocker ml(&listen_socket->monitor_);
-
-      if (IS_COMMAND(msg->data, kReturnTokenCommand)) {
-        listen_socket->ReturnTokens(msg->dart_port, TOKEN_COUNT(msg->data));
-      } else if (IS_COMMAND(msg->data, kSetEventMaskCommand)) {
-        // `events` can only have kInEvent/kOutEvent flags set.
-        intptr_t events = msg->data & EVENT_MASK;
-        ASSERT(0 == (events & ~(kInEventMask | kOutEventMask)));
-        listen_socket->SetPortAndMask(msg->dart_port, events);
-        listen_socket->DispatchCompletedAcceptsLocked(&ml);
-      } else if (IS_COMMAND(msg->data, kCloseCommand)) {
-        if (msg->dart_port != ILLEGAL_PORT) {
-          listen_socket->RemovePort(msg->dart_port);
-        }
-
-        // We only close the socket file descriptor from the operating
-        // system if there are no other dart socket objects which
-        // are listening on the same (address, port) combination.
-        ListeningSocketRegistry* registry = ListeningSocketRegistry::Instance();
-        MutexLocker locker(registry->mutex());
-        if (registry->CloseSafe(socket)) {
-          ASSERT(listen_socket->Mask() == 0);
-          listen_socket->Close();
-          socket->CloseFd();
-        }
-        socket->SetClosedFd();
-        DartUtils::PostInt32(msg->dart_port, 1 << kDestroyedEvent);
-      } else {
-        UNREACHABLE();
-      }
-    } else {
-      MonitorLocker ml(&handle->monitor_);
-
-      if (IS_COMMAND(msg->data, kReturnTokenCommand)) {
+    MonitorLocker hl(&handle->monitor_);
+    switch (msg->data & COMMAND_MASK) {
+      case 1 << kReturnTokenCommand:
         handle->ReturnTokens(msg->dart_port, TOKEN_COUNT(msg->data));
-      } else if (IS_COMMAND(msg->data, kSetEventMaskCommand)) {
+        break;
+
+      case 1 << kSetEventMaskCommand: {
         // `events` can only have kInEvent/kOutEvent flags set.
         intptr_t events = msg->data & EVENT_MASK;
         ASSERT(0 == (events & ~(kInEventMask | kOutEventMask)));
 
         handle->SetPortAndMask(msg->dart_port, events);
-
-        // Issue a read.
-        if ((handle->Mask() & kInEventMask) != 0) {
-          if (handle->is_datagram_socket()) {
-            handle->IssueRecvFrom();
-          } else if (handle->is_client_socket()) {
-            if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
-              handle->IssueRead();
+        if (handle->is_listen_socket()) {
+          static_cast<ListenSocket*>(handle)->DispatchCompletedAcceptsLocked(
+              &hl);
+        } else {
+          // Issue a read.
+          if ((handle->Mask() & kInEventMask) != 0) {
+            if (handle->is_datagram_socket()) {
+              handle->IssueRecvFromLocked(&hl);
+            } else if (!handle->is_client_socket() ||
+                       reinterpret_cast<ClientSocket*>(handle)
+                           ->is_connected()) {
+              handle->IssueReadLocked(&hl);
             }
-          } else {
-            handle->IssueRead();
           }
-        }
 
-        // If out events (can write events) have been requested, and there
-        // are no pending writes, meaning any writes are already complete,
-        // post an out event immediately.
-        if ((events & kOutEventMask) != 0) {
-          if (!handle->HasPendingWrite()) {
-            if (handle->is_client_socket()) {
-              if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
-                DispatchOutEventIfEnabled(handle);
-              }
-            } else {
+          // If out events (can write events) have been requested, and there
+          // are no pending writes, meaning any writes are already complete,
+          // post an out event immediately.
+          //
+          // Client sockets are only notified if they are connected.
+          if ((events & kOutEventMask) != 0 && !handle->HasPendingWrite()) {
+            if (!handle->is_client_socket() ||
+                reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
               DispatchOutEventIfEnabled(handle);
             }
           }
-        }
-        // Similarly, if in events (can read events) have been requested, and
-        // there is pending data available, post an in event immediately.
-        if ((events & kInEventMask) != 0) {
-          if (handle->data_ready_ != nullptr &&
-              !handle->data_ready_->IsEmpty()) {
-            DispatchInEventIfEnabled(handle);
+
+          // Similarly, if in events (can read events) have been requested, and
+          // there is pending data available, post an in event immediately.
+          if ((events & kInEventMask) != 0) {
+            if (handle->data_ready_ != nullptr &&
+                !handle->data_ready_->IsEmpty()) {
+              DispatchInEventIfEnabled(handle);
+            }
           }
         }
-      } else if (IS_COMMAND(msg->data, kShutdownReadCommand)) {
-        ASSERT(handle->is_client_socket());
+        break;
+      }
 
+      case 1 << kShutdownReadCommand: {
+        ASSERT(handle->is_client_socket());
         ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(handle);
         client_socket->Shutdown(SD_RECEIVE);
-      } else if (IS_COMMAND(msg->data, kShutdownWriteCommand)) {
-        ASSERT(handle->is_client_socket());
+        break;
+      }
 
+      case 1 << kShutdownWriteCommand: {
+        ASSERT(handle->is_client_socket());
         ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(handle);
         client_socket->Shutdown(SD_SEND);
-      } else if (IS_COMMAND(msg->data, kCloseCommand)) {
+        break;
+      }
+
+      case 1 << kCloseCommand: {
         if (IS_SIGNAL_SOCKET(msg->data)) {
           Process::ClearSignalHandlerByFd(socket->fd(), socket->isolate_port());
         }
-        handle->SetPortAndMask(msg->dart_port, 0);
-        handle->Close();
-        socket->CloseFd();
-      } else {
-        UNREACHABLE();
+        bool can_close_handle = true;
+        if (handle->is_listen_socket()) {
+          // We only close the socket file descriptor if there are no other
+          // dart socket objects which are listening on the same
+          // (address, port) combination.
+          ListeningSocketRegistry* registry =
+              ListeningSocketRegistry::Instance();
+          MutexLocker locker(registry->mutex());
+          if (!registry->CloseSafe(socket)) {
+            // Other sockets are listening to the same OS socket. Do not close
+            // OS socket, but deassociate it from the message port and tell
+            // Dart side that this socket was destroyed.
+            can_close_handle = false;
+            handle->RemovePort(msg->dart_port);
+            DartUtils::PostInt32(msg->dart_port, 1 << kDestroyedEvent);
+            socket->SetClosedFd();
+          }
+        }
+
+        if (can_close_handle) {
+          // Set response port so that kDestroyedEvent notification is
+          // delivered to the listener.
+          handle->SetPortAndMask(msg->dart_port, 0);
+          handle->CloseLocked(&hl);
+          socket->CloseFd();
+        }
+        break;
       }
+
+      default:
+        UNREACHABLE();
+        break;
     }
 
     NotifyDestroyedIfClosed(handle);

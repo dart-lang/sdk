@@ -185,8 +185,8 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
                           socklen_t sa_len);
 
   // Internal interface used by the event handler.
-  virtual bool IssueRead();
-  virtual bool IssueRecvFrom();
+  virtual bool IssueReadLocked(MonitorLocker* ml);
+  virtual bool IssueRecvFromLocked(MonitorLocker* ml);
   bool HasPendingRead();
   bool HasPendingWrite();
   void ReadComplete(std::unique_ptr<OverlappedBuffer> buffer);
@@ -204,7 +204,9 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
   HANDLE handle() { return handle_; }
 
   void Close();
-  virtual void DoClose();
+  void CloseLocked(MonitorLocker* ml);
+
+  virtual void DoCloseLocked(MonitorLocker* ml);
   virtual bool IsClosed() = 0;
 
   bool IsHandleClosed() const { return handle_ == INVALID_HANDLE_VALUE; }
@@ -269,10 +271,12 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
   void WaitForReadThreadFinished();
   void NotifyReadThreadFinished();
 
-  virtual bool IssueWrite(std::unique_ptr<OverlappedBuffer> buffer);
-  virtual bool IssueSendTo(std::unique_ptr<OverlappedBuffer> buffer,
-                           struct sockaddr* sa,
-                           socklen_t sa_len);
+  virtual bool IssueWriteLocked(MonitorLocker* ml,
+                                std::unique_ptr<OverlappedBuffer> buffer);
+  virtual bool IssueSendToLocked(MonitorLocker* ml,
+                                 std::unique_ptr<OverlappedBuffer> buffer,
+                                 struct sockaddr* sa,
+                                 socklen_t sa_len);
 
   int flags_;
 
@@ -305,7 +309,7 @@ class StdHandle : public FileHandle {
  public:
   static StdHandle* Stdin(HANDLE handle);
 
-  virtual void DoClose();
+  virtual void DoCloseLocked(MonitorLocker* ml);
   virtual intptr_t Write(const void* buffer, intptr_t num_bytes);
 
   void WriteSyncCompleteAsync();
@@ -347,8 +351,9 @@ class DirectoryWatchHandle : public DescriptorInfoSingleMixin<Handle> {
 
   virtual bool IsClosed();
 
-  virtual bool IssueRead();
+  virtual bool IssueReadLocked(MonitorLocker* ml);
 
+  void Start();
   void Stop();
 
  private:
@@ -397,7 +402,7 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
   bool HasPendingAccept() { return pending_accept_count_ > 0; }
   void AcceptComplete(std::unique_ptr<OverlappedBuffer> buffer);
 
-  virtual void DoClose();
+  virtual void DoCloseLocked(MonitorLocker* ml);
   virtual bool IsClosed();
 
   int pending_accept_count() { return pending_accept_count_; }
@@ -409,7 +414,7 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
  private:
   static constexpr intptr_t kMinIssuedAccepts = 5;
 
-  bool IssueAccept();
+  bool IssueAcceptLocked(MonitorLocker* ml);
 
   // The number of asynchronous `IssueAccept` operations which haven't completed
   // yet.
@@ -449,12 +454,12 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   void Shutdown(int how);
 
   // Internal interface used by the event handler.
-  virtual bool IssueRead();
-  void IssueDisconnect();
+  virtual bool IssueReadLocked(MonitorLocker* ml);
+  void IssueDisconnectLocked(MonitorLocker* ml);
   void DisconnectComplete();
   void ConnectComplete();
 
-  virtual void DoClose();
+  virtual void DoCloseLocked(MonitorLocker* ml);
   virtual bool IsClosed();
 
   // If `ClientSocket` was constructed with a `remote_addr`, populate `addr`
@@ -475,7 +480,8 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
 #endif
 
  private:
-  virtual bool IssueWrite(std::unique_ptr<OverlappedBuffer> buffer);
+  virtual bool IssueWriteLocked(MonitorLocker* ml,
+                                std::unique_ptr<OverlappedBuffer> buffer);
 
   ClientSocket* next_;
   bool connected_;
@@ -501,15 +507,16 @@ class DatagramSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   }
 
   // Internal interface used by the event handler.
-  virtual bool IssueRecvFrom();
+  virtual bool IssueRecvFromLocked(MonitorLocker* ml);
 
-  virtual void DoClose();
+  virtual void DoCloseLocked(MonitorLocker* ml);
   virtual bool IsClosed();
 
  private:
-  virtual bool IssueSendTo(std::unique_ptr<OverlappedBuffer> buffer,
-                           sockaddr* sa,
-                           socklen_t sa_len);
+  virtual bool IssueSendToLocked(MonitorLocker* ml,
+                                 std::unique_ptr<OverlappedBuffer> buffer,
+                                 sockaddr* sa,
+                                 socklen_t sa_len);
 
   DISALLOW_COPY_AND_ASSIGN(DatagramSocket);
 };

@@ -107,30 +107,30 @@ void Mutex::Unlock() {
 }
 
 Monitor::Monitor() {
-  InitializeCriticalSection(&data_.cs_);
+  InitializeSRWLock(&data_.lock_);
   InitializeConditionVariable(&data_.cond_);
 }
 
-Monitor::~Monitor() {
-  DeleteCriticalSection(&data_.cs_);
-}
+Monitor::~Monitor() {}
 
 void Monitor::Enter() {
-  EnterCriticalSection(&data_.cs_);
+  AcquireSRWLockExclusive(&data_.lock_);
 }
 
 void Monitor::Exit() {
-  LeaveCriticalSection(&data_.cs_);
+  ReleaseSRWLockExclusive(&data_.lock_);
 }
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
   Monitor::WaitResult retval = kNotified;
   if (millis == kNoTimeout) {
-    SleepConditionVariableCS(&data_.cond_, &data_.cs_, INFINITE);
+    SleepConditionVariableSRW(&data_.cond_, &data_.lock_, INFINITE,
+                              /*Flags=*/0);
   } else {
     // Wait for the given period of time for a Notify or a NotifyAll
     // event.
-    if (!SleepConditionVariableCS(&data_.cond_, &data_.cs_, millis)) {
+    if (!SleepConditionVariableSRW(&data_.cond_, &data_.lock_, millis,
+                                   /*Flags=*/0)) {
       ASSERT(GetLastError() == ERROR_TIMEOUT);
       retval = kTimedOut;
     }
