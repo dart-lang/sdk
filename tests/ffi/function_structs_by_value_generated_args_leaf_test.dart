@@ -93,6 +93,8 @@ void main() {
     testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedLeaf();
     testPassInt64x7Struct12BytesHomogeneousInt32Leaf();
     testPassPointerStruct12BytesHomogeneousInt32Leaf();
+    testPassPointerStructInlineArrayVariableLeaf();
+    testPassPointerStructInlineArrayVariableAlignLeaf();
   }
 }
 
@@ -5509,7 +5511,8 @@ final passPointerStruct12BytesHomogeneousInt32Leaf =
 
 /// Passing a pointer to a struct
 void testPassPointerStruct12BytesHomogeneousInt32Leaf() {
-  final a0 = calloc<Struct12BytesHomogeneousInt32>();
+  final a0 = calloc.allocate<Struct12BytesHomogeneousInt32>(
+      sizeOf<Struct12BytesHomogeneousInt32>());
 
   a0.ref.a0 = -1;
   a0.ref.a1 = 2;
@@ -5520,6 +5523,73 @@ void testPassPointerStruct12BytesHomogeneousInt32Leaf() {
   print("result = $result");
 
   Expect.equals(-2, result);
+
+  calloc.free(a0);
+}
+
+final passPointerStructInlineArrayVariableLeaf =
+    ffiTestFunctions.lookupFunction<
+            Int64 Function(Pointer<StructInlineArrayVariable>),
+            int Function(Pointer<StructInlineArrayVariable>)>(
+        "PassPointerStructInlineArrayVariable",
+        isLeaf: true);
+
+/// Variable length array
+void testPassPointerStructInlineArrayVariableLeaf() {
+  final a0 = calloc.allocate<StructInlineArrayVariable>(
+      sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>());
+
+  a0.ref.a0 = 1;
+  a0.ref.a1[0] = 2;
+  a0.ref.a1[1] = 3;
+  a0.ref.a1[2] = 4;
+  a0.ref.a1[3] = 5;
+  a0.ref.a1[4] = 6;
+  a0.ref.a1[5] = 7;
+  a0.ref.a1[6] = 8;
+  a0.ref.a1[7] = 9;
+  a0.ref.a1[8] = 10;
+  a0.ref.a1[9] = 11;
+
+  final result = passPointerStructInlineArrayVariableLeaf(a0);
+
+  print("result = $result");
+
+  Expect.equals(66, result);
+
+  calloc.free(a0);
+}
+
+final passPointerStructInlineArrayVariableAlignLeaf =
+    ffiTestFunctions.lookupFunction<
+            Int64 Function(Pointer<StructInlineArrayVariableAlign>),
+            int Function(Pointer<StructInlineArrayVariableAlign>)>(
+        "PassPointerStructInlineArrayVariableAlign",
+        isLeaf: true);
+
+/// Variable length array with variable length element having more alignment than
+/// the rest of the struct.
+void testPassPointerStructInlineArrayVariableAlignLeaf() {
+  final a0 = calloc.allocate<StructInlineArrayVariableAlign>(
+      sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>());
+
+  a0.ref.a0 = 1;
+  a0.ref.a1[0] = 2;
+  a0.ref.a1[1] = 3;
+  a0.ref.a1[2] = 4;
+  a0.ref.a1[3] = 5;
+  a0.ref.a1[4] = 6;
+  a0.ref.a1[5] = 7;
+  a0.ref.a1[6] = 8;
+  a0.ref.a1[7] = 9;
+  a0.ref.a1[8] = 10;
+  a0.ref.a1[9] = 11;
+
+  final result = passPointerStructInlineArrayVariableAlignLeaf(a0);
+
+  print("result = $result");
+
+  Expect.equals(66, result);
 
   calloc.free(a0);
 }

@@ -247,7 +247,8 @@ class Member {
     String postFix = "";
     if (type is FixedLengthArrayType) {
       final dimensions = (type as FixedLengthArrayType).dimensions;
-      postFix = "[${dimensions.join("][")}]";
+      postFix =
+          "[${dimensions.map((d) => d == 0 ? '' : d.toString()).join("][")}]";
     }
     return "${type.cType} $name$postFix;";
   }
@@ -477,6 +478,26 @@ class FixedLengthArrayType extends CType {
   bool get isOnlyFloatingPoint => elementType.isOnlyFloatingPoint;
   bool get isOnlyInteger => elementType.isOnlyInteger;
   bool get isOnlyBool => elementType.isOnlyBool;
+}
+
+class VariableLengthArrayType extends FixedLengthArrayType {
+  VariableLengthArrayType(
+    CType elementType,
+  ) : super(elementType, 0);
+
+  factory VariableLengthArrayType.multi(
+      CType elementType, List<int> fixedDimensions) {
+    final nestedArray =
+        FixedLengthArrayType.multi(elementType, fixedDimensions);
+    return VariableLengthArrayType(nestedArray);
+  }
+
+  String get dartStructFieldAnnotation {
+    if (dimensions.length > 5) {
+      return "@Array.variableMulti([${dimensions.skip(1).join(", ")}])";
+    }
+    return "@Array.variable(${dimensions.skip(1).join(", ")})";
+  }
 }
 
 class FunctionType extends CType {

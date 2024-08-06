@@ -248,6 +248,7 @@ if (is_fuchsia) {
     "tests/ffi/has_symbol_test.dart",
     "tests/ffi/inline_array_multi_dimensional_test.dart",
     "tests/ffi/inline_array_test.dart",
+    "tests/ffi/inline_array_variable_length_test.dart",
     "tests/ffi/invoke_callback_after_suspension_test.dart",
     "tests/ffi/isolate_local_function_callbacks_test.dart",
     "tests/ffi/msan_test.dart",

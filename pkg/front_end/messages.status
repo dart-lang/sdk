@@ -422,6 +422,7 @@ FfiStructAnnotation/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
 FfiTypeMismatch/analyzerCode: Fail
+FfiVariableLengthArrayNotLast/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/part_wrapped_script1: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/part_wrapped_script1: Fail

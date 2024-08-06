@@ -60,31 +60,31 @@ final class IncompleteArrayStruct extends ffi::Struct {
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::IncompleteArrayStruct
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
-  @#C46
+  @#C47
   get a0() → ffi::Array<self::Incomplete>
-    return new ffi::Array::_<self::Incomplete>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::IncompleteArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C41, #C47);
-  @#C46
+    return new ffi::Array::_<self::Incomplete>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::IncompleteArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C41, #C48);
+  @#C47
   set a0(synthesized ffi::Array<self::Incomplete> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::IncompleteArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, ffi::_checkAbiSpecificIntegerMapping<core::int>(#C49.{core::List::[]}(ffi::_abi()){(core::int) → core::int?}));
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::IncompleteArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, ffi::_checkAbiSpecificIntegerMapping<core::int>(#C50.{core::List::[]}(ffi::_abi()){(core::int) → core::int?}));
   @#C29
   static get a0#offsetOf() → core::int
     return #C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C29
   static get #sizeOf() → core::int
-    return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C49.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
+    return ffi::_checkAbiSpecificIntegerMapping<core::int>(#C50.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {
   const constructor •() → self::_DummyAllocator
     : super core::Object::•()
     ;
-  @#C50
+  @#C51
   method allocate<T extends ffi::NativeType>(core::int byteCount, {core::int? alignment = #C23}) → ffi::Pointer<self::_DummyAllocator::allocate::T> {
     return ffi::Pointer::fromAddress<self::_DummyAllocator::allocate::T>(0);
   }
-  @#C50
+  @#C51
   method free(ffi::Pointer<ffi::NativeType> pointer) → void {}
 }
-static const field self::_DummyAllocator noAlloc = #C51;
+static const field self::_DummyAllocator noAlloc = #C52;
 static method main() → void {
   self::testSizeOf();
   self::testStoreLoad();
@@ -97,29 +97,29 @@ static method testSizeOf() → void {
   core::print(size);
 }
 static method testStoreLoad() → void {
-  final ffi::Pointer<self::Incomplete> p = #C51.{ffi::Allocator::allocate}<self::Incomplete>(self::Incomplete::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Incomplete>};
+  final ffi::Pointer<self::Incomplete> p = #C52.{ffi::Allocator::allocate}<self::Incomplete>(self::Incomplete::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Incomplete>};
   ffi::_storeAbiSpecificInt<self::Incomplete>(p, #C4, 10);
   core::print(ffi::_loadAbiSpecificInt<self::Incomplete>(p, #C4));
-  #C51.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
+  #C52.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
 static method testStoreLoadIndexed() → void {
-  final ffi::Pointer<self::Incomplete> p = #C51.{ffi::Allocator::allocate}<self::Incomplete>(2.{core::num::*}(self::Incomplete::#sizeOf){(core::num) → core::num}){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Incomplete>};
+  final ffi::Pointer<self::Incomplete> p = #C52.{ffi::Allocator::allocate}<self::Incomplete>(2.{core::num::*}(self::Incomplete::#sizeOf){(core::num) → core::num}){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Incomplete>};
   ffi::_storeAbiSpecificIntAtIndex<self::Incomplete>(p, #C4, 0, 10);
   ffi::_storeAbiSpecificIntAtIndex<self::Incomplete>(p, #C4, 1, 3);
   core::print(ffi::_loadAbiSpecificIntAtIndex<self::Incomplete>(p, #C4, 0));
   core::print(ffi::_loadAbiSpecificIntAtIndex<self::Incomplete>(p, #C4, 1));
-  #C51.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
+  #C52.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
 static method testStruct() → void {
-  final ffi::Pointer<self::IncompleteStruct> p = #C51.{ffi::Allocator::allocate}<self::IncompleteStruct>(self::IncompleteStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::IncompleteStruct>};
+  final ffi::Pointer<self::IncompleteStruct> p = #C52.{ffi::Allocator::allocate}<self::IncompleteStruct>(self::IncompleteStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::IncompleteStruct>};
   new self::IncompleteStruct::#fromTypedDataBase(p!, #C4).{self::IncompleteStruct::a0} = 1;
   core::print(new self::IncompleteStruct::#fromTypedDataBase(p!, #C4).{self::IncompleteStruct::a0}{core::int});
   new self::IncompleteStruct::#fromTypedDataBase(p!, #C4).{self::IncompleteStruct::a0} = 2;
   core::print(new self::IncompleteStruct::#fromTypedDataBase(p!, #C4).{self::IncompleteStruct::a0}{core::int});
-  #C51.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
+  #C52.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
 static method testInlineArray() → void {
-  final ffi::Pointer<self::IncompleteArrayStruct> p = #C51.{ffi::Allocator::allocate}<self::IncompleteArrayStruct>(self::IncompleteArrayStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::IncompleteArrayStruct>};
+  final ffi::Pointer<self::IncompleteArrayStruct> p = #C52.{ffi::Allocator::allocate}<self::IncompleteArrayStruct>(self::IncompleteArrayStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::IncompleteArrayStruct>};
   final ffi::Array<self::Incomplete> array = new self::IncompleteArrayStruct::#fromTypedDataBase(p!, #C4).{self::IncompleteArrayStruct::a0}{ffi::Array<self::Incomplete>};
   for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
     block {
@@ -135,7 +135,7 @@ static method testInlineArray() → void {
       #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
     } =>ffi::_loadAbiSpecificIntAtIndex<self::Incomplete>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}, #index));
   }
-  #C51.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
+  #C52.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
 constants  {
   #C1 = 3
@@ -183,10 +183,11 @@ constants  {
   #C43 = <core::Type>[#C42]
   #C44 = ffi::_FfiStructLayout {fieldTypes:#C43, packing:#C23}
   #C45 = core::pragma {name:#C32, options:#C44}
-  #C46 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C41, dimension2:#C23, dimension3:#C23, dimension4:#C23, dimension5:#C23, dimensions:#C23}
-  #C47 = <core::int>[]
-  #C48 = 400
-  #C49 = <core::int?>[#C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C48, #C48, #C48, #C48, #C23, #C23, #C23, #C23, #C23, #C23, #C23]
-  #C50 = core::_Override {}
-  #C51 = self::_DummyAllocator {}
+  #C46 = false
+  #C47 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C41, dimension2:#C23, dimension3:#C23, dimension4:#C23, dimension5:#C23, dimensions:#C23, variableLength:#C46}
+  #C48 = <core::int>[]
+  #C49 = 400
+  #C50 = <core::int?>[#C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C49, #C49, #C49, #C49, #C23, #C23, #C23, #C23, #C23, #C23, #C23]
+  #C51 = core::_Override {}
+  #C52 = self::_DummyAllocator {}
 }

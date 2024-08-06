@@ -76,8 +76,13 @@ extension on CType {
         return this_.members.take(1).toList().coutExpression("$variableName.");
 
       case FixedLengthArrayType:
+      case VariableLengthArrayType:
         final this_ = this as FixedLengthArrayType;
-        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+        final int length = switch (this_) {
+          VariableLengthArrayType _ => _variableLengthLength,
+          FixedLengthArrayType _ => this_.length,
+        };
+        final indices = [for (var i = 0; i < length; i += 1) i];
 
         String result = '<< "["';
         result += indices
@@ -144,8 +149,13 @@ extension on CType {
             .addToResultStatements("$variableName.${member.name}", isDart);
 
       case FixedLengthArrayType:
+      case VariableLengthArrayType:
         final this_ = this as FixedLengthArrayType;
-        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+        final int length = switch (this_) {
+          VariableLengthArrayType _ => _variableLengthLength,
+          FixedLengthArrayType _ => this_.length,
+        };
+        final indices = [for (var i = 0; i < length; i += 1) i];
         return indices
             .map((i) => this_.elementType
                 .addToResultStatements("$variableName[$i]", isDart))
@@ -192,8 +202,13 @@ extension on CType {
             .assignValueStatements(a, "$variableName.${member.name}", isDart);
 
       case FixedLengthArrayType:
+      case VariableLengthArrayType:
         final this_ = this as FixedLengthArrayType;
-        final indices = [for (var i = 0; i < this_.length; i += 1) i];
+        final int length = switch (this_) {
+          VariableLengthArrayType _ => _variableLengthLength,
+          FixedLengthArrayType _ => this_.length,
+        };
+        final indices = [for (var i = 0; i < length; i += 1) i];
         return indices
             .map((i) => this_.elementType
                 .assignValueStatements(a, "$variableName[$i]", isDart))
@@ -301,8 +316,14 @@ extension on CType {
         final pointerTo = this_.pointerTo;
         switch (pointerTo) {
           case StructType _:
+            final lastMember = pointerTo.memberTypes.last;
+            final String extraBytes = switch (lastMember) {
+              VariableLengthArrayType _ =>
+                '+ $_variableLengthLength * sizeOf<${lastMember.elementType.dartCType}>()',
+              _ => '',
+            };
             return '''
-  final ${variableName} = calloc<${pointerTo.dartType}>();
+  final ${variableName} = calloc.allocate<${pointerTo.dartType}>(sizeOf<${pointerTo.dartType}>() $extraBytes);
   ''';
         }
         return "\n";
@@ -408,11 +429,29 @@ extension on CType {
         final pointerTo = this_.pointerTo;
         switch (pointerTo) {
           case StructType _:
+            final lastMember = pointerTo.memberTypes.last;
+            final String extraBytes = switch (lastMember) {
+              VariableLengthArrayType _ =>
+                '+ $_variableLengthLength * sizeof(${lastMember.elementType.cType})',
+              _ => '',
+            };
             return '''
-${pointerTo.cType} ${variableName}_value = {};
-${cType} ${variableName} = &${variableName}_value;
+${cType} ${variableName} = static_cast<${cType}>(calloc(1, sizeof(${pointerTo.cType}) $extraBytes));
 ''';
         }
+    }
+
+    throw Exception("Not implemented for ${this.runtimeType}");
+  }
+
+  String cFreeStatements(String variableName) {
+    switch (this.runtimeType) {
+      case FundamentalType:
+      case StructType:
+      case UnionType:
+        return "";
+      case PointerType:
+        return 'free(${variableName});';
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -424,6 +463,10 @@ extension on List<Member> {
   String cAllocateStatements([String namePrefix = ""]) {
     return map((m) => m.type.cAllocateStatements("$namePrefix${m.name}"))
         .join();
+  }
+
+  String cFreeStatements([String namePrefix = ""]) {
+    return map((m) => m.type.cFreeStatements("$namePrefix${m.name}")).join();
   }
 }
 
@@ -597,7 +640,8 @@ extension CompositeTypeGenerator on CompositeType {
       dartFields += "${member.dartStructField()}\n\n";
     }
     String toStringBody = members.map((m) {
-      if (m.type is FixedLengthArrayType) {
+      if (m.type is FixedLengthArrayType &&
+          m.type is! VariableLengthArrayType) {
         int dimensionNumber = 0;
         String inlineFor = "";
         String read = m.name;
@@ -993,6 +1037,7 @@ $varArgsUnpack
   String get cCallbackCode {
     final a = ArgumentValueAssigner();
     final argumentAllocations = arguments.cAllocateStatements();
+    final argumentFrees = arguments.cFreeStatements();
     final assignValues = arguments.assignValueStatements(a, false);
 
     final argumentString = [
@@ -1062,6 +1107,8 @@ $varArgsUnpack
 
       $expectsZero
 
+      $argumentFrees
+
       return 0;
     }
 
@@ -1071,6 +1118,7 @@ $varArgsUnpack
   String get cAsyncCallbackCode {
     final a = ArgumentValueAssigner();
     final argumentAllocations = arguments.cAllocateStatements();
+    final argumentFrees = arguments.cFreeStatements();
     final assignValues = arguments.assignValueStatements(a, false);
 
     final argumentString = [
@@ -1095,6 +1143,8 @@ $varArgsUnpack
       std::cout << "Calling TestAsync$cName(" ${arguments.coutExpression()} << ")\\n";
 
       f($argumentNames);
+
+      $argumentFrees
     }
 
     """;
@@ -1469,3 +1519,6 @@ void main(List<String> arguments) async {
     writeC(),
   ]);
 }
+
+// This test uses this number of elements for variable length arrays.
+const _variableLengthLength = 10;

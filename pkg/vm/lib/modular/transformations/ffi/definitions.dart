@@ -442,6 +442,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     bool success = true;
     final membersWithAnnotations =
         _compoundFieldMembers(node, includeSetters: false);
+    final lastField = membersWithAnnotations.lastOrNull;
     for (final Member f in membersWithAnnotations) {
       if (f is Field) {
         if (f.initializer is! NullLiteral) {
@@ -485,7 +486,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (isArrayType(type)) {
           try {
             ensureNativeTypeValid(type, f, allowInlineArray: true);
-            ensureArraySizeAnnotation(f, type);
+            final isLastField = f == lastField;
+            ensureArraySizeAnnotation(f, type, isLastField);
           } on FfiStaticTypeError {
             // It's OK to swallow the exception because the diagnostics issued will
             // cause compilation to fail. By continuing, we can report more
@@ -674,7 +676,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (isArrayType(dartType)) {
         final sizeAnnotations = getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
-          final arrayDimensions = sizeAnnotations.single;
+          final arrayDimensions = sizeAnnotations.single.$1;
           if (this.arrayDimensions(dartType) == arrayDimensions.length) {
             final elementType = arraySingleElementType(dartType);
             if (elementType is! InterfaceType) {

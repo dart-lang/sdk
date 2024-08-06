@@ -10,25 +10,26 @@ final class StructInlineArrayMultiDimensional extends ffi::Struct {
   synthetic constructor •() → self::StructInlineArrayMultiDimensional
     : super ffi::Struct::•()
     ;
-  @#C3
+  @#C4
   external get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>;
-  @#C3
+  @#C4
   external set a0(synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void;
 }
 static method main() → dynamic {
-  final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = ffi::AllocatorAlloc|call<self::StructInlineArrayMultiDimensional>(#C4);
+  final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = ffi::AllocatorAlloc|call<self::StructInlineArrayMultiDimensional>(#C5);
   final self::StructInlineArrayMultiDimensional struct = ffi::StructPointer|get#ref<self::StructInlineArrayMultiDimensional>(pointer);
   final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0}{ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>};
   final ffi::Array<ffi::Array<ffi::Uint8>> subArray = ffi::ArrayArray|[]<ffi::Array<ffi::Uint8>>(array, 0);
   ffi::ArrayArray|[]=<ffi::Array<ffi::Uint8>>(array, 1, subArray);
-  #C4.{all::CallocAllocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
+  #C5.{all::CallocAllocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
 
 constants  {
   #C1 = 2
   #C2 = null
-  #C3 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C1, dimension2:#C1, dimension3:#C1, dimension4:#C2, dimension5:#C2, dimensions:#C2}
-  #C4 = all::CallocAllocator {}
+  #C3 = false
+  #C4 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C1, dimension2:#C1, dimension3:#C1, dimension4:#C2, dimension5:#C2, dimensions:#C2, variableLength:#C3}
+  #C5 = all::CallocAllocator {}
 }
 
 

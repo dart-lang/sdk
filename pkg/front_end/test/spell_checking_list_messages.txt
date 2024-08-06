@@ -17,6 +17,7 @@ annotate
 api
 apis
 argument(s)
+array's
 assigning
 augment
 augmentation
