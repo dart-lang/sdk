@@ -50,6 +50,14 @@ library
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: my.lib
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -179,6 +187,17 @@ library
         class B12 @24
           reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
           enclosingElement: <testLibrary>::@fragment::package:test/b12.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a11.dart
+    <testLibrary>::@fragment::package:test/a12.dart
+    <testLibrary>::@fragment::package:test/b.dart
+    <testLibrary>::@fragment::package:test/b11.dart
+    <testLibrary>::@fragment::package:test/b12.dart
 ''');
   }
 
@@ -200,6 +219,11 @@ library
           uri: noRelativeUriString
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -249,6 +273,13 @@ library
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::B
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: my.lib
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -295,6 +326,12 @@ library
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::B
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -316,6 +353,11 @@ library
           uri: relativeUri 'foo:bar'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -337,6 +379,11 @@ library
           uri: source 'package:test/test.dart'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -359,6 +406,11 @@ library
           uri: source 'package:test/a.dart'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -380,6 +432,11 @@ library
           uri: source 'package:test/a.dart'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -401,6 +458,11 @@ library
           uri: relativeUriString ':'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

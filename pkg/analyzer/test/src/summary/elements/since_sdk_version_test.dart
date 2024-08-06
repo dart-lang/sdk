@@ -67,6 +67,11 @@ library
               enclosingElement: dart:foo::<fragment>::@class::B
               periodOffset: 80
               nameEnd: 86
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -113,6 +118,11 @@ library
                 requiredPositional _foo @-1
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -149,6 +159,11 @@ library
               enclosingElement: dart:foo::<fragment>::@class::A
               sinceSdkVersion: 2.15.0
               returnType: int
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -180,6 +195,11 @@ library
               enclosingElement: dart:foo::<fragment>::@class::A
               sinceSdkVersion: 2.15.0
               returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -212,6 +232,11 @@ library
               enclosingElement: dart:foo::<fragment>::@class::A
               sinceSdkVersion: 2.16.0
               returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -244,6 +269,11 @@ library
               enclosingElement: dart:foo::<fragment>::@class::A
               sinceSdkVersion: 2.15.0
               returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -283,6 +313,11 @@ library
                 requiredPositional _ @65
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -339,6 +374,11 @@ library
               reference: dart:foo::<fragment>::@enum::E::@getter::values
               enclosingElement: dart:foo::<fragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -393,6 +433,11 @@ library
               enclosingElement: dart:foo::<fragment>::@enum::E
               sinceSdkVersion: 2.15.0
               returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -425,6 +470,11 @@ library
               enclosingElement: dart:foo::<fragment>::@extension::E
               sinceSdkVersion: 2.15.0
               returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -458,6 +508,11 @@ library
               enclosingElement: dart:foo::<fragment>::@mixin::M
               sinceSdkVersion: 2.15.0
               returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -488,6 +543,11 @@ library
           reference: dart:foo::<fragment>::@function::bar
           enclosingElement: dart:foo::<fragment>
           returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -512,6 +572,11 @@ library
           enclosingElement: dart:foo::<fragment>
           sinceSdkVersion: 2.15.3-dev.7
           returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -536,6 +601,11 @@ library
           enclosingElement: dart:foo::<fragment>
           sinceSdkVersion: 2.15.3
           returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -559,6 +629,11 @@ library
           reference: dart:foo::<fragment>::@function::foo
           enclosingElement: dart:foo::<fragment>
           returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -586,6 +661,12 @@ library
           enclosingElement: dart:foo::<fragment>
           sinceSdkVersion: 2.15.0
           returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  sinceSdkVersion: 2.15.0
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -618,6 +699,11 @@ library
               type: int?
               sinceSdkVersion: 2.15.0
           returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -649,6 +735,11 @@ library
               type: int?
               sinceSdkVersion: 2.15.0
           returnType: void
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -672,6 +763,11 @@ library
           reference: dart:foo::<fragment>::@typeAlias::A
           sinceSdkVersion: 2.15.0
           aliasedType: List<int>
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 
@@ -703,6 +799,11 @@ library
           enclosingElement: dart:foo::<fragment>
           sinceSdkVersion: 2.15.0
           returnType: int
+----------------------------------------
+library
+  reference: dart:foo
+  fragments
+    dart:foo::<fragment>
 ''');
   }
 

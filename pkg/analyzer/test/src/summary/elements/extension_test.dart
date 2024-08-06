@@ -37,6 +37,11 @@ library
           enclosingElement: <testLibraryFragment>
           documentationComment: /// aaa\n/// bbbb\n/// cc
           extendedType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -72,6 +77,11 @@ library
               reference: <testLibraryFragment>::@extension::E::@getter::x
               enclosingElement: <testLibraryFragment>::@extension::E
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -95,6 +105,11 @@ library
               bound: num
               defaultType: num
           extendedType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -117,6 +132,11 @@ library
             covariant T @12
               defaultType: dynamic
           extendedType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -205,6 +225,11 @@ library
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -268,6 +293,11 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -302,6 +332,11 @@ library
               enclosingElement: <testLibraryFragment>::@extension::E
               returnType: int
               nonSynthetic: <testLibraryFragment>::@extension::E::@getter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -340,6 +375,11 @@ library
                   nonSynthetic: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value
               returnType: void
               nonSynthetic: <testLibraryFragment>::@extension::E::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }
@@ -404,6 +444,17 @@ library
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+  exportedReferences
+    declared <testLibraryFragment>::@extension::A
+  exportNamespace
+    A: <testLibraryFragment>::@extension::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
   exportedReferences
     declared <testLibraryFragment>::@extension::A
   exportNamespace
@@ -479,6 +530,13 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -564,6 +622,12 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_1
               augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -679,6 +743,13 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_2
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -794,6 +865,13 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_1
               augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -912,6 +990,13 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_1
               augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -997,6 +1082,12 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_1
               augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1072,6 +1163,12 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_1
               augmentationTarget: <testLibraryFragment>::@extension::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1176,6 +1273,12 @@ library
               returnType: void
               id: setter_1
               variable: field_1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1256,6 +1359,12 @@ library
               returnType: int
               id: getter_1
               variable: field_1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1346,6 +1455,12 @@ library
               returnType: T2
               id: getter_1
               variable: field_1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1431,6 +1546,12 @@ library
               id: getter_1
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1546,6 +1667,13 @@ library
               id: getter_2
               variable: field_0
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -1634,6 +1762,12 @@ library
               id: getter_2
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1737,6 +1871,13 @@ library
               id: getter_2
               variable: field_0
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -1795,6 +1936,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1860,6 +2007,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1948,6 +2101,13 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: void
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -2014,6 +2174,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: T2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -2081,6 +2247,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: T2
               augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -2151,6 +2323,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@extension::A::@method::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -2237,6 +2415,12 @@ library
               returnType: void
               id: setter_1
               variable: field_1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -2325,6 +2509,12 @@ library
               id: setter_1
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -2422,6 +2612,12 @@ library
               id: setter_2
               variable: field_0
               augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -2483,6 +2679,13 @@ library
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTargetAny: <testLibraryFragment>::@extension::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -2546,6 +2749,13 @@ library
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@extension::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 }

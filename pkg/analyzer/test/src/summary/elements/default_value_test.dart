@@ -55,6 +55,11 @@ library
                       rightBracket: ] @43
                       staticType: List<Never>
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -140,6 +145,11 @@ library
             requiredPositional v @44
               type: T
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -215,6 +225,11 @@ library
                         rightParenthesis: ) @73
                       staticType: A<dynamic Function()>
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -240,6 +255,11 @@ library
                 optionalNamed a @11
                   type: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -278,6 +298,11 @@ library
                   staticElement: dart:core::<fragment>::@class::Comparable::@method::compare
                   staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -327,6 +352,11 @@ library
                   rightParenthesis: ) @48
                   staticType: ({int f1, bool f2})
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -377,6 +407,11 @@ library
                   rightParenthesis: ) @54
                   staticType: ({int f1, bool f2})
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -412,6 +447,11 @@ library
                   rightParenthesis: ) @32
                   staticType: (int, bool)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -448,6 +488,11 @@ library
                   rightParenthesis: ) @38
                   staticType: (int, bool)
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -496,6 +541,11 @@ library
                       staticElement: <testLibraryFragment>::@extension::E::@method::f
                       staticType: void Function()
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -558,6 +608,11 @@ library
                         rightParenthesis: ) @82
                       staticType: B<int, double>
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -616,6 +671,11 @@ library
                         leftParenthesis: ( @68
                         rightParenthesis: ) @69
                       staticType: B<Never>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -689,6 +749,11 @@ library
                         leftParenthesis: ( @133
                         rightParenthesis: ) @134
                       staticType: B<Never>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -743,6 +808,11 @@ library
                     rightParenthesis: ) @58
                   staticType: B<Never>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -806,6 +876,11 @@ library
                         rightParenthesis: ) @70
                       staticType: B<Never>
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -874,6 +949,11 @@ library
                         rightParenthesis: ) @85
                       staticType: B<Never, Never>
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -937,6 +1017,11 @@ library
                         rightParenthesis: ) @70
                       staticType: B<Never>
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

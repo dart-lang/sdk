@@ -146,6 +146,11 @@ library
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -274,6 +279,11 @@ library
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -333,6 +343,11 @@ library
               requiredPositional a @20
                 type: T
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -371,6 +386,11 @@ library
               alias: <testLibraryFragment>::@typeAlias::F1
                 typeArguments
                   T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -409,6 +429,11 @@ library
               requiredPositional a @44
                 type: T
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -432,6 +457,11 @@ library
           aliasedType: T Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -455,6 +485,11 @@ library
           aliasedType: List<T> Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: List<T>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -490,6 +525,11 @@ library
               alias: <testLibraryFragment>::@typeAlias::F1
                 typeArguments
                   T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -531,6 +571,11 @@ library
                     typeArguments
                       T
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -557,6 +602,11 @@ library
               requiredPositional a @17
                 type: T
             returnType: T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -595,6 +645,11 @@ library
               alias: <testLibraryFragment>::@typeAlias::F1
                 typeArguments
                   T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -621,6 +676,11 @@ library
               requiredPositional a @22
                 type: int
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -673,6 +733,11 @@ library
               requiredPositional @-1
                 type: dynamic
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -699,6 +764,11 @@ library
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -719,6 +789,11 @@ library
           aliasedType: List<dynamic> Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: List<dynamic>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -743,6 +818,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -766,6 +846,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -786,6 +871,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -808,6 +898,11 @@ library
               bound: dynamic
               defaultType: dynamic
           aliasedType: List<int>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -826,6 +921,11 @@ library
         notSimplyBounded F @8
           reference: <testLibraryFragment>::@typeAlias::F
           aliasedType: List<dynamic>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -867,6 +967,11 @@ library
                   optionalNamed p @-1
                     type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -896,6 +1001,11 @@ library
                   requiredPositional u @27
                     type: U
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -922,6 +1032,11 @@ library
               requiredPositional @-1
                 type: T
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -960,6 +1075,11 @@ library
               alias: <testLibraryFragment>::@typeAlias::F1
                 typeArguments
                   T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -983,6 +1103,11 @@ library
           aliasedType: T Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1006,6 +1131,11 @@ library
           aliasedType: List<T> Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: List<T>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1041,6 +1171,11 @@ library
               alias: <testLibraryFragment>::@typeAlias::F1
                 typeArguments
                   T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1082,6 +1217,11 @@ library
                     typeArguments
                       T
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1117,6 +1257,11 @@ library
               requiredPositional @-1
                 type: A
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1150,6 +1295,11 @@ library
                 type: void Function()
                   alias: <testLibraryFragment>::@typeAlias::F
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1176,6 +1326,11 @@ library
               requiredPositional @-1
                 type: T
             returnType: T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1214,6 +1369,11 @@ library
               alias: <testLibraryFragment>::@typeAlias::F1
                 typeArguments
                   T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1240,6 +1400,11 @@ library
               requiredPositional @-1
                 type: int
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1261,6 +1426,11 @@ library
             contravariant T @10
               defaultType: dynamic
           aliasedType: List<void Function(T)>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1294,6 +1464,11 @@ library
             contravariant T @43
               defaultType: dynamic
           aliasedType: List<void Function(T)>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1315,6 +1490,11 @@ library
             covariant T @10
               defaultType: dynamic
           aliasedType: List<T>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1343,6 +1523,11 @@ library
             covariant T @38
               defaultType: dynamic
           aliasedType: List<Map<int, T>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1364,6 +1549,11 @@ library
             contravariant T @10
               defaultType: dynamic
           aliasedType: (void Function(T), int)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1392,6 +1582,11 @@ library
             contravariant T @50
               defaultType: dynamic
           aliasedType: List<(void Function(T), int)>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1413,6 +1608,11 @@ library
             covariant T @10
               defaultType: dynamic
           aliasedType: (T, int)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1434,6 +1634,11 @@ library
             invariant T @10
               defaultType: dynamic
           aliasedType: (T Function(T), int)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1455,6 +1660,11 @@ library
             unrelated T @10
               defaultType: dynamic
           aliasedType: (int, String)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1486,6 +1696,11 @@ library
               requiredPositional @-1
                 type: T
             returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1551,6 +1766,11 @@ library
               requiredPositional x @33
                 type: T
             returnType: S
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1589,6 +1809,11 @@ library
               requiredPositional c @28
                 type: C<C<dynamic>>
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1627,6 +1852,11 @@ library
               requiredPositional @-1
                 type: C<C<dynamic>>
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1662,6 +1892,11 @@ library
           aliasedType: C<C<dynamic>> Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: C<C<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1690,6 +1925,11 @@ library
               requiredPositional t @41
                 type: T
             returnType: U
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1714,6 +1954,11 @@ library
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1752,6 +1997,11 @@ library
               requiredPositional c @17
                 type: C<C<dynamic>>
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1787,6 +2037,11 @@ library
           aliasedType: C<C<dynamic>> Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: C<C<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1811,6 +2066,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1831,6 +2091,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1852,6 +2117,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1891,6 +2161,11 @@ library
                   requiredPositional y @15
                     type: dynamic
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1920,6 +2195,11 @@ library
                   requiredPositional x @22
                     type: B
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1941,6 +2221,11 @@ library
               requiredPositional g @14
                 type: int Function()
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1962,6 +2247,11 @@ library
               requiredPositional i @14
                 type: int
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1986,6 +2276,11 @@ library
               requiredPositional t @15
                 type: T
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2009,6 +2304,11 @@ library
               requiredPositional y @13
                 type: dynamic
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2034,6 +2334,11 @@ library
               optionalNamed x @17
                 type: dynamic
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2052,6 +2357,11 @@ library
           aliasedType: int Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2073,6 +2383,11 @@ library
           aliasedType: T Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2091,6 +2406,11 @@ library
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2109,6 +2429,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2135,6 +2460,11 @@ library
               requiredPositional t @20
                 type: T
             returnType: U
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2172,6 +2502,11 @@ library
               requiredPositional t @45
                 type: T
             returnType: U
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2195,6 +2530,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2218,6 +2558,11 @@ library
           aliasedType: void Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2245,6 +2590,11 @@ library
               requiredPositional t @36
                 type: T
             returnType: U
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2272,6 +2622,11 @@ library
               requiredPositional t @30
                 type: T
             returnType: U
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2339,6 +2694,11 @@ library
                   typeArguments
                     int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2389,6 +2749,11 @@ library
                     int
                     String
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2446,6 +2811,11 @@ library
                     int
                     String
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2483,6 +2853,11 @@ library
                   typeArguments
                     U
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2547,6 +2922,11 @@ library
             covariant T @10
               defaultType: dynamic
           aliasedType: A<int, T>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2607,6 +2987,11 @@ library
             covariant T @10
               defaultType: dynamic
           aliasedType: A<T>?
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2671,6 +3056,11 @@ library
             covariant T @10
               defaultType: dynamic
           aliasedType: A<T?>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2698,6 +3088,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: Never
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2725,6 +3120,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: Null
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2777,6 +3177,11 @@ library
             covariant T @10
               defaultType: dynamic
           aliasedType: T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2823,6 +3228,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2865,6 +3275,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: A<int>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2920,6 +3335,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: A<int>?
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2977,6 +3397,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: A<int?>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3004,6 +3429,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: Never
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3047,6 +3477,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: A<int>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3095,6 +3530,11 @@ library
             covariant T @10
               defaultType: dynamic
           aliasedType: T
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3122,6 +3562,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: Null
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3160,6 +3605,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: A<int>?
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3203,6 +3653,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: A<int?>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3230,6 +3685,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: Never
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3257,6 +3717,11 @@ library
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
           aliasedType: Null
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3284,6 +3749,11 @@ library
             requiredPositional a @30
               type: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3317,6 +3787,11 @@ library
               type: dynamic Function()
                 alias: <testLibraryFragment>::@typeAlias::A
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3345,6 +3820,11 @@ library
               type: int
                 alias: <testLibraryFragment>::@typeAlias::A
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3373,6 +3853,11 @@ library
               type: int?
                 alias: <testLibraryFragment>::@typeAlias::A
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3406,6 +3891,11 @@ library
                   typeArguments
                     String
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3433,6 +3923,11 @@ library
             requiredPositional a @28
               type: Never
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3460,6 +3955,11 @@ library
             requiredPositional a @29
               type: Never?
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3501,6 +4001,11 @@ library
                   typeArguments
                     int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3542,6 +4047,11 @@ library
                   typeArguments
                     int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3569,6 +4079,11 @@ library
             requiredPositional a @27
               type: void
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3590,6 +4105,11 @@ library
           aliasedType: (dynamic, int) Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: (dynamic, int)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3611,6 +4131,11 @@ library
           reference: <testLibraryFragment>::@function::g
           enclosingElement: <testLibraryFragment>
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3665,6 +4190,12 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
           aliasedType: int
           augmentationTargetAny: <testLibraryFragment>::@class::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -3704,6 +4235,12 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
           aliasedType: int
           augmentationTargetAny: <testLibraryFragment>::@function::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -3748,6 +4285,12 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
           aliasedType: int
           augmentationTargetAny: <testLibraryFragment>::@getter::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -3781,6 +4324,14 @@ library
         augment A @45
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
           aliasedType: int
+  exportedReferences
+  exportNamespace
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
   exportedReferences
   exportNamespace
 ''');
@@ -3830,6 +4381,12 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
           aliasedType: int
           augmentationTargetAny: <testLibraryFragment>::@setter::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -3870,6 +4427,16 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAliasAugmentation::A
           aliasedType: int
           augmentationTarget: <testLibraryFragment>::@typeAlias::A
+  exportedReferences
+    declared <testLibraryFragment>::@typeAlias::A
+  exportNamespace
+    A: <testLibraryFragment>::@typeAlias::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
   exportedReferences
     declared <testLibraryFragment>::@typeAlias::A
   exportNamespace

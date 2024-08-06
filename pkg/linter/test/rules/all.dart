@@ -20,11 +20,14 @@ import 'avoid_catches_without_on_clauses_test.dart'
 import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
 import 'avoid_classes_with_only_static_members_test.dart'
     as avoid_classes_with_only_static_members;
+import 'avoid_double_and_int_checks_test.dart' as avoid_double_and_int_checks;
 import 'avoid_dynamic_calls_test.dart' as avoid_dynamic_calls;
 import 'avoid_empty_else_test.dart' as avoid_empty_else;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
+import 'avoid_field_initializers_in_const_classes_test.dart'
+    as avoid_field_initializers_in_const_classes;
 import 'avoid_field_initializers_in_non_const_classes_test.dart'
     as avoid_field_initializers_in_non_const_classes;
 import 'avoid_final_parameters_test.dart' as avoid_final_parameters;
@@ -36,6 +39,8 @@ import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
 import 'avoid_js_rounded_ints_test.dart' as avoid_js_rounded_ints;
 import 'avoid_multiple_declarations_per_line_test.dart'
     as avoid_multiple_declarations_per_line;
+import 'avoid_null_checks_in_equality_operators_test.dart'
+    as avoid_null_checks_in_equality_operators;
 import 'avoid_positional_boolean_parameters_test.dart'
     as avoid_positional_boolean_parameters;
 import 'avoid_print_test.dart' as avoid_print;
@@ -309,10 +314,12 @@ void main() {
   avoid_catches_without_on_clauses.main();
   avoid_catching_errors.main();
   avoid_classes_with_only_static_members.main();
+  avoid_double_and_int_checks.main();
   avoid_dynamic_calls.main();
   avoid_empty_else.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
+  avoid_field_initializers_in_const_classes.main();
   avoid_field_initializers_in_non_const_classes.main();
   avoid_final_parameters.main();
   avoid_function_literals_in_foreach_calls.main();
@@ -320,6 +327,7 @@ void main() {
   avoid_init_to_null.main();
   avoid_js_rounded_ints.main();
   avoid_multiple_declarations_per_line.main();
+  avoid_null_checks_in_equality_operators.main();
   avoid_positional_boolean_parameters.main();
   avoid_print.main();
   avoid_private_typedef_functions.main();

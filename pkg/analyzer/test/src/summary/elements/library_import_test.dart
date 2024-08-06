@@ -57,6 +57,13 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/foo.dart
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -102,6 +109,13 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/foo_io.dart
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -147,6 +161,13 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/foo_io.dart
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -192,6 +213,13 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/foo_html.dart
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -237,6 +265,13 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/foo_html.dart
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -268,6 +303,14 @@ library
         dart:math
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:core
+        dart:math
 ''');
   }
 
@@ -290,6 +333,13 @@ library
         dart:math
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:math
 ''');
   }
 
@@ -323,6 +373,16 @@ library
           reference: <testLibraryFragment>::@prefix::p
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+      prefixes
+        p
+          reference: <testLibraryFragment>::@prefix::p
 ''');
   }
 
@@ -408,6 +468,22 @@ library
         dart:math
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
+        dart:async
+        dart:async
+      prefixes
+        i1
+          reference: <testLibraryFragment>::@prefix::i1
+        i2
+          reference: <testLibraryFragment>::@prefix::i2
+        i3
+          reference: <testLibraryFragment>::@prefix::i3
 ''');
   }
 
@@ -451,6 +527,13 @@ library
             requiredPositional _f @-1
               type: Future<dynamic>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
   }
 
@@ -508,6 +591,29 @@ library
                 staticElement: <null>
                 staticType: null
               element: <null>
+----------------------------------------
+library
+  reference: <testLibrary>
+  metadata
+    Annotation
+      atSign: @ @0
+      name: SimpleIdentifier
+        token: foo @1
+        staticElement: <null>
+        staticType: null
+      element: <null>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        relativeUri 'ht:'
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: foo @1
+                staticElement: <null>
+                staticType: null
+              element: <null>
 ''');
   }
 
@@ -554,6 +660,13 @@ library
             requiredPositional _f @-1
               type: Future<dynamic>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
   }
 
@@ -606,6 +719,16 @@ library
             requiredPositional _c @-1
               type: C
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+      prefixes
+        a
+          reference: <testLibraryFragment>::@prefix::a
 ''');
   }
 
@@ -661,6 +784,16 @@ library
               reference: <testLibraryFragment>::@class::D::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::D
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/test.dart
+      prefixes
+        p
+          reference: <testLibraryFragment>::@prefix::p
 ''');
   }
 
@@ -721,6 +854,13 @@ library
             requiredPositional _s @-1
               type: Stream<dynamic>
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
   }
 
@@ -801,6 +941,14 @@ library
             requiredPositional _d @-1
               type: D
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+        package:test/b.dart
 ''');
   }
 
@@ -823,6 +971,13 @@ library
         noRelativeUriString
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        noRelativeUriString
 ''');
   }
 
@@ -856,6 +1011,13 @@ library
         dart:core synthetic
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:core synthetic
 ''');
   }
 
@@ -878,6 +1040,13 @@ library
         package:test/test.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/test.dart
 ''');
   }
 
@@ -900,6 +1069,13 @@ library
         relativeUri 'foo:bar'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        relativeUri 'foo:bar'
 ''');
   }
 
@@ -922,6 +1098,13 @@ library
         package:test/a.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
 ''');
   }
 
@@ -947,6 +1130,13 @@ library
         source 'package:test/a.dart'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        source 'package:test/a.dart'
 ''');
   }
 
@@ -972,6 +1162,13 @@ library
         source 'package:test/a.dart'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        source 'package:test/a.dart'
 ''');
   }
 
@@ -994,6 +1191,13 @@ library
         relativeUriString ':'
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        relativeUriString ':'
 ''');
   }
 
@@ -1048,6 +1252,16 @@ library
         dart:math
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:io
+    <testLibrary>::@fragment::package:test/a.dart
+      libraryImports
+        dart:math
 ''');
   }
 
@@ -1084,6 +1298,22 @@ library
         dart:math
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+      libraryImports
+        dart:math
           metadata
             Annotation
               atSign: @ @21
@@ -1155,6 +1385,29 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  metadata
+    Annotation
+      atSign: @ @0
+      name: SimpleIdentifier
+        token: a @1
+        staticElement: <testLibraryFragment>::@getter::a
+        staticType: null
+      element: <testLibraryFragment>::@getter::a
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: a @1
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -1223,6 +1476,29 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  metadata
+    Annotation
+      atSign: @ @0
+      name: SimpleIdentifier
+        token: a @1
+        staticElement: <testLibraryFragment>::@getter::a
+        staticType: null
+      element: <testLibraryFragment>::@getter::a
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: a @1
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
 ''');
   }
 
@@ -1277,6 +1553,14 @@ library
             requiredPositional _v @-1
               type: A
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+        package:test/b.dart
 ''');
   }
 
@@ -1301,6 +1585,13 @@ library
         package:test/foo.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/foo.dart
 ''');
   }
 }

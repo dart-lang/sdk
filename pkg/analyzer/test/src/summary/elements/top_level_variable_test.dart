@@ -43,6 +43,11 @@ library
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: Future<int>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -76,6 +81,13 @@ library
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: Stream<int>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:async
 ''');
   }
 
@@ -104,6 +116,11 @@ library
           enclosingElement: <testLibraryFragment>
           documentationComment: /**\n * Docs\n */
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -126,6 +143,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -176,6 +198,11 @@ library
               reference: <testLibraryFragment>::@class::D::@getter::f
               enclosingElement: <testLibraryFragment>::@class::D
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -200,6 +227,11 @@ library
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: Iterator<int>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -230,6 +262,11 @@ library
           reference: <testLibraryFragment>::@getter::y
           enclosingElement: <testLibraryFragment>
           returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -268,6 +305,11 @@ library
           returnType: void
           id: setter_0
           variable: variable_0
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -298,6 +340,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -329,6 +376,11 @@ library
             requiredPositional value @71
               type: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -354,6 +406,11 @@ library
             requiredPositional value @24
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -379,6 +436,11 @@ library
             requiredPositional value @10
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -416,6 +478,11 @@ library
             requiredPositional value @31
               type: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -447,6 +514,11 @@ library
             requiredPositional _i @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -479,6 +551,11 @@ library
             requiredPositional value @31
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -511,6 +588,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -564,6 +646,11 @@ library
           returnType: int
           id: getter_1
           variable: variable_1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -620,6 +707,11 @@ library
           returnType: void
           id: setter_1
           variable: variable_1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -661,6 +753,11 @@ library
           returnType: void
           id: setter_0
           variable: variable_0
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -691,6 +788,11 @@ library
             requiredPositional _x @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -718,6 +820,11 @@ library
           reference: <testLibraryFragment>::@getter::i
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -745,6 +852,11 @@ library
           reference: <testLibraryFragment>::@getter::i
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -780,6 +892,11 @@ library
             requiredPositional _x @-1
               type: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -803,6 +920,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -858,6 +980,13 @@ library
             requiredPositional _ @31
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: my.lib
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -914,6 +1043,13 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::x
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: my.lib
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -975,6 +1111,14 @@ library
             requiredPositional _ @31
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: my.lib
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -1024,6 +1168,11 @@ library
             requiredPositional _x @-1
               type: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1054,6 +1203,11 @@ library
             requiredPositional _v @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1077,6 +1231,11 @@ library
           reference: <testLibraryFragment>::@getter::v
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1100,6 +1259,11 @@ library
           reference: <testLibraryFragment>::@getter::v
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1137,6 +1301,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: (int, bool)
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1191,6 +1360,11 @@ library
             requiredPositional _x @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1221,6 +1395,11 @@ library
             requiredPositional _v @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1251,6 +1430,11 @@ library
             requiredPositional _x @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1280,6 +1464,11 @@ library
             requiredPositional _x @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1303,6 +1492,11 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1330,6 +1524,11 @@ library
           reference: <testLibraryFragment>::@getter::i
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1362,6 +1561,13 @@ library
           reference: <testLibraryFragment>::@getter::b
           enclosingElement: <testLibraryFragment>
           returnType: double
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
 ''');
   }
 
@@ -1411,6 +1617,13 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: lib
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -1434,6 +1647,11 @@ library
           reference: <testLibraryFragment>::@getter::i
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1468,6 +1686,13 @@ library
           reference: <testLibraryFragment>::@getter::x
           enclosingElement: <testLibraryFragment>
           returnType: C
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/b.dart
 ''');
   }
 
@@ -1529,6 +1754,14 @@ library
           reference: <testLibrary>::@fragment::package:test/b.dart::@getter::x
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: my.lib
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -1559,6 +1792,11 @@ library
             requiredPositional _v @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1592,6 +1830,11 @@ library
             requiredPositional _a @-1
               type: Never
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1624,6 +1867,11 @@ library
             requiredPositional _a @-1
               type: dynamic
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1677,6 +1925,11 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: A<int>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1721,6 +1974,11 @@ library
             requiredPositional _j @-1
               type: int
           returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1819,6 +2077,18 @@ library
   exportNamespace
     A: <testLibrary>::@fragment::package:test/a.dart::@getter::A
     A=: <testLibrary>::@fragment::package:test/a.dart::@setter::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+  exportedReferences
+    declared <testLibrary>::@fragment::package:test/a.dart::@getter::A
+    declared <testLibrary>::@fragment::package:test/a.dart::@setter::A
+  exportNamespace
+    A: <testLibrary>::@fragment::package:test/a.dart::@getter::A
+    A=: <testLibrary>::@fragment::package:test/a.dart::@setter::A
 ''');
   }
 
@@ -1882,6 +2152,18 @@ library
           returnType: void
           id: setter_0
           variable: variable_0
+  exportedReferences
+    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
@@ -1966,6 +2248,18 @@ library
   exportNamespace
     foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+  exportedReferences
+    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
 ''');
   }
 
@@ -2041,6 +2335,18 @@ library
           returnType: void
           id: setter_1
           variable: variable_1
+  exportedReferences
+    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
@@ -2137,6 +2443,18 @@ library
   exportNamespace
     foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
     foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+  exportedReferences
+    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
 ''');
   }
 
@@ -2207,6 +2525,12 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 }

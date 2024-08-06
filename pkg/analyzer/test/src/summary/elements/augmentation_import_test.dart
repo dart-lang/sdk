@@ -57,6 +57,12 @@ library
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
 
     var import_0 = library.augmentationImports[0];
@@ -118,6 +124,14 @@ library
     <testLibrary>::@fragment::package:test/c.dart
       enclosingElement: <testLibrary>::@augmentation::package:test/c.dart
       enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
+    <testLibrary>::@fragment::package:test/c.dart
 ''');
 
     var import_0 = library.augmentationImports[0];
@@ -139,6 +153,11 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -156,6 +175,11 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -173,6 +197,11 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -193,6 +222,11 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -213,6 +247,11 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -230,6 +269,11 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -247,6 +291,11 @@ library
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }

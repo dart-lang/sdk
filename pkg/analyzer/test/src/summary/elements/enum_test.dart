@@ -142,6 +142,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -251,6 +256,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -318,6 +328,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -405,6 +420,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -471,6 +491,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -543,6 +568,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -610,6 +640,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -693,6 +728,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::x
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -783,6 +823,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::x::@def::1
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: String
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -854,6 +899,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -947,6 +997,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::x
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1027,6 +1082,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::x
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: num
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1107,6 +1167,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::x
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1187,6 +1252,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::x
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1268,6 +1338,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1342,6 +1417,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1451,6 +1531,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::x
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1519,6 +1604,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1599,6 +1689,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::foo
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1631,6 +1726,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@field::_foo
               enclosingElement: <testLibraryFragment>::@enum::E
               type: int?
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1706,6 +1806,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::foo
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1783,6 +1888,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1854,6 +1964,11 @@ library
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               enclosingElement: <testLibraryFragment>::@extensionType::B
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -1939,6 +2054,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2025,6 +2145,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2110,6 +2235,11 @@ library
                 requiredPositional u @37
                   type: U
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2182,6 +2312,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@method::toString
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: String
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2257,6 +2392,11 @@ library
           enclosingElement: <testLibraryFragment>
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2328,6 +2468,11 @@ library
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               enclosingElement: <testLibraryFragment>::@extensionType::B
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2416,6 +2561,11 @@ library
               defaultType: dynamic
           superclassConstraints
             M1<T>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2494,6 +2644,11 @@ library
                 requiredPositional _ @27
                   type: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2565,6 +2720,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2640,6 +2800,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<num, num>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2682,6 +2847,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2730,6 +2900,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic, num, dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2772,6 +2947,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2813,6 +2993,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2854,6 +3039,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2895,6 +3085,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -2940,6 +3135,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E<dynamic, dynamic, dynamic>>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3037,6 +3237,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3170,6 +3375,11 @@ library
           reference: <testLibraryFragment>::@getter::annotation
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3257,6 +3467,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3368,6 +3583,11 @@ library
               reference: <testLibraryFragment>::@enum::E2::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E2
               returnType: List<E2>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3564,6 +3784,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3649,6 +3874,11 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3824,6 +4054,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3899,6 +4134,11 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               enclosingElement: <testLibraryFragment>::@enum::E
               returnType: List<E>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -3991,6 +4231,11 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -4088,6 +4333,11 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -4222,6 +4472,11 @@ library
           reference: <testLibraryFragment>::@getter::foo
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -4317,6 +4572,11 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 
@@ -4402,6 +4662,11 @@ library
           reference: <testLibraryFragment>::@getter::a
           enclosingElement: <testLibraryFragment>
           returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
 ''');
   }
 }
@@ -4498,6 +4763,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -4678,6 +4949,21 @@ library
     declared <testLibraryFragment>::@enum::A
   exportNamespace
     A: <testLibraryFragment>::@enum::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a1.dart
+    <testLibrary>::@fragment::package:test/a11.dart
+    <testLibrary>::@fragment::package:test/a12.dart
+    <testLibrary>::@fragment::package:test/a2.dart
+    <testLibrary>::@fragment::package:test/a21.dart
+    <testLibrary>::@fragment::package:test/a22.dart
+  exportedReferences
+    declared <testLibraryFragment>::@enum::A
+  exportNamespace
+    A: <testLibraryFragment>::@enum::A
 ''');
   }
 
@@ -4798,6 +5084,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -4893,6 +5185,13 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -5036,6 +5335,12 @@ library
               returnType: A
               id: getter_2
               variable: field_2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -5234,6 +5539,13 @@ library
               returnType: A
               id: getter_3
               variable: field_3
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -5398,6 +5710,12 @@ library
               returnType: A
               id: getter_2
               variable: field_2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -5592,6 +5910,12 @@ library
                   staticType: A
               id: field_4
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::v2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -5770,6 +6094,12 @@ library
                   staticType: A
               id: field_3
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::v1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -5872,6 +6202,12 @@ library
               type: A
               shouldUseTypeForInitializerInference: false
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::v
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -5953,6 +6289,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               periodOffset: 56
               nameEnd: 62
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -6045,6 +6387,12 @@ library
               parameters
                 requiredPositional a @70
                   type: T2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -6132,6 +6480,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               periodOffset: 56
               nameEnd: 62
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -6211,6 +6565,12 @@ library
             const @55
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -6298,6 +6658,12 @@ library
             const @55
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -6394,6 +6760,12 @@ library
                 requiredPositional final this.f @68
                   type: int
                   field: <testLibraryFragment>::@enum::A::@field::f
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -6496,6 +6868,12 @@ library
                   expression: IntegerLiteral
                     literal: 0 @71
                     staticType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -6610,6 +6988,12 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_3
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -6754,6 +7138,13 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_4
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -6898,6 +7289,13 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_3
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -7045,6 +7443,13 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_3
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -7159,6 +7564,12 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_3
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7293,6 +7704,12 @@ library
                   staticElement: <null>
                   staticType: null
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7408,6 +7825,12 @@ library
               shouldUseTypeForInitializerInference: true
               id: field_3
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7530,6 +7953,12 @@ library
               returnType: int
               id: getter_3
               variable: field_3
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7660,6 +8089,12 @@ library
               returnType: T2
               id: getter_3
               variable: field_3
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7756,6 +8191,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7858,6 +8299,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7978,6 +8425,12 @@ library
               returnType: int
               id: getter_3
               variable: field_3
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -8108,6 +8561,12 @@ library
               returnType: T2
               id: getter_3
               variable: field_3
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -8222,6 +8681,12 @@ library
               id: getter_3
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -8366,6 +8831,13 @@ library
               id: getter_4
               variable: field_2
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -8494,6 +8966,12 @@ library
               id: getter_4
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -8616,6 +9094,12 @@ library
               id: getter_4
               variable: field_2
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -8759,6 +9243,13 @@ library
               id: getter_4
               variable: field_2
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -8851,6 +9342,12 @@ library
               returnType: int
               id: getter_2
               variable: <null>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -8953,6 +9450,12 @@ library
           augmentationTarget: <testLibraryFragment>::@enum::A
           interfaces
             I2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9087,6 +9590,13 @@ library
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           interfaces
             I3
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -9198,6 +9708,12 @@ library
           augmentationTarget: <testLibraryFragment>::@enum::A
           interfaces
             I2<T2>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9310,6 +9826,12 @@ library
           augmentationTarget: <testLibraryFragment>::@enum::A
           interfaces
             I2<T2>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9403,6 +9925,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9517,6 +10045,12 @@ library
                       literal: 42 @67
                       staticType: int
               returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9617,6 +10151,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9718,6 +10258,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9827,6 +10373,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
               returnType: void
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9950,6 +10502,13 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -10051,6 +10610,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -10153,6 +10718,12 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -10251,6 +10822,12 @@ library
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           superclassConstraints
             Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -10396,6 +10973,13 @@ library
               defaultType: dynamic
           superclassConstraints
             M2<U3>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -10522,6 +11106,12 @@ library
               returnType: void
               id: setter_1
               variable: field_3
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -10639,6 +11229,12 @@ library
               id: setter_0
               variable: <null>
               augmentationTargetAny: <testLibraryFragment>::@enum::A::@getter::foo
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -10739,6 +11335,12 @@ library
               returnType: void
               id: setter_0
               variable: <null>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -10876,6 +11478,12 @@ library
               id: setter_2
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@setter::foo1
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -10958,6 +11566,13 @@ library
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTargetAny: <testLibraryFragment>::@enum::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -11050,6 +11665,13 @@ library
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -11169,6 +11791,13 @@ library
               periodOffset: 64
               nameEnd: 70
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -11285,6 +11914,12 @@ library
               periodOffset: 64
               nameEnd: 70
               augmentationTarget: <testLibraryFragment>::@enum::A::@constructor::named
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -11392,6 +12027,12 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               augmentationTarget: <testLibraryFragment>::@enum::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -11501,6 +12142,14 @@ library
                 requiredPositional a @53
                   type: String
               returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        package:test/a.dart
+    <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
 
@@ -11609,6 +12258,14 @@ library
           augmentationTarget: <testLibraryFragment>::@enum::B
           interfaces
             A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/b.dart
+      libraryImports
+        package:test/a.dart
 ''');
   }
 
@@ -11717,6 +12374,14 @@ library
           augmentationTarget: <testLibraryFragment>::@enum::B
           mixins
             A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/b.dart
+      libraryImports
+        package:test/a.dart
 ''');
   }
 
@@ -11811,6 +12476,12 @@ library
               bound: B
               defaultType: B
           augmentationTarget: <testLibraryFragment>::@enum::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 }
