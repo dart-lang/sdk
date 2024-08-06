@@ -74,7 +74,6 @@ Future<String> getMachineListing(
         'name': rule.name,
         'description': rule.description,
         'categories': rule.categories.toList(),
-        'group': rule.categories.firstOrNull ?? '',
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': [

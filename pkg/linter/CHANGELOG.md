@@ -1,4 +1,9 @@
-# 3.5.0-wip
+# 3.6.0-wip
+
+- new _(experimental)_ lint: `omit_obvious_local_variable_types`
+- new lint: `use_truncating_division`
+
+# 3.5.0
 
 - new lint: `unintended_html_in_doc_comment`
 - new lint: `invalid_runtime_check_with_js_interop_types`

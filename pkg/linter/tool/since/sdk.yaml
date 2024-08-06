@@ -69,7 +69,7 @@ deprecated_member_use_from_same_package: 3.0.0
 diagnostic_describe_all_properties: 2.3.0
 directives_ordering: 2.0.0
 discarded_futures: 2.18.0
-document_ignores: 3.5.0-wip
+document_ignores: 3.5.0
 do_not_use_environment: 2.9.0
 empty_catches: 2.0.0
 empty_constructor_bodies: 2.0.0
@@ -84,7 +84,7 @@ implementation_imports: 2.0.0
 implicit_call_tearoffs: 2.19.0
 implicit_reopen: 3.0.0
 invalid_case_patterns: 3.0.0
-invalid_runtime_check_with_js_interop_types: 3.5.0-wip
+invalid_runtime_check_with_js_interop_types: 3.5.0
 invariant_booleans: 2.0.0
 iterable_contains_unrelated_type: 2.0.0
 join_return_with_assignment: 2.0.0
@@ -114,7 +114,7 @@ noop_primitive_operations: 2.14.0
 null_check_on_nullable_type_parameter: 2.12.0
 null_closures: 2.0.0
 omit_local_variable_types: 2.0.0
-omit_obvious_local_variable_types: 3.5.0-wip
+omit_obvious_local_variable_types: 3.6.0-wip
 one_member_abstracts: 2.0.0
 only_throw_errors: 2.0.0
 overridden_fields: 2.0.0
@@ -183,7 +183,7 @@ type_annotate_public_apis: 2.0.0
 type_init_formals: 2.0.0
 type_literal_in_constant_pattern: 3.0.0
 unawaited_futures: 2.0.0
-unintended_html_in_doc_comment: 3.5.0-wip
+unintended_html_in_doc_comment: 3.5.0
 unnecessary_await_in_return: 2.1.1
 unnecessary_brace_in_string_interps: 2.0.0
 unnecessary_breaks: 3.0.0
@@ -231,5 +231,6 @@ use_string_in_part_of_directives: 2.19.0
 use_super_parameters: 2.17.0
 use_test_throws_matchers: 2.14.0
 use_to_and_as_if_applicable: 2.0.0
+use_truncating_division: 3.6.0-wip
 valid_regexps: 2.0.0
 void_checks: 2.0.0
