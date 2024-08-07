@@ -121,10 +121,26 @@ abstract class ConstructorElement2 implements ExecutableElement2, _Fragmented {
   ConstructorElement2? get superConstructor2;
 }
 
+/// The portion of a [ConstructorElement2] contributed by a single declaration.
 abstract class ConstructorFragment implements ExecutableFragment {
+  @override
+  ConstructorElement2 get element;
+
+  @override
+  InstanceFragment? get enclosingFragment;
+
+  /// The offset of the end of the name in this fragment.
+  ///
+  /// Returns `null` if the fragment has no name.
   int? get nameEnd;
 
+  @override
+  ConstructorFragment? get nextFragment;
+
   int? get periodOffset;
+
+  @override
+  ConstructorFragment? get previousFragment;
 }
 
 /// The base class for all of the elements in the element model.
@@ -458,7 +474,21 @@ abstract class FunctionTypedFragment implements TypeParameterizedFragment {
 abstract class GenericFunctionTypeElement2
     implements FunctionTypedElement2, _Fragmented {}
 
-abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {}
+/// The portion of a [GenericFunctionTypeElement2] coming from a single
+/// declaration.
+abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
+  @override
+  GenericFunctionTypeElement2 get element;
+
+  @override
+  LibraryFragment? get enclosingFragment;
+
+  @override
+  GenericFunctionTypeFragment? get nextFragment;
+
+  @override
+  GenericFunctionTypeFragment? get previousFragment;
+}
 
 abstract class GetterElement implements ExecutableElement2, _Fragmented {
   @override
@@ -491,16 +521,36 @@ abstract class InstanceElement2
   DartType get thisType;
 }
 
+/// The portion of an [InstanceElement2] contributed by a single declaration.
 abstract class InstanceFragment
     implements TypeDefiningFragment, TypeParameterizedFragment {
+  @override
+  InstanceElement2 get element;
+
+  @override
+  LibraryFragment? get enclosingFragment;
+
+  /// The fields declared in this fragment.
   List<FieldFragment> get fields2;
 
+  /// The getters declared in this fragment.
   List<GetterFragment> get getters;
 
+  /// Whether the fragment is an augmentation.
+  ///
+  /// If `true`, the declaration has the explicit `augment` modifier.
   bool get isAugmentation;
 
+  /// The methods declared in this fragment.
   List<MethodFragment> get methods2;
 
+  @override
+  InstanceFragment? get nextFragment;
+
+  @override
+  InstanceFragment? get previousFragment;
+
+  /// The setters declared in this fragment.
   List<SetterFragment> get setters;
 }
 
@@ -757,8 +807,7 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   /// The fragments of the top-level setters declared in this fragment.
   List<SetterFragment> get setters;
 
-  /// The fragments of the top-level variables declared in this compilation
-  /// unit.
+  /// The fragments of the top-level variables declared in this fragment.
   List<TopLevelVariableFragment> get topLevelVariables2;
 
   /// The fragments of the type aliases declared in this fragment.
@@ -819,7 +868,20 @@ abstract class MethodElement2 implements ExecutableElement2, _Fragmented {
   bool get isOperator;
 }
 
-abstract class MethodFragment implements ExecutableFragment {}
+/// The portion of a [MethodElement2] contributed by a single declaration.
+abstract class MethodFragment implements ExecutableFragment {
+  @override
+  MethodElement2 get element;
+
+  @override
+  InstanceFragment? get enclosingFragment;
+
+  @override
+  MethodFragment? get nextFragment;
+
+  @override
+  MethodFragment? get previousFragment;
+}
 
 abstract class MixinElement2 implements InterfaceElement2 {
   bool get isBase;
@@ -955,8 +1017,21 @@ abstract class TypeAliasElement2
   });
 }
 
+/// The portion of a [TypeAliasElement2] contributed by a single declaration.
 abstract class TypeAliasFragment
-    implements TypeParameterizedFragment, TypeDefiningFragment {}
+    implements TypeParameterizedFragment, TypeDefiningFragment {
+  @override
+  TypeAliasElement2 get element;
+
+  @override
+  LibraryFragment? get enclosingFragment;
+
+  @override
+  TypeAliasFragment? get nextFragment;
+
+  @override
+  TypeAliasFragment? get previousFragment;
+}
 
 abstract class TypeDefiningElement2
     implements Element2, _Annotatable, _Fragmented {
@@ -985,12 +1060,26 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
 
 abstract class TypeParameterFragment implements TypeDefiningFragment {}
 
+/// An element that has type parameters, such as a class, typedef, or method.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterizedElement2 implements Element2, _Annotatable {
+  /// If the element defines a type, indicates whether the type may safely
+  /// appear without explicit type arguments as the bounds of a type parameter
+  /// declaration.
+  ///
+  /// If the element does not define a type, returns `true`.
   bool get isSimplyBounded;
 
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
   List<TypeParameterElement2> get typeParameters2;
 }
 
+/// The portion of a [TypeParameterizedElement2] contributed by a single
+/// declaration.
 abstract class TypeParameterizedFragment implements Fragment, _Annotatable {}
 
 abstract class UndefinedElement2 implements Element2 {}
