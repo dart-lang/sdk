@@ -85,10 +85,14 @@ class LspAnalysisServer extends AnalysisServer {
   /// not known.
   final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
 
+  /// The message handler for the server based on the current state
+  /// (uninitialized, initializing, initialized, etc.).
   late ServerStateMessageHandler messageHandler;
 
+  /// The ID that will be used for the next outbound server-to-client request.
   int nextRequestId = 1;
 
+  /// Completers for the responses to outbound server-to-client requests.
   final Map<int, Completer<ResponseMessage>> completers = {};
 
   /// Capabilities of the server. Will be null prior to initialization as
@@ -136,6 +140,10 @@ class LspAnalysisServer extends AnalysisServer {
   /// unnecessary (at startup, when a file is re-analyzed because a file it
   /// imports was modified, etc).
   final Set<String> _filesWithClientDiagnostics = {};
+
+  /// A completer for [lspInitialized].
+  final Completer<InitializedStateMessageHandler> _lspInitializedCompleter =
+      Completer<InitializedStateMessageHandler>();
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -224,6 +232,12 @@ class LspAnalysisServer extends AnalysisServer {
   @override
   LspClientCapabilities? get lspClientCapabilities => _clientCapabilities;
 
+  /// A [Future] that completes with the [InitializedStateMessageHandler] for
+  /// the server once it transitions to the initialized state.
+  @override
+  FutureOr<InitializedStateMessageHandler> get lspInitialized =>
+      _lspInitializedCompleter.future;
+
   @override
   LspNotificationManager get notificationManager =>
       super.notificationManager as LspNotificationManager;
@@ -284,6 +298,12 @@ class LspAnalysisServer extends AnalysisServer {
       _updateDriversAndPluginsPriorityFiles();
       await _refreshAnalysisRoots();
     }
+  }
+
+  /// Completes [lspInitialized], signalling that the server has moved into an
+  /// initialized state where it can handle standard LSP requests.
+  void completeLspInitialization(InitializedStateMessageHandler handler) {
+    _lspInitializedCompleter.complete(handler);
   }
 
   /// The socket from which messages are being read has been closed.

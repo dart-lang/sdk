@@ -26,6 +26,9 @@ class CodeLensHandler
   LspJsonHandler<CodeLensParams> get jsonHandler => CodeLensParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<List<CodeLens>>> handle(
     CodeLensParams params,
     MessageInfo message,

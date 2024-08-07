@@ -18,12 +18,16 @@ typedef StaticOptions = Either2<bool, HoverOptions>;
 class HoverHandler
     extends SharedMessageHandler<TextDocumentPositionParams, Hover?> {
   HoverHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_hover;
 
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<Hover?>> handle(TextDocumentPositionParams params,
