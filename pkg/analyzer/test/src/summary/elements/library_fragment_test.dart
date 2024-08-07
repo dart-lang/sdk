@@ -32,14 +32,10 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['prefix.exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['prefix.exitCode'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+    ], [
+      'prefix.exitCode',
     ], r'''
 package:test/test.dart
   prefix.exitCode
@@ -76,22 +72,13 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['prefix.File', 'prefix.Random'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['prefix.File', 'prefix.Random'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/aa.dart',
-        ['prefix.File', 'prefix.Random'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/aaa.dart',
-        ['prefix.File', 'prefix.Random'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+      Uri.parse('package:test/aaa.dart'),
+    ], [
+      'prefix.File',
+      'prefix.Random',
     ], r'''
 package:test/test.dart
   prefix.File
@@ -146,18 +133,12 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['prefix.File', 'prefix.Directory'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['prefix.File', 'prefix.Directory'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/aa.dart',
-        ['prefix.File', 'prefix.Directory'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+    ], [
+      'prefix.File',
+      'prefix.Directory',
     ], r'''
 package:test/test.dart
   prefix.File
@@ -201,14 +182,13 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['A', 'B', 'C', 'D'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['A', 'B', 'C', 'D'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+    ], [
+      'A',
+      'B',
+      'C',
+      'D',
     ], r'''
 package:test/test.dart
   A
@@ -249,14 +229,13 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['A', 'B', 'C', 'D'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['A', 'B', 'C', 'D'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+    ], [
+      'A',
+      'B',
+      'C',
+      'D',
     ], r'''
 package:test/test.dart
   A
@@ -297,14 +276,13 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['A', 'B', 'C', 'D'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['A', 'B', 'C', 'D'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+    ], [
+      'A',
+      'B',
+      'C',
+      'D',
     ], r'''
 package:test/test.dart
   A
@@ -345,14 +323,13 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['A', 'B', 'C', 'D'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['A', 'B', 'C', 'D'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+    ], [
+      'A',
+      'B',
+      'C',
+      'D',
     ], r'''
 package:test/test.dart
   A
@@ -401,22 +378,12 @@ part 'b.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/aa.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/b.dart',
-        ['exitCode'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+      Uri.parse('package:test/b.dart'),
+    ], [
+      'exitCode',
     ], r'''
 package:test/test.dart
   exitCode
@@ -445,14 +412,10 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['Object'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['Object'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+    ], [
+      'Object',
     ], r'''
 package:test/test.dart
   Object
@@ -474,14 +437,11 @@ part 'a.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['exit', 'exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['exit', 'exitCode'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+    ], [
+      'exit',
+      'exitCode',
     ], r'''
 package:test/test.dart
   exit
@@ -518,25 +478,13 @@ part 'a.dart';
 part 'b.dart';
 ''');
 
-    // Both 'a' and 'aa' can see `exitCode`.
-    // But not 'test.dart' and 'b'.
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/aa.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/b.dart',
-        ['exitCode'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+      Uri.parse('package:test/b.dart'),
+    ], [
+      'exitCode',
     ], r'''
 package:test/test.dart
   exitCode
@@ -572,18 +520,11 @@ part 'b.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/b.dart',
-        ['exitCode'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/b.dart'),
+    ], [
+      'exitCode',
     ], r'''
 package:test/test.dart
   exitCode
@@ -614,18 +555,11 @@ part 'b.dart';
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['exitCode'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/b.dart',
-        ['exitCode'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/b.dart'),
+    ], [
+      'exitCode',
     ], r'''
 package:test/test.dart
   exitCode
@@ -660,18 +594,13 @@ class Z {}
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['A', 'B', 'Z'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['A', 'B', 'Z'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/aa.dart',
-        ['A', 'B', 'Z'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+    ], [
+      'A',
+      'B',
+      'Z',
     ], r'''
 package:test/test.dart
   A
@@ -710,14 +639,12 @@ class _Z {}
 ''');
 
     _assertScopeLookups(library, [
-      LibraryFragmentScopeRequests(
-        'package:test/test.dart',
-        ['_A', '_Z', '_foo'],
-      ),
-      LibraryFragmentScopeRequests(
-        'package:test/a.dart',
-        ['_A', '_Z', '_foo'],
-      ),
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+    ], [
+      '_A',
+      '_Z',
+      '_foo',
     ], r'''
 package:test/test.dart
   _A
@@ -740,7 +667,8 @@ package:test/a.dart
 
   void _assertScopeLookups(
     LibraryElementImpl library,
-    List<LibraryFragmentScopeRequests> fragmentRequests,
+    List<Uri> fragmentUris,
+    List<String> requests,
     String expected,
   ) {
     var buffer = StringBuffer();
@@ -755,14 +683,14 @@ package:test/a.dart
       configuration: ElementPrinterConfiguration(),
     );
 
-    for (var fragmentRequest in fragmentRequests) {
-      sink.writelnWithIndent(fragmentRequest.fragmentUri);
+    for (var fragmentUri in fragmentUris) {
+      sink.writelnWithIndent(fragmentUri);
       sink.withIndent(() {
         var fragment = library.units.singleWhere((fragment) {
-          return fragment.source.uri == fragmentRequest.fragmentUri;
+          return fragment.source.uri == fragmentUri;
         });
 
-        for (var request in fragmentRequest.requests) {
+        for (var request in requests) {
           var periodIndex = request.indexOf('.');
           var (prefixName, rawName) = switch (periodIndex) {
             > 0 => (
@@ -827,14 +755,4 @@ class LibraryFragmentElementTest_keepLinking
     extends LibraryFragmentElementTest {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-class LibraryFragmentScopeRequests {
-  final Uri fragmentUri;
-  final List<String> requests;
-
-  LibraryFragmentScopeRequests(
-    String fragmentUriStr,
-    this.requests,
-  ) : fragmentUri = Uri.parse(fragmentUriStr);
 }
