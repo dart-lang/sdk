@@ -16,6 +16,7 @@ import 'formal_parameter_test.dart' as formal_parameter;
 import 'function_type_annotation_test.dart' as function_type_annotation;
 import 'library_augmentation_test.dart' as library_augmentation;
 import 'library_export_test.dart' as library_export;
+import 'library_fragment_test.dart' as library_fragment;
 import 'library_import_test.dart' as library_import;
 import 'library_test.dart' as library_;
 import 'local_declarations_test.dart' as local_declarations;
@@ -46,6 +47,7 @@ main() {
     function_type_annotation.main();
     library_augmentation.main();
     library_export.main();
+    library_fragment.main();
     library_import.main();
     library_.main();
     local_declarations.main();
