@@ -252,8 +252,10 @@ class LibraryFragmentScope implements Scope {
 
   ScopeLookupResult? _lookupCombined(String id) {
     // Try prefix elements.
-    if (_prefixElements[id] case var prefixElement?) {
-      return ScopeLookupResultImpl(prefixElement, null);
+    if (_shouldTryPrefixElement(id)) {
+      if (_prefixElements[id] case var prefixElement?) {
+        return ScopeLookupResultImpl(prefixElement, null);
+      }
     }
 
     // Try imports of the library fragment.
@@ -282,6 +284,14 @@ class LibraryFragmentScope implements Scope {
       );
     }
     return null;
+  }
+
+  bool _shouldTryPrefixElement(String id) {
+    if (id == '_') {
+      var featureSet = fragment.library.featureSet;
+      return !featureSet.isEnabled(Feature.wildcard_variables);
+    }
+    return true;
   }
 }
 
