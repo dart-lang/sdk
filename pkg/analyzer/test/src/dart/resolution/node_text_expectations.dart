@@ -84,7 +84,7 @@ class NodeTextExpectationsCollector {
     _AssertMethod(
       className: 'LibraryFragmentElementTest',
       methodName: '_assertScopeLookups',
-      argument: _ArgumentIndex(2),
+      argument: _ArgumentIndex(3),
     ),
     _AssertMethod(
       className: 'MacroIntrospectElementTest',

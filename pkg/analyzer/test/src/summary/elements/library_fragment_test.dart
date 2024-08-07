@@ -4,7 +4,9 @@
 
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -352,6 +354,181 @@ package:test/a.dart
 ''');
   }
 
+  test_scope_noPrefix_extensions_imported() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+extension X on int {}
+''');
+
+    newFile('$testPackageLibPath/y.dart', r'''
+extension Y on int {}
+''');
+
+    addSource('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+import 'y.dart';
+part 'aa.dart';
+''');
+
+    addSource('$testPackageLibPath/aa.dart', r'''
+part of 'a.dart';
+''');
+
+    addSource('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'x.dart';
+part 'a.dart';
+part 'b.dart';
+''');
+
+    _assertScopeLookups(withAccessibleExtensions: true, library, [
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+      Uri.parse('package:test/b.dart'),
+    ], [], r'''
+package:test/test.dart
+  accessibleExtensions
+    dart:core::<fragment>::@extension::EnumName
+    package:test/x.dart::<fragment>::@extension::X
+package:test/a.dart
+  accessibleExtensions
+    dart:core::<fragment>::@extension::EnumName
+    package:test/x.dart::<fragment>::@extension::X
+    package:test/y.dart::<fragment>::@extension::Y
+package:test/aa.dart
+  accessibleExtensions
+    dart:core::<fragment>::@extension::EnumName
+    package:test/x.dart::<fragment>::@extension::X
+    package:test/y.dart::<fragment>::@extension::Y
+package:test/b.dart
+  accessibleExtensions
+    dart:core::<fragment>::@extension::EnumName
+    package:test/x.dart::<fragment>::@extension::X
+''');
+  }
+
+  test_scope_noPrefix_extensions_imported_withPrefix() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+extension X on int {}
+''');
+
+    newFile('$testPackageLibPath/y.dart', r'''
+extension Y on int {}
+''');
+
+    addSource('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+import 'y.dart' as y;
+part 'aa.dart';
+''');
+
+    addSource('$testPackageLibPath/aa.dart', r'''
+part of 'a.dart';
+''');
+
+    addSource('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'x.dart' as x;
+part 'a.dart';
+part 'b.dart';
+''');
+
+    _assertScopeLookups(withAccessibleExtensions: true, library, [
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+      Uri.parse('package:test/b.dart'),
+    ], [], r'''
+package:test/test.dart
+  accessibleExtensions
+    dart:core::<fragment>::@extension::EnumName
+    package:test/x.dart::<fragment>::@extension::X
+package:test/a.dart
+  accessibleExtensions
+    dart:core::<fragment>::@extension::EnumName
+    package:test/x.dart::<fragment>::@extension::X
+    package:test/y.dart::<fragment>::@extension::Y
+package:test/aa.dart
+  accessibleExtensions
+    dart:core::<fragment>::@extension::EnumName
+    package:test/x.dart::<fragment>::@extension::X
+    package:test/y.dart::<fragment>::@extension::Y
+package:test/b.dart
+  accessibleExtensions
+    dart:core::<fragment>::@extension::EnumName
+    package:test/x.dart::<fragment>::@extension::X
+''');
+  }
+
+  test_scope_noPrefix_extensions_local() async {
+    addSource('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+part 'aa.dart';
+extension A on int {}
+''');
+
+    addSource('$testPackageLibPath/aa.dart', r'''
+part of 'a.dart';
+extension B on int {}
+''');
+
+    var library = await buildLibrary(r'''
+part 'a.dart';
+extension Z on int {}
+''');
+
+    _assertScopeLookups(withAccessibleExtensions: true, library, [
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+    ], [], r'''
+package:test/test.dart
+  accessibleExtensions
+    <testLibrary>::@fragment::package:test/a.dart::@extension::A
+    <testLibrary>::@fragment::package:test/aa.dart::@extension::B
+    dart:core::<fragment>::@extension::EnumName
+    <testLibraryFragment>::@extension::Z
+package:test/a.dart
+  accessibleExtensions
+    <testLibrary>::@fragment::package:test/a.dart::@extension::A
+    <testLibrary>::@fragment::package:test/aa.dart::@extension::B
+    dart:core::<fragment>::@extension::EnumName
+    <testLibraryFragment>::@extension::Z
+package:test/aa.dart
+  accessibleExtensions
+    <testLibrary>::@fragment::package:test/a.dart::@extension::A
+    <testLibrary>::@fragment::package:test/aa.dart::@extension::B
+    dart:core::<fragment>::@extension::EnumName
+    <testLibraryFragment>::@extension::Z
+''');
+  }
+
+  test_scope_noPrefix_extensions_unnamed() async {
+    var library = await buildLibrary(r'''
+part 'a.dart';
+extension on int {}
+''');
+
+    _assertScopeLookups(withAccessibleExtensions: true, library, [
+      Uri.parse('package:test/test.dart'),
+    ], [
+      ''
+    ], r'''
+package:test/test.dart
+  <empty>
+    getter: <null>
+  accessibleExtensions
+    <testLibraryFragment>::@extension::0
+    dart:core::<fragment>::@extension::EnumName
+''');
+  }
+
   test_scope_noPrefix_fragmentImportShadowsParent() async {
     addSource('$testPackageLibPath/x.dart', r'''
 int get exitCode => 0;
@@ -669,8 +846,9 @@ package:test/a.dart
     LibraryElementImpl library,
     List<Uri> fragmentUris,
     List<String> requests,
-    String expected,
-  ) {
+    String expected, {
+    bool withAccessibleExtensions = false,
+  }) {
     var buffer = StringBuffer();
 
     var sink = TreeStringSink(
@@ -709,7 +887,10 @@ package:test/a.dart
             });
           }
 
-          sink.writelnWithIndent(request);
+          sink.writelnWithIndent(
+            request.ifNotEmptyOrElse('<empty>'),
+          );
+
           if (prefixName != null) {
             var prefixLookup = fragment.scope.lookup(prefixName);
             expect(prefixLookup.setter, isNull);
@@ -730,6 +911,13 @@ package:test/a.dart
             var result = fragment.scope.lookup(rawName);
             writeResult(result);
           }
+        }
+
+        if (withAccessibleExtensions) {
+          elementPrinter.writeElementList(
+            'accessibleExtensions',
+            fragment.scope.accessibleExtensions.sortedBy((e) => e.name ?? ''),
+          );
         }
       });
     }

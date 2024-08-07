@@ -168,6 +168,9 @@ class LibraryFragmentScope implements Scope {
   final Map<String, PrefixElementImpl> _prefixElements = {};
   final Map<PrefixElementImpl, PrefixScope> _prefixScopes = {};
 
+  /// The cached result for [accessibleExtensions].
+  List<ExtensionElement>? _extensions;
+
   factory LibraryFragmentScope(CompilationUnitElementImpl fragment) {
     return LibraryFragmentScope._(
       parent: fragment.enclosingElement3?.scope,
@@ -195,6 +198,17 @@ class LibraryFragmentScope implements Scope {
         prefix: prefix,
       );
     }
+  }
+
+  /// The extensions accessible within [fragment].
+  List<ExtensionElement> get accessibleExtensions {
+    var libraryDeclarations = fragment.library.libraryDeclarations;
+    return _extensions ??= {
+      ...libraryDeclarations.extensions,
+      ...noPrefixScope._extensions,
+      for (var prefixScope in _prefixScopes.values) ...prefixScope._extensions,
+      ...?parent?.accessibleExtensions,
+    }.toFixedList();
   }
 
   PrefixScope getPrefixScope(PrefixElementImpl prefix) {
