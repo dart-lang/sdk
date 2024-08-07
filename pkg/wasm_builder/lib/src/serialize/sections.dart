@@ -140,7 +140,7 @@ class MemorySection extends Section {
 }
 
 class TagSection extends Section {
-  final List<ir.Tag> tags;
+  final List<ir.DefinedTag> tags;
 
   TagSection(this.tags, super.watchPoints);
 
@@ -236,23 +236,25 @@ class _Element implements Serializable {
 }
 
 class ElementSection extends Section {
-  final List<ir.DefinedTable> tables;
+  final List<ir.DefinedTable> definedTables;
+  final List<ir.ImportedTable> importedTables;
 
-  ElementSection(this.tables, super.watchPoints);
+  ElementSection(this.definedTables, this.importedTables, super.watchPoints);
 
   @override
   int get id => 9;
 
   @override
   bool get isNotEmpty =>
-      tables.any((table) => table.elements.any((e) => e != null));
+      definedTables.any((table) => table.elements.any((e) => e != null)) ||
+      importedTables.any((table) => table.setElements.isNotEmpty);
 
   @override
   void serializeContents(Serializer s) {
     // Group nonempty element entries into contiguous stretches and serialize
     // each stretch as an element.
     List<_Element> elements = [];
-    for (final table in tables) {
+    for (final table in definedTables) {
       _Element? current;
       for (int i = 0; i < table.elements.length; i++) {
         ir.BaseFunction? function = table.elements[i];
@@ -265,6 +267,23 @@ class ElementSection extends Section {
         } else {
           current = null;
         }
+      }
+    }
+    for (final table in importedTables) {
+      final entries = [...table.setElements.entries]
+        ..sort((a, b) => a.value.compareTo(b.value));
+
+      _Element? current;
+      int lastIndex = -2;
+      for (final entry in entries) {
+        final function = entry.key;
+        final index = entry.value;
+        if (index != lastIndex + 1) {
+          current = _Element(table, index);
+          elements.add(current);
+        }
+        current!.entries.add(function);
+        lastIndex = index;
       }
     }
     s.writeList(elements);

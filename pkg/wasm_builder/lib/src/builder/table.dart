@@ -9,11 +9,16 @@ class TableBuilder extends ir.Table with IndexableBuilder<ir.DefinedTable> {
   final List<ir.BaseFunction?> elements;
 
   TableBuilder(super.index, super.type, super.minSize, super.maxSize)
-      : elements = List.filled(minSize, null);
+      : elements = List.filled(minSize, null, growable: true);
 
   void setElement(int index, ir.BaseFunction function) {
     assert(type == ir.RefType.func(nullable: true),
         "Elements are only supported for funcref tables");
+    assert(maxSize == null || index < maxSize!,
+        'Index $index greater than max table size $maxSize');
+    if (index >= elements.length) {
+      elements.length = index + 1;
+    }
     elements[index] = function;
   }
 
