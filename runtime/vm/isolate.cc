@@ -275,7 +275,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(FinalizeWeakPersistentHandlesVisitor);
 };
 
-void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
+void MutatorThreadPool::OnEnterIdleLocked(MutexLocker* ml, Worker* worker) {
   if (FLAG_idle_timeout_micros == 0) return;
 
   // If the isolate has not started running application code yet, we ignore the
@@ -285,7 +285,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   int64_t idle_expiry = 0;
   // Obtain the idle time we should wait.
   if (isolate_group_->idle_time_handler()->ShouldNotifyIdle(&idle_expiry)) {
-    MonitorLeaveScope mls(ml);
+    MutexUnlocker mls(ml);
     NotifyIdle();
     return;
   }
@@ -296,7 +296,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   // Wait for the recommended idle timeout.
   // We can be woken up because of a), b) or c)
   const auto result =
-      ml->WaitMicros(idle_expiry - OS::GetCurrentMonotonicMicros());
+      worker->Sleep(idle_expiry - OS::GetCurrentMonotonicMicros());
 
   // a) If there are new tasks we have to run them.
   if (TasksWaitingToRunLocked()) return;
@@ -307,7 +307,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   // c) We timed out and should run the idle notifier.
   if (result == Monitor::kTimedOut &&
       isolate_group_->idle_time_handler()->ShouldNotifyIdle(&idle_expiry)) {
-    MonitorLeaveScope mls(ml);
+    MutexUnlocker mls(ml);
     NotifyIdle();
     return;
   }
