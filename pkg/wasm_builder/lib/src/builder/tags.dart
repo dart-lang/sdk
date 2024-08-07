@@ -13,10 +13,14 @@ class TagsBuilder with Builder<ir.Tags> {
 
   TagsBuilder();
 
-  Set<ir.DefType> usedTypes() => {
-        for (final tag in _defined) tag.type,
-        for (final tag in _imported) tag.type,
-      };
+  void collectUsedTypes(Set<ir.DefType> usedTypes) {
+    for (final tag in _defined) {
+      usedTypes.add(tag.type);
+    }
+    for (final tag in _imported) {
+      usedTypes.add(tag.type);
+    }
+  }
 
   /// Defines a new tag in the module.
   ir.Tag define(ir.FunctionType type) {

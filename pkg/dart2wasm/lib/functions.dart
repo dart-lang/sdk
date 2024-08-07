@@ -54,14 +54,9 @@ class FunctionCollector {
         String module = importName.substring(0, dot);
         String name = importName.substring(dot + 1);
         if (member is Procedure) {
-          // Define the function type in a singular recursion group to enable it
-          // to be unified with function types defined in FFI modules or using
-          // `WebAssembly.Function`.
-          m.types.splitRecursionGroup();
           w.FunctionType ftype = _makeFunctionType(
               translator, member.reference, null,
               isImportOrExport: true);
-          m.types.splitRecursionGroup();
           _functions[member.reference] =
               m.functions.import(module, name, ftype, "$importName (import)");
         }
@@ -71,15 +66,8 @@ class FunctionCollector {
         translator.getPragma(member, "wasm:export", member.name.text);
     if (exportName != null) {
       if (member is Procedure) {
-        // Although we don't need type unification for the types of exported
-        // functions, we still place these types in singleton recursion groups,
-        // since Binaryen's `--closed-world` optimization mode requires all
-        // publicly exposed types to be defined in separate recursion groups
-        // from GC types.
-        m.types.splitRecursionGroup();
         _makeFunctionType(translator, member.reference, null,
             isImportOrExport: true);
-        m.types.splitRecursionGroup();
       }
       addExport(member.reference, exportName);
     }

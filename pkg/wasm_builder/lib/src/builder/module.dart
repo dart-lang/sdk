@@ -10,7 +10,7 @@ import 'builder.dart';
 class ModuleBuilder with Builder<ir.Module> {
   final Uri? sourceMapUrl;
   final List<int> watchPoints;
-  final types = TypesBuilder();
+  late final types = TypesBuilder(this);
   late final functions = FunctionsBuilder(this);
   final tables = TablesBuilder();
   final memories = MemoriesBuilder();

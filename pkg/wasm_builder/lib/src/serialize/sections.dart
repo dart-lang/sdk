@@ -35,34 +35,43 @@ class TypeSection extends Section {
 
   TypeSection(this.types, super.watchPoints);
 
-  List<ir.DefType> get defTypes => types.defined;
+  List<List<ir.DefType>> get recursionGroups => types.recursionGroups;
 
   @override
   int get id => 1;
 
   @override
-  bool get isNotEmpty => defTypes.isNotEmpty;
+  bool get isNotEmpty => recursionGroups.isNotEmpty;
 
   @override
   void serializeContents(Serializer s) {
-    s.writeUnsigned(types.recursionGroupSplits.length + 1);
+    s.writeUnsigned(types.recursionGroups.length);
     int typeIndex = 0;
-    for (int split
-        in types.recursionGroupSplits.followedBy([defTypes.length])) {
+
+    // Set all the indices first since types can be referenced before they are
+    // serialized.
+    for (final group in recursionGroups) {
+      assert(group.isNotEmpty, 'Empty groups are not allowed.');
+
+      for (final type in group) {
+        type.index = typeIndex++;
+      }
+    }
+    for (final group in recursionGroups) {
       s.writeByte(0x4E); // -0x32
-      s.writeUnsigned(split - typeIndex);
-      for (; typeIndex < split; typeIndex++) {
-        ir.DefType defType = defTypes[typeIndex];
-        assert(defType.superType == null || defType.superType!.index < split,
-            "Type '$defType' has a supertype in a later recursion group");
+      s.writeUnsigned(group.length);
+      for (final type in group) {
         assert(
-            defType.constituentTypes
+            type.superType == null || type.superType!.index <= group.last.index,
+            "Type '$type' has a supertype in a later recursion group");
+        assert(
+            type.constituentTypes
                 .whereType<ir.RefType>()
                 .map((t) => t.heapType)
                 .whereType<ir.DefType>()
-                .every((d) => d.index < split),
-            "Type '$defType' depends on a type in a later recursion group");
-        defType.serializeDefinition(s);
+                .every((d) => d.index <= group.last.index),
+            "Type '$type' depends on a type in a later recursion group");
+        type.serializeDefinition(s);
       }
     }
   }

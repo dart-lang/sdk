@@ -45,6 +45,12 @@ abstract class ValueType implements StorageType {
 
   /// Whether this type is defaultable. Primitive types are always defaultable.
   bool get defaultable => true;
+
+  /// The heap [DefType] referenced by this type if any.
+  ///
+  /// Used by the type builder to determine the set of [DefType]s referenced in
+  /// a module.
+  DefType? get containedDefType => null;
 }
 
 enum NumTypeKind { i32, i64, f32, f64, v128 }
@@ -201,6 +207,12 @@ class RefType extends ValueType {
     if (other is! RefType) return false;
     if (nullable && !other.nullable) return false;
     return heapType.isSubtypeOf(other.heapType);
+  }
+
+  @override
+  DefType? get containedDefType {
+    final type = heapType;
+    return type is DefType ? type : null;
   }
 
   @override
