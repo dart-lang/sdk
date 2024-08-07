@@ -183,6 +183,198 @@ package:test/aa.dart
 ''');
   }
 
+  test_scope_noPrefix_combinators_hide() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+
+    addSource('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'x.dart' hide A, C;
+part 'a.dart';
+''');
+
+    _assertScopeLookups(library, [
+      LibraryFragmentScopeRequests(
+        'package:test/test.dart',
+        ['A', 'B', 'C', 'D'],
+      ),
+      LibraryFragmentScopeRequests(
+        'package:test/a.dart',
+        ['A', 'B', 'C', 'D'],
+      ),
+    ], r'''
+package:test/test.dart
+  A
+    getter: <null>
+  B
+    getter: package:test/x.dart::<fragment>::@class::B
+  C
+    getter: <null>
+  D
+    getter: package:test/x.dart::<fragment>::@class::D
+package:test/a.dart
+  A
+    getter: <null>
+  B
+    getter: package:test/x.dart::<fragment>::@class::B
+  C
+    getter: <null>
+  D
+    getter: package:test/x.dart::<fragment>::@class::D
+''');
+  }
+
+  test_scope_noPrefix_combinators_hide_show() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+
+    addSource('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'x.dart' hide A, C show B;
+part 'a.dart';
+''');
+
+    _assertScopeLookups(library, [
+      LibraryFragmentScopeRequests(
+        'package:test/test.dart',
+        ['A', 'B', 'C', 'D'],
+      ),
+      LibraryFragmentScopeRequests(
+        'package:test/a.dart',
+        ['A', 'B', 'C', 'D'],
+      ),
+    ], r'''
+package:test/test.dart
+  A
+    getter: <null>
+  B
+    getter: package:test/x.dart::<fragment>::@class::B
+  C
+    getter: <null>
+  D
+    getter: <null>
+package:test/a.dart
+  A
+    getter: <null>
+  B
+    getter: package:test/x.dart::<fragment>::@class::B
+  C
+    getter: <null>
+  D
+    getter: <null>
+''');
+  }
+
+  test_scope_noPrefix_combinators_show() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+
+    addSource('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'x.dart' show A, C;
+part 'a.dart';
+''');
+
+    _assertScopeLookups(library, [
+      LibraryFragmentScopeRequests(
+        'package:test/test.dart',
+        ['A', 'B', 'C', 'D'],
+      ),
+      LibraryFragmentScopeRequests(
+        'package:test/a.dart',
+        ['A', 'B', 'C', 'D'],
+      ),
+    ], r'''
+package:test/test.dart
+  A
+    getter: package:test/x.dart::<fragment>::@class::A
+  B
+    getter: <null>
+  C
+    getter: package:test/x.dart::<fragment>::@class::C
+  D
+    getter: <null>
+package:test/a.dart
+  A
+    getter: package:test/x.dart::<fragment>::@class::A
+  B
+    getter: <null>
+  C
+    getter: package:test/x.dart::<fragment>::@class::C
+  D
+    getter: <null>
+''');
+  }
+
+  test_scope_noPrefix_combinators_show_gide() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+
+    addSource('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'x.dart' show A, C hide B, C;
+part 'a.dart';
+''');
+
+    _assertScopeLookups(library, [
+      LibraryFragmentScopeRequests(
+        'package:test/test.dart',
+        ['A', 'B', 'C', 'D'],
+      ),
+      LibraryFragmentScopeRequests(
+        'package:test/a.dart',
+        ['A', 'B', 'C', 'D'],
+      ),
+    ], r'''
+package:test/test.dart
+  A
+    getter: package:test/x.dart::<fragment>::@class::A
+  B
+    getter: <null>
+  C
+    getter: <null>
+  D
+    getter: <null>
+package:test/a.dart
+  A
+    getter: package:test/x.dart::<fragment>::@class::A
+  B
+    getter: <null>
+  C
+    getter: <null>
+  D
+    getter: <null>
+''');
+  }
+
   test_scope_noPrefix_fragmentImportShadowsParent() async {
     addSource('$testPackageLibPath/x.dart', r'''
 int get exitCode => 0;
