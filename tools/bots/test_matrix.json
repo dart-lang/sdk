@@ -2057,11 +2057,7 @@
           "name": "ddc sdk tests unsound",
           "arguments": [
             "-nddc-canary-linux-chrome-unsound",
-            "corelib",
-            "dartdevc",
-            "language",
-            "lib",
-            "web"
+            "language"
           ],
           "shards": 6,
           "fileset": "js_platform"
