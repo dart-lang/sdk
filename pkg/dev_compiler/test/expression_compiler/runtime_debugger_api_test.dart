@@ -160,8 +160,7 @@ void runSharedTests(
     test('getClassMetadata (object)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression:
-              'dart.getClassMetadata("dart:core", "Object", {"objectInstance": object})',
+          expression: 'dart.getClassMetadata("dart:core", "Object")',
           expectedResult: {
             'className': 'Object',
             'fields': {},
@@ -182,7 +181,7 @@ void runSharedTests(
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass", {"objectInstance": base})',
+              'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass")',
           expectedResult: {
             'className': 'BaseClass',
             'superClassName': 'Object',
@@ -244,7 +243,7 @@ void runSharedTests(
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass", {"objectInstance": derived})',
+              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
           expectedResult: {
             'className': 'DerivedClass',
             'superClassName': 'BaseClass',

@@ -43,19 +43,14 @@ class TypeRecipeGenerator {
   /// The returned environment will be a subset of the provided [environment]
   /// that includes only the necessary types to evaluate the recipe.
   GeneratedRecipe recipeInEnvironment(
-      DartType type, DDCTypeEnvironment environment,
-      {bool emitJSInteropGenericClassTypeParametersAsAny = true}) {
+      DartType type, DDCTypeEnvironment environment) {
     // Reduce the provided environment down to the parameters that are present.
     var parametersInType = TypeParameterFinder.instance().find(type);
     var minimalEnvironment = environment.prune(parametersInType);
     // Set the visitor state, generate the recipe, and package it with the
     // environment required to evaluate it.
     _recipeVisitor.setState(
-      environment: minimalEnvironment,
-      addLiveInterfaceTypes: true,
-      emitJSInteropGenericClassTypeParametersAsAny:
-          emitJSInteropGenericClassTypeParametersAsAny,
-    );
+        environment: minimalEnvironment, addLiveInterfaceTypes: true);
     var recipe = type.accept(_recipeVisitor);
     return GeneratedRecipe(recipe, minimalEnvironment);
   }
@@ -129,8 +124,7 @@ class TypeRecipeGenerator {
           environment: ClassTypeEnvironment(cls.typeParameters),
           // No need to add any more live types at this time. Any "new" types
           // seen in this process are not live.
-          addLiveInterfaceTypes: false,
-          emitClassTypeParametersAsIndices: true);
+          addLiveInterfaceTypes: false);
       var supertypeEntries = <String, Object>{};
       // Encode the type argument mapping portion of this type rule.
       for (var i = 0; i < cls.typeParameters.length; i++) {
@@ -264,24 +258,6 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   /// all of the visited interface types.
   bool _addLiveInterfaceTypes = true;
 
-  /// When `true`, references generic class type parameters via their de Bruijn
-  /// indices.
-  ///
-  /// DDC defaults to using generic parameter names instead of de Bruijn
-  /// indices because the latter aren't stable across subtype environments.
-  ///
-  /// This is only used when generating type rules for the type universe
-  /// (i.e., in `liveInterfaceTypeRules`).
-  bool _emitClassTypeParametersAsIndices = false;
-
-  /// Emits JS interop generic arguments as `Any` when true and their 'real'
-  /// type when false.
-  ///
-  /// We usually convert type arguments to `Any` to allow type checks and casts
-  /// to succeed for JS interop objects. However, their 'real' types are used
-  /// for checks in non-external constructors and factories.
-  bool _emitJSInteropGenericClassTypeParametersAsAny = true;
-
   /// All of the [InterfaceType]s visited.
   final _visitedInterfaceTypes = <InterfaceType>{};
   final _visitedJsInteropTypes = <InterfaceType>{};
@@ -294,22 +270,11 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   /// Generally this should be called before visiting a type, but the visitor
   /// does not modify the state so if many types need to be evaluated in the
   /// same state it can be set once before visiting all of them.
-  void setState({
-    DDCTypeEnvironment? environment,
-    bool? addLiveInterfaceTypes,
-    bool? emitClassTypeParametersAsIndices,
-    bool? emitJSInteropGenericClassTypeParametersAsAny,
-  }) {
+  void setState(
+      {DDCTypeEnvironment? environment, bool? addLiveInterfaceTypes}) {
     if (environment != null) _typeEnvironment = environment;
     if (addLiveInterfaceTypes != null) {
       _addLiveInterfaceTypes = addLiveInterfaceTypes;
-    }
-    if (emitClassTypeParametersAsIndices != null) {
-      _emitClassTypeParametersAsIndices = emitClassTypeParametersAsIndices;
-    }
-    if (emitJSInteropGenericClassTypeParametersAsAny != null) {
-      _emitJSInteropGenericClassTypeParametersAsAny =
-          emitJSInteropGenericClassTypeParametersAsAny;
     }
   }
 
@@ -347,8 +312,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
     var recipeBuffer = StringBuffer(interfaceTypeRecipe(cls));
     // Generate the recipes for all type arguments.
     if (node.typeArguments.isNotEmpty) {
-      var argumentRecipes = _emitJSInteropGenericClassTypeParametersAsAny &&
-              hasJSInteropAnnotation(cls)
+      var argumentRecipes = hasJSInteropAnnotation(cls)
           ? _listOfJSAnyType(node.typeArguments.length)
           : node.typeArguments.map((typeArgument) => typeArgument.accept(this));
       recipeBuffer.write(Recipe.startTypeArgumentsString);
@@ -468,20 +432,6 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       return '$i'
           '${Recipe.genericFunctionTypeParameterIndexString}'
           '${_nullabilityRecipe(node)}';
-    }
-    var parameterDeclaration = node.parameter.declaration;
-    if (!_emitClassTypeParametersAsIndices && parameterDeclaration is Class) {
-      // Generic type parameters in binding positions will still be emitted
-      // with indices.
-      var typeParamInBindingPosition = _typeEnvironment
-              is BindingTypeEnvironment ||
-          (_typeEnvironment is ExtendedClassTypeEnvironment &&
-              _typeEnvironment.functionTypeParameters.contains(node.parameter));
-      if (!typeParamInBindingPosition) {
-        var className = parameterDeclaration.name;
-        var parameterName = node.parameter.name;
-        return '$className.$parameterName${_nullabilityRecipe(node)}';
-      }
     }
     i = _typeEnvironment.recipeIndexOf(node.parameter);
     if (i < 0) {
