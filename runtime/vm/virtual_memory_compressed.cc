@@ -59,7 +59,7 @@ void VirtualMemoryCompressedHeap::Init(void* compressed_heap_region,
   // same upper 32 bits, which is what we really need for compressed pointers.
   intptr_t mask = ~(kCompressedHeapAlignment - 1);
   ASSERT((base_ & mask) == ((base_ + size_ - 1) & mask));
-  mutex_ = new Mutex(NOT_IN_PRODUCT("compressed_heap_mutex"));
+  mutex_ = new Mutex();
 }
 
 void VirtualMemoryCompressedHeap::Cleanup() {

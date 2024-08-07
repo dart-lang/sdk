@@ -13,12 +13,10 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "third_party/absl/synchronization/mutex.h"
 
 namespace dart {
 
 typedef pthread_key_t ThreadLocalKey;
-typedef pthread_t ThreadId;
 typedef pthread_t ThreadJoinId;
 
 static const ThreadLocalKey kUnsetThreadLocalKey =
@@ -38,54 +36,6 @@ class ThreadInlineImpl {
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
-};
-
-class MutexData {
- private:
-  MutexData() : mutex_() {}
-  ~MutexData() {}
-
-  absl::Mutex* mutex() { return &mutex_; }
-
-  absl::Mutex mutex_;
-
-  friend class Mutex;
-  friend class ConditionVariable;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MutexData);
-};
-
-class ConditionVariableData {
- private:
-  ConditionVariableData() : cond_() {}
-  ~ConditionVariableData() {}
-
-  absl::CondVar* cond() { return &cond_; }
-
-  absl::CondVar cond_;
-
-  friend class ConditionVariable;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ConditionVariableData);
-};
-
-class MonitorData {
- private:
-  MonitorData() : mutex_(), cond_() {}
-  ~MonitorData() {}
-
-  absl::Mutex* mutex() { return &mutex_; }
-  absl::CondVar* cond() { return &cond_; }
-
-  absl::Mutex mutex_;
-  absl::CondVar cond_;
-
-  friend class Monitor;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MonitorData);
 };
 
 }  // namespace dart

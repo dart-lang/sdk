@@ -99,7 +99,6 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = 0;
 const ThreadJoinId OSThread::kInvalidThreadJoinId = nullptr;
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
@@ -123,10 +122,6 @@ void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
 intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
-}
-
-ThreadId OSThread::GetCurrentThreadId() {
-  return ::GetCurrentThreadId();
 }
 
 #ifdef SUPPORT_TIMELINE
@@ -171,10 +166,6 @@ intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
 
 ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
   return static_cast<ThreadId>(id);
-}
-
-bool OSThread::Compare(ThreadId a, ThreadId b) {
-  return a == b;
 }
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
@@ -225,186 +216,6 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   if (!result) {
     FATAL("TlsSetValue failed %d", GetLastError());
   }
-}
-
-Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
-#if !defined(PRODUCT)
-    : name_(name)
-#endif
-{
-  InitializeSRWLock(&data_.lock_);
-#if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-}
-
-Mutex::~Mutex() {
-#if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-#endif  // defined(DEBUG)
-}
-
-void Mutex::Lock() {
-  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
-
-  AcquireSRWLockExclusive(&data_.lock_);
-#if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-}
-
-bool Mutex::TryLock() {
-  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
-
-  if (TryAcquireSRWLockExclusive(&data_.lock_) != 0) {
-#if defined(DEBUG)
-    // When running with assertions enabled we do track the owner.
-    owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-    return true;
-  }
-  return false;
-}
-
-void Mutex::Unlock() {
-#if defined(DEBUG)
-  // When running with assertions enabled we do track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-  ReleaseSRWLockExclusive(&data_.lock_);
-}
-
-ConditionVariable::ConditionVariable() {
-  InitializeConditionVariable(&data_.cond_);
-}
-
-ConditionVariable::~ConditionVariable() {}
-
-void ConditionVariable::Wait(Mutex* mutex) {
-#if defined(DEBUG)
-  ThreadId saved_owner = mutex->InvalidateOwner();
-#endif
-
-  SleepConditionVariableSRW(&data_.cond_, &mutex->data_.lock_, INFINITE, 0);
-
-#if defined(DEBUG)
-  mutex->SetCurrentThreadAsOwner();
-  ASSERT(OSThread::GetCurrentThreadId() == saved_owner);
-#endif
-}
-
-void ConditionVariable::Notify() {
-  WakeConditionVariable(&data_.cond_);
-}
-
-Monitor::Monitor() {
-  InitializeSRWLock(&data_.lock_);
-  InitializeConditionVariable(&data_.cond_);
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-}
-
-Monitor::~Monitor() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-#endif  // defined(DEBUG)
-}
-
-bool Monitor::TryEnter() {
-  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
-
-  // Attempt to pass the semaphore but return immediately.
-  if (TryAcquireSRWLockExclusive(&data_.lock_) != 0) {
-#if defined(DEBUG)
-    // When running with assertions enabled we do track the owner.
-    ASSERT(owner_ == OSThread::kInvalidThreadId);
-    owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-    return true;
-  }
-  return false;
-}
-
-void Monitor::Enter() {
-  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
-
-  AcquireSRWLockExclusive(&data_.lock_);
-
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-}
-
-void Monitor::Exit() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-
-  ReleaseSRWLockExclusive(&data_.lock_);
-}
-
-Monitor::WaitResult Monitor::Wait(int64_t millis) {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  ThreadId saved_owner = owner_;
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-
-  Monitor::WaitResult retval = kNotified;
-  if (millis == kNoTimeout) {
-    SleepConditionVariableSRW(&data_.cond_, &data_.lock_, INFINITE, 0);
-  } else {
-    // Wait for the given period of time for a Notify or a NotifyAll
-    // event.
-    if (!SleepConditionVariableSRW(&data_.cond_, &data_.lock_, millis, 0)) {
-      ASSERT(GetLastError() == ERROR_TIMEOUT);
-      retval = kTimedOut;
-    }
-  }
-
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-  owner_ = OSThread::GetCurrentThreadId();
-  ASSERT(owner_ == saved_owner);
-#endif  // defined(DEBUG)
-  return retval;
-}
-
-Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
-  // TODO(johnmccutchan): Investigate sub-millisecond sleep times on Windows.
-  int64_t millis = micros / kMicrosecondsPerMillisecond;
-  if ((millis * kMicrosecondsPerMillisecond) < micros) {
-    // We've been asked to sleep for a fraction of a millisecond,
-    // this isn't supported on Windows. Bumps milliseconds up by one
-    // so that we never return too early. We likely return late though.
-    millis += 1;
-  }
-  return Wait(millis);
-}
-
-void Monitor::Notify() {
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  WakeConditionVariable(&data_.cond_);
-}
-
-void Monitor::NotifyAll() {
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  WakeAllConditionVariable(&data_.cond_);
 }
 
 void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,

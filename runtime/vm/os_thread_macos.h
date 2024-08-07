@@ -17,7 +17,6 @@
 namespace dart {
 
 typedef pthread_key_t ThreadLocalKey;
-typedef pthread_t ThreadId;
 typedef pthread_t ThreadJoinId;
 
 static const ThreadLocalKey kUnsetThreadLocalKey =
@@ -38,54 +37,6 @@ class ThreadInlineImpl {
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
-};
-
-class MutexData {
- private:
-  MutexData() {}
-  ~MutexData() {}
-
-  pthread_mutex_t* mutex() { return &mutex_; }
-
-  pthread_mutex_t mutex_;
-
-  friend class Mutex;
-  friend class ConditionVariable;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MutexData);
-};
-
-class ConditionVariableData {
- private:
-  ConditionVariableData() {}
-  ~ConditionVariableData() {}
-
-  pthread_cond_t* cond() { return &cond_; }
-
-  pthread_cond_t cond_;
-
-  friend class ConditionVariable;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ConditionVariableData);
-};
-
-class MonitorData {
- private:
-  MonitorData() {}
-  ~MonitorData() {}
-
-  pthread_mutex_t* mutex() { return &mutex_; }
-  pthread_cond_t* cond() { return &cond_; }
-
-  pthread_mutex_t mutex_;
-  pthread_cond_t cond_;
-
-  friend class Monitor;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MonitorData);
 };
 
 }  // namespace dart

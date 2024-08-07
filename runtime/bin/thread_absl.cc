@@ -10,36 +10,11 @@
 #include <sys/time.h>      // NOLINT
 
 #include "bin/thread.h"
-#include "bin/thread_absl.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 
 namespace dart {
 namespace bin {
-
-#define VALIDATE_PTHREAD_RESULT(result)                                        \
-  if (result != 0) {                                                           \
-    const int kBufferSize = 1024;                                              \
-    char error_buf[kBufferSize];                                               \
-    FATAL("pthread error: %d (%s)", result,                                    \
-          Utils::StrError(result, error_buf, kBufferSize));                    \
-  }
-
-#ifdef DEBUG
-#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
-  if (result != 0) {                                                           \
-    const int kBufferSize = 1024;                                              \
-    char error_buf[kBufferSize];                                               \
-    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", __FILE__, __LINE__,     \
-            result, Utils::StrError(result, error_buf, kBufferSize));          \
-    return result;                                                             \
-  }
-#else
-#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
-  if (result != 0) {                                                           \
-    return result;                                                             \
-  }
-#endif
 
 class ThreadStartData {
  public:
@@ -113,84 +88,9 @@ int Thread::Start(const char* name,
   return 0;
 }
 
-const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
-
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
-}
-
-ThreadId Thread::GetCurrentThreadId() {
-  return pthread_self();
-}
-
-bool Thread::Compare(ThreadId a, ThreadId b) {
-  return (pthread_equal(a, b) != 0);
-}
-
-Mutex::Mutex() : data_() {}
-
-Mutex::~Mutex() {}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Mutex::Lock() {
-  data_.mutex()->Lock();
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-bool Mutex::TryLock() {
-  if (!data_.mutex()->TryLock()) {
-    return false;
-  }
-  return true;
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Mutex::Unlock() {
-  data_.mutex()->Unlock();
-}
-
-Monitor::Monitor() : data_() {}
-
-Monitor::~Monitor() {}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Monitor::Enter() {
-  data_.mutex()->Lock();
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Monitor::Exit() {
-  data_.mutex()->Unlock();
-}
-
-Monitor::WaitResult Monitor::Wait(int64_t millis) {
-  return WaitMicros(millis * kMicrosecondsPerMillisecond);
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
-  Monitor::WaitResult retval = kNotified;
-  if (micros == kNoTimeout) {
-    // Wait forever.
-    data_.cond()->Wait(data_.mutex());
-  } else {
-    if (data_.cond()->WaitWithTimeout(data_.mutex(),
-                                      absl::Microseconds(micros))) {
-      retval = kTimedOut;
-    }
-  }
-  return retval;
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Monitor::Notify() {
-  data_.cond()->Signal();
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Monitor::NotifyAll() {
-  data_.cond()->SignalAll();
 }
 
 }  // namespace bin

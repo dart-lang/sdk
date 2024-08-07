@@ -30,48 +30,6 @@ DEFINE_FLAG(int,
             kMinInt,
             "The thread priority the VM should use for new worker threads.");
 
-#define VALIDATE_PTHREAD_RESULT(result)                                        \
-  if (result != 0) {                                                           \
-    const int kBufferSize = 1024;                                              \
-    char error_buf[kBufferSize];                                               \
-    FATAL("pthread error: %d (%s)", result,                                    \
-          Utils::StrError(result, error_buf, kBufferSize));                    \
-  }
-
-// Variation of VALIDATE_PTHREAD_RESULT for named objects.
-#if defined(PRODUCT)
-#define VALIDATE_PTHREAD_RESULT_NAMED(result) VALIDATE_PTHREAD_RESULT(result)
-#else
-#define VALIDATE_PTHREAD_RESULT_NAMED(result)                                  \
-  if (result != 0) {                                                           \
-    const int kBufferSize = 1024;                                              \
-    char error_buf[kBufferSize];                                               \
-    FATAL("[%s] pthread error: %d (%s)", name_, result,                        \
-          Utils::StrError(result, error_buf, kBufferSize));                    \
-  }
-#endif
-
-#if defined(DEBUG)
-#define ASSERT_PTHREAD_SUCCESS(result) VALIDATE_PTHREAD_RESULT(result)
-#else
-// NOTE: This (currently) expands to a no-op.
-#define ASSERT_PTHREAD_SUCCESS(result) ASSERT(result == 0)
-#endif
-
-#ifdef DEBUG
-#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
-  if (result != 0) {                                                           \
-    const int kBufferSize = 1024;                                              \
-    char error_buf[kBufferSize];                                               \
-    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", __FILE__, __LINE__,     \
-            result, Utils::StrError(result, error_buf, kBufferSize));          \
-    return result;                                                             \
-  }
-#else
-#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
-  if (result != 0) return result;
-#endif
-
 class ThreadStartData {
  public:
   ThreadStartData(const char* name,
@@ -187,7 +145,6 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
     static_cast<ThreadJoinId>(0);
 
@@ -214,10 +171,6 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
 intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
-}
-
-ThreadId OSThread::GetCurrentThreadId() {
-  return pthread_self();
 }
 
 #ifdef SUPPORT_TIMELINE
@@ -280,10 +233,6 @@ ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
 #endif
 }
 
-bool OSThread::Compare(ThreadId a, ThreadId b) {
-  return pthread_equal(a, b) != 0;
-}
-
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   pthread_attr_t attr;
@@ -324,171 +273,6 @@ void OSThread::SetCurrentSafestackPointer(uword ssp) {
 #error "SAFE_STACK is unsupported on this platform"
 }
 #endif
-
-Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
-#if !defined(PRODUCT)
-    : name_(name)
-#endif
-{
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-}
-
-Mutex::~Mutex() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-#endif  // defined(DEBUG)
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Mutex::Lock() {
-  data_.mutex()->Lock();
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-bool Mutex::TryLock() {
-  if (!data_.mutex()->TryLock()) {
-    return false;
-  }
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-  return true;
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Mutex::Unlock() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-  data_.mutex()->Unlock();
-}
-
-ConditionVariable::ConditionVariable() {}
-
-ConditionVariable::~ConditionVariable() {}
-
-void ConditionVariable::Wait(Mutex* mutex) {
-#if defined(DEBUG)
-  ThreadId saved_owner = mutex->InvalidateOwner();
-#endif
-
-  data_.cond()->Wait(mutex->data_.mutex());
-
-#if defined(DEBUG)
-  mutex->SetCurrentThreadAsOwner();
-  ASSERT(OSThread::GetCurrentThreadId() == saved_owner);
-#endif
-}
-
-void ConditionVariable::Notify() {
-  data_.cond()->Signal();
-}
-
-Monitor::Monitor() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-}
-
-Monitor::~Monitor() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-#endif  // defined(DEBUG)
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-bool Monitor::TryEnter() {
-  if (!data_.mutex()->TryLock()) {
-    return false;
-  }
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-  return true;
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Monitor::Enter() {
-  data_.mutex()->Lock();
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Monitor::Exit() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-  data_.mutex()->Unlock();
-}
-
-Monitor::WaitResult Monitor::Wait(int64_t millis) {
-  Monitor::WaitResult retval = WaitMicros(millis * kMicrosecondsPerMillisecond);
-  return retval;
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  ThreadId saved_owner = owner_;
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-
-  Monitor::WaitResult retval = kNotified;
-  if (micros == kNoTimeout) {
-    // Wait forever.
-    data_.cond()->Wait(data_.mutex());
-  } else {
-    if (data_.cond()->WaitWithTimeout(data_.mutex(),
-                                      absl::Microseconds(micros))) {
-      retval = kTimedOut;
-    }
-  }
-
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-  owner_ = OSThread::GetCurrentThreadId();
-  ASSERT(owner_ == saved_owner);
-#endif  // defined(DEBUG)
-  return retval;
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Monitor::Notify() {
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  data_.cond()->Signal();
-}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void Monitor::NotifyAll() {
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  data_.cond()->SignalAll();
-}
 
 }  // namespace dart
 

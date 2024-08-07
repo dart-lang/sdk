@@ -22,49 +22,6 @@
 
 namespace dart {
 
-#define VALIDATE_PTHREAD_RESULT(result)                                        \
-  if (result != 0) {                                                           \
-    FATAL("pthread error: %d", result);                                        \
-  }
-
-#if defined(PRODUCT)
-#define VALIDATE_PTHREAD_RESULT_NAMED(result) VALIDATE_PTHREAD_RESULT(result)
-#else
-#define VALIDATE_PTHREAD_RESULT_NAMED(result)                                  \
-  if (result != 0) {                                                           \
-    FATAL("[%s] pthread error: %d", name_, result);                            \
-  }
-#endif
-
-#if defined(DEBUG)
-#define ASSERT_PTHREAD_SUCCESS(result) VALIDATE_PTHREAD_RESULT(result)
-#else
-// NOTE: This (currently) expands to a no-op.
-#define ASSERT_PTHREAD_SUCCESS(result) ASSERT(result == 0)
-#endif
-
-#ifdef DEBUG
-#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
-  if (result != 0) {                                                           \
-    fprintf(stderr, "%s:%d: pthread error: %d\n", __FILE__, __LINE__, result); \
-    return result;                                                             \
-  }
-#else
-#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
-  if (result != 0) return result;
-#endif
-
-static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
-  // time in nanoseconds.
-  zx_time_t now = zx_clock_get_monotonic();
-  zx_time_t target = now + (micros * kNanosecondsPerMicrosecond);
-  int64_t secs = target / kNanosecondsPerSecond;
-  int64_t nanos = target - (secs * kNanosecondsPerSecond);
-
-  ts->tv_sec = secs;
-  ts->tv_nsec = nanos;
-}
-
 class ThreadStartData {
  public:
   ThreadStartData(const char* name,
@@ -136,7 +93,6 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = ZX_HANDLE_INVALID;
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
     static_cast<ThreadJoinId>(0);
 
@@ -163,10 +119,6 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
 intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
-}
-
-ThreadId OSThread::GetCurrentThreadId() {
-  return thrd_get_zx_handle(thrd_current());
 }
 
 #ifdef SUPPORT_TIMELINE
@@ -207,10 +159,6 @@ intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
 
 ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
   return static_cast<ThreadId>(id);
-}
-
-bool OSThread::Compare(ThreadId a, ThreadId b) {
-  return pthread_equal(a, b) != 0;
 }
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
@@ -282,264 +230,6 @@ void OSThread::SetCurrentSafestackPointer(uword ssp) {
 }
 #undef STRINGIFY
 #endif
-
-Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
-#if !defined(PRODUCT)
-    : name_(name)
-#endif
-{
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-
-#if defined(DEBUG)
-  result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-#endif  // defined(DEBUG)
-
-  result = pthread_mutex_init(data_.mutex(), &attr);
-  // Verify that creating a pthread_mutex succeeded.
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-
-  result = pthread_mutexattr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-}
-
-Mutex::~Mutex() {
-  int result = pthread_mutex_destroy(data_.mutex());
-  // Verify that the pthread_mutex was destroyed.
-  VALIDATE_PTHREAD_RESULT_NAMED(result);
-
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-#endif  // defined(DEBUG)
-}
-
-void Mutex::Lock() {
-  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
-
-  int result = pthread_mutex_lock(data_.mutex());
-  // Specifically check for dead lock to help debugging.
-  ASSERT(result != EDEADLK);
-  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-}
-
-bool Mutex::TryLock() {
-  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
-
-  int result = pthread_mutex_trylock(data_.mutex());
-  // Return false if the lock is busy and locking failed.
-  if (result == EBUSY) {
-    return false;
-  }
-  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-  return true;
-}
-
-void Mutex::Unlock() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-  int result = pthread_mutex_unlock(data_.mutex());
-  // Specifically check for wrong thread unlocking to aid debugging.
-  ASSERT(result != EPERM);
-  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
-}
-
-ConditionVariable::ConditionVariable() {
-  pthread_condattr_t cond_attr;
-  int result = pthread_condattr_init(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_init(data_.cond(), &cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_destroy(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-ConditionVariable::~ConditionVariable() {
-  int result = pthread_cond_destroy(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-void ConditionVariable::Wait(Mutex* mutex) {
-#if defined(DEBUG)
-  ThreadId saved_owner = mutex->InvalidateOwner();
-#endif
-
-  int result = pthread_cond_wait(data_.cond(), mutex->data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-
-#if defined(DEBUG)
-  mutex->SetCurrentThreadAsOwner();
-  ASSERT(OSThread::GetCurrentThreadId() == saved_owner);
-#endif
-}
-
-void ConditionVariable::Notify() {
-  int result = pthread_cond_signal(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-Monitor::Monitor() {
-  pthread_mutexattr_t mutex_attr;
-  int result = pthread_mutexattr_init(&mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-#if defined(DEBUG)
-  result = pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
-#endif  // defined(DEBUG)
-
-  result = pthread_mutex_init(data_.mutex(), &mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_mutexattr_destroy(&mutex_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  pthread_condattr_t cond_attr;
-  result = pthread_condattr_init(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_init(data_.cond(), &cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_condattr_destroy(&cond_attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-}
-
-Monitor::~Monitor() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-#endif  // defined(DEBUG)
-
-  int result = pthread_mutex_destroy(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_destroy(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-bool Monitor::TryEnter() {
-  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
-
-  int result = pthread_mutex_trylock(data_.mutex());
-  // Return false if the lock is busy and locking failed.
-  if (result == EBUSY) {
-    return false;
-  }
-  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-  return true;
-}
-
-void Monitor::Enter() {
-  DEBUG_ASSERT(!ThreadInterruptScope::in_thread_interrupt_scope());
-
-  int result = pthread_mutex_lock(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-  owner_ = OSThread::GetCurrentThreadId();
-#endif  // defined(DEBUG)
-}
-
-void Monitor::Exit() {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-
-  int result = pthread_mutex_unlock(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-Monitor::WaitResult Monitor::Wait(int64_t millis) {
-  Monitor::WaitResult retval = WaitMicros(millis * kMicrosecondsPerMillisecond);
-  return retval;
-}
-
-Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  ThreadId saved_owner = owner_;
-  owner_ = OSThread::kInvalidThreadId;
-#endif  // defined(DEBUG)
-
-  Monitor::WaitResult retval = kNotified;
-  if (micros == kNoTimeout) {
-    // Wait forever.
-    int result = pthread_cond_wait(data_.cond(), data_.mutex());
-    VALIDATE_PTHREAD_RESULT(result);
-  } else {
-    struct timespec ts;
-    ComputeTimeSpecMicros(&ts, micros);
-    int result = pthread_cond_timedwait(data_.cond(), data_.mutex(), &ts);
-    ASSERT((result == 0) || (result == ETIMEDOUT));
-    if (result == ETIMEDOUT) {
-      retval = kTimedOut;
-    }
-  }
-
-#if defined(DEBUG)
-  // When running with assertions enabled we track the owner.
-  ASSERT(owner_ == OSThread::kInvalidThreadId);
-  owner_ = OSThread::GetCurrentThreadId();
-  ASSERT(owner_ == saved_owner);
-#endif  // defined(DEBUG)
-  return retval;
-}
-
-void Monitor::Notify() {
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  int result = pthread_cond_signal(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-void Monitor::NotifyAll() {
-  // When running with assertions enabled we track the owner.
-  ASSERT(IsOwnedByCurrentThread());
-  int result = pthread_cond_broadcast(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
-}
 
 }  // namespace dart
 

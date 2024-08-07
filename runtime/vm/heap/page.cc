@@ -30,7 +30,7 @@ static intptr_t page_cache_size = 0;
 
 void Page::Init() {
   ASSERT(page_cache_mutex == nullptr);
-  page_cache_mutex = new Mutex(NOT_IN_PRODUCT("page_cache_mutex"));
+  page_cache_mutex = new Mutex();
 }
 
 void Page::ClearCache() {

@@ -190,15 +190,7 @@ Handle::Handle(intptr_t handle,
       monitor_(),
       type_(type),
       handle_(reinterpret_cast<HANDLE>(handle)),
-      data_ready_(),
-      pending_read_(nullptr),
-      pending_write_(nullptr),
-      last_error_(NOERROR),
-      read_thread_id_(Thread::kInvalidThreadId),
-      read_thread_handle_(nullptr),
-      read_thread_starting_(false),
-      read_thread_finished_(false),
-      flags_(0) {
+      data_ready_() {
   if (supports_overlapped_io == SupportsOverlappedIO::kYes) {
     EventHandler::delegate()->AssociateWithCompletionPort(this);
   } else {
@@ -256,14 +248,13 @@ void Handle::WaitForReadThreadFinished() {
   HANDLE to_join = nullptr;
   {
     MonitorLocker ml(&monitor_);
-    if (read_thread_id_ != Thread::kInvalidThreadId) {
+    if (read_thread_ != INVALID_HANDLE_VALUE) {
       while (!read_thread_finished_) {
         ml.Wait();
       }
       read_thread_finished_ = false;
-      read_thread_id_ = Thread::kInvalidThreadId;
-      to_join = read_thread_handle_;
-      read_thread_handle_ = nullptr;
+      to_join = read_thread_;
+      read_thread_ = INVALID_HANDLE_VALUE;
     }
   }
   if (to_join != nullptr) {
@@ -296,12 +287,22 @@ void Handle::WriteComplete(std::unique_ptr<OverlappedBuffer> buffer) {
   pending_write_ = nullptr;
 }
 
+// Helper method which returns a real HANDLE for the current thread.
+static HANDLE GetCurrentThreadHandle() {
+  HANDLE thread_handle = INVALID_HANDLE_VALUE;
+  if (!DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+                       GetCurrentProcess(), &thread_handle,
+                       /*dwDesiredAccess=*/0, FALSE, DUPLICATE_SAME_ACCESS)) {
+    FATAL("Failed to obtain thread handle");
+  }
+  return thread_handle;
+}
+
 void Handle::NotifyReadThreadStarted() {
   MonitorLocker ml(&monitor_);
   ASSERT(read_thread_starting_);
-  ASSERT(read_thread_id_ == Thread::kInvalidThreadId);
-  read_thread_id_ = Thread::GetCurrentThreadId();
-  read_thread_handle_ = OpenThread(SYNCHRONIZE, false, read_thread_id_);
+  ASSERT(read_thread_ == INVALID_HANDLE_VALUE);
+  read_thread_ = GetCurrentThreadHandle();
   read_thread_starting_ = false;
   ml.Notify();
 }
@@ -309,7 +310,7 @@ void Handle::NotifyReadThreadStarted() {
 void Handle::NotifyReadThreadFinished() {
   MonitorLocker ml(&monitor_);
   ASSERT(!read_thread_finished_);
-  ASSERT(read_thread_id_ != Thread::kInvalidThreadId);
+  ASSERT(read_thread_ != INVALID_HANDLE_VALUE);
   read_thread_finished_ = true;
   ml.Notify();
 }
@@ -747,8 +748,7 @@ StdHandle* StdHandle::Stdin(HANDLE handle) {
 void StdHandle::RunWriteLoop() {
   MonitorLocker ml(&monitor_);
   write_thread_running_ = true;
-  thread_id_ = Thread::GetCurrentThreadId();
-  thread_handle_ = OpenThread(SYNCHRONIZE, false, thread_id_);
+  thread_handle_ = GetCurrentThreadHandle();
   // Notify we have started.
   ml.Notify();
 
@@ -1339,14 +1339,11 @@ void EventHandlerImplementation::HandleCompletionOrInterrupt(
 }
 
 EventHandlerImplementation::EventHandlerImplementation() {
-  handler_thread_id_ = Thread::kInvalidThreadId;
-  handler_thread_handle_ = nullptr;
   completion_port_ =
       CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, NULL, 1);
   if (completion_port_ == nullptr) {
     FATAL("Completion port creation failed");
   }
-  shutdown_ = false;
 }
 
 namespace {
@@ -1380,8 +1377,8 @@ void EventHandlerImplementation::InitializeSocketExtensions() {
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   // Join the handler thread.
-  DWORD res = WaitForSingleObject(handler_thread_handle_, INFINITE);
-  CloseHandle(handler_thread_handle_);
+  DWORD res = WaitForSingleObject(handler_thread_, INFINITE);
+  CloseHandle(handler_thread_);
   ASSERT(res == WAIT_OBJECT_0);
   CloseHandle(completion_port_);
 }
@@ -1425,9 +1422,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 
   {
     MonitorLocker ml(&handler_impl->monitor_);
-    handler_impl->handler_thread_id_ = Thread::GetCurrentThreadId();
-    handler_impl->handler_thread_handle_ =
-        OpenThread(SYNCHRONIZE, false, handler_impl->handler_thread_id_);
+    handler_impl->handler_thread_ = GetCurrentThreadHandle();
     ml.Notify();
   }
 
@@ -1499,7 +1494,7 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
 
   {
     MonitorLocker ml(&monitor_);
-    while (handler_thread_id_ == Thread::kInvalidThreadId) {
+    while (handler_thread_ == INVALID_HANDLE_VALUE) {
       ml.Wait();
     }
   }
