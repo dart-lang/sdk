@@ -234,7 +234,12 @@ class LibraryFragmentScope implements Scope {
   }
 
   PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
-    // TODO(scheglov): handle deferred and loadLibrary()
+    var isDeferred = prefix.imports.any((import) {
+      return import.prefix is DeferredImportElementPrefix;
+    });
+    if (isDeferred) {
+      return null;
+    }
 
     for (var scope = parent; scope != null; scope = scope.parent) {
       var parentPrefix = scope._prefixElements[prefix.name];
