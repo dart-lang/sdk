@@ -776,6 +776,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// A list containing all of the variables contained in this compilation unit.
   List<TopLevelVariableElementImpl> _variables = const [];
 
+  /// The scope of this fragment, `null` if it has not been created yet.
+  LibraryFragmentScope? _scope;
+
   ElementLinkedData? linkedData;
 
   /// Initialize a newly created compilation unit element to have the given
@@ -1069,7 +1072,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  Scope get scope => enclosingElement.scope;
+  LibraryFragmentScope get scope {
+    return _scope ??= LibraryFragmentScope(this);
+  }
 
   @override
   AnalysisSession get session => enclosingElement.session;
@@ -4507,6 +4512,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// The cache for [augmentations].
   List<LibraryAugmentationElementImpl>? _augmentations;
 
+  /// The map of top-level declarations, from all units.
+  LibraryDeclarations? _libraryDeclarations;
+
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
@@ -4777,6 +4785,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   LibraryElement2 get library2 => this;
+
+  LibraryDeclarations get libraryDeclarations {
+    return _libraryDeclarations ??= LibraryDeclarations(this);
+  }
 
   @override
   FunctionElement get loadLibraryFunction {
@@ -6731,6 +6743,11 @@ class PrefixElementImpl extends _ExistingElementImpl
   LibraryElement2 get enclosingElement2 => enclosingElement as LibraryElement2;
 
   @override
+  CompilationUnitElementImpl get enclosingElement3 {
+    return _enclosingElement3 as CompilationUnitElementImpl;
+  }
+
+  @override
   List<LibraryImportElementImpl> get imports {
     return enclosingElement.libraryImports
         .where((import) => import.prefix?.element == this)
@@ -6752,7 +6769,9 @@ class PrefixElementImpl extends _ExistingElementImpl
   }
 
   @override
-  Scope get scope => _scope ??= PrefixScope(enclosingElement, this);
+  Scope get scope {
+    return _scope ??= enclosingElement3.scope.getPrefixScope(this);
+  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);

@@ -1317,6 +1317,10 @@ import 'dart:convert';
 
 Never exit(int code) => throw code;
 
+int get exitCode => 0;
+
+void set exitCode(int code) {}
+
 abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;

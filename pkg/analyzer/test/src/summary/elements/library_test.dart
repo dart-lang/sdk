@@ -16,6 +16,52 @@ main() {
 }
 
 abstract class LibraryElementTest extends ElementsBaseTest {
+  test_documentationComment_stars() async {
+    var library = await buildLibrary(r'''
+/**
+ * aaa
+ * bbb
+ */
+library test;''');
+
+    checkElementText(library, r'''
+library
+  name: test
+  nameOffset: 30
+  reference: <testLibrary>
+  documentationComment: /**\n * aaa\n * bbb\n */
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  name: test
+  documentationComment: /**\n * aaa\n * bbb\n */
+  fragments
+    <testLibraryFragment>
+''');
+  }
+
+  test_empty() async {
+    var library = await buildLibrary('');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+''');
+  }
+
   test_library() async {
     var library = await buildLibrary('');
     checkElementText(library, r'''
@@ -39,6 +85,7 @@ library
 /// bbb
 library test;
 ''');
+
     checkElementText(library, r'''
 library
   name: test
@@ -59,35 +106,11 @@ library
 ''');
   }
 
-  test_library_documented_stars() async {
-    var library = await buildLibrary('''
-/**
- * aaa
- * bbb
- */
-library test;''');
-    checkElementText(library, r'''
-library
-  name: test
-  nameOffset: 30
-  reference: <testLibrary>
-  documentationComment: /**\n * aaa\n * bbb\n */
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement: <testLibrary>
-----------------------------------------
-library
-  reference: <testLibrary>
-  name: test
-  documentationComment: /**\n * aaa\n * bbb\n */
-  fragments
-    <testLibraryFragment>
+  test_name() async {
+    var library = await buildLibrary(r'''
+library foo.bar;
 ''');
-  }
 
-  test_library_name_with_spaces() async {
-    var library = await buildLibrary('library foo . bar ;');
     checkElementText(library, r'''
 library
   name: foo.bar
@@ -106,8 +129,31 @@ library
 ''');
   }
 
-  test_library_named() async {
-    var library = await buildLibrary('library foo.bar;');
+  test_name_empty() async {
+    var library = await buildLibrary(r'''
+library;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+''');
+  }
+
+  test_name_withSpaces() async {
+    var library = await buildLibrary(r'''
+library foo . bar ;
+''');
+
     checkElementText(library, r'''
 library
   name: foo.bar
