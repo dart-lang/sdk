@@ -203,8 +203,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   final _superHelpers = <String, js_ast.Method>{};
 
-  /// Cache for the results of calling [_typeParametersInHierarchy].
-  final _typeParametersInHierarchyCache = <Class, bool>{};
+  /// Cache for the results of calling [_requiresRtiForInstantiation].
+  final _requiresRtiForInstantiationCache = <Class, bool>{};
+
+  /// Reserved parameter used to reference RTI objects passed to generic
+  /// constructors/factories and generic method signatures.
+  final _rtiParam = js_ast.TemporaryId('_ti');
 
   // Compilation of Kernel's [BreakStatement].
   //
@@ -705,6 +709,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _moduleItems.add(addTypeParameterVariancesStatement);
     }
 
+    // Certain RTIs must be emitted during RTI normalization. We cache these
+    // eagerly with 'findType' (without normalization) to avoid infinite loops.
+    // See normalization functions in: sdk/lib/_internal/js_shared/lib/rti.dart
+    var prerequisiteRtiTypes = [
+      _coreTypes.objectLegacyRawType,
+      _coreTypes.objectNullableRawType,
+      NeverType.legacy()
+    ];
+    prerequisiteRtiTypes.forEach((type) {
+      var recipe = _typeRecipeGenerator
+          .recipeInEnvironment(type, EmptyTypeEnvironment())
+          .recipe;
+      _moduleItems.add(js.call('#.findType("$recipe")',
+          [_emitLibraryName(_rtiLibrary)]).toStatement());
+    });
+
     // Visit directives (for exports)
     libraries.forEach(_emitExports);
     _ticker?.logMs('Emitted exports');
@@ -931,7 +951,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // object attached to an instance. Instead we construct a type environment
     // manually when needed. Later we use the rti attached to an instance for
     // a simpler representation within instance members of the class.
-    _currentTypeEnvironment = _currentTypeEnvironment.extend(c.typeParameters);
+    _currentTypeEnvironment = ClassTypeEnvironment(c.typeParameters);
 
     // Mixins are unrolled in _defineClass.
     if (!c.isAnonymousMixin) {
@@ -979,18 +999,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       js_ast.TemporaryId(js_ast.toJSIdentifier(name));
 
   js_ast.Statement _emitClassDeclaration(Class c) {
-    // Generic classes will be defined inside a function that closes over the
-    // type parameter. So we can use their local variable name directly.
-    //
-    // TODO(jmesserly): the special case for JSArray is to support its special
-    // type-tagging factory constructors. Those will go away once we fix:
-    // https://github.com/dart-lang/sdk/issues/31003
-    var className = c.typeParameters.isNotEmpty
-        ? (c == _jsArrayClass
-            ? _emitIdentifier(c.name)
-            : _emitTemporaryId(getLocalClassName(c)))
-        : _emitTopLevelName(c);
-
+    var className = _emitTopLevelNameNoExternalInterop(c);
     var savedClassProperties = _classProperties;
     _classProperties =
         ClassPropertyModel.build(_types, _extensionTypes, _virtualFields, c);
@@ -1017,13 +1026,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var jsCtors = _defineConstructors(c, className);
 
-    // TODO(nshahan) Use ClassTypeEnvironment when the representation of generic
-    // classes is no longer a closure that defines the class and captures the
-    // type arguments.
-    // Emitting class members in a class type environment results in a more
-    // succinct type representation when referencing class type arguments from
-    // instance members but the type rules must include mappings of all type
-    // arguments throughout the hierarchy.
     var jsMethods = _emitClassMethods(c);
 
     _emitSuperHelperSymbols(body);
@@ -1087,18 +1089,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _defineExtensionMembers(className, body);
     }
 
-    var classDef = js_ast.Statement.from(body);
     var typeFormals = c.typeParameters;
     var evaluatedDeferredSupertypes =
         deferredSupertypes.map<js_ast.Statement>((f) => f()).toList();
     if (typeFormals.isNotEmpty) {
-      classDef = _defineClassTypeArguments(
-          c, typeFormals, classDef, className, evaluatedDeferredSupertypes);
+      var genericClassStmts = _defineGenericClass(typeFormals,
+          js_ast.Statement.from(body), evaluatedDeferredSupertypes);
+      body = [...genericClassStmts];
     } else {
       _afterClassDefItems.addAll(evaluatedDeferredSupertypes);
     }
 
-    body = [classDef];
     _emitStaticFieldsAndAccessors(c, body);
     if (c == _coreTypes.objectClass) {
       // Avoid polluting the native JavaScript Object prototype with the members
@@ -1121,11 +1122,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// or static members, returns null.
   js_ast.Statement? _emitJSInteropClassNonExternalMembers(Class c) {
     if (!hasJSInteropAnnotation(c)) return null;
-    // Generic JS interop classes are emitted like Dart generic classes, where
-    // the type arguments need to be instantiated.
-    var className = c.typeParameters.isNotEmpty
-        ? _emitTemporaryId(getLocalClassName(c))
-        : _emitTopLevelNameNoExternalInterop(c);
+    var className = _emitTopLevelNameNoExternalInterop(c);
 
     var nonExternalMethods = <js_ast.Method>[];
     for (var procedure in c.procedures) {
@@ -1154,59 +1151,32 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _emitClassStatement(c, className, null, nonExternalMethods)
             .toStatement()
       ];
-      var classDef = js_ast.Statement.from(body);
       var typeFormals = c.typeParameters;
       if (typeFormals.isNotEmpty) {
-        classDef =
-            _defineClassTypeArguments(c, typeFormals, classDef, className, []);
+        var genericClassStmts =
+            _defineGenericClass(typeFormals, js_ast.Statement.from(body), []);
+        body = [...genericClassStmts, ...fieldInitialization];
+      } else {
+        body = [...body, ...fieldInitialization];
       }
-      body = [classDef, ...fieldInitialization];
       return js_ast.Statement.from(body);
     }
     return null;
   }
 
-  /// Wraps a possibly generic class in its type arguments.
-  js_ast.Statement _defineClassTypeArguments(
-      NamedNode c,
-      List<TypeParameter> formals,
-      js_ast.Statement body,
-      js_ast.Expression className,
-      List<js_ast.Statement> deferredBaseClass) {
+  /// Emits a generic class with additional initialization logic.
+  List<js_ast.Statement> _defineGenericClass(List<TypeParameter> formals,
+      js_ast.Statement body, List<js_ast.Statement> deferredBaseClass) {
     assert(formals.isNotEmpty);
-    var jsFormals = _emitTypeFormals(formals);
-    var typeConstructor = js.call('(#) => { #; #; #; return #; }', [
-      jsFormals,
-      _typeTable.dischargeFreeTypes(formals),
-      _genericClassTable.dischargeFreeTypes(formals),
+    return [
+      ..._typeTable.dischargeFreeTypes(formals),
       body,
-      className
-    ]);
-
-    var genericArgs = [
-      typeConstructor,
-      if (deferredBaseClass.isNotEmpty)
-        js.call('(#) => { #; }', [jsFormals, deferredBaseClass]),
+      ...deferredBaseClass,
     ];
-    var genericCall = _runtimeCall('generic(#)', [genericArgs]);
-    var genericName = _emitTopLevelNameNoExternalInterop(c, suffix: '\$');
-    return js.statement('{ # = #; # = #(); }', [
-      genericName,
-      genericCall,
-      _emitTopLevelNameNoExternalInterop(c),
-      genericName
-    ]);
   }
 
   js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,
       js_ast.Expression? heritage, List<js_ast.Method> methods) {
-    if (c.typeParameters.isNotEmpty) {
-      var classIdentifier = className as js_ast.Identifier;
-      if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
-      return js_ast.ClassExpression(classIdentifier, heritage, methods)
-          .toStatement();
-    }
-
     var classIdentifier = _emitTemporaryId(getLocalClassName(c));
     if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
     var classExpr = js_ast.ClassExpression(classIdentifier, heritage, methods);
@@ -1323,23 +1293,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return base;
     }
 
-    /// Returns the "actual" superclass of [c].
-    ///
-    /// Walks up the superclass chain looking for the first actual class
-    /// skipping any synthetic classes inserted by the CFE.
-    Class superClassAsWritten(Class c) {
-      var superclass = c.superclass!;
-      while (superclass.isAnonymousMixin) {
-        superclass = superclass.superclass!;
-      }
-      return superclass;
-    }
-
     // Find the real (user declared) superclass and the list of mixins.
     // We'll use this to unroll the intermediate classes.
     //
     // TODO(jmesserly): consider using Kernel's mixin unrolling.
-    var superclass = superClassAsWritten(c);
+    var superclass = _superClassAsWritten(c);
     var supertype = identical(c.superclass, superclass)
         ? c.supertype!.asInterfaceType
         : _hierarchy.getClassAsInstanceOf(c, superclass)!.asInterfaceType;
@@ -1354,32 +1312,48 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var hasUnnamedSuper = _hasUnnamedInheritedConstructor(superclass);
 
-    void emitMixinConstructors(
-        js_ast.Expression className, InterfaceType mixin) {
-      js_ast.Statement? mixinCtor;
-      if (_hasUnnamedConstructor(mixin.classNode)) {
-        mixinCtor = js.statement('#.#.call(this);', [
-          emitClassRef(mixin),
-          _usesMixinNew(mixin.classNode)
-              ? _runtimeCall('mixinNew')
-              : _constructorName('')
-        ]);
-      }
-
-      for (var ctor in superclass.constructors) {
+    void emitMixinConstructors(js_ast.Expression className,
+        Class mixinSuperclass, Class mixinClass, InterfaceType mixin) {
+      for (var ctor in mixinSuperclass.constructors) {
         var savedUri = _currentUri;
         _currentUri = ctor.enclosingClass.fileUri;
-        var jsParams = _emitParameters(ctor.function, isForwarding: true);
-        _currentUri = savedUri;
+
+        var sharedParams = _emitParameters(ctor.function, isForwarding: true);
+        var mixinConstructorParams = [
+          if (_requiresRtiForInstantiation(mixinSuperclass)) _rtiParam,
+          ...sharedParams
+        ];
+        var superConstructorArgs = [
+          if (_requiresRtiForInstantiation(ctor.enclosingClass))
+            js_ast.LiteralNull(),
+          ...sharedParams
+        ];
+
+        js_ast.Statement? mixinCtor;
+        if (_hasUnnamedConstructor(mixin.classNode)) {
+          var mixinRti = _requiresRtiForInstantiation(mixin.classNode)
+              ? js_ast.LiteralNull()
+              : null;
+          mixinCtor = js.statement('#.#.call(this, #);', [
+            emitClassRef(mixin),
+            _usesMixinNew(mixin.classNode)
+                ? _runtimeCall('mixinNew')
+                : _constructorName(''),
+            [if (mixinRti != null) mixinRti],
+          ]);
+        }
+
         var name = ctor.name.text;
         var ctorBody = [
           if (mixinCtor != null) mixinCtor,
           if (name != '' || hasUnnamedSuper)
-            _emitSuperConstructorCall(className, name, jsParams),
+            _emitSuperConstructorCall(
+                ctor, className, name, superConstructorArgs),
         ];
         // TODO(nshahan) Record the name for this constructor in memberNames.
         body.add(_addConstructorToClass(c, className, _constructorName(name),
-            js_ast.Fun(jsParams, js_ast.Block(ctorBody))));
+            js_ast.Fun(mixinConstructorParams, js_ast.Block(ctorBody))));
+        _currentUri = savedUri;
       }
     }
 
@@ -1418,8 +1392,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // parameters from the class being mixed in and their use can appear in
       // the forwarding stubs.
       var savedTypeEnvironment = _currentTypeEnvironment;
-      _currentTypeEnvironment =
-          _currentTypeEnvironment.extend(m.typeParameters);
+      if (m.typeParameters.isNotEmpty) {
+        _currentTypeEnvironment =
+            _currentTypeEnvironment.extend(m.typeParameters);
+      }
       var forwardingMethodStubs = <js_ast.Method>[];
       for (var s in forwardingMembers.values) {
         // Members are marked as "forwarding stubs" when they require a type
@@ -1449,7 +1425,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             _emitTemporaryId(mixinName), baseClass, forwardingMethodStubs)
       ]));
 
-      emitMixinConstructors(mixinId, mixinType);
+      emitMixinConstructors(mixinId, superclass, mixinClass, mixinType);
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(mixinClass);
 
       if (shouldDefer(mixinType)) {
@@ -1574,6 +1550,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emit the signature on the class recording the runtime type information
   void _emitClassSignature(
       Class c, js_ast.Expression className, List<js_ast.Statement> body) {
+    var savedTypeEnvironment = _currentTypeEnvironment;
+    _currentTypeEnvironment =
+        RtiTypeEnvironment(_currentTypeEnvironment.classTypeParameters);
     var savedClass = _classEmittingSignatures;
     _classEmittingSignatures = c;
 
@@ -1606,6 +1585,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
 
       body.add(setSignature);
+    }
+
+    js_ast.Expression emitClassFieldSignature(Field field, Class fromClass) {
+      var fieldType =
+          _typeFromClass(field.type, field.enclosingClass!, fromClass)
+              .extensionTypeErasure;
+      var uri = fieldType is InterfaceType
+          ? _cacheUri(
+              _jsLibraryDebuggerName(fieldType.classNode.enclosingLibrary))
+          : null;
+      var isConst = js.boolean(field.isConst);
+      var isFinal = js.boolean(field.isFinal);
+      var type = _emitType(fieldType);
+      var typeResolver = js_ast.ArrowFun([_rtiParam], type);
+      return uri == null
+          ? js('{type: #, isConst: #, isFinal: #}',
+              [typeResolver, isConst, isFinal])
+          : js('{type: #, isConst: #, isFinal: #, libraryUri: #}',
+              [typeResolver, isConst, isFinal, uri]);
     }
 
     var extMethods = _classProperties!.extensionMethods;
@@ -1689,28 +1687,32 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               for (var parameter in reifiedType.typeParameters)
                 _emitType(parameter.defaultType)
             ]);
-            instanceMethodsDefaultTypeArgs
-                .add(js_ast.Property(memberName, defaultTypeArgs));
+            var typeResolver = js_ast.ArrowFun([_rtiParam], defaultTypeArgs);
+            var property = js_ast.Property(memberName, typeResolver);
+            instanceMethodsDefaultTypeArgs.add(property);
             // As seen below, sometimes the member signatures are added again
             // using the extension symbol as the name. That logic is duplicated
             // here to ensure there are always default type arguments accessible
             // via the same name as the signature.
             // TODO(52867): Cleanup default type argument duplication.
             if (extMethods.contains(name) || extAccessors.contains(name)) {
-              instanceMethodsDefaultTypeArgs.add(js_ast.Property(
-                  _declareMemberName(member, useExtension: true),
-                  defaultTypeArgs));
+              var property = js_ast.Property(
+                  _declareMemberName(member, useExtension: true), typeResolver);
+              instanceMethodsDefaultTypeArgs.add(property);
             }
           }
         }
-        var property = js_ast.Property(memberName, type);
+        var typeResolver = js_ast.ArrowFun([_rtiParam], type);
+        var property = js_ast.Property(memberName, typeResolver);
         var signatures = getSignatureList(member);
         signatures.add(property);
         if (!member.isStatic &&
             (extMethods.contains(name) || extAccessors.contains(name))) {
           // TODO(52867): Cleanup signature duplication.
-          signatures.add(js_ast.Property(
-              _declareMemberName(member, useExtension: true), type));
+          var typeResolver = js_ast.ArrowFun([_rtiParam], type);
+          var property = js_ast.Property(
+              _declareMemberName(member, useExtension: true), typeResolver);
+          signatures.add(property);
         }
       }
     }
@@ -1736,34 +1738,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // signatures are only used by the debugger and are not needed for runtime
       // correctness.
       var memberName = _declareMemberName(field);
-      var fieldSig = _emitClassFieldSignature(field, c);
+      var fieldSig = emitClassFieldSignature(field, c);
+      var property = js_ast.Property(memberName, fieldSig);
       // TODO(40273) Skip static fields when the debugger consumes signature
       // information from symbol files.
-      (field.isStatic ? staticFields : instanceFields)
-          .add(js_ast.Property(memberName, fieldSig));
+      (field.isStatic ? staticFields : instanceFields).add(property);
     }
     emitSignature('Field', instanceFields);
     // TODO(40273) Skip for all statics when the debugger consumes signature
     // information from symbol files.
     emitSignature('StaticField', staticFields);
     _classEmittingSignatures = savedClass;
-  }
-
-  js_ast.Expression _emitClassFieldSignature(Field field, Class fromClass) {
-    var fieldType = _typeFromClass(field.type, field.enclosingClass!, fromClass)
-        .extensionTypeErasure;
-    var uri = fieldType is InterfaceType
-        ? _cacheUri(
-            _jsLibraryDebuggerName(fieldType.classNode.enclosingLibrary))
-        : null;
-    var isConst = js.boolean(field.isConst);
-    var isFinal = js.boolean(field.isFinal);
-
-    return uri == null
-        ? js('{type: #, isConst: #, isFinal: #}',
-            [_emitType(fieldType), isConst, isFinal])
-        : js('{type: #, isConst: #, isFinal: #, libraryUri: #}',
-            [_emitType(fieldType), isConst, isFinal, uri]);
+    _currentTypeEnvironment = savedTypeEnvironment;
   }
 
   DartType _memberRuntimeType(Member member, Class fromClass) {
@@ -1828,7 +1814,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var savedUri = _currentUri;
     _currentUri = node.fileUri;
     _staticTypeContext.enterMember(node);
-    var params = _emitParameters(node.function);
+    var savedTypeEnvironment = _currentTypeEnvironment;
+    _currentTypeEnvironment =
+        ClassTypeEnvironment(node.enclosingClass.typeParameters);
+
+    var params = <js_ast.Parameter>[];
+    // Generic class constructors accept their RTI as their first argument.
+    params.addAll(_emitParameters(node.function));
     var body = _withCurrentFunction(
         node.function,
         () => _superDisallowed(
@@ -1839,11 +1831,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _staticTypeContext.leaveMember(node);
     end ??= _nodeEnd(node.enclosingClass.fileEndOffset);
 
-    return js_ast.Fun(params, js_ast.Block(body))..sourceInformation = end;
+    var constructor = js_ast.Fun([
+      if (_requiresRtiForInstantiation(node.enclosingClass)) _rtiParam,
+      ...params
+    ], js_ast.Block(body))
+      ..sourceInformation = end;
+
+    _currentTypeEnvironment = savedTypeEnvironment;
+    return constructor;
   }
 
   List<js_ast.Statement> _emitConstructorBody(
-      Constructor node, List<Field> fields, js_ast.Expression className) {
+    Constructor node,
+    List<Field> fields,
+    js_ast.Expression className,
+  ) {
     var cls = node.enclosingClass;
 
     // Generate optional/named argument value assignment. These can not have
@@ -1853,6 +1855,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // available for use by top-level constant initializers.
     var fn = node.function;
     var body = _emitArgumentInitializers(fn, node.name.text);
+
+    // Class instances with type arguments are bound to their RTI on creation.
+    // This must be bound early, as instantiated fields may reference this RTI.
+    if (_requiresRtiForInstantiation(cls)) {
+      // Only set the rti if there isn't one already. This avoids superclasses
+      // overwriting the value already set by a subclass.
+      var rtiProperty = _propertyName(js_ast.FixedNames.rtiName);
+      body.add(js.statement('this.# = this.# || # || #', [
+        rtiProperty,
+        rtiProperty,
+        _rtiParam,
+        _runtimeCall('getReifiedType(this)')
+      ]));
+    }
 
     // Redirecting constructors are not allowed to have conventional
     // initializers but can have variable declarations in the form of
@@ -1868,18 +1884,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
     body.add(_initializeFields(fields, node));
-
-    // Instances of classes with type arguments need an rti object attached to
-    // them since the type arguments could be instantiated differently for
-    // each instance.
-    if (_typeParametersInHierarchy(cls)) {
-      var type = cls.getThisType(_coreTypes, Nullability.nonNullable);
-      // Only set the rti if there isn't one already. This avoids superclasses
-      // from overwriting the value already set by subclass.
-      var rtiProperty = _propertyName(js_ast.FixedNames.rtiName);
-      body.add(js.statement(
-          'this.# = this.# || #', [rtiProperty, rtiProperty, _emitType(type)]));
-    }
 
     // If no superinitializer is provided, an implicit superinitializer of the
     // form `super()` is added at the end of the initializer list, unless the
@@ -1897,17 +1901,46 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  /// Returns `true` if [cls] or any of its transitive super classes has
-  /// generic type parameters.
-  bool _typeParametersInHierarchy(Class? cls) {
+  /// Returns the "actual" superclass of [c].
+  ///
+  /// Walks up the superclass chain looking for the first actual class
+  /// skipping any synthetic classes inserted by the CFE.
+  Class _superClassAsWritten(Class c) {
+    var superclass = c.superclass!;
+    while (superclass.isAnonymousMixin) {
+      superclass = superclass.superclass!;
+    }
+    return superclass;
+  }
+
+  /// Returns `true` if [cls] requires/accepts an RTI during instantiation.
+  ///
+  /// We check [cls]'s transitive super classes for generic type parameters,
+  /// but we do not consider anonymous mixins, implemented types or mixin on
+  /// clauses - as their constructors are never invoked via super calls.
+  /// Synthetic mixins are also skipped (despite sometimes having type
+  /// parameters) since they can't be referenced during instantiation.
+  ///
+  /// Context: type arguments must be provided to a generic class during its
+  /// instantiation. To avoid extraneous RTI evals, we pass the entire class's
+  /// RTI instead of each type parameter's RTI individually. RTIs are attached
+  /// to the instance on the hidden '$ti' field (see: FixedNames.rtiName). We
+  /// attach RTIs eagerly (i.e., closer to the 'leaf' than the 'root') for
+  /// simplicity. Setters on 'this' propagate up super calls since Dart super
+  /// calls are synthetic. Ordinary JS super calls would require us to
+  /// propagate the RTI all the way to the 'uppermost' generic class.
+  bool _requiresRtiForInstantiation(Class? cls) {
     if (cls == null) return false;
-    var cachedResult = _typeParametersInHierarchyCache[cls];
+    var cachedResult = _requiresRtiForInstantiationCache[cls];
     if (cachedResult != null) return cachedResult;
+    // Skip synthetic mixins since their RTIs are never needed during
+    // instantiation.
+    if (cls.isAnonymousMixin) {
+      cls = _superClassAsWritten(cls);
+    }
     var hasTypeParameters = cls.typeParameters.isNotEmpty ||
-        (cls.isMixinApplication &&
-            _typeParametersInHierarchy(cls.mixedInClass)) ||
-        _typeParametersInHierarchy(cls.superclass);
-    _typeParametersInHierarchyCache[cls] = hasTypeParameters;
+        _requiresRtiForInstantiation(cls.superclass);
+    _requiresRtiForInstantiationCache[cls] = hasTypeParameters;
     return hasTypeParameters;
   }
 
@@ -1921,21 +1954,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Statement _emitRedirectingConstructor(
       List<Initializer> initializers, js_ast.Expression className) {
-    var jsInitializers = <js_ast.Statement>[
-      for (var init in initializers)
-        if (init is LocalInitializer)
-          // Temporary locals are created when named arguments don't appear at
-          // the end of the arguments list.
-          visitVariableDeclaration(init.variable)
-        else if (init is RedirectingInitializer)
-          // We can't dispatch to the constructor with `this.new` as that might
-          // hit a derived class constructor with the same name.
-          js.statement('#.#.call(this, #);', [
-            className,
-            _constructorName(init.target.name.text),
-            _emitArgumentList(init.arguments, types: false)
-          ])
-    ];
+    var jsInitializers = <js_ast.Statement>[];
+    for (var init in initializers) {
+      if (init is LocalInitializer) {
+        // Temporary locals are created when named arguments don't appear at
+        // the end of the arguments list.
+        jsInitializers.add(visitVariableDeclaration(init.variable));
+      } else if (init is RedirectingInitializer) {
+        var rtiParam = _requiresRtiForInstantiation(init.target.enclosingClass)
+            ? _rtiParam
+            : null;
+        // We can't dispatch to the constructor with `this.new` as that might
+        // hit a derived class constructor with the same name.
+        var initializer = js.statement('#.#.call(this, #);', [
+          className,
+          _constructorName(init.target.name.text),
+          [
+            if (rtiParam != null) rtiParam,
+            ..._emitArgumentList(init.arguments, types: false)
+          ]
+        ]);
+        jsInitializers.add(initializer);
+      }
+    }
     return js_ast.Block(jsInitializers);
   }
 
@@ -1950,7 +1991,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       args = [];
     } else {
       ctor = superInit.target;
-      args = _emitArgumentList(superInit.arguments, types: false);
+      var savedTypeEnvironment = _currentTypeEnvironment;
+      _currentTypeEnvironment = ClassTypeEnvironment(c.typeParameters);
+      // An RTI will already have been set at the constructor call site, so
+      // pass nothing if the superclass is expecting an RTI.
+      var rti = _requiresRtiForInstantiation(ctor.enclosingClass)
+          ? js_ast.LiteralNull()
+          : null;
+      args = [
+        if (rti != null) rti,
+        ..._emitArgumentList(superInit.arguments, types: true)
+      ];
+
+      _currentTypeEnvironment = savedTypeEnvironment;
     }
     // We can skip the super call if it's empty. Most commonly this happens for
     // things that extend Object, and don't have any field initializers or their
@@ -1958,10 +2011,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (ctor.name.text == '' && !_hasUnnamedSuperConstructor(c)) {
       return null;
     }
-    return _emitSuperConstructorCall(className, ctor.name.text, args);
+    return _emitSuperConstructorCall(ctor, className, ctor.name.text, args);
   }
 
-  js_ast.Statement _emitSuperConstructorCall(
+  js_ast.Statement _emitSuperConstructorCall(Constructor constructor,
       js_ast.Expression className, String name, List<js_ast.Expression> args) {
     return js.statement('#.#.call(this, #);', [
       _emitJSObjectGetPrototypeOf(className, fullyQualifiedName: true),
@@ -2381,7 +2434,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emits a Dart factory constructor to a JS static method.
   js_ast.Method? _emitFactoryConstructor(Procedure node) {
     if (node.isExternal || isUnsupportedFactoryConstructor(node)) return null;
-
     var function = node.function;
 
     /// Note: factory constructors can't use `sync*`/`async*`/`async` bodies
@@ -2395,8 +2447,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// [_emitFunction] instead.
     var name = node.name.text;
     var savedTypeEnvironment = _currentTypeEnvironment;
-    _currentTypeEnvironment =
-        _currentTypeEnvironment.extend(function.typeParameters);
+    _currentTypeEnvironment = RtiTypeEnvironment([
+      ...function.typeParameters,
+      ..._currentTypeEnvironment.classTypeParameters
+    ]);
     var jsBody = js_ast.Block(_withCurrentFunction(function, () {
       var block = _emitArgumentInitializers(function, name);
       block.add(_emitFunctionScopedBody(function));
@@ -2404,11 +2458,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }));
     var jsName = _constructorName(name);
     memberNames[node] = jsName.valueWithoutQuotes;
-    var jsParams = _emitParameters(function);
-    _currentTypeEnvironment = savedTypeEnvironment;
 
-    return js_ast.Method(jsName, js_ast.Fun(jsParams, jsBody), isStatic: true)
-      ..sourceInformation = _nodeEnd(node.fileEndOffset);
+    // Generic class constructors accept their RTI as their first argument.
+    var method = js_ast.Method(
+      jsName,
+      js_ast.Fun(
+        [
+          if (_requiresRtiForInstantiation(node.enclosingClass)) _rtiParam,
+          ..._emitParameters(function)
+        ],
+        jsBody,
+      ),
+      isStatic: true,
+    )..sourceInformation = _nodeEnd(node.fileEndOffset);
+    _currentTypeEnvironment = savedTypeEnvironment;
+    return method;
   }
 
   /// Emits the expression necessary to access a constructor of [type];
@@ -2944,11 +3008,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _emitTopLevelMemberName(n, suffix: suffix));
   }
 
-  js_ast.PropertyAccess _emitFutureOrNameNoInterop({String suffix = ''}) {
-    return js_ast.PropertyAccess(_emitLibraryName(_coreTypes.asyncLibrary),
-        _propertyName('FutureOr$suffix'));
-  }
-
   /// Emits the member name portion of a top-level member.
   ///
   /// NOTE: usually you should use [_emitTopLevelName] instead of this. This
@@ -3226,7 +3285,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Returns an expression that evaluates to the rti object from the dart:_rti
   /// library that represents [type].
-  js_ast.Expression _emitType(DartType type) {
+  ///
+  /// [emitJSInteropGenericClassTypeParametersAsAny] indicates that we should
+  /// emit the statically declared type as a JS interop generic class's type
+  /// argument (rather than substituting Any). Any is required for correctness
+  /// in most cases except for uses in non-external JS interop factories.
+  /// Note: This only applies to the old style package:js interop and isn't
+  /// necessary for any forms of static JS interop.
+  js_ast.Expression _emitType(DartType type,
+      {bool emitJSInteropGenericClassTypeParametersAsAny = true}) {
     /// Returns an expression that evaluates a type [recipe] within the type
     /// [environment].
     ///
@@ -3254,64 +3321,68 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// [environment] resulting in an rti object.
     js_ast.Expression evalInEnvironment(
         DDCTypeEnvironment environment, String recipe) {
-      if (environment is EmptyTypeEnvironment) {
-        return js
-            .call('#.findType("$recipe")', [_emitLibraryName(_rtiLibrary)]);
-      } else if (environment is BindingTypeEnvironment) {
-        js_ast.Expression env;
-        if (environment.isSingleTypeParameter) {
-          // An environment with a single type parameter can be simplified to
-          // just that parameter.
-          env = _emitTypeParameter(environment.parameters.single);
-          // Skip a no-op evaluation and just return the parameter.
-          if (recipe == '0') return env;
-        } else {
-          var environmentTypes = environment.parameters;
-          // Create a dummy interface type to "hold" type arguments.
-          env = emitRtiEval(_emitTypeParameter(environmentTypes.first), '@<0>');
-          // Bind remaining type arguments.
-          for (var i = 1; i < environmentTypes.length; i++) {
-            env = emitRtiBind(env, environmentTypes[i]);
+      switch (environment) {
+        case EmptyTypeEnvironment():
+          return js
+              .call('#._Universe.eval(#._theUniverse(), "$recipe", true)', [
+            _emitLibraryName(_rtiLibrary),
+            _emitLibraryName(_rtiLibrary),
+          ]);
+        case BindingTypeEnvironment():
+          js_ast.Expression env;
+          if (environment.isSingleTypeParameter) {
+            // An environment with a single type parameter can be simplified to
+            // just that parameter.
+            env = _emitTypeParameter(environment.functionTypeParameters.single);
+            // Skip a no-op evaluation and just return the parameter.
+            if (recipe == '0') return env;
+          } else {
+            var environmentTypes = environment.functionTypeParameters;
+            // Create a dummy interface type to "hold" type arguments.
+            env =
+                emitRtiEval(_emitTypeParameter(environmentTypes.first), '@<0>');
+            // Bind remaining type arguments.
+            for (var i = 1; i < environmentTypes.length; i++) {
+              env = emitRtiBind(env, environmentTypes[i]);
+            }
           }
-        }
-        return emitRtiEval(env, recipe);
-      } else if (environment is ClassTypeEnvironment) {
-        // Class type environments are already constructed and attached to the
-        // instance of a generic class.
-        var env = _runtimeCall('getReifiedType(this)');
-        return emitRtiEval(env, recipe);
-      } else if (environment is ExtendedClassTypeEnvironment) {
-        // A generic class instance already stores a reference to a type
-        // containing all of its type arguments.
-        var env = _runtimeCall('getReifiedType(this)');
-        // Bind extra type parameters.
-        for (var parameter in environment.extendedParameters) {
-          env = emitRtiBind(env, parameter);
-        }
-        return emitRtiEval(env, recipe);
-      } else {
-        _typeCompilationError(type,
-            'Unexpected DDCTypeEnvironment type (${environment.runtimeType}).');
+          return emitRtiEval(env, recipe);
+        case RtiTypeEnvironment():
+          // RTI type environments are already constructed and attached to the
+          // provided RTI.
+          var env = _rtiParam;
+          return emitRtiEval(env, recipe);
+        case ClassTypeEnvironment():
+          // Class type environments are already constructed and attached to the
+          // instance of a generic class.
+          var env =
+              js.call('#.instanceType(this)', [_emitLibraryName(_rtiLibrary)]);
+          return emitRtiEval(env, recipe);
+        case ExtendedClassTypeEnvironment():
+          // Class type environments are already constructed and attached to the
+          // instance of a generic class, but function type parameters need to
+          // be bound.
+          var env =
+              js.call('#.instanceType(this)', [_emitLibraryName(_rtiLibrary)]);
+          // Bind extra type parameters.
+          for (var parameter in environment.functionTypeParameters) {
+            env = emitRtiBind(env, parameter);
+          }
+          return emitRtiEval(env, recipe);
       }
+      _typeCompilationError(type,
+          'Unexpected DDCTypeEnvironment type (${environment.runtimeType}).');
     }
 
     var normalizedType =
         _futureOrNormalizer.normalize(type.extensionTypeErasure);
     try {
       var result = _typeRecipeGenerator.recipeInEnvironment(
-          normalizedType, _currentTypeEnvironment);
+          normalizedType, _currentTypeEnvironment,
+          emitJSInteropGenericClassTypeParametersAsAny:
+              emitJSInteropGenericClassTypeParametersAsAny);
       var typeRep =
           evalInEnvironment(result.requiredEnvironment, result.recipe);
-      if (_cacheTypes &&
-          // Avoid adding a the use of a single type parameter to the type
-          // table. These can be referenced directly because the are already
-          // represented as a local variable in the scope.
-          !(normalizedType is TypeParameterType &&
-                  normalizedType.isPotentiallyNonNullable ||
-              normalizedType is StructuralParameterType &&
-                  normalizedType.isPotentiallyNullable)) {
-        typeRep = _typeTable.nameType(normalizedType, typeRep);
-      }
       return typeRep;
     } on UnsupportedError catch (e) {
       _typeCompilationError(normalizedType, e.message ?? 'Unknown Error');
@@ -3329,10 +3400,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// The nullability of [type] is not considered because it is meaningless when
   /// describing a reference to the class itself.
   ///
-  /// In the case of a generic type, this reference will be a call to the
-  /// function that defines the class and will pass the type parameters as
-  /// arguments. The nullability of the type parameters does have meaning so it
-  /// is encoded.
+  /// For generic classes, type arguments are not needed since they are
+  /// resolved late via an RTI lookup.
   ///
   /// Note that for `package:js` types, this will emit the class we emitted
   /// using `_emitJSInteropClassNonExternalMembers`, and not the runtime type
@@ -3340,14 +3409,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitClassRef(InterfaceType type) {
     var cls = type.classNode;
     _declareBeforeUse(cls);
-    var args = type.typeArguments;
-    Iterable<js_ast.Expression>? jsArgs;
-    if (args.any((a) => a != const DynamicType())) {
-      jsArgs = args.map(_emitType);
-    }
-    if (jsArgs != null) {
-      return _genericClassTable.nameType(
-          type, _emitGenericClassType(type, jsArgs));
+    if (!_emittingClassExtends && type.typeArguments.isNotEmpty) {
+      var genericName = _emitTopLevelNameNoExternalInterop(type.classNode);
+      return js.call('#', [genericName]);
     }
     return _emitTopLevelNameNoExternalInterop(type.classNode);
   }
@@ -3358,15 +3422,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool get _emittingClassExtends =>
       _currentClass != null && identical(_currentClass, _classEmittingExtends);
-
-  bool get _cacheTypes => !_emittingDeferredType && !_emittingClassExtends;
-
-  js_ast.Expression _emitGenericClassType(
-      InterfaceType t, Iterable<js_ast.Expression> typeArgs) {
-    var genericName =
-        _emitTopLevelNameNoExternalInterop(t.classNode, suffix: '\$');
-    return js.call('#(#)', [genericName, typeArgs]);
-  }
 
   /// Emits an expression that lets you access statics on a [type] from code.
   js_ast.Expression _emitConstructorName(InterfaceType type, Member c) {
@@ -3445,6 +3500,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _currentLibrary = library;
     _staticTypeContext.enterLibrary(_currentLibrary!);
     _currentClass = cls;
+    // Generic parameters should be evaluated in a class environment if
+    // provided. Otherwise we default to an empty type environment.
+    if (cls != null) {
+      _currentTypeEnvironment = ClassTypeEnvironment(cls.typeParameters);
+    }
 
     // Keep all symbols in containers.
     _containerizeSymbols = true;
@@ -3504,7 +3564,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Fun _emitFunction(FunctionNode f, String? name,
       {SourceLocation? functionEnd, SourceLocation? functionBody}) {
     var savedTypeEnvironment = _currentTypeEnvironment;
-    _currentTypeEnvironment = _currentTypeEnvironment.extend(f.typeParameters);
+    if (f.typeParameters.isNotEmpty) {
+      _currentTypeEnvironment =
+          _currentTypeEnvironment.extend(f.typeParameters);
+    }
     var formals = _emitParameters(f);
     var typeFormals = _emitTypeFormals(f.typeParameters);
 
@@ -4482,12 +4545,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // full desugaring seems okay.
     var streamIterator = _coreTypes.rawType(
         _asyncStreamIteratorClass, _currentLibrary!.nonNullable);
+    var streamIteratorRti = _emitType(streamIterator);
     var createStreamIter = js_ast.Call(
         _emitConstructorName(
             streamIterator,
             _asyncStreamIteratorClass.procedures
                 .firstWhere((p) => p.isFactory && p.name.text == '')),
-        [_visitExpression(node.iterable)]);
+        [streamIteratorRti, _visitExpression(node.iterable)]);
 
     var iter = _emitTemporaryId('iter');
 
@@ -6107,27 +6171,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Serves as a way to access the wrapped JS exception.
         return _emitVariableRef(_rethrowParameter!);
       }
+      if (name == 'JS_RTI_PARAMETER') {
+        return _rtiParam;
+      }
     }
 
     if (_isSdkInternalRuntime(enclosingLibrary)) {
       var name = target.name.text;
-      if (node.arguments.positional.isEmpty &&
-          node.arguments.types.length == 1) {
-        var type = node.arguments.types.single;
-        if (name == 'getGenericClassStatic') {
-          if (type is InterfaceType) {
-            return _emitTopLevelNameNoExternalInterop(type.classNode,
-                suffix: '\$');
-          }
-          if (type is FutureOrType) {
-            return _emitFutureOrNameNoInterop(suffix: '\$');
-          } else {
-            throw UnsupportedError(
-                '`getGenericClassStatic` Unsupported type found: '
-                '$type (${type.runtimeType}) at ${node.location}');
-          }
-        }
-      } else if (node.arguments.positional.length == 1) {
+      if (node.arguments.positional.length == 1) {
         var firstArg = node.arguments.positional.single;
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
           return _getSymbol(_getExtensionSymbolInternal(firstArg.value));
@@ -6546,15 +6597,30 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.Call(_emitTopLevelName(_coreTypes.identicalProcedure), jsArgs));
   }
 
+  /// Returns true if this [member] is a JS interop member.
+  bool isJSInteropMember(Member member) =>
+      member.isExternal && hasJSInteropAnnotation(member.enclosingClass!);
+
   @override
   js_ast.Expression visitConstructorInvocation(ConstructorInvocation node) {
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
     var args = node.arguments;
     if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
-    var result = js_ast.New(_emitConstructorName(node.constructedType, ctor),
-        _emitArgumentList(args, types: false, target: ctor));
-
+    // JS interop constructor calls do not provide an RTI at the call site.
+    var shouldProvideRti =
+        !isJSInteropMember(ctor) && _requiresRtiForInstantiation(ctorClass);
+    var rti = shouldProvideRti
+        ? _emitType(node.constructedType,
+            emitJSInteropGenericClassTypeParametersAsAny: false)
+        : null;
+    var result = js_ast.New(
+      _emitConstructorName(node.constructedType, ctor),
+      [
+        if (rti != null) rti,
+        ..._emitArgumentList(args, types: false, target: ctor)
+      ],
+    );
     return node.isConst ? _canonicalizeConstObject(result) : result;
   }
 
@@ -6562,7 +6628,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var args = node.arguments;
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass!;
-    if (ctor.isExternal && hasJSInteropAnnotation(ctorClass)) {
+    // JS interop constructor calls do not require an RTI at the call site.
+    if (isJSInteropMember(ctor)) {
       return _emitJSInteropNew(ctor, args);
     }
 
@@ -6586,20 +6653,30 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         case 'HashMap':
         case 'LinkedHashMap':
           if (ctor.name.text == '') {
-            return js.call('new #.new()', _emitMapImplType(type));
+            var mapType = _createMapImplType(type);
+            var mapClass = _emitClassRef(mapType);
+            var rti = _emitType(mapType);
+            return js.call('new #.new(#)', [mapClass, rti]);
           } else if (ctor.name.text == 'identity') {
-            return js.call(
-                'new #.new()', _emitMapImplType(type, identity: true));
+            var mapType = _createMapImplType(type, identity: true);
+            var mapClass = _emitClassRef(mapType);
+            var rti = _emitType(mapType);
+            return js.call('new #.new(#)', [mapClass, rti]);
           }
           break;
         case 'Set':
         case 'HashSet':
         case 'LinkedHashSet':
           if (ctor.name.text == '') {
-            return js.call('new #.new()', _emitSetImplType(type));
+            var setType = _createSetImplType(type);
+            var setClass = _emitClassRef(setType);
+            var rti = _emitType(setType);
+            return js.call('new #.new(#)', [setClass, rti]);
           } else if (ctor.name.text == 'identity') {
-            return js.call(
-                'new #.new()', _emitSetImplType(type, identity: true));
+            var setType = _createSetImplType(type, identity: true);
+            var setClass = _emitClassRef(setType);
+            var rti = _emitType(setType);
+            return js.call('new #.new(#)', [setClass, rti]);
           }
           break;
         case 'List':
@@ -6609,39 +6686,41 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           break;
       }
     }
-
+    var rti = _requiresRtiForInstantiation(ctorClass)
+        ? _emitType(type, emitJSInteropGenericClassTypeParametersAsAny: false)
+        : null;
     var result = js_ast.Call(_emitConstructorName(type, ctor),
-        _emitArgumentList(args, types: false));
-
+        [if (rti != null) rti, ..._emitArgumentList(args, types: false)]);
     return node.isConst ? _canonicalizeConstObject(result) : result;
   }
 
   js_ast.Expression _emitJSInteropNew(Member ctor, Arguments args) {
     var ctorClass = ctor.enclosingClass!;
     if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
+    // JS interop constructor calls do not require an RTI at the call site.
     return js_ast.New(
         _emitConstructorName(_coreTypes.nonNullableRawType(ctorClass), ctor),
         _emitArgumentList(args, types: false, target: ctor));
   }
 
-  js_ast.Expression _emitMapImplType(InterfaceType type, {bool? identity}) {
+  InterfaceType _createMapImplType(InterfaceType type, {bool? identity}) {
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) {
-      return _emitClassRef(type);
+      return type.withDeclaredNullability(Nullability.nonNullable);
     }
     identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? _identityHashMapImplClass : _linkedHashMapImplClass;
-    return _emitClassRef(InterfaceType(c, Nullability.nonNullable, typeArgs));
+    return InterfaceType(c, Nullability.nonNullable, typeArgs);
   }
 
-  js_ast.Expression _emitSetImplType(InterfaceType type, {bool? identity}) {
+  InterfaceType _createSetImplType(InterfaceType type, {bool? identity}) {
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) {
-      return _emitClassRef(type);
+      return type.withDeclaredNullability(Nullability.nonNullable);
     }
     identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? _identityHashSetImplClass : _linkedHashSetImplClass;
-    return _emitClassRef(InterfaceType(c, Nullability.nonNullable, typeArgs));
+    return InterfaceType(c, Nullability.nonNullable, typeArgs);
   }
 
   js_ast.Expression _emitObjectLiteral(Arguments node, Member ctor) {
@@ -6945,15 +7024,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       DartType itemType, List<js_ast.Expression> items) {
     var list = js_ast.ArrayInitializer(items);
 
-    // TODO(jmesserly): analyzer will usually infer `List<Object>` because
-    // that is the least upper bound of the element types. So we rarely
-    // generate a plain `List<dynamic>` anymore.
+    // List's type parameter is default-initialized to dynamic in our runtime.
     if (itemType == const DynamicType()) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var arrayType = _emitClassRef(
-        InterfaceType(_jsArrayClass, Nullability.nonNullable, [itemType]));
-    return js.call('#.of(#)', [arrayType, list]);
+    var type =
+        InterfaceType(_jsArrayClass, Nullability.nonNullable, [itemType]);
+    var arrayClass = _emitClassRef(type);
+    var arrayRti = _emitType(type);
+    return js.call('#.of(#, #)', [arrayClass, arrayRti, list]);
   }
 
   js_ast.Expression _emitConstList(
@@ -6961,20 +7040,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // dart.constList helper internally depends on _interceptors.JSArray.
     _declareBeforeUse(_jsArrayClass);
     return _runtimeCall(
-        'constList([#], #)', [elements, _emitType(elementType)]);
+        'constList(#, [#])', [_emitType(elementType), elements]);
   }
 
   @override
   js_ast.Expression visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
-      var setType = _emitClassRef(InterfaceType(
-          _linkedHashSetClass, Nullability.nonNullable, [node.typeArgument]));
+      var type = InterfaceType(
+          _linkedHashSetClass, Nullability.nonNullable, [node.typeArgument]);
+      var setClass = _emitClassRef(type);
+      var rti = _emitType(type);
       if (node.expressions.isEmpty) {
-        return js.call('#.new()', [setType]);
+        return js.call('#.new(#)', [setClass, rti]);
       }
-      return js.call(
-          '#.from([#])', [setType, _visitExpressionList(node.expressions)]);
+      return js.call('#.from(#, [#])',
+          [setClass, rti, _visitExpressionList(node.expressions)]);
     }
     return _emitConstSet(
         node.typeArgument, _visitExpressionList(node.expressions));
@@ -6996,12 +7077,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
-      var mapType = _emitMapImplType(
-          node.getStaticType(_staticTypeContext) as InterfaceType);
+      var type = node.getStaticType(_staticTypeContext) as InterfaceType;
+      var mapType = _createMapImplType(type);
+      var mapClass = _emitClassRef(mapType);
+      var rti = _emitType(mapType);
       if (node.entries.isEmpty) {
-        return js.call('new #.new()', [mapType]);
+        return js.call('new #.new(#)', [mapClass, rti]);
       }
-      return js.call('new #.from([#])', [mapType, entries]);
+      return js.call('new #.from(#, [#])', [mapClass, rti, entries]);
     }
     return _emitConstMap(node.keyType, node.valueType, entries);
   }
@@ -7419,6 +7502,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitInstanceConstant(InstanceConstant node) {
     _declareBeforeUse(node.classNode);
+    var savedTypeEnvironment = _currentTypeEnvironment;
+    if (node.classNode.typeParameters.isNotEmpty) {
+      _currentTypeEnvironment =
+          ClassTypeEnvironment(node.classNode.typeParameters);
+    }
+
     js_ast.Property entryToProperty(MapEntry<Reference, Constant> entry) {
       var constant = visitConstant(entry.value);
       var member = entry.key.asField;
@@ -7449,9 +7538,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       for (var e in node.fieldValues.entries.toList().reversed)
         entryToProperty(e),
     ];
-    return _canonicalizeConstObject(_emitJSObjectSetPrototypeOf(
+    var constant = _canonicalizeConstObject(_emitJSObjectSetPrototypeOf(
         js_ast.ObjectInitializer(properties, multiline: true), prototype,
         fullyQualifiedName: false));
+    _currentTypeEnvironment = savedTypeEnvironment;
+    return constant;
   }
 
   /// Emits a private name JS Symbol for [member] unique to a Dart class
@@ -7665,7 +7756,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// For example:
   ///
-  ///     runtimeCall('asInt(#)', [<expr>])
+  ///     _runtimeCall('asInt(#)', [<expr>])
   ///
   /// Generates a JS AST representing:
   ///
@@ -8094,8 +8185,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// The [moduleName] should specify the module's name, and the items should
   /// be the list resulting from startModule, with additional items added,
-  /// but not including the contents of moduleItems (which will be handled by
-  /// this method itself).
+  /// but not including the contents of [_moduleItems] (which will be handled
+  /// by this method itself).
   ///
   /// Note, this function mutates the items list and returns it as the `body`
   /// field of the result.

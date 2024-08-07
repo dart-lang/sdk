@@ -121,6 +121,9 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t06: Slow, Pass
 LibTest/core/List/List_class_A01_t05: Slow, Pass
 LibTest/core/List/List_class_A01_t06: Slow, Pass
 
+[ $compiler == dart2js && $runtime == firefox ]
+LibTest/html/Element/touchStartEvent_A01_t01: SkipByDesign # TouchEvent consturctor not exposed in FF
+
 [ $compiler == dart2js && $runtime == ie11 ]
 LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # slow babeljs transformation
 LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # slow babeljs transformation
@@ -135,4 +138,5 @@ LibTest/core/List/List_class_A01_t06: SkipSlow # slow babeljs transformation
 [ $compiler == dart2js && $runtime == safari ]
 LibTest/html/Element/isContentEditable_A01_t01: Skip # 98% fails in Safari, evades flake detection https://github.com/dart-lang/sdk/issues/50718
 LibTest/html/Element/isContentEditable_A02_t01: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+LibTest/html/Element/touchStartEvent_A01_t01: SkipByDesign # TouchEvent consturctor not exposed in Safari
 LibTest/html/IFrameElement/isContentEditable_A01_t01: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718

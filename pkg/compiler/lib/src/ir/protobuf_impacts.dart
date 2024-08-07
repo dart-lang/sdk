@@ -112,6 +112,10 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
           _builderInfoAddMethod.getterType as ir.FunctionType,
           const <ir.DartType>[ir.NullType()]);
 
+  late final ir.Procedure? _builderInfoAddUnusedMethod = _elementMap
+      .env.libraryIndex
+      .tryGetProcedure(protobufLibraryUri, 'BuilderInfo', 'addUnused');
+
   static const String metadataFieldName = '_i';
 
   // All of those methods have the dart field name as second positional
@@ -142,25 +146,39 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
 
   ir.InstanceInvocation _buildProtobufMetadataPlaceholder(
       ir.InstanceInvocation node) {
-    return ir.InstanceInvocation(
-        ir.InstanceAccessKind.Instance,
-        _CloneVisitorLenientVariables().clone(node.receiver),
-        _builderInfoAddMethod.name,
-        ir.Arguments(
-          <ir.Expression>[
-            ir.IntLiteral(0), // tagNumber
-            ir.NullLiteral(), // name
-            ir.NullLiteral(), // fieldType
-            ir.NullLiteral(), // defaultOrMaker
-            ir.NullLiteral(), // subBuilder
-            ir.NullLiteral(), // valueOf
-            ir.NullLiteral(), // enumValues
-          ],
-          types: <ir.DartType>[const ir.NullType()],
-        ),
-        interfaceTarget: _builderInfoAddMethod,
-        functionType: _typeOfBuilderInfoAddOfNull)
-      ..fileOffset = node.fileOffset;
+    final addUnusedMethod = _builderInfoAddUnusedMethod;
+    if (addUnusedMethod == null) {
+      // Legacy version, call `add` method.
+      return ir.InstanceInvocation(
+          ir.InstanceAccessKind.Instance,
+          _CloneVisitorLenientVariables().clone(node.receiver),
+          _builderInfoAddMethod.name,
+          ir.Arguments(
+            <ir.Expression>[
+              ir.IntLiteral(0), // tagNumber
+              ir.NullLiteral(), // name
+              ir.NullLiteral(), // fieldType
+              ir.NullLiteral(), // defaultOrMaker
+              ir.NullLiteral(), // subBuilder
+              ir.NullLiteral(), // valueOf
+              ir.NullLiteral(), // enumValues
+            ],
+            types: <ir.DartType>[const ir.NullType()],
+          ),
+          interfaceTarget: _builderInfoAddMethod,
+          functionType: _typeOfBuilderInfoAddOfNull)
+        ..fileOffset = node.fileOffset;
+    } else {
+      // New version, call `addUnused` method.
+      return ir.InstanceInvocation(
+          ir.InstanceAccessKind.Instance,
+          _CloneVisitorLenientVariables().clone(node.receiver),
+          addUnusedMethod.name,
+          ir.Arguments([]),
+          interfaceTarget: addUnusedMethod,
+          functionType: addUnusedMethod.getterType as ir.FunctionType)
+        ..fileOffset = node.fileOffset;
+    }
   }
 
   @override

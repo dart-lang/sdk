@@ -13,6 +13,8 @@ import 'package:js/js.dart';
 
 import 'js_interop_non_external_lib.dart';
 
+class _Class {}
+
 @JS()
 external dynamic eval(String code);
 
@@ -138,8 +140,12 @@ void testNonLocal() {
   expect(OtherJSClass.field, 'modified');
 
   OtherJSClass<int>(0);
+  Expect.throws<TypeError>(() => topLevelListAppend(_Class()));
+  topLevelListAppend(42);
   expect(OtherJSClass.field, 'unnamed');
   OtherJSClass.named(0);
+  Expect.throws<TypeError>(() => topLevelListAppend(_Class()));
+  topLevelListAppend(42);
   expect(OtherJSClass.field, 'named');
   OtherJSClass<double>.redirecting(0.1);
   expect(OtherJSClass.field, 'unnamed');

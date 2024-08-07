@@ -96,7 +96,8 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
 /// ```
 /// TODO(annagrin): remove when debugger reads symbols.
 /// Issue: https://github.com/dart-lang/sdk/issues/40273
-Object? getClassMetadata(@notNull String libraryUri, @notNull String name) {
+Object? getClassMetadata(@notNull String libraryUri, @notNull String name,
+    {Object? objectInstance}) {
   var library = getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
@@ -108,6 +109,7 @@ Object? getClassMetadata(@notNull String libraryUri, @notNull String name) {
   _collectFieldDescriptors(
     fieldDescriptors,
     getFields(cls),
+    objectInstance: objectInstance,
   );
   _collectFieldDescriptorsFromNames(
     fieldDescriptors,
@@ -222,17 +224,19 @@ void _collectFieldDescriptors(
   @notNull Map<String, dynamic> fieldDescriptors,
   Object? fields, {
   bool isStatic = false,
+  Object? objectInstance,
 }) {
   if (fields == null) return;
 
   for (var symbol in getOwnNamesAndSymbols(fields)) {
     var fieldInfo = _get<Object>(fields, symbol);
-    var type = _get(fieldInfo, 'type');
+    // An object instance is required to resolve the type of a field.
+    var typeSignature = _get(fieldInfo, 'type');
+    var typeRti = rtiFromSignature(objectInstance, typeSignature);
+    var className = typeRti == null ? '?' : typeName(typeRti);
     var isConst = _get(fieldInfo, 'isConst');
     var isFinal = _get(fieldInfo, 'isFinal');
     var libraryId = _get(fieldInfo, 'libraryUri');
-
-    var className = typeName(type);
     var name = _getDartSymbolName(symbol);
     if (name == null) continue;
 
