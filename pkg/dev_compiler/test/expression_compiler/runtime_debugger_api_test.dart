@@ -14,16 +14,25 @@ void main(List<String> args) async {
 }
 
 Future<void> runAllTests(bool soundNullSafety, List<String> args) async {
-  var driver = await ExpressionEvaluationTestDriver.init();
+  final driver = await ExpressionEvaluationTestDriver.init();
   tearDownAll(() async {
     await driver.finish();
   });
   final mode = soundNullSafety ? 'Sound' : 'Weak';
   group('($mode null safety)', () {
     group('(AMD module system)', () {
-      var setup = SetupCompilerOptions(
+      final setup = SetupCompilerOptions(
         soundNullSafety: soundNullSafety,
         moduleFormat: ModuleFormat.amd,
+        args: args,
+        enableExperiments: [],
+      );
+      runSharedTests(setup, driver);
+    });
+    group('(DDC module system)', () {
+      final setup = SetupCompilerOptions(
+        soundNullSafety: soundNullSafety,
+        moduleFormat: ModuleFormat.ddc,
         args: args,
         enableExperiments: [],
       );
