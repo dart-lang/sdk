@@ -68,6 +68,10 @@ class MessageHandler {
   // Returns true on success.
   MessageStatus HandleOOBMessages();
 
+  // Blocks the thread on a condition variable until a message arrives, and then
+  // handles all messages.
+  MessageStatus PauseAndHandleAllMessages(int64_t timeout_millis);
+
   // Returns true if there are pending OOB messages for this message
   // handler.
   bool HasOOBMessages();
