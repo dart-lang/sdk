@@ -392,6 +392,101 @@ augment int Xx = 2;
 ''');
   }
 
+  test_catch_underscores() async {
+    await assertDiagnostics(r'''
+f() {
+  try {
+  } catch(__, ___) {}
+}
+''', [
+      lint(24, 2),
+      error(WarningCode.UNUSED_CATCH_STACK, 28, 3),
+      lint(28, 3),
+    ]);
+  }
+
+  test_catch_underscores_preWildcards() async {
+    await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  try {
+  } catch(__, ___) {}
+}
+''');
+  }
+
+  test_catch_wildcard() async {
+    await assertNoDiagnostics(r'''
+f() {
+  try {
+  } catch(_, _) {}
+}
+''');
+  }
+
+  test_catch_wildcard_preWildcards() async {
+    await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  try {
+  } catch(_, __) {}
+}
+''');
+  }
+
+  test_constructor_underscores() async {
+    await assertDiagnostics(r'''
+class A {
+  A._();
+  A.__();
+  A.___();
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 14, 1),
+      error(WarningCode.UNUSED_ELEMENT, 23, 2),
+      error(WarningCode.UNUSED_ELEMENT, 33, 3),
+    ]);
+  }
+
+  test_constructor_underscores_preWildcards() async {
+    await assertDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  A._();
+  A.__();
+  A.___();
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 58, 1),
+      error(WarningCode.UNUSED_ELEMENT, 67, 2),
+      error(WarningCode.UNUSED_ELEMENT, 77, 3),
+    ]);
+  }
+
+  test_formalParams_underscores() async {
+    await assertDiagnostics(r'''
+f(int _, int __, int ___) {}
+''', [
+      lint(13, 2),
+      lint(21, 3),
+    ]);
+  }
+
+  test_formalParams_underscores_preWildcards() async {
+    await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f(int _, int __) {}
+''');
+  }
+
   ///https://github.com/dart-lang/linter/issues/193
   test_ignoreSyntheticNodes() async {
     await assertDiagnostics(r'''

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -53,7 +55,7 @@ class NonConstantIdentifierNames extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.libraryElement);
     registry.addCatchClause(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addDeclaredVariablePattern(this, visitor);
@@ -71,9 +73,14 @@ class NonConstantIdentifierNames extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  /// Whether the `wildcard_variables` feature is enabled.
+  final bool _wildCardVariablesEnabled;
+
   final LintRule rule;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, LibraryElement? library)
+      : _wildCardVariablesEnabled =
+            library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 
   void checkIdentifier(Token? id, {bool underscoresOk = false}) {
     if (id == null) {
@@ -91,7 +98,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    checkIdentifier(node.exceptionParameter?.name, underscoresOk: true);
+    checkIdentifier(node.exceptionParameter?.name,
+        underscoresOk: !_wildCardVariablesEnabled);
+    checkIdentifier(node.stackTraceParameter?.name,
+        underscoresOk: !_wildCardVariablesEnabled);
   }
 
   @override
@@ -124,7 +134,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var p in node.parameters) {
       if (inAugmentation && p.isNamed) continue;
       if (p is! FieldFormalParameter) {
-        checkIdentifier(p.name, underscoresOk: true);
+        checkIdentifier(p.name, underscoresOk: !_wildCardVariablesEnabled);
       }
     }
   }
