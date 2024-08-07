@@ -6,37 +6,13 @@
 #define RUNTIME_BIN_THREAD_H_
 
 #include "platform/globals.h"
-
-namespace dart {
-namespace bin {
-class Thread;
-class Mutex;
-class Monitor;
-}  // namespace bin
-}  // namespace dart
-
-// Declare the OS-specific types ahead of defining the generic classes.
-#if defined(DART_USE_ABSL)
-#include "bin/thread_absl.h"
-#elif defined(DART_HOST_OS_FUCHSIA)
-#include "bin/thread_fuchsia.h"
-#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-#include "bin/thread_linux.h"
-#elif defined(DART_HOST_OS_MACOS)
-#include "bin/thread_macos.h"
-#elif defined(DART_HOST_OS_WINDOWS)
-#include "bin/thread_win.h"
-#else
-#error Unknown target os.
-#endif
+#include "platform/synchronization.h"
 
 namespace dart {
 namespace bin {
 
 class Thread {
  public:
-  static const ThreadId kInvalidThreadId;
-
   typedef void (*ThreadStartFunction)(uword parameter);
 
   // Start a thread running the specified function. Returns 0 if the
@@ -47,55 +23,12 @@ class Thread {
                    uword parameters);
 
   static intptr_t GetMaxStackSize();
-  static ThreadId GetCurrentThreadId();
-  static bool Compare(ThreadId a, ThreadId b);
 
   static void InitOnce();
 
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Thread);
-};
-
-class Mutex {
- public:
-  Mutex();
-  ~Mutex();
-
-  void Lock();
-  bool TryLock();
-  void Unlock();
-
- private:
-  MutexData data_;
-
-  DISALLOW_COPY_AND_ASSIGN(Mutex);
-};
-
-class Monitor {
- public:
-  enum WaitResult { kNotified, kTimedOut };
-
-  static constexpr int64_t kNoTimeout = 0;
-
-  Monitor();
-  ~Monitor();
-
-  void Enter();
-  void Exit();
-
-  // Wait for notification or timeout.
-  WaitResult Wait(int64_t millis);
-  WaitResult WaitMicros(int64_t micros);
-
-  // Notify waiting threads.
-  void Notify();
-  void NotifyAll();
-
- private:
-  MonitorData data_;  // OS-specific data.
-
-  DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
 
 }  // namespace bin

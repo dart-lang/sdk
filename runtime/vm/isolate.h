@@ -256,7 +256,7 @@ class MutatorThreadPool : public ThreadPool {
   virtual ~MutatorThreadPool() {}
 
  protected:
-  virtual void OnEnterIdleLocked(MonitorLocker* ml);
+  virtual void OnEnterIdleLocked(MutexLocker* ml, ThreadPool::Worker* worker);
 
  private:
   void NotifyIdle();

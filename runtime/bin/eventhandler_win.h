@@ -254,16 +254,15 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
   HANDLE handle_;
 
   std::unique_ptr<OverlappedBuffer>
-      data_ready_;                   // Buffer for data ready to be read.
-  OverlappedBuffer* pending_read_;   // Buffer for pending read.
-  OverlappedBuffer* pending_write_;  // Buffer for pending write
+      data_ready_;  // Buffer for data ready to be read.
+  OverlappedBuffer* pending_read_ = nullptr;   // Buffer for pending read.
+  OverlappedBuffer* pending_write_ = nullptr;  // Buffer for pending write
 
-  DWORD last_error_;
+  DWORD last_error_ = NOERROR;
 
-  ThreadId read_thread_id_;
-  HANDLE read_thread_handle_;
-  bool read_thread_starting_;
-  bool read_thread_finished_;
+  HANDLE read_thread_ = INVALID_HANDLE_VALUE;
+  bool read_thread_starting_ = false;
+  bool read_thread_finished_ = false;
 
  private:
   void WaitForReadThreadStarted();
@@ -278,7 +277,7 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
                                  struct sockaddr* sa,
                                  socklen_t sa_len);
 
-  int flags_;
+  int flags_ = 0;
 
   friend class ReferenceCounted<Handle>;
   DISALLOW_COPY_AND_ASSIGN(Handle);
@@ -324,18 +323,12 @@ class StdHandle : public FileHandle {
   static StdHandle* stdin_;
 
   explicit StdHandle(HANDLE handle)
-      : FileHandle(handle, kStd, SupportsOverlappedIO::kNo),
-        thread_id_(Thread::kInvalidThreadId),
-        thread_handle_(nullptr),
-        thread_wrote_(0),
-        write_thread_exists_(false),
-        write_thread_running_(false) {}
+      : FileHandle(handle, kStd, SupportsOverlappedIO::kNo) {}
 
-  ThreadId thread_id_;
-  HANDLE thread_handle_;
-  intptr_t thread_wrote_;
-  bool write_thread_exists_;
-  bool write_thread_running_;
+  HANDLE thread_handle_ = INVALID_HANDLE_VALUE;
+  intptr_t thread_wrote_ = 0;
+  bool write_thread_exists_ = false;
+  bool write_thread_running_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(StdHandle);
 };
@@ -590,12 +583,11 @@ class EventHandlerImplementation {
                      std::unique_ptr<OverlappedBuffer> buffer);
 
   Monitor monitor_;
-  ThreadId handler_thread_id_;
-  HANDLE handler_thread_handle_;
+  HANDLE handler_thread_ = INVALID_HANDLE_VALUE;
 
   TimeoutQueue timeout_queue_;  // Time for next timeout.
-  bool shutdown_;
-  HANDLE completion_port_;
+  bool shutdown_ = false;
+  HANDLE completion_port_ = INVALID_HANDLE_VALUE;
 
   std::atomic<bool> socket_extensions_initialized_{false};
   LPFN_ACCEPTEX accept_ex_ = nullptr;

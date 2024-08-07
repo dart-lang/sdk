@@ -98,6 +98,22 @@ class MutexLocker : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(MutexLocker);
 };
 
+// Unlocks the given mutex during the scope of the object.
+class MutexUnlocker : public ValueObject {
+ public:
+  explicit MutexUnlocker(MutexLocker* mutex_locker)
+      : mutex_locker_(mutex_locker) {
+    mutex_locker_->Unlock();
+  }
+
+  virtual ~MutexUnlocker() { mutex_locker_->Lock(); }
+
+ private:
+  MutexLocker* const mutex_locker_;
+
+  DISALLOW_COPY_AND_ASSIGN(MutexUnlocker);
+};
+
 /*
  * Normal monitor locker :
  * This locker abstraction should only be used when the enclosed code can

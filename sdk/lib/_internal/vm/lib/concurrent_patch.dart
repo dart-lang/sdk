@@ -10,12 +10,12 @@ import "dart:nativewrappers" show NativeFieldWrapperClass1;
 @pragma("vm:entry-point")
 abstract interface class Mutex {
   @patch
-  factory Mutex._(String debug_name) => _MutexImpl(debug_name);
+  factory Mutex._() => _MutexImpl();
 }
 
 @pragma("vm:entry-point")
 base class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
-  _MutexImpl(this.debug_name) {
+  _MutexImpl() {
     _initialize();
   }
 
@@ -38,8 +38,6 @@ base class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
       _unlock();
     }
   }
-
-  String debug_name;
 }
 
 @patch

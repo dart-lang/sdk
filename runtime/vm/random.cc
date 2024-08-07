@@ -80,7 +80,7 @@ static Mutex* global_random_mutex = nullptr;
 
 void Random::Init() {
   ASSERT(global_random_mutex == nullptr);
-  global_random_mutex = new Mutex(NOT_IN_PRODUCT("global_random_mutex"));
+  global_random_mutex = new Mutex();
   ASSERT(global_random == nullptr);
   global_random = new Random();
 }

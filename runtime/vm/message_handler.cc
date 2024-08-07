@@ -19,11 +19,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_service_pause_events);
-DEFINE_FLAG(int,
-            message_handler_timeout_millis,
-            100,
-            "End message handlers tasks after the message queue has been empty "
-            "for this amount of time.");
 
 class MessageHandlerTask : public ThreadPool::Task {
  public:
@@ -288,32 +283,6 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
                         ? Message::kNormalPriority
                         : Message::kOOBPriority);
     message = DequeueMessage(min_priority);
-
-    // Even if there are no more messages, wait a little bit before ending the
-    // current MessageHandlerTask. This can prevent isolates from churning
-    // through MessageHandlerTasks and bouncing around through different workers
-    // in the thread pool. Especially for the case of worker isolates waiting
-    // for a quick response from a coordinator isolate telling it what to do
-    // next, this can keep the worker isolates on consistent threads and make
-    // the timeline far more readable. Cf. FLAG_worker_timeout_millis.
-    if ((message == nullptr) && (min_priority == Message::kNormalPriority) &&
-        (isolate() != nullptr) && isolate()->HasLivePorts()) {
-      ml->Exit();
-      Thread::ExitIsolate(/*isolate_shutdown=*/false, /*loop_pause=*/true);
-      ml->Enter();
-
-      if (queue_->IsEmpty() && oob_queue_->IsEmpty()) {
-        paused_for_messages_ = true;
-        ml->Wait(FLAG_message_handler_timeout_millis);
-        paused_for_messages_ = false;
-      }
-
-      ml->Exit();
-      Thread::EnterIsolate(isolate(), /*loop_unpause=*/true);
-      ml->Enter();
-
-      message = DequeueMessage(min_priority);
-    }
   }
   return max_status;
 }
@@ -328,6 +297,42 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   CheckAccess();
 #endif
   return HandleMessages(&ml, true, false);
+}
+
+MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
+    int64_t timeout_millis) {
+  MonitorLocker ml(&monitor_, /*no_safepoint_scope=*/false);
+  ASSERT(task_running_);
+  ASSERT(!delete_me_);
+#if defined(DEBUG)
+  CheckAccess();
+#endif
+  paused_for_messages_ = true;
+  while (queue_->IsEmpty() && oob_queue_->IsEmpty()) {
+    Monitor::WaitResult wr;
+    {
+      // Ensure this thread is at a safepoint while we wait for new messages to
+      // arrive.
+      TransitionVMToNative transition(Thread::Current());
+      wr = ml.Wait(timeout_millis);
+    }
+    ASSERT(task_running_);
+    ASSERT(!delete_me_);
+    if (wr == Monitor::kTimedOut) {
+      break;
+    }
+    if (queue_->IsEmpty()) {
+      // There are only OOB messages. Handle them and then continue waiting for
+      // normal messages unless there is an error.
+      MessageStatus status = HandleMessages(&ml, false, false);
+      if (status != kOK) {
+        paused_for_messages_ = false;
+        return status;
+      }
+    }
+  }
+  paused_for_messages_ = false;
+  return HandleMessages(&ml, true, true);
 }
 
 MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
