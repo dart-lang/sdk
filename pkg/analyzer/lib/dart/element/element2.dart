@@ -54,7 +54,6 @@ import 'package:analyzer/dart/element/element.dart'
         ElementAnnotation,
         ElementKind,
         ElementLocation,
-        ImportElementPrefix,
         LibraryLanguageVersion,
         NamespaceCombinator;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -839,10 +838,10 @@ abstract class LibraryImport {
   /// The [Namespace] that this directive contributes to the containing library.
   Namespace get namespace;
 
-  /// The prefix that was specified as part of the import directive.
+  /// The prefix fragment that was specified as part of the import directive.
   ///
   /// Returns `null` if there was no prefix specified.
-  ImportElementPrefix? get prefix;
+  PrefixFragment? get prefix2;
 
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
@@ -919,10 +918,12 @@ abstract class PatternVariableElement2 implements LocalVariableElement2 {
 /// A prefix used to import one or more libraries into another library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PrefixElement2 implements Element2 {
-  /// The library that encloses this element.
+abstract class PrefixElement2 implements Element2, _Fragmented {
   @override
   LibraryElement2 get enclosingElement2;
+
+  @override
+  PrefixFragment get firstFragment;
 
   /// The imports that share this prefix.
   List<LibraryImport> get imports2;
@@ -936,6 +937,23 @@ abstract class PrefixElement2 implements Element2 {
   /// prefix. The namespace combinators of the import directives are taken
   /// into account.
   Scope get scope;
+}
+
+/// The portion of a [PrefixElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PrefixFragment implements Fragment {
+  @override
+  PrefixElement2 get element;
+
+  @override
+  LibraryFragment? get enclosingFragment;
+
+  @override
+  PrefixFragment? get nextFragment;
+
+  @override
+  PrefixFragment? get previousFragment;
 }
 
 abstract class PromotableElement2 implements VariableElement2 {}

@@ -5273,6 +5273,10 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   }
 
   @override
+  PrefixFragment? get prefix2 =>
+      throw UnimplementedError('Prefix fragments are not yet supported');
+
+  @override
   bool operator ==(Object other) {
     return identical(this, other);
   }
@@ -6982,6 +6986,10 @@ class PrefixElementImpl extends _ExistingElementImpl
   CompilationUnitElementImpl get enclosingElement3 {
     return _enclosingElement3 as CompilationUnitElementImpl;
   }
+
+  @override
+  PrefixFragment get firstFragment =>
+      throw UnimplementedError('Prefix fragments are not yet supported');
 
   @override
   List<LibraryImportElementImpl> get imports {
