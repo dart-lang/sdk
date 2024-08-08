@@ -10083,10 +10083,6 @@ Block combineStatements(Statement statement, Statement body) {
 }
 
 /// DartDocTest(
-///   debugName("myClassName", "myName", "myPrefix"),
-///   "myPrefix.myClassName.myName"
-/// )
-/// DartDocTest(
 ///   debugName("myClassName", "myName"),
 ///   "myClassName.myName"
 /// )
@@ -10098,10 +10094,8 @@ Block combineStatements(Statement statement, Statement body) {
 ///   debugName("", ""),
 ///   ""
 /// )
-String debugName(String className, String name, [String? prefix]) {
-  String result = name.isEmpty ? className : "$className.$name";
-  // Coverage-ignore(suite): Not run.
-  return prefix == null ? result : "$prefix.$result";
+String debugName(String className, String name) {
+  return name.isEmpty ? className : "$className.$name";
 }
 
 // TODO(johnniwinther): This is a bit ad hoc. Call sites should know what kind
