@@ -52,6 +52,9 @@ class IncomingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
   LspJsonHandler<CallHierarchyIncomingCallsParams> get jsonHandler =>
       CallHierarchyIncomingCallsParams.jsonHandler;
 
+  @override
+  bool get requiresTrustedCaller => false;
+
   /// Fetches incoming calls from a [call_hierarchy.DartCallHierarchyComputer].
   ///
   /// This method is invoked by the superclass which handles similar logic for
@@ -110,6 +113,9 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
   @override
   LspJsonHandler<CallHierarchyOutgoingCallsParams> get jsonHandler =>
       CallHierarchyOutgoingCallsParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   /// Fetches outgoing calls from a [call_hierarchy.DartCallHierarchyComputer].
   ///
@@ -176,6 +182,9 @@ class PrepareCallHierarchyHandler extends SharedMessageHandler<
   @override
   LspJsonHandler<CallHierarchyPrepareParams> get jsonHandler =>
       CallHierarchyPrepareParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<TextDocumentPrepareCallHierarchyResult>> handle(

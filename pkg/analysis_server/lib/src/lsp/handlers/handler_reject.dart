@@ -21,6 +21,12 @@ class RejectMessageHandler extends SharedMessageHandler<Object?, void> {
   LspJsonHandler<void> get jsonHandler => nullJsonHandler;
 
   @override
+  // We never expose the rejected handler to other clients, it's used only to
+  // support better error codes on attempts to call invalid methods (such as
+  // calling `initialize` when the server is already initialized).
+  bool get requiresTrustedCaller => true;
+
+  @override
   ErrorOr<void> handle(
       Object? params, MessageInfo message, CancellationToken token) {
     return error(errorCode, errorMessage);

@@ -168,6 +168,9 @@ class LibraryFragmentScope implements Scope {
   final Map<String, PrefixElementImpl> _prefixElements = {};
   final Map<PrefixElementImpl, PrefixScope> _prefixScopes = {};
 
+  /// The cached result for [accessibleExtensions].
+  List<ExtensionElement>? _extensions;
+
   factory LibraryFragmentScope(CompilationUnitElementImpl fragment) {
     return LibraryFragmentScope._(
       parent: fragment.enclosingElement3?.scope,
@@ -197,6 +200,17 @@ class LibraryFragmentScope implements Scope {
     }
   }
 
+  /// The extensions accessible within [fragment].
+  List<ExtensionElement> get accessibleExtensions {
+    var libraryDeclarations = fragment.library.libraryDeclarations;
+    return _extensions ??= {
+      ...libraryDeclarations.extensions,
+      ...noPrefixScope._extensions,
+      for (var prefixScope in _prefixScopes.values) ...prefixScope._extensions,
+      ...?parent?.accessibleExtensions,
+    }.toFixedList();
+  }
+
   PrefixScope getPrefixScope(PrefixElementImpl prefix) {
     // SAFETY: We create the scope for each prefix.
     return _prefixScopes[prefix]!;
@@ -220,7 +234,12 @@ class LibraryFragmentScope implements Scope {
   }
 
   PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
-    // TODO(scheglov): handle deferred and loadLibrary()
+    var isDeferred = prefix.imports.any((import) {
+      return import.prefix is DeferredImportElementPrefix;
+    });
+    if (isDeferred) {
+      return null;
+    }
 
     for (var scope = parent; scope != null; scope = scope.parent) {
       var parentPrefix = scope._prefixElements[prefix.name];
@@ -233,8 +252,10 @@ class LibraryFragmentScope implements Scope {
 
   ScopeLookupResult? _lookupCombined(String id) {
     // Try prefix elements.
-    if (_prefixElements[id] case var prefixElement?) {
-      return ScopeLookupResultImpl(prefixElement, null);
+    if (_shouldTryPrefixElement(id)) {
+      if (_prefixElements[id] case var prefixElement?) {
+        return ScopeLookupResultImpl(prefixElement, null);
+      }
     }
 
     // Try imports of the library fragment.
@@ -263,6 +284,14 @@ class LibraryFragmentScope implements Scope {
       );
     }
     return null;
+  }
+
+  bool _shouldTryPrefixElement(String id) {
+    if (id == '_') {
+      var featureSet = fragment.library.featureSet;
+      return !featureSet.isEnabled(Feature.wildcard_variables);
+    }
+    return true;
   }
 }
 

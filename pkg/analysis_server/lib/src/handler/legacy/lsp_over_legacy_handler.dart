@@ -19,27 +19,16 @@ import 'package:language_server_protocol/protocol_special.dart';
 
 /// The handler for the `lsp.handle` request.
 class LspOverLegacyHandler extends LegacyHandler {
-  /// To match behaviour of the LSP server where only one
-  /// InitializedStateMessageHandler exists for a server (and handlers can be
-  /// stateful), we hand the handler off the server.
-  ///
-  /// Using a static causes issues for in-process tests, so this ensures a new
-  /// server always gets a new handler.
-  final _handlers = Expando<InitializedStateMessageHandler>();
-
   LspOverLegacyHandler(
-      super.server, super.request, super.cancellationToken, super.performance) {
-    _handlers[server] ??= InitializedStateMessageHandler(server);
-  }
-
-  InitializedStateMessageHandler get handler => _handlers[server]!;
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   bool get recordsOwnAnalytics => true;
 
   @override
   Future<void> handle() async {
-    server.initializeLsp();
+    server.initializeLspOverLegacy();
+
     var params = LspHandleParams.fromRequest(request,
         clientUriConverter: server.uriConverter);
     var lspMessageJson = params.lspMessage;
@@ -54,10 +43,20 @@ class LspOverLegacyHandler extends LegacyHandler {
           })
         : null;
 
+    // Get the handler for LSP requests from the server.
+    // The value is a `FutureOr<>` because for the real LSP server it can be
+    // delayed (the client influences when we're in the initialized state) but
+    // since it's never a `Future` for the legacy server and we want to maintain
+    // request order here, skip the `await`.
+    var initializedLspHandler = server.lspInitialized;
+    var handler = initializedLspHandler is InitializedStateMessageHandler
+        ? initializedLspHandler
+        : await server.lspInitialized;
+
     if (lspMessage != null) {
       server.analyticsManager.startedRequestMessage(
           request: lspMessage, startTime: DateTime.now());
-      await handleRequest(lspMessage);
+      await handleRequest(handler, lspMessage);
     } else {
       var message = "The 'lspMessage' parameter was not a valid LSP request:\n"
           "${reporter.errors.join('\n')}";
@@ -66,7 +65,10 @@ class LspOverLegacyHandler extends LegacyHandler {
     }
   }
 
-  Future<void> handleRequest(RequestMessage message) async {
+  Future<void> handleRequest(
+    InitializedStateMessageHandler handler,
+    RequestMessage message,
+  ) async {
     var messageInfo = lsp.MessageInfo(
       performance: performance,
       timeSinceRequest: request.timeSinceRequest,

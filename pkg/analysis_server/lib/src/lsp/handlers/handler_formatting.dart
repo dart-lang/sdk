@@ -15,12 +15,16 @@ typedef StaticOptions = Either2<bool, DocumentFormattingOptions>;
 class FormattingHandler
     extends SharedMessageHandler<DocumentFormattingParams, List<TextEdit>?> {
   FormattingHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_formatting;
 
   @override
   LspJsonHandler<DocumentFormattingParams> get jsonHandler =>
       DocumentFormattingParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   Future<ErrorOr<List<TextEdit>?>> formatFile(String path) async {
     var file = server.resourceProvider.getFile(path);

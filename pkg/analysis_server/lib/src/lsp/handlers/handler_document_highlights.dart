@@ -23,6 +23,9 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       TextDocumentPositionParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<List<DocumentHighlight>?>> handle(
       TextDocumentPositionParams params,
       MessageInfo message,

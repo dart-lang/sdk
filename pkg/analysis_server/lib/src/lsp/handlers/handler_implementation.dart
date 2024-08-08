@@ -20,12 +20,16 @@ typedef StaticOptions
 class ImplementationHandler
     extends SharedMessageHandler<TextDocumentPositionParams, List<Location>> {
   ImplementationHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_implementation;
 
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<List<Location>>> handle(TextDocumentPositionParams params,

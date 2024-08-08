@@ -24,7 +24,8 @@ class InitializedMessageHandler
   @override
   Future<ErrorOr<void>> handle(InitializedParams params, MessageInfo message,
       CancellationToken token) async {
-    server.messageHandler = InitializedLspStateMessageHandler(
+    var initializedHandler =
+        server.messageHandler = InitializedLspStateMessageHandler(
       server,
     );
 
@@ -40,7 +41,7 @@ class InitializedMessageHandler
 
     // Mark initialization as done so that handlers that want to wait on this
     // can continue.
-    server.completeLspInitialization();
+    server.completeLspInitialization(initializedHandler);
 
     return success(null);
   }

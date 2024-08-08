@@ -22,6 +22,9 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
       WorkspaceSymbolParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<List<SymbolInformation>>> handle(WorkspaceSymbolParams params,
       MessageInfo message, CancellationToken token) async {
     var clientCapabilities = server.lspClientCapabilities;
