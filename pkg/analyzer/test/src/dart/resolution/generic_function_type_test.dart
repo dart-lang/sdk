@@ -155,4 +155,16 @@ class C {
 }
 ''');
   }
+
+  test_typeParameter_classScope_wildcards() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int _ = 0;
+
+  void m<_, _>() {
+    int _ = _;
+  }
+}
+''');
+  }
 }

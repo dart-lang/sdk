@@ -338,116 +338,153 @@ WasmExternRef? jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
   return getPropertyRaw(dataView, 'buffer'.toExternRef);
 }
 
-WasmExternRef? jsifyRaw(Object? object) {
-  if (object == null) {
-    return WasmExternRef.nullRef;
-  } else if (object is bool) {
-    return toJSBoolean(object);
-  } else if (object is Function) {
-    assert(functionToJSWrapper.containsKey(object),
+WasmExternRef? jsifyRaw(Object? o) {
+  if (o == null) return WasmExternRef.nullRef;
+  if (o is bool) return toJSBoolean(o);
+  if (o is num) return toJSNumber(o.toDouble());
+  if (o is JSValue) return o.toExternRef;
+  if (o is String) {
+    if (o is JSStringImpl) return o.toExternRef;
+    return jsStringFromDartString(o).toExternRef;
+  }
+  if (o is js_types.JSArrayBase) {
+    if (o is js_types.JSInt8ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSUint8ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSUint8ClampedArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSInt16ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSUint16ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSInt32ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSUint32ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSFloat32ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSFloat64ArrayImpl) return o.toJSArrayExternRef();
+  } else if (o is TypedData) {
+    if (o is Int8List) return jsInt8ArrayFromDartInt8List(o);
+    if (o is Uint8List) return jsUint8ArrayFromDartUint8List(o);
+    if (o is Uint8ClampedList) {
+      return jsUint8ClampedArrayFromDartUint8ClampedList(o);
+    }
+    if (o is Int16List) return jsInt16ArrayFromDartInt16List(o);
+    if (o is Uint16List) return jsUint16ArrayFromDartUint16List(o);
+    if (o is Int32List) return jsInt32ArrayFromDartInt32List(o);
+    if (o is Uint32List) return jsUint32ArrayFromDartUint32List(o);
+    if (o is Float32List) return jsFloat32ArrayFromDartFloat32List(o);
+    if (o is Float64List) return jsFloat64ArrayFromDartFloat64List(o);
+    if (o is js_types.JSDataViewImpl) return o.toExternRef;
+    if (o is ByteData) return jsDataViewFromDartByteData(o, o.lengthInBytes);
+  } else if (o is List<Object?>) {
+    return jsArrayFromDartList(o);
+  } else if (o is ByteBuffer) {
+    if (o is js_types.JSArrayBufferImpl) return o.toExternRef;
+    return jsArrayBufferFromDartByteBuffer(o);
+  } else if (o is Function) {
+    assert(functionToJSWrapper.containsKey(o),
         'Must call `allowInterop` on functions before they flow to JS');
-    return functionToJSWrapper[object]!.toExternRef;
-  } else if (object is JSStringImpl) {
-    return object.toExternRef;
-  } else if (object is JSValue) {
-    return object.toExternRef;
-  } else if (object is String) {
-    return jsStringFromDartString(object).toExternRef;
-  } else if (object is js_types.JSInt8ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSUint8ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSUint8ClampedArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSInt16ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSUint16ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSInt32ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSUint32ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSFloat32ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSFloat64ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is Int8List) {
-    return jsInt8ArrayFromDartInt8List(object);
-  } else if (object is Uint8List) {
-    return jsUint8ArrayFromDartUint8List(object);
-  } else if (object is Uint8ClampedList) {
-    return jsUint8ClampedArrayFromDartUint8ClampedList(object);
-  } else if (object is Int16List) {
-    return jsInt16ArrayFromDartInt16List(object);
-  } else if (object is Uint16List) {
-    return jsUint16ArrayFromDartUint16List(object);
-  } else if (object is Int32List) {
-    return jsInt32ArrayFromDartInt32List(object);
-  } else if (object is Uint32List) {
-    return jsUint32ArrayFromDartUint32List(object);
-  } else if (object is Float32List) {
-    return jsFloat32ArrayFromDartFloat32List(object);
-  } else if (object is Float64List) {
-    return jsFloat64ArrayFromDartFloat64List(object);
-  } else if (object is js_types.JSArrayBufferImpl) {
-    return object.toExternRef;
-  } else if (object is ByteBuffer) {
-    return jsArrayBufferFromDartByteBuffer(object);
-  } else if (object is js_types.JSDataViewImpl) {
-    return object.toExternRef;
-  } else if (object is ByteData) {
-    return jsDataViewFromDartByteData(object, object.lengthInBytes);
-  } else if (object is List<Object?>) {
-    return jsArrayFromDartList(object);
-  } else if (object is num) {
-    return toJSNumber(object.toDouble());
+    return functionToJSWrapper[o]!.toExternRef;
   } else {
-    return jsObjectFromDartObject(object);
+    return jsObjectFromDartObject(o);
   }
 }
 
 bool isWasmGCStruct(WasmExternRef? ref) => ref.internalize()?.isObject ?? false;
 
-Object? dartifyRaw(WasmExternRef? ref) {
-  if (ref.isNull || isJSUndefined(ref)) {
-    return null;
-  } else if (isJSBoolean(ref)) {
-    return toDartBool(ref);
-  } else if (isJSNumber(ref)) {
-    return toDartNumber(ref);
-  } else if (isJSString(ref)) {
-    return JSStringImpl.box(ref);
-  } else if (isJSInt8Array(ref)) {
-    return js_types.JSInt8ArrayImpl.fromJSArray(ref);
-  } else if (isJSUint8Array(ref)) {
-    return js_types.JSUint8ArrayImpl.fromJSArray(ref);
-  } else if (isJSUint8ClampedArray(ref)) {
-    return js_types.JSUint8ClampedArrayImpl.fromJSArray(ref);
-  } else if (isJSInt16Array(ref)) {
-    return js_types.JSInt16ArrayImpl.fromJSArray(ref);
-  } else if (isJSUint16Array(ref)) {
-    return js_types.JSUint16ArrayImpl.fromJSArray(ref);
-  } else if (isJSInt32Array(ref)) {
-    return js_types.JSInt32ArrayImpl.fromJSArray(ref);
-  } else if (isJSUint32Array(ref)) {
-    return js_types.JSUint32ArrayImpl.fromJSArray(ref);
-  } else if (isJSFloat32Array(ref)) {
-    return js_types.JSFloat32ArrayImpl.fromJSArray(ref);
-  } else if (isJSFloat64Array(ref)) {
-    return js_types.JSFloat64ArrayImpl.fromJSArray(ref);
-  } else if (isJSArrayBuffer(ref)) {
-    return js_types.JSArrayBufferImpl.fromRef(ref);
-  } else if (isJSDataView(ref)) {
-    return js_types.JSDataViewImpl.fromRef(ref);
-  } else if (isJSArray(ref)) {
-    return toDartList(ref);
-  } else if (isJSWrappedDartFunction(ref)) {
-    return unwrapJSWrappedDartFunction(ref);
-  } else if (isWasmGCStruct(ref)) {
-    return jsObjectToDartObject(ref);
-  } else {
-    return JSValue(ref);
+/// Container class for constants that represent the possible types of a
+/// [WasmExternRef] that can then be used in a [dartifyRaw] call.
+///
+/// The values within this class should correspond to the values returned by
+/// [externRefType] and should be updated if that function is updated. Constants
+/// are preferred over enums for performance.
+class ExternRefType {
+  static const int null_ = 0;
+  static const int undefined = 1;
+  static const int boolean = 2;
+  static const int number = 3;
+  static const int string = 4;
+  static const int array = 5;
+  static const int int8Array = 6;
+  static const int uint8Array = 7;
+  static const int uint8ClampedArray = 8;
+  static const int int16Array = 9;
+  static const int uint16Array = 10;
+  static const int int32Array = 11;
+  static const int uint32Array = 12;
+  static const int float32Array = 13;
+  static const int float64Array = 14;
+  static const int dataView = 15;
+  static const int arrayBuffer = 16;
+  static const int unknown = 17;
+}
+
+/// Returns an integer representing the type of [ref] that corresponds to one of
+/// the constant values in [ExternRefType].
+///
+/// If this function is updated to return different values, [ExternRefType]
+/// should be updated as well.
+int externRefType(WasmExternRef? ref) {
+  if (ref.isNull) return ExternRefType.null_;
+  final val = JS<WasmI32>('''
+  o => {
+    if (o === undefined) return 1;
+    var type = typeof o;
+    if (type === 'boolean') return 2;
+    if (type === 'number') return 3;
+    if (type === 'string') return 4;
+    if (o instanceof Array) return 5;
+    if (ArrayBuffer.isView(o)) {
+      if (o instanceof Int8Array) return 6;
+      if (o instanceof Uint8Array) return 7;
+      if (o instanceof Uint8ClampedArray) return 8;
+      if (o instanceof Int16Array) return 9;
+      if (o instanceof Uint16Array) return 10;
+      if (o instanceof Int32Array) return 11;
+      if (o instanceof Uint32Array) return 12;
+      if (o instanceof Float32Array) return 13;
+      if (o instanceof Float64Array) return 14;
+      if (o instanceof DataView) return 15;
+    }
+    if (o instanceof ArrayBuffer) return 16;
+    return 17;
   }
+  ''', ref).toIntUnsigned();
+  return val;
+}
+
+/// Non-recursively converts [ref] from a JS value to a Dart value for some JS
+/// types.
+///
+/// If [refType] is not null, it is treated as one of the values from
+/// [ExternRefType]. Otherwise, this method calls [externRefType] to determine
+/// the right [ExternRefType].
+Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
+  refType ??= externRefType(ref);
+  return switch (refType) {
+    ExternRefType.null_ || ExternRefType.undefined => null,
+    ExternRefType.boolean => toDartBool(ref),
+    ExternRefType.number => toDartNumber(ref),
+    ExternRefType.string => JSStringImpl.box(ref),
+    ExternRefType.array => toDartList(ref),
+    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromJSArray(ref),
+    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromJSArray(ref),
+    ExternRefType.uint8ClampedArray =>
+      js_types.JSUint8ClampedArrayImpl.fromJSArray(ref),
+    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromJSArray(ref),
+    ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromJSArray(ref),
+    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromJSArray(ref),
+    ExternRefType.uint32Array => js_types.JSUint32ArrayImpl.fromJSArray(ref),
+    ExternRefType.float32Array => js_types.JSFloat32ArrayImpl.fromJSArray(ref),
+    ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromJSArray(ref),
+    ExternRefType.arrayBuffer => js_types.JSArrayBufferImpl.fromRef(ref),
+    ExternRefType.dataView => js_types.JSDataViewImpl.fromRef(ref),
+    ExternRefType.unknown => isJSWrappedDartFunction(ref)
+        ? unwrapJSWrappedDartFunction(ref)
+        : isWasmGCStruct(ref)
+            ? jsObjectToDartObject(ref)
+            : JSValue(ref),
+    _ => () {
+        // Assert that we've handled everything in the range.
+        assert(refType! >= 0 && refType >= ExternRefType.unknown);
+        throw 'Unhandled dartifyRaw type case: $refType';
+      }()
+  };
 }
 
 Int8List toDartInt8List(WasmExternRef? ref) =>

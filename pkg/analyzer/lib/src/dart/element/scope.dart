@@ -604,7 +604,11 @@ class TypeParameterScope extends EnclosedScope {
     super.parent,
     List<TypeParameterElement> elements,
   ) {
-    elements.forEach(_addGetter);
+    for (var element in elements) {
+      if (!element.isWildcardVariable) {
+        _addGetter(element);
+      }
+    }
   }
 }
 
