@@ -656,28 +656,7 @@ abstract class AstCodeGenerator
   }
 
   List<w.ValueType> call(Reference target) {
-    w.FunctionType targetFunctionType =
-        translator.signatureForDirectCall(target);
-    final inliningCodeGen =
-        translator.getInliningCodeGenerator(target, targetFunctionType);
-    if (inliningCodeGen != null) {
-      List<w.Local> inlinedLocals =
-          targetFunctionType.inputs.map((t) => addLocal(t)).toList();
-      for (w.Local local in inlinedLocals.reversed) {
-        b.local_set(local);
-      }
-      w.Label block = b.block(const [], targetFunctionType.outputs);
-      b.comment("Inlined ${target.asMember}");
-      inliningCodeGen.generate(b, inlinedLocals, block);
-      return targetFunctionType.outputs;
-    } else {
-      w.BaseFunction targetFunction = translator.functions.getFunction(target);
-      String access =
-          target.isGetter ? "get" : (target.isSetter ? "set" : "call");
-      b.comment("Direct $access of '${target.asMember}'");
-      b.call(targetFunction);
-      return targetFunction.type.outputs;
-    }
+    return b.invoke(translator.directCallTarget(target));
   }
 
   @override
@@ -1866,9 +1845,8 @@ abstract class AstCodeGenerator
     pushArguments(selector.signature, selector.paramInfo);
 
     if (selector.staticDispatchRanges.isNotEmpty) {
-      final polymorphicDispatcher =
-          translator.polymorphicDispatchers.getPolymorphicDispatcher(selector);
-      b.call(polymorphicDispatcher);
+      b.invoke(
+          translator.polymorphicDispatchers.getPolymorphicDispatcher(selector));
     } else {
       final offset = selector.offset!;
       b.comment("Instance $kind of '${selector.name}'");
@@ -4401,6 +4379,77 @@ extension MacroAssembler on w.InstructionsBuilder {
 
     return destContext;
   }
+
+  List<w.ValueType> invoke(CallTarget target, {bool forceInline = false}) {
+    if (target.supportsInlining && (target.shouldInline || forceInline)) {
+      final List<w.Local> inlinedLocals =
+          target.signature.inputs.map((t) => addLocal(t)).toList();
+      for (w.Local local in inlinedLocals.reversed) {
+        local_set(local);
+      }
+      final w.Label callBlock = block(const [], target.signature.outputs);
+      comment('Inlined ${target.name}');
+      target.inliningCodeGen.generate(this, inlinedLocals, callBlock);
+    } else {
+      comment('Direct call to ${target.name}');
+      call(target.function);
+    }
+
+    return target.signature.outputs;
+  }
+}
+
+/// A call target that may be called with a direct call or may be inlined.
+abstract class CallTarget {
+  /// The wasm signature of the call target (that may be called or inlined).
+  final w.FunctionType signature;
+
+  CallTarget(this.signature);
+
+  /// Whether this call target supports inlining.
+  bool get supportsInlining => false;
+
+  /// Whether we should inline (different call targets may have semantic
+  /// knowledge about how big the body would be and whether we should inline or
+  /// not).
+  bool get shouldInline => false;
+
+  /// The code generator to use for inlining the body.
+  CodeGenerator get inliningCodeGen => throw 'No inlining support (yet).';
+
+  /// The name of this target
+  ///
+  /// The inliner can use this to emit comments for the inlined target.
+  String get name;
+
+  /// The wasm target function to call.
+  ///
+  /// This should only be accessed if caller intents to call it, as it will
+  /// enqueue the function in the compilation queue.
+  w.BaseFunction get function;
+}
+
+class AstCallTarget extends CallTarget {
+  final Translator _translator;
+  final Reference _reference;
+
+  AstCallTarget(super.signature, this._translator, this._reference);
+
+  @override
+  String get name => _translator.functions.getFunctionName(_reference);
+
+  @override
+  bool get supportsInlining => _translator.supportsInlining(_reference);
+
+  @override
+  bool get shouldInline => _translator.shouldInline(_reference);
+
+  @override
+  CodeGenerator get inliningCodeGen => getInlinableMemberCodeGenerator(
+      _translator, AsyncMarker.Sync, signature, _reference)!;
+
+  @override
+  w.BaseFunction get function => _translator.functions.getFunction(_reference);
 }
 
 bool guardCanMatchJSException(Translator translator, DartType guard) {

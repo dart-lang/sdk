@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class VariableDeclaration extends core::Object {
+  field core::String? _name;
+  field core::int flags;
+  constructor •(core::String? _name, {core::int flags = 1.{core::int::unary-}(){() → core::int}}) → self::VariableDeclaration
+    ;
+  static method _#new#tearOff(core::String? _name, {has-declared-initializer core::int flags}) → self::VariableDeclaration
+    return new self::VariableDeclaration::•(_name, flags: flags);
+  get name() → core::String?
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///cloning.dart:11:17 -> DoubleConstant(-1.0)
+Extra constant evaluation: evaluated: 4, effectively constant: 1

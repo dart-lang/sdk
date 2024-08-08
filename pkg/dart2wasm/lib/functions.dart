@@ -118,7 +118,7 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       final function = m.functions.define(
-          translator.signatureForDirectCall(target), _getFunctionName(target));
+          translator.signatureForDirectCall(target), getFunctionName(target));
       translator.compilationQueue.add(AstCompilationTask(function,
           getMemberCodeGenerator(translator, function, target), target));
       return function;
@@ -159,7 +159,7 @@ class FunctionCollector {
     return member.accept1(_FunctionTypeGenerator(translator), target);
   }
 
-  String _getFunctionName(Reference target) {
+  String getFunctionName(Reference target) {
     if (target.isTearOffReference) {
       return "${target.asMember} tear-off";
     }

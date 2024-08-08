@@ -1054,3 +1054,14 @@ bool isToStringVisiting(Object object) {
   }
   return false;
 }
+
+/// Load a dynamic module and execute its entry point method.
+///
+/// Only one of the two arguments must be provided, depending on the delivery
+/// mechanism and the underlying platform.
+///
+/// Entry point method is a no-argument method annotated with
+/// `@pragma('dyn-module:entry-point')`.
+///
+/// Returns a future containing the result of the entry point method.
+external Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes});

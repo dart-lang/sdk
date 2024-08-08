@@ -2211,7 +2211,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitShadowLargeIntLiteral(
       ShadowLargeIntLiteral node, DartType typeContext) {
     if (isDoubleContext(typeContext)) {
-      // Coverage-ignore-block(suite): Not run.
       double? doubleValue = node.asDouble();
       if (doubleValue != null) {
         Expression replacement = new DoubleLiteral(doubleValue)
@@ -2278,7 +2277,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     StatementInferenceResult bodyResult = inferStatement(node.body);
     flowAnalysis.labeledStatement_end();
     if (bodyResult.hasChanged) {
-      // Coverage-ignore-block(suite): Not run.
       node.body = bodyResult.statement..parent = node;
     }
     return const StatementInferenceResult();
@@ -9827,7 +9825,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             node.expression as ShadowLargeIntLiteral;
         if (!receiver.isParenthesized) {
           if (isDoubleContext(typeContext)) {
-            // Coverage-ignore-block(suite): Not run.
             double? doubleValue = receiver.asDouble(negated: true);
             if (doubleValue != null) {
               Expression replacement = new DoubleLiteral(doubleValue)

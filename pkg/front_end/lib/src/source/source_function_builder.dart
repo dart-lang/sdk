@@ -314,7 +314,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
 
   void buildFunction() {

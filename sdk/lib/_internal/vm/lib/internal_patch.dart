@@ -442,3 +442,7 @@ class FinalizerEntry {
 
 @pragma("vm:external-name", "StringBase_intern")
 external String intern(String str);
+
+@patch
+Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
+    throw 'Unsupported operation';

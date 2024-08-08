@@ -736,7 +736,6 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isNativeMethod {
     return _member.isNative;
   }

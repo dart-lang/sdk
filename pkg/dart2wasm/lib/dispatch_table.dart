@@ -315,6 +315,7 @@ class DispatchTable {
 
     // Maps class to selector IDs of the class
     final selectorsInClass = <Class, Map<SelectorInfo, Reference>>{};
+    final staticDispatchPragmas = <Reference>{};
 
     // Add classes to selector targets for their members
     for (ClassInfo info in translator.classesSupersFirst) {
@@ -341,7 +342,7 @@ class DispatchTable {
       /// for the class. Override that target if [reference] is a not abstract.
       /// If it's abstract, then the superclass's method will be called, so do
       /// not update the target.
-      void addMember(Reference reference) {
+      void addMember(Reference reference, bool staticDispatch) {
         SelectorInfo selector = _createSelectorForTarget(reference);
         if (reference.asMember.isAbstract) {
           // Reference is abstract, do not override inherited concrete member
@@ -349,6 +350,8 @@ class DispatchTable {
         } else {
           // Reference is concrete, override inherited member
           selectors[selector] = reference;
+
+          if (staticDispatch) staticDispatchPragmas.add(reference);
         }
       }
 
@@ -360,16 +363,21 @@ class DispatchTable {
         if (!member.isInstanceMember) {
           continue;
         }
+        final bool staticDispatch =
+            translator.getPragma<bool>(member, 'wasm:static-dispatch', true) ??
+                false;
         if (member is Field) {
-          addMember(member.getterReference);
-          if (member.hasSetter) addMember(member.setterReference!);
+          addMember(member.getterReference, staticDispatch);
+          if (member.hasSetter) {
+            addMember(member.setterReference!, staticDispatch);
+          }
         } else if (member is Procedure) {
-          addMember(member.reference);
+          addMember(member.reference, staticDispatch);
           // `hasTearOffUses` can be true for operators as well, even though
           // it's not possible to tear-off an operator. (no syntax for it)
           if (member.kind == ProcedureKind.Method &&
               _procedureAttributeMetadata[member]!.hasTearOffUses) {
-            addMember(member.tearOffReference);
+            addMember(member.tearOffReference, staticDispatch);
           }
         }
       }
@@ -417,10 +425,13 @@ class DispatchTable {
       }
       ranges.length = writeIndex + 1;
 
-      final staticDispatchRanges =
-          translator.options.polymorphicSpecialization || ranges.length == 1
-              ? ranges
-              : <({Range range, Reference target})>[];
+      final staticDispatchRanges = (translator
+                  .options.polymorphicSpecialization ||
+              ranges.length == 1)
+          ? ranges
+          : ranges
+              .where((range) => staticDispatchPragmas.contains(range.target))
+              .toList();
       selector.targetRanges = ranges;
       selector.staticDispatchRanges = staticDispatchRanges;
     });

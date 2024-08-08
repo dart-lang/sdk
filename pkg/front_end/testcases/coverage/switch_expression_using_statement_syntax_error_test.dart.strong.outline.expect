@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:12:3: Error: Unexpected token 'case'.
+//   case 1: 'one'; // Error
+//   ^^^^
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:12:9: Error: Expected '=>' before this.
+//   case 1: 'one'; // Error
+//         ^
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:12:16: Error: Expected ',' before this.
+//   case 1: 'one'; // Error
+//                ^
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:13:3: Error: Unexpected token 'case'.
+//   case 2: 'two'; // Error
+//   ^^^^
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:13:9: Error: Expected '=>' before this.
+//   case 2: 'two'; // Error
+//         ^
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:13:16: Error: Expected ',' before this.
+//   case 2: 'two'; // Error
+//                ^
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:14:3: Error: A switch expression may not use the `default` keyword.
+// Try replacing `default` with `_`.
+//   default: 'three'; // Error
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:14:10: Error: Expected '=>' before this.
+//   default: 'three'; // Error
+//          ^
+//
+// pkg/front_end/testcases/coverage/switch_expression_using_statement_syntax_error_test.dart:14:19: Error: Expected ',' before this.
+//   default: 'three'; // Error
+//                   ^
+//
+import self as self;
+
+static method f(dynamic x) → dynamic
+  ;

@@ -75,3 +75,4 @@ regress/issue_34850: UnknownChunk # Test has parser errors
 coverage/external_test: FormatterCrash
 coverage/metadata_test: FormatterCrash
 coverage/operator_unsupported_test: EmptyOutput
+coverage/syntax_get_set_syntax_test: UnknownChunk
