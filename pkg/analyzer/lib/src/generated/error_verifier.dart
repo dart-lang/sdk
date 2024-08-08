@@ -2534,6 +2534,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForConflictingClassTypeVariableErrorCodes() {
     var enclosingClass = _enclosingClass!;
     for (TypeParameterElement typeParameter in enclosingClass.typeParameters) {
+      if (typeParameter.isWildcardVariable) continue;
+
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (enclosingClass.name == name) {
