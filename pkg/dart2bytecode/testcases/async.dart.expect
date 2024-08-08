@@ -1,0 +1,415 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/async.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/async.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/async.dart'
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/async.dart'
+
+Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int >) -> dart:async::Future < Null >, getter = 'get:asyncInFieldInitializer', reflectable, static, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                3
+  CheckStack           0
+  AllocateClosure      CP#0
+  StoreLocal           r2
+  Push                 r2
+  PushConstant         CP#0
+  StoreFieldTOS        CP#10
+  Push                 r2
+  Push                 r0
+  StoreFieldTOS        CP#1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = Type dart:async::Future < dart:core::int >
+  [4] = ObjectRef 'x'
+  [5] = SubtypeTestCache
+  [6] = ObjectRef < Null >
+  [7] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [8] = Reserved
+  [9] = EndClosureFunctionScope
+  [10] = InstanceField dart:core::_Closure::_function (field)
+  [11] = Reserved
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/async.dart::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int > x) -> dart:async::Future < Null >
+ClosureCode {
+  EntrySuspendable     2, 0, 0
+  Frame                3
+  Push                 r1
+  LoadFieldTOS         CP#1
+  PopLocal             r3
+  CheckStack           0
+  JumpIfUnchecked      L1
+  Push                 r2
+  PushConstant         CP#3
+  PushNull
+  PushNull
+  PushConstant         CP#4
+  AssertAssignable     0, CP#5
+  Drop1
+L1:
+  PushConstant         CP#6
+  DirectCall           CP#7, 1
+  PopLocal             r0
+  Trap
+  Drop1
+  PushNull
+  ReturnAsync
+}
+
+
+Function 'foo', static, reflectable, debuggable, async
+    parameters [] (required: 0)
+    return-type dart:async::Future < dart:core::int >
+
+Bytecode {
+  EntrySuspendable     0, 0, 0
+  Frame                1
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  PopLocal             r0
+  PushInt              42
+  ReturnAsync
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [2] = Reserved
+}
+
+
+Function 'simpleAsyncAwait', static, reflectable, debuggable, async
+    parameters [dart:async::Future < dart:core::int > 'a', dart:async::Future < dart:core::int > 'b'] (required: 2)
+    return-type dart:async::Future < dart:core::int >
+
+Bytecode {
+  EntrySuspendable     2, 0, 0
+  Frame                1
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  PopLocal             r0
+  Trap
+  Trap
+  AddInt
+  ReturnAsync
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [2] = Reserved
+}
+
+
+Function 'loops', static, reflectable, debuggable, async
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:async::Future < dart:core::int >
+
+Bytecode {
+  EntrySuspendable     1, 0, 0
+  Frame                5
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  PopLocal             r0
+  PushInt              0
+  PopLocal             r2
+  PushInt              0
+  PopLocal             r3
+L4:
+  CheckStack           1
+  Push                 r3
+  PushInt              10
+  CompareIntLt
+  JumpIfFalse          L1
+  Push                 r1
+  InterfaceCall        CP#3, 1
+  PopLocal             r4
+L3:
+  CheckStack           2
+  Push                 r4
+  InterfaceCall        CP#5, 1
+  JumpIfFalse          L2
+  Push                 r4
+  InterfaceCall        CP#7, 1
+  PopLocal             r5
+  Push                 r2
+  Push                 r3
+  Push                 r5
+  AddInt
+  Trap
+  AddInt
+  AddInt
+  PopLocal             r2
+  Jump                 L3
+L2:
+  Push                 r3
+  PushInt              1
+  AddInt
+  StoreLocal           r3
+  Drop1
+  Jump                 L4
+L1:
+  PushInt              0
+  PopLocal             r3
+L6:
+  CheckStack           1
+  Push                 r3
+  PushInt              10
+  CompareIntLt
+  JumpIfFalse          L5
+  Push                 r2
+  Push                 r3
+  AddInt
+  PopLocal             r2
+  Push                 r3
+  PushInt              1
+  AddInt
+  StoreLocal           r3
+  Drop1
+  Jump                 L6
+L5:
+  Push                 r2
+  ReturnAsync
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [2] = Reserved
+  [3] = InterfaceCall 'dart:core::Iterable::get:iterator', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = InterfaceCall 'dart:core::Iterator::moveNext', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+  [7] = InterfaceCall 'dart:core::Iterator::get:current', ArgDesc num-args 1, num-type-args 0, names []
+  [8] = Reserved
+}
+
+
+Function 'tryCatchRethrow', static, reflectable, debuggable, async
+    parameters [dart:async::Future < dart:core::int > 'a', dart:async::Future < dart:core::int > 'b', dart:async::Future < dart:core::int > 'c'] (required: 3)
+    return-type dart:async::Future < dart:core::int >
+
+Bytecode {
+  EntrySuspendable     3, 0, 0
+  Frame                7
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  PopLocal             r0
+  PushInt              1
+  PopLocal             r4
+Try #0 start:
+Try #1 start:
+  Push                 r4
+  Trap
+  AddInt
+  PopLocal             r4
+  Jump                 L1
+Try #1 end:
+Try #1 handler:
+  SetFrame             10
+  MoveSpecial          exception, r7
+  MoveSpecial          stackTrace, r8
+  Push                 r7
+  PopLocal             r9
+  Push                 r9
+  PushConstant         CP#4
+  InterfaceCall        CP#5, 2
+  JumpIfFalse          L2
+  Jump                 L3
+L2:
+  Push                 r4
+  Trap
+  AddInt
+  PopLocal             r4
+  Push                 r7
+  Push                 r8
+  Throw                1
+L1:
+  Jump                 L4
+Try #0 end:
+Try #0 handler:
+  SetFrame             10
+  MoveSpecial          exception, r5
+  MoveSpecial          stackTrace, r6
+  PushConstant         CP#8
+  DirectCall           CP#9, 1
+  Drop1
+  Push                 r4
+  Trap
+  AddInt
+  PopLocal             r4
+  Push                 r4
+  ReturnAsync
+L3:
+  PushConstant         CP#8
+  DirectCall           CP#9, 1
+  Drop1
+  Push                 r4
+  Trap
+  AddInt
+  PopLocal             r4
+  Push                 r4
+  ReturnAsync
+L4:
+  PushConstant         CP#8
+  DirectCall           CP#9, 1
+  Drop1
+  Push                 r4
+  Trap
+  AddInt
+  PopLocal             r4
+  Push                 r4
+  ReturnAsync
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 19, end 72, handler 72, needs-stack-trace, synthetic, types [CP#7]
+  try-index 1, outer 0, start 19, end 29, handler 29, needs-stack-trace, types [CP#3]
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [2] = Reserved
+  [3] = Type dart:core::Object
+  [4] = Type dart:core::Error
+  [5] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
+  [6] = Reserved
+  [7] = Type dynamic
+  [8] = ObjectRef 'fin'
+  [9] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [10] = Reserved
+}
+
+
+Function 'closure', static, reflectable, debuggable
+    parameters [dart:async::Future < dart:core::int > 'a'] (required: 1)
+    return-type dynamic
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+  AllocateContext      0, 2
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  Push                 r0
+  PushInt              3
+  StoreContextVar      0, 1
+  AllocateClosure      CP#0
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#0
+  StoreFieldTOS        CP#11
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r2
+  Push                 r2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ObjectRef < dart:core::int >
+  [4] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [5] = Reserved
+  [6] = Type dynamic
+  [7] = ObjectRef 'fin'
+  [8] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [9] = Reserved
+  [10] = EndClosureFunctionScope
+  [11] = InstanceField dart:core::_Closure::_function (field)
+  [12] = Reserved
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/async.dart::closure::'nested' async () -> dart:async::Future < dart:core::int >
+ClosureCode {
+  EntrySuspendable     1, 0, 0
+  Frame                8
+  Push                 r1
+  LoadFieldTOS         CP#1
+  PopLocal             r2
+  CheckStack           0
+  PushConstant         CP#3
+  DirectCall           CP#4, 1
+  PopLocal             r0
+  PushInt              4
+  PopLocal             r5
+  Push                 r2
+  PopLocal             r6
+Try #0 start:
+  Push                 r2
+  PushInt              5
+  StoreContextVar      0, 1
+  Trap
+  PopLocal             r5
+  Push                 r2
+  LoadContextVar       0, 1
+  Push                 r5
+  AddInt
+  PopLocal             r4
+  Jump                 L1
+Try #0 end:
+Try #0 handler:
+  SetFrame             9
+  Push                 r6
+  PopLocal             r2
+  MoveSpecial          exception, r6
+  MoveSpecial          stackTrace, r7
+  PushConstant         CP#7
+  DirectCall           CP#8, 1
+  Drop1
+  Push                 r6
+  Push                 r7
+  Throw                1
+L1:
+  Push                 r6
+  PopLocal             r2
+  PushConstant         CP#7
+  DirectCall           CP#8, 1
+  Drop1
+  Push                 r4
+  ReturnAsync
+}
+
+
+Function 'testAssert', static, reflectable, debuggable, async
+    parameters [dart:async::Future < dart:core::int > 'a'] (required: 1)
+    return-type dart:async::Future < dart:core::int >
+
+Bytecode {
+  EntrySuspendable     1, 0, 0
+  Frame                1
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  PopLocal             r0
+  PushInt              7
+  ReturnAsync
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [2] = Reserved
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+

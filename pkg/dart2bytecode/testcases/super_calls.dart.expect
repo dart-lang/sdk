@@ -1,0 +1,450 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart'
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart'
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+Class 'Base1', script = 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo', reflectable, debuggable
+    type-params <'T' extends dart:core::Object? (default dynamic)>
+    parameters [DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1::foo::TypeParam/0 'a1', dart:core::int 'a2'] (required: 2)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckFunctionTypeArgs 1, r0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+
+Function 'get:bar', getter, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushInt              42
+  ReturnTOS
+}
+ConstantPool {
+}
+
+
+Function 'set:bazz', setter, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+Class 'A', script = 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart'
+    extends DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'testSuperCall', reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushConstant         CP#0
+  Push                 FP[-6]
+  PushConstant         CP#1
+  PushInt              2
+  UncheckedDirectCall  CP#2, 4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::String >
+  [1] = ObjectRef 'a1'
+  [2] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1::foo', ArgDesc num-args 3, num-type-args 1, names []
+  [3] = Reserved
+}
+
+
+Function 'testSuperTearOff', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1::get:foo', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'testSuperGet', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1::get:bar', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'testSuperCallViaGetter', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushConstant         CP#0
+  Push                 FP[-5]
+  DirectCall           CP#1, 1
+  PushConstant         CP#3
+  DynamicCall          CP#4, 3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1::get:bar', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = ObjectRef 'param'
+  [4] = DynamicCall 'call', ArgDesc num-args 2, num-type-args 1, names []
+  [5] = Reserved
+}
+
+
+Function 'testSuperSet', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  PushInt              3
+  UncheckedDirectCall  CP#0, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1::set:bazz', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'Base2', script = 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart', abstract
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base2
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo', abstract, reflectable, debuggable
+    type-params <'T' extends dart:core::Object? (default dynamic)>
+    parameters [dart:core::String 'a1', DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base2::foo::TypeParam/0 'a2', dart:core::int 'a3'] (required: 3)
+    return-type void
+
+Function 'get:bar', getter, abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Function 'set:bazz', setter, abstract, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type void
+Class 'B', script = 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart', abstract
+    extends DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base2
+
+
+Function 'testSuperCall', reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-6]
+  PushConstant         CP#1
+  PushConstant         CP#0
+  PushConstant         CP#2
+  PushInt              5
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushInt              0
+  PushConstant         CP#3
+  StoreIndexedTOS
+  Push                 r0
+  PushInt              1
+  Push                 FP[-6]
+  StoreIndexedTOS
+  Push                 r0
+  PushInt              2
+  PushConstant         CP#4
+  StoreIndexedTOS
+  Push                 r0
+  PushInt              3
+  PushConstant         CP#5
+  StoreIndexedTOS
+  Push                 r0
+  PushInt              4
+  PushInt              5
+  StoreIndexedTOS
+  PushTrue
+  DirectCall           CP#6, 4
+  DirectCall           CP#8, 2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef ArgDesc num-args 4, num-type-args 1, names []
+  [1] = ObjectRef 'foo'
+  [2] = ObjectRef < dynamic >
+  [3] = ObjectRef < dart:core::double >
+  [4] = ObjectRef 'a1'
+  [5] = ObjectRef const 3.14
+  [6] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [7] = Reserved
+  [8] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [9] = Reserved
+}
+
+
+Function 'testSuperTearOff', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#1
+  PushConstant         CP#0
+  PushConstant         CP#2
+  PushInt              1
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushInt              0
+  Push                 FP[-5]
+  StoreIndexedTOS
+  PushTrue
+  DirectCall           CP#3, 4
+  DirectCall           CP#5, 2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [1] = ObjectRef 'foo'
+  [2] = ObjectRef < dynamic >
+  [3] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [6] = Reserved
+}
+
+
+Function 'testSuperGet', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#1
+  PushConstant         CP#0
+  PushConstant         CP#2
+  PushInt              1
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushInt              0
+  Push                 FP[-5]
+  StoreIndexedTOS
+  PushTrue
+  DirectCall           CP#3, 4
+  DirectCall           CP#5, 2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [1] = ObjectRef 'bar'
+  [2] = ObjectRef < dynamic >
+  [3] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [6] = Reserved
+}
+
+
+Function 'testSuperCallViaGetter', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushConstant         CP#0
+  Push                 FP[-5]
+  PushConstant         CP#2
+  PushConstant         CP#1
+  PushConstant         CP#3
+  PushInt              1
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushInt              0
+  Push                 FP[-5]
+  StoreIndexedTOS
+  PushTrue
+  DirectCall           CP#4, 4
+  DirectCall           CP#6, 2
+  PushConstant         CP#8
+  DynamicCall          CP#9, 3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [2] = ObjectRef 'bar'
+  [3] = ObjectRef < dynamic >
+  [4] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [5] = Reserved
+  [6] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [7] = Reserved
+  [8] = ObjectRef 'param'
+  [9] = DynamicCall 'call', ArgDesc num-args 2, num-type-args 1, names []
+  [10] = Reserved
+}
+
+
+Function 'testSuperSet', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#1
+  PushConstant         CP#0
+  PushConstant         CP#2
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushInt              0
+  Push                 FP[-5]
+  StoreIndexedTOS
+  Push                 r0
+  PushInt              1
+  PushInt              3
+  StoreIndexedTOS
+  PushTrue
+  DirectCall           CP#3, 4
+  DirectCall           CP#5, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [1] = ObjectRef 'bazz'
+  [2] = ObjectRef < dynamic >
+  [3] = DirectCall 'dart:core::_InvocationMirror::_allocateInvocationMirror', ArgDesc num-args 4, num-type-args 0, names []
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
+  [6] = Reserved
+}
+

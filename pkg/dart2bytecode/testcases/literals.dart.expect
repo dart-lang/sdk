@@ -1,0 +1,733 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/literals.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart'
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart'
+
+Field 'c1', type = DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A, getter = 'get:c1', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 2, dart:core::_Enum::_name (field): 'elem3'}
+}
+
+
+Field 'c2', type = dart:core::String, reflectable, static, const, final, is-late, has-initializer
+    value = 'hello!'
+
+Field 'c3', type = dart:core::int, reflectable, static, const, final, is-late, has-initializer
+    value = const 6
+
+Field 'c4', type = DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C, getter = 'get:c4', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C::j (field): const 3, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B::i (field): const 15}
+}
+
+
+Field 'c5', type = DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D, getter = 'get:c5', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D::x (field): const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B::i (field): const 4}, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D::y (field): null}
+}
+
+
+Field 'fieldWithDoubleLiteralInitializer', type = dart:core::double, reflectable, static, is-late, has-initializer
+    value = const 1.0
+
+Function 'testConstants1', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  PushConstant         CP#3
+  DirectCall           CP#1, 1
+  Drop1
+  PushInt              6
+  DirectCall           CP#1, 1
+  Drop1
+  PushConstant         CP#4
+  DirectCall           CP#1, 1
+  Drop1
+  PushConstant         CP#5
+  DirectCall           CP#1, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 2, dart:core::_Enum::_name (field): 'elem3'}
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = ObjectRef 'hello!'
+  [4] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C::j (field): const 3, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B::i (field): const 15}
+  [5] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D::x (field): const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B::i (field): const 4}, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D::y (field): null}
+}
+
+
+Function 'testConstants2', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushInt              42
+  DirectCall           CP#0, 1
+  Drop1
+  PushConstant         CP#2
+  DirectCall           CP#0, 1
+  Drop1
+  PushConstant         CP#3
+  DirectCall           CP#0, 1
+  Drop1
+  PushConstant         CP#4
+  DirectCall           CP#0, 1
+  Drop1
+  PushConstant         CP#5
+  DirectCall           CP#0, 1
+  Drop1
+  PushConstant         CP#6
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = ObjectRef 'foo'
+  [3] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 1, dart:core::_Enum::_name (field): 'elem2'}
+  [4] = ObjectRef const List<dart:core::Object> [const 42, 'foo', dart:core::int]
+  [5] = ObjectRef const Map<dart:core::Map < dart:core::String, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A >> ['E2', const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 1, dart:core::_Enum::_name (field): 'elem2'}, 'E4', const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 3, dart:core::_Enum::_name (field): 'elem4'}]
+  [6] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D::x (field): const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C::j (field): const 9, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B::i (field): const 30}, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D::y (field): const Map<dart:core::Map < dart:core::String, dart:core::Object >> ['foo', const 42, 'bar', const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B {DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B::i (field): const 6}]}
+}
+
+
+Function 'testListLiteral', static, reflectable, debuggable
+    parameters [dart:core::int 'a'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  PushInt              1
+  Push                 FP[-5]
+  PushInt              3
+  DirectCall           CP#1, 4
+  DirectCall           CP#3, 1
+  Drop1
+  PushConstant         CP#5
+  PushConstant         CP#6
+  Push                 FP[-5]
+  InterfaceCall        CP#7, 1
+  PushConstant         CP#9
+  DirectCall           CP#1, 4
+  DirectCall           CP#3, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall 'dart:core::_GrowableList::_literal3 (constructor)', ArgDesc num-args 4, num-type-args 0, names []
+  [2] = Reserved
+  [3] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = ObjectRef < dart:core::String >
+  [6] = ObjectRef 'a'
+  [7] = InterfaceCall 'dart:core::int::toString', ArgDesc num-args 1, num-type-args 0, names []
+  [8] = Reserved
+  [9] = ObjectRef 'b'
+}
+
+
+Function 'testMapLiteral', static, reflectable, debuggable
+    type-params <'T' extends dart:core::Object? (default dynamic)>
+    parameters [dart:core::int 'a', dart:core::int 'b', DART_SDK/pkg/dart2bytecode/testcases/literals.dart::testMapLiteral::TypeParam/0 'c'] (required: 3)
+    return-type void
+
+Bytecode {
+  Entry                2
+  CheckFunctionTypeArgs 1, r0
+  CheckStack           0
+  PushConstant         CP#0
+  PushConstant         CP#1
+  PushInt              4
+  CreateArrayTOS
+  StoreLocal           r1
+  Push                 r1
+  PushInt              0
+  PushInt              1
+  StoreIndexedTOS
+  Push                 r1
+  PushInt              1
+  Push                 FP[-7]
+  StoreIndexedTOS
+  Push                 r1
+  PushInt              2
+  Push                 FP[-6]
+  StoreIndexedTOS
+  Push                 r1
+  PushInt              3
+  PushInt              2
+  StoreIndexedTOS
+  DirectCall           CP#2, 2
+  DirectCall           CP#4, 1
+  Drop1
+  PushConstant         CP#6
+  PushConstant         CP#1
+  PushInt              4
+  CreateArrayTOS
+  StoreLocal           r1
+  Push                 r1
+  PushInt              0
+  PushConstant         CP#7
+  StoreIndexedTOS
+  Push                 r1
+  PushInt              1
+  Push                 FP[-7]
+  StoreIndexedTOS
+  Push                 r1
+  PushInt              2
+  Push                 FP[-6]
+  InterfaceCall        CP#8, 1
+  StoreIndexedTOS
+  Push                 r1
+  PushInt              3
+  PushInt              3
+  StoreIndexedTOS
+  DirectCall           CP#2, 2
+  DirectCall           CP#4, 1
+  Drop1
+  PushNull
+  Push                 r0
+  InstantiateTypeArgumentsTOS 0, CP#10
+  PushConstant         CP#11
+  DirectCall           CP#2, 2
+  DirectCall           CP#4, 1
+  Drop1
+  PushNull
+  Push                 r0
+  InstantiateTypeArgumentsTOS 0, CP#12
+  PushConstant         CP#1
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r1
+  Push                 r1
+  PushInt              0
+  Push                 FP[-5]
+  StoreIndexedTOS
+  Push                 r1
+  PushInt              1
+  PushInt              4
+  StoreIndexedTOS
+  DirectCall           CP#2, 2
+  DirectCall           CP#4, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int, dart:core::int >
+  [1] = ObjectRef < dynamic >
+  [2] = DirectCall 'dart:core::Map::_fromLiteral (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef < dart:core::String, dart:core::int >
+  [7] = ObjectRef 'foo'
+  [8] = InterfaceCall 'dart:core::int::toString', ArgDesc num-args 1, num-type-args 0, names []
+  [9] = Reserved
+  [10] = ObjectRef < dart:core::String, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::testMapLiteral::TypeParam/0 >
+  [11] = ObjectRef const List<dynamic> []
+  [12] = ObjectRef < DART_SDK/pkg/dart2bytecode/testcases/literals.dart::testMapLiteral::TypeParam/0, dart:core::int >
+}
+
+
+Function 'testSetLiteral', static, reflectable, debuggable
+    type-params <'T' extends dart:core::Object? (default dynamic)>
+    parameters [dart:core::int 'a', dart:core::int 'b'] (required: 2)
+    return-type void
+
+Bytecode {
+  Entry                3
+  CheckFunctionTypeArgs 1, r0
+  CheckStack           0
+  PushConstant         CP#1
+  PushConstant         CP#0
+  AllocateT
+  StoreLocal           r2
+  Push                 r2
+  DirectCall           CP#2, 1
+  Drop1
+  PopLocal             r1
+  Push                 r1
+  PushInt              1
+  UncheckedInterfaceCall CP#4, 2
+  Drop1
+  Push                 r1
+  PushInt              2
+  UncheckedInterfaceCall CP#4, 2
+  Drop1
+  Push                 r1
+  Push                 FP[-6]
+  UncheckedInterfaceCall CP#4, 2
+  Drop1
+  Push                 r1
+  DirectCall           CP#6, 1
+  Drop1
+  PushConstant         CP#8
+  PushConstant         CP#0
+  AllocateT
+  StoreLocal           r2
+  Push                 r2
+  DirectCall           CP#2, 1
+  Drop1
+  PopLocal             r1
+  Push                 r1
+  PushConstant         CP#9
+  UncheckedInterfaceCall CP#4, 2
+  Drop1
+  Push                 r1
+  Push                 FP[-5]
+  InterfaceCall        CP#10, 1
+  UncheckedInterfaceCall CP#4, 2
+  Drop1
+  Push                 r1
+  DirectCall           CP#6, 1
+  Drop1
+  Push                 r0
+  PushConstant         CP#0
+  AllocateT
+  StoreLocal           r2
+  Push                 r2
+  DirectCall           CP#2, 1
+  Drop1
+  PopLocal             r1
+  Push                 r1
+  DirectCall           CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Class dart:collection::_Set
+  [1] = ObjectRef < dart:core::int >
+  [2] = DirectCall 'dart:collection::_Set:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall 'dart:core::Set::add', ArgDesc num-args 2, num-type-args 0, names []
+  [5] = Reserved
+  [6] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [7] = Reserved
+  [8] = ObjectRef < dart:core::String >
+  [9] = ObjectRef 'foo'
+  [10] = InterfaceCall 'dart:core::int::toString', ArgDesc num-args 1, num-type-args 0, names []
+  [11] = Reserved
+}
+
+
+Function 'testSymbol', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  PushConstant         CP#3
+  DirectCall           CP#1, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const 'test_symbol'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = ObjectRef const '_private_symbol'
+}
+
+
+Function 'testTypeLiteral', static, reflectable, debuggable
+    type-params <'T' extends dart:core::Object? (default dynamic)>
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckFunctionTypeArgs 1, r0
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  PushNull
+  Push                 r0
+  InstantiateType      CP#3
+  DirectCall           CP#1, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef dart:core::String
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = Type DART_SDK/pkg/dart2bytecode/testcases/literals.dart::testTypeLiteral::TypeParam/0
+}
+
+
+Function 'testGenericConstInstance', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::F < dart:core::int, dart:core::String > {}
+}
+
+
+Function 'testGenericFunctionTypeLiteral', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef FunctionType <'X' extends dart:core::Object? (default dynamic)> (null::TypeParam/0) -> null::TypeParam/0
+}
+
+
+Function 'testFieldWithDoubleLiteralInitializer', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  LoadStatic           CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = StaticField DART_SDK/pkg/dart2bytecode/testcases/literals.dart::fieldWithDoubleLiteralInitializer (field)
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+Class 'A', script = 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart', enum
+    extends dart:core::_Enum
+
+Field 'values', type = dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A >, getter = 'get:values', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const List<DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A> [const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 0, dart:core::_Enum::_name (field): 'elem1'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 1, dart:core::_Enum::_name (field): 'elem2'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 2, dart:core::_Enum::_name (field): 'elem3'}, const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 3, dart:core::_Enum::_name (field): 'elem4'}]
+}
+
+
+Field 'elem1', type = DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A, getter = 'get:elem1', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 0, dart:core::_Enum::_name (field): 'elem1'}
+}
+
+
+Field 'elem2', type = DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A, getter = 'get:elem2', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 1, dart:core::_Enum::_name (field): 'elem2'}
+}
+
+
+Field 'elem3', type = DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A, getter = 'get:elem3', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 2, dart:core::_Enum::_name (field): 'elem3'}
+}
+
+
+Field 'elem4', type = DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A, getter = 'get:elem4', reflectable, static, const, final, is-late, has-initializer
+    initializer
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A {dart:core::_Enum::index (field): const 3, dart:core::_Enum::_name (field): 'elem4'}
+}
+
+
+Function '', constructor, const, reflectable
+    parameters [dart:core::int '#index', dart:core::String '#name'] (required: 2)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/literals.dart::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-7]
+  Push                 FP[-6]
+  Push                 FP[-5]
+  DirectCall           CP#0, 3
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::_Enum:: (constructor)', ArgDesc num-args 3, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function '_enumToString', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::String
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushNull
+  PushInt              2
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushInt              0
+  PushConstant         CP#0
+  StoreIndexedTOS
+  Push                 r0
+  PushInt              1
+  Push                 FP[-5]
+  InterfaceCall        CP#1, 1
+  StoreIndexedTOS
+  DirectCall           CP#3, 1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef 'A.'
+  [1] = InterfaceCall 'dart:core::_Enum::get:_name', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+}
+
+Class 'B', script = 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart'
+    extends dart:core::Object
+
+Field 'i', type = dart:core::int, getter = 'get:i', reflectable, final
+    value = null
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [dart:core::int 'i'] (required: 1)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-6]
+  Push                 FP[-5]
+  StoreFieldTOS        CP#0
+  Push                 FP[-6]
+  DirectCall           CP#2, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B::i (field)
+  [1] = Reserved
+  [2] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+Class 'C', script = 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart'
+    extends DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B
+
+Field 'j', type = dart:core::int, getter = 'get:j', reflectable, final
+    value = null
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [dart:core::int 'a', dart:core::int 'b', dart:core::int 'c'] (required: 3)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-8]
+  Push                 FP[-7]
+  Push                 FP[-6]
+  AddInt
+  StoreFieldTOS        CP#0
+  Push                 FP[-8]
+  Push                 FP[-5]
+  PushInt              5
+  MulInt
+  DirectCall           CP#2, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/literals.dart::C::j (field)
+  [1] = Reserved
+  [2] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart::B:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+}
+
+Class 'D', script = 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart'
+    extends dart:core::Object
+
+Field 'x', type = dart:core::Object?, getter = 'get:x', reflectable, final
+    value = null
+
+Field 'y', type = dart:core::Object?, getter = 'get:y', reflectable, final
+    value = null
+
+Function '', constructor, const, has-optional-positional-params, reflectable, debuggable
+    parameters [dart:core::Object? 'x', dart:core::Object? 'y'] (required: 1)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D
+
+Bytecode {
+  EntryOptional        2, 1, 0
+  LoadConstant         r2, CP#0
+  Frame                0
+  CheckStack           0
+  Push                 r0
+  Push                 r1
+  StoreFieldTOS        CP#1
+  Push                 r0
+  Push                 r2
+  StoreFieldTOS        CP#3
+  Push                 r0
+  DirectCall           CP#5, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef null
+  [1] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D::x (field)
+  [2] = Reserved
+  [3] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/literals.dart::D::y (field)
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+}
+
+Class 'E', script = 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart'
+    type-params <'T' extends dart:core::Object? (default dynamic)> (args: 1)
+    extends dart:core::Object
+
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/literals.dart::E < DART_SDK/pkg/dart2bytecode/testcases/literals.dart::E::TypeParam/0 >
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'F', script = 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart'
+    type-params <'P' extends dart:core::Object? (default dynamic), 'Q' extends dart:core::Object? (default dynamic)> (args: 3)
+    extends DART_SDK/pkg/dart2bytecode/testcases/literals.dart::E < dart:core::Map < DART_SDK/pkg/dart2bytecode/testcases/literals.dart::F::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::F::TypeParam/1 > >
+
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/literals.dart::F < DART_SDK/pkg/dart2bytecode/testcases/literals.dart::F::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/literals.dart::F::TypeParam/1 >
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/literals.dart::E:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+

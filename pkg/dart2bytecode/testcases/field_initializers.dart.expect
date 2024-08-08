@@ -1,0 +1,223 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart'
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart'
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+Class 'A', script = 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart'
+    extends dart:core::Object
+
+Field 'foo1', type = dart:core::int?, getter = 'get:foo1', setter = 'set:foo1', reflectable
+    value = null
+
+Field 'foo2', type = dart:core::int?, getter = 'get:foo2', setter = 'set:foo2', reflectable, has-initializer
+    value = null
+
+Field 'foo3', type = dart:core::int, getter = 'get:foo3', setter = 'set:foo3', reflectable, has-initializer
+    value = const 42
+
+Field 'foo4', type = dart:core::int?, getter = 'get:foo4', setter = 'set:foo4', reflectable
+    value = null
+
+Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', reflectable, has-initializer
+    value = const 43
+
+Function '', constructor, reflectable, debuggable
+    parameters [dart:core::int? 'foo4'] (required: 1)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-6]
+  PushInt              42
+  StoreFieldTOS        CP#0
+  PushInt              43
+  Drop1
+  Push                 FP[-6]
+  Push                 FP[-5]
+  StoreFieldTOS        CP#2
+  Push                 FP[-6]
+  PushInt              44
+  StoreFieldTOS        CP#4
+  Push                 FP[-6]
+  DirectCall           CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+Nullable fields: [DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo1 (field), DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo2 (field)]
+ConstantPool {
+  [0] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo3 (field)
+  [1] = Reserved
+  [2] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo4 (field)
+  [3] = Reserved
+  [4] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo5 (field)
+  [5] = Reserved
+  [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [7] = Reserved
+}
+
+
+Function 'constr2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'x', dart:core::int 'y'] (required: 2)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-7]
+  PushInt              42
+  StoreFieldTOS        CP#0
+  PushInt              43
+  Drop1
+  Push                 FP[-7]
+  Push                 FP[-6]
+  StoreFieldTOS        CP#2
+  Push                 FP[-7]
+  Push                 FP[-5]
+  PushInt              1
+  AddInt
+  StoreFieldTOS        CP#4
+  Push                 FP[-7]
+  DirectCall           CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+Nullable fields: [DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo2 (field), DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo4 (field)]
+ConstantPool {
+  [0] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo3 (field)
+  [1] = Reserved
+  [2] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo1 (field)
+  [3] = Reserved
+  [4] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::foo5 (field)
+  [5] = Reserved
+  [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [7] = Reserved
+}
+
+
+Function 'redirecting1', constructor, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushInt              45
+  DirectCall           CP#0, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'redirecting2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'a', dart:core::int 'b', dart:core::int 'c'] (required: 3)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-8]
+  Push                 FP[-7]
+  Push                 FP[-6]
+  Push                 FP[-5]
+  MulInt
+  DirectCall           CP#0, 3
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::constr2 (constructor)', ArgDesc num-args 3, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'B', script = 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart'
+    extends DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A
+
+Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable, has-initializer
+    value = const 46
+
+Field 'foo7', type = dart:core::int, reflectable, static, is-late, has-initializer
+    value = const 47
+
+Field 'foo8', type = dart:core::int, reflectable, static, const, final, is-late, has-initializer
+    value = const 48
+
+Function '', constructor, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::B
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushInt              46
+  StoreFieldTOS        CP#0
+  Push                 FP[-5]
+  PushInt              49
+  DirectCall           CP#2, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::B::foo6 (field)
+  [1] = Reserved
+  [2] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'c2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'i', dart:core::int 'j'] (required: 2)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::B
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushInt              46
+  Drop1
+  Push                 FP[-7]
+  PushInt              50
+  StoreFieldTOS        CP#0
+  Push                 FP[-7]
+  Push                 FP[-6]
+  Push                 FP[-5]
+  PushInt              51
+  DirectCall           CP#2, 4
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::B::foo6 (field)
+  [1] = Reserved
+  [2] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/field_initializers.dart::A::redirecting2 (constructor)', ArgDesc num-args 4, num-type-args 0, names []
+  [3] = Reserved
+}
+
