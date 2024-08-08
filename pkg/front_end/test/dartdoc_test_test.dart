@@ -150,7 +150,9 @@ dynamic _internal() {
   expected = [
     new impl.TestResult(tests[0], impl.TestOutcome.Crash)
       // this weird message is from the VM!
-      ..message = "type 'int' is not a subtype of type 'String' of 'other'",
+      ..message = "type 'int' is not a subtype of type 'String' of 'other'\n"
+          "\n"
+          "Stacktrace:",
     new impl.TestResult(tests[1], impl.TestOutcome.Pass),
   ];
   memoryFileSystem.entityForUri(test6).writeAsStringSync(test);
@@ -209,6 +211,32 @@ Future<void> _internal() async {
   ];
   memoryFileSystem.entityForUri(test9).writeAsStringSync(test);
   expect(await dartDocTest.process(test9), expected);
+
+  // Test crashes with stacktrace.
+  Uri test10 = new Uri(scheme: "darttest", path: "/test10.dart");
+  test = """
+// DartDocTest(await _internal(), 42)
+Future<int> _internal() async {
+  await Future.delayed(new Duration(milliseconds: 1));
+  if (1+1==2) throw "I threw!";
+  return 42;
+}
+""";
+  tests = extractTests(test, test10);
+  expect(tests.length, 1);
+  expected = [
+    new impl.TestResult(tests[0], impl.TestOutcome.Crash)
+      ..message = "I threw!"
+          "\n"
+          "\nStacktrace:"
+          "\n#0      _internal (darttest:/test10.dart:4:15)"
+          "\n<asynchronous suspension>",
+  ];
+  memoryFileSystem.entityForUri(test10).writeAsStringSync(test);
+  expect(await dartDocTest.process(test10), expected);
+
+  // TODO(jensj): Run in non-silent mode, but capturing the stdout, to verify
+  // the actually written text on stdout.
 }
 
 void testTestExtraction() {

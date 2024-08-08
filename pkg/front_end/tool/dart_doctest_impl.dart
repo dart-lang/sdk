@@ -122,15 +122,15 @@ class DartDocTest {
           case ExpectTest():
             sb.writeln("try {");
             sb.writeln("  dartDocTest.test(${test.call}, ${test.result});");
-            sb.writeln("} catch (e) {");
-            sb.writeln("  dartDocTest.crash(e);");
+            sb.writeln("} catch (e, st) {");
+            sb.writeln("  dartDocTest.crash(e, st);");
             sb.writeln("}");
           case ThrowsTest():
             sb.writeln("try {");
             sb.writeln(
                 "  await dartDocTest.throws(() async { ${test.call}; });");
-            sb.writeln("} catch (e) {");
-            sb.writeln("  dartDocTest.crash(e);");
+            sb.writeln("} catch (e, st) {");
+            sb.writeln("  dartDocTest.crash(e, st);");
             sb.writeln("}");
         }
       }
@@ -247,12 +247,26 @@ class DartDocTest {
             "Test from ${currentTest!.location} failed with this message:\n"
             "$strippedMessage\n");
       } else if (message.toString().startsWith("$_portMessageCrash: ")) {
+        List<String> strippedMessageLines = message
+            .toString()
+            .substring("$_portMessageCrash: ".length)
+            .split("\n");
+        int end = 1;
+        for (int i = 0; i < strippedMessageLines.length; i++) {
+          if (strippedMessageLines[i].contains(r"$dart$doc$test$tester ()")) {
+            end = i;
+            break;
+          }
+        }
         String strippedMessage =
-            message.toString().substring("$_portMessageCrash: ".length);
+            strippedMessageLines.sublist(0, end).join("\n");
+
         result.add(new TestResult(currentTest!, TestOutcome.Crash)
           ..message = strippedMessage);
         crashCount++;
-        _print(strippedMessage);
+        _print("Failure:\n"
+            "Test from ${currentTest!.location} crashed with this message:\n"
+            "$strippedMessage\n");
       } else if (message.toString().startsWith("$_portMessageParseError: ")) {
         String strippedMessage =
             message.toString().substring("$_portMessageParseError: ".length);
@@ -260,7 +274,9 @@ class DartDocTest {
             new TestResult(currentTest!, TestOutcome.TestCompilationError)
               ..message = strippedMessage);
         parseErrorCount++;
-        _print(strippedMessage);
+        _print("Failure:\n"
+            "Test from ${currentTest!.location} has a parse error:\n"
+            "$strippedMessage\n");
       } else if (message == _portMessageDone) {
         done = true;
         // don't complete completer here. Expect the exit port to close.
@@ -373,9 +389,9 @@ class DartDocTest {
     }
   }
 
-  void crash(dynamic error) {
+  void crash(dynamic error, dynamic st) {
     port.send("$_portMessageTest");
-    port.send("$_portMessageCrash: \$error");
+    port.send("$_portMessageCrash: \$error\\n\\nStacktrace:\\n\$st");
   }
 
   void parseError(String message) {
