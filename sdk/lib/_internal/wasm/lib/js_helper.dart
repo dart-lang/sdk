@@ -387,46 +387,104 @@ WasmExternRef? jsifyRaw(Object? o) {
 
 bool isWasmGCStruct(WasmExternRef? ref) => ref.internalize()?.isObject ?? false;
 
-Object? dartifyRaw(WasmExternRef? ref) {
-  if (ref.isNull || isJSUndefined(ref)) {
-    return null;
-  } else if (isJSBoolean(ref)) {
-    return toDartBool(ref);
-  } else if (isJSNumber(ref)) {
-    return toDartNumber(ref);
-  } else if (isJSString(ref)) {
-    return JSStringImpl.box(ref);
-  } else if (isJSInt8Array(ref)) {
-    return js_types.JSInt8ArrayImpl.fromJSArray(ref);
-  } else if (isJSUint8Array(ref)) {
-    return js_types.JSUint8ArrayImpl.fromJSArray(ref);
-  } else if (isJSUint8ClampedArray(ref)) {
-    return js_types.JSUint8ClampedArrayImpl.fromJSArray(ref);
-  } else if (isJSInt16Array(ref)) {
-    return js_types.JSInt16ArrayImpl.fromJSArray(ref);
-  } else if (isJSUint16Array(ref)) {
-    return js_types.JSUint16ArrayImpl.fromJSArray(ref);
-  } else if (isJSInt32Array(ref)) {
-    return js_types.JSInt32ArrayImpl.fromJSArray(ref);
-  } else if (isJSUint32Array(ref)) {
-    return js_types.JSUint32ArrayImpl.fromJSArray(ref);
-  } else if (isJSFloat32Array(ref)) {
-    return js_types.JSFloat32ArrayImpl.fromJSArray(ref);
-  } else if (isJSFloat64Array(ref)) {
-    return js_types.JSFloat64ArrayImpl.fromJSArray(ref);
-  } else if (isJSArrayBuffer(ref)) {
-    return js_types.JSArrayBufferImpl.fromRef(ref);
-  } else if (isJSDataView(ref)) {
-    return js_types.JSDataViewImpl.fromRef(ref);
-  } else if (isJSArray(ref)) {
-    return toDartList(ref);
-  } else if (isJSWrappedDartFunction(ref)) {
-    return unwrapJSWrappedDartFunction(ref);
-  } else if (isWasmGCStruct(ref)) {
-    return jsObjectToDartObject(ref);
-  } else {
-    return JSValue(ref);
+/// Container class for constants that represent the possible types of a
+/// [WasmExternRef] that can then be used in a [dartifyRaw] call.
+///
+/// The values within this class should correspond to the values returned by
+/// [externRefType] and should be updated if that function is updated. Constants
+/// are preferred over enums for performance.
+class ExternRefType {
+  static const int null_ = 0;
+  static const int undefined = 1;
+  static const int boolean = 2;
+  static const int number = 3;
+  static const int string = 4;
+  static const int array = 5;
+  static const int int8Array = 6;
+  static const int uint8Array = 7;
+  static const int uint8ClampedArray = 8;
+  static const int int16Array = 9;
+  static const int uint16Array = 10;
+  static const int int32Array = 11;
+  static const int uint32Array = 12;
+  static const int float32Array = 13;
+  static const int float64Array = 14;
+  static const int dataView = 15;
+  static const int arrayBuffer = 16;
+  static const int unknown = 17;
+}
+
+/// Returns an integer representing the type of [ref] that corresponds to one of
+/// the constant values in [ExternRefType].
+///
+/// If this function is updated to return different values, [ExternRefType]
+/// should be updated as well.
+int externRefType(WasmExternRef? ref) {
+  if (ref.isNull) return ExternRefType.null_;
+  final val = JS<WasmI32>('''
+  o => {
+    if (o === undefined) return 1;
+    var type = typeof o;
+    if (type === 'boolean') return 2;
+    if (type === 'number') return 3;
+    if (type === 'string') return 4;
+    if (o instanceof Array) return 5;
+    if (ArrayBuffer.isView(o)) {
+      if (o instanceof Int8Array) return 6;
+      if (o instanceof Uint8Array) return 7;
+      if (o instanceof Uint8ClampedArray) return 8;
+      if (o instanceof Int16Array) return 9;
+      if (o instanceof Uint16Array) return 10;
+      if (o instanceof Int32Array) return 11;
+      if (o instanceof Uint32Array) return 12;
+      if (o instanceof Float32Array) return 13;
+      if (o instanceof Float64Array) return 14;
+      if (o instanceof DataView) return 15;
+    }
+    if (o instanceof ArrayBuffer) return 16;
+    return 17;
   }
+  ''', ref).toIntUnsigned();
+  return val;
+}
+
+/// Non-recursively converts [ref] from a JS value to a Dart value for some JS
+/// types.
+///
+/// If [refType] is not null, it is treated as one of the values from
+/// [ExternRefType]. Otherwise, this method calls [externRefType] to determine
+/// the right [ExternRefType].
+Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
+  refType ??= externRefType(ref);
+  return switch (refType) {
+    ExternRefType.null_ || ExternRefType.undefined => null,
+    ExternRefType.boolean => toDartBool(ref),
+    ExternRefType.number => toDartNumber(ref),
+    ExternRefType.string => JSStringImpl.box(ref),
+    ExternRefType.array => toDartList(ref),
+    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromJSArray(ref),
+    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromJSArray(ref),
+    ExternRefType.uint8ClampedArray =>
+      js_types.JSUint8ClampedArrayImpl.fromJSArray(ref),
+    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromJSArray(ref),
+    ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromJSArray(ref),
+    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromJSArray(ref),
+    ExternRefType.uint32Array => js_types.JSUint32ArrayImpl.fromJSArray(ref),
+    ExternRefType.float32Array => js_types.JSFloat32ArrayImpl.fromJSArray(ref),
+    ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromJSArray(ref),
+    ExternRefType.arrayBuffer => js_types.JSArrayBufferImpl.fromRef(ref),
+    ExternRefType.dataView => js_types.JSDataViewImpl.fromRef(ref),
+    ExternRefType.unknown => isJSWrappedDartFunction(ref)
+        ? unwrapJSWrappedDartFunction(ref)
+        : isWasmGCStruct(ref)
+            ? jsObjectToDartObject(ref)
+            : JSValue(ref),
+    _ => () {
+        // Assert that we've handled everything in the range.
+        assert(refType! >= 0 && refType >= ExternRefType.unknown);
+        throw 'Unhandled dartifyRaw type case: $refType';
+      }()
+  };
 }
 
 Int8List toDartInt8List(WasmExternRef? ref) =>

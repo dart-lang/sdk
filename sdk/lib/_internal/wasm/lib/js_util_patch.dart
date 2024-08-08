@@ -191,8 +191,7 @@ Object? get objectPrototype => throw 'unimplemented';
 
 @patch
 List<Object?> objectKeys(Object? o) =>
-    dartifyRaw(JS<WasmExternRef?>('o => Object.keys(o)', jsifyRaw(o)))
-        as List<Object?>;
+    toDartList(JS<WasmExternRef?>('o => Object.keys(o)', jsifyRaw(o)));
 
 @patch
 Object? dartify(Object? object) {
@@ -201,7 +200,6 @@ Object? dartify(Object? object) {
     if (convertedObjects.containsKey(o)) {
       return convertedObjects[o];
     }
-
     // Because [List] needs to be shallowly converted across the interop
     // boundary, we have to double check for the case where a shallowly
     // converted [List] is passed back into [dartify].
@@ -212,37 +210,11 @@ Object? dartify(Object? object) {
       }
       return converted;
     }
-
-    if (o is! JSValue) {
-      return o;
-    }
-
+    if (o is! JSValue) return o;
     WasmExternRef? ref = o.toExternRef;
-    if (ref.isNull ||
-        isJSBoolean(ref) ||
-        isJSNumber(ref) ||
-        isJSString(ref) ||
-        isJSUndefined(ref) ||
-        isJSBoolean(ref) ||
-        isJSNumber(ref) ||
-        isJSString(ref) ||
-        isJSInt8Array(ref) ||
-        isJSUint8Array(ref) ||
-        isJSUint8ClampedArray(ref) ||
-        isJSInt16Array(ref) ||
-        isJSUint16Array(ref) ||
-        isJSInt32Array(ref) ||
-        isJSUint32Array(ref) ||
-        isJSFloat32Array(ref) ||
-        isJSFloat64Array(ref) ||
-        isJSArrayBuffer(ref) ||
-        isJSDataView(ref)) {
-      return dartifyRaw(ref);
-    }
-
+    final refType = externRefType(ref);
     // TODO(joshualitt) handle Date and Promise.
-
-    if (isJSSimpleObject(ref)) {
+    if (refType == ExternRefType.unknown && isJSSimpleObject(ref)) {
       final dartMap = <Object?, Object?>{};
       convertedObjects[o] = dartMap;
       // Keys will be a list of Dart [String]s.
@@ -255,7 +227,8 @@ Object? dartify(Object? object) {
         }
       }
       return dartMap;
-    } else if (isJSArray(ref)) {
+    }
+    if (refType == ExternRefType.array) {
       final dartList = <Object?>[];
       convertedObjects[o] = dartList;
       final length = getProperty<double>(o, 'length').toInt();
@@ -263,9 +236,8 @@ Object? dartify(Object? object) {
         dartList.add(convert(JSValue.box(objectReadIndex(ref, i))));
       }
       return dartList;
-    } else {
-      return dartifyRaw(ref);
     }
+    return dartifyRaw(ref, refType);
   }
 
   return convert(object);
