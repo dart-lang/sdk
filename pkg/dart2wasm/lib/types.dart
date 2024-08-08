@@ -660,6 +660,34 @@ class IsCheckerCallTarget extends CallTarget {
   }
 
   @override
+  bool get supportsInlining => true;
+
+  @override
+  bool get shouldInline {
+    if (checkArguments) return false;
+
+    final interfaceClass = testedAgainstType.classNode;
+    // Can emit a single class-id range check for those, so we prefer to inline
+    // them.
+    if (interfaceClass == translator.coreTypes.objectClass) return true;
+    if (interfaceClass == translator.coreTypes.functionClass) return true;
+
+    // Checking the receiver for null emits more code (block, save receiver to
+    // local, conditional branch) - so it's likely to regress size.
+    if (operandIsNullable) return false;
+
+    // Always inline single class-id range checks (no branching, simply loads,
+    // arithmetic and unsigned compare).
+    final ranges =
+        translator.classIdNumbering.getConcreteClassIdRanges(interfaceClass);
+    return ranges.length <= 1;
+  }
+
+  @override
+  CodeGenerator get inliningCodeGen => IsCheckerCodeGenerator(translator,
+      testedAgainstType, operandIsNullable, checkArguments, argumentCount);
+
+  @override
   late final w.BaseFunction function = (() {
     final function = translator.m.functions.define(
         translator.m.types.defineFunction(
@@ -667,12 +695,7 @@ class IsCheckerCallTarget extends CallTarget {
           signature.outputs,
         ),
         name);
-
-    translator.compilationQueue.add(CompilationTask(
-        function,
-        IsCheckerCodeGenerator(translator, testedAgainstType, operandIsNullable,
-            checkArguments, argumentCount)));
-
+    translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
     return function;
   })();
 }
@@ -691,11 +714,9 @@ class IsCheckerCodeGenerator implements CodeGenerator {
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
       w.Label? returnLabel) {
-    assert(returnLabel == null);
-
     final interfaceClass = testedAgainstType.classNode;
 
-    w.Local operand = b.locals[0];
+    w.Local operand = paramLocals[0];
     w.Local boolTemp = b.addLocal(w.NumType.i32);
 
     final w.Label resultLabel = b.block(const [], const [w.NumType.i32]);
@@ -712,8 +733,15 @@ class IsCheckerCodeGenerator implements CodeGenerator {
 
     if (checkArguments) {
       b.local_get(operand);
+      // We have one is checker helper function per [testedAgainstType]. All `is`
+      // expressions that test against the same type will use this shared helper.
+      // => Inline the argument checking code here as it will not cause
+      // meaningful increases in code size for application but will be good for
+      // performance.
+      const bool forceInline = true;
       b.invoke(
-          translator.types._generateIsChecker(testedAgainstType, false, false));
+          translator.types._generateIsChecker(testedAgainstType, false, false),
+          forceInline: forceInline);
       b.local_set(boolTemp);
 
       // If cid ranges fail, we fail
@@ -741,7 +769,7 @@ class IsCheckerCodeGenerator implements CodeGenerator {
         b.local_get(typeArguments);
         b.i32_const(i);
         b.array_get(translator.types.typeArrayArrayType);
-        b.local_get(b.locals[1 + i]);
+        b.local_get(paramLocals[1 + i]);
         b.call(translator.functions
             .getFunction(translator.isTypeSubtype.reference));
         {
@@ -781,7 +809,11 @@ class IsCheckerCodeGenerator implements CodeGenerator {
     }
     b.end(); // resultLabel
 
-    b.return_();
+    if (returnLabel != null) {
+      b.br(returnLabel);
+    } else {
+      b.return_();
+    }
     b.end();
   }
 }
@@ -851,8 +883,16 @@ class AsCheckerCodeGenerator implements CodeGenerator {
     for (int i = 0; i < argumentCount; ++i) {
       b.local_get(b.locals[1 + i]);
     }
-    b.invoke(translator.types._generateIsChecker(
-        testedAgainstType, checkArguments, operandIsNullable));
+    // We have one as checker helper function per [testedAgainstType]. All `as`
+    // expressions that test against the same type will use this shared helper.
+    // => Inline the is checking code here as it will not cause meaningful
+    // increases in code size for the application but will be good for
+    // performance.
+    const bool forceInline = true;
+    b.invoke(
+        translator.types._generateIsChecker(
+            testedAgainstType, checkArguments, operandIsNullable),
+        forceInline: forceInline);
     b.br_if(asCheckBlock);
 
     if (checkArguments) {
