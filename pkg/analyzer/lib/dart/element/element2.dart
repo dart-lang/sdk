@@ -504,19 +504,30 @@ abstract class GetterFragment implements ExecutableFragment {
   PropertyInducingFragment? get variable;
 }
 
+/// An element whose instance members can refer to `this`.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement2
     implements TypeDefiningElement2, TypeParameterizedElement2 {
   @override
   LibraryElement2 get enclosingElement2;
 
-  List<FieldElement2> get fields;
+  /// The fields declared in this element.
+  List<FieldElement2> get fields2;
 
-  List<GetterElement> get getters;
+  @override
+  InstanceFragment get firstFragment;
 
-  List<MethodElement2> get methods;
+  /// The getters declared in this element.
+  List<GetterElement> get getters2;
 
-  List<SetterElement> get setters;
+  /// The methods declared in this element.
+  List<MethodElement2> get methods2;
 
+  /// The setters declared in this element.
+  List<SetterElement> get setters2;
+
+  /// The type of a `this` expression.
   DartType get thisType;
 }
 
@@ -553,32 +564,89 @@ abstract class InstanceFragment
   List<SetterFragment> get setters;
 }
 
+/// An element that defines an [InterfaceType].
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceElement2 implements InstanceElement2 {
+  /// All the supertypes defined for this element and its supertypes.
+  ///
+  /// This includes superclasses, mixins, interfaces, and superclass
+  /// constraints.
   List<InterfaceType> get allSupertypes;
 
+  /// The constructors defined for this element.
+  ///
+  /// The list is empty for [MixinElement].
   List<ConstructorElement2> get constructors2;
 
+  /// The interfaces that are implemented by this class.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
   List<InterfaceType> get interfaces;
 
+  /// The mixins that are applied to the class being extended in order to
+  /// derive the superclass of this class.
+  ///
+  /// [ClassElement] and [EnumElement] can have mixins.
+  ///
+  /// [MixinElement] cannot have mixins, so an empty list is returned.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
   List<InterfaceType> get mixins;
 
+  /// The superclass of this element.
+  ///
+  /// For [ClassElement] returns `null` only if this class is `Object`. If the
+  /// superclass is not explicitly specified, or the superclass cannot be
+  /// resolved, then the implicit superclass `Object` is returned.
+  ///
+  /// For [EnumElement] returns `Enum` from `dart:core`.
+  ///
+  /// For [MixinElement] always returns `null`.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
   InterfaceType? get supertype;
 
   ConstructorElement2? get unnamedConstructor2;
 
+  /// Create the [InterfaceType] for this element with the given
+  /// [typeArguments] and [nullabilitySuffix].
   InterfaceType instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   });
 }
 
+/// The portion of an [InterfaceElement2] contributed by a single declaration.
 abstract class InterfaceFragment implements InstanceFragment {
-  List<ConstructorFragment> get constructors;
+  /// The constructors declared in this fragment.
+  ///
+  /// The list is empty for [MixinFragment].
+  List<ConstructorFragment> get constructors2;
 
+  /// The interfaces that are implemented by this fragment.
   List<InterfaceType> get interfaces;
 
+  /// The mixins that are applied by this fragment.
+  ///
+  /// [ClassFragment] and [EnumFragment] can have mixins.
+  ///
+  /// [MixinFragment] cannot have mixins, so the empty list is returned.
   List<InterfaceType> get mixins;
 
+  /// The superclass declared by this fragment.
   InterfaceType? get supertype;
 }
 
@@ -1051,6 +1119,9 @@ abstract class TypeAliasFragment
   TypeAliasFragment? get previousFragment;
 }
 
+/// An element that defines a type.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class TypeDefiningElement2
     implements Element2, _Annotatable, _Fragmented {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
@@ -1060,6 +1131,7 @@ abstract class TypeDefiningElement2
   LibraryElement2 get library2;
 }
 
+/// The portion of a [TypeDefiningElement2] contributed by a single declaration.
 abstract class TypeDefiningFragment implements Fragment, _Annotatable {}
 
 abstract class TypeParameterElement2 implements TypeDefiningElement2 {
