@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Put a single newline at end of file.';
 
@@ -27,10 +28,6 @@ b {
 ''';
 
 class EolAtEndOfFile extends LintRule {
-  static const LintCode code = LintCode(
-      'eol_at_end_of_file', 'Missing a newline at the end of the file.',
-      correctionMessage: 'Try adding a newline at the end of the file.');
-
   EolAtEndOfFile()
       : super(
             name: 'eol_at_end_of_file',
@@ -39,7 +36,7 @@ class EolAtEndOfFile extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.eol_at_end_of_file;
 
   @override
   void registerNodeProcessors(

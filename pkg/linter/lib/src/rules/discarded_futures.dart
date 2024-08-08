@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't invoke asynchronous functions in non-`async` blocks.";
 
@@ -44,12 +45,6 @@ Future<void> createDir(String path) async {}
 ''';
 
 class DiscardedFutures extends LintRule {
-  static const LintCode code = LintCode('discarded_futures',
-      "Asynchronous function invoked in a non-'async' function.",
-      correctionMessage:
-          "Try converting the enclosing function to be 'async' and then "
-          "'await' the future.");
-
   DiscardedFutures()
       : super(
             name: 'discarded_futures',
@@ -58,7 +53,7 @@ class DiscardedFutures extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.discarded_futures;
 
   @override
   void registerNodeProcessors(

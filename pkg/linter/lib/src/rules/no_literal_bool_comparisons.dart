@@ -8,8 +8,9 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
-const _desc = r"Don't compare Boolean expressions to Boolean literals.";
+const _desc = r"Don't compare boolean expressions to boolean literals.";
 
 const _details = r'''
 From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-true-or-false-in-equality-operations):
@@ -40,11 +41,6 @@ while (!someBool) {
 ''';
 
 class NoLiteralBoolComparisons extends LintRule {
-  static const LintCode code = LintCode('no_literal_bool_comparisons', _desc,
-      correctionMessage:
-          'Try expressing the Boolean expression without the Boolean literal.',
-      hasPublishedDocs: true);
-
   NoLiteralBoolComparisons()
       : super(
           name: 'no_literal_bool_comparisons',
@@ -54,7 +50,7 @@ class NoLiteralBoolComparisons extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.no_literal_bool_comparisons;
 
   @override
   void registerNodeProcessors(

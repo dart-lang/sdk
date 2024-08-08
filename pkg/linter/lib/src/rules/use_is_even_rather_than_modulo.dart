@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer intValue.isOdd/isEven instead of checking the result of % 2.';
@@ -29,10 +30,6 @@ bool isOdd = 13.isOdd;
 ''';
 
 class UseIsEvenRatherThanModulo extends LintRule {
-  static const LintCode code = LintCode(
-      'use_is_even_rather_than_modulo', "Use '{0}' rather than '% 2'.",
-      correctionMessage: "Try using '{0}'.");
-
   UseIsEvenRatherThanModulo()
       : super(
             name: 'use_is_even_rather_than_modulo',
@@ -41,7 +38,7 @@ class UseIsEvenRatherThanModulo extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_is_even_rather_than_modulo;
 
   @override
   void registerNodeProcessors(

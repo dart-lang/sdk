@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../analyzer.dart';
+import '../../linter_lint_codes.dart';
 import '../../utils.dart';
 
 const _desc = r'Use `lowercase_with_underscores` for package names.';
@@ -20,13 +21,6 @@ with digits and isn't a reserved word.
 ''';
 
 class PackageNames extends LintRule {
-  static const LintCode code = LintCode('package_names',
-      "The package name '{0}' isn't a lower_case_with_underscores identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lower_case_with_underscores '
-          'style.',
-      hasPublishedDocs: true);
-
   PackageNames()
       : super(
             name: 'package_names',
@@ -35,7 +29,7 @@ class PackageNames extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.package_names;
 
   @override
   PubspecVisitor getPubspecVisitor() => Visitor(this);

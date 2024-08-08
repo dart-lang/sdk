@@ -46,7 +46,7 @@ class DiagnosticInformation {
 
   /// Initialize a newly created information holder with the given [name] and
   /// [message].
-  DiagnosticInformation(this.name, this.messages);
+  DiagnosticInformation(this.name, String message) : messages = [message];
 
   /// Return `true` if this diagnostic has documentation.
   bool get hasDocumentation => documentation != null;
@@ -56,12 +56,6 @@ class DiagnosticInformation {
     if (!messages.contains(message)) {
       messages.add(message);
     }
-  }
-
-  /// Add the list of [messages] to the list of messages
-  /// associated with the diagnostic.
-  void addMessages(List<String> messages) {
-    messages.forEach(addMessage);
   }
 
   void addPreviousName(String previousName) {
@@ -156,12 +150,14 @@ class DocumentationGenerator {
       }
       var name = errorCodeInfo.sharedName ?? errorName;
       var info = infoByName[name];
-      var messages = errorCodeInfo.formattedProblemMessages;
+      var message = convertTemplate(
+          errorCodeInfo.computePlaceholderToIndexMap(),
+          errorCodeInfo.problemMessage);
       if (info == null) {
-        info = DiagnosticInformation(name, messages);
+        info = DiagnosticInformation(name, message);
         infoByName[name] = info;
       } else {
-        info.addMessages(messages);
+        info.addMessage(message);
       }
       var previousName = errorCodeInfo.previousName;
       if (previousName != null) {

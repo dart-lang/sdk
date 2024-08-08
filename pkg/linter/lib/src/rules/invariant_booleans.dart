@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Conditions should not unconditionally evaluate to `true` or to `false`.';
@@ -92,22 +93,14 @@ void nestedOk5() {
 ''';
 
 class InvariantBooleans extends LintRule {
-  static const LintCode code = LintCode(
-      'invariant_booleans', 'Condition always evaluates to the same value.',
-      correctionMessage:
-          'Try removing the condition or changing it to not produce the same '
-          'result.');
-
   InvariantBooleans()
       : super(
             name: 'invariant_booleans',
             description: _desc,
             details: _details,
-            // TODO(pq): remove `since` once analyzer 5.5.0 is published and can
-            // be unspecified.
             state: State.removed(since: dart3),
             categories: {LintRuleCategory.errors});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

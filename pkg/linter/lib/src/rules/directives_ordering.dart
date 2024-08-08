@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
 const _details = r'''
@@ -156,28 +157,11 @@ bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
 
 class DirectivesOrdering extends LintRule {
-  static const LintCode dartDirectiveGoFirst = LintCode(
-      'directives_ordering', "Place 'dart:' {0}s before other {0}s.",
-      correctionMessage: 'Try sorting the directives.');
-
-  static const LintCode directiveSectionOrderedAlphabetically = LintCode(
-      'directives_ordering', 'Sort directive sections alphabetically.',
-      correctionMessage: 'Try sorting the directives.');
-
-  static const LintCode exportDirectiveAfterImportDirectives = LintCode(
-      'directives_ordering',
-      'Specify exports in a separate section after all imports.',
-      correctionMessage: 'Try sorting the directives.');
-
-  static const LintCode packageDirectiveBeforeRelative = LintCode(
-      'directives_ordering', "Place 'package:' {0}s before relative {0}s.",
-      correctionMessage: 'Try sorting the directives.');
-
-  static const allCodes = [
-    DirectivesOrdering.dartDirectiveGoFirst,
-    DirectivesOrdering.directiveSectionOrderedAlphabetically,
-    DirectivesOrdering.exportDirectiveAfterImportDirectives,
-    DirectivesOrdering.packageDirectiveBeforeRelative,
+  static const List<LintCode> allCodes = [
+    LinterLintCode.directives_ordering_alphabetical,
+    LinterLintCode.directives_ordering_dart,
+    LinterLintCode.directives_ordering_exports,
+    LinterLintCode.directives_ordering_package_before_relative
   ];
 
   DirectivesOrdering()
@@ -188,12 +172,7 @@ class DirectivesOrdering extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  List<LintCode> get lintCodes => const [
-        dartDirectiveGoFirst,
-        directiveSectionOrderedAlphabetically,
-        exportDirectiveAfterImportDirectives,
-        packageDirectiveBeforeRelative,
-      ];
+  List<LintCode> get lintCodes => allCodes;
 
   @override
   void registerNodeProcessors(
@@ -204,24 +183,23 @@ class DirectivesOrdering extends LintRule {
 
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
     reportLint(node,
-        errorCode: DirectivesOrdering.dartDirectiveGoFirst, arguments: [type]);
+        errorCode: LinterLintCode.directives_ordering_dart, arguments: [type]);
   }
 
   void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
       AstNode node) {
     reportLint(node,
-        errorCode: DirectivesOrdering.directiveSectionOrderedAlphabetically);
+        errorCode: LinterLintCode.directives_ordering_alphabetical);
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
-    reportLint(node,
-        errorCode: DirectivesOrdering.exportDirectiveAfterImportDirectives);
+    reportLint(node, errorCode: LinterLintCode.directives_ordering_exports);
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
       AstNode node, String type) {
     reportLint(node,
-        errorCode: DirectivesOrdering.packageDirectiveBeforeRelative,
+        errorCode: LinterLintCode.directives_ordering_package_before_relative,
         arguments: [type]);
   }
 }

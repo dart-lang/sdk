@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use spread collections when possible.';
 
@@ -68,11 +69,6 @@ var l = ['a', ...?things];
 ''';
 
 class PreferSpreadCollections extends LintRule {
-  static const LintCode code = LintCode('prefer_spread_collections',
-      'The addition of multiple elements could be inlined.',
-      correctionMessage:
-          "Try using the spread operator ('...') to inline the addition.");
-
   PreferSpreadCollections()
       : super(
             name: 'prefer_spread_collections',
@@ -81,7 +77,7 @@ class PreferSpreadCollections extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_spread_collections;
 
   @override
   void registerNodeProcessors(

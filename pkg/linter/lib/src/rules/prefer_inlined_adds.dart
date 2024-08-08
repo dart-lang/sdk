@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Inline list item declarations where possible.';
 
@@ -28,16 +29,6 @@ var l2 = ['a', 'b', 'c'];
 ''';
 
 class PreferInlinedAdds extends LintRule {
-  static const LintCode single = LintCode(
-      'prefer_inlined_adds', 'The addition of a list item could be inlined.',
-      correctionMessage: 'Try adding the item to the list literal directly.',
-      hasPublishedDocs: true);
-
-  static const LintCode multiple = LintCode('prefer_inlined_adds',
-      'The addition of multiple list items could be inlined.',
-      correctionMessage: 'Try adding the items to the list literal directly.',
-      hasPublishedDocs: true);
-
   PreferInlinedAdds()
       : super(
             name: 'prefer_inlined_adds',
@@ -46,7 +37,10 @@ class PreferInlinedAdds extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  List<LintCode> get lintCodes => [multiple, single];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.prefer_inlined_adds_multiple,
+        LinterLintCode.prefer_inlined_adds_single
+      ];
 
   @override
   void registerNodeProcessors(
@@ -85,7 +79,8 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     rule.reportLint(invocation.methodName,
-        errorCode:
-            addAll ? PreferInlinedAdds.multiple : PreferInlinedAdds.single);
+        errorCode: addAll
+            ? LinterLintCode.prefer_inlined_adds_multiple
+            : LinterLintCode.prefer_inlined_adds_single);
   }
 }

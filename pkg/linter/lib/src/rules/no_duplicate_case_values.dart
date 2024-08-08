@@ -8,6 +8,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't use more than one case with same value.";
 
@@ -42,13 +43,6 @@ by the analyzer.
 ''';
 
 class NoDuplicateCaseValues extends LintRule {
-  static const LintCode code = LintCode(
-      'no_duplicate_case_values',
-      "The value of the case clause ('{0}') is equal to the value of an "
-          "earlier case clause ('{1}').",
-      correctionMessage: 'Try removing or changing the value.',
-      hasPublishedDocs: true);
-
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',
@@ -57,7 +51,7 @@ class NoDuplicateCaseValues extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.no_duplicate_case_values;
 
   @override
   void registerNodeProcessors(

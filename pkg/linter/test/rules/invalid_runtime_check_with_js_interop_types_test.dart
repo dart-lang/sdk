@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:linter/src/rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -19,7 +18,7 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
   bool get addJsPackageDep => true;
 
   @override
-  String get lintRule => InvalidRuntimeCheckWithJSInteropTypes.lintName;
+  String get lintRule => 'invalid_runtime_check_with_js_interop_types';
 
   test_baseTypesAs_dart_type_as_js_type() async {
     await _testCasts([_AsCast('int', 'JSNumber')]);

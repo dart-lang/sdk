@@ -10,6 +10,7 @@ import 'package:yaml/yaml.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid using web-only libraries outside Flutter web plugin packages.';
@@ -43,11 +44,6 @@ YamlMap _parseYaml(String content) {
 }
 
 class AvoidWebLibrariesInFlutter extends LintRule {
-  static const LintCode code = LintCode('avoid_web_libraries_in_flutter',
-      "Don't use web-only libraries outside Flutter web plugin packages.",
-      correctionMessage: 'Try finding a different library for your needs.',
-      hasPublishedDocs: true);
-
   /// Cache of most recent analysis root to parsed "hasFlutter" state.
   static final Map<String, bool> _rootHasFlutterCache = {};
 
@@ -63,7 +59,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_web_libraries_in_flutter;
 
   bool hasFlutterDep(File? pubspec) {
     if (pubspec == null) {

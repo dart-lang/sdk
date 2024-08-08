@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:linter/src/rules/type_literal_in_constant_pattern.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferPatternTypeLiteralEqualityTest extends LintRuleTest {
   @override
-  String get lintRule => TypeLiteralInConstantPattern.lintName;
+  String get lintRule => 'type_literal_in_constant_pattern';
 
   test_constNotType_matchObjectNullable() async {
     await assertNoDiagnostics(r'''

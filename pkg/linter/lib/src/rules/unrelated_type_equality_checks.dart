@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -130,21 +131,6 @@ class DerivedClass2 extends ClassBase with Mixin {}
 ''';
 
 class UnrelatedTypeEqualityChecks extends LintRule {
-  static const LintCode expressionCode = LintCode(
-      'unrelated_type_equality_checks',
-      uniqueName: 'LintCode.unrelated_type_equality_checks_expression',
-      "The type of the right operand ('{0}') isn't a subtype or a supertype of "
-          "the left operand ('{1}').",
-      correctionMessage: 'Try changing one or both of the operands.',
-      hasPublishedDocs: true);
-
-  static const LintCode patternCode = LintCode(
-      'unrelated_type_equality_checks',
-      uniqueName: 'LintCode.unrelated_type_equality_checks_pattern',
-      "The type of the operand ('{0}') isn't a subtype or a supertype of the "
-          "value being matched ('{1}').",
-      correctionMessage: 'Try changing one or both of the operands.');
-
   UnrelatedTypeEqualityChecks()
       : super(
             name: 'unrelated_type_equality_checks',
@@ -153,7 +139,10 @@ class UnrelatedTypeEqualityChecks extends LintRule {
             categories: {LintRuleCategory.unintentional});
 
   @override
-  List<LintCode> get lintCodes => [expressionCode, patternCode];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.unrelated_type_equality_checks_in_expression,
+        LinterLintCode.unrelated_type_equality_checks_in_pattern
+      ];
 
   @override
   void registerNodeProcessors(
@@ -189,7 +178,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (_nonComparable(leftType, rightType)) {
       rule.reportLintForToken(
         node.operator,
-        errorCode: UnrelatedTypeEqualityChecks.expressionCode,
+        errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
         arguments: [
           rightType.getDisplayString(),
           leftType.getDisplayString(),
@@ -208,7 +197,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (_nonComparable(valueType, operandType)) {
       rule.reportLint(
         node,
-        errorCode: UnrelatedTypeEqualityChecks.patternCode,
+        errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
         arguments: [
           operandType.getDisplayString(),
           valueType.getDisplayString(),

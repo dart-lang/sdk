@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using `null` in `??` operators.';
 
@@ -31,12 +32,6 @@ var x = a ?? 1;
 ''';
 
 class UnnecessaryNullInIfNullOperators extends LintRule {
-  static const LintCode code = LintCode('unnecessary_null_in_if_null_operators',
-      "Unnecessary use of '??' with 'null'.",
-      correctionMessage:
-          "Try removing the '??' operator and the 'null' operand.",
-      hasPublishedDocs: true);
-
   UnnecessaryNullInIfNullOperators()
       : super(
             name: 'unnecessary_null_in_if_null_operators',
@@ -45,7 +40,7 @@ class UnnecessaryNullInIfNullOperators extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_null_in_if_null_operators;
 
   @override
   void registerNodeProcessors(

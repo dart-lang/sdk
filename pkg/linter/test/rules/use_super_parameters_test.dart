@@ -67,7 +67,7 @@ class B extends A {
   }
 }
 ''', [
-      lint(57, 1, messageContains: "Convert 'y' to a super parameter"),
+      lint(57, 1, messageContains: "Parameter 'y' could be a super parameter."),
     ]);
   }
 
@@ -81,7 +81,7 @@ class B extends A {
   B({this.x, int? y}) : super(x:x, y:y);
 }
 ''', [
-      lint(67, 1, messageContains: "Convert 'y' to a super parameter."),
+      lint(67, 1, messageContains: "Parameter 'y' could be a super parameter."),
     ]);
   }
 

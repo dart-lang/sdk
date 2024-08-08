@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 import '../utils.dart';
 
@@ -36,12 +37,6 @@ align(clearItems) {
 ''';
 
 class NonConstantIdentifierNames extends LintRule {
-  static const LintCode code = LintCode('non_constant_identifier_names',
-      "The variable name '{0}' isn't a lowerCamelCase identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lowerCamelCase style.',
-      hasPublishedDocs: true);
-
   NonConstantIdentifierNames()
       : super(
             name: 'non_constant_identifier_names',
@@ -50,7 +45,7 @@ class NonConstantIdentifierNames extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.non_constant_identifier_names;
 
   @override
   void registerNodeProcessors(

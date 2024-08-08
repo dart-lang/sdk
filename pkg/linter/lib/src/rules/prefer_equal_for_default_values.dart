@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use `=` to separate a named parameter from its default value.';
 
@@ -24,10 +25,6 @@ m({a = 1})
 ''';
 
 class PreferEqualForDefaultValues extends LintRule {
-  static const LintCode code = LintCode('prefer_equal_for_default_values',
-      "Default values should be introduced by '=' rather than ':'.",
-      correctionMessage: "Try using '=' to introduce the default value.");
-
   PreferEqualForDefaultValues()
       : super(
             name: 'prefer_equal_for_default_values',
@@ -37,5 +34,5 @@ class PreferEqualForDefaultValues extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

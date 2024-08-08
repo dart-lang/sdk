@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use `;` instead of `{}` for empty constructor bodies.';
 
@@ -37,11 +38,6 @@ class Point {
 ''';
 
 class EmptyConstructorBodies extends LintRule {
-  static const LintCode code = LintCode('empty_constructor_bodies',
-      "Empty constructor bodies should be written using a ';' rather than '{}'.",
-      correctionMessage: "Try replacing the constructor body with ';'.",
-      hasPublishedDocs: true);
-
   EmptyConstructorBodies()
       : super(
             name: 'empty_constructor_bodies',
@@ -54,7 +50,7 @@ class EmptyConstructorBodies extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.empty_constructor_bodies;
 
   @override
   void registerNodeProcessors(

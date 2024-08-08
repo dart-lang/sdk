@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer using a boolean as the assert condition.';
 
@@ -33,11 +34,6 @@ assert(() {
 ''';
 
 class PreferBoolInAsserts extends LintRule {
-  static const LintCode code = LintCode('prefer_bool_in_asserts',
-      "Use an expression that returns a 'bool' as the 'assert' condition.",
-      correctionMessage:
-          "Try rewriting the 'assert' condition to return a 'bool'.");
-
   PreferBoolInAsserts()
       : super(
             name: 'prefer_bool_in_asserts',
@@ -47,5 +43,5 @@ class PreferBoolInAsserts extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

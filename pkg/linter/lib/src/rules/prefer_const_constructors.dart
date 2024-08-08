@@ -10,6 +10,7 @@ import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_import
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `const` with constant constructors.';
 
@@ -55,12 +56,6 @@ A foo(int x) => new A(x);
 ''';
 
 class PreferConstConstructors extends LintRule {
-  static const LintCode code = LintCode('prefer_const_constructors',
-      "Use 'const' with the constructor to improve performance.",
-      correctionMessage:
-          "Try adding the 'const' keyword to the constructor invocation.",
-      hasPublishedDocs: true);
-
   PreferConstConstructors()
       : super(
             name: 'prefer_const_constructors',
@@ -69,7 +64,7 @@ class PreferConstConstructors extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_const_constructors;
 
   @override
   void registerNodeProcessors(

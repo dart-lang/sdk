@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid <Type>.toString() in production code since results may be minified.';
@@ -51,10 +52,6 @@ Object baz(Thing myThing) {
 ''';
 
 class AvoidTypeToString extends LintRule {
-  static const LintCode code = LintCode('avoid_type_to_string',
-      "Using 'toString' on a 'Type' is not safe in production code.",
-      hasPublishedDocs: true);
-
   AvoidTypeToString()
       : super(
             name: 'avoid_type_to_string',
@@ -63,7 +60,7 @@ class AvoidTypeToString extends LintRule {
             categories: {LintRuleCategory.unintentional});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_type_to_string;
 
   @override
   void registerNodeProcessors(

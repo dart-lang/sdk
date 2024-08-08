@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use of angle brackets in a doc comment is treated as HTML by '
     'Markdown.';
@@ -144,12 +145,6 @@ const _validHtmlTags = [
 ];
 
 class UnintendedHtmlInDocComment extends LintRule {
-  static const LintCode code = LintCode('unintended_html_in_doc_comment',
-      'Angle brackets will be interpreted as HTML.',
-      correctionMessage:
-          'Try using backticks around the content with angle brackets, or '
-          'try replacing `<` with `&lt;` and `>` with `&gt;`.');
-
   UnintendedHtmlInDocComment()
       : super(
             name: 'unintended_html_in_doc_comment',
@@ -158,7 +153,7 @@ class UnintendedHtmlInDocComment extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unintended_html_in_doc_comment;
 
   @override
   void registerNodeProcessors(

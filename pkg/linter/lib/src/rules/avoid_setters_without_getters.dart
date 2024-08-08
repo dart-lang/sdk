@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid setters without getters.';
 
@@ -44,11 +45,6 @@ class Good {
 ''';
 
 class AvoidSettersWithoutGetters extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_setters_without_getters', 'Setter has no corresponding getter.',
-      correctionMessage:
-          'Try adding a corresponding getter or removing the setter.');
-
   AvoidSettersWithoutGetters()
       : super(
             name: 'avoid_setters_without_getters',
@@ -57,7 +53,7 @@ class AvoidSettersWithoutGetters extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_setters_without_getters;
 
   @override
   void registerNodeProcessors(

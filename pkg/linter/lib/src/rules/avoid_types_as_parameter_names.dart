@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/scope.dart';
 
 const _desc = r'Avoid types as parameter names.';
@@ -30,13 +31,6 @@ m(f(int v));
 ''';
 
 class AvoidTypesAsParameterNames extends LintRule {
-  static const LintCode code = LintCode('avoid_types_as_parameter_names',
-      "The parameter name '{0}' matches a visible type name.",
-      correctionMessage:
-          'Try adding a name for the parameter or changing the parameter name '
-          'to not match an existing type.',
-      hasPublishedDocs: true);
-
   AvoidTypesAsParameterNames()
       : super(
             name: 'avoid_types_as_parameter_names',
@@ -45,7 +39,7 @@ class AvoidTypesAsParameterNames extends LintRule {
             categories: {LintRuleCategory.unintentional});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_types_as_parameter_names;
 
   @override
   void registerNodeProcessors(

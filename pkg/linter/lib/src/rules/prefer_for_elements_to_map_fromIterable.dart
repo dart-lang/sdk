@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `for` elements when building maps from iterables.';
 
@@ -52,12 +53,6 @@ final pizzaRecipients = {
 ''';
 
 class PreferForElementsToMapFromIterable extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_for_elements_to_map_fromIterable',
-      "Use 'for' elements when building maps from iterables.",
-      correctionMessage: "Try using a collection literal with a 'for' element.",
-      hasPublishedDocs: true);
-
   PreferForElementsToMapFromIterable()
       : super(
             name: 'prefer_for_elements_to_map_fromIterable',
@@ -66,7 +61,8 @@ class PreferForElementsToMapFromIterable extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.prefer_for_elements_to_map_fromIterable;
 
   @override
   void registerNodeProcessors(

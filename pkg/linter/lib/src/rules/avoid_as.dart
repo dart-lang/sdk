@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using `as`.';
 
@@ -47,9 +48,6 @@ HasScrollDirection scrollable = renderObject as dynamic;
 ''';
 
 class AvoidAs extends LintRule {
-  static const LintCode code = LintCode('avoid_as', "Unnecessary use of 'as'.",
-      correctionMessage: "Try adding an explicit type check ('is').");
-
   AvoidAs()
       : super(
           name: 'avoid_as',
@@ -60,5 +58,5 @@ class AvoidAs extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

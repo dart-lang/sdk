@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'DO reference all public properties in debug methods.';
@@ -66,12 +67,6 @@ class Absorber extends Widget {
 ''';
 
 class DiagnosticDescribeAllProperties extends LintRule {
-  static const LintCode code = LintCode(
-      'diagnostic_describe_all_properties',
-      "The public property isn't described by either 'debugFillProperties' or "
-          "'debugDescribeChildren'.",
-      correctionMessage: 'Try describing the property.');
-
   DiagnosticDescribeAllProperties()
       : super(
           name: 'diagnostic_describe_all_properties',
@@ -81,7 +76,7 @@ class DiagnosticDescribeAllProperties extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.diagnostic_describe_all_properties;
 
   @override
   void registerNodeProcessors(

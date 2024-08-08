@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `const` over `final` for declarations.';
 
@@ -38,11 +39,6 @@ class A {
 ''';
 
 class PreferConstDeclarations extends LintRule {
-  static const LintCode code = LintCode('prefer_const_declarations',
-      "Use 'const' for final variables initialized to a constant value.",
-      correctionMessage: "Try replacing 'final' with 'const'.",
-      hasPublishedDocs: true);
-
   PreferConstDeclarations()
       : super(
             name: 'prefer_const_declarations',
@@ -51,7 +47,7 @@ class PreferConstDeclarations extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_const_declarations;
 
   @override
   void registerNodeProcessors(

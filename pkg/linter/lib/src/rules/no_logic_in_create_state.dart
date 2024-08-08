@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r"Don't put any logic in createState.";
@@ -59,11 +60,6 @@ class MyStateful extends StatefulWidget {
 ''';
 
 class NoLogicInCreateState extends LintRule {
-  static const LintCode code = LintCode(
-      'no_logic_in_create_state', "Don't put any logic in 'createState'.",
-      correctionMessage: "Try moving the logic out of 'createState'.",
-      hasPublishedDocs: true);
-
   NoLogicInCreateState()
       : super(
             name: 'no_logic_in_create_state',
@@ -72,7 +68,7 @@ class NoLogicInCreateState extends LintRule {
             categories: {LintRuleCategory.errors, LintRuleCategory.flutter});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.no_logic_in_create_state;
 
   @override
   void registerNodeProcessors(

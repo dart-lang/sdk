@@ -111,7 +111,7 @@ class DocumentationValidator {
     'LintCode.implementation_imports',
     // Doesn't produce a lint for the second example, even though the analyzer
     // does when the example is pasted into a file.
-    'LintCode.prefer_inlined_adds',
+    'LintCode.prefer_inlined_adds_single',
     // Produces an unused import diagnostic.
     'LintCode.library_prefixes',
     // Produces an unused element diagnostic.

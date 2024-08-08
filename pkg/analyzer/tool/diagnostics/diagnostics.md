@@ -25046,7 +25046,7 @@ Widget buildRow() {
 
 ### avoid_web_libraries_in_flutter
 
-_Don't use web-only libraries outside Flutter web plugin packages._
+_Don't use web-only libraries outside Flutter web plugins._
 
 #### Description
 
@@ -26845,9 +26845,9 @@ C c = C(const [1]);
 
 ### prefer_contains
 
-_Always false because indexOf is always greater or equal -1._
+_Always 'false' because 'indexOf' is always greater than or equal to -1._
 
-_Always true because indexOf is always greater or equal -1._
+_Always 'true' because 'indexOf' is always greater than or equal to -1._
 
 _Unnecessary use of 'indexOf' to test for containment._
 
@@ -28212,8 +28212,6 @@ var o = Object();
 
 _Local variables should not be marked as 'final'._
 
-_Local variables should not be marked as 'final'._
-
 #### Description
 
 The analyzer produces this diagnostic when a local variable is marked as
@@ -29357,9 +29355,9 @@ part of 'lib.dart';
 
 ### use_super_parameters
 
-_Convert '{0}' to a super parameter._
+_Parameter '{0}' could be a super parameter._
 
-_Convert {0} to super parameters._
+_Parameters '{0}' could be super parameters._
 
 #### Description
 

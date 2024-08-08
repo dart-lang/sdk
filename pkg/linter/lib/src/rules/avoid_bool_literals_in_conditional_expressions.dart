@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `bool` literals in conditional expressions.';
 
@@ -31,12 +32,6 @@ condition && boolExpression
 ''';
 
 class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_bool_literals_in_conditional_expressions',
-      "Conditional expressions with a 'bool' literal can be simplified.",
-      correctionMessage:
-          "Try rewriting the expression to use either '&&' or '||'.");
-
   AvoidBoolLiteralsInConditionalExpressions()
       : super(
             name: 'avoid_bool_literals_in_conditional_expressions',
@@ -45,7 +40,8 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
             categories: {LintRuleCategory.brevity});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_bool_literals_in_conditional_expressions;
 
   @override
   void registerNodeProcessors(

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Name source files using `lowercase_with_underscores`.';
@@ -43,13 +44,6 @@ library.
 ''';
 
 class FileNames extends LintRule {
-  static const LintCode code = LintCode('file_names',
-      "The file name '{0}' isn't a lower_case_with_underscores identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lower_case_with_underscores '
-          'style.',
-      hasPublishedDocs: true);
-
   FileNames()
       : super(
             name: 'file_names',
@@ -58,7 +52,7 @@ class FileNames extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.file_names;
 
   @override
   void registerNodeProcessors(

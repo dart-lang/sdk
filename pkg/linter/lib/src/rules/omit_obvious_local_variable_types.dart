@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Omit obvious type annotations for local variables.';
 
@@ -77,10 +78,6 @@ bool _sameOrNull(DartType? t1, DartType? t2) =>
     t1 == null || t2 == null || t1 == t2;
 
 class OmitObviousLocalVariableTypes extends LintRule {
-  static const LintCode code = LintCode('omit_obvious_local_variable_types',
-      'Unnecessary and obvious type annotation on a local variable.',
-      correctionMessage: 'Try removing the type annotation.');
-
   OmitObviousLocalVariableTypes()
       : super(
             name: 'omit_obvious_local_variable_types',
@@ -93,7 +90,7 @@ class OmitObviousLocalVariableTypes extends LintRule {
   List<String> get incompatibleRules => const ['always_specify_types'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.omit_obvious_local_variable_types;
 
   @override
   void registerNodeProcessors(

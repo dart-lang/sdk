@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Await only futures.';
 
@@ -37,11 +38,6 @@ main() async {
 ''';
 
 class AwaitOnlyFutures extends LintRule {
-  static const LintCode code = LintCode('await_only_futures',
-      "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'.",
-      correctionMessage: "Try removing the 'await' or changing the expression.",
-      hasPublishedDocs: true);
-
   AwaitOnlyFutures()
       : super(
             name: 'await_only_futures',
@@ -50,7 +46,7 @@ class AwaitOnlyFutures extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.await_only_futures;
 
   @override
   void registerNodeProcessors(

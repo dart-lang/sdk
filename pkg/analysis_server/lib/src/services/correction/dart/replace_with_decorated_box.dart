@@ -11,7 +11,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/rules/use_decorated_box.dart';
+import 'package:linter/src/linter_lint_codes.dart';
 
 class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
   ReplaceWithDecoratedBox({required super.context});
@@ -116,7 +116,7 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     return unitResult.errors.any((error) {
       var errorCode = error.errorCode;
       return errorCode.type == ErrorType.LINT &&
-          errorCode == UseDecoratedBox.code &&
+          errorCode == LinterLintCode.use_decorated_box &&
           error.offset == constructorName.offset &&
           error.length == constructorName.length;
     });

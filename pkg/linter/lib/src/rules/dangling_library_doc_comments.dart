@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Attach library doc comments to library directives.';
 
@@ -42,11 +43,6 @@ provide a name in the `library` directive.
 ''';
 
 class DanglingLibraryDocComments extends LintRule {
-  static const LintCode code = LintCode(
-      'dangling_library_doc_comments', 'Dangling library doc comment.',
-      correctionMessage: "Add a 'library' directive after the library comment.",
-      hasPublishedDocs: true);
-
   DanglingLibraryDocComments()
       : super(
             name: 'dangling_library_doc_comments',
@@ -55,7 +51,7 @@ class DanglingLibraryDocComments extends LintRule {
             categories: {LintRuleCategory.documentationCommentMaintenance});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.dangling_library_doc_comments;
 
   @override
   void registerNodeProcessors(

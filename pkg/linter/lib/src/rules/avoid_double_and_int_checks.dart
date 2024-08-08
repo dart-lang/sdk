@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `double` and `int` checks.';
 
@@ -42,10 +43,6 @@ f(dynamic x) {
 ''';
 
 class AvoidDoubleAndIntChecks extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_double_and_int_checks', 'Explicit check for double or int.',
-      correctionMessage: 'Try removing the check.');
-
   AvoidDoubleAndIntChecks()
       : super(
             name: 'avoid_double_and_int_checks',
@@ -54,7 +51,7 @@ class AvoidDoubleAndIntChecks extends LintRule {
             categories: {LintRuleCategory.errorProne, LintRuleCategory.web});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_double_and_int_checks;
 
   @override
   void registerNodeProcessors(
