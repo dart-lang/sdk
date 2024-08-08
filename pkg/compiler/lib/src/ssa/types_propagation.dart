@@ -440,13 +440,8 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       }
     }
 
-    var result = instruction.specializer
+    return instruction.specializer
         .computeTypeFromInputTypes(instruction, results, closedWorld);
-    if (instruction.staticType != null) {
-      result =
-          abstractValueDomain.intersection(result, instruction.staticType!);
-    }
-    return result;
   }
 
   @override

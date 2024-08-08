@@ -385,13 +385,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     return _elementMap.getDartType(type);
   }
 
-  DartType _getStaticForInElementType(ir.ForInStatement node) {
-    // TODO(johnniwinther): Substitute the type by the this type and type
-    // arguments of the current frame.
-    ir.DartType type = node.getElementType(_currentFrame!.staticTypeContext!);
-    return _elementMap.getDartType(type);
-  }
-
   static MemberEntity _effectiveTargetElementFor(MemberEntity member) {
     if (member is JGeneratorBody) return member.function;
     return member;
@@ -2364,12 +2357,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       // the condition.
       HInstruction value = HIndex(array, index, type)
         ..sourceInformation = sourceInformation;
-      final staticType = _abstractValueDomain
-          .createFromStaticType(_getStaticForInElementType(node),
-              nullable: true)
-          .abstractValue;
-      value.instructionType =
-          _abstractValueDomain.intersection(value.instructionType, staticType);
       add(value);
 
       Local loopVariableLocal = _localsMap.getLocalVariable(node.variable);
@@ -5753,15 +5740,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (node is ir.InstanceInvocation) {
       invoke.isInvariant = node.isInvariant;
       invoke.isBoundsSafe = node.isBoundsSafe;
-    }
-    if (node is ir.InstanceInvocation || node is ir.FunctionInvocation) {
-      final staticType = _abstractValueDomain
-          .createFromStaticType(_getStaticType(node as ir.Expression),
-              nullable: true)
-          .abstractValue;
-      invoke.staticType = staticType;
-      invoke.instructionType =
-          _abstractValueDomain.intersection(resultType, staticType);
     }
     push(invoke);
     if (element != null &&
