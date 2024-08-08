@@ -397,6 +397,41 @@ package:test/aa.dart
 ''');
   }
 
+  test_scope_localShadowsPrefix() async {
+    addSource('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+void foo() {}
+''');
+
+    addSource('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'dart:io' as foo;
+part 'a.dart';
+part 'b.dart';
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/b.dart'),
+    ], [
+      'foo'
+    ], r'''
+package:test/test.dart
+  foo
+    getter: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+package:test/a.dart
+  foo
+    getter: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+package:test/b.dart
+  foo
+    getter: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+''');
+  }
+
   test_scope_noPrefix_combinators_hide() async {
     newFile('$testPackageLibPath/x.dart', r'''
 class A {}
