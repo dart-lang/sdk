@@ -9,6 +9,7 @@ import 'dart:js_interop'
     show JSArray, JSString, JSArrayToList, JSStringToString;
 import 'dart:_js_helper' show JSValue;
 import 'dart:_wasm';
+import 'dart:typed_data' show Uint8List;
 
 part "class_id.dart";
 part "deferred.dart";
@@ -183,3 +184,7 @@ void indexCheckWithName(int index, int length, String name) {
     throw IndexError.withLength(index, length, name: name);
   }
 }
+
+@patch
+Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
+    throw 'Unsupported operation';
