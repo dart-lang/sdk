@@ -193,7 +193,22 @@ getModuleLibraries(String name) {
 /// Return the part map for a specific module.
 getModulePartMap(String name) => JS('', '#.get(#)', _loadedPartMaps, name);
 
-/// Track all libraries
+/// Provide information about the contents of a module.
+///
+/// This information is used for multiple purposes:
+/// * To implement eval-in-library: the debugger will look up
+///   library objects via [getLibrary].
+/// * To display the library structure in the debugger inspector: the debugger
+///   will request the necessary data via [getLibraryMetadata].
+/// * To convert JS stack traces to Dart: the
+///   stack trace mapper companion program will request source maps via
+///   [getSourceMap].
+///
+/// Note: calls to [getLibrary], [getLibraryMetadata], [getSourceMap], among
+/// others don't originate from code in the SDK repo. For example, the
+/// debugger calls are initiated by DWDS, whereas the [getSourceMap] call is
+/// done from bootstapping scripts that set up the stack trace mapper.
+// TODO(39630): move these public facing APIs to a dedicated public interface.
 void trackLibraries(
     String moduleName, Object libraries, Object parts, String? sourceMap) {
   if (parts is String) {
