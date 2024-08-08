@@ -127,19 +127,11 @@ class LibraryBuilder with MacroApplicationsContainer {
   });
 
   void addExporters() {
-    var containers = [element, ...element.augmentations];
-    for (var containerIndex = 0;
-        containerIndex < containers.length;
-        containerIndex++) {
-      var container = containers[containerIndex];
-      var exportElements = container.libraryExports;
-      for (var exportIndex = 0;
-          exportIndex < exportElements.length;
-          exportIndex++) {
-        var exportElement = exportElements[exportIndex];
-
+    for (var (fragmentIndex, fragment) in element.units.indexed) {
+      for (var (exportIndex, exportElement)
+          in fragment.libraryExports.indexed) {
         var exportedLibrary = exportElement.exportedLibrary;
-        if (exportedLibrary is! LibraryElementImpl) {
+        if (exportedLibrary == null) {
           continue;
         }
 
@@ -159,7 +151,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         var export = Export(
           exporter: this,
           location: ExportLocation(
-            containerIndex: containerIndex,
+            containerIndex: fragmentIndex,
             exportIndex: exportIndex,
           ),
           combinators: combinators,

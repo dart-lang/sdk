@@ -1007,31 +1007,36 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_class() async {
+  test_exportScope_part_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment class A {}
 class B {}
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 class A {}
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @31
+        class A @21
           reference: <testLibraryFragment>::@class::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
@@ -1043,14 +1048,14 @@ library
             constructors
               <testLibraryFragment>::@class::A::@constructor::new
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @43
+        augment class A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@class::A
-        class B @54
+        class B @46
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           constructors
@@ -1078,61 +1083,61 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_export() async {
+  test_exportScope_part_export() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
+
     newFile('$testPackageLibPath/b.dart', r'''
 class B1 {}
 class B2 {}
 ''');
+
     newFile('$testPackageLibPath/c.dart', r'''
 class C {}
 ''');
+
     newFile('$testPackageLibPath/d.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 export 'a.dart';
 ''');
+
     newFile('$testPackageLibPath/e.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 export 'b.dart';
 export 'c.dart';
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'd.dart';
-import augment 'e.dart';
+part 'd.dart';
+part 'e.dart';
 class X {}
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/d.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/d.dart
-      libraryExports
-        package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/d.dart
-      definingUnit: <testLibrary>::@fragment::package:test/d.dart
-    package:test/e.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/e.dart
-      libraryExports
-        package:test/b.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/e.dart
-        package:test/c.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/e.dart
-      definingUnit: <testLibrary>::@fragment::package:test/e.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/d.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/d.dart
+        part_1
+          uri: package:test/e.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/e.dart
       classes
-        class X @56
+        class X @36
           reference: <testLibraryFragment>::@class::X
           enclosingElement: <testLibraryFragment>
           constructors
@@ -1140,14 +1145,14 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/d.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/d.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/a.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/d.dart
     <testLibrary>::@fragment::package:test/e.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/e.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/b.dart
@@ -1190,42 +1195,42 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_export_hide() async {
+  test_exportScope_part_export_hide() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A1 {}
 class A2 {}
 class A3 {}
 class A4 {}
 ''');
+
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 export 'a.dart' hide A2, A4;
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'b.dart';
+part 'b.dart';
 class X {}
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      libraryExports
-        package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          combinators
-            hide: A2, A4
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class X @31
+        class X @21
           reference: <testLibraryFragment>::@class::X
           enclosingElement: <testLibraryFragment>
           constructors
@@ -1233,7 +1238,7 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/a.dart
@@ -1266,41 +1271,41 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_export_show() async {
+  test_exportScope_part_export_show() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A1 {}
 class A2 {}
 class A3 {}
 ''');
+
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 export 'a.dart' show A1, A3;
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'b.dart';
+part 'b.dart';
 class X {}
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      libraryExports
-        package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          combinators
-            show: A1, A3
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class X @31
+        class X @21
           reference: <testLibraryFragment>::@class::X
           enclosingElement: <testLibraryFragment>
           constructors
@@ -1308,7 +1313,7 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/a.dart
@@ -1341,31 +1346,36 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_mixin() async {
+  test_exportScope_part_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment mixin A {}
 mixin B {}
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 mixin A {}
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       mixins
-        mixin A @31
+        mixin A @21
           reference: <testLibraryFragment>::@mixin::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
@@ -1375,14 +1385,14 @@ library
             superclassConstraints
               Object
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       mixins
-        augment mixin A @43
+        augment mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@mixin::A
-        mixin B @54
+        mixin B @46
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           superclassConstraints
@@ -1408,40 +1418,41 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_nested_class() async {
+  test_exportScope_part_nested_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 class A {}
 ''');
+
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 class B {}
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 class C {}
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class C @31
+        class C @21
           reference: <testLibraryFragment>::@class::C
           enclosingElement: <testLibraryFragment>
           constructors
@@ -1449,10 +1460,16 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::C
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class A @60
+        class A @42
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           constructors
@@ -1460,10 +1477,10 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class B @32
+        class B @24
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::B
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           constructors
@@ -1496,54 +1513,49 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_nested_export() async {
+  test_exportScope_part_nested_export() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
+
     newFile('$testPackageLibPath/b.dart', r'''
 class B {}
 ''');
+
     newFile('$testPackageLibPath/c.dart', r'''
-augment library 'test.dart';
-import augment 'd.dart';
+part of 'test.dart';
+part 'd.dart';
 export 'a.dart';
 ''');
+
     newFile('$testPackageLibPath/d.dart', r'''
-augment library 'c.dart';
+part of 'c.dart';
 export 'b.dart';
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'c.dart';
+part 'c.dart';
 class X {}
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/c.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/c.dart
-      libraryExports
-        package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/c.dart
-      definingUnit: <testLibrary>::@fragment::package:test/c.dart
-      augmentationImports
-        package:test/d.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/c.dart
-          reference: <testLibrary>::@augmentation::package:test/d.dart
-          libraryExports
-            package:test/b.dart
-              enclosingElement: <testLibrary>
-              enclosingElement3: <testLibrary>::@fragment::package:test/d.dart
-          definingUnit: <testLibrary>::@fragment::package:test/d.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/c.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/c.dart
       classes
-        class X @31
+        class X @21
           reference: <testLibraryFragment>::@class::X
           enclosingElement: <testLibraryFragment>
           constructors
@@ -1551,14 +1563,20 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/c.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/c.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/a.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/c.dart
+      parts
+        part_1
+          uri: package:test/d.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/c.dart
+          unit: <testLibrary>::@fragment::package:test/d.dart
     <testLibrary>::@fragment::package:test/d.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/d.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/c.dart
       libraryExports
         package:test/b.dart
@@ -1590,32 +1608,37 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_variable() async {
+  test_exportScope_part_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 int a = 0;
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        static a @33
+        static a @25
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           type: int
@@ -1653,39 +1676,44 @@ library
 ''');
   }
 
-  test_exportScope_augmentation_variable_const() async {
+  test_exportScope_part_variable_const() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 const a = 0;
 ''');
+
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
+
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
-        static const a @35
+        static const a @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
             IntegerLiteral
-              literal: 0 @39
+              literal: 0 @31
               staticType: int
       accessors
         synthetic static get a @-1
@@ -1901,56 +1929,6 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
-''');
-  }
-
-  test_libraryExports_part() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-export 'dart:math';
-''');
-
-    var library = await buildLibrary(r'''
-export 'dart:io';
-part 'a.dart';
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryExports
-    dart:io
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  definingUnit: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibraryFragment>
-      enclosingElement: <testLibrary>
-      libraryExports
-        dart:io
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibraryFragment>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      libraryExports
-        dart:math
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-    <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
