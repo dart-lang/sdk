@@ -2911,6 +2911,227 @@ elementFactory
 ''');
   }
 
+  test_newFile_library_parts_configurations_useDefault() {
+    declaredVariables = {
+      'dart.library.io': 'false',
+    };
+
+    newFile('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+part 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+
+    fileStateFor(testFile);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/foo.dart
+    uri: package:test/foo.dart
+    current
+      id: file_0
+      kind: partOfUriKnown_0
+        uriFile: file_3
+        library: library_3
+      referencingFiles: file_3
+      unlinkedKey: k00
+  /home/test/lib/foo_html.dart
+    uri: package:test/foo_html.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_3
+      unlinkedKey: k00
+  /home/test/lib/foo_io.dart
+    uri: package:test/foo_io.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_3
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_3
+      kind: library_3
+        libraryImports
+          library_4 dart:core synthetic
+        partIncludes
+          partOfUriKnown_0
+        fileKinds: library_3 partOfUriKnown_0
+        cycle_0
+          dependencies: dart:core
+          libraries: library_3
+          apiSignature_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_parts_configurations_useFirst() {
+    declaredVariables = {
+      'dart.library.io': 'true',
+      'dart.library.html': 'false',
+    };
+
+    newFile('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+part 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+
+    fileStateFor(testFile);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/foo.dart
+    uri: package:test/foo.dart
+    current
+      id: file_0
+      kind: partOfUriKnown_0
+        uriFile: file_3
+      unlinkedKey: k00
+  /home/test/lib/foo_html.dart
+    uri: package:test/foo_html.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_3
+      unlinkedKey: k00
+  /home/test/lib/foo_io.dart
+    uri: package:test/foo_io.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_3
+        library: library_3
+      referencingFiles: file_3
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_3
+      kind: library_3
+        libraryImports
+          library_4 dart:core synthetic
+        partIncludes
+          partOfUriKnown_2
+        fileKinds: library_3 partOfUriKnown_2
+        cycle_0
+          dependencies: dart:core
+          libraries: library_3
+          apiSignature_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_parts_configurations_useSecond() {
+    declaredVariables = {
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    };
+
+    newFile('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile('$testPackageLibPath/foo_io.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile('$testPackageLibPath/foo_html.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+part 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+
+    fileStateFor(testFile);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/foo.dart
+    uri: package:test/foo.dart
+    current
+      id: file_0
+      kind: partOfUriKnown_0
+        uriFile: file_3
+      unlinkedKey: k00
+  /home/test/lib/foo_html.dart
+    uri: package:test/foo_html.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_3
+        library: library_3
+      referencingFiles: file_3
+      unlinkedKey: k00
+  /home/test/lib/foo_io.dart
+    uri: package:test/foo_io.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_3
+      unlinkedKey: k00
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_3
+      kind: library_3
+        libraryImports
+          library_4 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_3 partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_3
+          apiSignature_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_library_parts_emptyUri() {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part '';

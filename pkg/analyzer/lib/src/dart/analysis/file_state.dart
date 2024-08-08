@@ -213,6 +213,18 @@ sealed class DirectiveUri {
   Source? get source => null;
 }
 
+class DirectiveUris {
+  final DirectiveUri primary;
+  final List<DirectiveUri> configurations;
+  final DirectiveUri selected;
+
+  DirectiveUris({
+    required this.primary,
+    required this.configurations,
+    required this.selected,
+  });
+}
+
 /// [DirectiveUriWithUri] with URI that resolves to a [FileState].
 final class DirectiveUriWithFile extends DirectiveUriWithSource {
   final FileState file;
@@ -399,7 +411,7 @@ abstract class FileKind {
   List<LibraryExportState> get libraryExports {
     return _libraryExports ??=
         file.unlinked2.exports.map<LibraryExportState>((unlinked) {
-      var uris = file._buildNamespaceDirectiveUris(unlinked);
+      var uris = file._buildConfigurableDirectiveUris(unlinked);
       var selectedUri = uris.selected;
       switch (selectedUri) {
         case DirectiveUriWithFile():
@@ -475,31 +487,32 @@ abstract class FileKind {
   List<PartIncludeState> get partIncludes {
     return _partIncludes ??=
         file.unlinked2.parts.map<PartIncludeState>((unlinked) {
-      var uri = file._buildDirectiveUri(unlinked.uri);
-      switch (uri) {
+      var uris = file._buildConfigurableDirectiveUris(unlinked);
+      var selectedUri = uris.selected;
+      switch (selectedUri) {
         case DirectiveUriWithFile():
           return PartIncludeWithFile(
             container: this,
             unlinked: unlinked,
-            uri: uri,
+            uri: selectedUri,
           );
         case DirectiveUriWithUri():
           return PartIncludeWithUri(
             container: this,
             unlinked: unlinked,
-            uri: uri,
+            uri: selectedUri,
           );
         case DirectiveUriWithString():
           return PartIncludeWithUriStr(
             container: this,
             unlinked: unlinked,
-            uri: uri,
+            uri: selectedUri,
           );
         case DirectiveUriWithoutString():
           return PartIncludeState(
             container: this,
             unlinked: unlinked,
-            uri: uri,
+            uri: selectedUri,
           );
       }
     }).toFixedList();
@@ -607,7 +620,7 @@ abstract class FileKind {
   LibraryImportState _buildLibraryImportState(
     UnlinkedLibraryImportDirective directive,
   ) {
-    var uris = file._buildNamespaceDirectiveUris(directive);
+    var uris = file._buildConfigurableDirectiveUris(directive);
     var selectedUri = uris.selected;
     switch (selectedUri) {
       case DirectiveUriWithFile():
@@ -957,6 +970,32 @@ class FileState {
     return '$uri = $path';
   }
 
+  // TODO(scheglov): move to _fsState?
+  DirectiveUris _buildConfigurableDirectiveUris(
+    UnlinkedConfigurableUriDirective directive,
+  ) {
+    var primaryUri = _buildDirectiveUri(directive.uri);
+
+    DirectiveUri? selectedConfigurationUri;
+    var configurationUris = directive.configurations.map((configuration) {
+      var configurationUri = _buildDirectiveUri(configuration.uri);
+      // Maybe select this URI.
+      var name = configuration.name;
+      var value = configuration.valueOrTrue;
+      if (_fsState._declaredVariables.get(name) == value) {
+        selectedConfigurationUri ??= configurationUri;
+      }
+      // Include it anyway.
+      return configurationUri;
+    }).toFixedList();
+
+    return DirectiveUris(
+      primary: primaryUri,
+      configurations: configurationUris,
+      selected: selectedConfigurationUri ?? primaryUri,
+    );
+  }
+
   DirectiveUri _buildDirectiveUri(String? relativeUriStr) {
     if (relativeUriStr == null) {
       return const DirectiveUriWithoutString();
@@ -990,32 +1029,6 @@ class FileState {
           source: source,
         );
     }
-  }
-
-  // TODO(scheglov): move to _fsState?
-  NamespaceDirectiveUris _buildNamespaceDirectiveUris(
-    UnlinkedNamespaceDirective directive,
-  ) {
-    var primaryUri = _buildDirectiveUri(directive.uri);
-
-    DirectiveUri? selectedConfigurationUri;
-    var configurationUris = directive.configurations.map((configuration) {
-      var configurationUri = _buildDirectiveUri(configuration.uri);
-      // Maybe select this URI.
-      var name = configuration.name;
-      var value = configuration.valueOrTrue;
-      if (_fsState._declaredVariables.get(name) == value) {
-        selectedConfigurationUri ??= configurationUri;
-      }
-      // Include it anyway.
-      return configurationUri;
-    }).toFixedList();
-
-    return NamespaceDirectiveUris(
-      primary: primaryUri,
-      configurations: configurationUris,
-      selected: selectedConfigurationUri ?? primaryUri,
-    );
   }
 
   /// Return the [FileState] for the given [relativeUriStr], or `null` if the
@@ -1277,11 +1290,8 @@ class FileState {
           name: directive.name2?.name,
         );
       } else if (directive is PartDirective) {
-        parts.add(
-          UnlinkedPartDirective(
-            uri: directive.uri.stringValue,
-          ),
-        );
+        var unlinked = _serializePart(directive);
+        parts.add(unlinked);
       } else if (directive is PartOfDirective) {
         var libraryName = directive.libraryName;
         var uri = directive.uri;
@@ -1463,6 +1473,13 @@ class FileState {
       isDocImport: isDocImport,
       uri: node.uri.stringValue,
       prefix: unlinkedPrefix,
+    );
+  }
+
+  static UnlinkedPartDirective _serializePart(PartDirective node) {
+    return UnlinkedPartDirective(
+      configurations: _serializeConfigurations(node.configurations),
+      uri: node.uri.stringValue,
     );
   }
 }
@@ -1989,7 +2006,7 @@ class FileUriProperties {
 final class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedLibraryExportDirective unlinked;
   final U selectedUri;
-  final NamespaceDirectiveUris uris;
+  final DirectiveUris uris;
 
   LibraryExportState({
     required super.container,
@@ -2338,7 +2355,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 final class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedLibraryImportDirective unlinked;
   final U selectedUri;
-  final NamespaceDirectiveUris uris;
+  final DirectiveUris uris;
 
   LibraryImportState({
     required super.container,
@@ -2450,18 +2467,6 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
 abstract class LibraryOrAugmentationFileKind extends FileKind {
   LibraryOrAugmentationFileKind({
     required super.file,
-  });
-}
-
-class NamespaceDirectiveUris {
-  final DirectiveUri primary;
-  final List<DirectiveUri> configurations;
-  final DirectiveUri selected;
-
-  NamespaceDirectiveUris({
-    required this.primary,
-    required this.configurations,
-    required this.selected,
   });
 }
 

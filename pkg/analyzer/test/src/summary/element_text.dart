@@ -31,7 +31,7 @@ String getLibraryText({
   );
   var elementPrinter = ElementPrinter(
     sink: sink,
-    configuration: ElementPrinterConfiguration(),
+    configuration: configuration.elementPrinterConfiguration,
   );
   var writer = _ElementWriter(
     sink: sink,
@@ -51,6 +51,8 @@ String getLibraryText({
 }
 
 class ElementTextConfiguration {
+  ElementPrinterConfiguration elementPrinterConfiguration =
+      ElementPrinterConfiguration();
   bool Function(Object) filter;
   List<Pattern>? macroDiagnosticMessagePatterns;
   bool withAllSupertypes = false;

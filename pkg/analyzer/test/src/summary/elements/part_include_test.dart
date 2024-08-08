@@ -16,6 +16,350 @@ main() {
 }
 
 abstract class PartIncludeElementTest extends ElementsBaseTest {
+  test_configurations_useDefault() async {
+    declaredVariables = {
+      'dart.library.io': 'false',
+    };
+
+    addSource('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_io.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_html.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+part 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+
+    configuration
+      ..elementPrinterConfiguration.withInterfaceTypeElements = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/foo.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/foo.dart
+      classes
+        class B @102
+          reference: <testLibraryFragment>::@class::B
+          enclosingElement: <testLibraryFragment>
+          supertype: A
+            element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
+    <testLibrary>::@fragment::package:test/foo.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class A @27
+          reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
+          enclosingElement: <testLibrary>::@fragment::package:test/foo.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/foo.dart
+''');
+  }
+
+  test_configurations_useFirst() async {
+    declaredVariables = {
+      'dart.library.io': 'true',
+      'dart.library.html': 'true',
+    };
+
+    addSource('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_io.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_html.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+part 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+
+    configuration
+      ..elementPrinterConfiguration.withInterfaceTypeElements = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/foo_io.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/foo_io.dart
+      classes
+        class B @102
+          reference: <testLibraryFragment>::@class::B
+          enclosingElement: <testLibraryFragment>
+          supertype: A
+            element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+    <testLibrary>::@fragment::package:test/foo_io.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class A @27
+          reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+          enclosingElement: <testLibrary>::@fragment::package:test/foo_io.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/foo_io.dart
+''');
+  }
+
+  test_configurations_useFirst_eqTrue() async {
+    declaredVariables = {
+      'dart.library.io': 'true',
+      'dart.library.html': 'true',
+    };
+
+    addSource('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_io.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_html.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+part 'foo.dart'
+  if (dart.library.io == 'true') 'foo_io.dart'
+  if (dart.library.html == 'true') 'foo_html.dart';
+
+class B extends A {}
+''');
+
+    configuration
+      ..elementPrinterConfiguration.withInterfaceTypeElements = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/foo_io.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/foo_io.dart
+      classes
+        class B @122
+          reference: <testLibraryFragment>::@class::B
+          enclosingElement: <testLibraryFragment>
+          supertype: A
+            element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+    <testLibrary>::@fragment::package:test/foo_io.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class A @27
+          reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+          enclosingElement: <testLibrary>::@fragment::package:test/foo_io.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/foo_io.dart
+''');
+  }
+
+  test_configurations_useSecond() async {
+    declaredVariables = {
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    };
+
+    addSource('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_io.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_html.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+part 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+
+    configuration
+      ..elementPrinterConfiguration.withInterfaceTypeElements = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/foo_html.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/foo_html.dart
+      classes
+        class B @102
+          reference: <testLibraryFragment>::@class::B
+          enclosingElement: <testLibraryFragment>
+          supertype: A
+            element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+    <testLibrary>::@fragment::package:test/foo_html.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class A @27
+          reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+          enclosingElement: <testLibrary>::@fragment::package:test/foo_html.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/foo_html.dart
+''');
+  }
+
+  test_configurations_useSecond_eqTrue() async {
+    declaredVariables = {
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    };
+
+    addSource('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_io.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    addSource('$testPackageLibPath/foo_html.dart', r'''
+part of 'test.dart';
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+part 'foo.dart'
+  if (dart.library.io == 'true') 'foo_io.dart'
+  if (dart.library.html == 'true') 'foo_html.dart';
+
+class B extends A {}
+''');
+
+    configuration
+      ..elementPrinterConfiguration.withInterfaceTypeElements = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/foo_html.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/foo_html.dart
+      classes
+        class B @122
+          reference: <testLibraryFragment>::@class::B
+          enclosingElement: <testLibraryFragment>
+          supertype: A
+            element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+    <testLibrary>::@fragment::package:test/foo_html.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class A @27
+          reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+          enclosingElement: <testLibrary>::@fragment::package:test/foo_html.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/foo_html.dart
+''');
+  }
+
   test_library_parts() async {
     addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
     addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
