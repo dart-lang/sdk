@@ -338,71 +338,50 @@ WasmExternRef? jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
   return getPropertyRaw(dataView, 'buffer'.toExternRef);
 }
 
-WasmExternRef? jsifyRaw(Object? object) {
-  if (object == null) {
-    return WasmExternRef.nullRef;
-  } else if (object is bool) {
-    return toJSBoolean(object);
-  } else if (object is Function) {
-    assert(functionToJSWrapper.containsKey(object),
+WasmExternRef? jsifyRaw(Object? o) {
+  if (o == null) return WasmExternRef.nullRef;
+  if (o is bool) return toJSBoolean(o);
+  if (o is num) return toJSNumber(o.toDouble());
+  if (o is JSValue) return o.toExternRef;
+  if (o is String) {
+    if (o is JSStringImpl) return o.toExternRef;
+    return jsStringFromDartString(o).toExternRef;
+  }
+  if (o is js_types.JSArrayBase) {
+    if (o is js_types.JSInt8ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSUint8ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSUint8ClampedArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSInt16ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSUint16ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSInt32ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSUint32ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSFloat32ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSFloat64ArrayImpl) return o.toJSArrayExternRef();
+  } else if (o is TypedData) {
+    if (o is Int8List) return jsInt8ArrayFromDartInt8List(o);
+    if (o is Uint8List) return jsUint8ArrayFromDartUint8List(o);
+    if (o is Uint8ClampedList) {
+      return jsUint8ClampedArrayFromDartUint8ClampedList(o);
+    }
+    if (o is Int16List) return jsInt16ArrayFromDartInt16List(o);
+    if (o is Uint16List) return jsUint16ArrayFromDartUint16List(o);
+    if (o is Int32List) return jsInt32ArrayFromDartInt32List(o);
+    if (o is Uint32List) return jsUint32ArrayFromDartUint32List(o);
+    if (o is Float32List) return jsFloat32ArrayFromDartFloat32List(o);
+    if (o is Float64List) return jsFloat64ArrayFromDartFloat64List(o);
+    if (o is js_types.JSDataViewImpl) return o.toExternRef;
+    if (o is ByteData) return jsDataViewFromDartByteData(o, o.lengthInBytes);
+  } else if (o is List<Object?>) {
+    return jsArrayFromDartList(o);
+  } else if (o is ByteBuffer) {
+    if (o is js_types.JSArrayBufferImpl) return o.toExternRef;
+    return jsArrayBufferFromDartByteBuffer(o);
+  } else if (o is Function) {
+    assert(functionToJSWrapper.containsKey(o),
         'Must call `allowInterop` on functions before they flow to JS');
-    return functionToJSWrapper[object]!.toExternRef;
-  } else if (object is JSStringImpl) {
-    return object.toExternRef;
-  } else if (object is JSValue) {
-    return object.toExternRef;
-  } else if (object is String) {
-    return jsStringFromDartString(object).toExternRef;
-  } else if (object is js_types.JSInt8ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSUint8ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSUint8ClampedArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSInt16ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSUint16ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSInt32ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSUint32ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSFloat32ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is js_types.JSFloat64ArrayImpl) {
-    return object.toJSArrayExternRef();
-  } else if (object is Int8List) {
-    return jsInt8ArrayFromDartInt8List(object);
-  } else if (object is Uint8List) {
-    return jsUint8ArrayFromDartUint8List(object);
-  } else if (object is Uint8ClampedList) {
-    return jsUint8ClampedArrayFromDartUint8ClampedList(object);
-  } else if (object is Int16List) {
-    return jsInt16ArrayFromDartInt16List(object);
-  } else if (object is Uint16List) {
-    return jsUint16ArrayFromDartUint16List(object);
-  } else if (object is Int32List) {
-    return jsInt32ArrayFromDartInt32List(object);
-  } else if (object is Uint32List) {
-    return jsUint32ArrayFromDartUint32List(object);
-  } else if (object is Float32List) {
-    return jsFloat32ArrayFromDartFloat32List(object);
-  } else if (object is Float64List) {
-    return jsFloat64ArrayFromDartFloat64List(object);
-  } else if (object is js_types.JSArrayBufferImpl) {
-    return object.toExternRef;
-  } else if (object is ByteBuffer) {
-    return jsArrayBufferFromDartByteBuffer(object);
-  } else if (object is js_types.JSDataViewImpl) {
-    return object.toExternRef;
-  } else if (object is ByteData) {
-    return jsDataViewFromDartByteData(object, object.lengthInBytes);
-  } else if (object is List<Object?>) {
-    return jsArrayFromDartList(object);
-  } else if (object is num) {
-    return toJSNumber(object.toDouble());
+    return functionToJSWrapper[o]!.toExternRef;
   } else {
-    return jsObjectFromDartObject(object);
+    return jsObjectFromDartObject(o);
   }
 }
 

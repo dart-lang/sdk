@@ -26,22 +26,26 @@ dynamic jsify(Object? object) {
       return convertedObjects[o];
     }
 
+    // TODO(srujzs): We do these checks again in `jsifyRaw`. We should refactor
+    // this code so we don't have to, but we have to be careful about the
+    // `Iterable` check below.
     if (o == null ||
         o is num ||
         o is bool ||
         o is JSValue ||
         o is String ||
-        o is Int8List ||
-        o is Uint8List ||
-        o is Uint8ClampedList ||
-        o is Int16List ||
-        o is Uint16List ||
-        o is Int32List ||
-        o is Uint32List ||
-        o is Float32List ||
-        o is Float64List ||
-        o is ByteBuffer ||
-        o is ByteData) {
+        (o is TypedData &&
+            (o is Int8List ||
+                o is Uint8List ||
+                o is Uint8ClampedList ||
+                o is Int16List ||
+                o is Uint16List ||
+                o is Int32List ||
+                o is Uint32List ||
+                o is Float32List ||
+                o is Float64List ||
+                o is ByteData)) ||
+        o is ByteBuffer) {
       return JSValue(jsifyRaw(o));
     }
 
