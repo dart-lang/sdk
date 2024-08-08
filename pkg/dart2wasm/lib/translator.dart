@@ -1584,14 +1584,21 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   String get name => '${selector.name} (polymorphic dispatcher)';
 
   @override
+  bool get supportsInlining => true;
+
+  @override
+  bool get shouldInline => selector.staticDispatchRanges.length <= 2;
+
+  @override
+  CodeGenerator get inliningCodeGen =>
+      PolymorphicDispatcherCodeGenerator(translator, selector);
+
+  @override
   late final w.BaseFunction function = (() {
     final function = translator.m.functions.define(
         translator.m.types.defineFunction(signature.inputs, signature.outputs),
         name);
-
-    translator.compilationQueue.add(CompilationTask(
-        function, PolymorphicDispatcherCodeGenerator(translator, selector)));
-
+    translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
     return function;
   })();
 }
@@ -1605,7 +1612,6 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
       w.Label? returnLabel) {
-    assert(returnLabel == null);
     final signature = selector.signature;
 
     final targetRanges = selector.staticDispatchRanges
@@ -1617,16 +1623,16 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
 
     void emitDirectCall(Reference target) {
       for (int i = 0; i < signature.inputs.length; ++i) {
-        b.local_get(b.locals[i]);
+        b.local_get(paramLocals[i]);
       }
       b.call(translator.functions.getFunction(target));
     }
 
     void emitDispatchTableCall() {
       for (int i = 0; i < signature.inputs.length; ++i) {
-        b.local_get(b.locals[i]);
+        b.local_get(paramLocals[i]);
       }
-      b.local_get(b.locals[0]);
+      b.local_get(paramLocals[0]);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       b.i32_const(selector.offset!);
       b.i32_add();
@@ -1634,11 +1640,16 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
       translator.functions.recordSelectorUse(selector);
     }
 
-    b.local_get(b.locals[0]);
+    b.local_get(paramLocals[0]);
     b.struct_get(translator.topInfo.struct, FieldIndex.classId);
     b.classIdSearch(targetRanges, signature.outputs, emitDirectCall,
         needFallback ? emitDispatchTableCall : null);
-    b.return_();
+
+    if (returnLabel != null) {
+      b.br(returnLabel);
+    } else {
+      b.return_();
+    }
     b.end();
   }
 }

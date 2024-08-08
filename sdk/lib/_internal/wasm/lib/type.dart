@@ -131,6 +131,7 @@ class _TopType extends _Type {
   _Type get _asNullable => _literal<Object?>();
 
   @override
+  @pragma("wasm:static-dispatch")
   bool _checkInstance(Object o) => true;
 
   @override
@@ -273,6 +274,7 @@ class _InterfaceType extends _Type {
   _Type get _asNullable => _InterfaceType(classId, true, typeArguments);
 
   @override
+  @pragma("wasm:static-dispatch")
   bool _checkInstance(Object o) {
     // We don't need to check whether the object is of interface type, since
     // non-interface class IDs ([Object], closures, records) will be rejected by
