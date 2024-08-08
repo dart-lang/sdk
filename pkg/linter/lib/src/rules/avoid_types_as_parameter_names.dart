@@ -6,6 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/element/extensions.dart';
 
 import '../analyzer.dart';
 import '../util/scope.dart';
@@ -91,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return element is ClassElement ||
           element is ExtensionTypeElement ||
           element is TypeAliasElement ||
-          element is TypeParameterElement;
+          (element is TypeParameterElement && !element.isWildcardVariable);
     }
     return false;
   }
