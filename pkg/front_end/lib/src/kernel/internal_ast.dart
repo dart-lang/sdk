@@ -795,7 +795,6 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   double? asDouble({bool negated = false}) {
     if (value == 0 && negated) {
-      // Coverage-ignore-block(suite): Not run.
       return -0.0;
     }
     BigInt intValue = new BigInt.from(negated ? -value : value);
@@ -838,7 +837,6 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   ShadowLargeIntLiteral(this._strippedLiteral, this.literal, this.fileOffset)
       : super(0);
 
-  // Coverage-ignore(suite): Not run.
   double? asDouble({bool negated = false}) {
     BigInt? intValue =
         BigInt.tryParse(negated ? '-${_strippedLiteral}' : _strippedLiteral);

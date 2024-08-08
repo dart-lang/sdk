@@ -1,0 +1,243 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:17:22: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(1000000000, 1__000_000_000);
+//                      ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:18:22: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(5558675309, 555_867_5309);
+//                      ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:19:21: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(-1000000, -1_000_000);
+//                     ^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:20:15: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(100, 00_1_00);
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:21:16: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(-99, -00_99);
+//                ^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:22:13: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(0, 0__0__0__0__0);
+//             ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:27:7: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//       0__9__2__2__3__3__7__2__0__3__6__8__5__4__7__7__4__7__8__4);
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:31:7: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//       0x0___7__F__F__F__F__F__F__F__F__F__F__F__F__C__0__0);
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:34:9: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   print(0x0___8__0__0__0___0__0__0___0__0__0__0___0__4__0__0);
+//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:35:9: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   print(0x0___F__F__F__F___F__F__F__F___F__F__F__F___F__8__0__0);
+//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:39:8: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//       -0__9__2__2__3__3__7__2__0__3__6__8__5__4__7__7__5__8__0__8);
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:41:10: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//         -0x0___8__0__0__0___0__0__0__0___0__0__0__0___0__0__0__0);
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:44:9: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//         0x0___8__0__0__0___0__0__0__0___0__0__0__0___0__0__0__0);
+//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:47:23: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(3.141592653, 3.141_592_653);
+//                       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:48:18: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(19.739, 1__9.7_3_9);
+//                  ^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:49:19: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(-1.618, -1.6_1_8);
+//                   ^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:51:24: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(0.0, asDouble(0__0));
+//                        ^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:52:26: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(-0.0, asDouble(-0__0));
+//                          ^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:55:16: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(1e30, 1e3_0);
+//                ^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:56:16: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(12e3, 1_2e3);
+//                ^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:57:19: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(12.34e1, 1_2.3_4e1);
+//                   ^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:59:15: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(0.0, 0__0.0__0);
+//               ^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:60:15: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(0.0, 0__0e0__0);
+//               ^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:61:15: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(0.0, 0__0.0__0e0__0);
+//               ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:64:44: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(1.7976931348623157e+308, asDouble(0__1__7__9__7__6__9__3__1__3__4__8__6__2__3__1__5__7__0__8__1__4__5__2__7__4__2__3__7__3__1__7__0__4__3__5__6__7__9__8__0__7__0__5__6__7__5__2__5__8__4__4__9__9__6__5__9__8__9__1__7__4__7__6__8__0__3__1__5__7__2__6__0__7__8__0__0__2__8__5__3__8__7__6__0__5__8__9__5__5__8__6__3__2__7__6__6__8__7__8__1__7__1__5__4__0__4__5__8__9__5__3__5__1__4__3__8__2__4__6__4__2__3__4__3__2__1__3__2__6__8__8__9__4__6__4__1__8__2__7__6__8__4__6__7__5__4__6__7__0__3__5__3__7__5__1__6__9__8__6__0__4__9__9__1__0__5__7__6__5__5__1__2__8__2__0__7__6__2__4__5__4__9__0__0__9__0__3__8__9__3__2__8__9__4__4__0__7__5__8__6__8__5__0__8__4__5__5__1__3__3__9__4__2__3__0__4__5__8__3__2__3__6__9__0__3__2__2__2__9__4__8__1__6__5__8__0__8__5__5__9__3__3__2__1__2__3__3__4__8__2__7__4__7__9__7__8__2__6__2__0__4__1__4__4__7__2__3__1__6__8__7__3__8__1__7__7__1__8__0__9__1__9__2__9__9__8__8__1__2__5__0__4__0__4__0__2__6__1__8__4__1__2__4__8__5__8__3__6__8));
+//                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:66:35: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(1.7976931348623157e+308, 0__1__7__9__7__6__9__3__1__3__4__8__6__2__3__1__5__7__0__8__1__4__5__2__7__4__2__3__7__3__1__7__0__4__3__5__6__7__9__8__0__7__0__5__6__7__5__2__5__8__4__4__9__9__6__5__9__8__9__1__7__4__7__6__8__0__3__1__5__7__2__6__0__7__8__0__0__2__8__5__3__8__7__6__0__5__8__9__5__5__8__6__3__2__7__6__6__8__7__8__1__7__1__5__4__0__4__5__8__9__5__3__5__1__4__3__8__2__4__6__4__2__3__4__3__2__1__3__2__6__8__8__9__4__6__4__1__8__2__7__6__8__4__6__7__5__4__6__7__0__3__5__3__7__5__1__6__9__8__6__0__4__9__9__1__0__5__7__6__5__5__1__2__8__2__0__7__6__2__4__5__4__9__0__0__9__0__3__8__9__3__2__8__9__4__4__0__7__5__8__6__8__5__0__8__4__5__5__1__3__3__9__4__2__3__0__4__5__8__3__2__3__6__9__0__3__2__2__2__9__4__8__1__6__5__8__0__8__5__5__9__3__3__2__1__2__3__3__4__8__2__7__4__7__9__7__8__2__6__2__0__4__1__4__4__7__2__3__1__6__8__7__3__8__1__7__7__1__8__0__9__1__9__2__9__9__8__8__1__2__5__0__4__0__4__0__2__6__1__8__4__1__2__4__8__5__8__3__6__8.0__0);
+//                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:68:35: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(1.7976931348623157e+308, 0__1__7__9__7__6__9__3__1__3__4__8__6__2__3__1__5__7__0__8__1__4__5__2__7__4__2__3__7__3__1__7__0__4__3__5__6__7__9__8__0__7__0__5__6__7__5__2__5__8__4__4__9__9__6__5__9__8__9__1__7__4__7__6__8__0__3__1__5__7__2__6__0__7__8__0__0__2__8__5__3__8__7__6__0__5__8__9__5__5__8__6__3__2__7__6__6__8__7__8__1__7__1__5__4__0__4__5__8__9__5__3__5__1__4__3__8__2__4__6__4__2__3__4__3__2__1__3__2__6__8__8__9__4__6__4__1__8__2__7__6__8__4__6__7__5__4__6__7__0__3__5__3__7__5__1__6__9__8__6__0__4__9__9__1__0__5__7__6__5__5__1__2__8__2__0__7__6__2__4__5__4__9__0__0__9__0__3__8__9__3__2__8__9__4__4__0__7__5__8__6__8__5__0__8__4__5__5__1__3__3__9__4__2__3__0__4__5__8__3__2__3__6__9__0__3__2__2__2__9__4__8__1__6__5__8__0__8__5__5__9__3__3__2__1__2__3__3__4__8__2__7__4__7__9__7__8__2__6__2__0__4__1__4__4__7__2__3__1__6__8__7__3__8__1__7__7__1__8__0__9__1__9__2__9__9__8__8__1__2__5__0__4__0__4__0__2__6__1__8__4__1__2__4__8__5__8__3__6__8e0__0);
+//                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:70:35: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(1.7976931348623157e+308, 0__1__7__9__7__6__9__3__1__3__4__8__6__2__3__1__5__7__0__8__1__4__5__2__7__4__2__3__7__3__1__7__0__4__3__5__6__7__9__8__0__7__0__5__6__7__5__2__5__8__4__4__9__9__6__5__9__8__9__1__7__4__7__6__8__0__3__1__5__7__2__6__0__7__8__0__0__2__8__5__3__8__7__6__0__5__8__9__5__5__8__6__3__2__7__6__6__8__7__8__1__7__1__5__4__0__4__5__8__9__5__3__5__1__4__3__8__2__4__6__4__2__3__4__3__2__1__3__2__6__8__8__9__4__6__4__1__8__2__7__6__8__4__6__7__5__4__6__7__0__3__5__3__7__5__1__6__9__8__6__0__4__9__9__1__0__5__7__6__5__5__1__2__8__2__0__7__6__2__4__5__4__9__0__0__9__0__3__8__9__3__2__8__9__4__4__0__7__5__8__6__8__5__0__8__4__5__5__1__3__3__9__4__2__3__0__4__5__8__3__2__3__6__9__0__3__2__2__2__9__4__8__1__6__5__8__0__8__5__5__9__3__3.2__1__2__3__3__4__8__2__7__4__7__9__7__8__2__6__2__0__4__1__4__4__7__2__3__1__6__8__7__3__8__1__7__7__1__8__0__9__1__9__2__9__9__8__8__1__2__5__0__4__0__4__0__2__6__1__8__4__1__2__4__8__5__8__3__6__8e0__6__7);
+//                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:72:35: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(1.7976931348623157e+308, 0__1__7__9__7__6__9__3__1__3__4__8__6__2__3__1__5__7__0__8__1__4__5__2__7__4__2__3__7__3__1__7__0__4__3__5__6__7__9__8__0__7__0__5__6__7__5__2__5__8__4__4__9__9__6__5__9__8__9__1__7__4__7__6__8__0__3__1__5__7__2__6__0__7__8__0__0__2__8__5__3__8__7__6__0__5__8__9__5__5__8__6__3__2__7__6__6__8__7__8__1__7__1__5__4__0__4__5__8__9__5__3__5__1__4__3__8__2__4__6__4__2__3__4__3__2__1__3__2__6__8__8__9__4__6__4__1__8__2__7__6__8__4__6__7__5__4__6__7__0__3__5__3__7__5__1__6__9__8__6__0__4__9__9__1__0__5__7__6__5__5__1__2__8__2__0__7__6__2__4__5__4__9__0__0__9__0__3__8__9__3__2__8__9__4__4__0__7__5__8__6__8__5__0__8__4__5__5__1__3__3__9__4__2__3__0__4__5__8__3__2__3__6__9__0__3__2__2__2__9__4__8__1__6__5__8__0__8__5__5__9__3__3__2__1__2__3__3__4__8__2__7__4__7__9__7__8__2__6__2__0__4__1__4__4__7__2__3__1__6__8__7__3__8__1__7__7__1__8__0__9__1__9__2__9__9__8__8__1__2__5__0__4__0__4__0__2__6__1__8__4__1__2__4__8__5__8__3__6__8__0__0__0__0__0__0__0__0__0__0__0__0e-0__1__2);
+//                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:74:27: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(double.infinity, 2e3__0__8);
+//                           ^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:75:27: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(double.infinity, 2__0__0e3__0__6);
+//                           ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:76:27: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   equals(double.infinity, 0__1.9__1e3__0__8);
+//                           ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:79:14: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   double a = 1_000;
+//              ^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:83:13: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   const b = 2_000;
+//             ^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:85:13: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   const c = 3_000.3_000;
+//             ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/number_separators_not_enabled.dart:87:20: Error: This requires the experimental 'digit-separators' language feature to be enabled.
+// Try passing the '--enable-experiment=digit-separators' command line option.
+//   const double d = 4_000;
+//                    ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::int minNativeInt = #C1;
+static const field core::int maxNativeInt = #C2;
+static method asDouble(core::double x) → core::double
+  return x;
+static method foo() → void {
+  self::equals(1000000000, 1000000000);
+  self::equals(5558675309, 5558675309);
+  self::equals(1000000.{core::int::unary-}(){() → core::int}, 1000000.{core::int::unary-}(){() → core::int});
+  self::equals(100, 100);
+  self::equals(99.{core::int::unary-}(){() → core::int}, 99.{core::int::unary-}(){() → core::int});
+  self::equals(0, 0);
+  self::equals(#C2, 9223372036854774784);
+  self::equals(#C2, 9223372036854774784);
+  core::print(576460752303424512);
+  core::print(-2048);
+  self::equals(#C1, -9223372036854775808.{core::int::unary-}(){() → core::int});
+  self::equals(#C1, -9223372036854775808.{core::int::unary-}(){() → core::int});
+  self::equals(#C1, -9223372036854775808);
+  self::equals(3.141592653, 3.141592653);
+  self::equals(19.739, 19.739);
+  self::equals(1.618.{core::double::unary-}(){() → core::double}, 1.618.{core::double::unary-}(){() → core::double});
+  self::equals(0.0, self::asDouble(0.0));
+  self::equals(0.0.{core::double::unary-}(){() → core::double}, self::asDouble(-0.0));
+  self::equals(1e+30, 1e+30);
+  self::equals(12000.0, 12000.0);
+  self::equals(123.4, 123.4);
+  self::equals(0.0, 0.0);
+  self::equals(0.0, 0.0);
+  self::equals(0.0, 0.0);
+  self::equals(1.7976931348623157e+308, self::asDouble(1.7976931348623157e+308));
+  self::equals(1.7976931348623157e+308, 1.7976931348623157e+308);
+  self::equals(1.7976931348623157e+308, 1.7976931348623157e+308);
+  self::equals(1.7976931348623157e+308, 1.7976931348623157e+308);
+  self::equals(1.7976931348623157e+308, 1.7976931348623157e+308);
+  self::equals(#C3, Infinity);
+  self::equals(#C3, Infinity);
+  self::equals(#C3, Infinity);
+  core::double a = 1000.0;
+  self::equals(1000.0, a);
+  self::equals(2000, #C4);
+  self::equals(3000.3, #C5);
+  self::equals(4000, #C6);
+}
+static method equals(dynamic a, dynamic b) → void {
+  if(!(a =={core::Object::==}{(core::Object) → core::bool} b))
+    throw "${a} != ${b}";
+}
+
+constants  {
+  #C1 = -9223372036854775808
+  #C2 = 9223372036854774784
+  #C3 = Infinity
+  #C4 = 2000
+  #C5 = 3000.3
+  #C6 = 4000.0
+}

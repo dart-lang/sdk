@@ -389,7 +389,6 @@ class BodyBuilder extends StackListenerImpl
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isDartLibrary =>
       libraryBuilder.origin.importUri.isScheme("dart") ||
       uri.isScheme("org-dartlang-sdk");
@@ -656,7 +655,6 @@ class BodyBuilder extends StackListenerImpl
     }
     // Coverage-ignore(suite): Not run.
     else if (node is ProblemBuilder) {
-      // ignore: unused_local_variable
       Expression expression =
           buildProblem(node.message, node.charOffset, noLength);
       return forest.createConstantPattern(expression);
@@ -1585,7 +1583,7 @@ class BodyBuilder extends StackListenerImpl
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
-  // Coverage-ignore(suite): Not run.
+  // Coverage-ignore(suite): Only used in expression compilation.
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
     int fileOffset = offsetForToken(token);
@@ -3418,7 +3416,6 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleLiteralIntWithSeparators(Token token) {
     debugEvent("LiteralIntWithSeparators");
 
@@ -4736,7 +4733,6 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleLiteralDoubleWithSeparators(Token token) {
     debugEvent("LiteralDoubleWithSeparators");
 
@@ -6429,19 +6425,24 @@ class BodyBuilder extends StackListenerImpl
                   arguments: arguments,
                   message: message,
                   kind: UnresolvedKind.Constructor);
-            // Coverage-ignore(suite): Not run.
             case InvalidTypeDeclarationBuilder():
+              // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
+              // Coverage-ignore(suite): Not run.
               return evaluateArgumentsBefore(
                   arguments,
                   buildProblem(message.messageObject, nameToken.charOffset,
                       nameToken.lexeme.length));
-            // Coverage-ignore(suite): Not run.
             case TypeAliasBuilder():
+            // Coverage-ignore(suite): Not run.
             case NominalVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case StructuralVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
+            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
+            // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
             case OmittedTypeDeclarationBuilder():
             case null:
@@ -6479,15 +6480,10 @@ class BodyBuilder extends StackListenerImpl
               assert(forest.argumentsTypeArguments(arguments).isEmpty);
               forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
             case TypeAliasBuilder():
-            // Coverage-ignore(suite): Not run.
             case NominalVariableBuilder():
-            // Coverage-ignore(suite): Not run.
             case StructuralVariableBuilder():
-            // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
-            // Coverage-ignore(suite): Not run.
             case InvalidTypeDeclarationBuilder():
-            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
@@ -6586,7 +6582,6 @@ class BodyBuilder extends StackListenerImpl
         case StructuralVariableBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
-        // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
         // Coverage-ignore(suite): Not run.
         // TODO(johnniwinther): How should we handle this case?
@@ -9078,16 +9073,15 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleSymbolVoid(Token token) {
     debugEvent("SymbolVoid");
     push(new SimpleIdentifier(token));
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleInvalidFunctionBody(Token token) {
     if (_context.isNativeMethod) {
+      // Coverage-ignore-block(suite): Not run.
       push(NullValues.FunctionBody);
     } else {
       push(forest.createBlock(offsetForToken(token), noLocation, <Statement>[
@@ -9685,9 +9679,8 @@ class BodyBuilder extends StackListenerImpl
     DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
     // Note: if `default` appears in a switch expression, parser error recovery
     // treats it as a wildcard pattern.
-    assert(wildcard.lexeme == '_' ||
-        // Coverage-ignore(suite): Not run.
-        wildcard.lexeme == 'default');
+    assert(wildcard.lexeme == '_' || wildcard.lexeme == 'default');
+
     push(forest.createWildcardPattern(wildcard.charOffset, patternType));
   }
 
@@ -10071,11 +10064,7 @@ Block combineStatements(Statement statement, Statement body) {
     return body;
   } else {
     return new Block(<Statement>[
-      if (statement is Block)
-        ...statement // Coverage-ignore(suite): Not run.
-            .statements
-      else
-        statement,
+      if (statement is Block) ...statement.statements else statement,
       body
     ])
       ..fileOffset = statement.fileOffset;
@@ -10182,7 +10171,6 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
       return ArgumentsImpl.clone(node, node.positional.map(clone).toList(),
           node.named.map(clone).toList(), node.types.map(visitType).toList());
     }
-    // Coverage-ignore(suite): Not run.
     return super.visitArguments(node);
   }
 }
