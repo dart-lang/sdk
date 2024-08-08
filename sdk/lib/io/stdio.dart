@@ -341,7 +341,7 @@ final _newLineDetector = RegExp(r'(?<!\r)\n');
 ///
 /// Used to replace those with "\r\n" in the [_StdSink] write methods,
 /// when the previously written string ended in a \r character.
-final _newLineDetectorAfterCr = RegExp(r'(?<!\r|^)\n');
+final _newLineDetectorAfterCR = RegExp(r'(?<!\r|^)\n');
 
 class _StdSink implements IOSink {
   final IOSink _sink;
@@ -396,29 +396,37 @@ class _StdSink implements IOSink {
     _sink.encoding = encoding;
   }
 
+  String _convertToWindowsLineTerminators(String string) {
+    assert(!string.isEmpty);
+    String result;
+    if (_lastWrittenCharIsCR) {
+      result = string.replaceAll(_newLineDetectorAfterCR, "\r\n");
+    } else {
+      result = string.replaceAll(_newLineDetector, "\r\n");
+    }
+    _lastWrittenCharIsCR = string.endsWith('\r');
+    return result;
+  }
+
   void _write(Object? object) {
     if (!_windowsLineTerminator) {
       _sink.write(object);
       return;
     }
 
-    var string = '$object';
+    var string = object.toString();
     if (string.isEmpty) return;
-    if (_lastWrittenCharIsCR) {
-      string = string.replaceAll(_newLineDetectorAfterCr, "\r\n");
-    } else {
-      string = string.replaceAll(_newLineDetector, "\r\n");
-    }
-    _lastWrittenCharIsCR = string.endsWith('\r');
-    _sink.write(string);
+    _sink.write(_convertToWindowsLineTerminators(string));
   }
 
   void write(Object? object) => _write(object);
 
   void writeln([Object? object = ""]) {
-    _write(object);
-    _sink.write(_windowsLineTerminator ? "\r\n" : "\n");
-    _lastWrittenCharIsCR = false;
+    if (!_windowsLineTerminator) {
+      _sink.write('$object\n');
+    } else {
+      _sink.write(_convertToWindowsLineTerminators('$object\r\n'));
+    }
   }
 
   void writeAll(Iterable objects, [String sep = ""]) {
