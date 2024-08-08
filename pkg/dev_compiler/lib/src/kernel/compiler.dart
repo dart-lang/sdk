@@ -8058,7 +8058,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var partMap = js_ast.ObjectInitializer(parts, multiline: true);
 
     // Track the module name for each library in the module.
-    // This data is only required for debugging.
+    // This data is consumed by the debugger and by the stack trace mapper.
+    //
+    // See also the implementation of this API in the SDK.
     _moduleItems.add(_runtimeStatement(
         'trackLibraries(#, #, #, $sourceMapLocationID)',
         [js.string(name), module, partMap]));

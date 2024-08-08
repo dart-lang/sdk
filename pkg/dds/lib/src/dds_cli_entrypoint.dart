@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 
 import '../dds.dart';
 import 'arg_parser.dart';
+import 'bazel_uri_converter.dart';
 
 Uri _getDevToolsAssetPath() {
   final dartDir = File(Platform.resolvedExecutable).parent.path;
@@ -102,6 +103,11 @@ ${argParser.usage}
   final cachedUserTags =
       argResults[DartDevelopmentServiceOptions.cachedUserTagsOption];
 
+  final google3WorkspaceRoot =
+      argResults[DartDevelopmentServiceOptions.google3WorkspaceRootOption];
+  if (google3WorkspaceRoot != null) {
+    uriConverter = BazelUriConverter(google3WorkspaceRoot).uriToPath;
+  }
   try {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,

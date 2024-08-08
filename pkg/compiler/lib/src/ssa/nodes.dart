@@ -1808,6 +1808,9 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
   AbstractValue _receiverType;
   final AbstractValue _originalReceiverType;
 
+  /// Static type at call-site, often better than union-over-targets.
+  AbstractValue? staticType;
+
   /// `true` if the type parameters at the call known to be invariant with
   /// respect to the type parameters of the receiver instance. This corresponds
   /// to the [ir.MethodInvocation.isInvariant] property and may be updated with
