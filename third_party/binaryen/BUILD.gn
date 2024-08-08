@@ -83,6 +83,7 @@ source_set("binaryen_sources") {
     "src/src/tools/fuzzing",
     "src/src/wasm",
     "src/third_party/llvm-project",
+    "src/third_party/FP16",
   ]
 
   # We avoid listing all sources manually, this means when updating
@@ -103,6 +104,7 @@ source_set("binaryen_sources") {
   include_dirs = [
     "src/src",
     "src/third_party/llvm-project/include",
+    "src/third_party/FP16/include",
   ]
 
   # Ensure WasmIntrinsics.cpp/config.h files are generated.
@@ -128,7 +130,10 @@ template("wasm_tool") {
                               target_name,
                               ".cpp",
                             ]) ]
-    include_dirs = [ "src/src" ]
+    include_dirs = [
+        "src/src",
+        "src/third_party/FP16/include",
+    ]
     deps = [ ":binaryen_sources" ]
     forward_variables_from(invoker, "*")
 
