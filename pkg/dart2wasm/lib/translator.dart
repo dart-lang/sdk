@@ -800,6 +800,11 @@ class Translator with KernelNodes {
     return dispatchTable.selectorForTarget(target).paramInfo;
   }
 
+  AstCallTarget directCallTarget(Reference target) {
+    final signature = signatureForDirectCall(target);
+    return AstCallTarget(signature, this, target);
+  }
+
   w.FunctionType signatureForDirectCall(Reference target) {
     if (target.asMember.isInstanceMember) {
       final selector = dispatchTable.selectorForTarget(target);
@@ -985,11 +990,8 @@ class Translator with KernelNodes {
     if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
       return false;
     }
-    if (membersContainingInnerFunctions.contains(member)) return false;
-    if (membersBeingGenerated.contains(member)) return false;
     if (target.isInitializerReference) return true;
     if (member is Field) return true;
-    if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
       return true;
     }
@@ -998,11 +1000,13 @@ class Translator with KernelNodes {
         NodeCounter().countNodes(body) <= options.inliningLimit;
   }
 
-  CodeGenerator? getInliningCodeGenerator(
-      Reference target, w.FunctionType functionType) {
-    if (!shouldInline(target)) return null;
-    return getInlinableMemberCodeGenerator(
-        this, AsyncMarker.Sync, functionType, target);
+  bool supportsInlining(Reference target) {
+    final Member member = target.asMember;
+    if (membersContainingInnerFunctions.contains(member)) return false;
+    if (membersBeingGenerated.contains(member)) return false;
+    if (member is Field) return true;
+    if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
+    return true;
   }
 
   T? getPragma<T>(Annotatable node, String name, [T? defaultValue]) {
@@ -1557,40 +1561,52 @@ class PartialInstantiator {
 
 class PolymorphicDispatchers {
   final Translator translator;
-  final cache = <SelectorInfo, w.BaseFunction>{};
+  final cache = <SelectorInfo, PolymorphicDispatcherCallTarget>{};
 
   PolymorphicDispatchers(this.translator);
 
-  w.BaseFunction getPolymorphicDispatcher(SelectorInfo selector) {
+  CallTarget getPolymorphicDispatcher(SelectorInfo selector) {
     assert(selector.targetRanges.length > 1);
     return cache.putIfAbsent(selector, () {
-      final name = '${selector.name} (polymorphic dispatcher)';
-      final signature = selector.signature;
-      final function = translator.m.functions.define(
-          translator.m.types
-              .defineFunction(signature.inputs, signature.outputs),
-          name);
-
-      translator.compilationQueue.add(CompilationTask(function,
-          PolymorphicDispatcherCodeGenerator(translator, signature, selector)));
-
-      return function;
+      return PolymorphicDispatcherCallTarget(translator, selector);
     });
   }
 }
 
-class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
+class PolymorphicDispatcherCallTarget extends CallTarget {
   final Translator translator;
-  final w.FunctionType signature;
   final SelectorInfo selector;
 
-  PolymorphicDispatcherCodeGenerator(
-      this.translator, this.signature, this.selector);
+  PolymorphicDispatcherCallTarget(this.translator, this.selector)
+      : super(selector.signature);
+
+  @override
+  String get name => '${selector.name} (polymorphic dispatcher)';
+
+  @override
+  late final w.BaseFunction function = (() {
+    final function = translator.m.functions.define(
+        translator.m.types.defineFunction(signature.inputs, signature.outputs),
+        name);
+
+    translator.compilationQueue.add(CompilationTask(
+        function, PolymorphicDispatcherCodeGenerator(translator, selector)));
+
+    return function;
+  })();
+}
+
+class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
+  final Translator translator;
+  final SelectorInfo selector;
+
+  PolymorphicDispatcherCodeGenerator(this.translator, this.selector);
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
       w.Label? returnLabel) {
     assert(returnLabel == null);
+    final signature = selector.signature;
 
     final targetRanges = selector.staticDispatchRanges
         .map((entry) => (range: entry.range, value: entry.target))
@@ -1598,6 +1614,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
 
     final bool needFallback =
         selector.targetRanges.length > selector.staticDispatchRanges.length;
+
     void emitDirectCall(Reference target) {
       for (int i = 0; i < signature.inputs.length; ++i) {
         b.local_get(b.locals[i]);
