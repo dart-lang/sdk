@@ -4606,11 +4606,13 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         super(name: name, nameOffset: offset);
 
   @override
-  List<ExtensionElement> get accessibleExtensions => scope.extensions;
+  List<ExtensionElement> get accessibleExtensions {
+    return scope.accessibleExtensions;
+  }
 
   @override
   List<ExtensionElement2> get accessibleExtensions2 {
-    return scope.extensions
+    return scope.accessibleExtensions
         .map((element) => element.augmentation as ExtensionElement2)
         .toList();
   }
@@ -5056,6 +5058,13 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return false;
   }
 
+  void resetScope() {
+    _libraryDeclarations = null;
+    for (var fragment in units) {
+      fragment._scope = null;
+    }
+  }
+
   /// Indicates whether it is unnecessary to report an undefined identifier
   /// error for an identifier reference with the given [name] and optional
   /// [prefix].
@@ -5324,9 +5333,6 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   List<AugmentationImportElementImpl> _augmentationImports =
       _Sentinel.augmentationImportElement;
 
-  /// The scope of this library, `null` if it has not been created yet.
-  LibraryOrAugmentationScope? _scope;
-
   LibraryOrAugmentationElementImpl({
     required String? name,
     required int nameOffset,
@@ -5395,8 +5401,8 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   }
 
   @override
-  LibraryOrAugmentationScope get scope {
-    return _scope ??= LibraryOrAugmentationScope(this);
+  LibraryFragmentScope get scope {
+    return definingCompilationUnit.scope;
   }
 
   @override
@@ -5405,10 +5411,6 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   Source get source {
     return _definingCompilationUnit.source;
-  }
-
-  void resetScope() {
-    _scope = null;
   }
 
   void _readLinkedData();

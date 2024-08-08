@@ -65,6 +65,8 @@ class DocumentationValidator {
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
+    // Produces multiple diagnostics when it should only produce one.
+    'CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
     // Produces two diagnostic out of necessity.

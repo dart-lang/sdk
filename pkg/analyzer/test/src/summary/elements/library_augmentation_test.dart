@@ -1116,6 +1116,12 @@ library
 ''');
   }
 
+  @SkippedTest(reason: r'''
+We use library fragment scopes now.
+And we will remove support for library augmentations.
+We keep this test for now as a reference.
+Later we will decide if we want to adapt it into enhanced parts. 
+''')
   test_augmentation_importScope_types_library() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
