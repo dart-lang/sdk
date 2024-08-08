@@ -48,6 +48,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:vm/modular/target/vm.dart';
 
 import '../test/incremental_suite.dart' show getOptions;
+import 'utils.dart';
 
 const _portMessageTest = "test";
 const _portMessageGood = "good";
@@ -64,11 +65,16 @@ class DartDocTest {
   late CompilerOptions options;
   late ProcessedOptions processedOpts;
   bool errors = false;
-  List<String> errorStrings = [];
+  List<DiagnosticMessage> errorMessages = [];
   final FileSystem? underlyingFileSystem;
   final bool silent;
+  final bool onlyIncludeFirstError;
+  bool printOnDiagnostic = true;
 
-  DartDocTest({this.underlyingFileSystem, this.silent = false});
+  DartDocTest(
+      {this.underlyingFileSystem,
+      this.silent = false,
+      this.onlyIncludeFirstError = false});
 
   FileSystem _getFileSystem() =>
       underlyingFileSystem ?? StandardFileSystem.instance;
@@ -107,34 +113,50 @@ class DartDocTest {
   Future<List<TestResult>> compileAndRun(Uri uri, List<Test> tests,
       {bool silent = false}) async {
     errors = false;
-    errorStrings.clear();
+    errorMessages.clear();
 
     // Create code to amend the file with.
-    StringBuffer sb = new StringBuffer();
+    List<int> lineNumberForStartOfTest = [];
+    String testSource = "";
     if (tests.isNotEmpty) {
-      sb.writeln(
+      StringBuffer sb = new StringBuffer();
+      int lineNumber = 0;
+      void addLine(String line, {bool newTest = false}) {
+        sb.writeln(line);
+        // Account for tests with line breaks in them.
+        lineNumber += line.codeUnits.where((codeUnit) => codeUnit == 10).length;
+        lineNumber++;
+        if (newTest) {
+          lineNumberForStartOfTest.add(lineNumber);
+        }
+      }
+
+      addLine(
           r"Future<void> $dart$doc$test$tester(dynamic dartDocTest) async {");
+      lineNumber++;
       for (Test test in tests) {
         switch (test) {
           case TestParseError():
-            sb.writeln(
-                "dartDocTest.parseError(\"Parse error @ ${test.position}\");");
+            addLine(
+                "dartDocTest.parseError(\"Parse error @ ${test.position}\");",
+                newTest: true);
           case ExpectTest():
-            sb.writeln("try {");
-            sb.writeln("  dartDocTest.test(${test.call}, ${test.result});");
-            sb.writeln("} catch (e) {");
-            sb.writeln("  dartDocTest.crash(e);");
-            sb.writeln("}");
+            addLine("try {", newTest: true);
+            addLine("  dartDocTest.test(${test.call}, ${test.result});");
+            addLine("} catch (e, st) {");
+            addLine("  dartDocTest.crash(e, st);");
+            addLine("}");
           case ThrowsTest():
-            sb.writeln("try {");
-            sb.writeln(
-                "  await dartDocTest.throws(() async { ${test.call}; });");
-            sb.writeln("} catch (e) {");
-            sb.writeln("  dartDocTest.crash(e);");
-            sb.writeln("}");
+            addLine("try {", newTest: true);
+            addLine("  await dartDocTest.throws(() async { ${test.call}; });");
+            addLine("} catch (e, st) {");
+            addLine("  dartDocTest.crash(e, st);");
+            addLine("}");
         }
       }
-      sb.writeln("}");
+      addLine("}");
+
+      testSource = sb.toString();
     }
 
     // Setup the incremental compiler.
@@ -156,11 +178,21 @@ class DartDocTest {
     incrementalCompiler.invalidate(processedOpts.packagesUri);
 
     Stopwatch stopwatch = new Stopwatch()..start();
+    // Do print any errors in the actual file.
+    printOnDiagnostic = true;
     IncrementalCompilerResult compilerResult =
         await incrementalCompiler.computeDelta(entryPoints: [uri]);
     kernel.Component component = compilerResult.component;
     if (errors) {
-      _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
+      _print("Got errors when compiling $uri "
+          "in ${stopwatch.elapsedMilliseconds} ms.");
+      List<String> errorStrings = [];
+      for (DiagnosticMessage message in errorMessages) {
+        for (String errorString in message.plainTextFormatted) {
+          errorStrings.add(errorString);
+          if (onlyIncludeFirstError) break;
+        }
+      }
       return [
         new TestResult(null, TestOutcome.CompilationError)
           ..message = errorStrings.join("\n")
@@ -169,8 +201,10 @@ class DartDocTest {
     _print("Compiled (1) in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
 
+    // Don't print errors in the tests up front.
+    printOnDiagnostic = false;
     await incrementalCompiler.compileDartDocTestLibrary(
-        sb.toString(), component.uriToSource[uri]?.importUri ?? uri);
+        testSource, component.uriToSource[uri]?.importUri ?? uri);
 
     final Uri dartDocMainUri = new Uri(scheme: "dartdoctest", path: "main");
     fileSystem.memory
@@ -183,10 +217,44 @@ class DartDocTest {
     kernel.Component componentMain = compilerMainResult.component;
     if (errors) {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
-      return [
-        new TestResult(null, TestOutcome.CompilationError)
-          ..message = errorStrings.join("\n")
-      ];
+
+      // Map back to the offending test.
+      List<List<String>?> testsWithErrors = List.filled(tests.length + 1, null);
+      for (DiagnosticMessage message in errorMessages) {
+        int testIndex = tests.length; // indicating no test.
+        if (message is FormattedMessage) {
+          testIndex = binarySearch(lineNumberForStartOfTest, message.line);
+        }
+        List<String> errorStrings = testsWithErrors[testIndex] ??= [];
+        for (String errorString in message.plainTextFormatted) {
+          // TODO(jensj): Should the fake url etc
+          // (e.g. 'dartdoctest:tester:13:29:') be removed if we can map it to
+          // a test?
+          errorStrings.add(errorString);
+          if (onlyIncludeFirstError) break;
+        }
+      }
+      List<TestResult> result = [];
+      for (int i = 0; i <= tests.length; i++) {
+        List<String>? errors = testsWithErrors[i];
+        if (errors == null) continue;
+        Test? offendingTest;
+        if (i < tests.length) {
+          offendingTest = tests[i];
+        }
+        String message = errors.join("\n");
+        result.add(new TestResult(offendingTest, TestOutcome.CompilationError)
+          ..message = message);
+        if (offendingTest != null) {
+          _print("Compilation error:\n"
+              "Test from ${offendingTest.location} has errors when compiling:\n"
+              "$message\n");
+        } else {
+          _print("Compilation error:\n"
+              "$message\n");
+        }
+      }
+      return result;
     }
     _print("Compiled (2) in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
@@ -247,12 +315,26 @@ class DartDocTest {
             "Test from ${currentTest!.location} failed with this message:\n"
             "$strippedMessage\n");
       } else if (message.toString().startsWith("$_portMessageCrash: ")) {
+        List<String> strippedMessageLines = message
+            .toString()
+            .substring("$_portMessageCrash: ".length)
+            .split("\n");
+        int end = 1;
+        for (int i = 0; i < strippedMessageLines.length; i++) {
+          if (strippedMessageLines[i].contains(r"$dart$doc$test$tester ()")) {
+            end = i;
+            break;
+          }
+        }
         String strippedMessage =
-            message.toString().substring("$_portMessageCrash: ".length);
+            strippedMessageLines.sublist(0, end).join("\n");
+
         result.add(new TestResult(currentTest!, TestOutcome.Crash)
           ..message = strippedMessage);
         crashCount++;
-        _print(strippedMessage);
+        _print("Failure:\n"
+            "Test from ${currentTest!.location} crashed with this message:\n"
+            "$strippedMessage\n");
       } else if (message.toString().startsWith("$_portMessageParseError: ")) {
         String strippedMessage =
             message.toString().substring("$_portMessageParseError: ".length);
@@ -260,7 +342,9 @@ class DartDocTest {
             new TestResult(currentTest!, TestOutcome.TestCompilationError)
               ..message = strippedMessage);
         parseErrorCount++;
-        _print(strippedMessage);
+        _print("Failure:\n"
+            "Test from ${currentTest!.location} has a parse error:\n"
+            "$strippedMessage\n");
       } else if (message == _portMessageDone) {
         done = true;
         // don't complete completer here. Expect the exit port to close.
@@ -321,12 +405,12 @@ class DartDocTest {
     options.target = target;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
-      _print(message.plainTextFormatted.first);
+      if (printOnDiagnostic) {
+        _print(message.plainTextFormatted.first);
+      }
       if (message.severity == Severity.error) {
         errors = true;
-        for (String errorString in message.plainTextFormatted) {
-          errorStrings.add(errorString);
-        }
+        errorMessages.add(message);
       }
     };
     processedOpts = new ProcessedOptions(options: options, inputs: [uri]);
@@ -373,9 +457,9 @@ class DartDocTest {
     }
   }
 
-  void crash(dynamic error) {
+  void crash(dynamic error, dynamic st) {
     port.send("$_portMessageTest");
-    port.send("$_portMessageCrash: \$error");
+    port.send("$_portMessageCrash: \$error\\n\\nStacktrace:\\n\$st");
   }
 
   void parseError(String message) {

@@ -22,7 +22,9 @@ Future<void> testRunningTests() async {
       new MemoryFileSystem(new Uri(scheme: "darttest", path: "/"));
   HybridFileSystem hybridFileSystem = new HybridFileSystem(memoryFileSystem);
   impl.DartDocTest dartDocTest = new impl.DartDocTest(
-      underlyingFileSystem: hybridFileSystem, silent: true);
+      underlyingFileSystem: hybridFileSystem,
+      silent: true,
+      onlyIncludeFirstError: true);
 
   // Good test
   Uri test1 = new Uri(scheme: "darttest", path: "/test1.dart");
@@ -89,7 +91,7 @@ Future<int> _internal() async {
   memoryFileSystem.entityForUri(test3).writeAsStringSync(test);
   expect(await dartDocTest.process(test3), expected);
 
-// One test parse error and one good case.
+  // One test parse error and one good case.
   Uri test4 = new Uri(scheme: "darttest", path: "/test4.dart");
   test = """
 // DartDocTest(_internal() 42)
@@ -108,10 +110,10 @@ int _internal() {
   memoryFileSystem.entityForUri(test4).writeAsStringSync(test);
   expect(await dartDocTest.process(test4), expected);
 
-// Test with compile-time error. Note that this means no tests are compiled at
-// all and that while the error messages are passed it spills the internals of
-// the dartdocs stuff (e.g. the uri "dartdoctest:tester",
-// calls to 'dartDocTest.test' etc).
+  // Test with compile-time error. Note that this means no tests are compiled at
+  // all and that while the error messages are passed it spills the internals of
+  // the dartdocs stuff (e.g. the uri "dartdoctest:tester",
+  // calls to 'dartDocTest.test' etc).
   Uri test5 = new Uri(scheme: "darttest", path: "/test5.dart");
   test = """
 // DartDocTest(_internal() + 2, 42)
@@ -123,7 +125,7 @@ void _internal() {
   tests = extractTests(test, test5);
   expect(tests.length, 2);
   expected = [
-    new impl.TestResult(null, impl.TestOutcome.CompilationError)
+    new impl.TestResult(tests[0], impl.TestOutcome.CompilationError)
       ..message =
           """dartdoctest:tester:3:20: Error: This expression has type 'void' and can't be used.
   dartDocTest.test(_internal() + 2, 42);
@@ -150,7 +152,9 @@ dynamic _internal() {
   expected = [
     new impl.TestResult(tests[0], impl.TestOutcome.Crash)
       // this weird message is from the VM!
-      ..message = "type 'int' is not a subtype of type 'String' of 'other'",
+      ..message = "type 'int' is not a subtype of type 'String' of 'other'\n"
+          "\n"
+          "Stacktrace:",
     new impl.TestResult(tests[1], impl.TestOutcome.Pass),
   ];
   memoryFileSystem.entityForUri(test6).writeAsStringSync(test);
@@ -209,6 +213,72 @@ Future<void> _internal() async {
   ];
   memoryFileSystem.entityForUri(test9).writeAsStringSync(test);
   expect(await dartDocTest.process(test9), expected);
+
+  // Test crashes with stacktrace.
+  Uri test10 = new Uri(scheme: "darttest", path: "/test10.dart");
+  test = """
+// DartDocTest(await _internal(), 42)
+Future<int> _internal() async {
+  await Future.delayed(new Duration(milliseconds: 1));
+  if (1+1==2) throw "I threw!";
+  return 42;
+}
+""";
+  tests = extractTests(test, test10);
+  expect(tests.length, 1);
+  expected = [
+    new impl.TestResult(tests[0], impl.TestOutcome.Crash)
+      ..message = "I threw!"
+          "\n"
+          "\nStacktrace:"
+          "\n#0      _internal (darttest:/test10.dart:4:15)"
+          "\n<asynchronous suspension>",
+  ];
+  memoryFileSystem.entityForUri(test10).writeAsStringSync(test);
+  expect(await dartDocTest.process(test10), expected);
+
+  // Tests that doesn't compile.
+  Uri test11 = new Uri(scheme: "darttest", path: "/test11.dart");
+  test = """
+// DartDocTest(_internal(21, 21, 21), 42)
+// DartDocTest(_internal(21, 21, '''
+//   bla
+//   bla
+//   bla
+//   bla
+//   bla'''), 42)
+// DartDocTest(_internal(), -1)
+// DartDocTest(_internal(21, 21), 42)
+int _internal(int a, int b) {
+  return a + b;
+}
+""";
+  tests = extractTests(test, test11);
+  expect(tests.length, 4);
+  expected = [
+    new impl.TestResult(tests[0], impl.TestOutcome.CompilationError)
+      ..message =
+          """dartdoctest:tester:3:29: Error: Too many positional arguments: 2 allowed, but 3 found.
+Try removing the extra positional arguments.
+  dartDocTest.test(_internal(21, 21, 21), 42);
+                            ^""",
+    new impl.TestResult(tests[1], impl.TestOutcome.CompilationError)
+      ..message =
+          """dartdoctest:tester:8:29: Error: Too many positional arguments: 2 allowed, but 3 found.
+Try removing the extra positional arguments.
+  dartDocTest.test(_internal(21, 21, '''
+                            ^""",
+    new impl.TestResult(tests[2], impl.TestOutcome.CompilationError)
+      ..message =
+          """dartdoctest:tester:18:29: Error: Too few positional arguments: 2 required, 0 given.
+  dartDocTest.test(_internal(), -1);
+                            ^""",
+  ];
+  memoryFileSystem.entityForUri(test11).writeAsStringSync(test);
+  expect(await dartDocTest.process(test11), expected);
+
+  // TODO(jensj): Run in non-silent mode, but capturing the stdout, to verify
+  // the actually written text on stdout.
 }
 
 void testTestExtraction() {
@@ -510,8 +580,8 @@ bool _expectImpl(dynamic actual, dynamic expected, StringBuffer explainer) {
     }
     for (int i = 0; i < actual.length; i++) {
       if (actual[i] != expected[i]) {
-        explainer.write("List difference at index $i: "
-            "${actual[i]} vs ${expected[i]}");
+        explainer.write("List difference at index $i:\n"
+            "${actual[i]}\nvs\n${expected[i]}");
         return false;
       }
     }
