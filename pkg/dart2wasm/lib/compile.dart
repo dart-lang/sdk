@@ -128,6 +128,7 @@ Future<CompilerOutput?> compileToModule(
   LibraryIndex libraryIndex = LibraryIndex(component, [
     "dart:_boxed_double",
     "dart:_boxed_int",
+    "dart:_compact_hash",
     "dart:_internal",
     "dart:_js_helper",
     "dart:_js_types",

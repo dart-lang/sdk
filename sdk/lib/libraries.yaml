@@ -213,6 +213,8 @@ wasm_common:
       uri: _internal/wasm/lib/boxed_double.dart
     _error_utils:
       uri: _internal/wasm/lib/error_utils.dart
+    _compact_hash:
+      uri: _internal/wasm/lib/compact_hash.dart
     _http:
       uri: _http/http.dart
     _internal:
@@ -244,7 +246,6 @@ wasm_common:
       uri: collection/collection.dart
       patches:
       - _internal/vm_shared/lib/collection_patch.dart
-      - _internal/wasm/lib/compact_hash.dart
       - _internal/wasm/lib/hash_factories.dart
     developer:
       uri: developer/developer.dart
