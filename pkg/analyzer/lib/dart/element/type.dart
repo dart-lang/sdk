@@ -30,7 +30,7 @@ import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
 /// The type associated with elements in the element model.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class DartType implements SharedType {
+abstract class DartType implements SharedType<DartType> {
   /// If this type is an instantiation of a type alias, information about
   /// the alias element, and the type arguments.
   /// Otherwise return `null`.

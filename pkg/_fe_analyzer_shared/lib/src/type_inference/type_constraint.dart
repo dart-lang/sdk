@@ -37,8 +37,8 @@ class GeneratedTypeConstraint<Type extends Object, TypeSchema extends Object,
 
 /// A constraint on a type parameter that we're inferring.
 class MergedTypeConstraint<
-    Type extends SharedType,
-    TypeSchema extends Object,
+    Type extends SharedType<Type>,
+    TypeSchema extends SharedType<TypeSchema>,
     TypeParameter extends Object,
     Variable extends Object,
     TypeDeclarationType extends Object,
@@ -173,8 +173,8 @@ class MergedTypeConstraint<
 /// readable error message during type inference as well as determining whether
 /// the constraint was used to fix the type parameter or not.
 abstract class TypeConstraintOrigin<
-    Type extends SharedType,
-    TypeSchema extends Object,
+    Type extends SharedType<Type>,
+    TypeSchema extends SharedType<TypeSchema>,
     Variable extends Object,
     TypeParameter extends Object,
     TypeDeclarationType extends Object,
@@ -188,8 +188,8 @@ abstract class TypeConstraintOrigin<
 }
 
 class UnknownTypeConstraintOrigin<
-        Type extends SharedType,
-        TypeSchema extends Object,
+        Type extends SharedType<Type>,
+        TypeSchema extends SharedType<TypeSchema>,
         Variable extends Object,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
@@ -208,8 +208,8 @@ class UnknownTypeConstraintOrigin<
 }
 
 class TypeConstraintFromArgument<
-        Type extends SharedType,
-        TypeSchema extends Object,
+        Type extends SharedType<Type>,
+        TypeSchema extends SharedType<TypeSchema>,
         Variable extends Object,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
@@ -258,8 +258,8 @@ class TypeConstraintFromArgument<
 }
 
 class TypeConstraintFromExtendsClause<
-        Type extends SharedType,
-        TypeSchema extends Object,
+        Type extends SharedType<Type>,
+        TypeSchema extends SharedType<TypeSchema>,
         Variable extends Object,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
@@ -301,8 +301,8 @@ class TypeConstraintFromExtendsClause<
 }
 
 class TypeConstraintFromFunctionContext<
-        Type extends SharedType,
-        TypeSchema extends Object,
+        Type extends SharedType<Type>,
+        TypeSchema extends SharedType<TypeSchema>,
         Variable extends Object,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
@@ -329,8 +329,8 @@ class TypeConstraintFromFunctionContext<
 }
 
 class TypeConstraintFromReturnType<
-        Type extends SharedType,
-        TypeSchema extends Object,
+        Type extends SharedType<Type>,
+        TypeSchema extends SharedType<TypeSchema>,
         Variable extends Object,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
