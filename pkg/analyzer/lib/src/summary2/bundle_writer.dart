@@ -584,18 +584,17 @@ class BundleWriter {
   }
 
   void _writeNamespaceCombinator(NamespaceCombinator combinator) {
-    if (combinator is HideElementCombinator) {
-      _sink.writeByte(Tag.HideCombinator);
-      _sink.writeList<String>(combinator.hiddenNames, (name) {
-        _sink._writeStringReference(name);
-      });
-    } else if (combinator is ShowElementCombinator) {
-      _sink.writeByte(Tag.ShowCombinator);
-      _sink.writeList<String>(combinator.shownNames, (name) {
-        _sink._writeStringReference(name);
-      });
-    } else {
-      throw UnimplementedError('${combinator.runtimeType}');
+    switch (combinator) {
+      case HideElementCombinator():
+        _sink.writeByte(Tag.HideCombinator);
+        _sink.writeList<String>(combinator.hiddenNames, (name) {
+          _sink._writeStringReference(name);
+        });
+      case ShowElementCombinator():
+        _sink.writeByte(Tag.ShowCombinator);
+        _sink.writeList<String>(combinator.shownNames, (name) {
+          _sink._writeStringReference(name);
+        });
     }
   }
 

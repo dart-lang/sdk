@@ -1630,12 +1630,13 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeNamespaceCombinator(NamespaceCombinator e) {
     _sink.writeIndentedLine(() {
-      if (e is ShowElementCombinator) {
-        _sink.write('show: ');
-        _sink.write(e.shownNames.join(', '));
-      } else if (e is HideElementCombinator) {
-        _sink.write('hide: ');
-        _sink.write(e.hiddenNames.join(', '));
+      switch (e) {
+        case ShowElementCombinator():
+          _sink.write('show: ');
+          _sink.write(e.shownNames.join(', '));
+        case HideElementCombinator():
+          _sink.write('hide: ');
+          _sink.write(e.hiddenNames.join(', '));
       }
     });
   }
