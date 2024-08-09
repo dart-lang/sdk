@@ -11,6 +11,7 @@ import 'doc_test.dart' as doc_test;
 import 'engine_test.dart' as engine_test;
 import 'formatter_test.dart' as formatter_test;
 import 'integration_test.dart' as integration_test;
+import 'lint_code_test.dart' as lint_code_test;
 import 'mocks.dart';
 import 'pubspec_test.dart' as pubspec_test;
 import 'rule_test.dart' as rule_test;
@@ -38,6 +39,7 @@ void main() {
   engine_test.main();
   formatter_test.main();
   integration_test.main();
+  lint_code_test.main();
   pubspec_test.main();
   rule_test.main();
   reflective_rule_tests.main();

@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/rules/avoid_null_checks_in_equality_operators.dart';
+import 'package:linter/src/linter_lint_codes.dart';
 
 class RemoveComparison extends ResolvedCorrectionProducer {
   @override
@@ -49,7 +49,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
         errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_TRUE ||
-        errorCode == AvoidNullChecksInEqualityOperators.code;
+        errorCode == LinterLintCode.avoid_null_checks_in_equality_operators;
   }
 
   @override

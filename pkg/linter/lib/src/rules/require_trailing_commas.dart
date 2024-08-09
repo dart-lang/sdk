@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Use trailing commas for all parameter lists and argument lists.';
@@ -46,10 +47,6 @@ and may produce false positives on unformatted code.
 ''';
 
 class RequireTrailingCommas extends LintRule {
-  static const LintCode code = LintCode(
-      'require_trailing_commas', 'Missing trailing comma.',
-      correctionMessage: 'Try adding a trailing comma.');
-
   RequireTrailingCommas()
       : super(
           name: 'require_trailing_commas',
@@ -59,7 +56,7 @@ class RequireTrailingCommas extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.require_trailing_commas;
 
   @override
   void registerNodeProcessors(
@@ -79,11 +76,6 @@ class RequireTrailingCommas extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const _trailingCommaCode = LintCode(
-    'require_trailing_commas',
-    'Missing a required trailing comma.',
-  );
-
   final LintRule rule;
 
   late LineInfo _lineInfo;
@@ -181,7 +173,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Check the last parameter to determine if there are any exceptions.
     if (_shouldAllowTrailingCommaException(lastNode)) return;
 
-    rule.reportLintForToken(errorToken, errorCode: _trailingCommaCode);
+    rule.reportLintForToken(errorToken);
   }
 
   bool _isSameLine(Token token1, Token token2) =>

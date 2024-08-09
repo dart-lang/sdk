@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = "Don't use `final` for local variables.";
 
@@ -43,14 +44,6 @@ void goodMethod() {
 ''';
 
 class UnnecessaryFinal extends LintRule {
-  static const LintCode withType = LintCode(
-      'unnecessary_final', "Local variables should not be marked as 'final'.",
-      correctionMessage: "Remove the 'final'.");
-
-  static const LintCode withoutType = LintCode(
-      'unnecessary_final', "Local variables should not be marked as 'final'.",
-      correctionMessage: "Replace 'final' with 'var'.");
-
   UnnecessaryFinal()
       : super(
             name: 'unnecessary_final',
@@ -66,7 +59,10 @@ class UnnecessaryFinal extends LintRule {
       const ['prefer_final_locals', 'prefer_final_parameters'];
 
   @override
-  List<LintCode> get lintCodes => [withType, withoutType];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.unnecessary_final_with_type,
+        LinterLintCode.unnecessary_final_without_type
+      ];
 
   @override
   void registerNodeProcessors(
@@ -85,8 +81,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  LintCode getErrorCode(Object? type) =>
-      type == null ? UnnecessaryFinal.withoutType : UnnecessaryFinal.withType;
+  LintCode getErrorCode(Object? type) => type == null
+      ? LinterLintCode.unnecessary_final_without_type
+      : LinterLintCode.unnecessary_final_with_type;
 
   (Token?, AstNode?) getParameterDetails(FormalParameter node) {
     var parameter = node is DefaultFormalParameter ? node.parameter : node;
@@ -139,7 +136,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var keyword = forLoopParts.keyword;
       if (keyword.isFinal) {
         rule.reportLintForToken(keyword,
-            errorCode: UnnecessaryFinal.withoutType);
+            errorCode: LinterLintCode.unnecessary_final_without_type);
       }
     }
   }

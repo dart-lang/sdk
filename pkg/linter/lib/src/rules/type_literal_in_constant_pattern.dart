@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't use constant patterns with type literals.";
 
@@ -54,22 +55,16 @@ void f(Object? x) {
 ''';
 
 class TypeLiteralInConstantPattern extends LintRule {
-  static const String lintName = 'type_literal_in_constant_pattern';
-
-  static const LintCode code = LintCode(
-      lintName, "Use 'TypeName _' instead of a type literal.",
-      correctionMessage: "Replace with 'TypeName _'.", hasPublishedDocs: true);
-
   TypeLiteralInConstantPattern()
       : super(
-          name: lintName,
+          name: 'type_literal_in_constant_pattern',
           description: _desc,
           details: _details,
           categories: {LintRuleCategory.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.type_literal_in_constant_pattern;
 
   @override
   void registerNodeProcessors(

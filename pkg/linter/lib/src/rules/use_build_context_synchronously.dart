@@ -14,6 +14,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Do not use `BuildContext` across asynchronous gaps.';
@@ -951,27 +952,6 @@ class ProtectedFunction {
 }
 
 class UseBuildContextSynchronously extends LintRule {
-  static const LintCode asyncUseCode = LintCode(
-    'use_build_context_synchronously',
-    "Don't use 'BuildContext's across async gaps.",
-    correctionMessage:
-        "Try rewriting the code to not use the 'BuildContext', or guard the "
-        "use with a 'mounted' check.",
-    uniqueName: 'LintCode.use_build_context_synchronously_async_use',
-    hasPublishedDocs: true,
-  );
-
-  static const LintCode wrongMountedCode = LintCode(
-    'use_build_context_synchronously',
-    "Don't use 'BuildContext's across async gaps, guarded by an unrelated "
-        "'mounted' check.",
-    correctionMessage:
-        "Guard a 'State.context' use with a 'mounted' check on the State, and "
-        "other BuildContext use with a 'mounted' check on the BuildContext.",
-    uniqueName: 'LintCode.use_build_context_synchronously_wrong_mounted',
-    hasPublishedDocs: true,
-  );
-
   UseBuildContextSynchronously()
       : super(
           name: 'use_build_context_synchronously',
@@ -982,7 +962,10 @@ class UseBuildContextSynchronously extends LintRule {
         );
 
   @override
-  List<LintCode> get lintCodes => [asyncUseCode, wrongMountedCode];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.use_build_context_synchronously_async_use,
+        LinterLintCode.use_build_context_synchronously_wrong_mounted
+      ];
 
   @override
   void registerNodeProcessors(
@@ -1099,8 +1082,8 @@ class _Visitor extends SimpleAstVisitor {
 
       if (asyncState == AsyncState.asynchronous) {
         var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
-            ? UseBuildContextSynchronously.wrongMountedCode
-            : UseBuildContextSynchronously.asyncUseCode;
+            ? LinterLintCode.use_build_context_synchronously_wrong_mounted
+            : LinterLintCode.use_build_context_synchronously_async_use;
         rule.reportLint(node, errorCode: errorCode);
         return;
       }
@@ -1218,7 +1201,8 @@ class _Visitor extends SimpleAstVisitor {
       if (argument == null) continue;
       if (callback == argument.expression) {
         rule.reportLint(errorNode,
-            errorCode: UseBuildContextSynchronously.asyncUseCode);
+            errorCode:
+                LinterLintCode.use_build_context_synchronously_async_use);
       }
     }
   }
@@ -1234,7 +1218,8 @@ class _Visitor extends SimpleAstVisitor {
       if (positionalArguments.length > position &&
           callback == positionalArguments[position]) {
         rule.reportLint(errorNode,
-            errorCode: UseBuildContextSynchronously.asyncUseCode);
+            errorCode:
+                LinterLintCode.use_build_context_synchronously_async_use);
       }
     }
   }

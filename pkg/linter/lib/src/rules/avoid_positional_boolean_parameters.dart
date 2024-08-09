@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid positional boolean parameters.';
 
@@ -41,10 +42,6 @@ Button(ButtonState.enabled);
 ''';
 
 class AvoidPositionalBooleanParameters extends LintRule {
-  static const LintCode code = LintCode('avoid_positional_boolean_parameters',
-      "'bool' parameters should be named parameters.",
-      correctionMessage: 'Try converting the parameter to a named parameter.');
-
   AvoidPositionalBooleanParameters()
       : super(
             name: 'avoid_positional_boolean_parameters',
@@ -56,7 +53,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_positional_boolean_parameters;
 
   @override
   void registerNodeProcessors(

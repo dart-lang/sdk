@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Avoid `print` calls in production code.';
@@ -58,11 +59,6 @@ void f(int x) {
 ''';
 
 class AvoidPrint extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_print', "Don't invoke 'print' in production code.",
-      correctionMessage: 'Try using a logging framework.',
-      hasPublishedDocs: true);
-
   AvoidPrint()
       : super(
             name: 'avoid_print',
@@ -71,7 +67,7 @@ class AvoidPrint extends LintRule {
             categories: {LintRuleCategory.unintentional});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_print;
 
   @override
   void registerNodeProcessors(

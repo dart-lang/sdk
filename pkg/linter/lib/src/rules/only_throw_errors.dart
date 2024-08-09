@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -61,12 +62,6 @@ bool _isThrowable(DartType? type) {
 }
 
 class OnlyThrowErrors extends LintRule {
-  static const LintCode code = LintCode(
-      'only_throw_errors',
-      "Don't throw instances of classes that don't extend either 'Exception' "
-          "or 'Error'.",
-      correctionMessage: 'Try throwing a different class of object.');
-
   OnlyThrowErrors()
       : super(
             name: 'only_throw_errors',
@@ -75,7 +70,7 @@ class OnlyThrowErrors extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.only_throw_errors;
 
   @override
   void registerNodeProcessors(

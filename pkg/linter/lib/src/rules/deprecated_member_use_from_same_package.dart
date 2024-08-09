@@ -12,6 +12,7 @@ import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     'Avoid using deprecated elements from within the package in which they are '
@@ -77,23 +78,6 @@ void m(Foo foo) {
 ''';
 
 class DeprecatedMemberUseFromSamePackage extends LintRule {
-  static const LintCode code = LintCode(
-    'deprecated_member_use_from_same_package',
-    "'{0}' is deprecated and shouldn't be used.",
-    correctionMessage:
-        'Try replacing the use of the deprecated member with the replacement, '
-        'if a replacement is specified.',
-  );
-
-  static const LintCode codeWithMessage = LintCode(
-    'deprecated_member_use_from_same_package',
-    "'{0}' is deprecated and shouldn't be used. {1}",
-    correctionMessage:
-        'Try replacing the use of the deprecated member with the replacement, '
-        'if a replacement is specified.',
-    uniqueName: 'LintCode.deprecated_member_use_from_same_package_with_message',
-  );
-
   DeprecatedMemberUseFromSamePackage()
       : super(
             name: 'deprecated_member_use_from_same_package',
@@ -102,7 +86,10 @@ class DeprecatedMemberUseFromSamePackage extends LintRule {
             categories: {LintRuleCategory.languageFeatureUsage});
 
   @override
-  List<LintCode> get lintCodes => [code, codeWithMessage];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.deprecated_member_use_from_same_package_with_message,
+        LinterLintCode.deprecated_member_use_from_same_package_without_message
+      ];
 
   @override
   void registerNodeProcessors(
@@ -135,7 +122,8 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName],
-        errorCode: DeprecatedMemberUseFromSamePackage.code,
+        errorCode: LinterLintCode
+            .deprecated_member_use_from_same_package_without_message,
       );
     } else {
       if (!normalizedMessage.endsWith('.') &&
@@ -147,7 +135,8 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName, normalizedMessage],
-        errorCode: DeprecatedMemberUseFromSamePackage.codeWithMessage,
+        errorCode:
+            LinterLintCode.deprecated_member_use_from_same_package_with_message,
       );
     }
   }

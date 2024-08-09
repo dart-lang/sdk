@@ -10,8 +10,6 @@ abstract final class LintNames {
       'always_put_control_body_on_new_line';
   static const String always_put_required_named_parameters_first =
       'always_put_required_named_parameters_first';
-  static const String always_require_non_null_named_parameters =
-      'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';
   static const String always_use_package_imports = 'always_use_package_imports';
   static const String annotate_overrides = 'annotate_overrides';
@@ -38,8 +36,6 @@ abstract final class LintNames {
       'avoid_renaming_method_parameters';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';
-  static const String avoid_returning_null_for_future =
-      'avoid_returning_null_for_future';
   static const String avoid_returning_null_for_void =
       'avoid_returning_null_for_void';
   static const String avoid_single_cascade_in_expression_statements =
@@ -66,8 +62,6 @@ abstract final class LintNames {
       'dangling_library_doc_comments';
   static const String deprecated_member_use_from_same_package =
       'deprecated_member_use_from_same_package';
-  static const String deprecated_member_use_from_same_package_with_message =
-      'deprecated_member_use_from_same_package_with_message';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';

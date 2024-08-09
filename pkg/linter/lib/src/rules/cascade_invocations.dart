@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
 
@@ -105,10 +106,6 @@ bool _isInvokedWithoutNullAwareOperator(Token? token) =>
 /// Rule to lint consecutive invocations of methods or getters on the same
 /// reference that could be done with the cascade operator.
 class CascadeInvocations extends LintRule {
-  static const LintCode code = LintCode(
-      'cascade_invocations', 'Unnecessary duplication of receiver.',
-      correctionMessage: 'Try using a cascade to avoid the duplication.');
-
   /// Default constructor.
   CascadeInvocations()
       : super(
@@ -122,7 +119,7 @@ class CascadeInvocations extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.cascade_invocations;
 
   @override
   void registerNodeProcessors(

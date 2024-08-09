@@ -394,7 +394,7 @@ import 'dart:math' show sin;
       configuration: ElementPrinterConfiguration(),
     );
 
-    var extensions = library.scope.extensions;
+    var extensions = library.scope.accessibleExtensions;
     extensions = extensions.sortedBy((e) => e.name ?? '');
     elementPrinter.writeElementList('extensions', extensions);
 

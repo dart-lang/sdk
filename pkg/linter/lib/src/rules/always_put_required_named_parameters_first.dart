@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Put required named parameters first.';
 
@@ -35,14 +36,6 @@ m({@required a, b, c}) ;
 ''';
 
 class AlwaysPutRequiredNamedParametersFirst extends LintRule {
-  static const LintCode code = LintCode(
-      'always_put_required_named_parameters_first',
-      'Required named parameters should be before optional named parameters.',
-      correctionMessage:
-          'Try moving the required named parameter to be before any optional '
-          'named parameters.',
-      hasPublishedDocs: true);
-
   AlwaysPutRequiredNamedParametersFirst()
       : super(
             name: 'always_put_required_named_parameters_first',
@@ -51,7 +44,8 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.always_put_required_named_parameters_first;
 
   @override
   void registerNodeProcessors(

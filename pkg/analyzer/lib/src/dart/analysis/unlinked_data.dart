@@ -148,6 +148,16 @@ class UnlinkedCombinator {
   }
 }
 
+abstract class UnlinkedConfigurableUriDirective {
+  final List<UnlinkedNamespaceDirectiveConfiguration> configurations;
+  final String? uri;
+
+  UnlinkedConfigurableUriDirective({
+    required this.configurations,
+    required this.uri,
+  });
+}
+
 class UnlinkedLibraryAugmentationDirective {
   final int augmentKeywordOffset;
   final int libraryKeywordOffset;
@@ -337,15 +347,14 @@ class UnlinkedLibraryImportPrefix {
   }
 }
 
-abstract class UnlinkedNamespaceDirective {
+abstract class UnlinkedNamespaceDirective
+    extends UnlinkedConfigurableUriDirective {
   final List<UnlinkedCombinator> combinators;
-  final List<UnlinkedNamespaceDirectiveConfiguration> configurations;
-  final String? uri;
 
   UnlinkedNamespaceDirective({
     required this.combinators,
-    required this.configurations,
-    required this.uri,
+    required super.configurations,
+    required super.uri,
   });
 }
 
@@ -392,22 +401,28 @@ class UnlinkedNamespaceDirectiveConfiguration {
   }
 }
 
-class UnlinkedPartDirective {
-  final String? uri;
-
+class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
   UnlinkedPartDirective({
-    required this.uri,
+    required super.configurations,
+    required super.uri,
   });
 
-  factory UnlinkedPartDirective.read(
-    SummaryDataReader reader,
-  ) {
+  factory UnlinkedPartDirective.read(SummaryDataReader reader) {
     return UnlinkedPartDirective(
+      configurations: reader.readTypedList(
+        () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
+      ),
       uri: reader.readOptionalStringUtf8(),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(
+      configurations,
+      (x) {
+        x.write(sink);
+      },
+    );
     sink.writeOptionalStringUtf8(uri);
   }
 }

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid JavaScript rounded ints.';
 
@@ -33,12 +34,6 @@ BigInt value = BigInt.parse('9007199254740995');
 ''';
 
 class AvoidJsRoundedInts extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_js_rounded_ints',
-      "Integer literal can't be represented exactly when compiled to "
-          'JavaScript.',
-      correctionMessage: "Try using a 'BigInt' to represent the value.");
-
   AvoidJsRoundedInts()
       : super(
             name: 'avoid_js_rounded_ints',
@@ -47,7 +42,7 @@ class AvoidJsRoundedInts extends LintRule {
             categories: {LintRuleCategory.errorProne, LintRuleCategory.web});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_js_rounded_ints;
 
   @override
   void registerNodeProcessors(

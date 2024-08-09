@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
@@ -33,11 +34,6 @@ import 'bar.dart';
 ''';
 
 class PreferRelativeImports extends LintRule {
-  static const LintCode code = LintCode('prefer_relative_imports',
-      "Use relative imports for files in the 'lib' directory.",
-      correctionMessage: 'Try converting the URI to a relative URI.',
-      hasPublishedDocs: true);
-
   PreferRelativeImports()
       : super(
             name: 'prefer_relative_imports',
@@ -49,7 +45,7 @@ class PreferRelativeImports extends LintRule {
   List<String> get incompatibleRules => const ['always_use_package_imports'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_relative_imports;
 
   @override
   void registerNodeProcessors(

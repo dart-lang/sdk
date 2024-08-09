@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
@@ -91,11 +92,6 @@ bool _isFormalParameterReassigned(
 }
 
 class ParameterAssignments extends LintRule {
-  static const LintCode code = LintCode(
-      'parameter_assignments', "Invalid assignment to the parameter '{0}'.",
-      correctionMessage:
-          'Try using a local variable in place of the parameter.');
-
   ParameterAssignments()
       : super(
             name: 'parameter_assignments',
@@ -104,7 +100,7 @@ class ParameterAssignments extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.parameter_assignments;
 
   @override
   void registerNodeProcessors(

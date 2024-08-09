@@ -15,7 +15,7 @@ void main() {
       // Doc generation reads the fix status map to associate fix status
       // badges with rule documentation.  Here we check one for sanity.
       // If the file moves or format changes, we'd expect this to fail.
-      expect(fixStatusMap['always_declare_return_types'], 'hasFix');
+      expect(fixStatusMap['prefer_single_quotes'], 'hasFix');
     });
   });
 }

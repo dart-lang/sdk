@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer if elements to conditional expressions where possible.';
 
@@ -25,12 +26,6 @@ var list = ['a', 'b', if (condition) 'c'];
 ''';
 
 class PreferIfElementsToConditionalExpressions extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_if_elements_to_conditional_expressions',
-      "Use an 'if' element to conditionally add elements.",
-      correctionMessage:
-          "Try using an 'if' element rather than a conditional expression.");
-
   PreferIfElementsToConditionalExpressions()
       : super(
             name: 'prefer_if_elements_to_conditional_expressions',
@@ -39,7 +34,8 @@ class PreferIfElementsToConditionalExpressions extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.prefer_if_elements_to_conditional_expressions;
 
   @override
   void registerNodeProcessors(

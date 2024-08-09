@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     'Avoid library directives unless they have documentation comments or '
@@ -38,12 +39,6 @@ flagged for unnecessary library directives.
 const _name = 'unnecessary_library_directive';
 
 class UnnecessaryLibraryDirective extends LintRule {
-  static const LintCode code = LintCode(
-    _name,
-    'Library directives without comments or annotations should be avoided.',
-    correctionMessage: 'Try deleting the library directive.',
-  );
-
   UnnecessaryLibraryDirective()
       : super(
           name: _name,
@@ -53,7 +48,7 @@ class UnnecessaryLibraryDirective extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_library_directive;
 
   @override
   void registerNodeProcessors(

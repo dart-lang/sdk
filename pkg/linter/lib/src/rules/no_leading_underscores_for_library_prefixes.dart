@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for library prefixes.';
@@ -30,13 +31,6 @@ import 'dart:core' as core;
 ''';
 
 class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
-  static const LintCode code = LintCode(
-      'no_leading_underscores_for_library_prefixes',
-      "The library prefix '{0}' starts with an underscore.",
-      correctionMessage:
-          'Try renaming the prefix to not start with an underscore.',
-      hasPublishedDocs: true);
-
   NoLeadingUnderscoresForLibraryPrefixes()
       : super(
             name: 'no_leading_underscores_for_library_prefixes',
@@ -45,7 +39,8 @@ class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.no_leading_underscores_for_library_prefixes;
 
   @override
   void registerNodeProcessors(

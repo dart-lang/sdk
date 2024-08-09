@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type_system.dart'
     show TypeSystemImpl, ExtensionTypeErasure;
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const String _dartJsAnnotationsUri = 'dart:_js_annotations';
 const String _dartJsInteropUri = 'dart:js_interop';
@@ -279,73 +280,25 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
 }
 
 class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
-  static const String lintName = 'invalid_runtime_check_with_js_interop_types';
-
-  static const LintCode dartTypeIsJsInteropTypeCode = LintCode(
-      lintName,
-      "Runtime check between '{0}' and '{1}' checks whether a Dart value is a "
-      'JS interop type, which may not be platform-consistent.');
-
-  static const LintCode jsInteropTypeIsDartTypeCode = LintCode(
-      lintName,
-      "Runtime check between '{0}' and '{1}' checks whether a JS interop value "
-      'is a Dart type, which may not be platform-consistent.');
-
-  static const LintCode jsInteropTypeIsInconsistentJsInteropType = LintCode(
-      lintName,
-      "Runtime check between '{0}' and '{1}' involves a non-trivial runtime "
-      'check between two JS interop types that may not be platform-consistent.',
-      correctionMessage:
-          "Try using a JS interop member like 'isA' from 'dart:js_interop' to "
-          'check the underlying type of JS interop values.');
-
-  static const LintCode jsInteropTypeIsUnrelatedJsInteropTypeCode = LintCode(
-      lintName,
-      "Runtime check between '{0}' and '{1}' involves a runtime check between "
-      'a JS interop value and an unrelated JS interop type that will always be '
-      "true and won't check the underlying type.",
-      correctionMessage:
-          "Try using a JS interop member like 'isA' from 'dart:js_interop' to "
-          'check the underlying type of JS interop values, or make the JS '
-          "interop type a supertype using 'implements'.");
-
-  static const LintCode dartTypeAsJsInteropTypeCode = LintCode(
-      lintName,
-      "Cast from '{0}' to '{1}' casts a Dart value to a JS interop type, which "
-      'may not be platform-consistent.',
-      correctionMessage:
-          "Try using conversion methods from 'dart:js_interop' to convert "
-          'between Dart types and JS interop types.');
-
-  static const LintCode jsInteropTypeAsDartTypeCode = LintCode(
-      lintName,
-      "Cast from '{0}' to '{1}' casts a JS interop value to a Dart type, which "
-      'may not be platform-consistent.',
-      correctionMessage:
-          "Try using conversion methods from 'dart:js_interop' to convert "
-          'between JS interop types and Dart types.');
-
-  static const LintCode jsInteropTypeAsIncompatibleJsInteropTypeCode = LintCode(
-      lintName,
-      "Cast from '{0}' to '{1}' casts a JS interop value to an incompatible JS "
-      'interop type, which may not be platform-consistent.');
-
   InvalidRuntimeCheckWithJSInteropTypes()
       : super(
-            name: lintName,
+            name: 'invalid_runtime_check_with_js_interop_types',
             description: _desc,
             details: _details,
             categories: {LintRuleCategory.errorProne, LintRuleCategory.web});
 
   @override
-  List<LintCode> get lintCodes => const [
-        dartTypeIsJsInteropTypeCode,
-        jsInteropTypeIsDartTypeCode,
-        jsInteropTypeIsInconsistentJsInteropType,
-        jsInteropTypeIsUnrelatedJsInteropTypeCode,
-        dartTypeAsJsInteropTypeCode,
-        jsInteropTypeAsDartTypeCode,
-        jsInteropTypeAsIncompatibleJsInteropTypeCode,
+  List<LintCode> get lintCodes => [
+        LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_as_js,
+        LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_is_js,
+        LinterLintCode.invalid_runtime_check_with_js_interop_types_js_as_dart,
+        LinterLintCode
+            .invalid_runtime_check_with_js_interop_types_js_as_incompatible_js,
+        LinterLintCode.invalid_runtime_check_with_js_interop_types_js_is_dart,
+        LinterLintCode
+            .invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js,
+        LinterLintCode
+            .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js
       ];
 
   @override
@@ -432,14 +385,14 @@ class _Visitor extends SimpleAstVisitor<void> {
             if (check) {
               if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
                 if (leftIsInteropType && rightIsInteropType) {
-                  lintCode = InvalidRuntimeCheckWithJSInteropTypes
-                      .jsInteropTypeIsInconsistentJsInteropType;
+                  lintCode = LinterLintCode
+                      .invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js;
                 } else if (leftIsInteropType) {
-                  lintCode = InvalidRuntimeCheckWithJSInteropTypes
-                      .jsInteropTypeIsDartTypeCode;
+                  lintCode = LinterLintCode
+                      .invalid_runtime_check_with_js_interop_types_js_is_dart;
                 } else {
-                  lintCode = InvalidRuntimeCheckWithJSInteropTypes
-                      .dartTypeIsJsInteropTypeCode;
+                  lintCode = LinterLintCode
+                      .invalid_runtime_check_with_js_interop_types_dart_is_js;
                 }
               } else if (erasedLeftIsSubtype &&
                   leftIsInteropType &&
@@ -453,8 +406,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                             keepUserInteropTypes: true),
                         _eraseNonJsInteropTypes.perform(right,
                             keepUserInteropTypes: true))) {
-                  lintCode = InvalidRuntimeCheckWithJSInteropTypes
-                      .jsInteropTypeIsUnrelatedJsInteropTypeCode;
+                  lintCode = LinterLintCode
+                      .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js;
                 }
               }
             } else {
@@ -463,14 +416,14 @@ class _Visitor extends SimpleAstVisitor<void> {
                   !erasedLeftIsDynamic &&
                   !erasedRightIsDynamic) {
                 if (leftIsInteropType && rightIsInteropType) {
-                  lintCode = InvalidRuntimeCheckWithJSInteropTypes
-                      .jsInteropTypeAsIncompatibleJsInteropTypeCode;
+                  lintCode = LinterLintCode
+                      .invalid_runtime_check_with_js_interop_types_js_as_incompatible_js;
                 } else if (leftIsInteropType) {
-                  lintCode = InvalidRuntimeCheckWithJSInteropTypes
-                      .jsInteropTypeAsDartTypeCode;
+                  lintCode = LinterLintCode
+                      .invalid_runtime_check_with_js_interop_types_js_as_dart;
                 } else {
-                  lintCode = InvalidRuntimeCheckWithJSInteropTypes
-                      .dartTypeAsJsInteropTypeCode;
+                  lintCode = LinterLintCode
+                      .invalid_runtime_check_with_js_interop_types_dart_as_js;
                 }
               }
             }

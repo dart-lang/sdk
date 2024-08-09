@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Use => for short members whose body is a single return statement.';
@@ -52,10 +53,6 @@ containsValue(String value) => getValues().contains(value);
 ''';
 
 class PreferExpressionFunctionBodies extends LintRule {
-  static const LintCode code = LintCode('prefer_expression_function_bodies',
-      'Unnecessary use of a block function body.',
-      correctionMessage: 'Try using an expression function body.');
-
   PreferExpressionFunctionBodies()
       : super(
             name: 'prefer_expression_function_bodies',
@@ -64,7 +61,7 @@ class PreferExpressionFunctionBodies extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_expression_function_bodies;
 
   @override
   void registerNodeProcessors(

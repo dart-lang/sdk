@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use super-initializer parameters where possible.';
 
@@ -52,13 +53,6 @@ Set<ParameterElement> _referencedParameters(
 }
 
 class UseSuperParameters extends LintRule {
-  static const LintCode singleParam = LintCode(
-      'use_super_parameters', "Convert '{0}' to a super parameter.",
-      hasPublishedDocs: true);
-  static const LintCode multipleParams = LintCode(
-      'use_super_parameters', 'Convert {0} to super parameters.',
-      hasPublishedDocs: true);
-
   UseSuperParameters()
       : super(
             name: 'use_super_parameters',
@@ -68,7 +62,10 @@ class UseSuperParameters extends LintRule {
             categories: {LintRuleCategory.brevity});
 
   @override
-  List<LintCode> get lintCodes => const [singleParam, multipleParams];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.use_super_parameters_multiple,
+        LinterLintCode.use_super_parameters_single
+      ];
 
   @override
   void registerNodeProcessors(
@@ -274,10 +271,11 @@ class _Visitor extends SimpleAstVisitor {
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
       rule.reportLintForOffset(target.offset, target.length,
-          errorCode: UseSuperParameters.multipleParams, arguments: [msg]);
+          errorCode: LinterLintCode.use_super_parameters_multiple,
+          arguments: [msg]);
     } else {
       rule.reportLintForOffset(target.offset, target.length,
-          errorCode: UseSuperParameters.singleParam,
+          errorCode: LinterLintCode.use_super_parameters_single,
           arguments: [identifiers.first]);
     }
   }

@@ -1,20 +1,25 @@
-# Common service methods
+# Common Services
 
-These are service methods that may be registered to DTD by multiple client types (e.g. multiple IDEs support navigating to a location in code). Other clients can then rely on service methods having a common interface despite being implemented by different client types. For example, DevTools should be able to request navigation to code using the same service method regardless of whether VS Code or IntelliJ registered it.
+These are service methods and events that may be registered to DTD by multiple client types (e.g. multiple IDEs support navigating to a location in code). Other clients can then rely on service methods having a common interface despite being implemented by different client types. For example, DevTools should be able to request navigation to code using the same service method regardless of whether VS Code or IntelliJ registered it.
 
 Notes:
 
 - Though multiple client types may register these methods, a single instance of DTD will accept only one client registering as a particular service. (DTD will throw an error if a second client tries to register as the same service.)
 - These methods are not implemented in DTD. Rather, we want any new clients registering methods for a common purpose to follow a shared interface.
-- These methods may not be registered at all to DTD, depending on what other tools are connected. Clients hoping to use these methods should use the [`Service` stream](dtd_protocol.md#service-methods) to monitor whether these services are available.
+- These methods may not be registered at all to DTD, depending on what other tools are connected. Clients hoping to use these methods should use the [`Service` stream](./dtd_protocol.md#service-methods) to monitor whether these services are available.
 
-## Navigate to code location
 
-This is a service method that should be registered by a client that displays code (likely an IDE), so that other clients can request showing a specific location in code.
+## Service Definitions
 
-### Registering the method with DTD
+- [Editor Service](./dtd_common_services_editor.md)
+  Services provided by an editor or IDE for tools to interact with code, devices and debug sessions.
 
-This is what the client handling navigate to code requests (i.e. IDE) should send to DTD:
+
+## Registering a service method with DTD
+
+DTD uses JSON-RPC for communication. Methods can be registered by calling the `registerService` method documented in the [DTD Protocol](./dtd_protocol.md).
+
+### Example
 
 ```json
 {
@@ -24,22 +29,19 @@ This is what the client handling navigate to code requests (i.e. IDE) should sen
     "service": "Editor",
     "method": "navigateToCode",
     "capabilities": {
-      "supportedSchemes": ["file", "dart-macro-file"],
+      "supportedSchemes": ["file", "dart-macro+file"],
     }
   },
   "id": "0"
 }
 ```
 
-### Request Parameters
+## Calling a service method over DTD
 
-These are the parameters a client should send when requesting an editor navigate to code.
+Calling a service method involves a JSON-RPC request to a method name that
+combines the service and method name, for example `"Editor.navigateToCode"`.
 
-- `String uri` - The URI of the location to navigate to. Only `file://` URIs are supported unless the service registration's `capabilities` indicate other schemes are supported (specifics to be defined here in future). Editors should return error code 144 if a caller passes a URI with an unsupported scheme.
-- optional `int line` - 1-based line number.
-- optional `int column` - 1-based column number.
-
-#### Example
+### Example
 
 ```json
 {
@@ -54,22 +56,18 @@ These are the parameters a client should send when requesting an editor navigate
 }
 ```
 
-### Result
+## Responses
 
-These are the parameters in a result:
+The response will contain a `result` that has a `type` indicating the type of
+returned data or `Success` if a successful request has no return value. Errors
+will be indicated as JSON-RPC errors with a `code` and `message`.
 
-- `String type` - one of `Success` or `Failure`.
-- optional `String errorCode` - a specific error code for a well-known failure type.
+### Examples
 
-    | Error code    | Description |
-    | -------- | ------- |
-    | 144  | The URI's scheme is not recognized by the editor. |
+#### Success
 
-- optional `String errorMessage` - a freeform message about the error.
-
-#### Examples
-
-If navigation in the editor is successful, a Success result should be returned.
+If a request is successful but has no specific return value, a `Success` result
+is returned.
 
 ```json
 {
@@ -79,31 +77,39 @@ If navigation in the editor is successful, a Success result should be returned.
 }
 ```
 
-Otherwise, the client can return an error code and/or an error message.
+#### Error
+
+If an error occurs, there will be no `result` but instead an `error`.
 
 ```json
 {
   "jsonrpc": "2.0",
-  "result": {
-    "type": "Failure",
-    "error": {
-      "code": 144,
-      "message": "File scheme is not supported",
-      "data": {
-        "details": "File URI `malformed-file:///file.dart` is not valid.",
-        "request": {
-          "id": "0",
-          "jsonrpc": "2.0",
-          "method": "Editor.navigateToCode",
-          "params": {
-            "file": "malformed-file:///file.dart",
-            "line": 1,
-            "column": 2,
-          }
+  "error": {
+    "code": 144,
+    "message": "File scheme is not supported",
+    "data": {
+      "details": "File URI `malformed-file:///file.dart` is not valid.",
+      "request": {
+        "id": "0",
+        "jsonrpc": "2.0",
+        "method": "Editor.navigateToCode",
+        "params": {
+          "file": "malformed-file:///file.dart",
+          "line": 1,
+          "column": 2,
         }
       }
     }
-  },
+  }
   "id": "0"
 }
 ```
+
+## Common Error Codes
+
+Below are some common error codes that may be used by all common services.
+Individual services may document their own error codes.
+
+| Error code    | Description |
+| -------- | ------- |
+| 144  | The URI's scheme is not recognized. |

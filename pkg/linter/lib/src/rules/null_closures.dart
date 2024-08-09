@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Do not pass `null` as an argument where a closure is expected.';
 
@@ -205,10 +206,6 @@ class NonNullableFunction {
 }
 
 class NullClosures extends LintRule {
-  static const LintCode code = LintCode(
-      'null_closures', "Closure can't be 'null' because it might be invoked.",
-      correctionMessage: 'Try providing a non-null closure.');
-
   NullClosures()
       : super(
             name: 'null_closures',
@@ -217,7 +214,7 @@ class NullClosures extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.null_closures;
 
   @override
   void registerNodeProcessors(

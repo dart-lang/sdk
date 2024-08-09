@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use throwsA matcher instead of fail().';
 
@@ -51,13 +52,6 @@ await expectLater(
 ''';
 
 class UseTestThrowsMatchers extends LintRule {
-  static const LintCode code = LintCode(
-      'use_test_throws_matchers',
-      "Use the 'throwsA' matcher instead of using 'fail' when there is no "
-          'exception thrown.',
-      correctionMessage:
-          "Try removing the try-catch and using 'throwsA' to expect an exception.");
-
   UseTestThrowsMatchers()
       : super(
           name: 'use_test_throws_matchers',
@@ -67,7 +61,7 @@ class UseTestThrowsMatchers extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_test_throws_matchers;
 
   @override
   void registerNodeProcessors(

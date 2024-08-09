@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Document all public members.';
 
@@ -66,10 +67,6 @@ setters inherit the docs from the getters.
 // exports - and linting against that.
 
 class PublicMemberApiDocs extends LintRule {
-  static const LintCode code = LintCode(
-      'public_member_api_docs', 'Missing documentation for a public member.',
-      correctionMessage: 'Try adding documentation for the member.');
-
   PublicMemberApiDocs()
       : super(
             name: 'public_member_api_docs',
@@ -81,7 +78,7 @@ class PublicMemberApiDocs extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.public_member_api_docs;
 
   @override
   void registerNodeProcessors(

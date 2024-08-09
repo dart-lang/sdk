@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid wrapping fields in getters and setters just to be "safe".';
@@ -49,12 +50,6 @@ class Box {
 ''';
 
 class UnnecessaryGettersSetters extends LintRule {
-  static const LintCode code = LintCode('unnecessary_getters_setters',
-      'Unnecessary use of getter and setter to wrap a field.',
-      correctionMessage:
-          'Try removing the getter and setter and renaming the field.',
-      hasPublishedDocs: true);
-
   UnnecessaryGettersSetters()
       : super(
             name: 'unnecessary_getters_setters',
@@ -66,7 +61,7 @@ class UnnecessaryGettersSetters extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_getters_setters;
 
   @override
   void registerNodeProcessors(

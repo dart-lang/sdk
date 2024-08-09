@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implement
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
@@ -49,10 +50,6 @@ void mutableCase() {
 ''';
 
 class PreferFinalLocals extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_final_locals', 'Local variables should be final.',
-      correctionMessage: 'Try making the variable final.');
-
   PreferFinalLocals()
       : super(
             name: 'prefer_final_locals',
@@ -64,7 +61,7 @@ class PreferFinalLocals extends LintRule {
   List<String> get incompatibleRules => const ['unnecessary_final'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_final_locals;
 
   @override
   void registerNodeProcessors(

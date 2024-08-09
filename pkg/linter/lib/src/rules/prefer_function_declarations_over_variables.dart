@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use a function declaration to bind a function to a name.';
 
@@ -38,14 +39,6 @@ void main() {
 ''';
 
 class PreferFunctionDeclarationsOverVariables extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_function_declarations_over_variables',
-      'Use a function declaration rather than a variable assignment to bind a '
-          'function to a name.',
-      correctionMessage:
-          'Try rewriting the closure assignment as a function declaration.',
-      hasPublishedDocs: true);
-
   PreferFunctionDeclarationsOverVariables()
       : super(
             name: 'prefer_function_declarations_over_variables',
@@ -57,7 +50,8 @@ class PreferFunctionDeclarationsOverVariables extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.prefer_function_declarations_over_variables;
 
   @override
   void registerNodeProcessors(

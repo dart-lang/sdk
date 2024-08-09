@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Explicitly tear-off `call` methods when using an object as a Function.';
@@ -43,11 +44,6 @@ callIt(Callable().call);
 ''';
 
 class ImplicitCallTearoffs extends LintRule {
-  static const LintCode code = LintCode(
-      'implicit_call_tearoffs', "Implicit tear-off of the 'call' method.",
-      correctionMessage: "Try explicitly tearing off the 'call' method.",
-      hasPublishedDocs: true);
-
   ImplicitCallTearoffs()
       : super(
           name: 'implicit_call_tearoffs',
@@ -57,7 +53,7 @@ class ImplicitCallTearoffs extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.implicit_call_tearoffs;
 
   @override
   void registerNodeProcessors(

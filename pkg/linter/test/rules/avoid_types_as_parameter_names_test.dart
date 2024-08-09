@@ -40,4 +40,15 @@ class B extends A {
       lint(67, 6),
     ]);
   }
+
+  test_typeParameter_wildcard() async {
+    await assertDiagnostics(r'''
+class C<_> {
+  var _;
+  C.c(this._, _);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 19, 1),
+    ]);
+  }
 }

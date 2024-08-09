@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid returning `null` for `void`.';
 
@@ -42,14 +43,6 @@ Future<void> f2() async {
 ''';
 
 class AvoidReturningNullForVoid extends LintRule {
-  static const LintCode fromFunction = LintCode('avoid_returning_null_for_void',
-      "Don't return 'null' from a function with a return type of 'void'.",
-      correctionMessage: "Try removing the 'null'.");
-
-  static const LintCode fromMethod = LintCode('avoid_returning_null_for_void',
-      "Don't return 'null' from a method with a return type of 'void'.",
-      correctionMessage: "Try removing the 'null'.", hasPublishedDocs: true);
-
   AvoidReturningNullForVoid()
       : super(
             name: 'avoid_returning_null_for_void',
@@ -58,7 +51,10 @@ class AvoidReturningNullForVoid extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  List<LintCode> get lintCodes => [fromFunction, fromMethod];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.avoid_returning_null_for_void_from_function,
+        LinterLintCode.avoid_returning_null_for_void_from_method
+      ];
 
   @override
   void registerNodeProcessors(
@@ -101,11 +97,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent is FunctionExpression) {
       type = parent.declaredElement?.returnType;
       isAsync = parent.body.isAsynchronous;
-      code = AvoidReturningNullForVoid.fromFunction;
+      code = LinterLintCode.avoid_returning_null_for_void_from_function;
     } else if (parent is MethodDeclaration) {
       type = parent.declaredElement?.returnType;
       isAsync = parent.body.isAsynchronous;
-      code = AvoidReturningNullForVoid.fromMethod;
+      code = LinterLintCode.avoid_returning_null_for_void_from_method;
     } else {
       throw StateError('unexpected type');
     }

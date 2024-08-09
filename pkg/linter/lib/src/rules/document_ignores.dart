@@ -10,6 +10,7 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Document ignore comments.';
 
@@ -32,13 +33,6 @@ int _x = 1;
 ''';
 
 class DocumentIgnores extends LintRule {
-  static const LintCode code = LintCode(
-    'document_ignores',
-    'Missing documentation explaining why a diagnostic is ignored.',
-    correctionMessage:
-        'Try adding a comment immediately above the ignore comment.',
-  );
-
   DocumentIgnores()
       : super(
             name: 'document_ignores',
@@ -47,7 +41,7 @@ class DocumentIgnores extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.document_ignores;
 
   @override
   void registerNodeProcessors(

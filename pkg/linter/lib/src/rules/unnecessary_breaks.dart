@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't use explicit `break`s when a break is implied.";
 
@@ -61,10 +62,6 @@ of 3.0 or greater. Explicit breaks are still required in Dart 2.19 and below.
 ''';
 
 class UnnecessaryBreaks extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_breaks', "Unnecessary 'break' statement.",
-      correctionMessage: "Try removing the 'break'.");
-
   UnnecessaryBreaks()
       : super(
             name: 'unnecessary_breaks',
@@ -73,7 +70,7 @@ class UnnecessaryBreaks extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_breaks;
 
   @override
   void registerNodeProcessors(

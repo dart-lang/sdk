@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer generic function type aliases.';
 
@@ -33,11 +34,6 @@ typedef F = void Function();
 ''';
 
 class PreferGenericFunctionTypeAliases extends LintRule {
-  static const LintCode code = LintCode('prefer_generic_function_type_aliases',
-      "Use the generic function type syntax in 'typedef's.",
-      correctionMessage: "Try using the generic function type syntax ('{0}').",
-      hasPublishedDocs: true);
-
   PreferGenericFunctionTypeAliases()
       : super(
             name: 'prefer_generic_function_type_aliases',
@@ -49,7 +45,7 @@ class PreferGenericFunctionTypeAliases extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_generic_function_type_aliases;
 
   @override
   void registerNodeProcessors(

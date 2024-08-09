@@ -234,6 +234,12 @@ NamedType
     }
   }
 
+  @SkippedTest(reason: r'''
+We use library fragment scopes now.
+And we will remove support for library augmentations.
+We keep this test for now as a reference.
+Later we will decide if we want to adapt it into enhanced parts. 
+''')
   test_namespace_import_libraryImports() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't create a lambda when a tear-off will do.";
@@ -34,10 +35,6 @@ Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
 class UnnecessaryLambdas extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_lambdas', 'Closure should be a tearoff.',
-      correctionMessage: 'Try using a tearoff rather than a closure.');
-
   UnnecessaryLambdas()
       : super(
             name: 'unnecessary_lambdas',
@@ -46,7 +43,7 @@ class UnnecessaryLambdas extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_lambdas;
 
   @override
   void registerNodeProcessors(

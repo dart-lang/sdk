@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:meta/meta_meta.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Attach library annotations to library directives.';
 
@@ -42,11 +43,6 @@ provide a name in the `library` directive.
 ''';
 
 class LibraryAnnotations extends LintRule {
-  static const LintCode code = LintCode('library_annotations',
-      'This annotation must be attached to a library directive.',
-      correctionMessage:
-          'Try attaching library annotations to library directives.');
-
   LibraryAnnotations()
       : super(
             name: 'library_annotations',
@@ -55,7 +51,7 @@ class LibraryAnnotations extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.library_annotations;
 
   @override
   void registerNodeProcessors(

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer using mixins.';
 
@@ -32,10 +33,6 @@ class C with M {}
 ''';
 
 class PreferMixin extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_mixin', 'Only mixins should be mixed in.',
-      correctionMessage: "Try converting '{0}' to a mixin.");
-
   PreferMixin()
       : super(
             name: 'prefer_mixin',
@@ -47,7 +44,7 @@ class PreferMixin extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_mixin;
 
   @override
   void registerNodeProcessors(

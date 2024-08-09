@@ -90,11 +90,6 @@ dynamic _createSpecificObject(
   }
 }
 
-void _setIfNotNull(Map<String, dynamic> json, String key, Object? value) {
-  if (value == null) return;
-  json[key] = value;
-}
-
 Future<T> extensionCallHelper<T>(
     VmService service, String method, Map<String, dynamic> args) {
   return service._call(method, args);
@@ -2048,16 +2043,11 @@ class RPCError implements Exception {
 
   /// Return a map representation of this error suitable for conversion to
   /// json.
-  Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
-      'code': code,
-      'message': message,
-    };
-    if (data != null) {
-      map['data'] = data;
-    }
-    return map;
-  }
+  Map<String, dynamic> toMap() => <String, Object?>{
+        'code': code,
+        'message': message,
+        if (data != null) 'data': data,
+      };
 
   @override
   String toString() {
@@ -2490,17 +2480,15 @@ class AllocationProfile extends Response {
   String get type => 'AllocationProfile';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'members': members?.map((f) => f.toJson()).toList(),
-      'memoryUsage': memoryUsage?.toJson(),
-    });
-    _setIfNotNull(json, 'dateLastAccumulatorReset', dateLastAccumulatorReset);
-    _setIfNotNull(json, 'dateLastServiceGC', dateLastServiceGC);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'members': members?.map((f) => f.toJson()).toList(),
+        'memoryUsage': memoryUsage?.toJson(),
+        if (dateLastAccumulatorReset case final dateLastAccumulatorResetValue?)
+          'dateLastAccumulatorReset': dateLastAccumulatorResetValue,
+        if (dateLastServiceGC case final dateLastServiceGCValue?)
+          'dateLastServiceGC': dateLastServiceGCValue,
+      };
 
   @override
   String toString() =>
@@ -2544,15 +2532,11 @@ class BoundField {
             as dynamic;
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'decl': decl?.toJson(),
-      'name': name,
-      'value': value?.toJson(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'decl': decl?.toJson(),
+        'name': name,
+        'value': value?.toJson(),
+      };
 
   @override
   String toString() => '[BoundField decl: $decl, name: $name, value: $value]';
@@ -2605,18 +2589,14 @@ class BoundVariable extends Response {
   String get type => 'BoundVariable';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'value': value?.toJson(),
-      'declarationTokenPos': declarationTokenPos ?? -1,
-      'scopeStartTokenPos': scopeStartTokenPos ?? -1,
-      'scopeEndTokenPos': scopeEndTokenPos ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'name': name ?? '',
+        'value': value?.toJson(),
+        'declarationTokenPos': declarationTokenPos ?? -1,
+        'scopeStartTokenPos': scopeStartTokenPos ?? -1,
+        'scopeEndTokenPos': scopeEndTokenPos ?? -1,
+      };
 
   @override
   String toString() => '[BoundVariable ' //
@@ -2677,19 +2657,17 @@ class Breakpoint extends Obj {
   String get type => 'Breakpoint';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'breakpointNumber': breakpointNumber ?? -1,
-      'enabled': enabled ?? false,
-      'resolved': resolved ?? false,
-      'location': location?.toJson(),
-    });
-    _setIfNotNull(
-        json, 'isSyntheticAsyncContinuation', isSyntheticAsyncContinuation);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'breakpointNumber': breakpointNumber ?? -1,
+        'enabled': enabled ?? false,
+        'resolved': resolved ?? false,
+        'location': location?.toJson(),
+        if (isSyntheticAsyncContinuation
+            case final isSyntheticAsyncContinuationValue?)
+          'isSyntheticAsyncContinuation': isSyntheticAsyncContinuationValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -2751,18 +2729,17 @@ class ClassRef extends ObjRef {
   String get type => '@Class';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'library': library?.toJson(),
-    });
-    _setIfNotNull(json, 'location', location?.toJson());
-    _setIfNotNull(json, 'typeParameters',
-        typeParameters?.map((f) => f.toJson()).toList());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'library': library?.toJson(),
+        if (location?.toJson() case final locationValue?)
+          'location': locationValue,
+        if (typeParameters?.map((f) => f.toJson()).toList()
+            case final typeParametersValue?)
+          'typeParameters': typeParametersValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -2928,34 +2905,34 @@ class Class extends Obj implements ClassRef {
   String get type => 'Class';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'library': library?.toJson(),
-      'abstract': isAbstract ?? false,
-      'const': isConst ?? false,
-      'isSealed': isSealed ?? false,
-      'isMixinClass': isMixinClass ?? false,
-      'isBaseClass': isBaseClass ?? false,
-      'isInterfaceClass': isInterfaceClass ?? false,
-      'isFinal': isFinal ?? false,
-      'traceAllocations': traceAllocations ?? false,
-      'interfaces': interfaces?.map((f) => f.toJson()).toList(),
-      'fields': fields?.map((f) => f.toJson()).toList(),
-      'functions': functions?.map((f) => f.toJson()).toList(),
-      'subclasses': subclasses?.map((f) => f.toJson()).toList(),
-    });
-    _setIfNotNull(json, 'location', location?.toJson());
-    _setIfNotNull(json, 'typeParameters',
-        typeParameters?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'error', error?.toJson());
-    _setIfNotNull(json, 'super', superClass?.toJson());
-    _setIfNotNull(json, 'superType', superType?.toJson());
-    _setIfNotNull(json, 'mixin', mixin?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'library': library?.toJson(),
+        'abstract': isAbstract ?? false,
+        'const': isConst ?? false,
+        'isSealed': isSealed ?? false,
+        'isMixinClass': isMixinClass ?? false,
+        'isBaseClass': isBaseClass ?? false,
+        'isInterfaceClass': isInterfaceClass ?? false,
+        'isFinal': isFinal ?? false,
+        'traceAllocations': traceAllocations ?? false,
+        'interfaces': interfaces?.map((f) => f.toJson()).toList(),
+        'fields': fields?.map((f) => f.toJson()).toList(),
+        'functions': functions?.map((f) => f.toJson()).toList(),
+        'subclasses': subclasses?.map((f) => f.toJson()).toList(),
+        if (location?.toJson() case final locationValue?)
+          'location': locationValue,
+        if (typeParameters?.map((f) => f.toJson()).toList()
+            case final typeParametersValue?)
+          'typeParameters': typeParametersValue,
+        if (error?.toJson() case final errorValue?) 'error': errorValue,
+        if (superClass?.toJson() case final superValue?) 'super': superValue,
+        if (superType?.toJson() case final superTypeValue?)
+          'superType': superTypeValue,
+        if (mixin?.toJson() case final mixinValue?) 'mixin': mixinValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -3009,18 +2986,14 @@ class ClassHeapStats extends Response {
   String get type => 'ClassHeapStats';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'class': classRef?.toJson(),
-      'accumulatedSize': accumulatedSize ?? -1,
-      'bytesCurrent': bytesCurrent ?? -1,
-      'instancesAccumulated': instancesAccumulated ?? -1,
-      'instancesCurrent': instancesCurrent ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'class': classRef?.toJson(),
+        'accumulatedSize': accumulatedSize ?? -1,
+        'bytesCurrent': bytesCurrent ?? -1,
+        'instancesAccumulated': instancesAccumulated ?? -1,
+        'instancesCurrent': instancesCurrent ?? -1,
+      };
 
   @override
   String toString() => '[ClassHeapStats ' //
@@ -3048,14 +3021,10 @@ class ClassList extends Response {
   String get type => 'ClassList';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'classes': classes?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'classes': classes?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[ClassList classes: $classes]';
@@ -3096,16 +3065,14 @@ class CodeRef extends ObjRef {
   String get type => '@Code';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'kind': kind ?? '',
-    });
-    _setIfNotNull(json, 'function', function?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'kind': kind ?? '',
+        if (function?.toJson() case final functionValue?)
+          'function': functionValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -3155,16 +3122,14 @@ class Code extends Obj implements CodeRef {
   String get type => 'Code';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'kind': kind ?? '',
-    });
-    _setIfNotNull(json, 'function', function?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'kind': kind ?? '',
+        if (function?.toJson() case final functionValue?)
+          'function': functionValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -3198,14 +3163,11 @@ class ContextRef extends ObjRef {
   String get type => '@Context';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'length': length ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'length': length ?? -1,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -3257,16 +3219,13 @@ class Context extends Obj implements ContextRef {
   String get type => 'Context';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'length': length ?? -1,
-      'variables': variables?.map((f) => f.toJson()).toList(),
-    });
-    _setIfNotNull(json, 'parent', parent?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'length': length ?? -1,
+        'variables': variables?.map((f) => f.toJson()).toList(),
+        if (parent?.toJson() case final parentValue?) 'parent': parentValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -3296,13 +3255,9 @@ class ContextElement {
             as dynamic;
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'value': value?.toJson(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'value': value?.toJson(),
+      };
 
   @override
   String toString() => '[ContextElement value: $value]';
@@ -3372,21 +3327,17 @@ class CpuSamples extends Response {
   String get type => 'CpuSamples';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'samplePeriod': samplePeriod ?? -1,
-      'maxStackDepth': maxStackDepth ?? -1,
-      'sampleCount': sampleCount ?? -1,
-      'timeOriginMicros': timeOriginMicros ?? -1,
-      'timeExtentMicros': timeExtentMicros ?? -1,
-      'pid': pid ?? -1,
-      'functions': functions?.map((f) => f.toJson()).toList(),
-      'samples': samples?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'samplePeriod': samplePeriod ?? -1,
+        'maxStackDepth': maxStackDepth ?? -1,
+        'sampleCount': sampleCount ?? -1,
+        'timeOriginMicros': timeOriginMicros ?? -1,
+        'timeExtentMicros': timeExtentMicros ?? -1,
+        'pid': pid ?? -1,
+        'functions': functions?.map((f) => f.toJson()).toList(),
+        'samples': samples?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[CpuSamples ' //
@@ -3452,20 +3403,16 @@ class CpuSamplesEvent {
             []);
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'samplePeriod': samplePeriod ?? -1,
-      'maxStackDepth': maxStackDepth ?? -1,
-      'sampleCount': sampleCount ?? -1,
-      'timeOriginMicros': timeOriginMicros ?? -1,
-      'timeExtentMicros': timeExtentMicros ?? -1,
-      'pid': pid ?? -1,
-      'functions': functions?.map((f) => f.toJson()).toList(),
-      'samples': samples?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'samplePeriod': samplePeriod ?? -1,
+        'maxStackDepth': maxStackDepth ?? -1,
+        'sampleCount': sampleCount ?? -1,
+        'timeOriginMicros': timeOriginMicros ?? -1,
+        'timeExtentMicros': timeExtentMicros ?? -1,
+        'pid': pid ?? -1,
+        'functions': functions?.map((f) => f.toJson()).toList(),
+        'samples': samples?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[CpuSamplesEvent ' //
@@ -3543,20 +3490,17 @@ class CpuSample {
     classId = json['classId'];
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'tid': tid ?? -1,
-      'timestamp': timestamp ?? -1,
-      'stack': stack?.map((f) => f).toList(),
-    });
-    _setIfNotNull(json, 'vmTag', vmTag);
-    _setIfNotNull(json, 'userTag', userTag);
-    _setIfNotNull(json, 'truncated', truncated);
-    _setIfNotNull(json, 'identityHashCode', identityHashCode);
-    _setIfNotNull(json, 'classId', classId);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'tid': tid ?? -1,
+        'timestamp': timestamp ?? -1,
+        'stack': stack?.map((f) => f).toList(),
+        if (vmTag case final vmTagValue?) 'vmTag': vmTagValue,
+        if (userTag case final userTagValue?) 'userTag': userTagValue,
+        if (truncated case final truncatedValue?) 'truncated': truncatedValue,
+        if (identityHashCode case final identityHashCodeValue?)
+          'identityHashCode': identityHashCodeValue,
+        if (classId case final classIdValue?) 'classId': classIdValue,
+      };
 
   @override
   String toString() =>
@@ -3591,15 +3535,12 @@ class ErrorRef extends ObjRef {
   String get type => '@Error';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'kind': kind ?? '',
-      'message': message ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'kind': kind ?? '',
+        'message': message ?? '',
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -3658,17 +3599,16 @@ class Error extends Obj implements ErrorRef {
   String get type => 'Error';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'kind': kind ?? '',
-      'message': message ?? '',
-    });
-    _setIfNotNull(json, 'exception', exception?.toJson());
-    _setIfNotNull(json, 'stacktrace', stacktrace?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'kind': kind ?? '',
+        'message': message ?? '',
+        if (exception?.toJson() case final exceptionValue?)
+          'exception': exceptionValue,
+        if (stacktrace?.toJson() case final stacktraceValue?)
+          'stacktrace': stacktraceValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -3987,46 +3927,58 @@ class Event extends Response {
   String get type => 'Event';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'kind': kind ?? '',
-      'timestamp': timestamp ?? -1,
-    });
-    _setIfNotNull(json, 'isolateGroup', isolateGroup?.toJson());
-    _setIfNotNull(json, 'isolate', isolate?.toJson());
-    _setIfNotNull(json, 'vm', vm?.toJson());
-    _setIfNotNull(json, 'breakpoint', breakpoint?.toJson());
-    _setIfNotNull(json, 'pauseBreakpoints',
-        pauseBreakpoints?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'topFrame', topFrame?.toJson());
-    _setIfNotNull(json, 'exception', exception?.toJson());
-    _setIfNotNull(json, 'bytes', bytes);
-    _setIfNotNull(json, 'inspectee', inspectee?.toJson());
-    _setIfNotNull(json, 'gcType', gcType);
-    _setIfNotNull(json, 'extensionRPC', extensionRPC);
-    _setIfNotNull(json, 'extensionKind', extensionKind);
-    _setIfNotNull(json, 'extensionData', extensionData?.data);
-    _setIfNotNull(json, 'timelineEvents',
-        timelineEvents?.map((f) => f.toJson()).toList());
-    _setIfNotNull(
-        json, 'updatedStreams', updatedStreams?.map((f) => f).toList());
-    _setIfNotNull(json, 'atAsyncSuspension', atAsyncSuspension);
-    _setIfNotNull(json, 'status', status);
-    _setIfNotNull(json, 'logRecord', logRecord?.toJson());
-    _setIfNotNull(json, 'service', service);
-    _setIfNotNull(json, 'method', method);
-    _setIfNotNull(json, 'alias', alias);
-    _setIfNotNull(json, 'flag', flag);
-    _setIfNotNull(json, 'newValue', newValue);
-    _setIfNotNull(json, 'last', last);
-    _setIfNotNull(json, 'updatedTag', updatedTag);
-    _setIfNotNull(json, 'previousTag', previousTag);
-    _setIfNotNull(json, 'cpuSamples', cpuSamples?.toJson());
-    _setIfNotNull(json, 'data', data);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'kind': kind ?? '',
+        'timestamp': timestamp ?? -1,
+        if (isolateGroup?.toJson() case final isolateGroupValue?)
+          'isolateGroup': isolateGroupValue,
+        if (isolate?.toJson() case final isolateValue?) 'isolate': isolateValue,
+        if (vm?.toJson() case final vmValue?) 'vm': vmValue,
+        if (breakpoint?.toJson() case final breakpointValue?)
+          'breakpoint': breakpointValue,
+        if (pauseBreakpoints?.map((f) => f.toJson()).toList()
+            case final pauseBreakpointsValue?)
+          'pauseBreakpoints': pauseBreakpointsValue,
+        if (topFrame?.toJson() case final topFrameValue?)
+          'topFrame': topFrameValue,
+        if (exception?.toJson() case final exceptionValue?)
+          'exception': exceptionValue,
+        if (bytes case final bytesValue?) 'bytes': bytesValue,
+        if (inspectee?.toJson() case final inspecteeValue?)
+          'inspectee': inspecteeValue,
+        if (gcType case final gcTypeValue?) 'gcType': gcTypeValue,
+        if (extensionRPC case final extensionRPCValue?)
+          'extensionRPC': extensionRPCValue,
+        if (extensionKind case final extensionKindValue?)
+          'extensionKind': extensionKindValue,
+        if (extensionData?.data case final extensionDataValue?)
+          'extensionData': extensionDataValue,
+        if (timelineEvents?.map((f) => f.toJson()).toList()
+            case final timelineEventsValue?)
+          'timelineEvents': timelineEventsValue,
+        if (updatedStreams?.map((f) => f).toList()
+            case final updatedStreamsValue?)
+          'updatedStreams': updatedStreamsValue,
+        if (atAsyncSuspension case final atAsyncSuspensionValue?)
+          'atAsyncSuspension': atAsyncSuspensionValue,
+        if (status case final statusValue?) 'status': statusValue,
+        if (logRecord?.toJson() case final logRecordValue?)
+          'logRecord': logRecordValue,
+        if (service case final serviceValue?) 'service': serviceValue,
+        if (method case final methodValue?) 'method': methodValue,
+        if (alias case final aliasValue?) 'alias': aliasValue,
+        if (flag case final flagValue?) 'flag': flagValue,
+        if (newValue case final newValueValue?) 'newValue': newValueValue,
+        if (last case final lastValue?) 'last': lastValue,
+        if (updatedTag case final updatedTagValue?)
+          'updatedTag': updatedTagValue,
+        if (previousTag case final previousTagValue?)
+          'previousTag': previousTagValue,
+        if (cpuSamples?.toJson() case final cpuSamplesValue?)
+          'cpuSamples': cpuSamplesValue,
+        if (data case final dataValue?) 'data': dataValue,
+      };
 
   @override
   String toString() => '[Event kind: $kind, timestamp: $timestamp]';
@@ -4098,20 +4050,18 @@ class FieldRef extends ObjRef {
   String get type => '@Field';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'owner': owner?.toJson(),
-      'declaredType': declaredType?.toJson(),
-      'const': isConst ?? false,
-      'final': isFinal ?? false,
-      'static': isStatic ?? false,
-    });
-    _setIfNotNull(json, 'location', location?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'owner': owner?.toJson(),
+        'declaredType': declaredType?.toJson(),
+        'const': isConst ?? false,
+        'final': isFinal ?? false,
+        'static': isStatic ?? false,
+        if (location?.toJson() case final locationValue?)
+          'location': locationValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -4208,21 +4158,20 @@ class Field extends Obj implements FieldRef {
   String get type => 'Field';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'owner': owner?.toJson(),
-      'declaredType': declaredType?.toJson(),
-      'const': isConst ?? false,
-      'final': isFinal ?? false,
-      'static': isStatic ?? false,
-    });
-    _setIfNotNull(json, 'location', location?.toJson());
-    _setIfNotNull(json, 'staticValue', staticValue?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'owner': owner?.toJson(),
+        'declaredType': declaredType?.toJson(),
+        'const': isConst ?? false,
+        'final': isFinal ?? false,
+        'static': isStatic ?? false,
+        if (location?.toJson() case final locationValue?)
+          'location': locationValue,
+        if (staticValue?.toJson() case final staticValueValue?)
+          'staticValue': staticValueValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -4270,16 +4219,13 @@ class Flag {
     valueAsString = json['valueAsString'];
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'name': name ?? '',
-      'comment': comment ?? '',
-      'modified': modified ?? false,
-    });
-    _setIfNotNull(json, 'valueAsString', valueAsString);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'name': name ?? '',
+        'comment': comment ?? '',
+        'modified': modified ?? false,
+        if (valueAsString case final valueAsStringValue?)
+          'valueAsString': valueAsStringValue,
+      };
 
   @override
   String toString() =>
@@ -4307,14 +4253,10 @@ class FlagList extends Response {
   String get type => 'FlagList';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'flags': flags?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'flags': flags?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[FlagList flags: $flags]';
@@ -4369,19 +4311,18 @@ class Frame extends Response {
   String get type => 'Frame';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'index': index ?? -1,
-    });
-    _setIfNotNull(json, 'function', function?.toJson());
-    _setIfNotNull(json, 'code', code?.toJson());
-    _setIfNotNull(json, 'location', location?.toJson());
-    _setIfNotNull(json, 'vars', vars?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'kind', kind);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'index': index ?? -1,
+        if (function?.toJson() case final functionValue?)
+          'function': functionValue,
+        if (code?.toJson() case final codeValue?) 'code': codeValue,
+        if (location?.toJson() case final locationValue?)
+          'location': locationValue,
+        if (vars?.map((f) => f.toJson()).toList() case final varsValue?)
+          'vars': varsValue,
+        if (kind case final kindValue?) 'kind': kindValue,
+      };
 
   @override
   String toString() => '[Frame index: $index]';
@@ -4463,22 +4404,20 @@ class FuncRef extends ObjRef {
   String get type => '@Function';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'owner': owner?.toJson(),
-      'static': isStatic ?? false,
-      'const': isConst ?? false,
-      'implicit': implicit ?? false,
-      'abstract': isAbstract ?? false,
-      'isGetter': isGetter ?? false,
-      'isSetter': isSetter ?? false,
-    });
-    _setIfNotNull(json, 'location', location?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'owner': owner?.toJson(),
+        'static': isStatic ?? false,
+        'const': isConst ?? false,
+        'implicit': implicit ?? false,
+        'abstract': isAbstract ?? false,
+        'isGetter': isGetter ?? false,
+        'isSetter': isSetter ?? false,
+        if (location?.toJson() case final locationValue?)
+          'location': locationValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -4587,24 +4526,22 @@ class Func extends Obj implements FuncRef {
   String get type => 'Function';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'owner': owner?.toJson(),
-      'static': isStatic ?? false,
-      'const': isConst ?? false,
-      'implicit': implicit ?? false,
-      'abstract': isAbstract ?? false,
-      'isGetter': isGetter ?? false,
-      'isSetter': isSetter ?? false,
-      'signature': signature?.toJson(),
-    });
-    _setIfNotNull(json, 'location', location?.toJson());
-    _setIfNotNull(json, 'code', code?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'owner': owner?.toJson(),
+        'static': isStatic ?? false,
+        'const': isConst ?? false,
+        'implicit': implicit ?? false,
+        'abstract': isAbstract ?? false,
+        'isGetter': isGetter ?? false,
+        'isSetter': isSetter ?? false,
+        'signature': signature?.toJson(),
+        if (location?.toJson() case final locationValue?)
+          'location': locationValue,
+        if (code?.toJson() case final codeValue?) 'code': codeValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -4858,35 +4795,43 @@ class InstanceRef extends ObjRef {
   String get type => '@Instance';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'kind': kind ?? '',
-      'identityHashCode': identityHashCode ?? -1,
-      'class': classRef?.toJson(),
-    });
-    _setIfNotNull(json, 'valueAsString', valueAsString);
-    _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
-    _setIfNotNull(json, 'length', length);
-    _setIfNotNull(json, 'name', name);
-    _setIfNotNull(json, 'typeClass', typeClass?.toJson());
-    _setIfNotNull(json, 'parameterizedClass', parameterizedClass?.toJson());
-    _setIfNotNull(json, 'returnType', returnType?.toJson());
-    _setIfNotNull(
-        json, 'parameters', parameters?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'typeParameters',
-        typeParameters?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'pattern', pattern?.toJson());
-    _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
-    _setIfNotNull(json, 'closureContext', closureContext?.toJson());
-    _setIfNotNull(json, 'closureReceiver', closureReceiver?.toJson());
-    _setIfNotNull(json, 'portId', portId);
-    _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
-    _setIfNotNull(json, 'debugName', debugName);
-    _setIfNotNull(json, 'label', label);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'kind': kind ?? '',
+        'identityHashCode': identityHashCode ?? -1,
+        'class': classRef?.toJson(),
+        if (valueAsString case final valueAsStringValue?)
+          'valueAsString': valueAsStringValue,
+        if (valueAsStringIsTruncated case final valueAsStringIsTruncatedValue?)
+          'valueAsStringIsTruncated': valueAsStringIsTruncatedValue,
+        if (length case final lengthValue?) 'length': lengthValue,
+        if (name case final nameValue?) 'name': nameValue,
+        if (typeClass?.toJson() case final typeClassValue?)
+          'typeClass': typeClassValue,
+        if (parameterizedClass?.toJson() case final parameterizedClassValue?)
+          'parameterizedClass': parameterizedClassValue,
+        if (returnType?.toJson() case final returnTypeValue?)
+          'returnType': returnTypeValue,
+        if (parameters?.map((f) => f.toJson()).toList()
+            case final parametersValue?)
+          'parameters': parametersValue,
+        if (typeParameters?.map((f) => f.toJson()).toList()
+            case final typeParametersValue?)
+          'typeParameters': typeParametersValue,
+        if (pattern?.toJson() case final patternValue?) 'pattern': patternValue,
+        if (closureFunction?.toJson() case final closureFunctionValue?)
+          'closureFunction': closureFunctionValue,
+        if (closureContext?.toJson() case final closureContextValue?)
+          'closureContext': closureContextValue,
+        if (closureReceiver?.toJson() case final closureReceiverValue?)
+          'closureReceiver': closureReceiverValue,
+        if (portId case final portIdValue?) 'portId': portIdValue,
+        if (allocationLocation?.toJson() case final allocationLocationValue?)
+          'allocationLocation': allocationLocationValue,
+        if (debugName case final debugNameValue?) 'debugName': debugNameValue,
+        if (label case final labelValue?) 'label': labelValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -5442,58 +5387,80 @@ class Instance extends Obj implements InstanceRef {
   String get type => 'Instance';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'kind': kind ?? '',
-      'identityHashCode': identityHashCode ?? -1,
-      'class': classRef?.toJson(),
-    });
-    _setIfNotNull(json, 'valueAsString', valueAsString);
-    _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
-    _setIfNotNull(json, 'length', length);
-    _setIfNotNull(json, 'offset', offset);
-    _setIfNotNull(json, 'count', count);
-    _setIfNotNull(json, 'name', name);
-    _setIfNotNull(json, 'typeClass', typeClass?.toJson());
-    _setIfNotNull(json, 'parameterizedClass', parameterizedClass?.toJson());
-    _setIfNotNull(json, 'returnType', returnType?.toJson());
-    _setIfNotNull(
-        json, 'parameters', parameters?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'typeParameters',
-        typeParameters?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'fields', fields?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'elements', elements?.map((f) => f.toJson()).toList());
-    _setIfNotNull(
-        json, 'associations', associations?.map((f) => f.toJson()).toList());
-    _setIfNotNull(json, 'bytes', bytes);
-    _setIfNotNull(json, 'mirrorReferent', mirrorReferent?.toJson());
-    _setIfNotNull(json, 'pattern', pattern?.toJson());
-    _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
-    _setIfNotNull(json, 'closureContext', closureContext?.toJson());
-    _setIfNotNull(json, 'closureReceiver', closureReceiver?.toJson());
-    _setIfNotNull(json, 'isCaseSensitive', isCaseSensitive);
-    _setIfNotNull(json, 'isMultiLine', isMultiLine);
-    _setIfNotNull(json, 'propertyKey', propertyKey?.toJson());
-    _setIfNotNull(json, 'propertyValue', propertyValue?.toJson());
-    _setIfNotNull(json, 'target', target?.toJson());
-    _setIfNotNull(json, 'typeArguments', typeArguments?.toJson());
-    _setIfNotNull(json, 'parameterIndex', parameterIndex);
-    _setIfNotNull(json, 'targetType', targetType?.toJson());
-    _setIfNotNull(json, 'bound', bound?.toJson());
-    _setIfNotNull(json, 'portId', portId);
-    _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
-    _setIfNotNull(json, 'debugName', debugName);
-    _setIfNotNull(json, 'label', label);
-    _setIfNotNull(json, 'callback', callback?.toJson());
-    _setIfNotNull(json, 'callbackAddress', callbackAddress?.toJson());
-    _setIfNotNull(json, 'allEntries', allEntries?.toJson());
-    _setIfNotNull(json, 'value', value?.toJson());
-    _setIfNotNull(json, 'token', token?.toJson());
-    _setIfNotNull(json, 'detach', detach?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'kind': kind ?? '',
+        'identityHashCode': identityHashCode ?? -1,
+        'class': classRef?.toJson(),
+        if (valueAsString case final valueAsStringValue?)
+          'valueAsString': valueAsStringValue,
+        if (valueAsStringIsTruncated case final valueAsStringIsTruncatedValue?)
+          'valueAsStringIsTruncated': valueAsStringIsTruncatedValue,
+        if (length case final lengthValue?) 'length': lengthValue,
+        if (offset case final offsetValue?) 'offset': offsetValue,
+        if (count case final countValue?) 'count': countValue,
+        if (name case final nameValue?) 'name': nameValue,
+        if (typeClass?.toJson() case final typeClassValue?)
+          'typeClass': typeClassValue,
+        if (parameterizedClass?.toJson() case final parameterizedClassValue?)
+          'parameterizedClass': parameterizedClassValue,
+        if (returnType?.toJson() case final returnTypeValue?)
+          'returnType': returnTypeValue,
+        if (parameters?.map((f) => f.toJson()).toList()
+            case final parametersValue?)
+          'parameters': parametersValue,
+        if (typeParameters?.map((f) => f.toJson()).toList()
+            case final typeParametersValue?)
+          'typeParameters': typeParametersValue,
+        if (fields?.map((f) => f.toJson()).toList() case final fieldsValue?)
+          'fields': fieldsValue,
+        if (elements?.map((f) => f.toJson()).toList() case final elementsValue?)
+          'elements': elementsValue,
+        if (associations?.map((f) => f.toJson()).toList()
+            case final associationsValue?)
+          'associations': associationsValue,
+        if (bytes case final bytesValue?) 'bytes': bytesValue,
+        if (mirrorReferent?.toJson() case final mirrorReferentValue?)
+          'mirrorReferent': mirrorReferentValue,
+        if (pattern?.toJson() case final patternValue?) 'pattern': patternValue,
+        if (closureFunction?.toJson() case final closureFunctionValue?)
+          'closureFunction': closureFunctionValue,
+        if (closureContext?.toJson() case final closureContextValue?)
+          'closureContext': closureContextValue,
+        if (closureReceiver?.toJson() case final closureReceiverValue?)
+          'closureReceiver': closureReceiverValue,
+        if (isCaseSensitive case final isCaseSensitiveValue?)
+          'isCaseSensitive': isCaseSensitiveValue,
+        if (isMultiLine case final isMultiLineValue?)
+          'isMultiLine': isMultiLineValue,
+        if (propertyKey?.toJson() case final propertyKeyValue?)
+          'propertyKey': propertyKeyValue,
+        if (propertyValue?.toJson() case final propertyValueValue?)
+          'propertyValue': propertyValueValue,
+        if (target?.toJson() case final targetValue?) 'target': targetValue,
+        if (typeArguments?.toJson() case final typeArgumentsValue?)
+          'typeArguments': typeArgumentsValue,
+        if (parameterIndex case final parameterIndexValue?)
+          'parameterIndex': parameterIndexValue,
+        if (targetType?.toJson() case final targetTypeValue?)
+          'targetType': targetTypeValue,
+        if (bound?.toJson() case final boundValue?) 'bound': boundValue,
+        if (portId case final portIdValue?) 'portId': portIdValue,
+        if (allocationLocation?.toJson() case final allocationLocationValue?)
+          'allocationLocation': allocationLocationValue,
+        if (debugName case final debugNameValue?) 'debugName': debugNameValue,
+        if (label case final labelValue?) 'label': labelValue,
+        if (callback?.toJson() case final callbackValue?)
+          'callback': callbackValue,
+        if (callbackAddress?.toJson() case final callbackAddressValue?)
+          'callbackAddress': callbackAddressValue,
+        if (allEntries?.toJson() case final allEntriesValue?)
+          'allEntries': allEntriesValue,
+        if (value?.toJson() case final valueValue?) 'value': valueValue,
+        if (token?.toJson() case final tokenValue?) 'token': tokenValue,
+        if (detach?.toJson() case final detachValue?) 'detach': detachValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -5548,18 +5515,14 @@ class IsolateRef extends Response {
   String get type => '@Isolate';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'id': id ?? '',
-      'number': number ?? '',
-      'name': name ?? '',
-      'isSystemIsolate': isSystemIsolate ?? false,
-      'isolateGroupId': isolateGroupId ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'id': id ?? '',
+        'number': number ?? '',
+        'name': name ?? '',
+        'isSystemIsolate': isSystemIsolate ?? false,
+        'isolateGroupId': isolateGroupId ?? '',
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -5703,30 +5666,28 @@ class Isolate extends Response implements IsolateRef {
   String get type => 'Isolate';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'id': id ?? '',
-      'number': number ?? '',
-      'name': name ?? '',
-      'isSystemIsolate': isSystemIsolate ?? false,
-      'isolateGroupId': isolateGroupId ?? '',
-      'isolateFlags': isolateFlags?.map((f) => f.toJson()).toList(),
-      'startTime': startTime ?? -1,
-      'runnable': runnable ?? false,
-      'livePorts': livePorts ?? -1,
-      'pauseOnExit': pauseOnExit ?? false,
-      'pauseEvent': pauseEvent?.toJson(),
-      'libraries': libraries?.map((f) => f.toJson()).toList(),
-      'breakpoints': breakpoints?.map((f) => f.toJson()).toList(),
-      'exceptionPauseMode': exceptionPauseMode ?? '',
-    });
-    _setIfNotNull(json, 'rootLib', rootLib?.toJson());
-    _setIfNotNull(json, 'error', error?.toJson());
-    _setIfNotNull(json, 'extensionRPCs', extensionRPCs?.map((f) => f).toList());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'id': id ?? '',
+        'number': number ?? '',
+        'name': name ?? '',
+        'isSystemIsolate': isSystemIsolate ?? false,
+        'isolateGroupId': isolateGroupId ?? '',
+        'isolateFlags': isolateFlags?.map((f) => f.toJson()).toList(),
+        'startTime': startTime ?? -1,
+        'runnable': runnable ?? false,
+        'livePorts': livePorts ?? -1,
+        'pauseOnExit': pauseOnExit ?? false,
+        'pauseEvent': pauseEvent?.toJson(),
+        'libraries': libraries?.map((f) => f.toJson()).toList(),
+        'breakpoints': breakpoints?.map((f) => f.toJson()).toList(),
+        'exceptionPauseMode': exceptionPauseMode ?? '',
+        if (rootLib?.toJson() case final rootLibValue?) 'rootLib': rootLibValue,
+        if (error?.toJson() case final errorValue?) 'error': errorValue,
+        if (extensionRPCs?.map((f) => f).toList()
+            case final extensionRPCsValue?)
+          'extensionRPCs': extensionRPCsValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -5759,14 +5720,10 @@ class IsolateFlag {
     valueAsString = json['valueAsString'] ?? '';
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'name': name ?? '',
-      'valueAsString': valueAsString ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'name': name ?? '',
+        'valueAsString': valueAsString ?? '',
+      };
 
   @override
   String toString() =>
@@ -5810,17 +5767,13 @@ class IsolateGroupRef extends Response {
   String get type => '@IsolateGroup';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'id': id ?? '',
-      'number': number ?? '',
-      'name': name ?? '',
-      'isSystemIsolateGroup': isSystemIsolateGroup ?? false,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'id': id ?? '',
+        'number': number ?? '',
+        'name': name ?? '',
+        'isSystemIsolateGroup': isSystemIsolateGroup ?? false,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -5881,18 +5834,14 @@ class IsolateGroup extends Response implements IsolateGroupRef {
   String get type => 'IsolateGroup';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'id': id ?? '',
-      'number': number ?? '',
-      'name': name ?? '',
-      'isSystemIsolateGroup': isSystemIsolateGroup ?? false,
-      'isolates': isolates?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'id': id ?? '',
+        'number': number ?? '',
+        'name': name ?? '',
+        'isSystemIsolateGroup': isSystemIsolateGroup ?? false,
+        'isolates': isolates?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -5930,14 +5879,10 @@ class InboundReferences extends Response {
   String get type => 'InboundReferences';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'references': references?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'references': references?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[InboundReferences references: $references]';
@@ -5983,20 +5928,16 @@ class InboundReference {
         json['parentField'], const ['FieldRef', 'String', 'int']) as dynamic;
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'source': source?.toJson(),
-    });
-    _setIfNotNull(json, 'parentListIndex', parentListIndex);
-    _setIfNotNull(
-        json,
-        'parentField',
-        parentField is String || parentField is int
-            ? parentField
-            : parentField?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'source': source?.toJson(),
+        if (parentListIndex case final parentListIndexValue?)
+          'parentListIndex': parentListIndexValue,
+        if (parentField is String || parentField is int
+                ? parentField
+                : parentField?.toJson()
+            case final parentFieldValue?)
+          'parentField': parentFieldValue,
+      };
 
   @override
   String toString() => '[InboundReference source: $source]';
@@ -6029,15 +5970,11 @@ class InstanceSet extends Response {
   String get type => 'InstanceSet';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'totalCount': totalCount ?? -1,
-      'instances': instances?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'totalCount': totalCount ?? -1,
+        'instances': instances?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() =>
@@ -6072,15 +6009,12 @@ class LibraryRef extends ObjRef {
   String get type => '@Library';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'uri': uri ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'uri': uri ?? '',
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -6163,21 +6097,18 @@ class Library extends Obj implements LibraryRef {
   String get type => 'Library';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'uri': uri ?? '',
-      'debuggable': debuggable ?? false,
-      'dependencies': dependencies?.map((f) => f.toJson()).toList(),
-      'scripts': scripts?.map((f) => f.toJson()).toList(),
-      'variables': variables?.map((f) => f.toJson()).toList(),
-      'functions': functions?.map((f) => f.toJson()).toList(),
-      'classes': classes?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'uri': uri ?? '',
+        'debuggable': debuggable ?? false,
+        'dependencies': dependencies?.map((f) => f.toJson()).toList(),
+        'scripts': scripts?.map((f) => f.toJson()).toList(),
+        'variables': variables?.map((f) => f.toJson()).toList(),
+        'functions': functions?.map((f) => f.toJson()).toList(),
+        'classes': classes?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -6233,18 +6164,16 @@ class LibraryDependency {
     hides = json['hides'] == null ? null : List<String>.from(json['hides']);
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'isImport': isImport ?? false,
-      'isDeferred': isDeferred ?? false,
-      'prefix': prefix ?? '',
-      'target': target?.toJson(),
-    });
-    _setIfNotNull(json, 'shows', shows?.map((f) => f).toList());
-    _setIfNotNull(json, 'hides', hides?.map((f) => f).toList());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'isImport': isImport ?? false,
+        'isDeferred': isDeferred ?? false,
+        'prefix': prefix ?? '',
+        'target': target?.toJson(),
+        if (shows?.map((f) => f).toList() case final showsValue?)
+          'shows': showsValue,
+        if (hides?.map((f) => f).toList() case final hidesValue?)
+          'hides': hidesValue,
+      };
 
   @override
   String toString() => '[LibraryDependency ' //
@@ -6314,21 +6243,17 @@ class LogRecord extends Response {
   String get type => 'LogRecord';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'message': message?.toJson(),
-      'time': time ?? -1,
-      'level': level ?? -1,
-      'sequenceNumber': sequenceNumber ?? -1,
-      'loggerName': loggerName?.toJson(),
-      'zone': zone?.toJson(),
-      'error': error?.toJson(),
-      'stackTrace': stackTrace?.toJson(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'message': message?.toJson(),
+        'time': time ?? -1,
+        'level': level ?? -1,
+        'sequenceNumber': sequenceNumber ?? -1,
+        'loggerName': loggerName?.toJson(),
+        'zone': zone?.toJson(),
+        'error': error?.toJson(),
+        'stackTrace': stackTrace?.toJson(),
+      };
 
   @override
   String toString() => '[LogRecord ' //
@@ -6359,14 +6284,10 @@ class MapAssociation {
             as dynamic;
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'key': key?.toJson(),
-      'value': value?.toJson(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'key': key?.toJson(),
+        'value': value?.toJson(),
+      };
 
   @override
   String toString() => '[MapAssociation key: $key, value: $value]';
@@ -6410,16 +6331,12 @@ class MemoryUsage extends Response {
   String get type => 'MemoryUsage';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'externalUsage': externalUsage ?? -1,
-      'heapCapacity': heapCapacity ?? -1,
-      'heapUsage': heapUsage ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'externalUsage': externalUsage ?? -1,
+        'heapCapacity': heapCapacity ?? -1,
+        'heapUsage': heapUsage ?? -1,
+      };
 
   @override
   String toString() => '[MemoryUsage ' //
@@ -6479,19 +6396,16 @@ class Message extends Response {
   String get type => 'Message';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'index': index ?? -1,
-      'name': name ?? '',
-      'messageObjectId': messageObjectId ?? '',
-      'size': size ?? -1,
-    });
-    _setIfNotNull(json, 'handler', handler?.toJson());
-    _setIfNotNull(json, 'location', location?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'index': index ?? -1,
+        'name': name ?? '',
+        'messageObjectId': messageObjectId ?? '',
+        'size': size ?? -1,
+        if (handler?.toJson() case final handlerValue?) 'handler': handlerValue,
+        if (location?.toJson() case final locationValue?)
+          'location': locationValue,
+      };
 
   @override
   String toString() => '[Message ' //
@@ -6516,13 +6430,9 @@ class NativeFunction {
     name = json['name'] ?? '';
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'name': name ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'name': name ?? '',
+      };
 
   @override
   String toString() => '[NativeFunction name: $name]';
@@ -6562,14 +6472,11 @@ class NullValRef extends InstanceRef {
   String get type => '@Null';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'valueAsString': valueAsString ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'valueAsString': valueAsString ?? '',
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -6617,14 +6524,11 @@ class NullVal extends Instance implements NullValRef {
   String get type => 'Null';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'valueAsString': valueAsString ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'valueAsString': valueAsString ?? '',
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -6667,15 +6571,11 @@ class ObjRef extends Response {
   String get type => '@Object';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'id': id ?? '',
-    });
-    _setIfNotNull(json, 'fixedId', fixedId);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'id': id ?? '',
+        if (fixedId case final fixedIdValue?) 'fixedId': fixedIdValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -6746,17 +6646,13 @@ class Obj extends Response implements ObjRef {
   String get type => 'Object';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'id': id ?? '',
-    });
-    _setIfNotNull(json, 'fixedId', fixedId);
-    _setIfNotNull(json, 'class', classRef?.toJson());
-    _setIfNotNull(json, 'size', size);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'id': id ?? '',
+        if (fixedId case final fixedIdValue?) 'fixedId': fixedIdValue,
+        if (classRef?.toJson() case final classValue?) 'class': classValue,
+        if (size case final sizeValue?) 'size': sizeValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -6805,16 +6701,12 @@ class Parameter {
     required = json['required'];
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'parameterType': parameterType?.toJson(),
-      'fixed': fixed ?? false,
-    });
-    _setIfNotNull(json, 'name', name);
-    _setIfNotNull(json, 'required', required);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'parameterType': parameterType?.toJson(),
+        'fixed': fixed ?? false,
+        if (name case final nameValue?) 'name': nameValue,
+        if (required case final requiredValue?) 'required': requiredValue,
+      };
 
   @override
   String toString() =>
@@ -6874,20 +6766,16 @@ class PerfettoCpuSamples extends Response {
   String get type => 'PerfettoCpuSamples';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'samplePeriod': samplePeriod ?? -1,
-      'maxStackDepth': maxStackDepth ?? -1,
-      'sampleCount': sampleCount ?? -1,
-      'timeOriginMicros': timeOriginMicros ?? -1,
-      'timeExtentMicros': timeExtentMicros ?? -1,
-      'pid': pid ?? -1,
-      'samples': samples ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'samplePeriod': samplePeriod ?? -1,
+        'maxStackDepth': maxStackDepth ?? -1,
+        'sampleCount': sampleCount ?? -1,
+        'timeOriginMicros': timeOriginMicros ?? -1,
+        'timeExtentMicros': timeExtentMicros ?? -1,
+        'pid': pid ?? -1,
+        'samples': samples ?? '',
+      };
 
   @override
   String toString() => '[PerfettoCpuSamples ' //
@@ -6927,16 +6815,12 @@ class PerfettoTimeline extends Response {
   String get type => 'PerfettoTimeline';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'trace': trace ?? '',
-      'timeOriginMicros': timeOriginMicros ?? -1,
-      'timeExtentMicros': timeExtentMicros ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'trace': trace ?? '',
+        'timeOriginMicros': timeOriginMicros ?? -1,
+        'timeExtentMicros': timeExtentMicros ?? -1,
+      };
 
   @override
   String toString() => '[PerfettoTimeline ' //
@@ -6966,14 +6850,10 @@ class PortList extends Response {
   String get type => 'PortList';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'ports': ports?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'ports': ports?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[PortList ports: $ports]';
@@ -7020,17 +6900,13 @@ class ProfileFunction {
         createServiceObject(json['function'], const ['dynamic']) as dynamic;
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'kind': kind ?? '',
-      'inclusiveTicks': inclusiveTicks ?? -1,
-      'exclusiveTicks': exclusiveTicks ?? -1,
-      'resolvedUrl': resolvedUrl ?? '',
-      'function': function?.toJson(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'kind': kind ?? '',
+        'inclusiveTicks': inclusiveTicks ?? -1,
+        'exclusiveTicks': exclusiveTicks ?? -1,
+        'resolvedUrl': resolvedUrl ?? '',
+        'function': function?.toJson(),
+      };
 
   @override
   String toString() => '[ProfileFunction ' //
@@ -7063,14 +6939,10 @@ class ProtocolList extends Response {
   String get type => 'ProtocolList';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'protocols': protocols?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'protocols': protocols?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[ProtocolList protocols: $protocols]';
@@ -7102,15 +6974,11 @@ class Protocol {
     minor = json['minor'] ?? -1;
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'protocolName': protocolName ?? '',
-      'major': major ?? -1,
-      'minor': minor ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'protocolName': protocolName ?? '',
+        'major': major ?? -1,
+        'minor': minor ?? -1,
+      };
 
   @override
   String toString() =>
@@ -7138,14 +7006,10 @@ class ProcessMemoryUsage extends Response {
   String get type => 'ProcessMemoryUsage';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'root': root?.toJson(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'root': root?.toJson(),
+      };
 
   @override
   String toString() => '[ProcessMemoryUsage root: $root]';
@@ -7185,16 +7049,12 @@ class ProcessMemoryItem {
             []);
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'name': name ?? '',
-      'description': description ?? '',
-      'size': size ?? -1,
-      'children': children?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'name': name ?? '',
+        'description': description ?? '',
+        'size': size ?? -1,
+        'children': children?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[ProcessMemoryItem ' //
@@ -7220,14 +7080,10 @@ class ReloadReport extends Response {
   String get type => 'ReloadReport';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'success': success ?? false,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'success': success ?? false,
+      };
 
   @override
   String toString() => '[ReloadReport success: $success]';
@@ -7277,16 +7133,15 @@ class RetainingObject {
             as dynamic;
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'value': value?.toJson(),
-    });
-    _setIfNotNull(json, 'parentListIndex', parentListIndex);
-    _setIfNotNull(json, 'parentMapKey', parentMapKey?.toJson());
-    _setIfNotNull(json, 'parentField', parentField);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'value': value?.toJson(),
+        if (parentListIndex case final parentListIndexValue?)
+          'parentListIndex': parentListIndexValue,
+        if (parentMapKey?.toJson() case final parentMapKeyValue?)
+          'parentMapKey': parentMapKeyValue,
+        if (parentField case final parentFieldValue?)
+          'parentField': parentFieldValue,
+      };
 
   @override
   String toString() => '[RetainingObject value: $value]';
@@ -7327,16 +7182,12 @@ class RetainingPath extends Response {
   String get type => 'RetainingPath';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'length': length ?? -1,
-      'gcRootType': gcRootType ?? '',
-      'elements': elements?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'length': length ?? -1,
+        'gcRootType': gcRootType ?? '',
+        'elements': elements?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[RetainingPath ' //
@@ -7358,14 +7209,10 @@ class Response {
 
   String get type => 'Response';
 
-  Map<String, dynamic> toJson() {
-    final localJson = json;
-    final result = localJson == null
-        ? <String, dynamic>{}
-        : Map<String, dynamic>.of(localJson);
-    result['type'] = type;
-    return result;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...?json,
+        'type': type,
+      };
 
   @override
   String toString() => '[Response]';
@@ -7399,15 +7246,11 @@ class Sentinel extends Response {
   String get type => 'Sentinel';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'kind': kind ?? '',
-      'valueAsString': valueAsString ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'kind': kind ?? '',
+        'valueAsString': valueAsString ?? '',
+      };
 
   @override
   String toString() => '[Sentinel kind: $kind, valueAsString: $valueAsString]';
@@ -7436,14 +7279,11 @@ class ScriptRef extends ObjRef {
   String get type => '@Script';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'uri': uri ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'uri': uri ?? '',
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -7569,20 +7409,20 @@ class Script extends Obj implements ScriptRef {
   String get type => 'Script';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'uri': uri ?? '',
-      'library': library?.toJson(),
-    });
-    _setIfNotNull(json, 'lineOffset', lineOffset);
-    _setIfNotNull(json, 'columnOffset', columnOffset);
-    _setIfNotNull(json, 'source', source);
-    _setIfNotNull(
-        json, 'tokenPosTable', tokenPosTable?.map((f) => f.toList()).toList());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'uri': uri ?? '',
+        'library': library?.toJson(),
+        if (lineOffset case final lineOffsetValue?)
+          'lineOffset': lineOffsetValue,
+        if (columnOffset case final columnOffsetValue?)
+          'columnOffset': columnOffsetValue,
+        if (source case final sourceValue?) 'source': sourceValue,
+        if (tokenPosTable?.map((f) => f.toList()).toList()
+            case final tokenPosTableValue?)
+          'tokenPosTable': tokenPosTableValue,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -7614,14 +7454,10 @@ class ScriptList extends Response {
   String get type => 'ScriptList';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'scripts': scripts?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'scripts': scripts?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[ScriptList scripts: $scripts]';
@@ -7674,18 +7510,15 @@ class SourceLocation extends Response {
   String get type => 'SourceLocation';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'script': script?.toJson(),
-      'tokenPos': tokenPos ?? -1,
-    });
-    _setIfNotNull(json, 'endTokenPos', endTokenPos);
-    _setIfNotNull(json, 'line', line);
-    _setIfNotNull(json, 'column', column);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'script': script?.toJson(),
+        'tokenPos': tokenPos ?? -1,
+        if (endTokenPos case final endTokenPosValue?)
+          'endTokenPos': endTokenPosValue,
+        if (line case final lineValue?) 'line': lineValue,
+        if (column case final columnValue?) 'column': columnValue,
+      };
 
   @override
   String toString() => '[SourceLocation script: $script, tokenPos: $tokenPos]';
@@ -7727,15 +7560,11 @@ class SourceReport extends Response {
   String get type => 'SourceReport';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'ranges': ranges?.map((f) => f.toJson()).toList(),
-      'scripts': scripts?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'ranges': ranges?.map((f) => f.toJson()).toList(),
+        'scripts': scripts?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[SourceReport ranges: $ranges, scripts: $scripts]';
@@ -7768,14 +7597,10 @@ class SourceReportCoverage {
     misses = List<int>.from(json['misses']);
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'hits': hits?.map((f) => f).toList(),
-      'misses': misses?.map((f) => f).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'hits': hits?.map((f) => f).toList(),
+        'misses': misses?.map((f) => f).toList(),
+      };
 
   @override
   String toString() => '[SourceReportCoverage hits: $hits, misses: $misses]';
@@ -7853,21 +7678,20 @@ class SourceReportRange {
         as SourceReportCoverage?;
   }
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json.addAll({
-      'scriptIndex': scriptIndex ?? -1,
-      'startPos': startPos ?? -1,
-      'endPos': endPos ?? -1,
-      'compiled': compiled ?? false,
-    });
-    _setIfNotNull(json, 'error', error?.toJson());
-    _setIfNotNull(json, 'coverage', coverage?.toJson());
-    _setIfNotNull(json, 'possibleBreakpoints',
-        possibleBreakpoints?.map((f) => f).toList());
-    _setIfNotNull(json, 'branchCoverage', branchCoverage?.toJson());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'scriptIndex': scriptIndex ?? -1,
+        'startPos': startPos ?? -1,
+        'endPos': endPos ?? -1,
+        'compiled': compiled ?? false,
+        if (error?.toJson() case final errorValue?) 'error': errorValue,
+        if (coverage?.toJson() case final coverageValue?)
+          'coverage': coverageValue,
+        if (possibleBreakpoints?.map((f) => f).toList()
+            case final possibleBreakpointsValue?)
+          'possibleBreakpoints': possibleBreakpointsValue,
+        if (branchCoverage?.toJson() case final branchCoverageValue?)
+          'branchCoverage': branchCoverageValue,
+      };
 
   @override
   String toString() => '[SourceReportRange ' //
@@ -7951,20 +7775,18 @@ class Stack extends Response {
   String get type => 'Stack';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'frames': frames?.map((f) => f.toJson()).toList(),
-      'messages': messages?.map((f) => f.toJson()).toList(),
-      'truncated': truncated ?? false,
-    });
-    _setIfNotNull(json, 'asyncCausalFrames',
-        asyncCausalFrames?.map((f) => f.toJson()).toList());
-    _setIfNotNull(
-        json, 'awaiterFrames', awaiterFrames?.map((f) => f.toJson()).toList());
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'frames': frames?.map((f) => f.toJson()).toList(),
+        'messages': messages?.map((f) => f.toJson()).toList(),
+        'truncated': truncated ?? false,
+        if (asyncCausalFrames?.map((f) => f.toJson()).toList()
+            case final asyncCausalFramesValue?)
+          'asyncCausalFrames': asyncCausalFramesValue,
+        if (awaiterFrames?.map((f) => f.toJson()).toList()
+            case final awaiterFramesValue?)
+          'awaiterFrames': awaiterFramesValue,
+      };
 
   @override
   String toString() =>
@@ -7985,11 +7807,9 @@ class Success extends Response {
   String get type => 'Success';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+      };
 
   @override
   String toString() => '[Success]';
@@ -8030,16 +7850,12 @@ class Timeline extends Response {
   String get type => 'Timeline';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'traceEvents': traceEvents?.map((f) => f.toJson()).toList(),
-      'timeOriginMicros': timeOriginMicros ?? -1,
-      'timeExtentMicros': timeExtentMicros ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'traceEvents': traceEvents?.map((f) => f.toJson()).toList(),
+        'timeOriginMicros': timeOriginMicros ?? -1,
+        'timeExtentMicros': timeExtentMicros ?? -1,
+      };
 
   @override
   String toString() => '[Timeline ' //
@@ -8059,14 +7875,10 @@ class TimelineEvent {
 
   TimelineEvent._fromJson(Map<String, dynamic> this.json);
 
-  Map<String, dynamic> toJson() {
-    final localJson = json;
-    final result = localJson == null
-        ? <String, dynamic>{}
-        : Map<String, dynamic>.of(localJson);
-    result['type'] = 'TimelineEvent';
-    return result;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...?json,
+        'type': 'TimelineEvent',
+      };
 
   @override
   String toString() => '[TimelineEvent]';
@@ -8103,16 +7915,12 @@ class TimelineFlags extends Response {
   String get type => 'TimelineFlags';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'recorderName': recorderName ?? '',
-      'availableStreams': availableStreams?.map((f) => f).toList(),
-      'recordedStreams': recordedStreams?.map((f) => f).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'recorderName': recorderName ?? '',
+        'availableStreams': availableStreams?.map((f) => f).toList(),
+        'recordedStreams': recordedStreams?.map((f) => f).toList(),
+      };
 
   @override
   String toString() => '[TimelineFlags ' //
@@ -8139,14 +7947,10 @@ class Timestamp extends Response {
   String get type => 'Timestamp';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'timestamp': timestamp ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'timestamp': timestamp ?? -1,
+      };
 
   @override
   String toString() => '[Timestamp timestamp: $timestamp]';
@@ -8176,14 +7980,11 @@ class TypeArgumentsRef extends ObjRef {
   String get type => '@TypeArguments';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -8230,15 +8031,12 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
   String get type => 'TypeArguments';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'types': types?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'name': name ?? '',
+        'types': types?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -8267,11 +8065,10 @@ class TypeParametersRef extends ObjRef {
   String get type => '@TypeParameters';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -8321,16 +8118,13 @@ class TypeParameters extends Obj implements TypeParametersRef {
   String get type => 'TypeParameters';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['type'] = type;
-    json.addAll({
-      'names': names?.toJson(),
-      'bounds': bounds?.toJson(),
-      'defaults': defaults?.toJson(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        ...super.toJson(),
+        'type': type,
+        'names': names?.toJson(),
+        'bounds': bounds?.toJson(),
+        'defaults': defaults?.toJson(),
+      };
 
   @override
   int get hashCode => id.hashCode;
@@ -8403,16 +8197,14 @@ class UnresolvedSourceLocation extends Response {
   String get type => 'UnresolvedSourceLocation';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    _setIfNotNull(json, 'script', script?.toJson());
-    _setIfNotNull(json, 'scriptUri', scriptUri);
-    _setIfNotNull(json, 'tokenPos', tokenPos);
-    _setIfNotNull(json, 'line', line);
-    _setIfNotNull(json, 'column', column);
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        if (script?.toJson() case final scriptValue?) 'script': scriptValue,
+        if (scriptUri case final scriptUriValue?) 'scriptUri': scriptUriValue,
+        if (tokenPos case final tokenPosValue?) 'tokenPos': tokenPosValue,
+        if (line case final lineValue?) 'line': lineValue,
+        if (column case final columnValue?) 'column': columnValue,
+      };
 
   @override
   String toString() => '[UnresolvedSourceLocation]';
@@ -8437,14 +8229,10 @@ class UriList extends Response {
   String get type => 'UriList';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'uris': uris?.map((f) => f).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'uris': uris?.map((f) => f).toList(),
+      };
 
   @override
   String toString() => '[UriList uris: $uris]';
@@ -8477,15 +8265,11 @@ class Version extends Response {
   String get type => 'Version';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'major': major ?? -1,
-      'minor': minor ?? -1,
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'major': major ?? -1,
+        'minor': minor ?? -1,
+      };
 
   @override
   String toString() => '[Version major: $major, minor: $minor]';
@@ -8511,14 +8295,10 @@ class VMRef extends Response {
   String get type => '@VM';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'name': name ?? '',
+      };
 
   @override
   String toString() => '[VMRef name: $name]';
@@ -8611,26 +8391,22 @@ class VM extends Response implements VMRef {
   String get type => 'VM';
 
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    json['type'] = type;
-    json.addAll({
-      'name': name ?? '',
-      'architectureBits': architectureBits ?? -1,
-      'hostCPU': hostCPU ?? '',
-      'operatingSystem': operatingSystem ?? '',
-      'targetCPU': targetCPU ?? '',
-      'version': version ?? '',
-      'pid': pid ?? -1,
-      'startTime': startTime ?? -1,
-      'isolates': isolates?.map((f) => f.toJson()).toList(),
-      'isolateGroups': isolateGroups?.map((f) => f.toJson()).toList(),
-      'systemIsolates': systemIsolates?.map((f) => f.toJson()).toList(),
-      'systemIsolateGroups':
-          systemIsolateGroups?.map((f) => f.toJson()).toList(),
-    });
-    return json;
-  }
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'type': type,
+        'name': name ?? '',
+        'architectureBits': architectureBits ?? -1,
+        'hostCPU': hostCPU ?? '',
+        'operatingSystem': operatingSystem ?? '',
+        'targetCPU': targetCPU ?? '',
+        'version': version ?? '',
+        'pid': pid ?? -1,
+        'startTime': startTime ?? -1,
+        'isolates': isolates?.map((f) => f.toJson()).toList(),
+        'isolateGroups': isolateGroups?.map((f) => f.toJson()).toList(),
+        'systemIsolates': systemIsolates?.map((f) => f.toJson()).toList(),
+        'systemIsolateGroups':
+            systemIsolateGroups?.map((f) => f.toJson()).toList(),
+      };
 
   @override
   String toString() => '[VM]';

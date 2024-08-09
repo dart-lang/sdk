@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Do not use environment declared variables.';
 
@@ -23,9 +24,6 @@ const loggingLevel =
 ''';
 
 class DoNotUseEnvironment extends LintRule {
-  static const LintCode code =
-      LintCode('do_not_use_environment', 'Invalid use of a declared variable.');
-
   DoNotUseEnvironment()
       : super(
             name: 'do_not_use_environment',
@@ -34,7 +32,7 @@ class DoNotUseEnvironment extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.do_not_use_environment;
 
   @override
   void registerNodeProcessors(

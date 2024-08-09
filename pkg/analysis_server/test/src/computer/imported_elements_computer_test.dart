@@ -360,16 +360,16 @@ String foo = '';
         ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'f.foo';
+    var selection = 'prefix.foo';
     var content = '''
-import 'package:foo/foo.dart' as f;
+import 'package:foo/foo.dart' as prefix;
 void f() {
   $selection = '';
 }
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements(fooPath, 'f', ['foo=']),
+      ImportedElements(fooPath, 'prefix', ['foo=']),
     ]);
   }
 

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _cr = '\r';
 
@@ -42,10 +43,6 @@ final _uriRegExp = RegExp(r'[/\\]');
 bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
 
 class LinesLongerThan80Chars extends LintRule {
-  static const LintCode code = LintCode('lines_longer_than_80_chars',
-      'The line length exceeds the 80-character limit.',
-      correctionMessage: 'Try breaking the line across multiple lines.');
-
   LinesLongerThan80Chars()
       : super(
             name: 'lines_longer_than_80_chars',
@@ -54,7 +51,7 @@ class LinesLongerThan80Chars extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.lines_longer_than_80_chars;
 
   @override
   void registerNodeProcessors(

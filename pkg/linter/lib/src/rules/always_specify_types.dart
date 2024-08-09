@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Specify type annotations.';
@@ -61,10 +62,6 @@ main() {
 ''';
 
 class AlwaysSpecifyTypes extends LintRule {
-  static const LintCode code = LintCode(
-      'always_specify_types', 'Missing type annotation.',
-      correctionMessage: 'Try adding a type annotation.');
-
   AlwaysSpecifyTypes()
       : super(
             name: 'always_specify_types',
@@ -80,7 +77,12 @@ class AlwaysSpecifyTypes extends LintRule {
       ];
 
   @override
-  LintCode get lintCode => code;
+  List<LintCode> get lintCodes => [
+        LinterLintCode.always_specify_types_add_type,
+        LinterLintCode.always_specify_types_replace_keyword,
+        LinterLintCode.always_specify_types_specify_type,
+        LinterLintCode.always_specify_types_split_to_types
+      ];
 
   @override
   void registerNodeProcessors(
@@ -97,28 +99,14 @@ class AlwaysSpecifyTypes extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode keywordCouldBeTypeCode = LintCode(
-      'always_specify_types',
-      "Missing type annotation.", // ignore: prefer_single_quotes
-      correctionMessage: "Try replacing '{0}' with '{1}'.");
-
-  static const LintCode keywordCouldBeSplitToTypesCode = LintCode(
-      'always_specify_types',
-      "Missing type annotation.", // ignore: prefer_single_quotes
-      correctionMessage:
-          "Try splitting the declaration and specify the different type annotations."); // ignore: prefer_single_quotes
-
-  static const LintCode specifyTypeCode = LintCode('always_specify_types',
-      "Missing type annotation.", // ignore: prefer_single_quotes
-      correctionMessage: "Try specifying the type '{0}'.");
-
   final LintRule rule;
 
   _Visitor(this.rule);
 
   void checkLiteral(TypedLiteral literal) {
     if (literal.typeArguments == null) {
-      rule.reportLintForToken(literal.beginToken);
+      rule.reportLintForToken(literal.beginToken,
+          errorCode: LinterLintCode.always_specify_types_add_type);
     }
   }
 
@@ -131,10 +119,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportLintForToken(keyword,
               arguments: [keyword.lexeme, element!.type],
-              errorCode: keywordCouldBeTypeCode);
+              errorCode: LinterLintCode.always_specify_types_replace_keyword);
         } else {
           rule.reportLintForToken(keyword,
-              arguments: [element!.type], errorCode: specifyTypeCode);
+              arguments: [element!.type],
+              errorCode: LinterLintCode.always_specify_types_specify_type);
         }
       }
     }
@@ -149,10 +138,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (keyword != null && keyword.keyword == Keyword.VAR) {
         rule.reportLintForToken(tokenToLint,
             arguments: [keyword.lexeme, type],
-            errorCode: keywordCouldBeTypeCode);
+            errorCode: LinterLintCode.always_specify_types_replace_keyword);
       } else {
         rule.reportLintForToken(tokenToLint,
-            arguments: [type], errorCode: specifyTypeCode);
+            arguments: [type],
+            errorCode: LinterLintCode.always_specify_types_specify_type);
       }
     }
   }
@@ -172,7 +162,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
           !element.hasOptionalTypeArgs) {
-        rule.reportLint(namedType);
+        rule.reportLint(namedType,
+            errorCode: LinterLintCode.always_specify_types_add_type);
       }
     }
   }
@@ -195,17 +186,21 @@ class _Visitor extends SimpleAstVisitor<void> {
             type is! DynamicType) {
           rule.reportLintForToken(keyword,
               arguments: [keyword.lexeme, type],
-              errorCode: keywordCouldBeTypeCode);
+              errorCode: LinterLintCode.always_specify_types_replace_keyword);
         } else {
-          rule.reportLintForToken(keyword);
+          rule.reportLintForToken(keyword,
+              errorCode: LinterLintCode.always_specify_types_add_type);
         }
       } else if (param.declaredElement != null) {
         var type = param.declaredElement!.type;
 
         if (type is DynamicType) {
-          rule.reportLint(param);
+          rule.reportLint(param,
+              errorCode: LinterLintCode.always_specify_types_add_type);
         } else {
-          rule.reportLint(param, arguments: [type], errorCode: specifyTypeCode);
+          rule.reportLint(param,
+              arguments: [type],
+              errorCode: LinterLintCode.always_specify_types_specify_type);
         }
       }
     }
@@ -232,23 +227,25 @@ class _Visitor extends SimpleAstVisitor<void> {
       var singleType = types.length == 1;
 
       List<Object> arguments;
-      ErrorCode? errorCode;
+      ErrorCode errorCode;
       if (types.isEmpty) {
         arguments = [];
+        errorCode = LinterLintCode.always_specify_types_add_type;
       } else if (keyword.type == Keyword.VAR) {
         if (singleType) {
           arguments = [keyword.lexeme, types.first];
-          errorCode = keywordCouldBeTypeCode;
+          errorCode = LinterLintCode.always_specify_types_replace_keyword;
         } else {
           arguments = [];
-          errorCode = keywordCouldBeSplitToTypesCode;
+          errorCode = LinterLintCode.always_specify_types_split_to_types;
         }
       } else {
         if (singleType) {
           arguments = [types.first];
-          errorCode = specifyTypeCode;
+          errorCode = LinterLintCode.always_specify_types_specify_type;
         } else {
           arguments = [];
+          errorCode = LinterLintCode.always_specify_types_add_type;
         }
       }
       rule.reportLintForToken(keyword,

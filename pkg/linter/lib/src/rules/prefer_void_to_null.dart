@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";
@@ -47,10 +48,6 @@ for any type of map or list:
 ''';
 
 class PreferVoidToNull extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_void_to_null', "Unnecessary use of the type 'Null'.",
-      correctionMessage: "Try using 'void' instead.", hasPublishedDocs: true);
-
   PreferVoidToNull()
       : super(
             name: 'prefer_void_to_null',
@@ -59,7 +56,7 @@ class PreferVoidToNull extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_void_to_null;
 
   @override
   void registerNodeProcessors(

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use truncating division.';
 
@@ -31,14 +32,6 @@ var x = 2 ~/ 3;
 ''';
 
 class UseTruncatingDivision extends LintRule {
-  static const LintCode code = LintCode(
-    'use_truncating_division',
-    'Use truncating division.',
-    correctionMessage:
-        "Try using truncating division, '~/', instead of regular division "
-        "('/') followed by 'toInt()'.",
-  );
-
   UseTruncatingDivision()
       : super(
             name: 'use_truncating_division',
@@ -47,7 +40,7 @@ class UseTruncatingDivision extends LintRule {
             categories: {LintRuleCategory.languageFeatureUsage});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_truncating_division;
 
   @override
   void registerNodeProcessors(

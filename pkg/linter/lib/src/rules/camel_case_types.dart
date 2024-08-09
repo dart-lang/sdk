@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../utils.dart';
 
 const _desc = r'Name types using UpperCamelCase.';
@@ -36,12 +37,6 @@ typedef num Adder(num x, num y);
 ''';
 
 class CamelCaseTypes extends LintRule {
-  static const LintCode code = LintCode('camel_case_types',
-      "The type name '{0}' isn't an UpperCamelCase identifier.",
-      correctionMessage:
-          'Try changing the name to follow the UpperCamelCase style.',
-      hasPublishedDocs: true);
-
   CamelCaseTypes()
       : super(
             name: 'camel_case_types',
@@ -53,7 +48,7 @@ class CamelCaseTypes extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.camel_case_types;
 
   @override
   void registerNodeProcessors(

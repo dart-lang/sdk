@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use initializing formals when possible.';
 
@@ -116,12 +117,6 @@ Element? _getRightElement(AssignmentExpression assignment) =>
     assignment.rightHandSide.canonicalElement;
 
 class PreferInitializingFormals extends LintRule {
-  static const LintCode code = LintCode('prefer_initializing_formals',
-      'Use an initializing formal to assign a parameter to a field.',
-      correctionMessage:
-          "Try using an initialing formal ('this.{0}') to initialize the field.",
-      hasPublishedDocs: true);
-
   PreferInitializingFormals()
       : super(
             name: 'prefer_initializing_formals',
@@ -130,7 +125,7 @@ class PreferInitializingFormals extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_initializing_formals;
 
   @override
   void registerNodeProcessors(

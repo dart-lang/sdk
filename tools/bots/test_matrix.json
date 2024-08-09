@@ -2054,15 +2054,6 @@
           "fileset": "js_platform"
         },
         {
-          "name": "ddc sdk tests unsound",
-          "arguments": [
-            "-nddc-canary-linux-chrome-unsound",
-            "language"
-          ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
           "name": "ddc co19 tests",
           "arguments": [
             "-nddc-canary-linux-chrome",

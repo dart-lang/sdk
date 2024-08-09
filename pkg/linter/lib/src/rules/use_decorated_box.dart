@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use `DecoratedBox`.';
@@ -48,11 +49,6 @@ Widget buildArea() {
 ''';
 
 class UseDecoratedBox extends LintRule {
-  static const LintCode code = LintCode('use_decorated_box',
-      "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'.",
-      correctionMessage:
-          "Try replacing the 'Container' with a 'DecoratedBox'.");
-
   UseDecoratedBox()
       : super(
             name: 'use_decorated_box',
@@ -61,7 +57,7 @@ class UseDecoratedBox extends LintRule {
             categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_decorated_box;
 
   @override
   void registerNodeProcessors(

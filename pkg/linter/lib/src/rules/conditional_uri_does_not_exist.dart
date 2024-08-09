@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Missing conditional import.';
 
@@ -31,12 +32,6 @@ import 'file_that_does_exist.dart'
 ''';
 
 class ConditionalUriDoesNotExist extends LintRule {
-  static const LintCode code = LintCode('conditional_uri_does_not_exist',
-      "The target of a conditional import doesn't exist.",
-      correctionMessage:
-          'Try creating the imported file or changing the URI to reference an '
-          'existing file.');
-
   ConditionalUriDoesNotExist()
       : super(
             name: 'conditional_uri_does_not_exist',
@@ -45,7 +40,7 @@ class ConditionalUriDoesNotExist extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.conditional_uri_does_not_exist;
 
   @override
   void registerNodeProcessors(
@@ -56,11 +51,6 @@ class ConditionalUriDoesNotExist extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode code = LintCode('conditional_uri_does_not_exist',
-      "The target of the conditional URI '{0}' doesn't exist.",
-      correctionMessage: 'Try creating the file referenced by the URI, or '
-          'try using a URI for a file that does exist.');
-
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -74,8 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // in the analysis server (although running the script when the files
       // don't exist on disk would also fail to find it).
       if (!(source?.exists() ?? false)) {
-        rule.reportLint(configuration.uri,
-            arguments: [uri.relativeUriString], errorCode: code);
+        rule.reportLint(configuration.uri, arguments: [uri.relativeUriString]);
       }
     }
   }

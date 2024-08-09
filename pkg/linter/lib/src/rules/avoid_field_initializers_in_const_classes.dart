@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid field initializers in const classes.';
 
@@ -37,13 +38,6 @@ class A {
 ''';
 
 class AvoidFieldInitializersInConstClasses extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_field_initializers_in_const_classes',
-      "Fields in 'const' classes should not have initializers.",
-      correctionMessage:
-          'Try converting the field to a getter or initialize the field in the '
-          'constructors.');
-
   AvoidFieldInitializersInConstClasses() : super(
             name: 'avoid_field_initializers_in_const_classes',
             description: _desc,
@@ -54,7 +48,8 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_field_initializers_in_const_classes;
 
   @override
   void registerNodeProcessors(

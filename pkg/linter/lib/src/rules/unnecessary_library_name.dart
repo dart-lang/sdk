@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't have a library name in a `library` declaration.";
 
@@ -49,10 +50,6 @@ part "apart.dart"; // contains: `part of "good_library.dart";`
 ''';
 
 class UnnecessaryLibraryName extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_library_name', 'Library names are not necessary.',
-      correctionMessage: 'Remove the library name.');
-
   UnnecessaryLibraryName()
       : super(
             name: 'unnecessary_library_name',
@@ -65,7 +62,7 @@ class UnnecessaryLibraryName extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_library_name;
 
   @override
   void registerNodeProcessors(

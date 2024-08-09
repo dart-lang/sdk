@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid annotating with `dynamic` when not required.';
 
@@ -38,10 +39,6 @@ lookUpOrDefault(String name, Map map, defaultValue) {
 ''';
 
 class AvoidAnnotatingWithDynamic extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_annotating_with_dynamic', "Unnecessary 'dynamic' type annotation.",
-      correctionMessage: "Try removing the type 'dynamic'.");
-
   AvoidAnnotatingWithDynamic()
       : super(
             name: 'avoid_annotating_with_dynamic',
@@ -50,7 +47,7 @@ class AvoidAnnotatingWithDynamic extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_annotating_with_dynamic;
 
   @override
   void registerNodeProcessors(

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid defining unused parameters in constructors.';
@@ -33,10 +34,6 @@ class BadTwo {
 ''';
 
 class AvoidUnusedConstructorParameters extends LintRule {
-  static const LintCode code = LintCode('avoid_unused_constructor_parameters',
-      "The parameter '{0}' is not used in the constructor.",
-      correctionMessage: 'Try using the parameter or removing it.');
-
   AvoidUnusedConstructorParameters() : super(
             name: 'avoid_unused_constructor_parameters',
             description: _desc,
@@ -46,7 +43,7 @@ class AvoidUnusedConstructorParameters extends LintRule {
             categories: {LintRuleCategory.unintentional});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_unused_constructor_parameters;
 
   @override
   void registerNodeProcessors(

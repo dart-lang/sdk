@@ -5,9 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer_utilities/package_root.dart' as pkg_root;
-import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
@@ -121,13 +119,16 @@ String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
       (match) => '{${placeholderToIndexMap[match.group(0)!]}}');
 }
 
-/// Decodes a YAML object (obtained from `pkg/analyzer/messages.yaml`) into a
+/// Decodes a YAML object (obtained from a `messages.yaml` file) into a
 /// two-level map of [ErrorCodeInfo], indexed first by class name and then by
 /// error name.
 Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
-    Object? yaml) {
+    String packagePath) {
+  var yaml =
+      loadYaml(File(join(packagePath, 'messages.yaml')).readAsStringSync())
+          as Object?;
   Never problem(String message) {
-    throw 'Problem in pkg/analyzer/messages.yaml: $message';
+    throw 'Problem in $packagePath/messages.yaml: $message';
   }
 
   var result = <String, Map<String, AnalyzerErrorCodeInfo>>{};
@@ -211,78 +212,9 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
   return result;
 }
 
-/// Decodes a YAML object (obtained from `pkg/linter/messages.yaml`) into a
-/// two-level map of [ErrorCodeInfo], indexed first by class name and then by
-/// error name.
-Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeLinterMessagesYaml(
-    Object? yaml) {
-  linter.registerLintRules();
-  Never problem(String message) {
-    throw 'Problem in pkg/linter/messages.yaml: $message';
-  }
-
-  var result = <String, Map<String, AnalyzerErrorCodeInfo>>{};
-  if (yaml is! Map<Object?, Object?>) {
-    problem('root node is not a map');
-  }
-  for (var classEntry in yaml.entries) {
-    var className = classEntry.key;
-    if (className is! String) {
-      problem('non-string class key ${json.encode(className)}');
-    }
-    var classValue = classEntry.value;
-    if (classValue is! Map<Object?, Object?>) {
-      problem('value associated with class key $className is not a map');
-    }
-    for (var errorEntry in classValue.entries) {
-      var errorName = errorEntry.key;
-      if (errorName is! String) {
-        problem('in class $className, non-string error key '
-            '${json.encode(errorName)}');
-      }
-      var errorValue = errorEntry.value;
-      if (errorValue is! Map<Object?, Object?>) {
-        problem('value associated with error $className.$errorName is not a '
-            'map');
-      }
-
-      try {
-        var aliasFor = errorValue['aliasFor'];
-        if (aliasFor is String) {
-          var aliasForPath = aliasFor.split('.');
-          if (aliasForPath.isEmpty) {
-            problem("The 'aliasFor' value at '$className.$errorName is empty");
-          }
-          var node = yaml;
-          for (var key in aliasForPath) {
-            var value = node[key];
-            if (value is! Map<Object?, Object?>) {
-              problem('No Map value at "$aliasFor", aliased from '
-                  '$className.$errorName');
-            }
-            node = value;
-          }
-
-          (result[className] ??= {})[errorName] = AliasErrorCodeInfo(
-              aliasFor: aliasFor, comment: errorValue['comment'] as String?);
-        } else {
-          (result[className] ??= {})[errorName] =
-              LinterRuleInfo.fromYaml(errorName, errorValue);
-        }
-      } catch (e) {
-        problem('while processing $className.$errorName, $e');
-      }
-    }
-  }
-  return result;
-}
-
 /// Loads analyzer messages from the analyzer's `messages.yaml` file.
-Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadAnalyzerMessages() {
-  Object? messagesYaml =
-      loadYaml(File(join(analyzerPkgPath, 'messages.yaml')).readAsStringSync());
-  return decodeAnalyzerMessagesYaml(messagesYaml);
-}
+Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadAnalyzerMessages() =>
+    decodeAnalyzerMessagesYaml(analyzerPkgPath);
 
 /// Loads front end messages from the front end's `messages.yaml` file.
 Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
@@ -292,11 +224,8 @@ Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
 }
 
 /// Loads linter messages from the linter's `messages.yaml` file.
-Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadLintMessages() {
-  Object? messagesYaml =
-      loadYaml(File(join(linterPkgPath, 'messages.yaml')).readAsStringSync());
-  return decodeLinterMessagesYaml(messagesYaml);
-}
+Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadLintMessages() =>
+    decodeAnalyzerMessagesYaml(linterPkgPath);
 
 /// Splits [text] on spaces using the given [maxWidth] (and [firstLineWidth] if
 /// given).
@@ -357,10 +286,6 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
   String get aliasForFilePath => errorClasses
       .firstWhere((element) => element.name == aliasForClass)
       .filePath;
-
-  @override
-  List<String> get formattedProblemMessages => throw StateError(
-      'The problem message of an error code should not be used.');
 }
 
 /// In-memory representation of error code information obtained from the
@@ -379,9 +304,6 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
   });
 
   AnalyzerErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml();
-
-  @override
-  List<String> get formattedProblemMessages => [problemMessage];
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -579,12 +501,12 @@ abstract class ErrorCodeInfo {
             hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
             isUnresolvedIdentifier:
                 yaml['isUnresolvedIdentifier'] as bool? ?? false,
-            problemMessage: yaml['problemMessage'] as String,
+            problemMessage: yaml['removedIn'] == null
+                ? yaml['problemMessage'] as String
+                : yaml['problemMessage'] as String? ?? '',
             sharedName: yaml['sharedName'] as String?,
             removedIn: yaml['removedIn'] as String?,
             previousName: yaml['previousName'] as String?);
-
-  List<String> get formattedProblemMessages;
 
   /// If this error is no longer reported and
   /// its error codes should no longer be generated.
@@ -684,10 +606,6 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
         super.fromYaml();
 
   @override
-  List<String> get formattedProblemMessages =>
-      [convertTemplate(computePlaceholderToIndexMap(), problemMessage)];
-
-  @override
   Map<Object?, Object?> toYaml() => {
         if (analyzerCode.isNotEmpty)
           'analyzerCode': _encodeAnalyzerCode(analyzerCode),
@@ -714,34 +632,4 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
       return analyzerCode;
     }
   }
-}
-
-/// In-memory representation of error code information obtained from the
-/// linter's `messages.yaml` file.
-class LinterRuleInfo extends AnalyzerErrorCodeInfo {
-  final List<String> problemMessages;
-
-  /// Decodes an [LinterRuleInfo] object from its [ruleName] and
-  /// its [yaml] representation.
-  factory LinterRuleInfo.fromYaml(String ruleName, Map<Object?, Object?> yaml) {
-    var lint = linter.Registry.ruleRegistry[ruleName]!;
-    var problemMessages = lint.lintCodes
-        .map((code) => code.problemMessage)
-        .toList(growable: false);
-
-    return LinterRuleInfo._(
-      documentation: yaml['documentation'] as String?,
-      hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
-      problemMessages: problemMessages,
-    );
-  }
-
-  LinterRuleInfo._({
-    required this.problemMessages,
-    required super.documentation,
-    required super.hasPublishedDocs,
-  }) : super(problemMessage: problemMessages.firstOrNull ?? '');
-
-  @override
-  List<String> get formattedProblemMessages => problemMessages;
 }

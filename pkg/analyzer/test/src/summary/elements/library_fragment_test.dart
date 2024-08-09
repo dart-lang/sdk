@@ -23,6 +23,220 @@ main() {
 }
 
 abstract class LibraryFragmentElementTest extends ElementsBaseTest {
+  test_libraryExports() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+export 'dart:math';
+''');
+
+    var library = await buildLibrary(r'''
+export 'dart:io';
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  libraryExports
+    dart:io
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      libraryExports
+        dart:io
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryExports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+''');
+  }
+
+  test_libraryExports_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+@deprecated
+export 'dart:math';
+''');
+
+    var library = await buildLibrary(r'''
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryExports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+''');
+  }
+
+  test_libraryImports() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+import 'dart:math';
+''');
+
+    var library = await buildLibrary(r'''
+import 'dart:io';
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  libraryImports
+    dart:io
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      libraryImports
+        dart:io
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryImports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      libraryImports
+        dart:io
+    <testLibrary>::@fragment::package:test/a.dart
+      libraryImports
+        dart:math
+''');
+  }
+
+  test_libraryImports_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+@deprecated
+import 'dart:math';
+''');
+
+    var library = await buildLibrary(r'''
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryImports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+    <testLibrary>::@fragment::package:test/a.dart
+      libraryImports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+''');
+  }
+
   test_scope_accessibleExtensions_imported() async {
     newFile('$testPackageLibPath/x.dart', r'''
 extension X on int {}

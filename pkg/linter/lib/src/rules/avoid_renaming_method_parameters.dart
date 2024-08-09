@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
@@ -47,13 +48,6 @@ abstract class B extends A {
 ''';
 
 class AvoidRenamingMethodParameters extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_renaming_method_parameters',
-      "The parameter name '{0}' doesn't match the name '{1}' in the overridden "
-          'method.',
-      correctionMessage: "Try changing the name to '{1}'.",
-      hasPublishedDocs: true);
-
   AvoidRenamingMethodParameters()
       : super(
             name: 'avoid_renaming_method_parameters',
@@ -62,7 +56,7 @@ class AvoidRenamingMethodParameters extends LintRule {
             categories: {LintRuleCategory.documentationCommentMaintenance});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_renaming_method_parameters;
 
   @override
   void registerNodeProcessors(

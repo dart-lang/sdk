@@ -8,11 +8,17 @@ To start a tooling daemon run `dart tooling-daemon`.
 If you have access to `Dart` then you can use the [package:dtd](#packagedtd)
 package.
 
-Otherwise, if you are creating your own client that will communicate with DTD using RPC,
-make sure to follow the entire
+Otherwise, if you are creating your own client that will communicate with DTD
+using RPC, make sure to follow the entire
 [Dart Tooling Daemon RPC protocol](#dart-tooling-daemon-rpc-protocol) section.
 
 The Dart Tooling Daemon Protocol uses JSON-RPC 2.0.
+
+## Common Services Definitions
+
+Some common services are defined to ensure that different tools can provide the
+same functionality consistently to DTD clients. Details of these can be found in
+[dtd_common_services](./dtd_common_services.md).
 
 ## Visualizing DTD interactions
 
