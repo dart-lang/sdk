@@ -1566,23 +1566,6 @@ self::@function::main
 ''');
   }
 
-  test_searchReferences_LibraryElement() async {
-    newFile('$testPackageLibPath/unitA.dart', 'part of lib;');
-    newFile('$testPackageLibPath/unitB.dart', 'part of lib;');
-    await resolveTestCode('''
-library lib;
-part 'unitA.dart';
-part 'unitB.dart';
-''');
-    var element = result.libraryElement;
-    await assertElementReferencesText(element, r'''
-self::@fragment::package:test/unitA.dart
-  8 1:9 |lib| REFERENCE
-self::@fragment::package:test/unitB.dart
-  8 1:9 |lib| REFERENCE
-''');
-  }
-
   test_searchReferences_LibraryElement_inPackage() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
 
@@ -1611,6 +1594,46 @@ self::@fragment::package:aaa/unitA.dart
   8 1:9 |lib| REFERENCE
 self::@fragment::package:aaa/unitB.dart
   8 1:9 |lib| REFERENCE
+''');
+  }
+
+  test_searchReferences_LibraryElement_partOfName() async {
+    newFile('$testPackageLibPath/unitA.dart', 'part of lib;');
+    newFile('$testPackageLibPath/unitB.dart', 'part of lib;');
+    await resolveTestCode('''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''');
+    var element = result.libraryElement;
+    await assertElementReferencesText(element, r'''
+self::@fragment::package:test/unitA.dart
+  8 1:9 |lib| REFERENCE
+self::@fragment::package:test/unitB.dart
+  8 1:9 |lib| REFERENCE
+''');
+  }
+
+  test_searchReferences_LibraryElement_partOfUri() async {
+    newFile('$testPackageLibPath/unitA.dart', r'''
+part of 'test.dart';
+''');
+
+    newFile('$testPackageLibPath/unitB.dart', r'''
+part of 'test.dart';
+''');
+
+    await resolveTestCode('''
+part 'unitA.dart';
+part 'unitB.dart';
+''');
+
+    var element = result.libraryElement;
+    await assertElementReferencesText(element, r'''
+self::@fragment::package:test/unitA.dart
+  8 1:9 |'test.dart'| REFERENCE
+self::@fragment::package:test/unitB.dart
+  8 1:9 |'test.dart'| REFERENCE
 ''');
   }
 

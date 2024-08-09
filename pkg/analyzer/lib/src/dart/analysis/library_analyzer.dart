@@ -605,8 +605,9 @@ class LibraryAnalyzer {
   /// Parse and resolve all files in [_library].
   void _parseAndResolve() {
     _resolveDirectives(
-      containerKind: _library,
-      containerElement: _libraryElement,
+      enclosingFileElement: null,
+      fileKind: _library,
+      fileElement: _libraryElement.definingCompilationUnit,
     );
 
     for (var unitAnalysis in _libraryUnits.values) {
@@ -671,6 +672,7 @@ class LibraryAnalyzer {
   }
 
   void _resolveAugmentationImportDirective({
+    required CompilationUnitElementImpl? enclosingFileElement,
     required AugmentationImportDirectiveImpl? directive,
     required AugmentationImportElementImpl element,
     required AugmentationImportState state,
@@ -733,39 +735,29 @@ class LibraryAnalyzer {
       return;
     }
 
-    var augmentationFile = importedAugmentationKind.file;
-    var augmentationUnitAnalysis = _parse(augmentationFile);
-
     var importedAugmentation = element.importedAugmentation!;
-    augmentationUnitAnalysis.unit.declaredElement =
-        importedAugmentation.definingCompilationUnit;
-
-    for (var directive in augmentationUnitAnalysis.unit.directives) {
-      if (directive is AugmentationImportDirectiveImpl) {
-        directive.element = importedAugmentation;
-      }
-    }
 
     _resolveDirectives(
-      containerKind: importedAugmentationKind,
-      containerElement: importedAugmentation,
+      enclosingFileElement: enclosingFileElement,
+      fileKind: importedAugmentationKind,
+      fileElement: importedAugmentation.definingCompilationUnit,
     );
   }
 
-  /// Parses the file of [containerKind], and resolves directives.
+  /// Parses the file of [fileKind], and resolves directives.
   /// Recursively parses augmentations and parts.
   void _resolveDirectives({
-    required LibraryOrAugmentationFileKind containerKind,
-    required LibraryOrAugmentationElementImpl containerElement,
+    required CompilationUnitElementImpl? enclosingFileElement,
+    required FileKind fileKind,
+    required CompilationUnitElementImpl fileElement,
   }) {
-    var containerFile = containerKind.file;
+    var containerFile = fileKind.file;
     var containerUnitAnalysis = _parse(containerFile);
     var containerUnit = containerUnitAnalysis.unit;
-    var containerUnitElement = containerElement.definingCompilationUnit;
-    containerUnit.declaredElement = containerUnitElement;
+    containerUnit.declaredElement = fileElement;
 
     var containerErrorReporter = containerUnitAnalysis.errorReporter;
-    containerUnitAnalysis.element = containerUnitElement;
+    containerUnitAnalysis.element = fileElement;
 
     var augmentationImportIndex = 0;
     var libraryExportIndex = 0;
@@ -778,9 +770,11 @@ class LibraryAnalyzer {
       if (directive is AugmentationImportDirectiveImpl) {
         var index = augmentationImportIndex++;
         _resolveAugmentationImportDirective(
+          enclosingFileElement: fileElement,
           directive: directive,
-          element: containerElement.augmentationImports[index],
-          state: containerKind.augmentationImports[index],
+          element: fileElement
+              .libraryOrAugmentationElement.augmentationImports[index],
+          state: fileKind.augmentationImports[index],
           errorReporter: containerErrorReporter,
           seenAugmentations: seenAugmentations,
         );
@@ -788,52 +782,54 @@ class LibraryAnalyzer {
         var index = libraryExportIndex++;
         _resolveLibraryExportDirective(
           directive: directive,
-          element: containerElement.libraryExports[index],
-          state: containerKind.libraryExports[index],
+          element: fileElement.libraryExports[index],
+          state: fileKind.libraryExports[index],
           errorReporter: containerErrorReporter,
         );
       } else if (directive is ImportDirectiveImpl) {
         var index = libraryImportIndex++;
         _resolveLibraryImportDirective(
           directive: directive,
-          element: containerElement.libraryImports[index],
-          state: containerKind.libraryImports[index],
+          element: fileElement.libraryImports[index],
+          state: fileKind.libraryImports[index],
           errorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryAugmentationDirectiveImpl) {
         _resolveLibraryAugmentationDirective(
           directive: directive,
-          containerKind: containerKind,
-          containerElement: containerElement,
+          containerKind: fileKind as LibraryOrAugmentationFileKind,
+          containerElement: fileElement.libraryOrAugmentationElement,
           containerErrorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryDirectiveImpl) {
-        if (containerElement is LibraryElementImpl) {
-          directive.element = containerElement;
+        if (fileKind == _library) {
+          directive.element = _libraryElement;
           libraryNameNode = directive.name2;
         }
       } else if (directive is PartDirectiveImpl) {
-        if (containerKind is LibraryFileKind &&
-            containerElement is LibraryElementImpl) {
-          var index = partIndex++;
-          _resolvePartDirective(
-            directive: directive,
-            partState: containerKind.partIncludes[index],
-            partElement: containerElement.parts[index],
-            errorReporter: containerErrorReporter,
-            libraryNameNode: libraryNameNode,
-          );
-        }
+        var index = partIndex++;
+        _resolvePartDirective(
+          enclosingFileElement: fileElement,
+          directive: directive,
+          partState: fileKind.partIncludes[index],
+          partElement: fileElement.parts[index],
+          errorReporter: containerErrorReporter,
+          libraryNameNode: libraryNameNode,
+        );
+      } else if (directive is PartOfDirectiveImpl) {
+        // TODO(scheglov): this should be LibraryFragment.
+        directive.element = _libraryElement;
       }
     }
 
     // The macro augmentation does not have an explicit `import` directive.
     // So, we look into the file augmentation imports.
-    var macroImport = containerKind.augmentationImports.lastOrNull;
+    var macroImport = fileKind.augmentationImports.lastOrNull;
     if (macroImport is AugmentationImportWithFile) {
       var importedFile = macroImport.importedFile;
       if (importedFile.isMacroAugmentation) {
         _resolveAugmentationImportDirective(
+          enclosingFileElement: fileElement,
           directive: null,
           element: _libraryElement.augmentationImports.last,
           state: macroImport,
@@ -852,7 +848,7 @@ class LibraryAnalyzer {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
           directive: docImports[i].import as ImportDirectiveImpl,
-          state: containerKind.docImports[i],
+          state: fileKind.docImports[i],
           errorReporter: containerErrorReporter,
         );
       }
@@ -1071,6 +1067,7 @@ class LibraryAnalyzer {
   }
 
   void _resolvePartDirective({
+    required CompilationUnitElementImpl? enclosingFileElement,
     required PartDirectiveImpl directive,
     required PartIncludeState partState,
     required PartElementImpl partElement,
@@ -1139,46 +1136,40 @@ class LibraryAnalyzer {
       return;
     }
 
-    if (includedKind is PartOfNameFileKind) {
-      if (!includedKind.libraries.contains(_library)) {
-        var name = includedKind.unlinked.name;
-        if (libraryNameNode == null) {
-          errorReporter.atNode(
-            partUri,
-            CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
-            arguments: [name],
-          );
-        } else {
-          errorReporter.atNode(
-            partUri,
-            CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
-            arguments: [libraryNameNode.name, name],
-          );
+    var partElementUri = partElement.uri;
+    if (partElementUri is! DirectiveUriWithUnitImpl) {
+      if (includedKind is PartOfNameFileKind) {
+        if (!includedKind.libraries.contains(_library)) {
+          var name = includedKind.unlinked.name;
+          if (libraryNameNode == null) {
+            errorReporter.atNode(
+              partUri,
+              CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
+              arguments: [name],
+            );
+          } else {
+            errorReporter.atNode(
+              partUri,
+              CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+              arguments: [libraryNameNode.name, name],
+            );
+          }
         }
-        return;
+      } else if (includedKind.library != _library) {
+        errorReporter.atNode(
+          partUri,
+          CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+          arguments: [_library.file.uriStr, includedFile.uriStr],
+        );
       }
-    } else if (includedKind.library != _library) {
-      errorReporter.atNode(
-        partUri,
-        CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
-        arguments: [_library.file.uriStr, includedFile.uriStr],
-      );
       return;
     }
 
-    var partUnitAnalysis = _parse(includedFile);
-
-    var partElementUri = partElement.uri;
-    if (partElementUri is DirectiveUriWithUnitImpl) {
-      partUnitAnalysis.element = partElementUri.unit;
-      partUnitAnalysis.unit.declaredElement = partElementUri.unit;
-    }
-
-    for (var directive in partUnitAnalysis.unit.directives) {
-      if (directive is PartOfDirectiveImpl) {
-        directive.element = _libraryElement;
-      }
-    }
+    _resolveDirectives(
+      enclosingFileElement: enclosingFileElement,
+      fileKind: includedKind,
+      fileElement: partElementUri.unit,
+    );
   }
 }
 
