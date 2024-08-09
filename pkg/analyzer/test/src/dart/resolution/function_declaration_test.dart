@@ -338,4 +338,65 @@ FunctionDeclaration
     type: dynamic Function()
 ''');
   }
+
+  test_wildcardFunctionTypeParameter() async {
+    // Corresponding language test:
+    // language/wildcard_variables/multiple/local_declaration_type_parameter_error_test
+
+    await assertErrorsInCode(r'''
+void f<_ extends void Function<_>(_, _), _>() {}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 34, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 37, 1),
+    ]);
+
+    var node = findNode.typeParameter('<_>');
+    assertResolvedNodeText(node, r'''
+TypeParameter
+  name: _
+  extendsKeyword: extends
+  bound: GenericFunctionType
+    returnType: NamedType
+      name: void
+      element: <null>
+      type: void
+    functionKeyword: Function
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: _
+          declaredElement: _@31
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: _
+          element: <null>
+          type: InvalidType
+        declaredElement: @-1
+          type: InvalidType
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: _
+          element: <null>
+          type: InvalidType
+        declaredElement: @-1
+          type: InvalidType
+      rightParenthesis: )
+    declaredElement: GenericFunctionTypeElement
+      parameters
+        <empty>
+          kind: required positional
+          type: InvalidType
+        <empty>
+          kind: required positional
+          type: InvalidType
+      returnType: void
+      type: void Function<_>(InvalidType, InvalidType)
+    type: void Function<_>(InvalidType, InvalidType)
+  declaredElement: _@7
+''');
+  }
 }

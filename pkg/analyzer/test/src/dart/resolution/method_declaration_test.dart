@@ -124,4 +124,29 @@ MethodDeclaration
     type: dynamic Function()
 ''');
   }
+
+  test_wildcardMethodTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int _ = 0;
+
+  void m<_, _>() {
+    int _ = _;
+  }
+}
+''');
+    var node = findNode.variableDeclaration('_ = _;');
+
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: _
+  equals: =
+  initializer: SimpleIdentifier
+    token: _
+    staticElement: <testLibraryFragment>::@class::C::@getter::_
+    staticType: int
+  declaredElement: _@51
+    type: int
+''');
+  }
 }

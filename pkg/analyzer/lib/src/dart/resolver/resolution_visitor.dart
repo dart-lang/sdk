@@ -16,7 +16,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
@@ -1496,10 +1495,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
     node.declaredElement = element;
-    if (nameToken.lexeme != '_' ||
-        !_libraryElement.hasWildcardVariablesFeatureEnabled) {
+
+    if (!_isWildCardVariable(nameToken.lexeme)) {
       _define(element);
     }
+
     _elementHolder.enclose(element);
   }
 
@@ -1553,7 +1553,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _setCodeRange(element, typeParameter);
       }
       typeParameter.declaredElement = element;
-      _define(element);
+
+      if (!_isWildCardVariable(element.name)) {
+        _define(element);
+      }
+
       _setOrCreateMetadataElements(element, typeParameter.metadata);
     }
   }
@@ -1598,6 +1602,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return NullabilitySuffix.none;
     }
   }
+
+  bool _isWildCardVariable(String name) =>
+      name == '_' &&
+      _libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
 
   void _resolveGuardedPattern(
     GuardedPatternImpl guardedPattern, {
