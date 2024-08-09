@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -207,6 +206,7 @@ class LibraryAnalyzer {
         }
       }
 
+      _libraryUnits.clear();
       _parseAndResolve();
       var unit = _libraryUnits.values.first.unit;
       return AnalysisForCompletionResult(
@@ -774,7 +774,6 @@ class LibraryAnalyzer {
 
     LibraryIdentifier? libraryNameNode;
     var seenAugmentations = <AugmentationFileKind>{};
-    var seenPartSources = <Source>{};
     for (Directive directive in containerUnit.directives) {
       if (directive is AugmentationImportDirectiveImpl) {
         var index = augmentationImportIndex++;
@@ -823,7 +822,6 @@ class LibraryAnalyzer {
             partElement: containerElement.parts[index],
             errorReporter: containerErrorReporter,
             libraryNameNode: libraryNameNode,
-            seenPartSources: seenPartSources,
           );
         }
       }
@@ -1078,7 +1076,6 @@ class LibraryAnalyzer {
     required PartElementImpl partElement,
     required ErrorReporter errorReporter,
     required LibraryIdentifier? libraryNameNode,
-    required Set<Source> seenPartSources,
   }) {
     StringLiteral partUri = directive.uri;
 
@@ -1130,6 +1127,18 @@ class LibraryAnalyzer {
       return;
     }
 
+    //
+    // Validate that the part source is unique in the library.
+    //
+    if (_libraryUnits.containsKey(includedFile)) {
+      errorReporter.atNode(
+        partUri,
+        CompileTimeErrorCode.DUPLICATE_PART,
+        arguments: [includedFile.uri],
+      );
+      return;
+    }
+
     if (includedKind is PartOfNameFileKind) {
       if (!includedKind.libraries.contains(_library)) {
         var name = includedKind.unlinked.name;
@@ -1165,23 +1174,10 @@ class LibraryAnalyzer {
       partUnitAnalysis.unit.declaredElement = partElementUri.unit;
     }
 
-    var partSource = includedKind.file.source;
-
     for (var directive in partUnitAnalysis.unit.directives) {
       if (directive is PartOfDirectiveImpl) {
         directive.element = _libraryElement;
       }
-    }
-
-    //
-    // Validate that the part source is unique in the library.
-    //
-    if (!seenPartSources.add(partSource)) {
-      errorReporter.atNode(
-        partUri,
-        CompileTimeErrorCode.DUPLICATE_PART,
-        arguments: [partSource.uri],
-      );
     }
   }
 }
