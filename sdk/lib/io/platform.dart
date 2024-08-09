@@ -58,7 +58,7 @@ part of dart.io;
 ///   }
 /// }
 /// ```
-final class Platform {
+abstract final class Platform {
   /// The number of individual execution units of the machine.
   static final numberOfProcessors = _Platform.numberOfProcessors;
 
@@ -243,8 +243,4 @@ final class Platform {
   /// `"\r\n"`
   @pragma("vm:platform-const")
   static String get lineTerminator => isWindows ? '\r\n' : '\n';
-
-  @Deprecated("Do not instantiate this class, it will become abstract in a "
-      "future Dart version")
-  Platform();
 }

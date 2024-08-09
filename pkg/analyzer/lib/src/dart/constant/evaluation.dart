@@ -663,8 +663,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           return constant;
         case InvalidConstant():
           throw EvaluationException(constant.errorCode);
-        default:
-          throw EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
       }
     }
 

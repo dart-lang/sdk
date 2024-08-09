@@ -1110,8 +1110,6 @@ class _DeclarationStorage {
         return DeclarationKind.TYPE_ALIAS;
       case idl.AvailableDeclarationKind.VARIABLE:
         return DeclarationKind.VARIABLE;
-      default:
-        throw StateError('Unknown kind: $kind');
     }
   }
 
@@ -1147,8 +1145,6 @@ class _DeclarationStorage {
         return idl.AvailableDeclarationKind.TYPE_ALIAS;
       case DeclarationKind.VARIABLE:
         return idl.AvailableDeclarationKind.VARIABLE;
-      default:
-        throw StateError('Unknown kind: $kind');
     }
   }
 

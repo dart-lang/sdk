@@ -69,6 +69,14 @@ class DuplicateDefinitionVerifier {
       if (identifier != null) {
         // The identifier can be null if this is a parameter list for a generic
         // function type.
+
+        // Skip wildcard `super._`.
+        if (parameter is SuperFormalParameter &&
+            identifier.lexeme == '_' &&
+            _currentLibrary.hasWildcardVariablesFeatureEnabled) {
+          continue;
+        }
+
         _checkDuplicateIdentifier(definedNames, identifier,
             element: parameter.declaredElement!);
       }

@@ -184,8 +184,6 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
         offset = node.leftBracket.offset;
       case SetOrMapLiteral():
         offset = node.leftBracket.offset;
-      default:
-        return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
