@@ -136,6 +136,94 @@ class HttpRequestClient extends Client {
   }
 }
 
+/// Responsible for launching a DevTools instance when the service is started
+/// via SIGQUIT.
+class _DebuggingSession {
+  Future<bool> start(
+    Uri serverAddress,
+    String host,
+    String port,
+    bool disableServiceAuthCodes,
+    bool enableDevTools,
+  ) async {
+    final dartDir = File(Platform.executable).parent.path;
+    final dart = 'dart${Platform.isWindows ? '.exe' : ''}';
+    var executable = [
+      dartDir,
+      dart,
+    ].join(Platform.pathSeparator);
+
+    // If the directory of dart is '.' it's likely that dart is on the user's
+    // PATH. If so, './dart' might not exist and we should be using 'dart'
+    // instead.
+    if (dartDir == '.' &&
+        (await FileSystemEntity.type(executable)) ==
+            FileSystemEntityType.notFound) {
+      executable = dart;
+    }
+    _process = await Process.start(
+      executable,
+      [
+        'development-service',
+        '--vm-service-uri=$serverAddress',
+        '--bind-address=$host',
+        '--bind-port=$port',
+        if (disableServiceAuthCodes) '--disable-service-auth-codes',
+        if (enableDevTools) '--serve-devtools',
+        if (_enableServicePortFallback) '--enable-service-port-fallback',
+      ],
+      mode: ProcessStartMode.detachedWithStdio,
+    );
+
+    // DDS will close stderr once it's finished launching.
+    final launchResult = await _process!.stderr.transform(utf8.decoder).join();
+
+    void printError(String details) => stderr.writeln(
+          'Could not start the VM service:\n$details',
+        );
+
+    try {
+      final result = json.decode(launchResult) as Map<String, dynamic>;
+      if (result
+          case {
+            'state': 'started',
+          }) {
+        if (result case {'devToolsUri': String devToolsUri}) {
+          // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
+          // is changed to ensure consistency.
+          const devToolsMessagePrefix =
+              'The Dart DevTools debugger and profiler is available at:';
+          serverPrint('$devToolsMessagePrefix $devToolsUri');
+        }
+        if (result
+            case {
+              'dtd': {
+                'uri': String dtdUri,
+              }
+            } when _printDtd) {
+          serverPrint('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
+        }
+      } else {
+        printError(result['error'] ?? result);
+        return false;
+      }
+    } catch (_) {
+      // Malformed JSON was likely encountered, so output the entirety of
+      // stderr in the error message.
+      printError(launchResult);
+      return false;
+    }
+    return true;
+  }
+
+  void shutdown() {
+    print('Shutting down DDS!\n${StackTrace.current}');
+    _process!.kill();
+  }
+
+  Process? _process;
+}
+
 class Server {
   static const WEBSOCKET_PATH = '/ws';
   static const ROOT_REDIRECT_PATH = '/index.html';
@@ -147,28 +235,33 @@ class Server {
   final bool _enableServicePortFallback;
   final String? _serviceInfoFilename;
   HttpServer? _server;
-  bool get running => _server != null;
+
+  bool get running => _running;
+  bool _running = false;
+
   bool acceptNewWebSocketConnections = true;
   int _port = -1;
   // Ensures only one server is started even if many requests to launch
   // the server come in concurrently.
   Completer<bool>? _startingCompleter;
 
+  _DebuggingSession? _ddsInstance;
+
   /// Returns the server address including the auth token.
   Uri? get serverAddress {
-    if (!running || _service.isExiting) {
-      return null;
-    }
     // If DDS is connected it should be treated as the "true" VM service and be
     // advertised as such.
     if (_service.ddsUri != null) {
       return _service.ddsUri;
     }
-    final server = _server!;
-    final ip = server.address.address;
-    final port = server.port;
-    final path = !_authCodesDisabled ? '$serviceAuthToken/' : '/';
-    return Uri(scheme: 'http', host: ip, port: port, path: path);
+    final server = _server;
+    if (server != null) {
+      final ip = server.address.address;
+      final port = server.port;
+      final path = !_authCodesDisabled ? '$serviceAuthToken/' : '/';
+      return Uri(scheme: 'http', host: ip, port: port, path: path);
+    }
+    return null;
   }
 
   // On Fuchsia, authentication codes are disabled by default. To enable, the authentication token
@@ -446,7 +539,7 @@ class Server {
   }
 
   Future<Server> startup() async {
-    if (_server != null) {
+    if (running) {
       // Already running.
       return this;
     }
@@ -505,10 +598,21 @@ class Server {
     }
     final server = _server!;
     server.listen(_requestHandler, cancelOnError: true);
-    if (!_waitForDdsToAdvertiseService) {
+
+    if (_waitForDdsToAdvertiseService) {
+      _ddsInstance = _DebuggingSession();
+      await _ddsInstance!.start(
+        serverAddress!,
+        _ddsIP,
+        _ddsPort.toString(),
+        _authCodesDisabled,
+        _serveDevtools,
+      );
+    } else {
       await outputConnectionInformation();
     }
     // Server is up and running.
+    _running = true;
     _notifyServerState(serverAddress.toString());
     onServerAddressChange('$serverAddress');
     startingCompleter.complete(true);
@@ -565,6 +669,9 @@ class Server {
       serverPrint('Dart VM service no longer listening on $oldServerAddress');
       _server = null;
       _startingCompleter = null;
+      _ddsInstance?.shutdown();
+      _ddsInstance = null;
+      _running = false;
       _notifyServerState('');
       onServerAddressChange(null);
       return this;
@@ -572,6 +679,7 @@ class Server {
       _server = null;
       _startingCompleter = null;
       serverPrint('Could not shutdown Dart VM service HTTP server:\n$e\n$st\n');
+      _running = false;
       _notifyServerState('');
       onServerAddressChange(null);
       return this;
