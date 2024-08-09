@@ -2658,8 +2658,6 @@ class B extends A {
 }
 ''', [
       error(WarningCode.UNUSED_FIELD, 17, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 74, 1,
-          contextMessages: [message(testFile, 65, 1)]),
     ]);
   }
 
