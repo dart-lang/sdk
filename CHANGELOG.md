@@ -12,6 +12,13 @@
 
 ### Libraries
 
+#### `dart:io`
+
+- **Breaking Change** [#52444][]: Removed the `Platform()` constructor, which
+  has been deprecated since Dart 3.1.
+
+[#52444]: https://github.com/dart-lang/sdk/issues/52444
+
 #### `dart:js_interop`
 
 - Added constructors for `JSArrayBuffer`, `JSDataView`, and concrete typed array
