@@ -144,6 +144,7 @@ class WasmTarget extends Target {
   List<String> get extraRequiredLibraries => [
         'dart:_boxed_double',
         'dart:_boxed_int',
+        'dart:_compact_hash',
         'dart:_http',
         'dart:_internal',
         'dart:_js_helper',
@@ -167,6 +168,7 @@ class WasmTarget extends Target {
   List<String> get extraIndexedLibraries => [
         'dart:_boxed_double',
         'dart:_boxed_int',
+        'dart:_compact_hash',
         'dart:_js_helper',
         'dart:_js_types',
         'dart:_list',
@@ -471,25 +473,25 @@ class WasmTarget extends Target {
   @override
   Class concreteMapLiteralClass(CoreTypes coreTypes) {
     return _wasmDefaultMap ??=
-        coreTypes.index.getClass('dart:collection', '_WasmDefaultMap');
+        coreTypes.index.getClass('dart:_compact_hash', 'WasmDefaultMap');
   }
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _wasmImmutableMap ??=
-        coreTypes.index.getClass('dart:collection', '_WasmImmutableMap');
+        coreTypes.index.getClass('dart:_compact_hash', 'WasmImmutableMap');
   }
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
     return _wasmDefaultSet ??=
-        coreTypes.index.getClass('dart:collection', '_WasmDefaultSet');
+        coreTypes.index.getClass('dart:_compact_hash', 'WasmDefaultSet');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
     return _wasmImmutableSet ??=
-        coreTypes.index.getClass('dart:collection', '_WasmImmutableSet');
+        coreTypes.index.getClass('dart:_compact_hash', 'WasmImmutableSet');
   }
 
   @override

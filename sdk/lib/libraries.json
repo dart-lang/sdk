@@ -251,6 +251,9 @@
       "_error_utils": {
         "uri": "_internal/wasm/lib/error_utils.dart"
       },
+      "_compact_hash": {
+        "uri": "_internal/wasm/lib/compact_hash.dart"
+      },
       "_http": {
         "uri": "_http/http.dart"
       },
@@ -295,7 +298,6 @@
         "uri": "collection/collection.dart",
         "patches": [
           "_internal/vm_shared/lib/collection_patch.dart",
-          "_internal/wasm/lib/compact_hash.dart",
           "_internal/wasm/lib/hash_factories.dart"
         ]
       },

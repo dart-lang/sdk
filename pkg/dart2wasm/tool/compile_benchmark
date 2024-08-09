@@ -51,6 +51,7 @@ OPT_FLAGS_L4=($(find_flags 'optimizationLevel4Flags'))
 
 RUN_BINARYEN=1
 RUN_SRC=0
+GENERATE_SOURCE_MAP=1
 COMPILE_BENCHMARK_BASE_NAME=""
 PLATFORM_FILENAME="$BIN_DIR/dart2wasm_platform.dill"
 SNAPSHOT_NAME="dart2wasm"
@@ -130,6 +131,11 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    --no-source-maps)
+      GENERATE_SOURCE_MAP=0
+      shift
+      ;;
+
     -o)
       shift
       WASM_FILE="$1"
@@ -157,6 +163,10 @@ while [ $# -gt 0 ]; do
       ;;
   esac
 done
+
+if [ $GENERATE_SOURCE_MAP -eq 1 ]; then
+  BINARYEN_FLAGS+=("-ism" "${WASM_FILE}.map" "-osm" "${WASM_FILE}.map")
+fi
 
 if [ -z "$DART_FILE" -o -z "$WASM_FILE" ]; then
   echo "Expected <file.dart> <file.wasm>"
