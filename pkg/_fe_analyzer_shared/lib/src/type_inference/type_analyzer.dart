@@ -130,7 +130,7 @@ enum RelationalOperatorKind {
 }
 
 /// Information about a relational operator.
-class RelationalOperatorResolution<Type extends SharedType> {
+class RelationalOperatorResolution<Type extends SharedType<Type>> {
   final RelationalOperatorKind kind;
   final Type parameterType;
   final Type returnType;
@@ -265,10 +265,10 @@ mixin TypeAnalyzer<
     Statement extends Node,
     Expression extends Node,
     Variable extends Object,
-    Type extends SharedType,
+    Type extends SharedType<Type>,
     Pattern extends Node,
     Error,
-    TypeSchema extends Object,
+    TypeSchema extends SharedType<TypeSchema>,
     InferableParameter extends Object,
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object> {
@@ -540,7 +540,7 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression).
   Type analyzeExpression(Expression node, TypeSchema schema) {
     // Stack: ()
-    if (operations.typeSchemaIsDynamic(schema)) {
+    if (schema is SharedDynamicType<TypeSchema>) {
       schema = operations.unknownType;
     }
     ExpressionTypeAnalysisResult<Type> result =
@@ -2516,7 +2516,7 @@ abstract class TypeAnalyzerErrors<
     Statement extends Node,
     Expression extends Node,
     Variable extends Object,
-    Type extends SharedType,
+    Type extends SharedType<Type>,
     Pattern extends Node,
     Error> implements TypeAnalyzerErrorsBase {
   /// Called if pattern support is disabled and a case constant's static type

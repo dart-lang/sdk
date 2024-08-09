@@ -11021,7 +11021,7 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-sealed class DartType extends Node implements SharedType {
+sealed class DartType extends Node implements SharedType<DartType> {
   const DartType();
 
   @override
@@ -11188,7 +11188,7 @@ abstract class AuxiliaryType extends DartType {
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
-class InvalidType extends DartType implements SharedInvalidType {
+class InvalidType extends DartType implements SharedInvalidType<DartType> {
   @override
   final int hashCode = 12345;
 
@@ -11241,7 +11241,7 @@ class InvalidType extends DartType implements SharedInvalidType {
   }
 }
 
-class DynamicType extends DartType implements SharedDynamicType {
+class DynamicType extends DartType implements SharedDynamicType<DartType> {
   @override
   final int hashCode = 54321;
 
@@ -11286,7 +11286,7 @@ class DynamicType extends DartType implements SharedDynamicType {
   }
 }
 
-class VoidType extends DartType implements SharedVoidType {
+class VoidType extends DartType implements SharedVoidType<DartType> {
   @override
   final int hashCode = 123121;
 

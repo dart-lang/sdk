@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
         TypeDeclarationMatchResult,
         Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
-    show SharedDynamicType, SharedUnknownType, SharedVoidType;
+    show SharedDynamicType, SharedRecordType, SharedUnknownType, SharedVoidType;
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart' show callName;
 import 'package:kernel/type_algebra.dart';
@@ -951,8 +951,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // respect to `L` under constraints `C0 + ... + Cm`
     // If for `i` in `0...m`, `Mi` is a subtype match for `Ni` with respect to
     // `L` under constraints `Ci`.
-    if (typeOperations.isRecordType(p) &&
-        typeOperations.isRecordType(q) &&
+    if (p is SharedRecordType<DartType> &&
+        q is SharedRecordType<DartType> &&
         (p as RecordType).positional.length ==
             (q as RecordType).positional.length &&
         p.named.length == q.named.length) {

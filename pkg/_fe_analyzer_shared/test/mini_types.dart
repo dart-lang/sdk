@@ -15,7 +15,8 @@ String _parenthesizeIf(bool condition, String s) => condition ? '($s)' : s;
 
 /// Representation of the type `dynamic` suitable for unit testing of code in
 /// the `_fe_analyzer_shared` package.
-class DynamicType extends _SpecialSimpleType implements SharedDynamicType {
+class DynamicType extends _SpecialSimpleType
+    implements SharedDynamicType<Type> {
   static final instance = DynamicType._();
 
   DynamicType._()
@@ -109,7 +110,8 @@ class FutureOrType extends PrimaryType {
 
 /// Representation of an invalid type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class InvalidType extends _SpecialSimpleType implements SharedInvalidType {
+class InvalidType extends _SpecialSimpleType
+    implements SharedInvalidType<Type> {
   static final instance = InvalidType._();
 
   InvalidType._() : super._('error', nullabilitySuffix: NullabilitySuffix.none);
@@ -383,7 +385,7 @@ class RecordType extends Type implements SharedRecordType<Type> {
 
 /// Representation of a type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-abstract class Type implements SharedType {
+abstract class Type implements SharedType<Type> {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
@@ -459,7 +461,7 @@ abstract class Type implements SharedType {
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex});
 }
 
-class TypeSchema {
+class TypeSchema implements SharedType<TypeSchema> {
   final Type _type;
 
   TypeSchema(String typeString) : _type = Type(typeString);
@@ -469,6 +471,25 @@ class TypeSchema {
   String get typeString => _type.type;
 
   Type toType() => _type;
+
+  @override
+  String getDisplayString() {
+    throw UnsupportedError("TypeSchema.getDisplayString");
+  }
+
+  @override
+  bool isStructurallyEqualTo(SharedType<TypeSchema> other) {
+    throw UnsupportedError("TypeSchema.isStructurallyEqualTo");
+  }
+
+  @override
+  // TODO: implement nullabilitySuffix
+  NullabilitySuffix get nullabilitySuffix => throw UnimplementedError();
+}
+
+class DynamicTypeSchema extends TypeSchema
+    implements SharedDynamicType<TypeSchema> {
+  DynamicTypeSchema() : super.fromType(DynamicType.instance);
 }
 
 class TypeSystem {
@@ -948,7 +969,7 @@ class TypeSystem {
 
 /// Representation of the unknown type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class UnknownType extends Type implements SharedUnknownType {
+class UnknownType extends Type implements SharedUnknownType<Type> {
   const UnknownType({super.nullabilitySuffix = NullabilitySuffix.none})
       : super._();
 
@@ -969,7 +990,7 @@ class UnknownType extends Type implements SharedUnknownType {
 
 /// Representation of the type `void` suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class VoidType extends _SpecialSimpleType implements SharedVoidType {
+class VoidType extends _SpecialSimpleType implements SharedVoidType<Type> {
   static final instance = VoidType._();
 
   VoidType._() : super._('void', nullabilitySuffix: NullabilitySuffix.none);
