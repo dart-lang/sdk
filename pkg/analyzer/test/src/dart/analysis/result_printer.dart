@@ -105,8 +105,6 @@ class DriverEventsPrinter {
         _writeResultStreamEvent(event);
       case SchedulerStatusEvent():
         _writeSchedulerStatusEvent(event);
-      default:
-        throw UnimplementedError('${event.runtimeType}');
     }
   }
 
