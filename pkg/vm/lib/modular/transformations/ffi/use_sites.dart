@@ -1510,9 +1510,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ('', parameterType, argument);
     }
 
-    if(argument is InstanceInvocation && argument.interfaceTarget == castMethod && argument.functionType.returnType == parameterType ) {
+    if (argument is InstanceInvocation &&
+        argument.interfaceTarget == castMethod &&
+        argument.functionType.returnType == parameterType) {
       final subExpression = argument.receiver;
-      return _replaceNativeCallParameterAndArgument(parameter, parameterType, subExpression, fileOffset);
+      return _replaceNativeCallParameterAndArgument(
+          parameter, parameterType, subExpression, fileOffset);
     }
     if (argument is! StaticInvocation ||
         !addressOfMethods.contains(argument.target)) {
