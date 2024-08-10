@@ -2209,7 +2209,7 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class NamespaceCombinator {}
+sealed class NamespaceCombinator {}
 
 /// A parameter defined within an executable element.
 ///

@@ -20,7 +20,7 @@ Using initializing formals when possible makes your code more terse.
 **BAD:**
 ```dart
 class Point {
-  num x, y;
+  num? x, y;
   Point(num x, num y) {
     this.x = x;
     this.y = y;
@@ -31,16 +31,16 @@ class Point {
 **GOOD:**
 ```dart
 class Point {
-  num x, y;
-  Point(this.x, this.y);
+  num? x, y;
+  Point(num this.x, num this.y);
 }
 ```
 
 **BAD:**
 ```dart
 class Point {
-  num x, y;
-  Point({num x, num y}) {
+  num? x, y;
+  Point({num? x, num? y}) {
     this.x = x;
     this.y = y;
   }
@@ -50,8 +50,8 @@ class Point {
 **GOOD:**
 ```dart
 class Point {
-  num x, y;
-  Point({this.x, this.y});
+  num? x, y;
+  Point({required num this.x, required num this.y});
 }
 ```
 
@@ -64,8 +64,8 @@ the following will not generate a lint:
 
 ```dart
 class Point {
-  bool isEnabled;
-  Point({bool enabled}) {
+  bool? isEnabled;
+  Point({bool? enabled}) {
     this.isEnabled = enabled; // OK
   }
 }
@@ -79,9 +79,9 @@ example the unnamed `Bid` constructor requires a non-null `int` despite
 
 ```dart
 class Bid {
- final int? amount;
- Bid(int this.amount);
- Bid.pass() : amount = null;
+  final int? amount;
+  Bid(int this.amount);
+  Bid.pass() : amount = null;
 }
 ```
 ''';

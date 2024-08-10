@@ -135,18 +135,9 @@ class LibraryBuilder with MacroApplicationsContainer {
           continue;
         }
 
-        var combinators = exportElement.combinators.map((combinator) {
-          if (combinator is ShowElementCombinator) {
-            return Combinator.show(combinator.shownNames);
-          } else if (combinator is HideElementCombinator) {
-            return Combinator.hide(combinator.hiddenNames);
-          } else {
-            throw UnimplementedError();
-          }
-        }).toList();
-
         var exportedUri = exportedLibrary.source.uri;
         var exportedBuilder = linker.builders[exportedUri];
+        var combinators = exportElement.combinators.build();
 
         var export = Export(
           exporter: this,

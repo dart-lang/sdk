@@ -155,7 +155,7 @@ class TypeError extends Error {}
 /// error to be throw, and avoid calling with those.
 ///
 /// It's almost always a good idea to provide the unacceptable value
-/// as part of the error, to help the user figure out what vent wrong,
+/// as part of the error, to help the user figure out what went wrong,
 /// so the [ArgumentError.value] constructor is the preferred constructor.
 /// Use [ArgumentError.new] only when the value cannot be provided for some
 /// reason.

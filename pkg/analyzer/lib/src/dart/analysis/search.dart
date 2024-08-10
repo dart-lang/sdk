@@ -738,12 +738,13 @@ class Search {
         CompilationUnit unit = unitResult.unit;
         for (Directive directive in unit.directives) {
           if (directive is PartOfDirective && directive.element == element) {
+            var targetEntity = directive.libraryName ?? directive.uri;
             results.add(
               SearchResult._(
                 unit.declaredElement!,
                 SearchResultKind.REFERENCE,
-                directive.libraryName!.offset,
-                directive.libraryName!.length,
+                targetEntity!.offset,
+                targetEntity.length,
                 true,
                 false,
               ),

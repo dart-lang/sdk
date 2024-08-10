@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class Combinator {
   final bool isShow;
@@ -38,13 +39,12 @@ extension CombinatorListExtension on List<Combinator> {
 extension NamespaceCombinatorListExtension on List<NamespaceCombinator> {
   List<Combinator> build() {
     return map((combinator) {
-      if (combinator is ShowElementCombinator) {
-        return Combinator.show(combinator.shownNames);
-      } else if (combinator is HideElementCombinator) {
-        return Combinator.hide(combinator.hiddenNames);
-      } else {
-        throw UnimplementedError();
+      switch (combinator) {
+        case ShowElementCombinator():
+          return Combinator.show(combinator.shownNames);
+        case HideElementCombinator():
+          return Combinator.hide(combinator.hiddenNames);
       }
-    }).toList();
+    }).toFixedList();
   }
 }
