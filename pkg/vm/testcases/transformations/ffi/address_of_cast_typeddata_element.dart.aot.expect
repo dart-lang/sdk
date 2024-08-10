@@ -1,0 +1,30 @@
+library #lib;
+import self as self;
+import "dart:typed_data" as typ;
+import "dart:core" as core;
+
+import "dart:ffi";
+import "dart:typed_data";
+
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final typ::Int8List typedData = [@vm.inferred-type.metadata=dart.typed_data::_Int8List] typ::Int8List::•(20);
+  self::myNative#T(typedData);
+}
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(b)->i]
+@#C6
+@#C8
+external static method myNative#T([@vm.inferred-arg-type.metadata=dart.typed_data::_Int8List] typ::TypedData pointer) → core::int;
+constants  {
+  #C1 = "cfe:ffi:native-marker"
+  #C2 = "myNative"
+  #C3 = "#lib"
+  #C4 = true
+  #C5 = ffi::Native<(ffi::Pointer<ffi::Void>) → ffi::Int8> {symbol:#C2, assetId:#C3, isLeaf:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = "vm:ffi:native"
+  #C8 = core::pragma {name:#C7, options:#C5}
+}
