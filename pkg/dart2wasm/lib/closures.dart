@@ -125,7 +125,7 @@ class ClosureRepresentation {
 /// lexicographically according to their lists of names, corresponding to the
 /// order in which entry points taking named arguments will appear in vtables.
 class NameCombination implements Comparable<NameCombination> {
-  List<String> names;
+  final List<String> names;
 
   NameCombination(this.names);
 
