@@ -494,25 +494,29 @@ abstract class FileKind {
           return PartIncludeWithFile(
             container: this,
             unlinked: unlinked,
-            uri: selectedUri,
+            selectedUri: selectedUri,
+            uris: uris,
           );
         case DirectiveUriWithUri():
           return PartIncludeWithUri(
             container: this,
             unlinked: unlinked,
-            uri: selectedUri,
+            selectedUri: selectedUri,
+            uris: uris,
           );
         case DirectiveUriWithString():
           return PartIncludeWithUriStr(
             container: this,
             unlinked: unlinked,
-            uri: selectedUri,
+            selectedUri: selectedUri,
+            uris: uris,
           );
         case DirectiveUriWithoutString():
           return PartIncludeState(
             container: this,
             unlinked: unlinked,
-            uri: selectedUri,
+            selectedUri: selectedUri,
+            uris: uris,
           );
       }
     }).toFixedList();
@@ -2515,12 +2519,14 @@ sealed class PartFileKind extends FileKind {
 /// Information about a single `part` directive.
 final class PartIncludeState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedPartDirective unlinked;
-  final U uri;
+  final U selectedUri;
+  final DirectiveUris uris;
 
   PartIncludeState({
     required super.container,
     required this.unlinked,
-    required this.uri,
+    required this.selectedUri,
+    required this.uris,
   });
 }
 
@@ -2530,12 +2536,13 @@ final class PartIncludeWithFile
   PartIncludeWithFile({
     required super.container,
     required super.unlinked,
-    required super.uri,
+    required super.selectedUri,
+    required super.uris,
   }) {
     includedFile.referencingFiles.add(container.file);
   }
 
-  FileState get includedFile => uri.file;
+  FileState get includedFile => selectedUri.file;
 
   /// If [includedFile] is a [PartFileKind], and it confirms that it
   /// is a part of the [container], returns the [includedFile].
@@ -2559,7 +2566,8 @@ final class PartIncludeWithUri<U extends DirectiveUriWithUri>
   PartIncludeWithUri({
     required super.container,
     required super.unlinked,
-    required super.uri,
+    required super.selectedUri,
+    required super.uris,
   });
 }
 
@@ -2569,7 +2577,8 @@ final class PartIncludeWithUriStr<U extends DirectiveUriWithString>
   PartIncludeWithUriStr({
     required super.container,
     required super.unlinked,
-    required super.uri,
+    required super.selectedUri,
+    required super.uris,
   });
 }
 

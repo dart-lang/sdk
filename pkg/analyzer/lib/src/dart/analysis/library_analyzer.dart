@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -968,7 +969,7 @@ class LibraryAnalyzer {
     required LibraryImportState state,
     required ErrorReporter errorReporter,
   }) {
-    _resolveNamespaceDirective(
+    _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
     );
@@ -986,7 +987,7 @@ class LibraryAnalyzer {
     required ErrorReporter errorReporter,
   }) {
     directive.element = element;
-    _resolveNamespaceDirective(
+    _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
     );
@@ -1041,7 +1042,7 @@ class LibraryAnalyzer {
   }) {
     directive.element = element;
     directive.prefix?.staticElement = element.prefix?.element;
-    _resolveNamespaceDirective(
+    _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
     );
@@ -1050,16 +1051,6 @@ class LibraryAnalyzer {
       state: state,
       errorReporter: errorReporter,
     );
-  }
-
-  void _resolveNamespaceDirective({
-    required List<Configuration> configurationNodes,
-    required List<file_state.DirectiveUri> configurationUris,
-  }) {
-    for (var i = 0; i < configurationNodes.length; i++) {
-      var node = configurationNodes[i] as ConfigurationImpl;
-      node.resolvedUri = configurationUris[i].asDirectiveUri;
-    }
   }
 
   void _resolvePartDirective({
@@ -1085,7 +1076,7 @@ class LibraryAnalyzer {
       errorReporter.atNode(
         directive.uri,
         CompileTimeErrorCode.INVALID_URI,
-        arguments: [partState.uri.relativeUriStr],
+        arguments: [partState.selectedUri.relativeUriStr],
       );
       return;
     }
@@ -1094,7 +1085,7 @@ class LibraryAnalyzer {
       errorReporter.atNode(
         directive.uri,
         CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        arguments: [partState.uri.relativeUriStr],
+        arguments: [partState.selectedUri.relativeUriStr],
       );
       return;
     }
@@ -1135,20 +1126,22 @@ class LibraryAnalyzer {
     if (partElementUri is! DirectiveUriWithUnitImpl) {
       switch (includedKind) {
         case PartOfNameFileKind():
-          var name = includedKind.unlinked.name;
-          var libraryName = _libraryElement.name;
-          if (libraryName.isEmpty) {
-            errorReporter.atNode(
-              partUri,
-              CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
-              arguments: [name],
-            );
-          } else {
-            errorReporter.atNode(
-              partUri,
-              CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
-              arguments: [libraryName, name],
-            );
+          if (!_libraryElement.featureSet.isEnabled(Feature.enhanced_parts)) {
+            var name = includedKind.unlinked.name;
+            var libraryName = _libraryElement.name;
+            if (libraryName.isEmpty) {
+              errorReporter.atNode(
+                partUri,
+                CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
+                arguments: [name],
+              );
+            } else {
+              errorReporter.atNode(
+                partUri,
+                CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+                arguments: [libraryName, name],
+              );
+            }
           }
         case PartOfUriFileKind():
           errorReporter.atNode(
@@ -1163,11 +1156,26 @@ class LibraryAnalyzer {
       return;
     }
 
+    _resolveUriConfigurations(
+      configurationNodes: directive.configurations,
+      configurationUris: partState.uris.configurations,
+    );
+
     _resolveDirectives(
       enclosingFile: enclosingFile,
       fileKind: includedKind,
       fileElement: partElementUri.unit,
     );
+  }
+
+  void _resolveUriConfigurations({
+    required List<ConfigurationImpl> configurationNodes,
+    required List<file_state.DirectiveUri> configurationUris,
+  }) {
+    for (var i = 0; i < configurationNodes.length; i++) {
+      var node = configurationNodes[i];
+      node.resolvedUri = configurationUris[i].asDirectiveUri;
+    }
   }
 }
 

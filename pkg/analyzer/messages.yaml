@@ -13293,6 +13293,7 @@ CompileTimeErrorCode:
       code:
 
       ```dart
+      %language=3.4
       %uri="lib/part_file.dart"
       part of lib;
       ```
@@ -13302,6 +13303,7 @@ CompileTimeErrorCode:
       name to specify which library it's a part of:
 
       ```dart
+      %language=3.4
       part [!'part_file.dart'!];
       ```
 
@@ -13311,6 +13313,7 @@ CompileTimeErrorCode:
       by URI:
 
       ```dart
+      %language=3.4
       %uri="lib/part_file.dart"
       part of 'test.dart';
       ```

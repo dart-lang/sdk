@@ -661,7 +661,7 @@ class AnalyzerStatePrinter {
               }
             });
           case PartIncludeWithUri():
-            var uriStr = _stringOfUriStr(part.uri.relativeUriStr);
+            var uriStr = _stringOfUriStr(part.selectedUri.relativeUriStr);
             sink.writelnWithIndent('uri: $uriStr');
           default:
             sink.writelnWithIndent('noUri');

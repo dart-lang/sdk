@@ -55,6 +55,8 @@ class FindNode {
 
   ConditionalExpression get singleConditionalExpression => _single();
 
+  Configuration get singleConfiguration => _single();
+
   ConstructorDeclaration get singleConstructorDeclaration => _single();
 
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
