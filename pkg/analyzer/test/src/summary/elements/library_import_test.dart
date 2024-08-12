@@ -64,6 +64,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/foo.dart
+      classes
+        class B @104
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -116,6 +125,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/foo_io.dart
+      classes
+        class B @104
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -168,6 +186,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/foo_io.dart
+      classes
+        class B @124
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -220,6 +247,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/foo_html.dart
+      classes
+        class B @104
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -272,6 +308,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/foo_html.dart
+      classes
+        class B @124
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -794,6 +839,21 @@ library
       prefixes
         p
           reference: <testLibraryFragment>::@prefix::p
+      classes
+        class C @31
+          reference: <testLibraryFragment>::@class::C
+        class D @42
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+    class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
+      supertype: C
 ''');
   }
 

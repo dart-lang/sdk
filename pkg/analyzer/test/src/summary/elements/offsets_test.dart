@@ -158,6 +158,60 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class Raw @6
+          reference: <testLibraryFragment>::@class::Raw
+        class HasDocComment @50
+          reference: <testLibraryFragment>::@class::HasDocComment
+        class HasAnnotation @84
+          reference: <testLibraryFragment>::@class::HasAnnotation
+        class AnnotationThenComment @148
+          reference: <testLibraryFragment>::@class::AnnotationThenComment
+        class CommentThenAnnotation @220
+          reference: <testLibraryFragment>::@class::CommentThenAnnotation
+        class CommentAroundAnnotation @292
+          reference: <testLibraryFragment>::@class::CommentAroundAnnotation
+  classes
+    class Raw
+      reference: <testLibraryFragment>::@class::Raw
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 12
+      firstFragment: <testLibraryFragment>::@class::Raw
+    class HasDocComment
+      reference: <testLibraryFragment>::@class::HasDocComment
+      enclosingElement2: <testLibrary>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 14
+      codeLength: 52
+      firstFragment: <testLibraryFragment>::@class::HasDocComment
+    class HasAnnotation
+      reference: <testLibraryFragment>::@class::HasAnnotation
+      enclosingElement2: <testLibrary>
+      codeOffset: 68
+      codeLength: 32
+      firstFragment: <testLibraryFragment>::@class::HasAnnotation
+    class AnnotationThenComment
+      reference: <testLibraryFragment>::@class::AnnotationThenComment
+      enclosingElement2: <testLibrary>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 102
+      codeLength: 70
+      firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
+    class CommentThenAnnotation
+      reference: <testLibraryFragment>::@class::CommentThenAnnotation
+      enclosingElement2: <testLibrary>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 174
+      codeLength: 70
+      firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
+    class CommentAroundAnnotation
+      reference: <testLibraryFragment>::@class::CommentAroundAnnotation
+      enclosingElement2: <testLibrary>
+      documentationComment: /// Comment 2.
+      codeOffset: 261
+      codeLength: 57
+      firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
 ''');
   }
 
@@ -391,6 +445,82 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class B @18
+          reference: <testLibraryFragment>::@class::B
+        class Raw @30
+          reference: <testLibraryFragment>::@class::Raw
+        class HasDocComment @91
+          reference: <testLibraryFragment>::@class::HasDocComment
+        class HasAnnotation @142
+          reference: <testLibraryFragment>::@class::HasAnnotation
+        class AnnotationThenComment @223
+          reference: <testLibraryFragment>::@class::AnnotationThenComment
+        class CommentThenAnnotation @312
+          reference: <testLibraryFragment>::@class::CommentThenAnnotation
+        class CommentAroundAnnotation @401
+          reference: <testLibraryFragment>::@class::CommentAroundAnnotation
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 10
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      codeOffset: 12
+      codeLength: 10
+      firstFragment: <testLibraryFragment>::@class::B
+    class alias Raw
+      reference: <testLibraryFragment>::@class::Raw
+      enclosingElement2: <testLibrary>
+      codeOffset: 24
+      codeLength: 29
+      firstFragment: <testLibraryFragment>::@class::Raw
+      supertype: Object
+    class alias HasDocComment
+      reference: <testLibraryFragment>::@class::HasDocComment
+      enclosingElement2: <testLibrary>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 55
+      codeLength: 69
+      firstFragment: <testLibraryFragment>::@class::HasDocComment
+      supertype: Object
+    class alias HasAnnotation
+      reference: <testLibraryFragment>::@class::HasAnnotation
+      enclosingElement2: <testLibrary>
+      codeOffset: 126
+      codeLength: 49
+      firstFragment: <testLibraryFragment>::@class::HasAnnotation
+      supertype: Object
+    class alias AnnotationThenComment
+      reference: <testLibraryFragment>::@class::AnnotationThenComment
+      enclosingElement2: <testLibrary>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 177
+      codeLength: 87
+      firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
+      supertype: Object
+    class alias CommentThenAnnotation
+      reference: <testLibraryFragment>::@class::CommentThenAnnotation
+      enclosingElement2: <testLibrary>
+      documentationComment: /// Comment 1.\n/// Comment 2.
+      codeOffset: 266
+      codeLength: 87
+      firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
+      supertype: Object
+    class alias CommentAroundAnnotation
+      reference: <testLibraryFragment>::@class::CommentAroundAnnotation
+      enclosingElement2: <testLibrary>
+      documentationComment: /// Comment 2.
+      codeOffset: 370
+      codeLength: 74
+      firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
+      supertype: Object
 ''');
   }
 
@@ -539,6 +669,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 362
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -687,6 +827,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 483
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -826,6 +976,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 10
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -952,6 +1112,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 115
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -1272,6 +1442,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 436
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -1538,6 +1718,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 372
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -2122,6 +2312,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      codeOffset: 0
+      codeLength: 13
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2157,6 +2357,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2189,6 +2397,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2236,6 +2452,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2275,6 +2499,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2315,6 +2547,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2357,6 +2597,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2387,6 +2635,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 

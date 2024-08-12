@@ -205,6 +205,26 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/order.dart
+      classes
+        class A1 @70
+          reference: <testLibraryFragment>::@class::A1
+        class A2 @125
+          reference: <testLibraryFragment>::@class::A2
+        class A3 @222
+          reference: <testLibraryFragment>::@class::A3
+  classes
+    class A1
+      reference: <testLibraryFragment>::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A1
+    class A2
+      reference: <testLibraryFragment>::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A2
+    class A3
+      reference: <testLibraryFragment>::@class::A3
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
 
@@ -367,6 +387,26 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/order.dart
+      classes
+        class A1 @64
+          reference: <testLibraryFragment>::@class::A1
+        class A2 @113
+          reference: <testLibraryFragment>::@class::A2
+        class A3 @198
+          reference: <testLibraryFragment>::@class::A3
+  classes
+    class A1
+      reference: <testLibraryFragment>::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A1
+    class A2
+      reference: <testLibraryFragment>::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A2
+    class A3
+      reference: <testLibraryFragment>::@class::A3
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
 
@@ -528,6 +568,26 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/order.dart
+      classes
+        class A1 @65
+          reference: <testLibraryFragment>::@class::A1
+        class A2 @115
+          reference: <testLibraryFragment>::@class::A2
+        class A3 @202
+          reference: <testLibraryFragment>::@class::A3
+  classes
+    class A1
+      reference: <testLibraryFragment>::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A1
+    class A2
+      reference: <testLibraryFragment>::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A2
+    class A3
+      reference: <testLibraryFragment>::@class::A3
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
 
@@ -619,6 +679,26 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/order.dart
+      classes
+        class A1 @65
+          reference: <testLibraryFragment>::@class::A1
+        class A2 @115
+          reference: <testLibraryFragment>::@class::A2
+        class A3 @165
+          reference: <testLibraryFragment>::@class::A3
+  classes
+    class A1
+      reference: <testLibraryFragment>::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A1
+    class A2
+      reference: <testLibraryFragment>::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A2
+    class A3
+      reference: <testLibraryFragment>::@class::A3
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
 
@@ -702,6 +782,15 @@ void f1() {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -738,6 +827,19 @@ class A1 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -776,6 +878,19 @@ class A2 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
 ''');
   }
 
@@ -810,6 +925,19 @@ class A1 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -846,6 +974,23 @@ class A2 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class X1
+      reference: <testLibraryFragment>::@class::X1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X1
+    class X2
+      reference: <testLibraryFragment>::@class::X2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X2
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
 ''');
   }
 
@@ -908,6 +1053,19 @@ class A1 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -944,6 +1102,15 @@ class A1 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -980,6 +1147,19 @@ class A1 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -1016,6 +1196,15 @@ class A1 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -1054,6 +1243,15 @@ class A2 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
 ''');
   }
 
@@ -1088,6 +1286,15 @@ class A1 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -1124,6 +1331,15 @@ class A2 {}
 ----------------------------------------
 library
   reference: <testLibrary>
+  classes
+    class A1
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+    class A2
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
 ''');
   }
 }
@@ -1186,6 +1402,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/arguments_text.dart
+      classes
+        class A @76
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''',
     );
   }
@@ -3140,14 +3364,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class A @37
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @115
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+        class B @135
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
 ''');
   }
 
@@ -3235,9 +3480,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @66
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @57
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3308,9 +3568,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @65
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @57
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3379,9 +3654,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @59
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @57
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3466,9 +3756,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @62
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @57
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3544,9 +3849,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @67
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @57
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3618,9 +3938,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @73
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @57
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3699,9 +4034,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @67
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @57
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3798,11 +4148,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -3898,11 +4258,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4001,11 +4371,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4104,11 +4484,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4212,11 +4602,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4315,11 +4715,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4420,11 +4830,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4510,11 +4930,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4619,11 +5049,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4715,11 +5155,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4829,11 +5275,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -4994,11 +5446,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -5096,11 +5554,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -5196,11 +5660,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class C @104
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class C
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
 
@@ -5307,11 +5784,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -5421,11 +5908,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -5563,11 +6060,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -5676,11 +6183,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -5784,11 +6301,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -5900,11 +6427,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class B @99
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -6001,11 +6538,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -6094,11 +6637,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -6200,11 +6749,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -6309,11 +6864,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -6410,11 +6971,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -6517,11 +7084,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -6652,11 +7225,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -6767,11 +7346,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class C @115
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class C
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
 
@@ -6874,11 +7466,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class C @110
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class C
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
 
@@ -6995,11 +7600,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class C @119
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class C
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
 
@@ -7100,6 +7718,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
         package:test/b.dart
@@ -7108,6 +7727,11 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
         prefix1
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -7185,11 +7809,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
 ''');
   }
 
@@ -7269,10 +7903,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
         package:test/a.dart
+      classes
+        class B @71
+          reference: <testLibraryFragment>::@class::B
+          nextFragment: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class B @57
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -7338,9 +7987,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @64
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
@@ -7422,9 +8081,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @64
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
@@ -7546,14 +8215,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class A @42
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class A @99
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -7695,9 +8379,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class A @36
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
         dart:core
@@ -7706,6 +8396,15 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
         prefix1
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+      classes
+        class A @130
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -7836,9 +8535,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class A @37
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
         dart:core
@@ -7847,6 +8552,15 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
         prefix1
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+      classes
+        class A @130
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -7963,9 +8677,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class A @37
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
         dart:core
@@ -7974,6 +8694,15 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
         prefix1
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+      classes
+        class A @130
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -8110,9 +8839,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class A @37
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
         dart:core
@@ -8121,6 +8856,15 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
         prefix1
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+      classes
+        class A @130
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 }
@@ -8296,6 +9040,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @78
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -8344,6 +9096,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @44
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -8385,6 +9145,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @76
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -8445,9 +9213,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class A @56
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class B @49
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
 ''');
   }
 
@@ -8523,6 +9308,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/a.dart
+      classes
+        class A @35
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -8696,6 +9489,14 @@ library
       libraryImports
         package:test/diagnostic.dart
         package:test/a.dart
+      classes
+        class X @84
+          reference: <testLibraryFragment>::@class::X
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
 ''');
   }
 
@@ -8762,6 +9563,14 @@ library
       libraryImports
         package:test/diagnostic.dart
         package:test/a.dart
+      classes
+        class X @82
+          reference: <testLibraryFragment>::@class::X
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
 ''');
   }
 
@@ -8815,6 +9624,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @62
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -8879,6 +9696,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -8940,6 +9765,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @80
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -8997,6 +9830,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -9063,6 +9904,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -9181,6 +10030,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -9411,6 +10268,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @56
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -9467,6 +10332,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @78
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -9536,6 +10409,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10030,6 +10911,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10212,6 +11101,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10466,6 +11363,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10529,6 +11434,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10661,6 +11574,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10733,6 +11654,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10863,6 +11792,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @62
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10915,6 +11852,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @61
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -10967,6 +11912,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @60
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11019,6 +11972,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @63
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11079,6 +12040,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @68
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11143,6 +12112,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11223,6 +12200,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11290,6 +12275,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @33
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11350,6 +12343,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @67
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11407,6 +12408,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @55
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11462,6 +12471,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @55
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11522,6 +12539,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      classes
+        class A @61
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11549,6 +12574,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @12
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11593,6 +12626,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @23
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class alias A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+      supertype: Object
 ''');
   }
 
@@ -11687,14 +12729,42 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+        class B @125
+          reference: <testLibraryFragment>::@class::B
+          nextFragment: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/test.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class C @94
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+        class B @113
+          reference: <testLibraryFragment>::@class::B
+          previousFragment: <testLibraryFragment>::@class::B
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
+    class C
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
 
@@ -11757,6 +12827,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
 
     assertDriverStateString(testFile, r'''
@@ -11863,6 +12941,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11927,9 +13013,19 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -11987,6 +13083,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12044,6 +13148,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12101,6 +13213,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12160,6 +13280,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12219,6 +13347,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12278,6 +13414,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12337,6 +13481,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12396,6 +13548,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12482,6 +13642,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12541,6 +13709,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12600,6 +13776,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12677,9 +13861,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @57
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12739,6 +13938,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12798,6 +14005,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12857,6 +14072,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -12916,6 +14139,14 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/append.dart
+      classes
+        class A @29
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 }
@@ -13067,14 +14298,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/auto_to_string.dart
+      classes
+        class A @53
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         dart:core
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class A @89
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -13245,9 +14491,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/json_serializable.dart
+      classes
+        class A @60
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/json_serializable.dart
         dart:core
@@ -13256,6 +14508,15 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
         prefix1
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+      classes
+        class A @146
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -13383,10 +14644,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
         package:test/a.dart
+      classes
+        class X @80
+          reference: <testLibraryFragment>::@class::X
+          nextFragment: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class X @57
+          reference: <testLibraryFragment>::@class::X
+          previousFragment: <testLibraryFragment>::@class::X
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
 ''');
     }
 
@@ -13516,15 +14792,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
         package:test/a.dart
+      classes
+        class X @101
+          reference: <testLibraryFragment>::@class::X
+          nextFragment: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class X @99
+          reference: <testLibraryFragment>::@class::X
+          previousFragment: <testLibraryFragment>::@class::X
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
 ''');
     }
 
@@ -18453,9 +19744,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @67
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class MyClass @49
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class MyClass
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
   }
 
@@ -18518,9 +19826,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @73
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class MyClass @49
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class MyClass
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
   }
 
@@ -18593,12 +19918,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       prefixes
         prefix
           reference: <testLibraryFragment>::@prefix::prefix
+      classes
+        class A @84
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class MyClass @49
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class MyClass
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
   }
 
@@ -18671,12 +20013,29 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       prefixes
         prefix
           reference: <testLibraryFragment>::@prefix::prefix
+      classes
+        class A @90
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class MyClass @49
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class MyClass
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
   }
 
@@ -18741,9 +20100,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @61
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class B @49
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
@@ -18953,9 +20329,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class A @35
+          reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class MyClass @49
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class MyClass
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
     }
   }
@@ -19074,14 +20467,31 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/b.dart
+      classes
+        class X @35
+          reference: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class MyClass @91
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class MyClass
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
 
     analyzerStatePrinterConfiguration.filesToPrintContent.add(
@@ -19494,14 +20904,37 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
+      classes
+        class X @37
+          reference: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
       prefixes
         prefix0
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+      classes
+        class A @112
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
+        class B @124
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class A
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
+    class B
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
 ''');
 
     analyzerStatePrinterConfiguration.filesToPrintContent.add(
@@ -19734,10 +21167,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
         package:test/a.dart
+      classes
+        class B @78
+          reference: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/test.macro.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class X @49
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class X
+      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
 ''');
   }
 
@@ -20470,9 +21920,26 @@ library
   reference: package:other/other.dart
   fragments
     package:other/other.dart::<fragment>
+      nextFragment: package:other/other.dart::@fragment::package:other/other.macro.dart
       libraryImports
         package:test/append.dart
+      classes
+        class A @74
+          reference: package:other/other.dart::<fragment>::@class::A
     package:other/other.dart::@fragment::package:other/other.macro.dart
+      previousFragment: package:other/other.dart::<fragment>
+      classes
+        class B @51
+          reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
+  classes
+    class A
+      reference: package:other/other.dart::<fragment>::@class::A
+      enclosingElement2: package:other/other.dart
+      firstFragment: package:other/other.dart::<fragment>::@class::A
+    class B
+      reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
+      enclosingElement2: package:other/other.dart
+      firstFragment: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
 ''');
   }
 }

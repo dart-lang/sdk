@@ -155,6 +155,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A::@def::0
+        class A @69
+          reference: <testLibraryFragment>::@class::A::@def::1
+        class A @132
+          reference: <testLibraryFragment>::@class::A::@def::2
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A::@def::0
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A::@def::0
+    class A
+      reference: <testLibraryFragment>::@class::A::@def::1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A::@def::1
+    class A
+      reference: <testLibraryFragment>::@class::A::@def::2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A::@def::2
 ''');
   }
 
@@ -193,6 +213,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -270,6 +298,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -310,6 +346,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -390,6 +434,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class B @17
+          reference: <testLibraryFragment>::@class::B
+        class X @28
+          reference: <testLibraryFragment>::@class::X::@def::0
+        class X @48
+          reference: <testLibraryFragment>::@class::X::@def::1
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class alias X
+      reference: <testLibraryFragment>::@class::X::@def::0
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X::@def::0
+      supertype: A
+    class alias X
+      reference: <testLibraryFragment>::@class::X::@def::1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X::@def::1
+      supertype: B
 ''');
   }
 

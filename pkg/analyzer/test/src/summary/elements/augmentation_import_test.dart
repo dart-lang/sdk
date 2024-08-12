@@ -62,7 +62,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class B @31
+          reference: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @35
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class A
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
 ''');
 
     var import_0 = library.augmentationImports[0];
@@ -129,9 +146,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      nextFragment: <testLibrary>::@fragment::package:test/c.dart
     <testLibrary>::@fragment::package:test/c.dart
+      previousFragment: <testLibrary>::@fragment::package:test/b.dart
 ''');
 
     var import_0 = library.augmentationImports[0];

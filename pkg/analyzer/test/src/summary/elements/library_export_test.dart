@@ -277,6 +277,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class X @23
+          reference: <testLibraryFragment>::@class::X
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
     declared <testLibraryFragment>::@class::X
@@ -511,6 +519,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class X @40
+          reference: <testLibraryFragment>::@class::X
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
   exportedReferences
     exported[(0, 0), (0, 1)] package:test/a.dart::<fragment>::@class::A
     exported[(0, 0)] package:test/b.dart::<fragment>::@class::B
@@ -856,6 +872,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/bar.dart
+      classes
+        class B @25
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -910,6 +935,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/bar.dart
+      classes
+        class B @25
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -964,6 +998,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/bar.dart
+      classes
+        class B @25
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -1073,7 +1116,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class A @21
+          reference: <testLibraryFragment>::@class::A
+          nextFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @35
+          reference: <testLibraryFragment>::@class::A
+          previousFragment: <testLibraryFragment>::@class::A
+        class B @46
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@class::B
     declared <testLibraryFragment>::@class::A
@@ -1178,8 +1242,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/d.dart
+      classes
+        class X @36
+          reference: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/d.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/e.dart
     <testLibrary>::@fragment::package:test/e.dart
+      previousFragment: <testLibrary>::@fragment::package:test/d.dart
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A
     exported[(2, 0)] package:test/b.dart::<fragment>::@class::B1
@@ -1259,7 +1335,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      classes
+        class X @21
+          reference: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A1
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A3
@@ -1334,7 +1420,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      classes
+        class X @21
+          reference: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A1
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A3
@@ -1408,7 +1504,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@mixin::B
     declared <testLibraryFragment>::@mixin::A
@@ -1500,8 +1598,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class C @21
+          reference: <testLibraryFragment>::@class::C
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      classes
+        class A @42
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class B @24
+          reference: <testLibrary>::@fragment::package:test/b.dart::@class::B
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+    class A
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
+    class B
+      reference: <testLibrary>::@fragment::package:test/b.dart::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::B
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@class::A
     declared <testLibrary>::@fragment::package:test/b.dart::@class::B
@@ -1595,8 +1719,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/c.dart
+      classes
+        class X @21
+          reference: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/c.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/d.dart
     <testLibrary>::@fragment::package:test/d.dart
+      previousFragment: <testLibrary>::@fragment::package:test/c.dart
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A
     exported[(2, 0)] package:test/b.dart::<fragment>::@class::B
@@ -1666,7 +1802,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::a
@@ -1729,7 +1867,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportNamespace

@@ -67,40 +67,111 @@ import 'package:pub_semver/pub_semver.dart';
 
 abstract class BindPatternVariableElement2 implements PatternVariableElement2 {}
 
+/// A class.
+///
+/// The class can be defined by either a class declaration (with a class body),
+/// or a mixin application (without a class body).
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement2 implements InterfaceElement2 {
+  /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
 
+  /// Whether the class is abstract.
+  ///
+  /// A class is abstract if it has an explicit `abstract` modifier. Note, that
+  /// this definition of <i>abstract</i> is different from <i>has unimplemented
+  /// members</i>.
   bool get isAbstract;
 
+  /// Whether this class is a base class.
+  ///
+  /// A class is a base class if it has an explicit `base` modifier, or the
+  /// class has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows the class to be extended but not implemented.
   bool get isBase;
 
+  /// Whether the class can be instantiated.
   bool get isConstructable;
 
+  /// Whether the class represents the class 'Enum' defined in `dart:core`.
   bool get isDartCoreEnum;
 
+  /// Whether the class represents the class 'Object' defined in `dart:core`.
   bool get isDartCoreObject;
 
+  /// Whether the class is exhaustive.
+  ///
+  /// A class is exhaustive if it has the property where, in a switch, if you
+  /// cover all of the subtypes of this element, then the compiler knows that
+  /// you have covered all possible instances of the type.
   bool get isExhaustive;
 
+  /// Whether the class is a final class.
+  ///
+  /// A class is a final class if it has an explicit `final` modifier, or the
+  /// class has a `final` induced modifier and [isSealed] is `true` as well.
+  /// The final modifier prohibits this class from being extended, implemented,
+  /// or mixed in.
   bool get isFinal;
 
+  /// Whether the class is an interface class.
+  ///
+  /// A class is an interface class if it has an explicit `interface` modifier,
+  /// or the class has an `interface` induced modifier and [isSealed] is `true`
+  /// as well. The interface modifier allows the class to be implemented, but
+  /// not extended or mixed in.
   bool get isInterface;
 
+  /// Whether the class is a mixin application.
+  ///
+  /// A class is a mixin application if it was declared using the syntax
+  /// `class A = B with C;`.
   bool get isMixinApplication;
 
+  /// Whether the class is a mixin class.
+  ///
+  /// A class is a mixin class if it has an explicit `mixin` modifier.
   bool get isMixinClass;
 
+  /// Whether the class is a sealed class.
+  ///
+  /// A class is a sealed class if it has an explicit `sealed` modifier.
   bool get isSealed;
 
+  /// Whether the class can validly be used as a mixin when defining
+  /// another class.
+  ///
+  /// For classes defined by a class declaration or a mixin application, the
+  /// behavior of this method is defined by the Dart Language Specification
+  /// in section 9:
+  /// <blockquote>
+  /// It is a compile-time error if a declared or derived mixin refers to super.
+  /// It is a compile-time error if a declared or derived mixin explicitly
+  /// declares a constructor. It is a compile-time error if a mixin is derived
+  /// from a class whose superclass is not Object.
+  /// </blockquote>
   bool get isValidMixin;
 
+  /// Whether the class, assuming that it is within scope, can be extended by
+  /// classes in the given [library].
   bool isExtendableIn2(LibraryElement2 library);
 
+  /// Whether the class, assuming that it is within scope, can be implemented by
+  /// classes, mixins, and enums in the given [library].
   bool isImplementableIn2(LibraryElement2 library);
 
+  /// Whether the class, assuming that it is within scope, can be mixed-in by
+  /// classes and enums in the given [library].
   bool isMixableIn2(LibraryElement2 library);
 }
 
+/// The portion of a [ClassElement2] contributed by a single declaration.
+///
+/// The fragment can be defined by either a class declaration (with a class
+/// body), or a mixin application (without a class body).
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class ClassFragment implements InterfaceFragment {}
 
 abstract class ConstructorElement2 implements ExecutableElement2, _Fragmented {
