@@ -8,8 +8,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/unit_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -813,26 +813,26 @@ class MemberDuplicateDefinitionVerifier {
     required InheritanceManager3 inheritance,
     required LibraryVerificationContext libraryVerificationContext,
     required LibraryElement libraryElement,
-    required Map<FileState, UnitAnalysis> units,
+    required Map<FileState, FileAnalysis> files,
   }) {
-    MemberDuplicateDefinitionVerifier forUnit(UnitAnalysis unitAnalysis) {
+    MemberDuplicateDefinitionVerifier forUnit(FileAnalysis fileAnalysis) {
       return MemberDuplicateDefinitionVerifier._(
         inheritance,
         libraryElement,
-        unitAnalysis.element,
-        unitAnalysis.errorReporter,
+        fileAnalysis.element,
+        fileAnalysis.errorReporter,
         libraryVerificationContext.duplicationDefinitionContext,
       );
     }
 
     // Check all instance members.
-    for (var unitAnalysis in units.values) {
-      forUnit(unitAnalysis)._checkUnit(unitAnalysis.unit);
+    for (var fileAnalysis in files.values) {
+      forUnit(fileAnalysis)._checkUnit(fileAnalysis.unit);
     }
 
     // Check all static members.
-    for (var unitAnalysis in units.values) {
-      forUnit(unitAnalysis)._checkUnitStatic(unitAnalysis.unit);
+    for (var fileAnalysis in files.values) {
+      forUnit(fileAnalysis)._checkUnitStatic(fileAnalysis.unit);
     }
   }
 

@@ -2503,7 +2503,7 @@ class ParsedFileStateCache {
 }
 
 /// The file has `part of` directive.
-abstract class PartFileKind extends FileKind {
+sealed class PartFileKind extends FileKind {
   PartFileKind({
     required super.file,
   });

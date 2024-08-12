@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 
 /// Information about a file being analyzed.
-class UnitAnalysis {
+class FileAnalysis {
   final FileState file;
   final RecordingErrorListener errorListener;
   final ErrorReporter errorReporter;
@@ -18,7 +18,7 @@ class UnitAnalysis {
 
   late final CompilationUnitElementImpl element;
 
-  UnitAnalysis({
+  FileAnalysis({
     required this.file,
     required this.errorListener,
     required this.unit,
