@@ -2910,7 +2910,10 @@ part 'foo.dart'
   }
 
   void test_visitPartOfDirective_name() {
-    var unit = _parseStringToFindNode('part of l;').unit;
+    var unit = _parseStringToFindNode(
+      'part of l;',
+      featureSet: FeatureSets.language_3_4,
+    ).unit;
     var directive = unit.directives[0] as PartOfDirective;
     _assertSource("part of l;", directive);
   }
@@ -2922,7 +2925,7 @@ part 'foo.dart'
   }
 
   void test_visitPartOfDirective_withMetadata() {
-    var code = '@deprecated part of my.lib;';
+    var code = "@deprecated part of 'a.dart';";
     var findNode = _parseStringToFindNode(code);
     _assertSource(code, findNode.partOf(code));
   }

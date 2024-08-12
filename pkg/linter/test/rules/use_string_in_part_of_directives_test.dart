@@ -25,9 +25,11 @@ class UseStringInPartOfDirectivesTest extends LintRuleTest {
 library lib;
 part '$testFileName';
 ''');
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(r'''
 part of lib;
-''');
+''', [
+      error(ParserErrorCode.PART_OF_NAME, 8, 3),
+    ]);
   }
 
   test_part_of_with_library_name_preEnhancedParts() async {

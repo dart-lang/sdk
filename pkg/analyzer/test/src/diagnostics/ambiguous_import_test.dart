@@ -89,19 +89,16 @@ class A implements N {}''', [
 
   test_inPart() async {
     newFile("$testPackageLibPath/lib1.dart", '''
-library lib1;
 class N {}
 ''');
     newFile("$testPackageLibPath/lib2.dart", '''
-library lib2;
 class N {}
 ''');
     var partFile = newFile('$testPackageLibPath/part.dart', '''
-part of lib;
+part of 'lib.dart';
 class A extends N {}
 ''');
     var libFile = newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 import 'lib1.dart';
 import 'lib2.dart';
 part 'part.dart';
@@ -112,8 +109,8 @@ part 'part.dart';
     GatheringErrorListener()
       ..addAll(partResult.errors)
       ..assertErrors([
-        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 29, 1),
-        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 29, 1),
+        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 36, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 36, 1),
       ]);
   }
 

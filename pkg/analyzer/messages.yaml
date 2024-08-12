@@ -21610,6 +21610,9 @@ ParserErrorCode:
   NORMAL_BEFORE_OPTIONAL_PARAMETERS:
     problemMessage: Normal parameters must occur before optional parameters.
     correctionMessage: Try moving all of the normal parameters before the optional parameters.
+  PART_OF_NAME:
+    problemMessage: "The 'part of' directive can't use a name with the enhanced-parts feature."
+    correctionMessage: "Try using 'part of' with a URI instead."
   POSITIONAL_AFTER_NAMED_ARGUMENT:
     problemMessage: Positional arguments must occur before named arguments.
     correctionMessage: Try moving all of the positional arguments before the named arguments.

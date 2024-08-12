@@ -43,6 +43,11 @@ class FeatureSets {
     flags: [],
   );
 
+  static final FeatureSet language_3_4 = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('3.4.0'),
+    flags: [],
+  );
+
   static final FeatureSet latest = FeatureSet.latestLanguageVersion();
 
   static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(

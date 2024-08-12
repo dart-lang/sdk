@@ -540,7 +540,7 @@ class C {
 
   Future<void> test_inPart_self() async {
     await resolveTestCode('''
-part of lib;
+part of 'a.dart';
 class A {
 }
 void f(A a) {

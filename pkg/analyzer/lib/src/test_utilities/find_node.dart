@@ -144,6 +144,8 @@ class FindNode {
 
   PartDirective get singlePartDirective => _single();
 
+  PartOfDirective get singlePartOfDirective => _single();
+
   PatternAssignment get singlePatternAssignment => _single();
 
   PatternVariableDeclaration get singlePatternVariableDeclaration => _single();
