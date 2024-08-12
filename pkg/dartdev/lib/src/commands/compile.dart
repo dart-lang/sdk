@@ -707,6 +707,11 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         },
         hide: !verbose,
       )
+      ..addFlag(
+        'source-maps',
+        help: 'Generate a source map file.',
+        defaultsTo: true,
+      )
       ..addOption(
         packagesOption.flag,
         abbr: packagesOption.abbr,
@@ -804,6 +809,13 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     handleOverride(optimizationFlags, 'minify',
         args.wasParsed('minify') ? args.flag('minify') : null);
 
+    bool generateSourceMap = args.flag('source-maps');
+    // TODO(kustermann): Remive this temporary change when flutter no longer
+    // uses --extra-compiler-option=--no-source-maps
+    if (extraCompilerOptions.any((o) => o == '--no-source-maps')) {
+      generateSourceMap = false;
+    }
+
     final enabledExperiments = args.enabledExperiments;
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
@@ -814,6 +826,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (args.flag('print-wasm')) '--print-wasm',
       if (args.flag('print-kernel')) '--print-kernel',
       if (args.flag('enable-asserts')) '--enable-asserts',
+      if (!generateSourceMap) '--no-source-maps',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
@@ -848,9 +861,20 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       final unoptFile = '$outputFileBasename.unopt.wasm';
       File(outputFile).renameSync(unoptFile);
 
+      final unoptSourceMapFile = '$outputFileBasename.unopt.wasm.map';
+      if (generateSourceMap) {
+        File('$outputFile.map').renameSync(unoptSourceMapFile);
+      }
+
       final flags = [
         ...binaryenFlags,
         if (!strip) '-g',
+        if (generateSourceMap) ...[
+          '-ism',
+          unoptSourceMapFile,
+          '-osm',
+          '$outputFile.map'
+        ]
       ];
 
       if (verbose) {

@@ -207,8 +207,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final location = source.getLocation(fileUri, fileOffset);
     final old = _sourceMapFileOffset;
     _sourceMapFileOffset = fileOffset;
-    b.startSourceMapping(
-        fileUri, location.line - 1, location.column - 1, member.name.text);
+    b.startSourceMapping(fileUri, location.line - 1, location.column - 1, null);
     return old;
   }
 
