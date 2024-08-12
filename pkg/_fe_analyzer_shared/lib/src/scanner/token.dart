@@ -482,8 +482,7 @@ class KeywordToken extends SimpleToken {
    * Initialize a newly created token to represent the given [keyword] at the
    * given [offset].
    */
-  KeywordToken(Keyword keyword, int offset, [CommentToken? precedingComment])
-      : super(keyword, offset, precedingComment);
+  KeywordToken(super.keyword, super.offset, [super.precedingComment]);
 
   @override
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
