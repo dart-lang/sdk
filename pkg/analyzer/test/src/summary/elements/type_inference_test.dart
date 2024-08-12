@@ -94,7 +94,9 @@ library
   name: lib
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -138,6 +140,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -242,6 +252,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @43
+          reference: <testLibraryFragment>::@class::C
+        class D @77
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+    class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
 ''');
   }
 
@@ -334,6 +358,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @38
+          reference: <testLibraryFragment>::@class::C
+        class D @66
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+    class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
 ''');
   }
 
@@ -410,6 +448,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class B @18
+          reference: <testLibraryFragment>::@class::B
+        class S @40
+          reference: <testLibraryFragment>::@class::S
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
+    class S
+      reference: <testLibraryFragment>::@class::S
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::S
 ''');
   }
 
@@ -538,6 +597,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class B @25
+          reference: <testLibraryFragment>::@class::B
+        class C @81
+          reference: <testLibraryFragment>::@class::C
+        class D @92
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+    class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
+      supertype: C
 ''');
   }
 
@@ -692,6 +778,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -772,6 +866,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -818,6 +920,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -865,6 +975,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -916,6 +1034,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -1040,6 +1166,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -1097,6 +1231,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -1448,6 +1590,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @31
+          reference: <testLibraryFragment>::@class::C
+        class D @69
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: D
+    abstract class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
 ''');
   }
 
@@ -1722,6 +1879,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+        class D @57
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: D<int, T>
+    abstract class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
 ''');
   }
 
@@ -1857,6 +2029,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+        class D @73
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: D<U, int>
+    abstract class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
 ''');
   }
 
@@ -1918,6 +2105,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/a.dart
+      classes
+        class C @23
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: D
 ''');
   }
 
@@ -1976,6 +2172,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+        class D @57
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: D
+    abstract class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
 ''');
   }
 
@@ -2143,6 +2354,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+        class D @54
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: D
+    abstract class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
 ''');
   }
 
@@ -2199,6 +2425,15 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/a.dart
+      classes
+        class B @23
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
 ''');
     ClassElement b = library.definingCompilationUnit.classes[0];
     ParameterElement p = b.methods[0].parameters[0];
@@ -2277,6 +2512,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2515,6 +2758,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @15
+          reference: <testLibraryFragment>::@class::A
+        class B @48
+          reference: <testLibraryFragment>::@class::B
+        class C @84
+          reference: <testLibraryFragment>::@class::C
+        class D @121
+          reference: <testLibraryFragment>::@class::D
+  classes
+    abstract class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    abstract class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    abstract class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+    abstract class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
+      supertype: C
 ''');
   }
 
@@ -2595,6 +2865,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class B @42
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -2892,6 +3176,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -2956,6 +3248,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3040,6 +3340,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class B @51
+          reference: <testLibraryFragment>::@class::B
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 
@@ -3165,6 +3479,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class B @51
+          reference: <testLibraryFragment>::@class::B
+        class C @78
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class alias B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A<T>
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -3220,6 +3555,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3278,6 +3621,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3781,6 +4132,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class B @18
+          reference: <testLibraryFragment>::@class::B
+        class C @40
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+      supertype: A
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -3922,6 +4294,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -4014,6 +4394,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -4133,6 +4521,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -4182,6 +4578,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -4319,6 +4723,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -4467,7 +4879,17 @@ library
   name: l
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class C @17
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+  classes
+    class C
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
 ''');
   }
 
@@ -4615,7 +5037,17 @@ library
   name: l
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class C @32
+          reference: <testLibraryFragment>::@class::C
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -4774,8 +5206,20 @@ library
   name: l
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      classes
+        class C @17
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
+  classes
+    class C
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
 ''');
   }
 
@@ -4923,7 +5367,17 @@ library
   name: l
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class C @17
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+  classes
+    class C
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
 ''');
   }
 
@@ -4966,6 +5420,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -5013,6 +5475,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -5060,6 +5530,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 

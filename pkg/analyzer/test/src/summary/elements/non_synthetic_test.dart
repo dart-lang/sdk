@@ -66,6 +66,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -109,6 +117,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -156,6 +172,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 

@@ -72,6 +72,21 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      classes
+        class A @47
+          reference: dart:foo::<fragment>::@class::A
+        class B @73
+          reference: dart:foo::<fragment>::@class::B
+  classes
+    class A
+      reference: dart:foo::<fragment>::@class::A
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@class::A
+    class B
+      reference: dart:foo::<fragment>::@class::B
+      enclosingElement2: dart:foo
+      firstFragment: dart:foo::<fragment>::@class::B
 ''');
   }
 
@@ -123,6 +138,15 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      classes
+        class A @47
+          reference: dart:foo::<fragment>::@class::A
+  classes
+    class A
+      reference: dart:foo::<fragment>::@class::A
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@class::A
 ''');
   }
 
@@ -164,6 +188,15 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      classes
+        class A @47
+          reference: dart:foo::<fragment>::@class::A
+  classes
+    class A
+      reference: dart:foo::<fragment>::@class::A
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@class::A
 ''');
   }
 
@@ -200,6 +233,15 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      classes
+        class A @47
+          reference: dart:foo::<fragment>::@class::A
+  classes
+    class A
+      reference: dart:foo::<fragment>::@class::A
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@class::A
 ''');
   }
 
@@ -237,6 +279,15 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      classes
+        class A @47
+          reference: dart:foo::<fragment>::@class::A
+  classes
+    class A
+      reference: dart:foo::<fragment>::@class::A
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@class::A
 ''');
   }
 
@@ -274,6 +325,15 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      classes
+        class A @47
+          reference: dart:foo::<fragment>::@class::A
+  classes
+    class A
+      reference: dart:foo::<fragment>::@class::A
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@class::A
 ''');
   }
 
@@ -318,6 +378,15 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      classes
+        class A @47
+          reference: dart:foo::<fragment>::@class::A
+  classes
+    class A
+      reference: dart:foo::<fragment>::@class::A
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@class::A
 ''');
   }
 

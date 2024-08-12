@@ -18,9 +18,9 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/analysis/unit_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -6549,7 +6549,7 @@ class LibraryVerificationContext {
   final duplicationDefinitionContext = DuplicationDefinitionContext();
   final LibraryFileKind libraryKind;
   final ConstructorFieldsVerifier constructorFieldsVerifier;
-  final Map<FileState, UnitAnalysis> units;
+  final Map<FileState, FileAnalysis> files;
 
   /// Elements referenced in `implements` clauses.
   /// Key: the declaration element.
@@ -6563,7 +6563,7 @@ class LibraryVerificationContext {
   LibraryVerificationContext({
     required this.libraryKind,
     required this.constructorFieldsVerifier,
-    required this.units,
+    required this.files,
   });
 
   _MacroSyntacticTypeAnnotationLocation? declarationByElement(Element element) {
@@ -6573,15 +6573,15 @@ class LibraryVerificationContext {
     }
 
     var uri = unitElement.source.uri;
-    var unitAnalysis = units.entries.firstWhereOrNull((entry) {
+    var fileAnalysis = files.entries.firstWhereOrNull((entry) {
       return entry.key.uri == uri;
     })?.value;
-    if (unitAnalysis == null) {
+    if (fileAnalysis == null) {
       return null;
     }
 
     var locator = DeclarationByElementLocator(element);
-    unitAnalysis.unit.accept(locator);
+    fileAnalysis.unit.accept(locator);
 
     var node = locator.result;
     if (node == null) {
@@ -6589,7 +6589,7 @@ class LibraryVerificationContext {
     }
 
     return _MacroSyntacticTypeAnnotationLocation(
-      unitAnalysis: unitAnalysis,
+      fileAnalysis: fileAnalysis,
       entity: node,
     );
   }
@@ -6746,7 +6746,7 @@ class _MacroDiagnosticsReporter {
           return;
         }
         var node = target.element.annotationAst(target.annotationIndex);
-        location.unitAnalysis.errorReporter.reportError(
+        location.fileAnalysis.errorReporter.reportError(
           AnalysisError.forValues(
             source: target.element.source!,
             offset: node.offset,
@@ -6761,12 +6761,12 @@ class _MacroDiagnosticsReporter {
         var nodeLocation = _MacroTypeAnnotationLocationConverter(
           libraryVerificationContext: libraryContext,
         ).convert(target.location);
-        var unitAnalysis = nodeLocation?.unitAnalysis;
+        var fileAnalysis = nodeLocation?.fileAnalysis;
         var errorEntity = nodeLocation?.entity;
-        if (unitAnalysis != null && errorEntity != null) {
-          unitAnalysis.errorReporter.reportError(
+        if (fileAnalysis != null && errorEntity != null) {
+          fileAnalysis.errorReporter.reportError(
             AnalysisError.forValues(
-              source: unitAnalysis.element.source,
+              source: fileAnalysis.element.source,
               offset: errorEntity.offset,
               length: errorEntity.length,
               errorCode: errorCode,
@@ -6873,19 +6873,19 @@ class _MacroDiagnosticsReporter {
 }
 
 class _MacroSyntacticTypeAnnotationLocation {
-  final UnitAnalysis unitAnalysis;
+  final FileAnalysis fileAnalysis;
 
   /// Usually a [AstNode], sometimes [Token] if the type is omitted.
   final SyntacticEntity entity;
 
   _MacroSyntacticTypeAnnotationLocation({
-    required this.unitAnalysis,
+    required this.fileAnalysis,
     required this.entity,
   });
 
   _MacroSyntacticTypeAnnotationLocation next(SyntacticEntity entity) {
     return _MacroSyntacticTypeAnnotationLocation(
-      unitAnalysis: unitAnalysis,
+      fileAnalysis: fileAnalysis,
       entity: entity,
     );
   }

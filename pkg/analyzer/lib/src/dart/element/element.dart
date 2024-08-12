@@ -229,7 +229,7 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
 /// An [InterfaceElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl
     with AugmentableElement<ClassElementImpl>
-    implements ClassElement {
+    implements ClassElement, ClassFragment {
   late MaybeAugmentedClassElementMixin augmentedInternal =
       NotAugmentedClassElementImpl(this);
 
@@ -5477,9 +5477,60 @@ mixin MacroTargetElement on ElementImpl {
 }
 
 mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
-    implements AugmentedClassElement {
+    implements AugmentedClassElement, ClassElement2 {
   @override
   ClassElementImpl get declaration;
+
+  @override
+  bool get hasNonFinalField => declaration.hasNonFinalField;
+
+  @override
+  bool get isAbstract => declaration.isAbstract;
+
+  @override
+  bool get isBase => declaration.isBase;
+
+  @override
+  bool get isConstructable => declaration.isConstructable;
+
+  @override
+  bool get isDartCoreEnum => declaration.isDartCoreEnum;
+
+  @override
+  bool get isDartCoreObject => declaration.isDartCoreObject;
+
+  @override
+  bool get isExhaustive => declaration.isExhaustive;
+
+  @override
+  bool get isFinal => declaration.isFinal;
+
+  @override
+  bool get isInterface => declaration.isInterface;
+
+  @override
+  bool get isMixinApplication => declaration.isMixinApplication;
+
+  @override
+  bool get isMixinClass => declaration.isMixinClass;
+
+  @override
+  bool get isSealed => declaration.isSealed;
+
+  @override
+  bool get isValidMixin => declaration.isValidMixin;
+
+  @override
+  bool isExtendableIn2(LibraryElement2 library) =>
+      declaration.isExtendableIn(library as LibraryElement);
+
+  @override
+  bool isImplementableIn2(LibraryElement2 library) =>
+      declaration.isImplementableIn(library as LibraryElement);
+
+  @override
+  bool isMixableIn2(LibraryElement2 library) =>
+      declaration.isMixableIn(library as LibraryElement);
 }
 
 mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
@@ -5678,7 +5729,8 @@ mixin MaybeAugmentedInstanceElementMixin
   String? get name => declaration.name;
 
   @override
-  Element2 get nonSynthetic2 => declaration.nonSynthetic2;
+  Element2 get nonSynthetic2 =>
+      isSynthetic ? enclosingElement2 : this as Element2;
 
   @override
   AnalysisSession? get session => declaration.session;

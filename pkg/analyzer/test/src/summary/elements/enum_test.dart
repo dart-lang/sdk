@@ -1893,6 +1893,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class I @6
+          reference: <testLibraryFragment>::@class::I
+  classes
+    class I
+      reference: <testLibraryFragment>::@class::I
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::I
 ''');
   }
 
@@ -1969,6 +1977,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class C @45
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -2059,6 +2081,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class I @6
+          reference: <testLibraryFragment>::@class::I
+  classes
+    class I
+      reference: <testLibraryFragment>::@class::I
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::I
 ''');
   }
 
@@ -2150,6 +2180,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class X @6
+          reference: <testLibraryFragment>::@class::X
+        class Z @17
+          reference: <testLibraryFragment>::@class::Z
+  classes
+    class X
+      reference: <testLibraryFragment>::@class::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::X
+    class Z
+      reference: <testLibraryFragment>::@class::Z
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::Z
 ''');
   }
 
@@ -2473,6 +2517,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+        class C @45
+          reference: <testLibraryFragment>::@class::C
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
 ''');
   }
 
@@ -3789,6 +3847,40 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class M @24
+          reference: <testLibraryFragment>::@class::M
+        class A @36
+          reference: <testLibraryFragment>::@class::A
+        class B @70
+          reference: <testLibraryFragment>::@class::B
+        class C @110
+          reference: <testLibraryFragment>::@class::C
+        class D @159
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class M
+      reference: <testLibraryFragment>::@class::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::M
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: Object
+    class alias D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
+      supertype: Object
 ''');
   }
 
@@ -4059,6 +4151,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+  classes
+    class A
+      reference: <testLibraryFragment>::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -4768,7 +4868,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -4954,12 +5056,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a1.dart
     <testLibrary>::@fragment::package:test/a1.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a11.dart
     <testLibrary>::@fragment::package:test/a11.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a1.dart
+      nextFragment: <testLibrary>::@fragment::package:test/a12.dart
     <testLibrary>::@fragment::package:test/a12.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a11.dart
+      nextFragment: <testLibrary>::@fragment::package:test/a2.dart
     <testLibrary>::@fragment::package:test/a2.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a12.dart
+      nextFragment: <testLibrary>::@fragment::package:test/a21.dart
     <testLibrary>::@fragment::package:test/a21.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a2.dart
+      nextFragment: <testLibrary>::@fragment::package:test/a22.dart
     <testLibrary>::@fragment::package:test/a22.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a21.dart
   exportedReferences
     declared <testLibraryFragment>::@enum::A
   exportNamespace
@@ -5089,7 +5203,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -5190,8 +5306,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -5340,7 +5460,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -5544,8 +5666,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -5715,7 +5841,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -5915,7 +6043,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6099,7 +6229,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6207,7 +6339,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6294,7 +6428,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6392,7 +6528,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6485,7 +6623,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6570,7 +6710,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6663,7 +6805,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6765,7 +6909,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6873,7 +7019,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -6993,7 +7141,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -7143,8 +7293,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7294,8 +7448,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7448,8 +7606,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -7569,7 +7731,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -7709,7 +7873,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -7830,7 +7996,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -7958,7 +8126,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -8094,7 +8264,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -8196,7 +8368,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -8304,7 +8478,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -8430,7 +8606,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -8566,7 +8744,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -8686,7 +8866,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -8836,8 +9018,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -8971,7 +9157,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -9099,7 +9287,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -9248,8 +9438,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -9347,7 +9541,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -9455,7 +9651,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class I1 @60
+          reference: <testLibraryFragment>::@class::I1
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class I2 @67
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+  classes
+    class I1
+      reference: <testLibraryFragment>::@class::I1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::I1
+    class I2
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
 ''');
   }
 
@@ -9595,8 +9808,34 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class I1 @60
+          reference: <testLibraryFragment>::@class::I1
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      classes
+        class I2 @92
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class I3 @64
+          reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+  classes
+    class I1
+      reference: <testLibraryFragment>::@class::I1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::I1
+    class I2
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+    class I3
+      reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
 ''');
   }
 
@@ -9713,7 +9952,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class I1 @70
+          reference: <testLibraryFragment>::@class::I1
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class I2 @75
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+  classes
+    class I1
+      reference: <testLibraryFragment>::@class::I1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::I1
+    class I2
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
 ''');
   }
 
@@ -9831,7 +10087,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class I1 @63
+          reference: <testLibraryFragment>::@class::I1
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class I2 @79
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+  classes
+    class I1
+      reference: <testLibraryFragment>::@class::I1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::I1
+    class I2
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
 ''');
   }
 
@@ -9930,7 +10203,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -10050,7 +10325,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -10156,7 +10433,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -10263,7 +10542,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -10378,7 +10659,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -10507,8 +10790,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -10615,7 +10902,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -10723,7 +11012,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -10827,7 +11118,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -10978,8 +11271,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -11111,7 +11408,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -11234,7 +11533,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -11340,7 +11641,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -11483,7 +11786,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -11571,8 +11876,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      classes
+        class A @44
+          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class A @44
+          reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+  classes
+    class A
+      reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+    class A
+      reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
 ''');
   }
 
@@ -11670,8 +11994,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      classes
+        class A @44
+          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
+  classes
+    class A
+      reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
 ''');
   }
 
@@ -11796,8 +12132,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
 
@@ -11919,7 +12259,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -12032,7 +12374,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -12147,9 +12491,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -12263,7 +12609,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
 ''');
@@ -12379,7 +12727,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
 ''');
@@ -12481,7 +12831,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class B @59
+          reference: <testLibraryFragment>::@class::B
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class B
+      reference: <testLibraryFragment>::@class::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
 }

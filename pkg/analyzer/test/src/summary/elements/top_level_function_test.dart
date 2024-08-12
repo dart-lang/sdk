@@ -229,7 +229,9 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -943,6 +945,14 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class main @6
+          reference: <testLibraryFragment>::@class::main
+  classes
+    class main
+      reference: <testLibraryFragment>::@class::main
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::main
 ''');
   }
 
@@ -994,6 +1004,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      classes
+        class main @6
+          reference: <testLibraryFragment>::@class::main
+        class C @29
+          reference: <testLibraryFragment>::@class::C
+        class D @40
+          reference: <testLibraryFragment>::@class::D
+  classes
+    class alias main
+      reference: <testLibraryFragment>::@class::main
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::main
+      supertype: C
+    class C
+      reference: <testLibraryFragment>::@class::C
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::C
+    class D
+      reference: <testLibraryFragment>::@class::D
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::D
 ''');
   }
 
@@ -1360,12 +1391,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a1.dart
     <testLibrary>::@fragment::package:test/a1.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a11.dart
     <testLibrary>::@fragment::package:test/a11.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a1.dart
+      nextFragment: <testLibrary>::@fragment::package:test/a12.dart
     <testLibrary>::@fragment::package:test/a12.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a11.dart
+      nextFragment: <testLibrary>::@fragment::package:test/a2.dart
     <testLibrary>::@fragment::package:test/a2.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a12.dart
+      nextFragment: <testLibrary>::@fragment::package:test/a21.dart
     <testLibrary>::@fragment::package:test/a21.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a2.dart
+      nextFragment: <testLibrary>::@fragment::package:test/a22.dart
     <testLibrary>::@fragment::package:test/a22.dart
+      previousFragment: <testLibrary>::@fragment::package:test/a21.dart
 ''');
   }
 
@@ -1416,7 +1459,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class foo @32
+          reference: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class foo
+      reference: <testLibraryFragment>::@class::foo
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::foo
 ''');
   }
 
@@ -1468,7 +1521,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibraryFragment>::@function::foo
   exportNamespace
@@ -1523,7 +1578,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@function::foo
   exportNamespace
@@ -1580,7 +1637,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -1636,7 +1695,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -1697,7 +1758,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
 ''');
   }
 
@@ -1752,7 +1815,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class foo @31
+          reference: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class foo
+      reference: <testLibraryFragment>::@class::foo
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::foo
   exportedReferences
     declared <testLibraryFragment>::@class::foo
   exportNamespace
@@ -1812,7 +1885,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibraryFragment>::@function::foo
   exportNamespace
@@ -1881,7 +1956,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
   exportNamespace
@@ -1931,7 +2008,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
   exportNamespace
 ''');
@@ -2001,7 +2080,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
@@ -2083,7 +2164,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
     declared <testLibraryFragment>::@setter::foo
@@ -2150,7 +2233,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      classes
+        class foo @31
+          reference: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+  classes
+    class foo
+      reference: <testLibraryFragment>::@class::foo
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@class::foo
   exportedReferences
     declared <testLibraryFragment>::@class::foo
   exportNamespace
@@ -2221,7 +2314,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
   exportNamespace
@@ -2274,7 +2369,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
   exportNamespace
 ''');
@@ -2347,7 +2444,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
@@ -2432,7 +2531,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
     declared <testLibraryFragment>::@setter::foo
