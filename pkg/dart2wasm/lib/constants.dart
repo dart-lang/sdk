@@ -852,12 +852,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     int positionalCount = tearOffConstant.function.positionalParameters.length;
     List<String> names =
         tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
-    ClosureRepresentation representation = translator.closureLayouter
-        .getClosureRepresentation(0, positionalCount, names)!;
-    ClosureRepresentation instantiationRepresentation = translator
+    ClosureRepresentation instantiationOfTearOffRepresentation = translator
         .closureLayouter
+        .getClosureRepresentation(0, positionalCount, names)!;
+    ClosureRepresentation tearOffRepresentation = translator.closureLayouter
         .getClosureRepresentation(types.length, positionalCount, names)!;
-    w.StructType struct = representation.closureStruct;
+    w.StructType struct = instantiationOfTearOffRepresentation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
 
     final tearOffConstantInfo = ensureConstant(tearOffConstant)!;
@@ -912,37 +912,50 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         return function;
       }
 
-      void fillVtableEntry(int posArgCount, List<String> argNames) {
-        int fieldIndex =
-            representation.fieldIndexForSignature(posArgCount, argNames);
-        int tearOffFieldIndex = tearOffClosure.representation
-            .fieldIndexForSignature(posArgCount, argNames);
+      void fillVtableEntry(int posArgCount, NameCombination nameCombination) {
+        final fieldIndex = instantiationOfTearOffRepresentation
+            .fieldIndexForSignature(posArgCount, nameCombination.names);
+        final signature =
+            instantiationOfTearOffRepresentation.getVtableFieldType(fieldIndex);
 
-        w.FunctionType signature =
-            representation.getVtableFieldType(fieldIndex);
-        w.BaseFunction tearOffFunction = tearOffClosure.functions[
-            tearOffFieldIndex - tearOffClosure.representation.vtableBaseIndex];
-        w.BaseFunction function =
-            translator.globals.isDummyFunction(tearOffFunction)
-                ? translator.globals.getDummyFunction(signature)
-                : makeTrampoline(signature, tearOffFunction);
+        w.BaseFunction function;
+        if (nameCombination.names.isNotEmpty &&
+            !tearOffRepresentation.nameCombinations.contains(nameCombination)) {
+          // This name combination only has
+          //   - non-generic closure / non-generic tear-off definitions
+          //   - non-generic callers
+          // => We make a dummy entry which is unreachable.
+          function = translator.globals.getDummyFunction(signature);
+        } else {
+          final int tearOffFieldIndex = tearOffRepresentation
+              .fieldIndexForSignature(posArgCount, nameCombination.names);
+          w.BaseFunction tearOffFunction = tearOffClosure.functions[
+              tearOffFieldIndex - tearOffRepresentation.vtableBaseIndex];
+          if (translator.globals.isDummyFunction(tearOffFunction)) {
+            // This name combination may not exist for the target, but got
+            // clustered together with other name combinations that do exist.
+            // => We make a dummy entry which is unreachable.
+            function = translator.globals.getDummyFunction(signature);
+          } else {
+            function = makeTrampoline(signature, tearOffFunction);
+          }
+        }
         b.ref_func(function);
       }
 
       void makeVtable() {
         b.ref_func(dynamicCallEntry);
-        if (representation.isGeneric) {
-          b.ref_func(representation.instantiationFunction);
-        }
+        assert(!instantiationOfTearOffRepresentation.isGeneric);
         for (int posArgCount = 0;
             posArgCount <= positionalCount;
             posArgCount++) {
-          fillVtableEntry(posArgCount, const []);
+          fillVtableEntry(posArgCount, NameCombination(const []));
         }
-        for (NameCombination combination in representation.nameCombinations) {
-          fillVtableEntry(positionalCount, combination.names);
+        for (NameCombination combination
+            in instantiationOfTearOffRepresentation.nameCombinations) {
+          fillVtableEntry(positionalCount, combination);
         }
-        b.struct_new(representation.vtableStruct);
+        b.struct_new(instantiationOfTearOffRepresentation.vtableStruct);
       }
 
       b.i32_const(info.classId);
@@ -954,7 +967,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       for (final ty in types) {
         b.global_get(ty.global);
       }
-      b.struct_new(instantiationRepresentation.instantiationContextStruct!);
+      b.struct_new(tearOffRepresentation.instantiationContextStruct!);
 
       makeVtable();
       constants.instantiateConstant(
