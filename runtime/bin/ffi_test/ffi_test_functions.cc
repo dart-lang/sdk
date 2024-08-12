@@ -92,6 +92,13 @@ DART_EXPORT int32_t SumFirstTwoElements(int32_t* arr) {
   return retval;
 }
 
+DART_EXPORT int32_t SumTwoPointers(int32_t* a, int32_t* b) {
+  std::cout << "SumFirstTwoElements(" << *a << ", " << *b << ")\n";
+  const int32_t retval = *a + *b;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
 // Tests for sign and zero extension return values when passed to Dart.
 DART_EXPORT uint8_t ReturnMaxUint8() {
   return 0xff;

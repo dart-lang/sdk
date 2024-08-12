@@ -11,9 +11,19 @@ import 'package:expect/expect.dart';
 
 import 'dylib_utils.dart';
 
+// In both below native methods, the expecting parameters are
+// SumFirstTwoElements(Pointer<Array<Int32>> (which is also Pointer<Int32>))
+// SumTwoElements(a: Pointer<Int32>, b: Pointer<Int32)
+// but we are intentionally setting to
+// Pointer<Void> to test .address.cast()
+
 @Native<Int32 Function(Pointer<Void>)>(
     symbol: "SumFirstTwoElements", isLeaf: true)
 external int sumFirstTwoElements(Pointer<Void> a);
+
+@Native<Int32 Function(Pointer<Void>, Pointer<Void>)>(
+    symbol: "SumTwoPointers", isLeaf: true)
+external int sumTwoPointers(Pointer<Void> a, Pointer<Void> b);
 
 void testStructField() {
   final myStruct = Struct.create<MyStruct>();
@@ -21,16 +31,27 @@ void testStructField() {
   myStruct.arr1[0] = 3424;
   myStruct.arr2[1] = 1000;
 
-  final firstResult = sumFirstTwoElements(myStruct.arr1.address.cast());
-  final firstExpected = myStruct.arr1[0] + myStruct.arr1[1];
-  Expect.equals(firstResult, firstExpected);
+  final expectedArr1 = myStruct.arr1[0] + myStruct.arr1[1];
+
+  final arr1SumFirstTwoElements =
+      sumFirstTwoElements(myStruct.arr1.address.cast());
+  Expect.equals(arr1SumFirstTwoElements, expectedArr1);
+
+  final arr1SumTwoPointers = sumTwoPointers(
+      myStruct.arr1[0].address.cast(), myStruct.arr1[1].address.cast());
+  Expect.equals(arr1SumTwoPointers, expectedArr1);
 
   myStruct.arr2[0] = 10;
   myStruct.arr2[1] = 100001;
 
-  final secondResult = sumFirstTwoElements(myStruct.arr2.address.cast());
-  final secondExpected = myStruct.arr2[0] + myStruct.arr2[1];
-  Expect.equals(secondResult, secondExpected);
+  final expectedArr2 = myStruct.arr2[0] + myStruct.arr2[1];
+
+  final arr2SumFirstTwoElements =
+      sumFirstTwoElements(myStruct.arr2.address.cast());
+  Expect.equals(arr2SumFirstTwoElements, expectedArr2);
+
+  final arr2SumTwoPointers = sumFirstTwoElements(myStruct.arr2.address.cast());
+  Expect.equals(arr2SumTwoPointers, expectedArr2);
 }
 
 void testUnionField() {
@@ -39,16 +60,27 @@ void testUnionField() {
   myUnion.arr[0] = 23422;
   myUnion.arr[1] = 231312;
 
-  final result = sumFirstTwoElements(myUnion.address.cast());
   final expected = myUnion.arr[0] + myUnion.arr[1];
-  Expect.equals(result, expected);
+
+  final arrSumFirstTwoElements =
+      sumFirstTwoElements(myUnion.arr.address.cast());
+  Expect.equals(arrSumFirstTwoElements, expected);
+
+  final arrSumTwoPointers = sumTwoPointers(
+      myUnion.arr[0].address.cast(), myUnion.arr[1].address.cast());
+  Expect.equals(arrSumTwoPointers, expected);
 }
 
 void testTypedData() {
   final buffer = Int32List.fromList([34241, 42432, 42313]);
-  final result = sumFirstTwoElements(buffer.address.cast());
   final expected = buffer[0] + buffer[1];
-  Expect.equals(result, expected);
+
+  final bufferSumFirstTwoElements = sumFirstTwoElements(buffer.address.cast());
+  Expect.equals(bufferSumFirstTwoElements, expected);
+
+  final bufferSumFirstTwoPointers =
+      sumTwoPointers(buffer[0].address.cast(), buffer[1].address.cast());
+  Expect.equals(bufferSumFirstTwoPointers, expected);
 }
 
 void main() {
