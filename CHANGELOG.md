@@ -15,9 +15,17 @@
   when using partial instantiations of generic tear-offs (constructors or static
   methods) in constant expressions. [#56372][]
 
-[#152029]: https://github.com/flutter/flutter/issues/152029
+#### Compilers
 
+- The algorithm for computing the standard upper bound of two types,
+  also known is UP, is provided the missing implementation for
+  StructuralParameterType objects. In some corner cases cases the
+  lacking implementation resulted in a crash of the compiler. The fix
+  addresses the issue. [#56457][]
+
+[#152029]: https://github.com/flutter/flutter/issues/152029
 [#56372]: https://github.com/dart-lang/sdk/issues/56372
+[#56457]: https://github.com/dart-lang/sdk/issues/56457
 
 ## 3.5.0
 
