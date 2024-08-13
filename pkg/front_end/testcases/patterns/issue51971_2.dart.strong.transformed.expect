@@ -32,7 +32,7 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method test1(dynamic x1) → dynamic {
   {
@@ -154,7 +154,7 @@ static method test5(dynamic x5) → dynamic {
 }
 static method test6(dynamic x6) → dynamic {
   return block {
-    final core::Set<core::int> #t13 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t13 = new _co::_Set::•<core::int>();
     hoisted core::int i6;
     hoisted core::int n6;
     {

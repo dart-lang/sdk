@@ -25,7 +25,7 @@ class SetFactorySpecializer extends BaseSpecializer {
         ),
         _internalLinkedHashSetConstructor = assertNotNull(
           coreTypes.index.getConstructor(
-            'dart:collection',
+            'dart:_compact_hash',
             '_Set',
             '',
           ),

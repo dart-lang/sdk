@@ -175,6 +175,7 @@ sort_child_properties_last: 2.4.0
 sort_constructors_first: 2.0.0
 sort_pub_dependencies: 2.1.0
 sort_unnamed_constructors_first: 2.0.0
+specify_nonobvious_local_variable_types: 3.6.0-wip
 super_goes_last: 2.0.0
 test_types_in_equals: 2.0.0
 throw_in_finally: 2.0.0

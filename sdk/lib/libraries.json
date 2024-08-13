@@ -9,6 +9,9 @@
       "_builtin": {
         "uri": "_internal/vm/bin/builtin.dart"
       },
+      "_compact_hash": {
+        "uri": "_internal/vm_shared/lib/compact_hash.dart"
+      },
       "_internal": {
         "uri": "internal/internal.dart",
         "patches": [
@@ -25,7 +28,6 @@
         "uri": "collection/collection.dart",
         "patches": [
           "_internal/vm_shared/lib/collection_patch.dart",
-          "_internal/vm_shared/lib/compact_hash.dart",
           "_internal/vm/lib/hash_factories.dart"
         ]
       },
@@ -248,11 +250,11 @@
       "_boxed_double": {
         "uri": "_internal/wasm/lib/boxed_double.dart"
       },
-      "_error_utils": {
-        "uri": "_internal/wasm/lib/error_utils.dart"
-      },
       "_compact_hash": {
         "uri": "_internal/wasm/lib/compact_hash.dart"
+      },
+      "_error_utils": {
+        "uri": "_internal/wasm/lib/error_utils.dart"
       },
       "_http": {
         "uri": "_http/http.dart"

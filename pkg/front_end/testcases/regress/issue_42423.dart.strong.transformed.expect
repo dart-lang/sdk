@@ -1,14 +1,14 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 import "package:expect/expect.dart" as exp;
 
 import "package:expect/expect.dart";
 
 static method test1(dynamic stringList) → dynamic {
   core::Set<core::int> intSet = block {
-    final core::Set<core::int> #t1 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t1 = new _co::_Set::•<core::int>();
     final core::Iterable<dynamic>? #t2 = stringList as{TypeError,ForDynamic} core::Iterable<dynamic>?;
     if(!(#t2 == null)) {
       synthesized core::Iterator<dynamic> :sync-for-iterator = #t2{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};

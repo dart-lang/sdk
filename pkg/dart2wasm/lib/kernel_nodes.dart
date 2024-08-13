@@ -23,9 +23,9 @@ mixin KernelNodes {
   late final Class hashFieldBaseClass =
       index.getClass("dart:_compact_hash", "_HashFieldBase");
   late final Class immutableMapClass =
-      index.getClass("dart:_compact_hash", "WasmImmutableMap");
+      index.getClass("dart:_compact_hash", "_ConstMap");
   late final Class immutableSetClass =
-      index.getClass("dart:_compact_hash", "WasmImmutableSet");
+      index.getClass("dart:_compact_hash", "_ConstSet");
 
   // dart:core various classes
   late final Class boxedBoolClass = index.getClass("dart:core", "_BoxedBool");
@@ -204,12 +204,12 @@ mixin KernelNodes {
   // dart:collection procedures and fields
   late final Procedure mapFactory =
       index.getProcedure("dart:collection", "LinkedHashMap", "_default");
-  late final Procedure mapFromWasmArray = index.getProcedure(
-      "dart:_compact_hash", "WasmDefaultMap", "fromWasmArray");
+  late final Procedure mapFromWasmArray =
+      index.getProcedure("dart:_compact_hash", "DefaultMap", "fromWasmArray");
   late final Procedure setFactory =
       index.getProcedure("dart:collection", "LinkedHashSet", "_default");
-  late final Procedure setFromWasmArray = index.getProcedure(
-      "dart:_compact_hash", "WasmDefaultSet", "fromWasmArray");
+  late final Procedure setFromWasmArray =
+      index.getProcedure("dart:_compact_hash", "DefaultSet", "fromWasmArray");
   late final Procedure growableListEmpty =
       index.getProcedure("dart:_list", "GrowableList", "empty");
   late final Constructor growableListFromWasmArray =

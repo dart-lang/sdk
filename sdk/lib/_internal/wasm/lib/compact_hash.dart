@@ -2,10 +2,90 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show IterableElementError, ClassID, unsafeCast;
+import "dart:_internal"
+    show IterableElementError, ClassID, TypeTest, unsafeCast;
 import "dart:_wasm";
+
 import "dart:collection";
+
 import "dart:math" show max;
+
+mixin _UnmodifiableMapMixin<K, V> implements LinkedHashMap<K, V> {
+  /// This operation is not supported by an unmodifiable map.
+  void operator []=(K key, V value) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void addAll(Map<K, V> other) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void clear() {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  V? remove(Object? key) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void removeWhere(bool test(K key, V value)) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  V putIfAbsent(K key, V ifAbsent()) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /// This operation is not supported by an unmodifiable map.
+  void updateAll(V update(K key, V value)) {
+    throw UnsupportedError("Cannot modify unmodifiable map");
+  }
+}
+
+mixin _UnmodifiableSetMixin<E> implements LinkedHashSet<E> {
+  static Never _throwUnmodifiable() {
+    throw UnsupportedError("Cannot change an unmodifiable set");
+  }
+
+  /// This operation is not supported by an unmodifiable set.
+  bool add(E value) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void clear() => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void addAll(Iterable<E> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void removeAll(Iterable<Object?> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void retainAll(Iterable<Object?> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void removeWhere(bool test(E element)) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void retainWhere(bool test(E element)) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  bool remove(Object? value) => _throwUnmodifiable();
+}
 
 // Hash table with open addressing that separates the index from keys/values.
 
@@ -161,18 +241,6 @@ mixin _IdenticalAndIdentityHashCode implements _EqualsAndHashCode {
   bool _equals(Object? e1, Object? e2) => identical(e1, e2);
 }
 
-mixin _OperatorEqualsAndCanonicalHashCode implements _EqualsAndHashCode {
-  int _hashCode(Object? e) {
-    final cid = ClassID.getID(e);
-    if (cid < ClassID.numPredefinedCids || cid == ClassID.cidSymbol) {
-      return e.hashCode;
-    }
-    return identityHashCode(e);
-  }
-
-  bool _equals(Object? e1, Object? e2) => e1 == e2;
-}
-
 mixin _CustomEqualsAndHashCode<K> implements _EqualsAndHashCode {
   int Function(K) get _hasher;
   bool Function(K, K) get _equality;
@@ -183,35 +251,53 @@ mixin _CustomEqualsAndHashCode<K> implements _EqualsAndHashCode {
   bool _equals(Object? e1, Object? e2) => (_equality as Function)(e1, e2);
 }
 
-base class _Map<K, V> extends _HashFieldBase
+@pragma("wasm:entry-point")
+base class DefaultMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
         _OperatorEqualsAndHashCode,
-        _LinkedHashMapMixin<K, V>
+        _LinkedHashMapMixin<K, V>,
+        _MapCreateIndexMixin<K, V>
     implements LinkedHashMap<K, V> {
   void addAll(Map<K, V> other) {
-    if (other is _Map) {
-      final otherBase = other as _Map; // manual promotion.
+    if (other case final DefaultMap otherBase) {
       // If this map is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(otherBase)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
     }
     super.addAll(other);
   }
+
+  @pragma("wasm:entry-point")
+  static DefaultMap<K, V> fromWasmArray<K, V>(WasmArray<Object?> data) {
+    final map = DefaultMap<K, V>();
+    assert(map._index == _uninitializedHashBaseIndex);
+    assert(map._hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
+    assert(map._data == _uninitializedHashBaseData);
+    assert(map._usedData == 0);
+    assert(map._deletedKeys == 0);
+
+    map._data = data;
+    map._usedData = data.length;
+    map._createIndex(true);
+
+    return map;
+  }
 }
 
-// This is essentially the same class as _Map, but it does
+// This is essentially the same class as DefaultMap, but it does
 // not permit any modification of map entries from Dart code. We use
 // this class for maps constructed from Dart constant maps.
+@pragma("wasm:entry-point")
 base class _ConstMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
-        _OperatorEqualsAndCanonicalHashCode,
+        _OperatorEqualsAndHashCode,
         _LinkedHashMapMixin<K, V>,
-        _UnmodifiableMapMixin<K, V>,
         _MapCreateIndexMixin<K, V>,
+        _UnmodifiableMapMixin<K, V>,
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
   factory _ConstMap._uninstantiable() {
@@ -533,8 +619,7 @@ base class CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
         _LinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
   void addAll(Map<K, V> other) {
-    if (other is CompactLinkedIdentityHashMap) {
-      final otherBase = other as CompactLinkedIdentityHashMap;
+    if (other case final CompactLinkedIdentityHashMap otherBase) {
       // If this map is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(otherBase)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
@@ -560,7 +645,7 @@ base class CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
 
   CompactLinkedCustomHashMap(
       this._equality, this._hasher, bool Function(Object?)? validKey)
-      : _validKey = validKey ?? _TypeTest<K>().test;
+      : _validKey = validKey ?? TypeTest<K>().test;
 }
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
@@ -823,40 +908,57 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
       _CompactIterator<E>(this, _data, _usedData, -1, 1);
 }
 
-// Set implementation, analogous to _Map. Set literals create instances of this
-// class.
-base class _Set<E> extends _HashFieldBase
+// Set implementation, analogous to _Map. Set literals create instances
+// of this class.
+@pragma("wasm:entry-point")
+base class DefaultSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
         _OperatorEqualsAndHashCode,
-        _LinkedHashSetMixin<E>
+        _LinkedHashSetMixin<E>,
+        _SetCreateIndexMixin<E>
     implements LinkedHashSet<E> {
-  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
-
-  static Set<R> _newEmpty<R>() => _Set<R>();
-
-  // Returns a set of the same type, although this
-  // is not required by the spec. (For instance, always using an identity set
-  // would be technically correct, albeit surprising.)
-  Set<E> toSet() => _Set<E>()..addAll(this);
-
   void addAll(Iterable<E> other) {
-    if (other is _Set) {
-      final otherBase = other as _Set;
+    if (other case final DefaultSet otherBase) {
       // If this set is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(otherBase)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
     }
     super.addAll(other);
   }
+
+  @pragma("wasm:entry-point")
+  static DefaultSet<E> fromWasmArray<E>(WasmArray<Object?> data) {
+    final set = DefaultSet<E>();
+    assert(set._index == _uninitializedHashBaseIndex);
+    assert(set._hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
+    assert(set._data == _uninitializedHashBaseData);
+    assert(set._usedData == 0);
+    assert(set._deletedKeys == 0);
+
+    set._data = data;
+    set._usedData = data.length;
+    set._createIndex(true);
+
+    return set;
+  }
+
+  bool add(E key);
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+
+  static Set<R> _newEmpty<R>() => DefaultSet<R>();
+
+  Set<E> toSet() => DefaultSet<E>()..addAll(this);
 }
 
+@pragma("wasm:entry-point")
 base class _ConstSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
-        _OperatorEqualsAndCanonicalHashCode,
+        _OperatorEqualsAndHashCode,
         _LinkedHashSetMixin<E>,
         _UnmodifiableSetMixin<E>,
         _SetCreateIndexMixin<E>,
@@ -869,10 +971,10 @@ base class _ConstSet<E> extends _HashFieldBase
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
-  static Set<R> _newEmpty<R>() => _Set<R>();
+  static Set<R> _newEmpty<R>() => DefaultSet<R>();
 
   // Returns a mutable set.
-  Set<E> toSet() => _Set<E>()..addAll(this);
+  Set<E> toSet() => DefaultSet<E>()..addAll(this);
 }
 
 mixin _SetCreateIndexMixin<E>
@@ -991,187 +1093,9 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
 
   CompactLinkedCustomHashSet(
       this._equality, this._hasher, bool Function(Object?)? validKey)
-      : _validKey = validKey ?? _TypeTest<E>().test;
+      : _validKey = validKey ?? TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
   Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
     ..addAll(this);
-}
-
-mixin _UnmodifiableMapMixin<K, V> implements Map<K, V> {
-  static Never _throwUnmodifiable() {
-    throw UnsupportedError("Cannot change an unmodifiable set");
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  void operator []=(K key, V value) {
-    _throwUnmodifiable();
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  void addAll(Map<K, V> other) {
-    _throwUnmodifiable();
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  void addEntries(Iterable<MapEntry<K, V>> entries) {
-    _throwUnmodifiable();
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  void clear() {
-    _throwUnmodifiable();
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  V? remove(Object? key) {
-    _throwUnmodifiable();
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  void removeWhere(bool test(K key, V value)) {
-    _throwUnmodifiable();
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  V putIfAbsent(K key, V ifAbsent()) {
-    _throwUnmodifiable();
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  V update(K key, V update(V value), {V Function()? ifAbsent}) {
-    _throwUnmodifiable();
-  }
-
-  /// This operation is not supported by an unmodifiable map.
-  void updateAll(V update(K key, V value)) {
-    _throwUnmodifiable();
-  }
-}
-
-mixin _UnmodifiableSetMixin<E> implements Set<E> {
-  static Never _throwUnmodifiable() {
-    throw UnsupportedError("Cannot change an unmodifiable set");
-  }
-
-  /// This operation is not supported by an unmodifiable set.
-  bool add(E value) => _throwUnmodifiable();
-
-  /// This operation is not supported by an unmodifiable set.
-  void clear() => _throwUnmodifiable();
-
-  /// This operation is not supported by an unmodifiable set.
-  void addAll(Iterable<E> elements) => _throwUnmodifiable();
-
-  /// This operation is not supported by an unmodifiable set.
-  void removeAll(Iterable<Object?> elements) => _throwUnmodifiable();
-
-  /// This operation is not supported by an unmodifiable set.
-  void retainAll(Iterable<Object?> elements) => _throwUnmodifiable();
-
-  /// This operation is not supported by an unmodifiable set.
-  void removeWhere(bool test(E element)) => _throwUnmodifiable();
-
-  /// This operation is not supported by an unmodifiable set.
-  void retainWhere(bool test(E element)) => _throwUnmodifiable();
-
-  /// This operation is not supported by an unmodifiable set.
-  bool remove(Object? value) => _throwUnmodifiable();
-}
-
-class _TypeTest<T> {
-  bool test(v) => v is T;
-}
-
-@pragma("wasm:entry-point")
-base class WasmDefaultMap<K, V> extends _HashFieldBase
-    with
-        MapMixin<K, V>,
-        _HashBase,
-        _OperatorEqualsAndHashCode,
-        _LinkedHashMapMixin<K, V>,
-        _MapCreateIndexMixin<K, V>
-    implements LinkedHashMap<K, V> {
-  @pragma("wasm:entry-point")
-  static WasmDefaultMap<K, V> fromWasmArray<K, V>(WasmArray<Object?> data) {
-    final map = WasmDefaultMap<K, V>();
-    assert(map._index == _uninitializedHashBaseIndex);
-    assert(map._hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
-    assert(map._data == _uninitializedHashBaseData);
-    assert(map._usedData == 0);
-    assert(map._deletedKeys == 0);
-
-    map._data = data;
-    map._usedData = data.length;
-    map._createIndex(true);
-
-    return map;
-  }
-
-  void operator []=(K key, V value);
-}
-
-@pragma('wasm:entry-point')
-base class WasmDefaultSet<E> extends _HashFieldBase
-    with
-        SetMixin<E>,
-        _HashBase,
-        _OperatorEqualsAndHashCode,
-        _LinkedHashSetMixin<E>,
-        _SetCreateIndexMixin<E>
-    implements LinkedHashSet<E> {
-  @pragma("wasm:entry-point")
-  static WasmDefaultSet<E> fromWasmArray<E>(WasmArray<Object?> data) {
-    final map = WasmDefaultSet<E>();
-    assert(map._index == _uninitializedHashBaseIndex);
-    assert(map._hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
-    assert(map._data == _uninitializedHashBaseData);
-    assert(map._usedData == 0);
-    assert(map._deletedKeys == 0);
-
-    map._data = data;
-    map._usedData = data.length;
-    map._createIndex(true);
-
-    return map;
-  }
-
-  bool add(E key);
-
-  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
-
-  static Set<R> _newEmpty<R>() => WasmDefaultSet<R>();
-
-  Set<E> toSet() => WasmDefaultSet<E>()..addAll(this);
-}
-
-@pragma("wasm:entry-point")
-base class WasmImmutableMap<K, V> extends _HashFieldBase
-    with
-        MapMixin<K, V>,
-        _HashBase,
-        _OperatorEqualsAndHashCode,
-        _LinkedHashMapMixin<K, V>,
-        _MapCreateIndexMixin<K, V>,
-        _UnmodifiableMapMixin<K, V>,
-        _ImmutableLinkedHashMapMixin<K, V>
-    implements LinkedHashMap<K, V> {}
-
-@pragma("wasm:entry-point")
-base class WasmImmutableSet<E> extends _HashFieldBase
-    with
-        SetMixin<E>,
-        _HashBase,
-        _OperatorEqualsAndHashCode,
-        _LinkedHashSetMixin<E>,
-        _SetCreateIndexMixin<E>,
-        _UnmodifiableSetMixin<E>,
-        _ImmutableLinkedHashSetMixin<E>
-    implements LinkedHashSet<E> {
-  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
-
-  static Set<R> _newEmpty<R>() => WasmDefaultSet<R>();
-
-  // Returns a mutable set.
-  Set<E> toSet() => _newEmpty<E>()..addAll(this);
 }

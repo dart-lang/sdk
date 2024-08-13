@@ -168,6 +168,7 @@ linter:
     - sort_constructors_first
     - sort_pub_dependencies
     - sort_unnamed_constructors_first
+    - specify_nonobvious_local_variable_types
     - test_types_in_equals
     - throw_in_finally
     - tighten_type_of_initializing_formals

@@ -2,6 +2,6 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
   return block {
-    final dart.core::Set<dart.core::String> #t1 = new dart.collection::_Set::•<dart.core::String>();
+    final dart.core::Set<dart.core::String> #t1 = new dart._compact_hash::_Set::•<dart.core::String>();
     #t1.{dart.core::Set::add}{Invariant}("a"){(dart.core::String) → dart.core::bool};
   } =>#t1;

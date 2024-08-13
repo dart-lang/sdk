@@ -1111,6 +1111,7 @@ severity: $severity
       "dart:core" => defaultDartCoreSource,
       "dart:async" => defaultDartAsyncSource,
       "dart:collection" => defaultDartCollectionSource,
+      "dart:_compact_hash" => defaultDartCompactHashSource,
       "dart:_internal" => defaultDartInternalSource,
       "dart:typed_data" => defaultDartTypedDataSource,
       _ => message == null ? "" : "/* ${message.problemMessage} */",
@@ -3357,10 +3358,6 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _Map<K, V> {
-  _Map();
-}
-
 abstract class LinkedHashSet<E> implements Set<E> {
   factory LinkedHashSet(
       {bool Function(E, E)? equals,
@@ -3368,13 +3365,19 @@ abstract class LinkedHashSet<E> implements Set<E> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _Set<E> {
-  _Set();
-}
-
 class _UnmodifiableSet {
   final Map _map;
   const _UnmodifiableSet(this._map);
+}
+""";
+
+/// A minimal implementation of dart:collection that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
+const String defaultDartCompactHashSource = """
+class _Map<K, V> {
+}
+
+class _Set<E> {
 }
 """;
 

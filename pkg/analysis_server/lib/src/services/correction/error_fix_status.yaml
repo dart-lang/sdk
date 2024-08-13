@@ -2360,6 +2360,8 @@ LintCode.sort_pub_dependencies:
   status: needsFix
 LintCode.sort_unnamed_constructors_first:
   status: hasFix
+LintCode.specify_nonobvious_local_variable_types:
+  status: hasFix
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:

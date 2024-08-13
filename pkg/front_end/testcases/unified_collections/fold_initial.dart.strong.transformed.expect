@@ -1,6 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
+import "dart:_compact_hash" as _co;
 import "dart:collection" as col;
 
 static method foldInitialElements() → void {
@@ -17,7 +18,7 @@ static method foldInitialElements() → void {
   } =>#t1;
   self::expect(core::_GrowableList::generate<core::int?>(7, (core::int? i) → core::int? => i), list);
   core::Set<core::int?> set = block {
-    final core::Set<core::int?> #t2 = new col::_Set::•<core::int?>();
+    final core::Set<core::int?> #t2 = new _co::_Set::•<core::int?>();
     #t2.{core::Set::add}{Invariant}(element0 as{TypeError,ForDynamic} core::int?){(core::int?) → core::bool};
     #t2.{core::Set::add}{Invariant}(element1{core::int}){(core::int?) → core::bool};
     #t2.{core::Set::add}{Invariant}(element2){(core::int?) → core::bool};
@@ -51,7 +52,7 @@ static method foldInitialSpread1() → void {
   } =>#t3;
   self::expect(core::_GrowableList::generate<core::int>(7, (core::int i) → core::int => i), list);
   core::Set<core::int> set = block {
-    final core::Set<core::int> #t6 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t6 = new _co::_Set::•<core::int>();
     {
       synthesized core::Iterator<dynamic> :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -178,7 +179,7 @@ static method foldInitialSpread6([core::bool c = #C1]) → void {
   } =>#t17;
   self::expect(core::_GrowableList::generate<core::int>(7, (core::int i) → core::int => i), list);
   core::Set<core::int> set = block {
-    final core::Set<core::int> #t19 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t19 = new _co::_Set::•<core::int>();
     final core::Iterable<core::int>? #t20 = initial;
     if(!(#t20 == null))
       #t19.{core::Set::addAll}{Invariant}(#t20{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};

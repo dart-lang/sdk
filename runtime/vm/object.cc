@@ -2011,18 +2011,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
-    // Pre-register the collection library so we can place the vm class
-    // Map there rather than the core library.
-    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    // Pre-register dart:_compact_hash library so that we could place
+    // collection classes (_Map, _ConstMap, _Set, _ConstSet) here.
+    lib = Library::LookupLibrary(thread, Symbols::DartCompactHash());
     if (lib.IsNull()) {
-      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib = Library::NewLibraryHelper(Symbols::DartCompactHash(), true);
       lib.SetLoadRequested();
       lib.Register(thread);
     }
+    object_store->set_bootstrap_library(ObjectStore::kCompactHash, lib);
 
-    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
     ASSERT(!lib.IsNull());
-    ASSERT(lib.ptr() == Library::CollectionLibrary());
+    ASSERT(lib.ptr() == Library::CompactHashLibrary());
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
     cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
@@ -2056,6 +2056,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_is_prefinalized();
     RegisterPrivateClass(cls, Symbols::_ConstSet(), lib);
     pending_classes.Add(cls);
+
+    // Pre-register the collection library.
+    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
 
     // Pre-register the async library so we can place the vm class
     // FutureOr there rather than the core library.
@@ -14810,6 +14819,10 @@ LibraryPtr Library::CoreLibrary() {
 
 LibraryPtr Library::CollectionLibrary() {
   return IsolateGroup::Current()->object_store()->collection_library();
+}
+
+LibraryPtr Library::CompactHashLibrary() {
+  return IsolateGroup::Current()->object_store()->_compact_hash_library();
 }
 
 LibraryPtr Library::DeveloperLibrary() {

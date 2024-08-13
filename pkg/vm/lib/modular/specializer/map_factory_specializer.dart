@@ -24,7 +24,7 @@ class MapFactorySpecializer extends BaseSpecializer {
         ),
         _internalLinkedHashMapConstructor = assertNotNull(
           coreTypes.index.getConstructor(
-            'dart:collection',
+            'dart:_compact_hash',
             '_Map',
             '',
           ),

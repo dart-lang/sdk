@@ -73,7 +73,10 @@ class OmitLocalVariableTypes extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  List<String> get incompatibleRules => const ['always_specify_types'];
+  List<String> get incompatibleRules => const [
+        'always_specify_types',
+        'specify_nonobvious_local_variable_types',
+      ];
 
   @override
   LintCode get lintCode => LinterLintCode.omit_local_variable_types;

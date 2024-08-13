@@ -118,7 +118,7 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 typedef F<X extends self::Class<X> = self::Class<dynamic>> = X;
 class Class<T extends core::Object? = dynamic> extends core::Object {
@@ -146,52 +146,52 @@ static method test() → dynamic {
   <self::G<self::ConcreteClass>, self::G<self::Class<self::ConcreteClass>>>{};
   <self::G<core::Object>, self::G<core::int>>{};
   {
-    final core::Set<self::Class<dynamic>> #t1 = new col::_Set::•<self::Class<dynamic>>();
+    final core::Set<self::Class<dynamic>> #t1 = new _co::_Set::•<self::Class<dynamic>>();
   }
   {
-    final core::Set<dynamic> #t2 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t2 = new _co::_Set::•<dynamic>();
   }
   {
-    final core::Set<self::Class<dynamic>> #t3 = new col::_Set::•<self::Class<dynamic>>();
+    final core::Set<self::Class<dynamic>> #t3 = new _co::_Set::•<self::Class<dynamic>>();
   }
   {
-    final core::Set<self::Class<dynamic>> #t4 = new col::_Set::•<self::Class<dynamic>>();
+    final core::Set<self::Class<dynamic>> #t4 = new _co::_Set::•<self::Class<dynamic>>();
   }
   {
-    final core::Set<core::Object> #t5 = new col::_Set::•<core::Object>();
+    final core::Set<core::Object> #t5 = new _co::_Set::•<core::Object>();
   }
   {
-    final core::Set<core::int> #t6 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t6 = new _co::_Set::•<core::int>();
   }
   {
-    final core::Set<self::ConcreteClass> #t7 = new col::_Set::•<self::ConcreteClass>();
+    final core::Set<self::ConcreteClass> #t7 = new _co::_Set::•<self::ConcreteClass>();
   }
   {
-    final core::Set<self::Class<self::ConcreteClass>> #t8 = new col::_Set::•<self::Class<self::ConcreteClass>>();
+    final core::Set<self::Class<self::ConcreteClass>> #t8 = new _co::_Set::•<self::Class<self::ConcreteClass>>();
   }
   {
-    final core::Set<self::G<self::Class<dynamic>>> #t9 = new col::_Set::•<self::G<self::Class<dynamic>>>();
+    final core::Set<self::G<self::Class<dynamic>>> #t9 = new _co::_Set::•<self::G<self::Class<dynamic>>>();
   }
   {
-    final core::Set<self::G<self::Class<dynamic>>> #t10 = new col::_Set::•<self::G<self::Class<dynamic>>>();
+    final core::Set<self::G<self::Class<dynamic>>> #t10 = new _co::_Set::•<self::G<self::Class<dynamic>>>();
   }
   {
-    final core::Set<self::G<self::Class<dynamic>>> #t11 = new col::_Set::•<self::G<self::Class<dynamic>>>();
+    final core::Set<self::G<self::Class<dynamic>>> #t11 = new _co::_Set::•<self::G<self::Class<dynamic>>>();
   }
   {
-    final core::Set<self::G<self::Class<dynamic>>> #t12 = new col::_Set::•<self::G<self::Class<dynamic>>>();
+    final core::Set<self::G<self::Class<dynamic>>> #t12 = new _co::_Set::•<self::G<self::Class<dynamic>>>();
   }
   {
-    final core::Set<self::G<self::ConcreteClass>> #t13 = new col::_Set::•<self::G<self::ConcreteClass>>();
+    final core::Set<self::G<self::ConcreteClass>> #t13 = new _co::_Set::•<self::G<self::ConcreteClass>>();
   }
   {
-    final core::Set<self::G<self::Class<self::ConcreteClass>>> #t14 = new col::_Set::•<self::G<self::Class<self::ConcreteClass>>>();
+    final core::Set<self::G<self::Class<self::ConcreteClass>>> #t14 = new _co::_Set::•<self::G<self::Class<self::ConcreteClass>>>();
   }
   {
-    final core::Set<self::G<core::Object>> #t15 = new col::_Set::•<self::G<core::Object>>();
+    final core::Set<self::G<core::Object>> #t15 = new _co::_Set::•<self::G<core::Object>>();
   }
   {
-    final core::Set<self::G<core::int>> #t16 = new col::_Set::•<self::G<core::int>>();
+    final core::Set<self::G<core::int>> #t16 = new _co::_Set::•<self::G<core::int>>();
   }
   core::_GrowableList::•<self::Class<dynamic>>(0);
   core::_GrowableList::•<dynamic>(0);

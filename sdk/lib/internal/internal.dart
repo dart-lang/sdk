@@ -1065,3 +1065,11 @@ bool isToStringVisiting(Object object) {
 ///
 /// Returns a future containing the result of the entry point method.
 external Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes});
+
+/// Helper class to create `bool Function(Object?)` functions which
+/// perform an `v is T` type test.
+///
+/// Intended use: `TypeTest<T>().test`.
+class TypeTest<T> {
+  bool test(Object? v) => v is T;
+}

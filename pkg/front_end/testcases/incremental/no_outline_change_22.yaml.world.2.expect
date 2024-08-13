@@ -200,7 +200,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return result;
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toSet() → dart.core::Set<dart.core::int> {
-      dart.core::Set<dart.core::int> result = new dart.collection::_Set::•<dart.core::int>();
+      dart.core::Set<dart.core::int> result = new dart._compact_hash::_Set::•<dart.core::int>();
       for (dart.core::int i = 0; i.{dart.core::num::<}(this.{dart.core::List::length}{dart.core::int}){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
         result.{dart.core::Set::add}(this.{dart.core::List::[]}(i){(dart.core::int) → dart.core::int}){(dart.core::int) → dart.core::bool};
       }

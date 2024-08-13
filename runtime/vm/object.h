@@ -5353,6 +5353,7 @@ class Library : public Object {
   static LibraryPtr ConvertLibrary();
   static LibraryPtr CoreLibrary();
   static LibraryPtr CollectionLibrary();
+  static LibraryPtr CompactHashLibrary();
   static LibraryPtr DeveloperLibrary();
   static LibraryPtr FfiLibrary();
   static LibraryPtr InternalLibrary();
@@ -12118,7 +12119,7 @@ class ImmutableLinkedHashBase : public AllStatic {
 };
 
 // Corresponds to
-// - _Map in dart:collection
+// - _Map in dart:_compact_hash
 // - "new Map()",
 // - non-const map literals, and
 // - the default constructor of LinkedHashMap in dart:collection.
@@ -12191,7 +12192,7 @@ class Map : public LinkedHashBase {
 };
 
 // Corresponds to
-// - _ConstMap in dart:collection
+// - _ConstMap in dart:_compact_hash
 // - const map literals
 class ConstMap : public AllStatic {
  public:
@@ -12221,7 +12222,7 @@ class ConstMap : public AllStatic {
 };
 
 // Corresponds to
-// - _Set in dart:collection,
+// - _Set in dart:_compact_hash,
 // - "new Set()",
 // - non-const set literals, and
 // - the default constructor of LinkedHashSet in dart:collection.
@@ -12292,7 +12293,7 @@ class Set : public LinkedHashBase {
 };
 
 // Corresponds to
-// - _ConstSet in dart:collection
+// - _ConstSet in dart:_compact_hash
 // - const set literals
 class ConstSet : public AllStatic {
  public:

@@ -19,6 +19,9 @@ void main() {
     defineReflectiveTests(PreferTypingUninitializedVariablesBulkTest);
     defineReflectiveTests(PreferTypingUninitializedVariablesInFileTest);
     defineReflectiveTests(PreferTypingUninitializedVariablesLintTest);
+    defineReflectiveTests(SpecifyNonObviousLocalVariableTypesBulkTest);
+    defineReflectiveTests(SpecifyNonObviousLocalVariableTypesInFileTest);
+    defineReflectiveTests(SpecifyNonObviousLocalVariableTypesLintTest);
     defineReflectiveTests(TypeAnnotatePublicAPIsBulkTest);
     defineReflectiveTests(TypeAnnotatePublicAPIsInFileTest);
     defineReflectiveTests(TypeAnnotatePublicAPIsLintTest);
@@ -400,6 +403,171 @@ void f() {
   l = 0;
   print(l);
 }
+''');
+  }
+}
+
+@reflectiveTest
+class SpecifyNonObviousLocalVariableTypesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.specify_nonobvious_local_variable_types;
+
+  Future<void> test_bulk() async {
+    await resolveTestCode('''
+void main() {
+  final a = x;
+  var b = x;
+}
+int x = 1;
+''');
+    await assertHasFix('''
+void main() {
+  final int a = x;
+  int b = x;
+}
+int x = 1;
+''');
+  }
+}
+
+@reflectiveTest
+class SpecifyNonObviousLocalVariableTypesInFileTest
+    extends FixInFileProcessorTest {
+  Future<void> test_File() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.specify_nonobvious_local_variable_types]);
+    await resolveTestCode(r'''
+f() {
+  var x = g(0), y = g('');
+  return (x, y);
+}
+
+T g<T>(T d) => d;
+''');
+    var fixes = await getFixesForFirstError();
+    expect(fixes, hasLength(0));
+  }
+}
+
+@reflectiveTest
+class SpecifyNonObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+
+  @override
+  String get lintCode => LintNames.specify_nonobvious_local_variable_types;
+
+  Future<void> test_listPattern_destructured() async {
+    await resolveTestCode('''
+f() {
+  var [a] = [1, 1.5];
+  print(a);
+}
+''');
+    await assertHasFix('''
+f() {
+  var [num a] = [1, 1.5];
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_local_variable() async {
+    await resolveTestCode('''
+int f() {
+  final f = x;
+  return f;
+}
+int x = 1;
+''');
+    await assertHasFix('''
+int f() {
+  final int f = x;
+  return f;
+}
+int x = 1;
+''');
+  }
+
+  Future<void> test_mapPattern_destructured() async {
+    await resolveTestCode('''
+f() {
+  var {'a': a} = {'a': x};
+  print(a);
+}
+int x = 1;
+''');
+    await assertHasFix('''
+f() {
+  var {'a': int a} = {'a': x};
+  print(a);
+}
+int x = 1;
+''');
+  }
+
+  Future<void> test_objectPattern_switch_final() async {
+    await resolveTestCode('''
+class A {
+  int a;
+  A(this.a);
+}
+var a = A(1);
+f() {
+  switch (a) {
+    case A(a: >0 && final b): print(b);
+  }
+ }
+''');
+    await assertHasFix('''
+class A {
+  int a;
+  A(this.a);
+}
+var a = A(1);
+f() {
+  switch (a) {
+    case A(a: >0 && final int b): print(b);
+  }
+ }
+''');
+  }
+
+  Future<void> test_recordPattern_switch() async {
+    await resolveTestCode('''
+f() {
+  switch ((1, x)) {
+    case (final a, int b): print(a); print(b);
+  }
+}
+int x = 2;
+''');
+    await assertHasFix('''
+f() {
+  switch ((1, x)) {
+    case (final int a, int b): print(a); print(b);
+  }
+}
+int x = 2;
+''');
+  }
+
+  Future<void> test_recordPattern_switch_var() async {
+    await resolveTestCode('''
+f() {
+  switch ((1, x)) {
+    case (int a, var b): print(a); print(b);
+  }
+}
+int x = 2;
+''');
+    await assertHasFix('''
+f() {
+  switch ((1, x)) {
+    case (int a, int b): print(a); print(b);
+  }
+}
+int x = 2;
 ''');
   }
 }
