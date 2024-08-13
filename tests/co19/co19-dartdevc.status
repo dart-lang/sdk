@@ -106,6 +106,7 @@ LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the 
 [ $builder_tag == canary && $compiler == ddc && $nnbd == weak ]
 Language/*: Skip # Temporary skip while turning down unsound test suites
 LanguageFeatures/*: Skip # Temporary skip while turning down unsound test suites
+LibTest/*: Skip # Temporary skip while turning down unsound test suites
 
 [ $compiler == ddc && $runtime == chrome ]
 LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: requestAnimationFrame is not executed on Chrome inactive tabs

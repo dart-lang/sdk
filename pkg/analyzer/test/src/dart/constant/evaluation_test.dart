@@ -2030,6 +2030,28 @@ bool true
 ''');
   }
 
+  test_visitFunctionReference_wildcard_local() async {
+    await assertErrorsInCode(r'''
+test() {
+  void _() {}
+  const c = _;
+  print(c);
+}
+''', [
+      error(WarningCode.DEAD_CODE, 11, 11),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 35,
+          1),
+    ]);
+  }
+
+  test_visitFunctionReference_wildcard_top() async {
+    await assertNoErrorsInCode(r'''
+void _() {}
+const c = _;
+''');
+  }
+
   test_visitInstanceCreationExpression_noArgs() async {
     await assertNoErrorsInCode('''
 class A {
@@ -4528,6 +4550,27 @@ int 42
 ''');
   }
 
+  test_visitSimpleIdentifier_wildcard_local() async {
+    await assertErrorsInCode(r'''
+test() {
+  const _ = true;
+  const c = _;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 39, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 39,
+          1),
+    ]);
+  }
+
+  test_visitSimpleIdentifier_wildcard_top() async {
+    await assertNoErrorsInCode(r'''
+const _ = true;
+const c = _;
+''');
+  }
+
   test_visitSimpleIdentifier_withoutEnvironment() async {
     await assertNoErrorsInCode(r'''
 const a = b;
@@ -5836,6 +5879,80 @@ const a = const B<int>();
 B<int>
   (super): A
     f: Type int
+  variable: <testLibraryFragment>::@topLevelVariable::a
+''');
+  }
+
+  test_wildcard_regularInitializer() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int _;
+  const A(this._);
+  int x() => _; // Avoid unused field warning.
+}
+const a = const A(1);
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+A
+  _: int 1
+  variable: <testLibraryFragment>::@topLevelVariable::a
+''');
+  }
+
+  test_wildcard_regularInitializer_initializerList() async {
+    await assertErrorsInCode('''
+class A {
+  final int _;
+  final int y;
+  const A(this._): y = _;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 63, 1),
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 63, 1),
+    ]);
+  }
+
+  test_wildcard_superInitializer() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int _;
+  const A(this._);
+  int x() => _; // Avoid unused field warning.
+}
+class B extends A {
+  const B(super._);
+}
+const a = const B(1);
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+B
+  (super): A
+    _: int 1
+  variable: <testLibraryFragment>::@topLevelVariable::a
+''');
+  }
+
+  test_wildcard_superInitializer_multiple() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int _;
+  final int y;
+  const A(this._, this.y);
+  int x() => _; // Avoid unused field warning.
+}
+class B extends A {
+  const B(super._, super._);
+}
+const a = const B(1, 2);
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+B
+  (super): A
+    _: int 2
+    y: int 2
   variable: <testLibraryFragment>::@topLevelVariable::a
 ''');
   }

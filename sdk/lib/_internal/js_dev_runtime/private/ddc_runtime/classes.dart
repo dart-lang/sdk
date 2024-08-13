@@ -98,84 +98,7 @@ getMixin(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
 
 final mixinOn = JS('', 'Symbol("mixinOn")');
 
-/// The Symbol for storing type arguments on a specialized generic type.
-final _typeArguments = JS('', 'Symbol("typeArguments")');
-
-final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
-
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
-
-/// Memoize a generic type constructor function.
-generic(typeConstructor, setBaseClass) => JS('', '''(() => {
-  let length = $typeConstructor.length;
-  if (length < 1) {
-    $throwInternalError('must have at least one generic type argument');
-  }
-  let resultMap = new Map();
-  // TODO(vsm): Rethink how to clear the resultMap on hot restart.
-  // A simple clear via:
-  //   _cacheMaps.push(resultMap);
-  // will break (a) we hoist type expressions in generated code and
-  // (b) we don't clear those type expressions in the presence of a
-  // hot restart.  Not clearing this map (as we're doing now) should
-  // not affect correctness, but can result in a memory leak across
-  // multiple restarts.
-  function makeGenericType(...args) {
-    if (args.length != length && args.length != 0) {
-      $throwInternalError('requires ' + length + ' or 0 type arguments');
-    }
-    while (args.length < length) args.push(${TYPE_REF<dynamic>()});
-
-    let value = resultMap;
-    for (let i = 0; i < length; i++) {
-      let arg = args[i];
-      if (arg == null) {
-        $throwInternalError('type arguments should not be null: '
-                          + $typeConstructor);
-      }
-      let map = value;
-      value = map.get(arg);
-      if (value === void 0) {
-        if (i + 1 == length) {
-          value = $typeConstructor.apply(null, args);
-          // Save the type constructor and arguments for reflection.
-          if (value) {
-            value[$_typeArguments] = args;
-            value[$_originalDeclaration] = makeGenericType;
-          }
-          map.set(arg, value);
-          if ($setBaseClass != null) $setBaseClass.apply(null, args);
-        } else {
-          value = new Map();
-          map.set(arg, value);
-        }
-      }
-    }
-    return value;
-  }
-  makeGenericType[$_genericTypeCtor] = $typeConstructor;
-  return makeGenericType;
-})()''');
-
-getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
-
-/// Extracts the type argument as the accessor for the JS class.
-///
-/// Should be used in place of [getGenericClass] when we know the class we want
-/// statically.
-///
-/// This value is extracted and inlined by the compiler without any runtime
-/// operations. The implementation here is only provided as a theoretical fall
-/// back and shouldn't actually be run.
-///
-/// For example `getGenericClassStatic<FutureOr>` emits `async.FutureOr$`
-/// directly.
-external getGenericClassStatic<T>();
-
-// TODO(markzipan): Make this non-nullable if we can ensure this returns
-// an empty list or if null and the empty list are semantically the same.
-List? getGenericArgs(type) =>
-    JS<List?>('', '#', safeGetOwnProperty(type, _typeArguments));
 
 Object instantiateClass(Object genericClass, List<Object> typeArgs) {
   return JS('', '#.apply(null, #)', genericClass, typeArgs);
@@ -208,8 +131,10 @@ getStaticSetters(value) => _getMembers(value, _staticSetterSig);
 
 getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 
-/// Get the type of an object.
-getType(obj) {
+/// Returns the type signature storage site for [obj].
+///
+/// This is typically an instance's JS constructor.
+getTypeSignatureContainer(obj) {
   if (obj == null) return JS('!', '#', Object);
 
   // Object.create(null) produces a js object without a prototype.
@@ -222,23 +147,13 @@ getType(obj) {
 getLibraryUri(value) => JS('', '#[#]', value, _libraryUri);
 setLibraryUri(f, uri) => JS('', '#[#] = #', f, _libraryUri, uri);
 
-/// Returns the name of the Dart class represented by [cls] including the
-/// instantiated type arguments.
+/// Returns the name of the Dart class represented by [cls].
 @notNull
 String getClassName(Object? cls) {
   if (cls != null) {
     var tag = JS('', '#[#]', cls, rti.interfaceTypeRecipePropertyName);
     if (tag != null) {
-      var name = JS<String>('!', '#.name', cls);
-      var args = getGenericArgs(cls);
-      if (args == null) return name;
-      var result = name + '<';
-      for (var i = 0; i < JS<int>('!', '#.length', args); ++i) {
-        if (i > 0) result += ', ';
-        result += typeName(JS('', '#[#]', args, i));
-      }
-      result += '>';
-      return result;
+      return JS<String>('!', '#.name', cls);
     }
   }
   return 'unknown (null)';
@@ -270,22 +185,45 @@ bool isJsInterop(obj) {
   return !_jsInstanceOf(obj, Object);
 }
 
-/// Get the type of a method from a type using the stored signature
-getMethodType(type, name) {
-  var m = getMethods(type);
-  return m != null ? JS('', '#[#]', m, name) : null;
+/// Returns the RTI for an object instance's field or method signature.
+Object? rtiFromSignature(instance, signature) {
+  if (signature == null) return signature;
+  if (JS<bool>('!', 'typeof # == "function"', signature)) {
+    // Signatures for generic types are resolved at runtime. A JS function here
+    // indicates that this signature has not yet been bound to an instance.
+    return JS<Object>('', '#(#)', signature, rti.instanceType(instance));
+  }
+  return signature;
 }
 
-/// Returns the default type argument values for the instance method [name] on
-/// the class [type].
-JSArray<Object> getMethodDefaultTypeArgs(type, name) =>
-    JS('!', '#[#]', getMethodsDefaultTypeArgs(type), name);
+/// Returns the type of a method [name] from an object instance [obj].
+getMethodType(obj, name) {
+  var typeSigHolder = getTypeSignatureContainer(obj);
+  var m = getMethods(typeSigHolder);
+  if (m == null) return null;
+  return rtiFromSignature(obj, JS<Object?>('', '#[#]', m, name));
+}
 
-/// Gets the type of the corresponding setter (this includes writable fields).
-getSetterType(type, name) {
-  var setters = getSetters(type);
+/// Returns the default type argument values for the instance method [name].
+JSArray<Object> getMethodDefaultTypeArgs(obj, name) {
+  var typeSigHolder = getTypeSignatureContainer(obj);
+  var typeArgsOrFunction =
+      JS<Object>('', '#[#]', getMethodsDefaultTypeArgs(typeSigHolder), name);
+  if (JS<bool>('!', 'typeof # == "function"', typeArgsOrFunction)) {
+    // Signatures for generic types are resolved at runtime.
+    // A JS function here indicates that this signature has not yet been bound
+    // to an instance.
+    typeArgsOrFunction =
+        JS<Object>('', '#(#)', typeArgsOrFunction, rti.instanceType(obj));
+  }
+  return JS<JSArray<Object>>('', '#', typeArgsOrFunction);
+}
+
+/// Returns the type of a setter [name] from an object instance [obj].
+getSetterType(obj, name) {
+  var typeSigHolder = getTypeSignatureContainer(obj);
+  var setters = getSetters(typeSigHolder);
   if (setters != null) {
-    var type = JS('', '#[#]', setters, name);
     // TODO(nshahan): setters object has properties installed on the global
     // Object that requires some extra validation to ensure they are intended
     // as setters. ex: dartx.hashCode, dartx._equals, dartx.toString etc.
@@ -293,15 +231,20 @@ getSetterType(type, name) {
     // There is a value mapped to 'toString' in setters so broken code like this
     // results in very confusing behavior:
     // `d.toString = 99;`
-    if (type != null) {
-      return type;
+    var type = JS<Object?>('', '#[#]', setters, name);
+    if (type != null && JS<bool>('!', 'typeof # == "function"', type)) {
+      // Signatures for generic types are resolved at runtime.
+      // A JS function here indicates that this signature has not yet been bound
+      // to an instance.
+      type = JS<Object>('', '#(#)', type, rti.instanceType(obj));
     }
+    if (type != null) return type;
   }
-  var fields = getFields(type);
+  var fields = getFields(typeSigHolder);
   if (fields != null) {
-    var fieldInfo = JS('', '#[#]', fields, name);
+    var fieldInfo = JS<Object?>('', '#[#]', fields, name);
     if (fieldInfo != null && JS<bool>('!', '!#.isFinal', fieldInfo)) {
-      return JS('', '#.type', fieldInfo);
+      return rtiFromSignature(obj, JS<Object?>('', '#.type', fieldInfo));
     }
   }
   return null;

@@ -4,7 +4,7 @@
 
 /// Tool used mainly by dart2js developers to debug the generated info and check
 /// that it is consistent and that it covers all the data we expect it to cover.
-library dart2js_info.bin.debug_info;
+library;
 
 import 'package:args/command_runner.dart';
 import 'package:dart2js_info/info.dart';

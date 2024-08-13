@@ -244,6 +244,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElements('fragments', fragments, _writeLibraryFragment);
 
       _writeElements('classes', e.classes, _writeInterfaceElement);
+      _writeElements('enums', e.enums, _writeInterfaceElement);
+      _writeElements('mixins', e.mixins, _writeInterfaceElement);
 
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');
@@ -338,12 +340,17 @@ class _Element2Writer extends _AbstractElementWriter {
       });
       return;
     }
-    Element2? element = f.element;
-    if (element is! ElementImpl) {
-      if (element is NotAugmentedInstanceElementImpl) {
-        element = element.baseElement;
-      } else if (element is MaybeAugmentedInstanceElementMixin) {
-        element = element.declaration;
+    Element2? element;
+    if (f is ElementImpl) {
+      element = f as ElementImpl;
+    } else {
+      element = f.element;
+      if (element is! ElementImpl) {
+        if (element is NotAugmentedInstanceElementImpl) {
+          element = element.baseElement;
+        } else if (element is MaybeAugmentedInstanceElementMixin) {
+          element = element.declaration;
+        }
       }
     }
     if (element is! ElementImpl) {
@@ -372,9 +379,9 @@ class _Element2Writer extends _AbstractElementWriter {
           _sink.writeIf(e.isMixinClass, 'mixin ');
           _sink.write('class ');
           _sink.writeIf(e.isMixinApplication, 'alias ');
-        // case EnumElement2():
-        //   _writeNotSimplyBounded(e);
-        //   _sink.write('enum ');
+        case EnumElement2():
+          // _writeNotSimplyBounded(e);
+          _sink.write('enum ');
         // case ExtensionTypeElement2():
         //   _sink.writeIf(
         //     e.hasRepresentationSelfReference,
@@ -385,10 +392,10 @@ class _Element2Writer extends _AbstractElementWriter {
         //     'hasImplementsSelfReference ',
         //   );
         //   // _writeNotSimplyBounded(e);
-        // case MixinElement2():
-        //   _sink.writeIf(e.isBase, 'base ');
-        //   _writeNotSimplyBounded(e);
-        //   _sink.write('mixin ');
+        case MixinElement2():
+          _sink.writeIf(e.isBase, 'base ');
+          // _writeNotSimplyBounded(e);
+          _sink.write('mixin ');
       }
 
       _writeElementName(e);
@@ -411,7 +418,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeType('supertype', supertype);
       }
 
-      // if (e is ExtensionTypeElementImpl) {
+      // if (e is ExtensionTypeElement2) {
       //   if (e.augmentationTarget == null) {
       //     _elementPrinter.writeNamedElement('representation', f.representation);
       //     _elementPrinter.writeNamedElement(
@@ -420,12 +427,12 @@ class _Element2Writer extends _AbstractElementWriter {
       //   }
       // }
 
-      // if (f is MixinElementImpl) {
-      //   _elementPrinter.writeTypeList(
-      //     'superclassConstraints',
-      //     f.superclassConstraints,
-      //   );
-      // }
+      if (e is MixinElement2) {
+        _elementPrinter.writeTypeList(
+          'superclassConstraints',
+          e.superclassConstraints,
+        );
+      }
 
       // TODO(brianwilkerson): Add a `writeTypeList2` that will use the new API
       //  version of the elements of type parameters.
@@ -470,9 +477,9 @@ class _Element2Writer extends _AbstractElementWriter {
           // _sink.writeIf(f.isMixinClass, 'mixin ');
           _sink.write('class ');
         // _sink.writeIf(f.isMixinApplication, 'alias ');
-        // case EnumFragment():
-        //   _writeNotSimplyBounded(e);
-        //   _sink.write('enum ');
+        case EnumFragment():
+          // _writeNotSimplyBounded(f);
+          _sink.write('enum ');
         // case ExtensionTypeFragment():
         //   _sink.writeIf(
         //     e.hasRepresentationSelfReference,
@@ -483,10 +490,10 @@ class _Element2Writer extends _AbstractElementWriter {
         //     'hasImplementsSelfReference ',
         //   );
         //   // _writeNotSimplyBounded(e);
-        // case MixinFragment:
-        //   _sink.writeIf(e.isBase, 'base ');
-        //   _writeNotSimplyBounded(e);
-        //   _sink.write('mixin ');
+        case MixinFragment():
+          // _sink.writeIf(f.isBase, 'base ');
+          // _writeNotSimplyBounded(f);
+          _sink.write('mixin ');
       }
       var name = f.element.name;
       if (name != null) {
@@ -533,15 +540,15 @@ class _Element2Writer extends _AbstractElementWriter {
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
       // _writeElements('parts', f.parts, _writePartElement);
 
-      _writeElements('classes', f.classes, _writeInterfaceFragment);
-      // _writeElements('enums', f.enums, _writeInterfaceElement);
+      _writeElements('classes', f.classes2, _writeInterfaceFragment);
+      _writeElements('enums', f.enums2, _writeInterfaceFragment);
       // _writeElements('extensions', f.extensions, _writeExtensionElement);
       // _writeElements(
       //   'extensionTypes',
       //   f.extensionTypes,
       //   _writeInterfaceElement,
       // );
-      // _writeElements('mixins', f.mixins, _writeInterfaceElement);
+      _writeElements('mixins', f.mixins2, _writeInterfaceFragment);
       // _writeElements('typeAliases', f.typeAliases, _writeTypeAliasElement);
       // _writeElements(
       //   'topLevelVariables',

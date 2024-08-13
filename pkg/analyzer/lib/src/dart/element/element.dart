@@ -3042,7 +3042,7 @@ class ElementLocationImpl implements ElementLocation {
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl
     with AugmentableElement<EnumElementImpl>
-    implements EnumElement {
+    implements EnumElement, EnumFragment {
   late MaybeAugmentedEnumElementMixin augmentedInternal =
       NotAugmentedEnumElementImpl(this);
 
@@ -3074,6 +3074,9 @@ class EnumElementImpl extends InterfaceElementImpl
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
+
+  @override
+  List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
 
   @override
   ElementKind get kind => ElementKind.ENUM;
@@ -4678,7 +4681,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     var declarations = <EnumElement2>{};
     for (var unit in units) {
       declarations.addAll(
-          unit._classes.map((element) => element.augmented as EnumElement2));
+          unit._enums.map((element) => element.augmented as EnumElement2));
     }
     return declarations.toList();
   }
@@ -5534,11 +5537,14 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
 }
 
 mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
-    implements AugmentedEnumElement {
+    implements AugmentedEnumElement, EnumElement2 {
   @override
   List<FieldElement> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
+
+  @override
+  List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
 
   @override
   EnumElementImpl get declaration;
@@ -6005,9 +6011,16 @@ mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
 }
 
 mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
-    implements AugmentedMixinElement {
+    implements AugmentedMixinElement, MixinElement2 {
   @override
   MixinElementImpl get declaration;
+
+  @override
+  bool get isBase => declaration.isBase;
+
+  @override
+  bool isImplementableIn2(LibraryElement2 library) =>
+      declaration.isImplementableIn(library as LibraryElement);
 }
 
 /// A concrete implementation of a [MethodElement].
@@ -6105,7 +6118,7 @@ class MethodElementImpl extends ExecutableElementImpl
 /// A [ClassElementImpl] representing a mixin declaration.
 class MixinElementImpl extends ClassOrMixinElementImpl
     with AugmentableElement<MixinElementImpl>
-    implements MixinElement {
+    implements MixinElement, MixinFragment {
   List<InterfaceType> _superclassConstraints = const [];
 
   /// Names of methods, getters, setters, and operators that this mixin

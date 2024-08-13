@@ -1111,6 +1111,13 @@ library
       reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+  mixins
+    mixin X
+      reference: <testLibraryFragment>::@mixin::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::X
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1205,6 +1212,13 @@ library
       reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+  mixins
+    mixin X
+      reference: <testLibraryFragment>::@mixin::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::X
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1252,6 +1266,13 @@ library
       reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+  mixins
+    mixin X
+      reference: <testLibraryFragment>::@mixin::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::X
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1295,6 +1316,13 @@ library
       reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
+  mixins
+    mixin X
+      reference: <testLibraryFragment>::@mixin::X
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::X
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1340,6 +1368,19 @@ library
       reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
+  mixins
+    mixin X1
+      reference: <testLibraryFragment>::@mixin::X1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::X1
+      superclassConstraints
+        Object
+    mixin X2
+      reference: <testLibraryFragment>::@mixin::X2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::X2
+      superclassConstraints
+        Object
 ''');
   }
 }
@@ -3380,9 +3421,9 @@ library
       classes
         class B @115
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
         class B @135
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
   classes
     class A
@@ -3486,12 +3527,12 @@ library
       classes
         class A @66
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @57
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -3574,12 +3615,12 @@ library
       classes
         class A @65
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @57
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -3660,12 +3701,12 @@ library
       classes
         class A @59
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @57
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -3762,12 +3803,12 @@ library
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @57
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -3855,12 +3896,12 @@ library
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @57
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -3944,12 +3985,12 @@ library
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @57
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -4040,12 +4081,12 @@ library
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @57
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -4156,7 +4197,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -4266,7 +4307,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -4379,7 +4420,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -4492,7 +4533,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -4610,7 +4651,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -4723,7 +4764,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -4838,7 +4879,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -4938,7 +4979,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -5057,7 +5098,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -5792,7 +5833,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -5916,7 +5957,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -6068,7 +6109,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -6191,7 +6232,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -6309,7 +6350,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -6435,7 +6476,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class B @99
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -7910,12 +7951,12 @@ library
       classes
         class B @71
           reference: <testLibraryFragment>::@class::B
-          nextFragment: <testLibraryFragment>::@class::B
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class B @57
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
@@ -8221,7 +8262,7 @@ library
       classes
         class A @42
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -8231,7 +8272,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class A @99
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -8385,7 +8426,7 @@ library
       classes
         class A @36
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -8398,7 +8439,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
       classes
         class A @130
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -8541,7 +8582,7 @@ library
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -8554,7 +8595,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
       classes
         class A @130
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -8683,7 +8724,7 @@ library
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -8696,7 +8737,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
       classes
         class A @130
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -8845,7 +8886,7 @@ library
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -8858,7 +8899,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
       classes
         class A @130
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -10093,6 +10134,16 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      mixins
+        mixin A @62
+          reference: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -10152,6 +10203,16 @@ library
     <testLibraryFragment>
       libraryImports
         package:test/diagnostic.dart
+      mixins
+        mixin A @80
+          reference: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -12629,12 +12690,22 @@ library
       classes
         class A @23
           reference: <testLibraryFragment>::@class::A
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class alias A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       supertype: Object
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -12737,7 +12808,7 @@ library
           reference: <testLibraryFragment>::@class::A
         class B @125
           reference: <testLibraryFragment>::@class::B
-          nextFragment: <testLibraryFragment>::@class::B
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -12749,7 +12820,7 @@ library
         class C @94
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
         class B @113
-          reference: <testLibraryFragment>::@class::B
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class A
@@ -13645,11 +13716,20 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+      enums
+        enum B @104
+          reference: <testLibraryFragment>::@enum::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+  enums
+    enum B
+      reference: <testLibraryFragment>::@enum::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::B
+      supertype: Enum
 ''');
   }
 
@@ -13867,12 +13947,12 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @57
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -14304,7 +14384,7 @@ library
       classes
         class A @53
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -14314,7 +14394,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class A @89
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -14497,7 +14577,7 @@ library
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -14510,7 +14590,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
       classes
         class A @146
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
   classes
     class A
@@ -14651,12 +14731,12 @@ library
       classes
         class X @80
           reference: <testLibraryFragment>::@class::X
-          nextFragment: <testLibraryFragment>::@class::X
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       classes
         class X @57
-          reference: <testLibraryFragment>::@class::X
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X
           previousFragment: <testLibraryFragment>::@class::X
   classes
     class X
@@ -14799,7 +14879,7 @@ library
       classes
         class X @101
           reference: <testLibraryFragment>::@class::X
-          nextFragment: <testLibraryFragment>::@class::X
+          nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -14809,7 +14889,7 @@ library
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
       classes
         class X @99
-          reference: <testLibraryFragment>::@class::X
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::X
           previousFragment: <testLibraryFragment>::@class::X
   classes
     class X

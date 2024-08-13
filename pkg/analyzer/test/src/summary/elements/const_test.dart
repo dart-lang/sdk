@@ -6416,6 +6416,9 @@ library
           reference: <testLibraryFragment>::@class::C
         class D @17
           reference: <testLibraryFragment>::@class::D
+      enums
+        enum E @30
+          reference: <testLibraryFragment>::@enum::E
   classes
     class C
       reference: <testLibraryFragment>::@class::C
@@ -6425,6 +6428,12 @@ library
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+  enums
+    enum E
+      reference: <testLibraryFragment>::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -9430,6 +9439,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      enums
+        enum E @5
+          reference: <testLibraryFragment>::@enum::E
+  enums
+    enum E
+      reference: <testLibraryFragment>::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -9511,6 +9529,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      enums
+        enum E @5
+          reference: <testLibraryFragment>::@enum::E
+  enums
+    enum E
+      reference: <testLibraryFragment>::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::E
+      supertype: Enum
 ''');
   }
 

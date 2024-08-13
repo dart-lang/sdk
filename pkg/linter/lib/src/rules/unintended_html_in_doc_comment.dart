@@ -208,6 +208,46 @@ class _UnintendedTag {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static final _markdownTokenPattern = RegExp(
+      // Escaped Markdown character.
+      r'\\.'
+
+      // Or code span, from "`"*N to "`"*N or just the start if it's
+      // unterminated, to avoid "```a``" matching the "``a``".
+      // The ```-sequence is atomic.
+      r'|(?<cq>`+)(?:[^]*?\k<cq>)?'
+
+      // Or autolink, start with scheme + `:`.
+      r'|<[a-z][a-z\d\-+.]+:[^\x00-\x20\x7f<>]*>'
+
+      // Or HTML comments.
+      r'|<!--(?:-?>|[^]*?-->)'
+
+      // Or HTML declarations.
+      r'|<![a-z][^]*?!>'
+
+      // Or HTML processing instructions.
+      r'|<\?[^]*?\?>'
+
+      // Or HTML CDATA sections sections.
+      r'|<\[CDATA[^]*\]>'
+
+      // Or valid HTML tag.
+      // Matches `<validTag>`, `<validTag ...>`, `<validTag/>`, `</validTag>`
+      // and `</validTag ...>.
+      r'|<(?<et>/?)(?:'
+      '${_validHtmlTags.join('|')}'
+      r')'
+      r'(?:/(?=\k<et>)>|>|[\x20\r\n\t][^]*?>)'
+
+      // Or any of the following matches which are considered invalid tags.
+      // If the "nh" capture group is participating, one of these matched.
+      r'|(?<nh>)(?:'
+
+      // Any other `</?tag ...>` sequence.
+      r'</?[a-z][^]*?>'
+      r')', caseSensitive: false);
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -236,48 +276,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Finds tags that are not valid HTML tags, not contained in a code span, and
   /// are not autolinks.
   List<_UnintendedTag> _findUnintendedHtmlTags(String text) {
-    var markdownTokenPattern = RegExp(
-        // Escaped Markdown character.
-        r'\\.'
-
-        // Or code span, from "`"*N to "`"*N or just the start if it's
-        // unterminated, to avoid "```a``" matching the "``a``".
-        // The ```-sequence is atomic.
-        r'|(?<cq>`+)(?:[^]*?\k<cq>)?'
-
-        // Or autolink, start with scheme + `:`.
-        r'|<[a-z][a-z\d\-+.]+:[^\x00-\x20\x7f<>]*>'
-
-        // Or HTML comments.
-        r'|<!--(?:-?>|[^]*?-->)'
-
-        // Or HTML declarations.
-        r'|<![a-z][^]*?!>'
-
-        // Or HTML processing instructions.
-        r'|<\?[^]*?\?>'
-
-        // Or HTML CDATA sections sections.
-        r'|<\[CDATA[^]*\]>'
-
-        // Or valid HTML tag.
-        // Matches `<validTag>`, `<validTag ...>`, `<validTag/>`, `</validTag>`
-        // and `</validTag ...>.
-        r'|<(?<et>/?)(?:'
-        '${_validHtmlTags.join('|')}'
-        r')'
-        r'(?:/(?=\k<et>)>|>|[\x20\r\n\t][^]*?>)'
-
-        // Or any of the following matches which are considered invalid tags.
-        // If the "nh" capture group is participating, one of these matched.
-        r'|(?<nh>)(?:'
-
-        // Any other `</?tag ...>` sequence.
-        r'</?[a-z][^]*?>'
-        r')', caseSensitive: false);
-
     var matches = <_UnintendedTag>[];
-    for (var match in markdownTokenPattern.allMatches(text)) {
+    for (var match in _markdownTokenPattern.allMatches(text)) {
       if (match.namedGroup('nh') != null) {
         matches.add(_UnintendedTag(match.start, match.end - match.start));
       }

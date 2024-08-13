@@ -33,7 +33,7 @@
 /// The names for parts given in the specification YAML file (besides "main")
 /// are arbitrary and just used for reporting when the output does not meet the
 /// specification.
-library dart2js_info.bin.deferred_library_check;
+library;
 
 import 'dart:io';
 

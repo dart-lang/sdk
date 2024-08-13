@@ -209,6 +209,10 @@ external String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG();
 /// representations in JavaScript.
 external String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG();
 
+/// Returns the identifier associated with the RTI parameter passed to some
+/// generic constructors, factories, and signatures.
+external String JS_RTI_PARAMETER();
+
 /// Returns the JS name for [name] from the Namer.
 @pragma('ddc:trust-inline')
 external String JS_GET_NAME(JsGetName name);

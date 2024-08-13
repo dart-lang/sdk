@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library rewrite_async;
-
 import 'package:js_shared/synced/async_status_codes.dart' as status_codes;
 
 import '../js_ast/js_ast.dart' as js_ast;

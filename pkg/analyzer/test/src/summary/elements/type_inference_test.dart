@@ -3486,6 +3486,9 @@ library
           reference: <testLibraryFragment>::@class::B
         class C @78
           reference: <testLibraryFragment>::@class::C
+      mixins
+        mixin M @112
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3500,6 +3503,13 @@ library
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -4726,11 +4736,20 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+      enums
+        enum E @16
+          reference: <testLibraryFragment>::@enum::E
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+  enums
+    enum E
+      reference: <testLibraryFragment>::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -4885,11 +4904,20 @@ library
       classes
         class C @17
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      enums
+        enum E @27
+          reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
   classes
     class C
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
+  enums
+    enum E
+      reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -5041,6 +5069,9 @@ library
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
+      enums
+        enum E @42
+          reference: <testLibraryFragment>::@enum::E
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
   classes
@@ -5048,6 +5079,12 @@ library
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+  enums
+    enum E
+      reference: <testLibraryFragment>::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -5213,6 +5250,9 @@ library
       classes
         class C @17
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      enums
+        enum E @27
+          reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
   classes
@@ -5220,6 +5260,12 @@ library
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
+  enums
+    enum E
+      reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -5373,11 +5419,20 @@ library
       classes
         class C @17
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      enums
+        enum E @27
+          reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
   classes
     class C
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
+  enums
+    enum E
+      reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -5622,6 +5677,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      enums
+        enum E @5
+          reference: <testLibraryFragment>::@enum::E
+  enums
+    enum E
+      reference: <testLibraryFragment>::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::E
+      supertype: Enum
 ''');
   }
 

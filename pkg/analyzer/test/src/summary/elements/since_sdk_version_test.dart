@@ -448,6 +448,15 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      enums
+        enum E @31
+          reference: dart:foo::<fragment>::@enum::E
+  enums
+    enum E
+      reference: dart:foo::<fragment>::@enum::E
+      enclosingElement2: dart:foo
+      firstFragment: dart:foo::<fragment>::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -507,6 +516,16 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      enums
+        enum E @46
+          reference: dart:foo::<fragment>::@enum::E
+  enums
+    enum E
+      reference: dart:foo::<fragment>::@enum::E
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -582,6 +601,17 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      mixins
+        mixin M @47
+          reference: dart:foo::<fragment>::@mixin::M
+  mixins
+    mixin M
+      reference: dart:foo::<fragment>::@mixin::M
+      enclosingElement2: dart:foo
+      sinceSdkVersion: 2.15.0
+      firstFragment: dart:foo::<fragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 

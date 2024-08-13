@@ -90,9 +90,23 @@ class C {}
 ''');
   }
 
+  test_html_cData_nested() async {
+    await assertNoDiagnostics(r'''
+/// <[CDATA[<bad>]]>
+class C {}
+''');
+  }
+
   test_html_comment() async {
     await assertNoDiagnostics(r'''
 /// <!--comment-->
+class C {}
+''');
+  }
+
+  test_html_comment_nested() async {
+    await assertNoDiagnostics(r'''
+/// <!--<bad>-->
 class C {}
 ''');
   }
@@ -107,6 +121,23 @@ class C {}
   test_html_processingInstruction() async {
     await assertNoDiagnostics(r'''
 /// <?aaa?>
+class C {}
+''');
+  }
+
+  test_html_processingInstruction_nested() async {
+    await assertNoDiagnostics(r'''
+/// <?<bad>?>
+class C {}
+''');
+  }
+
+  test_html_tags_valid() async {
+    await assertNoDiagnostics(r'''
+/// <table class="properties">
+/// <th scope="row">
+/// <br />
+/// <h1> Test. </h1>
 class C {}
 ''');
   }
@@ -183,17 +214,6 @@ class C {}
     ]);
   }
 
-  test_unintendedHtml_multipleTags() async {
-    await assertDiagnostics(r'''
-/// <assignment> -> <variable> = <expression>
-class C {}
-''', [
-      lint(4, 12), // <assignment>
-      lint(20, 10), // <variable>
-      lint(33, 12), // <expression>
-    ]);
-  }
-
   test_unintendedHtml_nested() async {
     await assertDiagnostics(r'''
 /// Text List<List<int>>.
@@ -223,10 +243,24 @@ class C {}
     ]);
   }
 
-  test_validHtmlTag() async {
-    await assertNoDiagnostics(r'''
-/// <h1> Test. </h1>
+  test_unintendedHtml_tags_multiple() async {
+    await assertDiagnostics(r'''
+/// <assignment> -> <variable> = <expression>
 class C {}
-''');
+''', [
+      lint(4, 12), // <assignment>
+      lint(20, 10), // <variable>
+      lint(33, 12), // <expression>
+    ]);
+  }
+
+  test_unintendedHtml_tags_slash() async {
+    await assertDiagnostics(r'''
+/// </bad> <bad/>
+class C {}
+''', [
+      lint(4, 6), // </bad>
+      lint(11, 6), // <bad/>
+    ]);
   }
 }

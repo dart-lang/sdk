@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This tool reports how code is divided among deferred chunks.
-library dart2js_info.bin.deferred_library_layout;
+library;
 
 import 'dart:io';
 

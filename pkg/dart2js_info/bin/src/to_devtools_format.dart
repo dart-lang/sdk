@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_dynamic_calls
 
-library dart2js_info.bin.to_devtools_format;
-
 import 'dart:convert';
 import 'dart:io' as io;
 

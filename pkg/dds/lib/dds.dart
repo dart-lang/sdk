@@ -4,7 +4,7 @@
 
 /// A library used to spawn the Dart Developer Service, used to communicate
 /// with a Dart VM Service instance.
-library dds;
+library;
 
 import 'dart:async';
 import 'dart:io';

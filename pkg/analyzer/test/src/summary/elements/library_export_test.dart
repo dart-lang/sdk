@@ -1120,12 +1120,12 @@ library
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
-          nextFragment: <testLibraryFragment>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class A @35
-          reference: <testLibraryFragment>::@class::A
+          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           previousFragment: <testLibraryFragment>::@class::A
         class B @46
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
@@ -1505,8 +1505,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @21
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @35
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+        mixin B @46
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
+    mixin B
+      reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
+      superclassConstraints
+        Object
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@mixin::B
     declared <testLibraryFragment>::@mixin::A

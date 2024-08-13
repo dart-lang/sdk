@@ -3546,6 +3546,11 @@ library
           reference: <testLibraryFragment>::@class::A
         class B @65
           reference: <testLibraryFragment>::@class::B
+      mixins
+        mixin M1 @41
+          reference: <testLibraryFragment>::@mixin::M1
+        mixin M2 @53
+          reference: <testLibraryFragment>::@mixin::M2
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3556,6 +3561,19 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+  mixins
+    mixin M1
+      reference: <testLibraryFragment>::@mixin::M1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M1
+      superclassConstraints
+        Object
+    mixin M2
+      reference: <testLibraryFragment>::@mixin::M2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M2
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3623,6 +3641,11 @@ library
           reference: <testLibraryFragment>::@class::A
         class B @65
           reference: <testLibraryFragment>::@class::B
+      mixins
+        mixin M1 @41
+          reference: <testLibraryFragment>::@mixin::M1
+        mixin M2 @53
+          reference: <testLibraryFragment>::@mixin::M2
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -3633,6 +3656,19 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+  mixins
+    mixin M1
+      reference: <testLibraryFragment>::@mixin::M1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M1
+      superclassConstraints
+        Object
+    mixin M2
+      reference: <testLibraryFragment>::@mixin::M2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M2
+      superclassConstraints
+        Object
 ''');
   }
 
