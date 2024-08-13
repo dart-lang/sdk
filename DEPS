@@ -701,7 +701,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "EAdD2YcYwVrhF2q_zR6xUvPkcKlPb1tJyM_6_oOc84kC",
+      "version": "8WCo7tLjg_GoImlj5eax_w-wxsvRPnmaChqN4ok-5rYC",
       }
     ],
     "condition": 'download_fuchsia_deps',
