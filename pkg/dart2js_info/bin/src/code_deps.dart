@@ -23,7 +23,7 @@
 ///
 /// If the name of a function your are looking for is unique enough, it might be
 /// sufficient to just write that name as your regular expression.
-library dart2js_info.bin.code_deps;
+library;
 
 import 'dart:collection';
 

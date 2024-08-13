@@ -4,8 +4,6 @@
 
 // ignore_for_file: omit_local_variable_types
 
-library js_ast.nodes;
-
 import 'precedence.dart';
 import 'printer.dart';
 
