@@ -143,6 +143,9 @@ library
           reference: <testLibraryFragment>::@class::C
         class D @39
           reference: <testLibraryFragment>::@class::D
+      mixins
+        mixin M @51
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -160,6 +163,14 @@ library
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        A
+        B
 ''');
   }
 
@@ -185,6 +196,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @11
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    base mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -222,6 +243,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -273,6 +304,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -312,6 +353,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -351,6 +402,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -376,6 +437,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -435,6 +506,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class B @42
           reference: <testLibraryFragment>::@class::B
+      mixins
+        mixin M @20
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -445,6 +519,13 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        A<U>
 ''');
   }
 
@@ -735,6 +816,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class C @57
           reference: <testLibraryFragment>::@class::C
+      mixins
+        mixin M @20
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -745,6 +829,13 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A<int Function(String)>
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        A<T Function(U)>
 ''');
   }
 
@@ -804,6 +895,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class C @57
           reference: <testLibraryFragment>::@class::C
+      mixins
+        mixin M @29
+          reference: <testLibraryFragment>::@mixin::M
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
@@ -814,6 +908,13 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A<List<int>>
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        A<List<T>>
 ''');
   }
 
@@ -891,6 +992,11 @@ library
           reference: <testLibraryFragment>::@class::I
         class A @66
           reference: <testLibraryFragment>::@class::A
+      mixins
+        mixin M1 @20
+          reference: <testLibraryFragment>::@mixin::M1
+        mixin M2 @43
+          reference: <testLibraryFragment>::@mixin::M2
   classes
     class I
       reference: <testLibraryFragment>::@class::I
@@ -901,6 +1007,19 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       supertype: I<int>
+  mixins
+    mixin M1
+      reference: <testLibraryFragment>::@mixin::M1
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M1
+      superclassConstraints
+        I<T>
+    mixin M2
+      reference: <testLibraryFragment>::@mixin::M2
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M2
+      superclassConstraints
+        I<T>
 ''');
   }
 
@@ -976,6 +1095,9 @@ library
           reference: <testLibraryFragment>::@class::S
         class X @78
           reference: <testLibraryFragment>::@class::X
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class S
       reference: <testLibraryFragment>::@class::S
@@ -986,6 +1108,13 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       supertype: S<String>
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        S<T>
 ''');
   }
 
@@ -1072,6 +1201,9 @@ library
           reference: <testLibraryFragment>::@class::S
         class X @104
           reference: <testLibraryFragment>::@class::X
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class S
       reference: <testLibraryFragment>::@class::S
@@ -1082,6 +1214,13 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       supertype: S<String>
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        S<T>
 ''');
   }
 
@@ -1143,6 +1282,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
+      mixins
+        mixin M @56
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1152,6 +1294,13 @@ library
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1186,6 +1335,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1230,11 +1389,21 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+      mixins
+        mixin B @17
+          reference: <testLibraryFragment>::@mixin::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+  mixins
+    mixin B
+      reference: <testLibraryFragment>::@mixin::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::B
+      superclassConstraints
+        A
 ''');
   }
 
@@ -1277,6 +1446,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1319,6 +1498,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1378,6 +1567,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
+      mixins
+        mixin M @56
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1387,6 +1579,14 @@ library
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        A
+        C
 ''');
   }
 
@@ -1413,6 +1613,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1439,6 +1649,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1465,6 +1685,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1495,6 +1725,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 }
@@ -1542,6 +1782,9 @@ library
       classes
         class A @17
           reference: <testLibraryFragment>::@class::A
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1550,6 +1793,15 @@ library
       supertype: Object
       allSupertypes
         M
+        Object
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
+      allSupertypes
         Object
 ''');
   }
@@ -1606,6 +1858,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class B @33
           reference: <testLibraryFragment>::@class::B
+      mixins
+        mixin M @17
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -1621,6 +1876,16 @@ library
       allSupertypes
         A
         M
+        Object
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        A
+      allSupertypes
+        A
         Object
 ''');
   }
@@ -1697,11 +1962,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin A @68
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @40
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
   exportedReferences
     declared <testLibraryFragment>::@mixin::A
   exportNamespace
@@ -1799,9 +2084,9 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0
         class A @74
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
         class A @112
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
   classes
     class A
@@ -1899,11 +2184,35 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin B @31
+          reference: <testLibraryFragment>::@mixin::B
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin A @68
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @40
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+  mixins
+    mixin B
+      reference: <testLibraryFragment>::@mixin::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::B
+      superclassConstraints
+        Object
+    mixin A
+      reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -1998,8 +2307,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -2124,11 +2448,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @56
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -2253,11 +2597,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @56
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -2385,11 +2749,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @56
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -2484,8 +2868,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -2570,8 +2969,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -2685,8 +3099,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -2810,8 +3239,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -2901,8 +3345,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3002,8 +3461,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3098,8 +3572,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3224,11 +3713,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @56
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3326,8 +3835,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3440,11 +3964,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @56
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3523,11 +4067,19 @@ library
       classes
         class I1 @56
           reference: <testLibraryFragment>::@class::I1
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class I2 @68
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class I1
       reference: <testLibraryFragment>::@class::I1
@@ -3537,6 +4089,13 @@ library
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3647,17 +4206,30 @@ library
       classes
         class I1 @56
           reference: <testLibraryFragment>::@class::I1
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class I2 @93
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      mixins
+        mixin A @68
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class I3 @65
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+      mixins
+        mixin A @40
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
   classes
     class I1
       reference: <testLibraryFragment>::@class::I1
@@ -3671,6 +4243,13 @@ library
       reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3738,8 +4317,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3814,8 +4408,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3913,11 +4522,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin A @68
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @40
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -3993,8 +4622,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -4071,8 +4715,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -4152,8 +4811,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -4249,8 +4923,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -4348,8 +5037,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -4456,8 +5160,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -4532,11 +5251,19 @@ library
       classes
         class B1 @48
           reference: <testLibraryFragment>::@class::B1
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class B2 @60
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B2
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class B1
       reference: <testLibraryFragment>::@class::B1
@@ -4546,6 +5273,14 @@ library
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::B2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B2
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        B1
+        B2
 ''');
   }
 
@@ -4652,17 +5387,30 @@ library
       classes
         class I1 @48
           reference: <testLibraryFragment>::@class::I1
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class I2 @85
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      mixins
+        mixin A @68
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class I3 @57
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+      mixins
+        mixin A @40
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
   classes
     class I1
       reference: <testLibraryFragment>::@class::I1
@@ -4676,6 +5424,15 @@ library
       reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        I1
+        I2
+        I3
 ''');
   }
 
@@ -4735,16 +5492,31 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class B @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class B
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        B
 ''');
   }
 
@@ -4828,11 +5600,19 @@ library
       classes
         class I1 @51
           reference: <testLibraryFragment>::@class::I1
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class I2 @68
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class I1
       reference: <testLibraryFragment>::@class::I1
@@ -4842,6 +5622,14 @@ library
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        I1
+        I2<T>
 ''');
   }
 
@@ -4910,6 +5698,9 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @57
+          reference: <testLibraryFragment>::@mixin::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -4930,6 +5721,13 @@ library
       reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -5005,6 +5803,10 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @57
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -5013,11 +5815,22 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @44
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
   classes
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -5098,8 +5911,23 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
+      mixins
+        mixin B @49
+          reference: <testLibraryFragment>::@mixin::B
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin B @43
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+          previousFragment: <testLibraryFragment>::@mixin::B
+  mixins
+    mixin B
+      reference: <testLibraryFragment>::@mixin::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::B
+      superclassConstraints
+        A
 ''');
   }
 
@@ -5182,10 +6010,25 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin B @32
+          reference: <testLibraryFragment>::@mixin::B
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
+      mixins
+        mixin B @60
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+          previousFragment: <testLibraryFragment>::@mixin::B
+  mixins
+    mixin B
+      reference: <testLibraryFragment>::@mixin::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::B
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -5264,10 +6107,25 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      mixins
+        mixin B @32
+          reference: <testLibraryFragment>::@mixin::B
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
+      mixins
+        mixin B @60
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+          previousFragment: <testLibraryFragment>::@mixin::B
+  mixins
+    mixin B
+      reference: <testLibraryFragment>::@mixin::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::B
+      superclassConstraints
+        A
 ''');
   }
 
@@ -5360,8 +6218,23 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       libraryImports
         package:test/a.dart
+      mixins
+        mixin B @49
+          reference: <testLibraryFragment>::@mixin::B
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin B @43
+          reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B
+          previousFragment: <testLibraryFragment>::@mixin::B
+  mixins
+    mixin B
+      reference: <testLibraryFragment>::@mixin::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::B
+      superclassConstraints
+        A
 ''');
   }
 
@@ -5412,8 +6285,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @36
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @48
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    base mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -5461,11 +6349,21 @@ library
       classes
         class I @30
           reference: <testLibraryFragment>::@class::I
+      mixins
+        mixin A @6
+          reference: <testLibraryFragment>::@mixin::A
   classes
     class I
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -5509,11 +6407,21 @@ library
       classes
         class B @22
           reference: <testLibraryFragment>::@class::B
+      mixins
+        mixin A @6
+          reference: <testLibraryFragment>::@mixin::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        B
 ''');
   }
 
@@ -5572,8 +6480,23 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      mixins
+        mixin A @31
+          reference: <testLibraryFragment>::@mixin::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      mixins
+        mixin A @43
+          reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          previousFragment: <testLibraryFragment>::@mixin::A
+  mixins
+    mixin A
+      reference: <testLibraryFragment>::@mixin::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::A
+      superclassConstraints
+        Object
 ''');
   }
 }

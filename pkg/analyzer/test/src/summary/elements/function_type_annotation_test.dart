@@ -904,6 +904,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin B @6
+          reference: <testLibraryFragment>::@mixin::B
+  mixins
+    mixin B
+      reference: <testLibraryFragment>::@mixin::B
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::B
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -967,6 +977,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class B @31
           reference: <testLibraryFragment>::@class::B
+      mixins
+        mixin M @20
+          reference: <testLibraryFragment>::@mixin::M
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -977,6 +990,13 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<void Function()>
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 

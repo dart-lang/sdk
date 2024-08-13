@@ -284,6 +284,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      enums
+        enum E @5
+          reference: <testLibraryFragment>::@enum::E
+  enums
+    enum E
+      reference: <testLibraryFragment>::@enum::E
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@enum::E
+      supertype: Enum
 ''');
   }
 
@@ -334,6 +343,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -374,6 +393,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -418,6 +447,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibraryFragment>::@mixin::M
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        Object
 ''');
   }
 

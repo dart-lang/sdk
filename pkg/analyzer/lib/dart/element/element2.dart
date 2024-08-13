@@ -369,7 +369,7 @@ abstract class EnumElement2 implements InterfaceElement2 {
 }
 
 abstract class EnumFragment implements InterfaceFragment {
-  List<FieldElement2> get constants;
+  List<FieldElement2> get constants2;
 }
 
 abstract class ExecutableElement2 implements FunctionTypedElement2 {
