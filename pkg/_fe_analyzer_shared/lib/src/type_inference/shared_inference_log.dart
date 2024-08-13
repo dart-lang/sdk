@@ -702,9 +702,11 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
         method: 'recordGeneratedConstraint',
         arguments: [parameter, constraint],
         expectedKind: StateKind.constraintGeneration);
-    String constraintText =
-        constraint.toString().replaceAll('<type>', parameter.toString());
-    addEvent(new Event(message: () => 'ADDED CONSTRAINT $constraintText'));
+    addEvent(new Event(message: () {
+      String constraintText =
+          constraint.toString().replaceAll('<type>', parameter.toString());
+      return 'ADDED CONSTRAINT $constraintText';
+    }));
   }
 
   @override
@@ -734,13 +736,13 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
         method: 'recordPreliminaryTypes',
         arguments: [types],
         expectedKind: StateKind.genericInference);
-    List<Object> typeFormals = (state as GenericInferenceState).typeFormals;
-    List<String> typeAssignments = [
-      for (int i = 0; i < types.length; i++) '${typeFormals[i]}=${types[i]}'
-    ];
-    addEvent(new Event(
-        message: () =>
-            'PRELIMINARY GENERIC TYPES ${typeAssignments.join(', ')}'));
+    addEvent(new Event(message: () {
+      List<Object> typeFormals = (state as GenericInferenceState).typeFormals;
+      List<String> typeAssignments = [
+        for (int i = 0; i < types.length; i++) '${typeFormals[i]}=${types[i]}'
+      ];
+      return 'PRELIMINARY GENERIC TYPES ${typeAssignments.join(', ')}';
+    }));
   }
 
   @override
