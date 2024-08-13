@@ -11,7 +11,13 @@
   implicit setter for a field of generic type will store `null` instead of the
   field value. [#152029][]
 
+- Fixes a bug in the dart2wasm compiler that can trigger in certain situations
+  when using partial instantiations of generic tear-offs (constructors or static
+  methods) in constant expressions. [#56372][]
+
 [#152029]: https://github.com/flutter/flutter/issues/152029
+
+[#56372]: https://github.com/dart-lang/sdk/issues/56372
 
 ## 3.5.0
 
