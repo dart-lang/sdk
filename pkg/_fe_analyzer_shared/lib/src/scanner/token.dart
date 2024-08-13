@@ -476,14 +476,13 @@ class Keyword extends TokenType {
  */
 class KeywordToken extends SimpleToken {
   @override
-  final Keyword keyword;
+  Keyword get keyword => type as Keyword;
 
   /**
    * Initialize a newly created token to represent the given [keyword] at the
    * given [offset].
    */
-  KeywordToken(this.keyword, int offset, [CommentToken? precedingComment])
-      : super(keyword, offset, precedingComment);
+  KeywordToken(super.keyword, super.offset, [super.precedingComment]);
 
   @override
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
