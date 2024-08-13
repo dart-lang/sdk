@@ -191,7 +191,7 @@ abstract class _LazySubstring {
 
   _LazySubstring.internal();
 
-  factory _LazySubstring(data, int start, int length, bool b) {
+  factory _LazySubstring(Object data, int start, int length, bool b) {
     // See comment on [CompactLazySubstring].
     if (start < 0x100000 && length < 0x200) {
       int fields = (start << 9);
