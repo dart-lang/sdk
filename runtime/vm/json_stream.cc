@@ -31,7 +31,7 @@ JSONStream::JSONStream(intptr_t buf_size)
       seq_(nullptr),
       parameter_keys_(nullptr),
       parameter_values_(nullptr),
-      method_(""),
+      method_(nullptr),
       param_keys_(nullptr),
       param_values_(nullptr),
       num_params_(0),
@@ -149,13 +149,17 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
   }
 }
 
-static void PrintRequest(JSONObject* obj, JSONStream* js) {
-  JSONObject jsobj(obj, "request");
-  jsobj.AddProperty("method", js->method());
+// Prints a new property into |obj|. The key of the new property will be
+// "request". The value of the new property will be an object with "method",
+// and "params" properties. The values of "method" and "params" will be
+// extracted from |js|.
+static void PrintRequestProperty(JSONObject& obj, JSONStream& js) {
+  JSONObject jsobj(&obj, "request");
+  jsobj.AddProperty("method", js.method());
   {
     JSONObject params(&jsobj, "params");
-    for (intptr_t i = 0; i < js->num_params(); i++) {
-      params.AddProperty(js->GetParamKey(i), js->GetParamValue(i));
+    for (intptr_t i = 0; i < js.num_params(); i++) {
+      params.AddProperty(js.GetParamKey(i), js.GetParamValue(i));
     }
   }
 }
@@ -167,7 +171,7 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
   jsobj.AddProperty("message", GetJSONRpcErrorMessage(code));
   {
     JSONObject data(&jsobj, "data");
-    PrintRequest(&data, this);
+    PrintRequestProperty(data, *this);
     if (details_format != nullptr) {
       va_list measure_args;
       va_start(measure_args, details_format);
@@ -270,27 +274,6 @@ void JSONStream::PostReply() {
   }
 }
 
-const char* JSONStream::LookupParam(const char* key) const {
-  for (int i = 0; i < num_params(); i++) {
-    if (strcmp(key, param_keys_[i]) == 0) {
-      return param_values_[i];
-    }
-  }
-  return nullptr;
-}
-
-bool JSONStream::HasParam(const char* key) const {
-  ASSERT(key);
-  return LookupParam(key) != nullptr;
-}
-
-bool JSONStream::ParamIs(const char* key, const char* value) const {
-  ASSERT(key);
-  ASSERT(value);
-  const char* key_value = LookupParam(key);
-  return (key_value != nullptr) && (strcmp(key_value, value) == 0);
-}
-
 void JSONStream::ComputeOffsetAndCount(intptr_t length,
                                        intptr_t* offset,
                                        intptr_t* count) {
@@ -306,6 +289,7 @@ void JSONStream::ComputeOffsetAndCount(intptr_t length,
     *count = remaining;
   }
 }
+
 void JSONStream::PrintfValue(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -444,6 +428,14 @@ void JSONStream::set_reply_port(Dart_Port port) {
   reply_port_ = port;
 }
 
+void JSONStream::SetParams(const char** param_keys,
+                           const char** param_values,
+                           intptr_t num_params) {
+  param_keys_ = param_keys;
+  param_values_ = param_values;
+  num_params_ = num_params;
+}
+
 intptr_t JSONStream::NumObjectParameters() const {
   if (parameter_keys_ == nullptr) {
     return 0;
@@ -476,12 +468,25 @@ ObjectPtr JSONStream::LookupObjectParam(const char* c_key) const {
   return Object::null();
 }
 
-void JSONStream::SetParams(const char** param_keys,
-                           const char** param_values,
-                           intptr_t num_params) {
-  param_keys_ = param_keys;
-  param_values_ = param_values;
-  num_params_ = num_params;
+const char* JSONStream::LookupParam(const char* key) const {
+  for (int i = 0; i < num_params(); i++) {
+    if (strcmp(key, param_keys_[i]) == 0) {
+      return param_values_[i];
+    }
+  }
+  return nullptr;
+}
+
+bool JSONStream::HasParam(const char* key) const {
+  ASSERT(key);
+  return LookupParam(key) != nullptr;
+}
+
+bool JSONStream::ParamIs(const char* key, const char* value) const {
+  ASSERT(key);
+  ASSERT(value);
+  const char* key_value = LookupParam(key);
+  return (key_value != nullptr) && (strcmp(key_value, value) == 0);
 }
 
 void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
