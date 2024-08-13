@@ -239,7 +239,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "List<Object>"
+    "List"
 ]
 -----------------------------------
 Test: List<Object> definition formatting body
@@ -1788,7 +1788,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "List<int>"
+    "List"
 ]
 -----------------------------------
 Test: List<int> large definition formatting body
@@ -3371,7 +3371,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "MappedListIterable<String, String>"
+    "MappedListIterable"
 ]
 -----------------------------------
 Test: Iterable definition formatting body
@@ -4148,7 +4148,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "LinkedSet<dynamic>"
+    "LinkedSet"
 ]
 -----------------------------------
 Test: Set definition formatting body
@@ -4560,7 +4560,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "LinkedMap<dynamic, dynamic>"
+    "LinkedMap"
 ]
 -----------------------------------
 Test: Map<dynamic, dynamic> definition formatting body
@@ -5227,7 +5227,7 @@ Value:
             {
                 "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "TestGenericClass<dynamic, dynamic>: "
+            "TestGenericClass: "
         ],
         [
             "span",
@@ -7063,7 +7063,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "TestGenericClass<int, List<dynamic>>"
+    "TestGenericClass"
 ]
 -----------------------------------
 Test: TestGenericClass definition formatting body
@@ -7203,7 +7203,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "Instance of 'TestGenericClass<ExampleJSClass<any>, int>'"
+    "Instance of 'TestGenericClass<ExampleJSClass<String>, int>'"
 ]
 -----------------------------------
 Test: TestGenericClassJSInterop instance body
@@ -7300,7 +7300,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "TestGenericClass<ExampleJSClass<any>, int>"
+    "TestGenericClass"
 ]
 -----------------------------------
 Test: TestGenericClassJSInterop definition formatting body
