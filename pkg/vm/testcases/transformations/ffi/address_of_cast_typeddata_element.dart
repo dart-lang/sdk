@@ -13,6 +13,8 @@ void main() {
   myNative(
     typedData.address.cast(),
   );
+
+  myNative(typedData[0].address.cast());
 }
 
 @Native<
