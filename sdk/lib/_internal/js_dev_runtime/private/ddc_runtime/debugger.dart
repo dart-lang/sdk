@@ -291,20 +291,23 @@ Object getObjectMetadata(@notNull Object object) {
   if (cls != null) {
     libraryId = getLibraryUri(cls);
   }
-  var length = _get(object, 'length');
   var result = _createJsObject({
     'className': className,
     'libraryId': libraryId,
     'runtimeKind': RuntimeObjectKind.object,
-    if (length != null) 'length': length,
   });
 
-  if (object is List) {
+  if (object is String) {
+    _set(result, 'length', _get(object, 'length'));
+  } else if (object is List) {
     _set(result, 'runtimeKind', RuntimeObjectKind.list);
+    _set(result, 'length', _get(object, 'length'));
   } else if (object is Map) {
     _set(result, 'runtimeKind', RuntimeObjectKind.map);
+    _set(result, 'length', _get(object, 'length'));
   } else if (object is Set) {
     _set(result, 'runtimeKind', RuntimeObjectKind.set);
+    _set(result, 'length', _get(object, 'length'));
   } else if (object is Function) {
     _set(result, 'runtimeKind', RuntimeObjectKind.function);
   } else if (object is RecordImpl) {
@@ -347,6 +350,10 @@ Object getObjectMetadata(@notNull Object object) {
     // Plain object with no constructor on the object.
     // Return empty metadata so the object is not displayed in the debugger.
     return _createEmptyJsObject();
+  } else {
+    // The debug spec specifies that plain objects should have a 'length' field
+    // which is the number of non-static fields on the object.
+    _set(result, 'length', getObjectFieldNames(object).length);
   }
   return result;
 }
