@@ -612,6 +612,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.sort_unnamed_constructors_first: [
     SortUnnamedConstructorFirst.new,
   ],
+  LinterLintCode.specify_nonobvious_local_variable_types: [
+    AddTypeAnnotation.bulkFixable,
+  ],
   LinterLintCode.type_annotate_public_apis: [
     AddTypeAnnotation.bulkFixable,
   ],

@@ -975,7 +975,7 @@ class LinterLintCode extends LintCode {
 
   static const LintCode omit_obvious_local_variable_types = LinterLintCode(
     'omit_obvious_local_variable_types',
-    "Unnecessary and obvious type annotation on a local variable.",
+    "Omit the type annotation on a local variable when the type is obvious.",
     correctionMessage: "Try removing the type annotation.",
   );
 
@@ -1460,6 +1460,13 @@ class LinterLintCode extends LintCode {
     "Invalid location for the unnamed constructor.",
     correctionMessage:
         "Try moving the unnamed constructor before all other constructors.",
+  );
+
+  static const LintCode specify_nonobvious_local_variable_types =
+      LinterLintCode(
+    'specify_nonobvious_local_variable_types',
+    "Specify the type of a local variable when the type is non-obvious.",
+    correctionMessage: "Try adding a type annotation.",
   );
 
   static const LintCode test_types_in_equals = LinterLintCode(

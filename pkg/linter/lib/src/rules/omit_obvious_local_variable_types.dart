@@ -7,8 +7,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 import '../linter_lint_codes.dart';
+import '../util/obvious_types.dart';
 
 const _desc = r'Omit obvious type annotations for local variables.';
 
@@ -24,7 +24,7 @@ variable type annotations that are obvious should be omitted.
 ```dart
 List<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {
   List<List<Ingredient>> desserts = <List<Ingredient>>[];
-  for (List<Ingredient> recipe in cookbook) {
+  for (final List<Ingredient> recipe in cookbook) {
     if (pantry.containsAll(recipe)) {
       desserts.add(recipe);
     }
@@ -32,13 +32,15 @@ List<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {
 
   return desserts;
 }
+
+const cookbook = <List<Ingredient>>[....];
 ```
 
 **GOOD:**
 ```dart
 List<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {
   var desserts = <List<Ingredient>>[];
-  for (List<Ingredient> recipe in cookbook) {
+  for (final List<Ingredient> recipe in cookbook) {
     if (pantry.containsAll(recipe)) {
       desserts.add(recipe);
     }
@@ -46,6 +48,8 @@ List<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {
 
   return desserts;
 }
+
+const cookbook = <List<Ingredient>>[....];
 ```
 
 Sometimes the inferred type is not the type you want the variable to have. For
@@ -73,9 +77,6 @@ Widget build(BuildContext context) {
 or removed. Feedback on its behavior is welcome! The main issue is here:
 https://github.com/dart-lang/linter/issues/3480.
 ''';
-
-bool _sameOrNull(DartType? t1, DartType? t2) =>
-    t1 == null || t2 == null || t1 == t2;
 
 class OmitObviousLocalVariableTypes extends LintRule {
   OmitObviousLocalVariableTypes()
@@ -150,150 +151,5 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
     rule.reportLint(node.type);
-  }
-}
-
-extension on CollectionElement {
-  DartType? get elementType {
-    var self = this; // Enable promotion.
-    switch (self) {
-      case MapLiteralEntry():
-        return null;
-      case ForElement():
-        // No need to compute the type of a non-obvious element.
-        return null;
-      case IfElement():
-        // We just need a candidate type, ignore `else`.
-        return self.thenElement.elementType;
-      case Expression():
-        return self.staticType;
-      case SpreadElement():
-        return self.expression.staticType.elementTypeOfIterable;
-      case NullAwareElement():
-        // This should be the non-nullable version of `self.value.staticType`,
-        // but since it requires computation, we return null.
-        return null;
-    }
-  }
-
-  bool get hasObviousType {
-    var self = this; // Enable promotion.
-    switch (self) {
-      case MapLiteralEntry():
-        return self.key.hasObviousType && self.value.hasObviousType;
-      case ForElement():
-        return false;
-      case IfElement():
-        return self.thenElement.hasObviousType &&
-            (self.elseElement?.hasObviousType ?? true);
-      case Expression():
-        return self.hasObviousType;
-      case SpreadElement():
-        return self.expression.hasObviousType;
-      case NullAwareElement():
-        return self.value.hasObviousType;
-    }
-  }
-
-  DartType? get keyType {
-    var self = this; // Enable promotion.
-    switch (self) {
-      case MapLiteralEntry():
-        return self.key.elementType;
-      default:
-        return null;
-    }
-  }
-
-  DartType? get valueType {
-    var self = this; // Enable promotion.
-    switch (self) {
-      case MapLiteralEntry():
-        return self.value.elementType;
-      default:
-        return null;
-    }
-  }
-}
-
-extension on DartType? {
-  DartType? get elementTypeOfIterable {
-    var self = this; // Enable promotion.
-    if (self == null) return null;
-    if (self is InterfaceType) {
-      var iterableInterfaces =
-          self.implementedInterfaces.where((type) => type.isDartCoreIterable);
-      if (iterableInterfaces.length == 1) {
-        return iterableInterfaces.first.typeArguments.first;
-      }
-    }
-    return null;
-  }
-}
-
-extension on Expression {
-  bool get hasObviousType {
-    var self = this; // Enable promotion.
-    switch (self) {
-      case TypedLiteral():
-        if (self.typeArguments != null) {
-          // A collection literal with explicit type arguments is trivial.
-          return true;
-        }
-        // A collection literal with no explicit type arguments.
-        DartType? theObviousType, theObviousKeyType, theObviousValueType;
-        NodeList<CollectionElement> elements = switch (self) {
-          ListLiteral() => self.elements,
-          SetOrMapLiteral() => self.elements
-        };
-        for (var element in elements) {
-          if (element.hasObviousType) {
-            theObviousType ??= element.elementType;
-            theObviousKeyType ??= element.keyType;
-            theObviousValueType ??= element.valueType;
-            if (!_sameOrNull(theObviousType, element.elementType) ||
-                !_sameOrNull(theObviousKeyType, element.keyType) ||
-                !_sameOrNull(theObviousValueType, element.valueType)) {
-              return false;
-            }
-          } else {
-            return false;
-          }
-        }
-        var theSelfElementType = self.staticType.elementTypeOfIterable;
-        return theSelfElementType == theObviousType;
-      case Literal():
-        // An atomic literal: `Literal` and not `TypedLiteral`.
-        if (self is IntegerLiteral &&
-            (self.staticType?.isDartCoreDouble ?? false)) {
-          return false;
-        }
-        return true;
-      case InstanceCreationExpression():
-        var createdType = self.constructorName.type;
-        if (createdType.typeArguments != null) {
-          // Explicit type arguments provided.
-          return true;
-        } else {
-          DartType? dartType = createdType.type;
-          if (dartType != null) {
-            if (dartType is InterfaceType &&
-                dartType.element.typeParameters.isNotEmpty) {
-              // A raw type is not trivial.
-              return false;
-            }
-            // A non-generic class or extension type.
-            return true;
-          } else {
-            // An unknown type is not trivial.
-            return false;
-          }
-        }
-      case CascadeExpression():
-        return self.target.hasObviousType;
-      case AsExpression():
-        return true;
-    }
-    return false;
   }
 }
