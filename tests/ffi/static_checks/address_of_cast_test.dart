@@ -58,7 +58,6 @@ void testUnionField() {
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 }
 
-
 void main() {
   testTypedData();
   testStructField();
