@@ -517,6 +517,33 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
+  /// Populate this hash table from the given list of key-value pairs.
+  ///
+  /// This function is unsafe: it does not perform any type checking on
+  /// keys and values assuming that caller has ensured that types are
+  /// correct.
+  void _populateUnsafe(List<Object?> keyValuePairs) {
+    assert(keyValuePairs.length.isEven);
+    int size = _roundUpToPowerOfTwo(keyValuePairs.length);
+    if (size < _HashBase._INITIAL_INDEX_SIZE) {
+      size = _HashBase._INITIAL_INDEX_SIZE;
+    }
+    int hashMask = _HashBase._indexSizeToHashMask(size);
+
+    assert(size & (size - 1) == 0);
+    assert(_HashBase._UNUSED_PAIR == 0);
+    _index = new Uint32List(size);
+    _hashMask = hashMask;
+    _data = new List.filled(size, null);
+    _usedData = 0;
+    _deletedKeys = 0;
+    for (int i = 0; i < keyValuePairs.length; i += 2) {
+      final key = internal.unsafeCast<K>(keyValuePairs[i]);
+      final value = internal.unsafeCast<V>(keyValuePairs[i + 1]);
+      _set(key, value, _hashCode(key));
+    }
+  }
+
   void _regenerateIndex() {
     _index =
         _data.length == 0 ? _uninitializedIndex : new Uint32List(_data.length);
@@ -1184,3 +1211,7 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
 /// on stability of [Type.toString].
 typedef DefaultMap<K, V> = _Map<K, V>;
 typedef DefaultSet<E> = _Set<E>;
+
+@pragma('vm:prefer-inline')
+Map<K, V> createMapFromKeyValueListUnsafe<K, V>(List<Object?> keyValuePairs) =>
+    DefaultMap<K, V>().._populateUnsafe(keyValuePairs);
