@@ -778,13 +778,13 @@ static ObjectPtr RehashObjects(Zone* zone,
   return DartEntry::InvokeFunction(rehashing_function, arguments);
 }
 
-ObjectPtr DartLibraryCalls::RehashObjectsInDartCollection(
+ObjectPtr DartLibraryCalls::RehashObjectsInDartCompactHash(
     Thread* thread,
     const Object& array_or_growable_array) {
   auto zone = thread->zone();
-  const auto& collections_lib =
-      Library::Handle(zone, Library::CollectionLibrary());
-  return RehashObjects(zone, collections_lib, array_or_growable_array);
+  const auto& compact_hash_lib =
+      Library::Handle(zone, Library::CompactHashLibrary());
+  return RehashObjects(zone, compact_hash_lib, array_or_growable_array);
 }
 
 ObjectPtr DartLibraryCalls::RehashObjectsInDartCore(

@@ -1,11 +1,11 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method test1(dynamic x, dynamic another) → core::Iterable<dynamic> {
   return block {
-    final core::Set<dynamic> #t1 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t1 = new _co::_Set::•<dynamic>();
     hoisted core::int i;
     hoisted core::int n;
     {
@@ -33,7 +33,7 @@ static method test1(dynamic x, dynamic another) → core::Iterable<dynamic> {
 }
 static method test2(dynamic x, dynamic another) → core::Iterable<dynamic> {
   return block {
-    final core::Set<dynamic> #t12 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t12 = new _co::_Set::•<dynamic>();
     {
       final synthesized dynamic #0#0 = x;
       if(#0#0 is core::String) {
@@ -51,7 +51,7 @@ static method test2(dynamic x, dynamic another) → core::Iterable<dynamic> {
 }
 static method test3(dynamic x, dynamic another) → core::Iterable<dynamic> {
   return block {
-    final core::Set<dynamic> #t15 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t15 = new _co::_Set::•<dynamic>();
     {
       synthesized core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -79,51 +79,51 @@ static method test3(dynamic x, dynamic another) → core::Iterable<dynamic> {
 }
 static method main() → dynamic {
   self::expectSetEquals(self::test1(core::_GrowableList::_literal2<core::int>(0, 2), block {
-    final core::Set<core::int> #t19 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t19 = new _co::_Set::•<core::int>();
     #t19.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t19.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t19.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
   } =>#t19) as core::Set<dynamic>, block {
-    final core::Set<dynamic> #t20 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t20 = new _co::_Set::•<dynamic>();
     #t20.{core::Set::add}{Invariant}(1){(dynamic) → core::bool};
     #t20.{core::Set::add}{Invariant}(2){(dynamic) → core::bool};
     #t20.{core::Set::add}{Invariant}(3){(dynamic) → core::bool};
   } =>#t20);
   self::expectSetEquals(self::test2(core::_GrowableList::_literal2<core::int>(0, 0), block {
-    final core::Set<core::int> #t21 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t21 = new _co::_Set::•<core::int>();
     #t21.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t21.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t21.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
   } =>#t21) as core::Set<dynamic>, block {
-    final core::Set<dynamic> #t22 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t22 = new _co::_Set::•<dynamic>();
   } =>#t22);
   self::expectThrows(() → void => self::test1(core::_GrowableList::•<dynamic>(0), <dynamic, dynamic>{}));
   self::expectSetEquals(self::test2("foo", block {
-    final core::Set<core::int> #t23 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t23 = new _co::_Set::•<core::int>();
     #t23.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t23.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t23.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
   } =>#t23) as core::Set<dynamic>, block {
-    final core::Set<dynamic> #t24 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t24 = new _co::_Set::•<dynamic>();
     #t24.{core::Set::add}{Invariant}(1){(dynamic) → core::bool};
     #t24.{core::Set::add}{Invariant}(2){(dynamic) → core::bool};
     #t24.{core::Set::add}{Invariant}(3){(dynamic) → core::bool};
   } =>#t24);
   self::expectSetEquals(self::test2(false, block {
-    final core::Set<core::int> #t25 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t25 = new _co::_Set::•<core::int>();
     #t25.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t25.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t25.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
   } =>#t25) as core::Set<dynamic>, block {
-    final core::Set<dynamic> #t26 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t26 = new _co::_Set::•<dynamic>();
   } =>#t26);
   self::expectSetEquals(self::test3(core::_GrowableList::_literal2<core::List<core::int>>(core::_GrowableList::_literal1<core::int>(0), core::_GrowableList::_literal1<core::int>(1)), block {
-    final core::Set<core::int> #t27 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t27 = new _co::_Set::•<core::int>();
     #t27.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t27.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t27.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
   } =>#t27) as core::Set<dynamic>, block {
-    final core::Set<dynamic> #t28 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t28 = new _co::_Set::•<dynamic>();
     #t28.{core::Set::add}{Invariant}(1){(dynamic) → core::bool};
     #t28.{core::Set::add}{Invariant}(2){(dynamic) → core::bool};
     #t28.{core::Set::add}{Invariant}(3){(dynamic) → core::bool};

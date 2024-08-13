@@ -302,8 +302,8 @@ class DartLibraryCalls : public AllStatic {
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr EnsureScheduleImmediate();
 
-  // Runs the `_rehashObjects()` function in `dart:collection`.
-  static ObjectPtr RehashObjectsInDartCollection(
+  // Runs the `_rehashObjects()` function in `dart:compact_hash`.
+  static ObjectPtr RehashObjectsInDartCompactHash(
       Thread* thread,
       const Object& array_or_growable_array);
 

@@ -1,13 +1,13 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 class C extends core::Object {
   final field core::Set<core::int> s;
   constructor •(core::List<core::int> ell) → self::C
     : self::C::s = block {
-      final core::Set<core::int> #t1 = new col::_Set::•<core::int>();
+      final core::Set<core::int> #t1 = new _co::_Set::•<core::int>();
       {
         synthesized core::Iterator<core::int> :sync-for-iterator = ell.{core::Iterable::iterator}{core::Iterator<core::int>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

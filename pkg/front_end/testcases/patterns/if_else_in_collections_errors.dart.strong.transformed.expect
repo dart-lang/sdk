@@ -16,7 +16,7 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method test1(dynamic x) → dynamic
   return block {
@@ -39,7 +39,7 @@ test1(dynamic x) => [1, if (x case int y) 2 else y, 3]; // Error.
   } =>#t1;
 static method test2(dynamic x) → dynamic
   return block {
-    final core::Set<core::int> #t2 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t2 = new _co::_Set::•<core::int>();
     #t2.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     {
       final synthesized dynamic #0#0 = x;

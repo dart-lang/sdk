@@ -20,6 +20,7 @@ library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 extension type MyList<T extends core::Object? = dynamic>(core::List<T%> it) implements core::List<T%> {
   abstract extension-type-member representation-field get it() → core::List<T%>;
@@ -74,7 +75,7 @@ static method test() → dynamic {
  - 'Set' is from 'dart:core'.
   MySet<String> set = {}; // Error
                       ^" in ( block {
-    final core::Set<dynamic> #t4 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t4 = new _co::_Set::•<dynamic>();
   } =>#t4) as{TypeError} self::MySet<core::String> /* erasure=core::Set<core::String> */;
   self::MyMap<core::String, core::bool> /* erasure=core::Map<core::String, core::bool> */ map = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:20:29: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'MyMap<String, bool>'.
  - 'Map' is from 'dart:core'.

@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_compact_hash";
+import "dart:_compact_hash"
+    show
+        DefaultMap,
+        DefaultSet,
+        CompactLinkedIdentityHashSet,
+        CompactLinkedCustomHashSet,
+        CompactLinkedCustomHashMap,
+        CompactLinkedIdentityHashMap,
+        MapInitializationFromWasmArray,
+        SetInitializationFromWasmArray;
 import "dart:_internal" show patch;
 import "dart:_wasm";
 
@@ -17,7 +26,7 @@ class LinkedHashMap<K, V> {
       bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
       if (hashCode == null && equals == null) {
-        return WasmDefaultMap<K, V>();
+        return DefaultMap<K, V>();
       }
       if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
@@ -30,7 +39,7 @@ class LinkedHashMap<K, V> {
   }
 
   @pragma("wasm:entry-point")
-  static WasmDefaultMap<K, V> _default<K, V>() => WasmDefaultMap<K, V>();
+  static DefaultMap<K, V> _default<K, V>() => DefaultMap<K, V>();
 
   @patch
   factory LinkedHashMap.identity() => CompactLinkedIdentityHashMap<K, V>();
@@ -45,7 +54,7 @@ class LinkedHashSet<E> {
       bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
       if (hashCode == null && equals == null) {
-        return WasmDefaultSet<E>();
+        return DefaultSet<E>();
       }
       if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
@@ -58,7 +67,7 @@ class LinkedHashSet<E> {
   }
 
   @pragma("wasm:entry-point")
-  static WasmDefaultSet<E> _default<E>() => WasmDefaultSet<E>();
+  static DefaultSet<E> _default<E>() => DefaultSet<E>();
 
   @patch
   factory LinkedHashSet.identity() => CompactLinkedIdentityHashSet<E>();

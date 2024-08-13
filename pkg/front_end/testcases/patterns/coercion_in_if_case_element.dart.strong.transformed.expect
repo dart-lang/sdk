@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method testList(dynamic x, dynamic list) → dynamic {
   return block {
@@ -17,7 +17,7 @@ static method testList(dynamic x, dynamic list) → dynamic {
 }
 static method testSet(dynamic x, dynamic list) → dynamic {
   return block {
-    final core::Set<dynamic> #t2 = new col::_Set::•<dynamic>();
+    final core::Set<dynamic> #t2 = new _co::_Set::•<dynamic>();
     #t2.{core::Set::add}{Invariant}(0){(dynamic) → core::bool};
     {
       final synthesized dynamic #0#0 = list;

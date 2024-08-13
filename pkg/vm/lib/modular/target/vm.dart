@@ -75,6 +75,7 @@ class VmTarget extends Target {
   List<String> get extraRequiredLibraries => const <String>[
         'dart:async',
         'dart:collection',
+        'dart:_compact_hash',
         'dart:concurrent',
         'dart:convert',
         'dart:developer',
@@ -95,6 +96,9 @@ class VmTarget extends Target {
         'dart:io',
         'dart:cli',
       ];
+
+  @override
+  bool mayDefineRestrictedType(Uri uri) => uri.isScheme('dart');
 
   @override
   List<String> get extraRequiredLibrariesPlatform => const <String>[];
@@ -131,9 +135,7 @@ class VmTarget extends Target {
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
-        // TODO(askesc): When the VM supports set literals, we no longer
-        // need to index dart:collection, as it is only needed for desugaring of
-        // const sets. We can remove it from this list at that time.
+        "dart:_compact_hash",
         "dart:collection",
         // TODO(askesc): This is for the VM host endian optimization, which
         // could possibly be done more cleanly after the VM no longer supports
@@ -438,24 +440,24 @@ class VmTarget extends Target {
 
   @override
   Class concreteMapLiteralClass(CoreTypes coreTypes) {
-    return _map ??= coreTypes.index.getClass('dart:collection', '_Map');
+    return _map ??= coreTypes.index.getClass('dart:_compact_hash', '_Map');
   }
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _constMap ??=
-        coreTypes.index.getClass('dart:collection', '_ConstMap');
+        coreTypes.index.getClass('dart:_compact_hash', '_ConstMap');
   }
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
-    return _set ??= coreTypes.index.getClass('dart:collection', '_Set');
+    return _set ??= coreTypes.index.getClass('dart:_compact_hash', '_Set');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
     return _constSet ??=
-        coreTypes.index.getClass('dart:collection', '_ConstSet');
+        coreTypes.index.getClass('dart:_compact_hash', '_ConstSet');
   }
 
   @override

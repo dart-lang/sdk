@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method test1(dynamic x, dynamic another) → dynamic {
   return block {
@@ -73,7 +73,7 @@ static method main() → dynamic {
   self::expectEquals(self::mapToString(self::test3(0, 1, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 0, 3: 3}));
   self::expectEquals(self::mapToString(self::test3("foo", 1, <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2, 3: 3}));
   self::expectEquals(self::mapToString(self::test3("foo", "bar", block {
-    final core::Set<core::int> #t4 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t4 = new _co::_Set::•<core::int>();
     #t4.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t4.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
   } =>#t4) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 3: 3}));

@@ -29,7 +29,7 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 typedef F = <T extends core::Object? = dynamic>() → void;
 static method method<T extends core::Object? = dynamic>() → self::method::T%
@@ -38,7 +38,7 @@ static method test(<T extends core::Object? = dynamic>() → void f) → dynamic
   f = self::method<<T extends core::Object? = dynamic>() → void>();
   core::List<<T extends core::Object? = dynamic>() → void> list = core::_GrowableList::_literal1<<T extends core::Object? = dynamic>() → void>(f);
   core::Set<<T extends core::Object? = dynamic>() → void> set = block {
-    final core::Set<<T extends core::Object? = dynamic>() → void> #t1 = new col::_Set::•<<T extends core::Object? = dynamic>() → void>();
+    final core::Set<<T extends core::Object? = dynamic>() → void> #t1 = new _co::_Set::•<<T extends core::Object? = dynamic>() → void>();
     #t1.{core::Set::add}{Invariant}(f){(<T extends core::Object? = dynamic>() → void) → core::bool};
   } =>#t1;
   core::Map<<T extends core::Object? = dynamic>() → void, core::int> map1 = <<T extends core::Object? = dynamic>() → void, core::int>{f: 1};

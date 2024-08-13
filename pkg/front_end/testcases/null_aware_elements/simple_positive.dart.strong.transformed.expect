@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method foo1(core::int? x) → dynamic
   return block {
@@ -12,7 +12,7 @@ static method foo1(core::int? x) → dynamic
   } =>#t1;
 static method foo2(core::String? x) → dynamic
   return block {
-    final core::Set<core::String> #t3 = new col::_Set::•<core::String>();
+    final core::Set<core::String> #t3 = new _co::_Set::•<core::String>();
     final core::String? #t4 = x;
     if(!(#t4 == null))
       #t3.{core::Set::add}{Invariant}(#t4{core::String}){(core::String) → core::bool};
@@ -33,7 +33,7 @@ static method bar1(core::int? x) → dynamic
   } =>#t7;
 static method bar2(core::int? x, core::bool b) → dynamic
   return block {
-    final core::Set<core::int> #t9 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t9 = new _co::_Set::•<core::int>();
     if(b) {
       final core::int? #t10 = x;
       if(!(#t10 == null))
@@ -42,7 +42,7 @@ static method bar2(core::int? x, core::bool b) → dynamic
   } =>#t9;
 static method bar3(core::int? x, core::List<core::String> y) → dynamic
   return block {
-    final core::Set<core::int> #t11 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t11 = new _co::_Set::•<core::int>();
     {
       synthesized core::Iterator<core::String> :sync-for-iterator = y.{core::Iterable::iterator}{core::Iterator<core::String>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -113,41 +113,41 @@ static method main() → dynamic {
   self::expectShallowEqualLists(self::foo1(0) as{TypeError,ForDynamic} core::List<dynamic>, core::_GrowableList::_literal1<core::int>(0));
   self::expectShallowEqualLists(self::foo1(null) as{TypeError,ForDynamic} core::List<dynamic>, core::_GrowableList::•<core::int>(0));
   self::expectShallowEqualSets(self::foo2("") as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::String> #t26 = new col::_Set::•<core::String>();
+    final core::Set<core::String> #t26 = new _co::_Set::•<core::String>();
     #t26.{core::Set::add}{Invariant}(""){(core::String) → core::bool};
   } =>#t26);
   self::expectShallowEqualSets(self::foo2(null) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::String> #t27 = new col::_Set::•<core::String>();
+    final core::Set<core::String> #t27 = new _co::_Set::•<core::String>();
   } =>#t27);
   self::expectShallowEqualMaps(self::foo3(false, 0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::bool, core::num>{false: 0});
   self::expectShallowEqualMaps(self::foo3(null, 0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::bool, core::num>{});
   self::expectShallowEqualLists(self::bar1(0) as{TypeError,ForDynamic} core::List<dynamic>, core::_GrowableList::_literal1<core::int>(0));
   self::expectShallowEqualLists(self::bar1(null) as{TypeError,ForDynamic} core::List<dynamic>, core::_GrowableList::•<core::int>(0));
   self::expectShallowEqualSets(self::bar2(0, true) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t28 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t28 = new _co::_Set::•<core::int>();
     #t28.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
   } =>#t28);
   self::expectShallowEqualSets(self::bar2(0, false) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t29 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t29 = new _co::_Set::•<core::int>();
   } =>#t29);
   self::expectShallowEqualSets(self::bar2(null, true) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t30 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t30 = new _co::_Set::•<core::int>();
   } =>#t30);
   self::expectShallowEqualSets(self::bar2(null, false) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t31 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t31 = new _co::_Set::•<core::int>();
   } =>#t31);
   self::expectShallowEqualSets(self::bar3(0, core::_GrowableList::_literal2<core::String>("", "")) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t32 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t32 = new _co::_Set::•<core::int>();
     #t32.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
   } =>#t32);
   self::expectShallowEqualSets(self::bar3(null, core::_GrowableList::_literal2<core::String>("", "")) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t33 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t33 = new _co::_Set::•<core::int>();
   } =>#t33);
   self::expectShallowEqualSets(self::bar3(0, core::_GrowableList::•<core::String>(0)) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t34 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t34 = new _co::_Set::•<core::int>();
   } =>#t34);
   self::expectShallowEqualSets(self::bar3(null, core::_GrowableList::•<core::String>(0)) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t35 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t35 = new _co::_Set::•<core::int>();
   } =>#t35);
   self::expectShallowEqualMaps(self::bar4("", false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::String, core::bool>{"": false});
   self::expectShallowEqualMaps(self::bar4("", null) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::String, core::bool>{});

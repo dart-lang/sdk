@@ -337,9 +337,9 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = Class dart:collection::_Set
+  [0] = Class dart:_compact_hash::_Set
   [1] = ObjectRef < dart:core::int >
-  [2] = DirectCall 'dart:collection::_Set:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = DirectCall 'dart:_compact_hash::_Set:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
   [4] = InterfaceCall 'dart:core::Set::add', ArgDesc num-args 2, num-type-args 0, names []
   [5] = Reserved
