@@ -77,13 +77,22 @@ enum ConstraintGenerationSource {
 /// Representation of a single event in the inference log, with pointers to any
 /// events that are nested beneath it.
 class Event {
+  final Object _message;
+
   /// Message display string.
-  final String message;
+  String get message {
+    var m = _message;
+    if (m is Function()) {
+      return m();
+    } else {
+      return m.toString();
+    }
+  }
 
   /// List of nested events.
   List<Event>? subEvents;
 
-  Event({required this.message});
+  Event({required Object message}) : _message = message;
 }
 
 /// Specialization of [State] used when type inferring an expression.
@@ -392,7 +401,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
     pushState(new State(
         kind: StateKind.annotation,
         writer: this,
-        message: 'INFER ANNOTATION ${describe(node)}',
+        message: () => 'INFER ANNOTATION ${describe(node)}',
         nodeSet: [node]));
   }
 
@@ -406,7 +415,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
     pushState(new State(
         kind: StateKind.constraintGeneration,
         writer: this,
-        message: 'GENERATE CONSTRAINTS FOR $source: $p <# $q',
+        message: () => 'GENERATE CONSTRAINTS FOR $source: $p <# $q',
         nodeSet: state.nodeSet));
   }
 
@@ -415,7 +424,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
     pushState(new State(
         kind: StateKind.collectionElement,
         writer: this,
-        message: 'INFER ELEMENT ${describe(node)}',
+        message: () => 'INFER ELEMENT ${describe(node)}',
         nodeSet: [node]));
   }
 
@@ -423,7 +432,8 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
   void enterExpression(Object node, Type contextType) {
     pushState(new ExpressionState(
         writer: this,
-        message: 'INFER EXPRESSION ${describe(node)} IN CONTEXT $contextType',
+        message: () =>
+            'INFER EXPRESSION ${describe(node)} IN CONTEXT $contextType',
         nodeSet: [node]));
   }
 
@@ -432,7 +442,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
     pushState(new State(
         kind: StateKind.extensionOverride,
         writer: this,
-        message: 'INFER EXTENSION OVERRIDE ${describe(node)} IN CONTEXT '
+        message: () => 'INFER EXTENSION OVERRIDE ${describe(node)} IN CONTEXT '
             '$contextType',
         nodeSet: [node]));
   }
@@ -441,7 +451,8 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
   void enterFunctionExpressionInvocationTarget(Object node) {
     pushState(new ExpressionState(
         writer: this,
-        message: 'REINTERPRET METHOD NAME ${describe(node)} AS AN EXPRESSION',
+        message: () =>
+            'REINTERPRET METHOD NAME ${describe(node)} AS AN EXPRESSION',
         nodeSet: [node]));
   }
 
@@ -456,7 +467,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
     ].join(', ');
     pushState(new GenericInferenceState(
         writer: this,
-        message: 'FIND $typeFormalNames IN $template',
+        message: () => 'FIND $typeFormalNames IN $template',
         parent: state,
         typeFormals: typeFormals));
   }
@@ -466,7 +477,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
     pushState(new State(
         kind: StateKind.lValue,
         writer: this,
-        message: 'INFER LVALUE ${describe(node)}',
+        message: () => 'INFER LVALUE ${describe(node)}',
         nodeSet: [node]));
   }
 
@@ -475,7 +486,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
     pushState(new State(
         kind: StateKind.pattern,
         writer: this,
-        message: 'INFER PATTERN ${describe(node)}',
+        message: () => 'INFER PATTERN ${describe(node)}',
         nodeSet: [node]));
   }
 
@@ -484,7 +495,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
     pushState(new State(
         kind: StateKind.statement,
         writer: this,
-        message: 'INFER STATEMENT ${describe(node)}',
+        message: () => 'INFER STATEMENT ${describe(node)}',
         nodeSet: [node]));
   }
 
@@ -573,7 +584,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
           '${typeFormals[i]}=${finalTypes[i]}'
       ];
       addEvent(new Event(
-          message: 'FINAL GENERIC TYPES ${typeAssignments.join(', ')}'));
+          message: () => 'FINAL GENERIC TYPES ${typeAssignments.join(', ')}'));
     }
     popState();
   }
@@ -620,7 +631,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
   /// an event showing the failure [message], and then an exception is thrown.
   Never fail(String message) {
     dump();
-    addEvent(new Event(message: 'FAILURE: $message'));
+    addEvent(new Event(message: () => 'FAILURE: $message'));
     throw new StateError(message);
   }
 
@@ -655,7 +666,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
         expectedNode: oldExpression,
         expectedKind: StateKind.expression);
     addEvent(new Event(
-        message: 'REWRITE ${describe(oldExpression)} TO '
+        message: () => 'REWRITE ${describe(oldExpression)} TO '
             '${describe(newExpression)}'));
     (state as ExpressionState).nodeSet.add(newExpression);
     if (oldExpression != null) {
@@ -673,8 +684,8 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
         arguments: [expression],
         expectedNode: expression,
         expectedKind: StateKind.expression);
-    addEvent(
-        new Event(message: 'EXPRESSION ${describe(expression)} HAS NO TYPE'));
+    addEvent(new Event(
+        message: () => 'EXPRESSION ${describe(expression)} HAS NO TYPE'));
     ExpressionState state = this.state as ExpressionState;
     if (state.typeRecorded) {
       fail('A type (or lack thereof) was already recorded for this expression');
@@ -693,7 +704,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
         expectedKind: StateKind.constraintGeneration);
     String constraintText =
         constraint.toString().replaceAll('<type>', parameter.toString());
-    addEvent(new Event(message: 'ADDED CONSTRAINT $constraintText'));
+    addEvent(new Event(message: () => 'ADDED CONSTRAINT $constraintText'));
   }
 
   @override
@@ -714,7 +725,7 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
         expectedKind: StateKind.expression);
     String query =
         target != null ? '${describe(target)}.$methodName' : methodName;
-    addEvent(new Event(message: 'LOOKUP $query FINDS $type'));
+    addEvent(new Event(message: () => 'LOOKUP $query FINDS $type'));
   }
 
   @override
@@ -728,7 +739,8 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
       for (int i = 0; i < types.length; i++) '${typeFormals[i]}=${types[i]}'
     ];
     addEvent(new Event(
-        message: 'PRELIMINARY GENERIC TYPES ${typeAssignments.join(', ')}'));
+        message: () =>
+            'PRELIMINARY GENERIC TYPES ${typeAssignments.join(', ')}'));
   }
 
   @override
@@ -738,8 +750,8 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
         arguments: [expression, type],
         expectedNode: expression,
         expectedKind: StateKind.expression);
-    addEvent(
-        new Event(message: 'STATIC TYPE OF ${describe(expression)} IS $type'));
+    addEvent(new Event(
+        message: () => 'STATIC TYPE OF ${describe(expression)} IS $type'));
     ExpressionState state = this.state as ExpressionState;
     if (state.typeRecorded) {
       fail('A type (or lack thereof) was already recorded for this expression');
