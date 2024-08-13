@@ -214,7 +214,7 @@ abstract class _LazySubstring {
           ? canonicalizeSubString(data, start, end)
           : data.substring(start, end);
     } else {
-      final bytes = data as Uint8List;
+      final Uint8List bytes = data as Uint8List;
       final bool isAscii = this.boolValue;
       return canonicalizeUtf8SubString(bytes, start, end, isAscii);
     }
