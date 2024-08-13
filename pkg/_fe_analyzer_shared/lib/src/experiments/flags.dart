@@ -54,10 +54,10 @@ enum ExperimentalFlag {
 
   digitSeparators(
       name: 'digit-separators',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 6),
+      experimentReleasedVersion: const Version(3, 6)),
 
   enhancedEnums(
       name: 'enhanced-enums',

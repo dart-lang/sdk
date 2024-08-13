@@ -2,6 +2,30 @@
 
 ### Language
 
+Dart 3.6 adds [digit separators] to the language. To use them, set your
+package's [SDK constraint][language version] lower bound to 3.6 or greater
+(`sdk: '^3.6.0'`).
+
+#### Digit separators
+
+[digit separators]: https://github.com/dart-lang/language/issues/2
+
+Digits in number literals (decimal integer literals, double literals,
+scientific notation literals, and hexadecimal literals) can now include
+underscores between digits, as "digit separators." The separators do not change
+the value of a literal, but can serve to make the number more readable.
+
+```dart
+100__000_000__000_000__000_000  // one hundred million million millions!
+0x4000_0000_0000_0000
+0.000_000_000_01
+0x00_14_22_01_23_45  // MAC address
+```
+
+Separators are not allowed at the start of a number (this would be parsed as an
+identifier), at the end of a number, or adjacent to another character in a
+number, like `.`, `x`, or the `e` in scientific notation.
+
 - **Breaking Change** [#56065][]: The context used by the compiler and analyzer
   to perform type inference on the operand of a `throw` expression has been
   changed from the "unknown type" to `Object`. This makes the type system more

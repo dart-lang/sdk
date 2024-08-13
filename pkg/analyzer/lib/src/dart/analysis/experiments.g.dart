@@ -227,7 +227,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.digit_separators,
     documentation: 'Number literals with digit separators.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.6.0'),
   );
 
   static final enhanced_enums = ExperimentalFeature(
@@ -518,7 +518,7 @@ class IsEnabledByDefault {
   static const bool control_flow_collections = true;
 
   /// Default state of the experiment "digit-separators"
-  static const bool digit_separators = false;
+  static const bool digit_separators = true;
 
   /// Default state of the experiment "enhanced-enums"
   static const bool enhanced_enums = true;

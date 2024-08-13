@@ -333,6 +333,7 @@ analysisOptions
       constant-update-2018
       constructor-tearoffs
       control-flow-collections
+      digit-separators
       enhanced-enums
       extension-methods
       generic-metadata

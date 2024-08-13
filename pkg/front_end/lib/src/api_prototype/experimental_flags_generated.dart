@@ -109,11 +109,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag digitSeparators = const ExperimentalFlag(
       name: 'digit-separators',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 6),
+      experimentEnabledVersion: const Version(3, 6),
+      experimentReleasedVersion: const Version(3, 6));
 
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(
       name: 'enhanced-enums',
