@@ -629,6 +629,91 @@ workspaces
         root: /home/test/nested
 ''');
   }
+
+  test_packageConfigWorkspace_singleAnalysisOptions_with_include() {
+    var workspaceRootPath = '/home';
+
+    var fooPackagePath = '$workspaceRootPath/foo';
+    newFile('$fooPackagePath/pubspec.yaml', '''
+name: foo
+''');
+    newFile('$fooPackagePath/lib/included.yaml', r'''
+linter:
+  rules:
+    - empty_statements
+''');
+    var packageConfigFileBuilder = PackageConfigFileBuilder()
+      ..add(name: 'foo', rootPath: fooPackagePath);
+    newPackageConfigJsonFile(
+      fooPackagePath,
+      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+    );
+
+    var testPackagePath = '$workspaceRootPath/test';
+    packageConfigFileBuilder.add(name: 'test', rootPath: testPackagePath);
+
+    newPackageConfigJsonFile(
+      testPackagePath,
+      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+    );
+    newFile('$testPackagePath/pubspec.yaml', '''
+name: test
+''');
+
+    var optionsFile = newAnalysisOptionsYamlFile(testPackagePath, r'''
+include: package:foo/included.yaml
+
+linter:
+  rules:
+    - unnecessary_parenthesis
+''');
+    newFile('$testPackagePath/lib/a.dart', '');
+
+    var collection = _newCollection(includedPaths: [workspaceRootPath]);
+    var analysisContext = collection.contextFor(testPackagePath);
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(optionsFile);
+
+    expect(
+      analysisOptions.lintRules.map((e) => e.name),
+      unorderedEquals(['empty_statements', 'unnecessary_parenthesis']),
+    );
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/foo
+    packagesFile: /home/foo/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/foo
+  workspace_1: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  AnalysisContextCollectionImpl _newCollection(
+      {required List<String> includedPaths}) {
+    return AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      includedPaths: includedPaths,
+      sdkPath: sdkRoot.path,
+    );
+  }
 }
 
 mixin AnalysisContextCollectionTestMixin on ResourceProviderMixin {
