@@ -52,6 +52,23 @@ class C {}
 ''');
   }
 
+  test_codeSpan_backSlashEscaped() async {
+    await assertDiagnostics(r'''
+/// \\\`List<int> <tag>`
+class C {}
+''', [
+      lint(12, 5), // <int>
+      lint(18, 5), // <tag>
+    ]);
+  }
+
+  test_codeSpan_multiple() async {
+    await assertNoDiagnostics(r'''
+/// `<` or `>`
+class C {}
+''');
+  }
+
   test_hangingAngleBracket_left() async {
     await assertNoDiagnostics(r'''
 /// n < 12
@@ -66,9 +83,44 @@ class C {}
 ''');
   }
 
+  test_html_cData() async {
+    await assertNoDiagnostics(r'''
+/// <[CDATA[aaa]]>
+class C {}
+''');
+  }
+
+  test_html_comment() async {
+    await assertNoDiagnostics(r'''
+/// <!--comment-->
+class C {}
+''');
+  }
+
+  test_html_declaration() async {
+    await assertNoDiagnostics(r'''
+/// <!DOCTYPE html>
+class C {}
+''');
+  }
+
+  test_html_processingInstruction() async {
+    await assertNoDiagnostics(r'''
+/// <?aaa?>
+class C {}
+''');
+  }
+
   test_notDocComment() async {
     await assertNoDiagnostics(r'''
 // List<int> <tag>
+class C {}
+''');
+  }
+
+  test_notHtml_space() async {
+    await assertNoDiagnostics(r'''
+/// n < 0 || n > 512
 class C {}
 ''');
   }
@@ -150,15 +202,6 @@ class C {}
       // This is how HTML parses the tag, from the first opening angle bracket
       // to the first closing angle bracket.
       lint(13, 10), // <List<int>
-    ]);
-  }
-
-  test_unintendedHtml_notIdentifier() async {
-    await assertDiagnostics(r'''
-/// n < 0 || n > 512
-class C {}
-''', [
-      lint(6, 10), // < 0 || n >
     ]);
   }
 

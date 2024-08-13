@@ -93,11 +93,13 @@ class DuplicateDefinitionVerifier {
               element: variable.declaredElement!);
         }
       } else if (statement is FunctionDeclarationStatement) {
-        _checkDuplicateIdentifier(
-          definedNames,
-          statement.functionDeclaration.name,
-          element: statement.functionDeclaration.declaredElement!,
-        );
+        if (!_isWildCardFunction(statement)) {
+          _checkDuplicateIdentifier(
+            definedNames,
+            statement.functionDeclaration.name,
+            element: statement.functionDeclaration.declaredElement!,
+          );
+        }
       } else if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
           _checkDuplicateIdentifier(definedNames, variable.node.name,
@@ -263,6 +265,10 @@ class DuplicateDefinitionVerifier {
       }
     }
   }
+
+  bool _isWildCardFunction(FunctionDeclarationStatement statement) =>
+      statement.functionDeclaration.name.lexeme == '_' &&
+      _currentLibrary.hasWildcardVariablesFeatureEnabled;
 
   static bool _isGetterSetterPair(Element a, Element b) {
     if (a is PropertyAccessorElement && b is PropertyAccessorElement) {

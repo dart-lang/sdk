@@ -3149,6 +3149,10 @@ ParserErrorCode.OUT_OF_ORDER_CLAUSES:
     so that each variant has enough information.
 ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
   status: hasFix
+ParserErrorCode.PART_OF_NAME:
+  status: needsFix
+  notes: |-
+    Convert to URI.
 ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
   status: noFix
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:

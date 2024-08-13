@@ -55,6 +55,8 @@ class FindNode {
 
   ConditionalExpression get singleConditionalExpression => _single();
 
+  Configuration get singleConfiguration => _single();
+
   ConstructorDeclaration get singleConstructorDeclaration => _single();
 
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
@@ -143,6 +145,8 @@ class FindNode {
   ParenthesizedExpression get singleParenthesizedExpression => _single();
 
   PartDirective get singlePartDirective => _single();
+
+  PartOfDirective get singlePartOfDirective => _single();
 
   PatternAssignment get singlePatternAssignment => _single();
 

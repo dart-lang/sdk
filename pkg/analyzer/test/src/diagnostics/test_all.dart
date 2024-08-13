@@ -693,7 +693,6 @@ import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
 import 'packed_annotation_alignment_test.dart' as packed_annotation_alignment;
 import 'packed_annotation_test.dart' as packed_annotation;
-import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
 import 'pattern_assignment_not_local_variable_test.dart'
     as pattern_assignment_not_local_variable;
@@ -1371,7 +1370,6 @@ main() {
     override_on_non_overriding_setter.main();
     packed_annotation.main();
     packed_annotation_alignment.main();
-    part_of_different_library.main();
     part_of_non_part.main();
     pattern_assignment_not_local_variable.main();
     pattern_never_matches_value_type.main();

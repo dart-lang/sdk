@@ -225,12 +225,11 @@ HashMap<String, int> getMap() => null;
 ''');
 
     var appCode = r'''
-library my_app;
 import 'my_lib.dart';
 part 'test.dart';
 ''';
     addTestSource(r'''
-part of my_app;
+part of 'app.dart';
 void f() {
   var /*caret*/v = getMap();
 }
@@ -242,7 +241,7 @@ void f() {
     await resolveTestFile();
 
     await assertHasAssist('''
-part of my_app;
+part of 'app.dart';
 void f() {
   HashMap<String, int> v = getMap();
 }
@@ -250,7 +249,6 @@ void f() {
       appPath: [
         appCode,
         '''
-library my_app;
 import 'dart:collection';
 
 import 'my_lib.dart';

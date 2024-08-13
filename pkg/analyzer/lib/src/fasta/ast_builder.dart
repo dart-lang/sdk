@@ -2822,6 +2822,12 @@ class AstBuilder extends StackListener {
       name = LibraryIdentifierImpl(
         components: libraryNameOrUri as List<SimpleIdentifierImpl>,
       );
+      if (_featureSet.isEnabled(Feature.enhanced_parts)) {
+        errorReporter.errorReporter?.atNode(
+          name,
+          ParserErrorCode.PART_OF_NAME,
+        );
+      }
     }
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, partKeyword);

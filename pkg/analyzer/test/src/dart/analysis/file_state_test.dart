@@ -3220,6 +3220,35 @@ elementFactory
 ''');
   }
 
+  test_newFile_library_parts_invalidUri_noSource() {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'foo:bar';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_1 dart:core synthetic
+        partIncludes
+          uri: foo:bar
+        fileKinds: library_0
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_library_parts_ofUri_two() {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'c.dart';

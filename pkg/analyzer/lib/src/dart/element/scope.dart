@@ -14,7 +14,12 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
   ConstructorInitializerScope(super.parent, ConstructorElement element) {
-    element.parameters.forEach(_addGetter);
+    var wildcardsEnabled = element.library.hasWildcardVariablesFeatureEnabled;
+    for (var parameter in element.parameters) {
+      if (!(wildcardsEnabled && parameter.name == '_')) {
+        _addGetter(parameter);
+      }
+    }
   }
 }
 

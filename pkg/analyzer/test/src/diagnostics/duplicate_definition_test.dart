@@ -2384,6 +2384,41 @@ mixin M {
 
 @reflectiveTest
 class DuplicateDefinitionTest extends PubPackageResolutionTest {
+  test_block_localFunction_wildcard() async {
+    await assertErrorsInCode(r'''
+void f() {
+  void _() {}
+  int _(int _) => 42;
+  String _(int _) => "42";
+}
+''', [
+      error(WarningCode.DEAD_CODE, 13, 11),
+      error(WarningCode.DEAD_CODE, 27, 19),
+      error(WarningCode.DEAD_CODE, 49, 24),
+    ]);
+  }
+
+  test_block_localFunction_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f() {
+  void _() {}
+  int _(int _) => 42;
+  String _(int _) => "42";
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 62, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 75, 1,
+          contextMessages: [message(testFile, 62, 1)]),
+      error(WarningCode.UNUSED_ELEMENT, 75, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 100, 1,
+          contextMessages: [message(testFile, 62, 1)]),
+      error(WarningCode.UNUSED_ELEMENT, 100, 1),
+    ]);
+  }
+
   test_block_localVariable_localVariable() async {
     await assertErrorsInCode(r'''
 void f() {

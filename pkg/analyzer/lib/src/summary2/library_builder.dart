@@ -1320,19 +1320,19 @@ class LibraryBuilder with MacroApplicationsContainer {
           );
 
           directiveUri = DirectiveUriWithUnitImpl(
-            relativeUriString: state.uri.relativeUriStr,
-            relativeUri: state.uri.relativeUri,
+            relativeUriString: state.selectedUri.relativeUriStr,
+            relativeUri: state.selectedUri.relativeUri,
             unit: unitElement,
           );
         } else {
           directiveUri = DirectiveUriWithSourceImpl(
-            relativeUriString: state.uri.relativeUriStr,
-            relativeUri: state.uri.relativeUri,
+            relativeUriString: state.selectedUri.relativeUriStr,
+            relativeUri: state.selectedUri.relativeUri,
             source: state.includedFile.source,
           );
         }
       default:
-        var uriState = state.uri;
+        var uriState = state.selectedUri;
         switch (uriState) {
           case file_state.DirectiveUriWithSource():
             directiveUri = DirectiveUriWithSourceImpl(
