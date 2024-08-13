@@ -24,11 +24,11 @@ void testTypedData() {
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 
-  // The second error is not expected actually, 
+  // The second error is not expected actually,
   // its a bug. Reported here https://github.com/dart-lang/sdk/issues/56462
   // once it fixed the second error can be removed.
-  // This is same across remaining test cases (testStructField, testUnionField), 
-  // where in every `myNative()` call the second error is not expected. 
+  // This is same across remaining test cases (testStructField, testUnionField),
+  // where in every `myNative()` call the second error is not expected.
 }
 
 void testStructField() {
