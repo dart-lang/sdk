@@ -656,8 +656,10 @@ class SimpleToken implements Token {
 
   @override
   bool matchesAny(List<TokenType> types) {
-    for (TokenType type in types) {
-      if (this.type == type) {
+    // [type] is a getter that accesses [_tokenTypesByIndex]:
+    TokenType type = this.type;
+    for (TokenType t in types) {
+      if (type == t) {
         return true;
       }
     }
