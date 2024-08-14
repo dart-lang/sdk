@@ -4218,6 +4218,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension  @-1
+          reference: <testLibraryFragment>::@extension::0
 ''');
   }
 

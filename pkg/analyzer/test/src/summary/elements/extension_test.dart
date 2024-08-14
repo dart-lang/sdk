@@ -42,6 +42,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @34
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -82,6 +85,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -110,6 +116,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -137,6 +146,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -230,6 +242,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @31
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -301,6 +316,9 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
+      extensions
+        extension E @50
+          reference: <testLibraryFragment>::@extension::E
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -345,6 +363,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -388,6 +409,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 }
@@ -462,11 +486,24 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @72
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @44
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
   exportedReferences
     declared <testLibraryFragment>::@extension::A
   exportNamespace
@@ -551,8 +588,16 @@ library
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @72
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @44
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -644,8 +689,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -767,11 +820,24 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @60
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -893,11 +959,24 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @60
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -1022,11 +1101,24 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @60
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -1118,8 +1210,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -1201,8 +1301,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -1313,8 +1421,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -1401,8 +1517,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -1499,8 +1623,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -1592,8 +1724,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -1715,11 +1855,24 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @60
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -1814,8 +1967,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -1925,11 +2086,24 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @60
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -1994,8 +2168,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -2067,8 +2249,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -2163,11 +2353,24 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      extensions
+        extension A @72
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @44
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -2240,8 +2443,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -2315,8 +2526,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -2393,8 +2612,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -2487,8 +2714,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -2583,8 +2818,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -2688,8 +2931,16 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @35
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension A @47
+          reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
 ''');
   }
 
@@ -2757,6 +3008,9 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @61
+          reference: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -2846,6 +3100,10 @@ library
   fragments
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @61
+          reference: <testLibraryFragment>::@extension::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -2854,6 +3112,10 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
+      extensions
+        extension A @48
+          reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          previousFragment: <testLibraryFragment>::@extension::A
   classes
     class A
       reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A

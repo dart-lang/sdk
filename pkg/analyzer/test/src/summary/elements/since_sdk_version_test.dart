@@ -563,6 +563,9 @@ library
   reference: dart:foo
   fragments
     dart:foo::<fragment>
+      extensions
+        extension E @51
+          reference: dart:foo::<fragment>::@extension::E
 ''');
   }
 

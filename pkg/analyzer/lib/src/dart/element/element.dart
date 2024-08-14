@@ -3292,7 +3292,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 /// A concrete implementation of an [ExtensionElement].
 class ExtensionElementImpl extends InstanceElementImpl
     with AugmentableElement<ExtensionElementImpl>
-    implements ExtensionElement {
+    implements ExtensionElement, ExtensionFragment {
   late MaybeAugmentedExtensionElementMixin augmentedInternal =
       NotAugmentedExtensionElementImpl(this);
 
@@ -3413,7 +3413,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     with AugmentableElement<ExtensionTypeElementImpl>
-    implements ExtensionTypeElement {
+    implements ExtensionTypeElement, ExtensionTypeFragment {
   late MaybeAugmentedExtensionTypeElementMixin augmentedInternal =
       NotAugmentedExtensionTypeElementImpl(this);
 
@@ -3459,9 +3459,16 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
+  ConstructorFragment get primaryConstructor2 =>
+      primaryConstructor as ConstructorFragment;
+
+  @override
   FieldElementImpl get representation {
     return augmented.representation;
   }
+
+  @override
+  FieldFragment get representation2 => representation as FieldFragment;
 
   @override
   DartType get typeErasure {
@@ -5551,7 +5558,7 @@ mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
 }
 
 mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
-    implements AugmentedExtensionElement {
+    implements AugmentedExtensionElement, ExtensionElement2 {
   @override
   DartType extendedType = InvalidTypeImpl.instance;
 
@@ -5564,7 +5571,7 @@ mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
 
 mixin MaybeAugmentedExtensionTypeElementMixin
     on MaybeAugmentedInterfaceElementMixin
-    implements AugmentedExtensionTypeElement {
+    implements AugmentedExtensionTypeElement, ExtensionTypeElement2 {
   @override
   late ConstructorElementImpl primaryConstructor;
 
@@ -5576,6 +5583,13 @@ mixin MaybeAugmentedExtensionTypeElementMixin
 
   @override
   ExtensionTypeElementImpl get declaration;
+
+  @override
+  ConstructorElement2 get primaryConstructor2 =>
+      representation as ConstructorElement2;
+
+  @override
+  FieldElement2 get representation2 => representation as FieldElement2;
 }
 
 mixin MaybeAugmentedInstanceElementMixin

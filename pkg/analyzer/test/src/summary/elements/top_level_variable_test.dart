@@ -1391,6 +1391,9 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+      extensions
+        extension E @21
+          reference: <testLibraryFragment>::@extension::E
   classes
     class A
       reference: <testLibraryFragment>::@class::A

@@ -412,9 +412,9 @@ abstract class ExtensionTypeElement2 implements InterfaceElement2 {
 }
 
 abstract class ExtensionTypeFragment implements InterfaceFragment {
-  ConstructorFragment get primaryConstructor;
+  ConstructorFragment get primaryConstructor2;
 
-  FieldFragment get representation;
+  FieldFragment get representation2;
 }
 
 abstract class FieldElement2 implements PropertyInducingElement2 {

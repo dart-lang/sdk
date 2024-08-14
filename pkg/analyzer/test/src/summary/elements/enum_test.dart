@@ -2186,6 +2186,9 @@ library
       enums
         enum E @55
           reference: <testLibraryFragment>::@enum::E
+      extensionTypes
+        extension type B @26
+          reference: <testLibraryFragment>::@extensionType::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -2790,6 +2793,9 @@ library
       enums
         enum E @55
           reference: <testLibraryFragment>::@enum::E
+      extensionTypes
+        extension type B @26
+          reference: <testLibraryFragment>::@extensionType::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A

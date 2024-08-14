@@ -13092,6 +13092,9 @@ library
           reference: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       previousFragment: <testLibraryFragment>
+      extensions
+        extension B @53
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
