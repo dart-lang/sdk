@@ -120,6 +120,7 @@ main() {
   var set = <String>{ 'a', 'b', 'c' };
   var list = <int>[1, 2, 3];
   var map = <String, int>{'a': 1, 'b': 2};
+  var stream = Stream.fromIterable([1, 2, 3]);
   var record = (0, 2, name: 'cat');
   var object = Object();
 
@@ -312,6 +313,7 @@ void runSharedTests(
             'className': 'Object',
             'libraryId': 'dart:core',
             'runtimeKind': 'object',
+            'length': 0,
           });
     });
 
@@ -323,6 +325,7 @@ void runSharedTests(
             'className': 'BaseClass',
             'libraryId': 'package:eval_test/test.dart',
             'runtimeKind': 'object',
+            'length': 9,
           });
     });
 
@@ -358,6 +361,18 @@ void runSharedTests(
             'className': 'IdentityMap<String, int>',
             'libraryId': 'dart:_js_helper',
             'runtimeKind': 'map',
+            'length': 2,
+          });
+    });
+
+    test('getObjectMetadata (Stream)', () async {
+      await driver.checkRuntimeInFrame(
+          breakpointId: 'BP',
+          expression: 'dart.getObjectMetadata(stream)',
+          expectedResult: {
+            'className': '_MultiStream<int>',
+            'libraryId': 'dart:async',
+            'runtimeKind': 'object',
             'length': 2,
           });
     });
@@ -604,6 +619,7 @@ void runSharedTests(
             'className': typeName,
             'libraryId': 'dart:_rti',
             'runtimeKind': 'object',
+            'length': 13,
           });
     });
 

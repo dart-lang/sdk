@@ -13,7 +13,6 @@ analyzer:
 
 linter:
   rules:
-    - avoid_dynamic_calls
     - comment_references
     - depend_on_referenced_packages
     - directives_ordering

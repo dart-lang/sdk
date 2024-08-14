@@ -23,7 +23,7 @@ namespace dart {
 
 // This cache needs to be at least as big as FLAG_new_gen_semi_max_size or
 // munmap will noticeably impact performance.
-static constexpr intptr_t kPageCacheCapacity = 8 * kWordSize;
+static constexpr intptr_t kPageCacheCapacity = 128 * kWordSize;
 static Mutex* page_cache_mutex = nullptr;
 static VirtualMemory* page_cache[kPageCacheCapacity] = {nullptr};
 static intptr_t page_cache_size = 0;
@@ -150,10 +150,23 @@ void Page::Deallocate() {
 
   if (CanUseCache(flags_)) {
     ASSERT(memory->size() == kPageSize);
+
+    // Allow caching up to one new-space worth of pages to avoid the cost unmap
+    // when freeing from-space. Using ThresholdInWords both accounts for
+    // new-space scaling with the number of mutators, and prevents the cache
+    // from staying big after new-space shrinks.
+    intptr_t limit = 0;
+    IsolateGroup* group = IsolateGroup::Current();
+    if ((group != nullptr) && ((flags_ & kNew) != 0)) {
+      limit = group->heap()->new_space()->ThresholdInWords() / kPageSizeInWords;
+    }
+    limit = Utils::Maximum(limit, FLAG_new_gen_semi_max_size * MB / kPageSize);
+    limit = Utils::Minimum(limit, kPageCacheCapacity);
+
     MutexLocker ml(page_cache_mutex);
     ASSERT(page_cache_size >= 0);
     ASSERT(page_cache_size <= kPageCacheCapacity);
-    if (page_cache_size < kPageCacheCapacity) {
+    if (page_cache_size < limit) {
       intptr_t size = memory->size();
 #if defined(DEBUG)
       if ((flags_ & kNew) != 0) {

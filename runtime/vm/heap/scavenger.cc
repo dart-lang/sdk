@@ -850,9 +850,9 @@ Scavenger::~Scavenger() {
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
                                    GCReason reason) const {
+  intptr_t num_mutators = heap_->isolate_group()->MutatorCount();
   bool grow = false;
-  if (2 * heap_->isolate_group()->MutatorCount() >
-      (old_size_in_words / kPageSizeInWords)) {
+  if (2 * num_mutators > (old_size_in_words / kPageSizeInWords)) {
     // Not enough TLABs to give two to each mutator.
     grow = true;
   }
@@ -873,11 +873,18 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
     }
   }
 
-  if (grow) {
-    return Utils::Minimum(max_semi_capacity_in_words_,
-                          old_size_in_words * FLAG_new_gen_growth_factor);
-  }
-  return old_size_in_words;
+  // Let new-space scale up with the number of active mutators.
+  intptr_t limit = max_semi_capacity_in_words_ *
+                   Utils::Minimum(num_mutators, static_cast<intptr_t>(8));
+  // But only when old-space is big enough.
+  limit = Utils::Minimum(limit, heap_->old_space()->UsedInWords() / 8);
+  // Preserve old behavior when heap size is small.
+  limit = Utils::Maximum(limit, max_semi_capacity_in_words_);
+  // Align to TLAB size.
+  limit = Utils::RoundDown(limit, kPageSizeInWords);
+
+  intptr_t growth_factor = grow ? FLAG_new_gen_growth_factor : 1;
+  return Utils::Minimum(old_size_in_words * growth_factor, limit);
 }
 
 class CollectStoreBufferScavengeVisitor : public ObjectPointerVisitor {
