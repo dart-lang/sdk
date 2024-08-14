@@ -1481,8 +1481,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         var lastElement = (fieldElement?.enclosingElement as ClassElement?)
             ?.fields
             .reversed
-            .where((field) => !field.isStatic)
-            .firstOrNull;
+            .where((field) {
+          if (field.isStatic) return false;
+          if (!field.isExternal) {
+            if (!(field.getter?.isExternal ?? false) &&
+                !(field.setter?.isExternal ?? false)) {
+              return false;
+            }
+          }
+          return true;
+        }).firstOrNull;
         var isLastField = fieldElement == lastElement;
         _validateSizeOfAnnotation(
           fieldType,
