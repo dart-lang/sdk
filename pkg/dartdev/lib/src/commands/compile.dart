@@ -809,13 +809,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     handleOverride(optimizationFlags, 'minify',
         args.wasParsed('minify') ? args.flag('minify') : null);
 
-    bool generateSourceMap = args.flag('source-maps');
-    // TODO(kustermann): Remive this temporary change when flutter no longer
-    // uses --extra-compiler-option=--no-source-maps
-    if (extraCompilerOptions.any((o) => o == '--no-source-maps')) {
-      generateSourceMap = false;
-    }
-
+    final generateSourceMap = args.flag('source-maps');
     final enabledExperiments = args.enabledExperiments;
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
