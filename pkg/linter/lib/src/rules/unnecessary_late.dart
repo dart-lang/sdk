@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't specify the `late` modifier when it is not needed.";
 
@@ -42,10 +43,6 @@ class GoodExample {
 ''';
 
 class UnnecessaryLate extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_late', "Unnecessary 'late' modifier.",
-      correctionMessage: "Try removing the 'late'.", hasPublishedDocs: true);
-
   UnnecessaryLate()
       : super(
             name: 'unnecessary_late',
@@ -54,7 +51,7 @@ class UnnecessaryLate extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_late;
 
   @override
   void registerNodeProcessors(

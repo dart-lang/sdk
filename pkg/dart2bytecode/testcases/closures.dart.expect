@@ -1,0 +1,1566 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/closures.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+
+
+Function 'simpleClosure', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  PushInt              5
+  StoreContextVar      0, 0
+  AllocateClosure      CP#0
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#0
+  StoreFieldTOS        CP#7
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r2
+  Push                 r2
+  StoreLocal           r3
+  PushInt              3
+  Push                 r3
+  UncheckedClosureCall CP#9, 2
+  Drop1
+  Push                 r0
+  LoadContextVar       0, 0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = Type dart:core::int
+  [4] = ObjectRef 'y'
+  [5] = SubtypeTestCache
+  [6] = EndClosureFunctionScope
+  [7] = InstanceField dart:core::_Closure::_function (field)
+  [8] = Reserved
+  [9] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::simpleClosure::'<anonymous closure>' (dart:core::int y) -> Null
+ClosureCode {
+  Entry                3
+  Push                 FP[-6]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckStack           0
+  JumpIfUnchecked      L1
+  Push                 FP[-5]
+  PushConstant         CP#3
+  PushNull
+  PushNull
+  PushConstant         CP#4
+  AssertAssignable     1, CP#5
+  Drop1
+L1:
+  Push                 r0
+  Push                 r0
+  LoadContextVar       0, 0
+  Push                 FP[-5]
+  AddInt
+  StoreContextVar      0, 0
+  PushNull
+  ReturnTOS
+}
+
+
+Function 'callWithArgs', static, reflectable, debuggable
+    type-params <'T1' extends dart:core::Object? (default dynamic), 'T2' extends dart:core::Object? (default dynamic), 'T3' extends dart:core::Object? (default dynamic), 'T4' extends dart:core::Object? (default dynamic), 'T5' extends dart:core::Object? (default dynamic), 'T6' extends dart:core::Object? (default dynamic), 'T7' extends dart:core::Object? (default dynamic), 'T8' extends dart:core::Object? (default dynamic)>
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckFunctionTypeArgs 8, r0
+  CheckStack           0
+  PushConstant         CP#0
+  PushNull
+  Push                 r0
+  InstantiateType      CP#1
+  PushNull
+  Push                 r0
+  InstantiateType      CP#2
+  PushNull
+  Push                 r0
+  InstantiateType      CP#3
+  PushNull
+  Push                 r0
+  InstantiateType      CP#4
+  PushNull
+  Push                 r0
+  InstantiateType      CP#5
+  PushNull
+  Push                 r0
+  InstantiateType      CP#6
+  PushNull
+  Push                 r0
+  InstantiateType      CP#7
+  PushNull
+  Push                 r0
+  InstantiateType      CP#8
+  DirectCall           CP#9, 9
+  DirectCall           CP#11, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::Type >
+  [1] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/0
+  [2] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/1
+  [3] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/2
+  [4] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/3
+  [5] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/4
+  [6] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/5
+  [7] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/6
+  [8] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/7
+  [9] = DirectCall 'dart:core::_GrowableList::_literal8 (constructor)', ArgDesc num-args 9, num-type-args 0, names []
+  [10] = Reserved
+  [11] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [12] = Reserved
+}
+
+
+Function 'callA', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushConstant         CP#0
+  PushConstant         CP#2
+  PushConstant         CP#1
+  AllocateT
+  StoreLocal           r0
+  Push                 r0
+  DirectCall           CP#3, 1
+  Drop1
+  InterfaceCall        CP#5, 2
+  Drop1
+  PushConstant         CP#7
+  PushConstant         CP#2
+  PushConstant         CP#1
+  AllocateT
+  StoreLocal           r0
+  Push                 r0
+  DirectCall           CP#3, 1
+  Drop1
+  InterfaceCall        CP#5, 2
+  Drop1
+  PushConstant         CP#7
+  PushConstant         CP#8
+  PushConstant         CP#1
+  AllocateT
+  StoreLocal           r0
+  Push                 r0
+  DirectCall           CP#3, 1
+  Drop1
+  InterfaceCall        CP#5, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C3, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C4 >
+  [1] = Class DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A
+  [2] = ObjectRef < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C1, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C2 >
+  [3] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo', ArgDesc num-args 1, num-type-args 2, names []
+  [6] = Reserved
+  [7] = ObjectRef < dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C3 >, dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C4 > >
+  [8] = ObjectRef < dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C1 >, dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C2 > >
+}
+
+
+Function 'testPartialInstantiation', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type FunctionType (dart:core::int) -> void
+
+Bytecode {
+  Entry                7
+  CheckStack           0
+  AllocateClosure      CP#0
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#5
+  StoreFieldTOS        CP#3
+  Push                 r3
+  PushConstant         CP#0
+  StoreFieldTOS        CP#14
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r2
+  Push                 r2
+  StoreLocal           r3
+  PushConstant         CP#16
+  StoreLocal           r6
+  DirectCall           CP#17, 2
+  Drop1
+  Allocate             CP#19
+  StoreLocal           r5
+  Push                 r6
+  StoreFieldTOS        CP#3
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#20
+  StoreFieldTOS        CP#20
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#6
+  StoreFieldTOS        CP#6
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#14
+  StoreFieldTOS        CP#14
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#1
+  StoreFieldTOS        CP#1
+  Push                 r5
+  PopLocal             r4
+  Push                 r4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [4] = Reserved
+  [5] = EmptyTypeArguments
+  [6] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [7] = Reserved
+  [8] = DirectCall 'dart:_internal::_prependTypeArguments', ArgDesc num-args 4, num-type-args 0, names []
+  [9] = Reserved
+  [10] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::testPartialInstantiation::Closure/0::TypeParam/0
+  [11] = ObjectRef 't'
+  [12] = SubtypeTestCache
+  [13] = EndClosureFunctionScope
+  [14] = InstanceField dart:core::_Closure::_function (field)
+  [15] = Reserved
+  [16] = ObjectRef < dart:core::int >
+  [17] = DirectCall 'dart:_internal::_boundsCheckForPartialInstantiation', ArgDesc num-args 2, num-type-args 0, names []
+  [18] = Reserved
+  [19] = Class dart:core::_Closure
+  [20] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [21] = Reserved
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::testPartialInstantiation::'foo' type-params <'T' extends dart:core::Object? (default dynamic)> (DART_SDK/pkg/dart2bytecode/testcases/closures.dart::testPartialInstantiation::Closure/0::TypeParam/0 t) -> void
+ClosureCode {
+  Entry                3
+  Push                 FP[-6]
+  LoadFieldTOS         CP#1
+  PopLocal             r1
+  Push                 FP[-6]
+  LoadFieldTOS         CP#3
+  StoreLocal           r0
+  PushConstant         CP#5
+  JumpIfEqStrict       L1
+  CheckFunctionTypeArgs 0, r2
+  Jump                 L2
+L1:
+  CheckFunctionTypeArgs 1, r0
+L2:
+  CheckStack           0
+  Push                 r0
+  Push                 FP[-6]
+  LoadFieldTOS         CP#6
+  PushInt              0
+  PushInt              1
+  DirectCall           CP#8, 4
+  PopLocal             r0
+  JumpIfUnchecked      L3
+  Push                 FP[-5]
+  PushConstant         CP#10
+  PushNull
+  Push                 r0
+  PushConstant         CP#11
+  AssertAssignable     0, CP#12
+  Drop1
+L3:
+  PushNull
+  ReturnTOS
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+Class 'C1', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C1
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'C2', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C2
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'C3', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C3
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'C4', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C4
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'C5', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C5
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'C6', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C6
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'C7', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C7
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'C8', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C8
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+Class 'A', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    type-params <'T1' extends dart:core::Object? (default dynamic), 'T2' extends dart:core::Object? (default dynamic)> (args: 2)
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/1 >
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo', reflectable, debuggable
+    type-params <'T3' extends dart:core::Object? (default dynamic), 'T4' extends dart:core::Object? (default dynamic)>
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                5
+  CheckFunctionTypeArgs 2, r0
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r1
+  Push                 r1
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  AllocateClosure      CP#0
+  StoreLocal           r4
+  Push                 r4
+  Push                 FP[-5]
+  LoadTypeArgumentsField CP#14
+  StoreFieldTOS        CP#30
+  Push                 r4
+  Push                 r0
+  StoreFieldTOS        CP#6
+  Push                 r4
+  PushConstant         CP#5
+  StoreFieldTOS        CP#3
+  Push                 r4
+  PushConstant         CP#0
+  StoreFieldTOS        CP#32
+  Push                 r4
+  Push                 r1
+  StoreFieldTOS        CP#1
+  PopLocal             r3
+  PushConstant         CP#40
+  Push                 r3
+  Push                 r3
+  UncheckedClosureCall CP#37, 2
+  Drop1
+  PushConstant         CP#41
+  Push                 r3
+  Push                 r3
+  UncheckedClosureCall CP#37, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [4] = Reserved
+  [5] = EmptyTypeArguments
+  [6] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [7] = Reserved
+  [8] = DirectCall 'dart:_internal::_prependTypeArguments', ArgDesc num-args 4, num-type-args 0, names []
+  [9] = Reserved
+  [10] = ClosureFunction 1
+  [11] = ClosureFunction 2
+  [12] = ObjectRef < dart:core::Type >
+  [13] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/0
+  [14] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A
+  [15] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/1
+  [16] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::TypeParam/0
+  [17] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::TypeParam/1
+  [18] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/0::TypeParam/0
+  [19] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/0::TypeParam/1
+  [20] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/1::TypeParam/0
+  [21] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/1::TypeParam/1
+  [22] = DirectCall 'dart:core::_GrowableList::_literal8 (constructor)', ArgDesc num-args 9, num-type-args 0, names []
+  [23] = Reserved
+  [24] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [25] = Reserved
+  [26] = ObjectRef < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/1, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::TypeParam/1, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/0::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/0::TypeParam/1, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/1::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/1::TypeParam/1 >
+  [27] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs', ArgDesc num-args 0, num-type-args 8, names []
+  [28] = Reserved
+  [29] = EndClosureFunctionScope
+  [30] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [31] = Reserved
+  [32] = InstanceField dart:core::_Closure::_function (field)
+  [33] = Reserved
+  [34] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [35] = EndClosureFunctionScope
+  [36] = ObjectRef < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C7, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C8 >
+  [37] = ObjectRef ArgDesc num-args 1, num-type-args 2, names []
+  [38] = ObjectRef < dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C7 >, dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C8 > >
+  [39] = EndClosureFunctionScope
+  [40] = ObjectRef < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C5, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C6 >
+  [41] = ObjectRef < dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C5 >, dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C6 > >
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::'nested1' type-params <'T5' extends dart:core::Object? (default dynamic), 'T6' extends dart:core::Object? (default dynamic)> () -> void
+ClosureCode {
+  Entry                5
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r1
+  Push                 FP[-5]
+  LoadFieldTOS         CP#3
+  StoreLocal           r0
+  PushConstant         CP#5
+  JumpIfEqStrict       L1
+  CheckFunctionTypeArgs 0, r2
+  Jump                 L2
+L1:
+  CheckFunctionTypeArgs 2, r0
+L2:
+  CheckStack           0
+  Push                 r0
+  Push                 FP[-5]
+  LoadFieldTOS         CP#6
+  PushInt              2
+  PushInt              4
+  DirectCall           CP#8, 4
+  PopLocal             r0
+  AllocateClosure      CP#10
+  StoreLocal           r4
+  Push                 r4
+  Push                 r1
+  LoadContextVar       0, 0
+  LoadTypeArgumentsField CP#14
+  StoreFieldTOS        CP#30
+  Push                 r4
+  Push                 r0
+  StoreFieldTOS        CP#6
+  Push                 r4
+  PushConstant         CP#5
+  StoreFieldTOS        CP#3
+  Push                 r4
+  PushConstant         CP#10
+  StoreFieldTOS        CP#32
+  Push                 r4
+  Push                 r1
+  StoreFieldTOS        CP#1
+  PopLocal             r3
+  PushConstant         CP#36
+  Push                 r3
+  Push                 r3
+  UncheckedClosureCall CP#37, 2
+  Drop1
+  PushConstant         CP#38
+  Push                 r3
+  Push                 r3
+  UncheckedClosureCall CP#37, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/0::'nested2' type-params <'T7' extends dart:core::Object? (default dynamic), 'T8' extends dart:core::Object? (default dynamic)> () -> void
+ClosureCode {
+  Entry                5
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r1
+  Push                 FP[-5]
+  LoadFieldTOS         CP#3
+  StoreLocal           r0
+  PushConstant         CP#5
+  JumpIfEqStrict       L1
+  CheckFunctionTypeArgs 0, r2
+  Jump                 L2
+L1:
+  CheckFunctionTypeArgs 2, r0
+L2:
+  CheckStack           0
+  Push                 r0
+  Push                 FP[-5]
+  LoadFieldTOS         CP#6
+  PushInt              4
+  PushInt              6
+  DirectCall           CP#8, 4
+  PopLocal             r0
+  AllocateClosure      CP#11
+  StoreLocal           r4
+  Push                 r4
+  Push                 r1
+  LoadContextVar       0, 0
+  LoadTypeArgumentsField CP#14
+  StoreFieldTOS        CP#30
+  Push                 r4
+  Push                 r0
+  StoreFieldTOS        CP#6
+  Push                 r4
+  PushConstant         CP#11
+  StoreFieldTOS        CP#32
+  Push                 r4
+  Push                 r1
+  StoreFieldTOS        CP#1
+  PopLocal             r3
+  Push                 r3
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#34, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/1::'<anonymous closure>' () -> Null
+ClosureCode {
+  Entry                3
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r1
+  CheckStack           0
+  Push                 FP[-5]
+  LoadFieldTOS         CP#6
+  PopLocal             r0
+  PushConstant         CP#12
+  Push                 r1
+  LoadContextVar       0, 0
+  LoadTypeArgumentsField CP#14
+  PushNull
+  InstantiateType      CP#13
+  Push                 r1
+  LoadContextVar       0, 0
+  LoadTypeArgumentsField CP#14
+  PushNull
+  InstantiateType      CP#15
+  PushNull
+  Push                 r0
+  InstantiateType      CP#16
+  PushNull
+  Push                 r0
+  InstantiateType      CP#17
+  PushNull
+  Push                 r0
+  InstantiateType      CP#18
+  PushNull
+  Push                 r0
+  InstantiateType      CP#19
+  PushNull
+  Push                 r0
+  InstantiateType      CP#20
+  PushNull
+  Push                 r0
+  InstantiateType      CP#21
+  DirectCall           CP#22, 9
+  DirectCall           CP#24, 1
+  Drop1
+  Push                 r1
+  LoadContextVar       0, 0
+  LoadTypeArgumentsField CP#14
+  Push                 r0
+  InstantiateTypeArgumentsTOS 0, CP#26
+  DirectCall           CP#27, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+
+Class 'B', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+Field 'foo', type = dart:core::int, getter = 'get:foo', setter = 'set:foo', reflectable, has-initializer
+    value = const 0
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::B
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushInt              0
+  StoreFieldTOS        CP#0
+  Push                 FP[-5]
+  DirectCall           CP#2, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/closures.dart::B::foo (field)
+  [1] = Reserved
+  [2] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'topLevel', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                5
+  CheckStack           0
+  AllocateContext      0, 4
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  Push                 r0
+  PushInt              1
+  StoreContextVar      0, 1
+  PushInt              2
+  PopLocal             r2
+  Push                 r0
+  PushInt              3
+  StoreContextVar      0, 2
+  AllocateClosure      CP#0
+  StoreLocal           r4
+  Push                 r4
+  PushConstant         CP#0
+  StoreFieldTOS        CP#10
+  Push                 r4
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r3
+  Push                 r3
+  StoreLocal           r4
+  PushInt              10
+  Push                 r4
+  UncheckedClosureCall CP#16, 2
+  Drop1
+  Push                 r3
+  StoreLocal           r4
+  PushInt              11
+  Push                 r4
+  UncheckedClosureCall CP#16, 2
+  Drop1
+  Push                 r2
+  DirectCall           CP#13, 1
+  Drop1
+  Push                 r0
+  LoadContextVar       0, 2
+  DirectCall           CP#13, 1
+  Drop1
+  Push                 r0
+  LoadContextVar       0, 1
+  DirectCall           CP#13, 1
+  Drop1
+  Push                 r0
+  PushInt              42
+  StoreContextVar      0, 3
+  AllocateClosure      CP#17
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#17
+  StoreFieldTOS        CP#10
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r2
+  Push                 r2
+  StoreLocal           r3
+  Push                 r3
+  UncheckedClosureCall CP#12, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = Type dart:core::int
+  [4] = ObjectRef 'y'
+  [5] = SubtypeTestCache
+  [6] = ClosureFunction 1
+  [7] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::B::get:foo', ArgDesc num-args 1, num-type-args 0, names []
+  [8] = Reserved
+  [9] = EndClosureFunctionScope
+  [10] = InstanceField dart:core::_Closure::_function (field)
+  [11] = Reserved
+  [12] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [13] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [14] = Reserved
+  [15] = EndClosureFunctionScope
+  [16] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [17] = ClosureFunction 2
+  [18] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::B::set:foo', ArgDesc num-args 2, num-type-args 0, names []
+  [19] = Reserved
+  [20] = EndClosureFunctionScope
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::B::topLevel::'<anonymous closure>' (dart:core::int y) -> Null
+ClosureCode {
+  Entry                4
+  Push                 FP[-6]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckStack           0
+  AllocateContext      1, 2
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreContextParent
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      1, 0
+  JumpIfUnchecked      L1
+  Push                 FP[-5]
+  PushConstant         CP#3
+  PushNull
+  PushNull
+  PushConstant         CP#4
+  AssertAssignable     1, CP#5
+  Drop1
+L1:
+  Push                 r0
+  LoadContextParent
+  Push                 r0
+  LoadContextVar       1, 0
+  PushInt              1
+  AddInt
+  StoreContextVar      0, 1
+  Push                 r0
+  LoadContextParent
+  LoadContextVar       0, 1
+  PushInt              5
+  CompareIntGt
+  JumpIfFalse          L2
+  Push                 r0
+  PushInt              4
+  StoreContextVar      1, 1
+  AllocateClosure      CP#6
+  StoreLocal           r2
+  Push                 r2
+  PushConstant         CP#6
+  StoreFieldTOS        CP#10
+  Push                 r2
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r3
+  Push                 r3
+  Push                 r3
+  UncheckedClosureCall CP#12, 1
+  Drop1
+  Push                 r0
+  LoadContextVar       1, 1
+  DirectCall           CP#13, 1
+  Drop1
+L2:
+  PushNull
+  ReturnTOS
+}
+
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::B::topLevel::Closure/0::'closure2' () -> void
+ClosureCode {
+  Entry                3
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckStack           0
+  Push                 r0
+  LoadContextParent
+  Push                 r0
+  LoadContextParent
+  LoadContextVar       0, 1
+  PushInt              2
+  AddInt
+  StoreContextVar      0, 2
+  Push                 r0
+  Push                 r0
+  LoadContextParent
+  LoadContextVar       0, 0
+  InterfaceCall        CP#7, 1
+  Push                 r0
+  LoadContextVar       1, 0
+  AddInt
+  StoreContextVar      1, 1
+  PushNull
+  ReturnTOS
+}
+
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::B::topLevel::'<anonymous closure>' () -> Null
+ClosureCode {
+  Entry                3
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckStack           0
+  Push                 r0
+  LoadContextVar       0, 0
+  Push                 r0
+  LoadContextVar       0, 3
+  InterfaceCall        CP#18, 2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+
+Class 'C', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'testForLoop', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+Bytecode {
+  Entry                5
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  PushInt              0
+  StoreContextVar      0, 0
+  PushConstant         CP#0
+  PushInt              0
+  DirectCall           CP#1, 2
+  PopLocal             r2
+  PushConstant         CP#0
+  PushInt              0
+  DirectCall           CP#1, 2
+  PopLocal             r3
+  AllocateContext      1, 1
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreContextParent
+  PopLocal             r0
+  Push                 r0
+  PushInt              0
+  StoreContextVar      1, 0
+L2:
+  CheckStack           1
+  Push                 r0
+  LoadContextVar       1, 0
+  PushInt              10
+  CompareIntLt
+  JumpIfFalse          L1
+  Push                 r2
+  AllocateClosure      CP#3
+  StoreLocal           r4
+  Push                 r4
+  PushConstant         CP#3
+  StoreFieldTOS        CP#7
+  Push                 r4
+  Push                 r0
+  StoreFieldTOS        CP#4
+  InstantiatedInterfaceCall CP#9, 2
+  Drop1
+  Push                 r3
+  AllocateClosure      CP#12
+  StoreLocal           r4
+  Push                 r4
+  PushConstant         CP#12
+  StoreFieldTOS        CP#7
+  Push                 r4
+  Push                 r0
+  StoreFieldTOS        CP#4
+  InstantiatedInterfaceCall CP#9, 2
+  Drop1
+  Push                 r0
+  CloneContext         1, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 r0
+  LoadContextVar       1, 0
+  PushInt              1
+  AddInt
+  StoreLocal           r4
+  StoreContextVar      1, 0
+  Push                 r4
+  Drop1
+  Jump                 L2
+L1:
+  Push                 r0
+  LoadContextParent
+  PopLocal             r0
+  Push                 r0
+  LoadContextParent
+  PopLocal             r0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::Function >
+  [1] = DirectCall 'dart:core::_GrowableList:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = Reserved
+  [3] = ClosureFunction 0
+  [4] = InstanceField dart:core::_Closure::_context (field)
+  [5] = Reserved
+  [6] = EndClosureFunctionScope
+  [7] = InstanceField dart:core::_Closure::_function (field)
+  [8] = Reserved
+  [9] = InstantiatedInterfaceCall 'dart:core::List::add', ArgDesc num-args 2, num-type-args 0, names [], receiver dart:core::List < dart:core::Function >
+  [10] = Reserved
+  [11] = Reserved
+  [12] = ClosureFunction 1
+  [13] = Type dart:core::int
+  [14] = ObjectRef 'ii'
+  [15] = SubtypeTestCache
+  [16] = EndClosureFunctionScope
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C::testForLoop::'<anonymous closure>' () -> dart:core::int
+ClosureCode {
+  Entry                2
+  Push                 FP[-5]
+  LoadFieldTOS         CP#4
+  PopLocal             r0
+  CheckStack           0
+  Push                 r0
+  LoadContextVar       1, 0
+  Push                 r0
+  LoadContextParent
+  LoadContextVar       0, 0
+  AddInt
+  ReturnTOS
+}
+
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C::testForLoop::'<anonymous closure>' (dart:core::int ii) -> Null
+ClosureCode {
+  Entry                3
+  Push                 FP[-6]
+  LoadFieldTOS         CP#4
+  PopLocal             r0
+  CheckStack           0
+  JumpIfUnchecked      L1
+  Push                 FP[-5]
+  PushConstant         CP#13
+  PushNull
+  PushNull
+  PushConstant         CP#14
+  AssertAssignable     1, CP#15
+  Drop1
+L1:
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r0
+  LoadContextParent
+  LoadContextVar       0, 0
+  AddInt
+  StoreContextVar      1, 0
+  PushNull
+  ReturnTOS
+}
+
+
+Function 'testForInLoop', reflectable, debuggable
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                5
+  CheckStack           0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r2
+L2:
+  CheckStack           1
+  Push                 r2
+  InterfaceCall        CP#2, 1
+  JumpIfFalse          L1
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 r2
+  InterfaceCall        CP#4, 1
+  StoreContextVar      0, 0
+  AllocateClosure      CP#6
+  StoreLocal           r4
+  Push                 r4
+  PushConstant         CP#6
+  StoreFieldTOS        CP#10
+  Push                 r4
+  Push                 r0
+  StoreFieldTOS        CP#7
+  PopLocal             r3
+  Push                 r3
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#12, 1
+  Drop1
+  Push                 r0
+  LoadContextVar       0, 0
+  DirectCall           CP#13, 1
+  Drop1
+  Push                 r0
+  LoadContextParent
+  PopLocal             r0
+  Jump                 L2
+L1:
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::Iterable::get:iterator', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::Iterator::moveNext', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall 'dart:core::Iterator::get:current', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ClosureFunction 0
+  [7] = InstanceField dart:core::_Closure::_context (field)
+  [8] = Reserved
+  [9] = EndClosureFunctionScope
+  [10] = InstanceField dart:core::_Closure::_function (field)
+  [11] = Reserved
+  [12] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [13] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [14] = Reserved
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C::testForInLoop::'<anonymous closure>' () -> Null
+ClosureCode {
+  Entry                3
+  Push                 FP[-5]
+  LoadFieldTOS         CP#7
+  PopLocal             r0
+  CheckStack           0
+  Push                 r0
+  Push                 r0
+  LoadContextVar       0, 0
+  PushInt              1
+  AddInt
+  StoreContextVar      0, 0
+  PushNull
+  ReturnTOS
+}
+
+Class 'D', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart'
+    type-params <'T' extends dart:core::Object? (default dynamic)> (args: 1)
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::TypeParam/0 >
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo', reflectable, debuggable
+    parameters [DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::TypeParam/0 't'] (required: 1)
+    return-type dynamic
+
+Bytecode {
+  Entry                3
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  JumpIfUnchecked      L1
+  Push                 FP[-5]
+  PushConstant         CP#0
+  Push                 FP[-6]
+  LoadTypeArgumentsField CP#1
+  PushNull
+  PushConstant         CP#2
+  AssertAssignable     0, CP#3
+  Drop1
+L1:
+  AllocateClosure      CP#4
+  StoreLocal           r2
+  Push                 r2
+  Push                 FP[-6]
+  LoadTypeArgumentsField CP#1
+  StoreFieldTOS        CP#8
+  Push                 r2
+  PushConstant         CP#4
+  StoreFieldTOS        CP#10
+  Push                 r2
+  Push                 r0
+  StoreFieldTOS        CP#5
+  ReturnTOS
+}
+Parameter flags: [2]
+ConstantPool {
+  [0] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::TypeParam/0
+  [1] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D
+  [2] = ObjectRef 't'
+  [3] = SubtypeTestCache
+  [4] = ClosureFunction 0
+  [5] = InstanceField dart:core::_Closure::_context (field)
+  [6] = Reserved
+  [7] = EndClosureFunctionScope
+  [8] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [9] = Reserved
+  [10] = InstanceField dart:core::_Closure::_function (field)
+  [11] = Reserved
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::foo::'<anonymous closure>' () -> DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::TypeParam/0
+ClosureCode {
+  Entry                2
+  Push                 FP[-5]
+  LoadFieldTOS         CP#5
+  PopLocal             r0
+  CheckStack           0
+  Push                 r0
+  LoadContextVar       0, 0
+  ReturnTOS
+}
+
+
+Function 'bar', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                3
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  AllocateClosure      CP#0
+  StoreLocal           r2
+  Push                 r2
+  Push                 FP[-5]
+  LoadTypeArgumentsField CP#5
+  StoreFieldTOS        CP#6
+  Push                 r2
+  PushConstant         CP#0
+  StoreFieldTOS        CP#8
+  Push                 r2
+  Push                 r0
+  StoreFieldTOS        CP#1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ClosureFunction 1
+  [4] = EndClosureFunctionScope
+  [5] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D
+  [6] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [7] = Reserved
+  [8] = InstanceField dart:core::_Closure::_function (field)
+  [9] = Reserved
+  [10] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [11] = EndClosureFunctionScope
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::bar::'<anonymous closure>' () -> Null
+ClosureCode {
+  Entry                4
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckStack           0
+  AllocateClosure      CP#3
+  StoreLocal           r3
+  Push                 r3
+  Push                 r0
+  LoadContextVar       0, 0
+  LoadTypeArgumentsField CP#5
+  StoreFieldTOS        CP#6
+  Push                 r3
+  PushConstant         CP#3
+  StoreFieldTOS        CP#8
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r2
+  Push                 r2
+  Push                 r2
+  UncheckedClosureCall CP#10, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+
+Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::bar::Closure/0::'inner' () -> Null
+ClosureCode {
+  Entry                2
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+
+Class 'E', script = 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart', abstract
+    extends dart:core::Object
+
+Field 'foo1', type = FunctionType (dart:core::int, dart:core::int) -> dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable, is-late
+    value = null
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  InitLateField        CP#0
+  Push                 FP[-5]
+  DirectCall           CP#2, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::foo1 (field)
+  [1] = Reserved
+  [2] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'get:foo2', getter, abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type FunctionType <'T' extends dart:core::Object? (default dynamic)> (null::TypeParam/0, null::TypeParam/0) -> dart:core::int
+
+Function 'evalArg1', abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function 'evalArg2', abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Function 'getE', abstract, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E
+
+Function 'testCallThroughGetter1', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                3
+  CheckStack           0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r0
+  Push                 FP[-5]
+  InterfaceCall        CP#2, 1
+  PopLocal             r1
+  Push                 FP[-5]
+  InterfaceCall        CP#4, 1
+  StoreLocal           r2
+  Push                 r0
+  Push                 r1
+  Push                 r2
+  UncheckedClosureCall CP#6, 3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::get:foo1', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef ArgDesc num-args 3, num-type-args 0, names []
+}
+
+
+Function 'testCallThroughGetter2', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                3
+  CheckStack           0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r0
+  Push                 FP[-5]
+  InterfaceCall        CP#2, 1
+  PopLocal             r1
+  PushConstant         CP#4
+  Push                 FP[-5]
+  InterfaceCall        CP#5, 1
+  StoreLocal           r2
+  Push                 r0
+  Push                 r1
+  Push                 r2
+  UncheckedClosureCall CP#7, 4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ObjectRef < dart:core::int >
+  [5] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+  [7] = ObjectRef ArgDesc num-args 3, num-type-args 1, names []
+}
+
+
+Function 'testCallThroughGetter3', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r0
+  Push                 FP[-5]
+  InterfaceCall        CP#2, 1
+  PopLocal             r1
+  Push                 FP[-5]
+  InterfaceCall        CP#4, 1
+  PopLocal             r2
+  PushConstant         CP#6
+  Push                 r0
+  InterfaceCall        CP#7, 1
+  StoreLocal           r3
+  Push                 r1
+  Push                 r2
+  Push                 r3
+  UncheckedClosureCall CP#9, 4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::getE', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef < dart:core::int >
+  [7] = InterfaceCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
+  [8] = Reserved
+  [9] = ObjectRef ArgDesc num-args 3, num-type-args 1, names []
+}
+

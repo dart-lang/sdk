@@ -358,6 +358,11 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_buildScopes);
+      loader.buildScopes(loader.sourceLibraryBuilders);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
       NeededPrecompilations? result =
           context.options.globalFeatures.macros.isEnabled
@@ -383,6 +388,9 @@ class KernelTarget {
       // we instead apply them directly here.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.compilationUnit.createLibrary();
+      }
+      loader.buildScopes(augmentationLibraries);
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.applyAugmentations();
       }
       loader.computeLibraryScopes(augmentationLibraries);
@@ -594,11 +602,6 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.outline_computeShowHideElements);
-      loader.computeShowHideElements();
-
-      benchmarker
-          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
       List<DelayedDefaultValueCloner>?
           typedefTearOffsDelayedDefaultValueCloners =
@@ -610,6 +613,15 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
       loader.computeFieldPromotability();
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(
+              BenchmarkPhases.outline_performRedirectingFactoryInference);
+      // TODO(johnniwinther): Add an interface for registering delayed actions.
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
+      loader.inferRedirectingFactories(
+          loader.hierarchy, delayedDefaultValueCloners);
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -634,8 +646,6 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
-      // TODO(johnniwinther): Add an interface for registering delayed actions.
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
       loader.buildOutlineExpressions(
           loader.hierarchy, delayedDefaultValueCloners);
       delayedDefaultValueCloners.forEach(registerDelayedDefaultValueCloner);
@@ -1001,7 +1011,7 @@ class KernelTarget {
       if (proc.isFactory) return;
     }
 
-    IndexedContainer? indexedClass = builder.indexedContainer;
+    IndexedContainer? indexedClass = builder.indexedClass;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -1059,7 +1069,7 @@ class KernelTarget {
       installForwardingConstructors(supertype);
     }
 
-    IndexedContainer? indexedClass = builder.indexedContainer;
+    IndexedContainer? indexedClass = builder.indexedClass;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -1802,7 +1812,9 @@ class KernelTarget {
 
   void readPatchFiles(SourceLibraryBuilder libraryBuilder,
       CompilationUnit compilationUnit, Uri originImportUri) {
-    assert(originImportUri.isScheme("dart"),
+    assert(
+        originImportUri.isScheme("dart"),
+        // Coverage-ignore(suite): Not run.
         "Unexpected origin import uri: $originImportUri");
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {

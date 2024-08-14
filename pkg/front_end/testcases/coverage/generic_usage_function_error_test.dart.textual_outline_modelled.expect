@@ -1,0 +1,6 @@
+abstract class C {
+  C() : v7 = T();
+  final T<Null> v7;
+}
+
+typedef T<X> = Function;

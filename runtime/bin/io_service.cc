@@ -59,12 +59,14 @@ Dart_Port IOService::GetServicePort() {
 }
 
 void FUNCTION_NAME(IOService_NewServicePort)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_Null());
   Dart_Port service_port = IOService::GetServicePort();
   if (service_port != ILLEGAL_PORT) {
     // Return a send port for the service port.
     Dart_Handle send_port = Dart_NewSendPort(service_port);
     Dart_SetReturnValue(args, send_port);
+  } else {
+    // If port is not successfully created throw an error.
+    Dart_PropagateError(DartUtils::NewError("Unable to create native port"));
   }
 }
 

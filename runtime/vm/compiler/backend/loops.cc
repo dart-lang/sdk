@@ -149,7 +149,7 @@ static bool CanBeMadeExclusive(LoopInfo* loop,
     } else if (InductionVar::IsConstant(max, &end)) {
       return end < kMaxInt64;
     } else if (InductionVar::IsInvariant(max) && max->mult() == 1 &&
-               Definition::IsArrayLength(max->def())) {
+               Definition::IsLengthLoad(max->def())) {
       return max->offset() < 0;  // a.length - C, C > 0
     }
   }
@@ -184,7 +184,7 @@ static bool SafelyAdjust(Zone* zone,
       success = (l <= u);
     } else if (InductionVar::IsInvariant(upper_bound) &&
                upper_bound->mult() == 1 &&
-               Definition::IsArrayLength(upper_bound->def())) {
+               Definition::IsLengthLoad(upper_bound->def())) {
       // No arithmetic wrap-around on the lower bound, and a properly
       // non-positive offset on an array length, which is always >= 0.
       const int64_t c = upper_bound->offset() + upper_bound_offset;

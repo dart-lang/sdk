@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use key in widget constructors.';
@@ -34,11 +35,6 @@ class MyPublicWidget extends StatelessWidget {
 ''';
 
 class UseKeyInWidgetConstructors extends LintRule {
-  static const LintCode code = LintCode('use_key_in_widget_constructors',
-      "Constructors for public widgets should have a named 'key' parameter.",
-      correctionMessage: 'Try adding a named parameter to the constructor.',
-      hasPublishedDocs: true);
-
   UseKeyInWidgetConstructors()
       : super(
             name: 'use_key_in_widget_constructors',
@@ -47,7 +43,7 @@ class UseKeyInWidgetConstructors extends LintRule {
             categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_key_in_widget_constructors;
 
   @override
   void registerNodeProcessors(

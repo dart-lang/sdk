@@ -10,8 +10,8 @@ import 'nullability_suffix.dart';
 /// client's representation of variables and types.
 abstract interface class TypeAnalyzerOperations<
         Variable extends Object,
-        Type extends SharedType,
-        TypeSchema extends Object,
+        Type extends SharedType<Type>,
+        TypeSchema extends SharedType<TypeSchema>,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
@@ -123,9 +123,6 @@ abstract interface class TypeAnalyzerOperations<
   /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
   /// `false` for `Object?` and `Object*`.
   bool isObject(Type type);
-
-  /// Returns `true` if [type] is `R`, `R?`, or `R*` for some record type `R`.
-  bool isRecordType(Type type);
 
   /// Returns `true` if the type [type] satisfies the type schema [typeSchema].
   bool isTypeSchemaSatisfied(
@@ -241,10 +238,6 @@ abstract interface class TypeAnalyzerOperations<
 
   /// Computes the greatest lower bound of [typeSchema1] and [typeSchema2].
   TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2);
-
-  /// Determines whether the given type schema corresponds to the `dynamic`
-  /// type.
-  bool typeSchemaIsDynamic(TypeSchema typeSchema);
 
   /// Returns `true` if the least closure of [leftSchema] is a subtype of
   /// [rightType].
@@ -464,8 +457,8 @@ enum Variance {
 /// Abstract interface of a type constraint generator.
 abstract class TypeConstraintGenerator<
     Variable extends Object,
-    Type extends SharedType,
-    TypeSchema extends Object,
+    Type extends SharedType<Type>,
+    TypeSchema extends SharedType<TypeSchema>,
     InferableParameter extends Object,
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object,

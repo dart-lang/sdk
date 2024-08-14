@@ -356,6 +356,80 @@ Delete 1:18-2:1
     );
   }
 
+  Future<void> test_minimalEdits_gt_2_combined() async {
+    const startContent = '''
+List<
+  List<String>
+> a = [];
+''';
+    const endContent = '''
+List<List<String>> a = [];
+''';
+    const expectedEdits = r'''
+Delete 1:6-2:3
+Delete 2:15-3:1
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_gt_2_split() async {
+    const startContent = '''
+List<List<String>> a = [];
+''';
+    const endContent = '''
+List<
+  List<String>
+> a = [];
+''';
+    const expectedEdits = r'''
+Insert "\n  " at 1:6
+Insert "\n" at 1:18
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_gt_3_combined() async {
+    const startContent = '''
+List<
+  List<
+    List<String>
+  >
+> a = [];
+''';
+    const endContent = '''
+List<List<List<String>>> a = [];
+''';
+    const expectedEdits = r'''
+Delete 1:6-2:3
+Delete 2:8-3:5
+Replace 3:17-5:1 with ">"
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_gt_3_split() async {
+    const startContent = '''
+List<List<List<String>>> a = [];
+''';
+    const endContent = '''
+List<
+  List<
+    List<String>
+  >
+> a = [];
+''';
+    const expectedEdits = r'''
+Insert "\n  " at 1:6
+Insert "\n    " at 1:11
+Replace 1:23-1:24 with "\n  >\n"
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
   Future<void> test_minimalEdits_semicolon_remove() async {
     const startContent = '''
 enum SomeEnum {

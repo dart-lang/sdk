@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid slow asynchronous `dart:io` methods.';
 
@@ -69,11 +70,6 @@ const List<String> _fileSystemEntityMethodNames = <String>[
 ];
 
 class AvoidSlowAsyncIo extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_slow_async_io', "Use of an async 'dart:io' method.",
-      correctionMessage: 'Try using the synchronous version of the method.',
-      hasPublishedDocs: true);
-
   AvoidSlowAsyncIo()
       : super(
             name: 'avoid_slow_async_io',
@@ -82,7 +78,7 @@ class AvoidSlowAsyncIo extends LintRule {
             categories: {LintRuleCategory.nonPerformant});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_slow_async_io;
 
   @override
   void registerNodeProcessors(

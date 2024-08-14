@@ -100,7 +100,7 @@ ${parser.usage}""");
   // can, the first time we see a commit, we know it's newer than all commits
   // we haven't seen yet. The insertion order into the buildersForCommits map
   // will then sorted with the newest commit first.
-  final builds = searchResult["builds"] as List<Map>?;
+  final builds = searchResult["builds"] as List?;
   if (builds == null) {
     print("No builds found");
     exit(1);

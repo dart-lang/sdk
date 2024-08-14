@@ -7,7 +7,6 @@ import 'package:kernel/ast.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import 'dill_builder_mixins.dart';
 import 'dill_class_builder.dart';
@@ -22,10 +21,9 @@ class DillExtensionTypeDeclarationBuilder
 
   late final LookupScope _scope;
 
-  final NameSpace _nameSpace;
+  final DeclarationNameSpace _nameSpace;
 
-  @override
-  final ConstructorScope constructorScope;
+  late final ConstructorScope _constructorScope;
 
   List<NominalVariableBuilder>? _typeParameters;
 
@@ -35,9 +33,7 @@ class DillExtensionTypeDeclarationBuilder
 
   DillExtensionTypeDeclarationBuilder(
       this._extensionTypeDeclaration, DillLibraryBuilder parent)
-      : _nameSpace = new NameSpaceImpl(),
-        constructorScope = new ConstructorScope(
-            _extensionTypeDeclaration.name, <String, MemberBuilder>{}),
+      : _nameSpace = new DeclarationNameSpaceImpl(),
         super(
             /*metadata builders*/ null,
             /* modifiers*/ 0,
@@ -47,6 +43,8 @@ class DillExtensionTypeDeclarationBuilder
     _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.declaration,
         "extension type ${_extensionTypeDeclaration.name}",
         parent: parent.scope);
+    _constructorScope = new DeclarationNameSpaceConstructorScope(
+        _extensionTypeDeclaration.name, _nameSpace);
     for (Procedure procedure in _extensionTypeDeclaration.procedures) {
       String name = procedure.name.text;
       switch (procedure.kind) {
@@ -127,7 +125,7 @@ class DillExtensionTypeDeclarationBuilder
         case ExtensionTypeMemberKind.Constructor:
           Procedure procedure = descriptor.memberReference.asProcedure;
           Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
-          constructorScope.addLocalMember(
+          nameSpace.addConstructor(
               name.text,
               new DillExtensionTypeConstructorBuilder(
                   procedure, tearOff, descriptor, this));
@@ -136,7 +134,7 @@ class DillExtensionTypeDeclarationBuilder
         case ExtensionTypeMemberKind.RedirectingFactory:
           Procedure procedure = descriptor.memberReference.asProcedure;
           Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
-          constructorScope.addLocalMember(
+          nameSpace.addConstructor(
               name.text,
               new DillExtensionTypeFactoryBuilder(
                   procedure, tearOff, descriptor, this));
@@ -149,10 +147,14 @@ class DillExtensionTypeDeclarationBuilder
   DillLibraryBuilder get libraryBuilder => parent as DillLibraryBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   DartType get declaredRepresentationType =>

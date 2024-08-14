@@ -37,6 +37,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'AnalysisSessionImplTest',
+      methodName: '_assertFileUnitElementResultText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
       className: 'ContextResolutionTest',
       methodName: 'assertDriverStateString',
       argument: _ArgumentIndex(1),
@@ -67,9 +72,19 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
-      className: 'InheritanceManager3Test_ExtensionType',
+      className: '_InheritanceManager3Base2',
       methodName: 'assertInterfaceText',
       argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'LibraryElementTest_scope',
+      methodName: '_assertLibraryExtensions',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'LibraryFragmentElementTest',
+      methodName: '_assertScopeLookups',
+      argument: _ArgumentIndex(3),
     ),
     _AssertMethod(
       className: 'MacroIntrospectElementTest',
@@ -99,6 +114,11 @@ class NodeTextExpectationsCollector {
     _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'assertParsedNodeText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'ResolutionTest',
+      methodName: 'assertResolvedLibraryResultText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(

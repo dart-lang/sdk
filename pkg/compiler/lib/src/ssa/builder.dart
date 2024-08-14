@@ -1333,7 +1333,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       push(HInvokeExternal(stubTarget, nativeInputs, returnType,
           closedWorld.nativeData.getNativeMethodBehavior(stubTarget),
           sourceInformation: sourceInformation));
-      _maybeAddInteropNullAssertionForMember(stubTarget, nativeInputs.length);
+      _maybeAddInteropNullAssertionForMember(stubTarget, nativeInputs.length,
+          sourceInformation: sourceInformation);
     } else if (stubTarget.isInstanceMember) {
       if (stubTarget.enclosingClass!.isClosure) {
         push(HInvokeClosure(
@@ -1899,22 +1900,26 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         targetElement as FunctionEntity, inputs, returnType, nativeBehavior,
         sourceInformation: null));
     HInstruction value;
-    // TODO(johnniwinther): Provide source information.
+    final sourceInformation =
+        _sourceInformationBuilder.buildCall(functionNode, functionNode);
     if (options.nativeNullAssertions && nodeIsInWebLibrary(functionNode)) {
       value = pop();
       DartType type = _getDartTypeIfValid(functionNode.returnType);
       if (dartTypes.isNonNullableIfSound(type)) {
         push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
-            sticky: true));
+            sticky: true)
+          ..sourceInformation = sourceInformation);
         value = pop();
       }
     } else if (_nativeData.isJsInteropMember(targetElement)) {
       if (targetElement.isInstanceMember) {
         _maybeAddInteropNullAssertionForMember(
-            targetElement as FunctionEntity, inputs.length);
+            targetElement as FunctionEntity, inputs.length,
+            sourceInformation: sourceInformation);
       } else {
         _maybeAddInteropNullAssertionForStatic(
-            _getDartTypeIfValid(functionNode.returnType));
+            _getDartTypeIfValid(functionNode.returnType),
+            sourceInformation: sourceInformation);
       }
       value = pop();
     } else {
@@ -4354,7 +4359,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       }
 
       // Static methods currently ignore the type parameters.
-      _pushStaticNativeInvocation(function, arguments, typeMask, typeArguments);
+      _pushStaticNativeInvocation(function, arguments, typeMask, typeArguments,
+          sourceInformation: sourceInformation);
     } else {
       final arguments = _visitArgumentsForStaticTarget(
           target.function,
@@ -4472,7 +4478,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         sourceInformation);
     instanceType = localsHandler.substInContext(instanceType) as InterfaceType;
     _addImplicitInstantiation(instanceType);
-    _pushStaticNativeInvocation(function, arguments, typeMask, typeArguments);
+    _pushStaticNativeInvocation(function, arguments, typeMask, typeArguments,
+        sourceInformation: sourceInformation);
   }
 
   /// Handle the `JSArray<E>.typed` constructor, which returns its argument,
@@ -5313,44 +5320,50 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }
 
   void _maybeAddInteropNullAssertionForMember(
-      FunctionEntity member, int argumentCount) {
+      FunctionEntity member, int argumentCount,
+      {SourceInformation? sourceInformation}) {
     if (options.interopNullAssertions) {
       final functionType = _elementEnvironment.getFunctionType(member);
       if (dartTypes.isNonNullableIfSound(functionType.returnType)) {
         final name =
             PublicName(_nativeData.computeUnescapedJSInteropName(member.name!));
         _addInteropNullAssertionForSelector(
-            Selector.call(name, CallStructure.unnamed(argumentCount)));
+            Selector.call(name, CallStructure.unnamed(argumentCount)),
+            sourceInformation: sourceInformation);
       }
     }
   }
 
-  void _maybeAddInteropNullAssertionForSelector(Selector selector) {
+  void _maybeAddInteropNullAssertionForSelector(Selector selector,
+      {SourceInformation? sourceInformation}) {
     if (options.interopNullAssertions &&
         _nativeData.interopNullChecks[selector] ==
             InteropNullCheckKind.callerCheck) {
-      _addInteropNullAssertion();
+      _addInteropNullAssertion(sourceInformation: sourceInformation);
     }
   }
 
-  void _addInteropNullAssertionForSelector(Selector selector) {
+  void _addInteropNullAssertionForSelector(Selector selector,
+      {SourceInformation? sourceInformation}) {
     if (_nativeData.interopNullChecks[selector] ==
         InteropNullCheckKind.callerCheck) {
-      _addInteropNullAssertion();
+      _addInteropNullAssertion(sourceInformation: sourceInformation);
     }
   }
 
-  void _maybeAddInteropNullAssertionForStatic(DartType returnType) {
+  void _maybeAddInteropNullAssertionForStatic(DartType returnType,
+      {SourceInformation? sourceInformation}) {
     if (options.interopNullAssertions &&
         closedWorld.dartTypes.isNonNullableIfSound(returnType)) {
-      _addInteropNullAssertion();
+      _addInteropNullAssertion(sourceInformation: sourceInformation);
     }
   }
 
-  void _addInteropNullAssertion() {
+  void _addInteropNullAssertion({SourceInformation? sourceInformation}) {
     final value = pop();
     _pushStaticInvocation(_commonElements.interopNullAssertion, [value],
-        value.instructionType, const <DartType>[]);
+        value.instructionType, const <DartType>[],
+        sourceInformation: sourceInformation);
   }
 
   void _handleJsStringConcat(
@@ -5601,7 +5614,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     }
 
     if (closedWorld.nativeData.isJsInteropMember(target)) {
-      _pushStaticNativeInvocation(target, arguments, typeMask, typeArguments);
+      _pushStaticNativeInvocation(target, arguments, typeMask, typeArguments,
+          sourceInformation: sourceInformation);
       return;
     }
 
@@ -5622,8 +5636,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       FunctionEntity target,
       List<HInstruction?> arguments,
       AbstractValue typeMask,
-      List<DartType> typeArguments) {
-    _invokeJsInteropFunction(target, arguments);
+      List<DartType> typeArguments,
+      {SourceInformation? sourceInformation}) {
+    _invokeJsInteropFunction(target, arguments,
+        sourceInformation: sourceInformation);
   }
 
   void _pushDynamicInvocation(
@@ -5728,12 +5744,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     push(invoke);
     if (element != null &&
         _abstractValueDomain.isNull(resultType).isDefinitelyFalse) {
-      _maybeAddInteropNullAssertionForSelector(selector);
+      _maybeAddInteropNullAssertionForSelector(selector,
+          sourceInformation: sourceInformation);
     }
   }
 
   void _invokeJsInteropFunction(
-      FunctionEntity element, List<HInstruction?> arguments) {
+      FunctionEntity element, List<HInstruction?> arguments,
+      {SourceInformation? sourceInformation}) {
     assert(closedWorld.nativeData.isJsInteropMember(element));
 
     bool isAnonymousFactory = element is ConstructorEntity &&
@@ -5823,10 +5841,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     AbstractValue instructionType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
-    // TODO(efortuna): Add source information.
     push(HInvokeExternal(element, inputs, instructionType, nativeBehavior,
-        sourceInformation: null));
-    _maybeAddInteropNullAssertionForStatic(type);
+        sourceInformation: sourceInformation));
+    _maybeAddInteropNullAssertionForStatic(type,
+        sourceInformation: sourceInformation);
   }
 
   @override
@@ -6161,7 +6179,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           sourceInformation);
       _addImplicitInstantiation(instanceType);
       _pushStaticNativeInvocation(
-          constructor, arguments, typeMask, typeArguments);
+          constructor, arguments, typeMask, typeArguments,
+          sourceInformation: sourceInformation);
       _removeImplicitInstantiation(instanceType);
     } else {
       List<HInstruction> arguments = [];

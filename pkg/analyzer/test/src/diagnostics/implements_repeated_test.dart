@@ -30,11 +30,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: <thisLibrary>::<definingUnit>::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A
     NamedType
       name: A
-      element: <thisLibrary>::<definingUnit>::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A
 ''');
   }
@@ -76,13 +76,13 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: <thisLibrary>::<definingUnit>::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A
     NamedType
       name: B
-      element: <thisLibrary>::<definingUnit>::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
       type: A
-        alias: <thisLibrary>::<definingUnit>::@typeAlias::B
+        alias: <testLibraryFragment>::@typeAlias::B
 ''');
   }
 
@@ -114,11 +114,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: <thisLibrary>::<definingUnit>::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A
     NamedType
       name: A
-      element: <thisLibrary>::<definingUnit>::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A
 ''');
   }
@@ -162,13 +162,13 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: <thisLibrary>::<definingUnit>::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A
     NamedType
       name: B
-      element: <thisLibrary>::<definingUnit>::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
       type: A
-        alias: <thisLibrary>::<definingUnit>::@typeAlias::B
+        alias: <testLibraryFragment>::@typeAlias::B
 ''');
   }
 
@@ -199,11 +199,11 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element: dart:core::<definingUnit>::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     NamedType
       name: int
-      element: dart:core::<definingUnit>::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
 ''');
   }
@@ -243,13 +243,13 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element: dart:core::<definingUnit>::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     NamedType
       name: A
-      element: <thisLibrary>::<definingUnit>::@typeAlias::A
+      element: <testLibraryFragment>::@typeAlias::A
       type: int
-        alias: <thisLibrary>::<definingUnit>::@typeAlias::A
+        alias: <testLibraryFragment>::@typeAlias::A
 ''');
   }
 

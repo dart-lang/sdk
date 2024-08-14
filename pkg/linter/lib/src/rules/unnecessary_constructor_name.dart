@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary `.new` constructor name.';
 
@@ -40,10 +41,6 @@ var makeA = A.new;
 ''';
 
 class UnnecessaryConstructorName extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_constructor_name', "Unnecessary '.new' constructor name.",
-      correctionMessage: "Try removing the '.new'.", hasPublishedDocs: true);
-
   UnnecessaryConstructorName()
       : super(
             name: 'unnecessary_constructor_name',
@@ -52,7 +49,7 @@ class UnnecessaryConstructorName extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_constructor_name;
 
   @override
   void registerNodeProcessors(

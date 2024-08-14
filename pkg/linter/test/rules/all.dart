@@ -20,11 +20,14 @@ import 'avoid_catches_without_on_clauses_test.dart'
 import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
 import 'avoid_classes_with_only_static_members_test.dart'
     as avoid_classes_with_only_static_members;
+import 'avoid_double_and_int_checks_test.dart' as avoid_double_and_int_checks;
 import 'avoid_dynamic_calls_test.dart' as avoid_dynamic_calls;
 import 'avoid_empty_else_test.dart' as avoid_empty_else;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
+import 'avoid_field_initializers_in_const_classes_test.dart'
+    as avoid_field_initializers_in_const_classes;
 import 'avoid_field_initializers_in_non_const_classes_test.dart'
     as avoid_field_initializers_in_non_const_classes;
 import 'avoid_final_parameters_test.dart' as avoid_final_parameters;
@@ -36,6 +39,8 @@ import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
 import 'avoid_js_rounded_ints_test.dart' as avoid_js_rounded_ints;
 import 'avoid_multiple_declarations_per_line_test.dart'
     as avoid_multiple_declarations_per_line;
+import 'avoid_null_checks_in_equality_operators_test.dart'
+    as avoid_null_checks_in_equality_operators;
 import 'avoid_positional_boolean_parameters_test.dart'
     as avoid_positional_boolean_parameters;
 import 'avoid_print_test.dart' as avoid_print;
@@ -162,6 +167,8 @@ import 'prefer_asserts_in_initializer_lists_test.dart'
     as prefer_asserts_in_initializer_lists;
 import 'prefer_asserts_with_message_test.dart' as prefer_asserts_with_message;
 import 'prefer_collection_literals_test.dart' as prefer_collection_literals;
+import 'prefer_conditional_assignment_test.dart'
+    as prefer_conditional_assignment;
 import 'prefer_const_constructors_in_immutables_test.dart'
     as prefer_const_constructors_in_immutables;
 import 'prefer_const_constructors_test.dart' as prefer_const_constructors;
@@ -215,6 +222,8 @@ import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
 import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
+import 'specify_nonobvious_local_variable_types_test.dart'
+    as specify_nonobvious_local_variable_types;
 import 'test_types_in_equals_test.dart' as test_types_in_equals;
 import 'throw_in_finally_test.dart' as throw_in_finally;
 import 'tighten_type_of_initializing_formals_test.dart'
@@ -291,6 +300,7 @@ import 'use_string_in_part_of_directives_test.dart'
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
 import 'use_to_and_as_if_applicable_test.dart' as use_to_and_as_if_applicable;
+import 'use_truncating_division_test.dart' as use_truncating_division;
 import 'valid_regexps_test.dart' as valid_regexps;
 import 'void_checks_test.dart' as void_checks;
 
@@ -306,10 +316,12 @@ void main() {
   avoid_catches_without_on_clauses.main();
   avoid_catching_errors.main();
   avoid_classes_with_only_static_members.main();
+  avoid_double_and_int_checks.main();
   avoid_dynamic_calls.main();
   avoid_empty_else.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
+  avoid_field_initializers_in_const_classes.main();
   avoid_field_initializers_in_non_const_classes.main();
   avoid_final_parameters.main();
   avoid_function_literals_in_foreach_calls.main();
@@ -317,6 +329,7 @@ void main() {
   avoid_init_to_null.main();
   avoid_js_rounded_ints.main();
   avoid_multiple_declarations_per_line.main();
+  avoid_null_checks_in_equality_operators.main();
   avoid_positional_boolean_parameters.main();
   avoid_print.main();
   avoid_private_typedef_functions.main();
@@ -408,6 +421,7 @@ void main() {
   prefer_asserts_in_initializer_lists.main();
   prefer_asserts_with_message.main();
   prefer_collection_literals.main();
+  prefer_conditional_assignment.main();
   prefer_const_constructors_in_immutables.main();
   prefer_const_constructors.main();
   prefer_const_declarations.main();
@@ -449,6 +463,7 @@ void main() {
   sort_constructors_first.main();
   sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();
+  specify_nonobvious_local_variable_types.main();
   test_types_in_equals.main();
   throw_in_finally.main();
   tighten_type_of_initializing_formals.main();
@@ -504,6 +519,7 @@ void main() {
   use_super_parameters.main();
   use_test_throws_matchers.main();
   use_to_and_as_if_applicable.main();
+  use_truncating_division.main();
   valid_regexps.main();
   void_checks.main();
 }

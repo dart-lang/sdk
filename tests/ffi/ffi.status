@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+native_assets/asset_*: Pass, Slow # https://dartbug.com/56330
 function_callbacks_structs_by_value_test: Pass, Slow # https://dartbug.com/47304 https://dartbug.com/45007
 function_structs_by_value_generated_args_leaf_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
 function_structs_by_value_generated_args_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007

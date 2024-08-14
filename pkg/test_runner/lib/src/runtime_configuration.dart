@@ -533,15 +533,15 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
             argument.replaceAll(Directory.current.path, "pkg/data"))
         .toList();
 
-    var command = FuchsiaEmulator.instance().getTestCommand(
-        _configuration.buildDirectory,
-        _configuration.mode.name,
-        _configuration.architecture.name,
-        arguments);
-    command.arguments
-        .insert(command.arguments.length - 1, '--disable-dart-dev');
-    command.environmentOverrides.addAll(environmentOverrides);
-    return [command];
+    arguments.insert(arguments.length - 1, '--disable-dart-dev');
+    return [
+      FuchsiaEmulator.instance().getTestCommand(
+          _configuration.buildDirectory,
+          _configuration.mode.name,
+          _configuration.architecture.name,
+          arguments,
+          environmentOverrides)
+    ];
   }
 }
 

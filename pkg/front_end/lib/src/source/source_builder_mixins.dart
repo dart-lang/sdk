@@ -20,7 +20,6 @@ import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
-import '../util/helpers.dart';
 import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
@@ -28,7 +27,12 @@ import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 
-mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
+abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
+  void buildScopes(LibraryBuilder coreLibrary);
+}
+
+mixin SourceDeclarationBuilderMixin
+    implements DeclarationBuilderMixin, SourceDeclarationBuilder {
   @override
   SourceLibraryBuilder get libraryBuilder;
 
@@ -96,7 +100,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
     }
 
     nameSpace.unfilteredNameIterator.forEach(buildBuilders);
-    constructorScope.unfilteredNameIterator.forEach(buildBuilders);
+    nameSpace.unfilteredConstructorNameIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
@@ -104,7 +108,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
     Iterator<SourceMemberBuilder> iterator = nameSpace
         .filteredIterator<SourceMemberBuilder>(
             parent: this, includeDuplicates: false, includeAugmentations: true)
-        .join(constructorScope.filteredIterator<SourceMemberBuilder>(
+        .join(nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
             parent: this,
             includeDuplicates: false,
             includeAugmentations: true));
@@ -154,9 +158,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
       required bool inMetadata,
       required bool inConstFields});
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
         annotatable,
@@ -177,7 +179,6 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
                 inMetadata: true,
                 inConstFields: false),
             classHierarchy,
-            delayedActionPerformers,
             typeParameterScope);
       }
     }
@@ -185,8 +186,8 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
     Iterator<SourceMemberBuilder> iterator = nameSpace.filteredIterator(
         parent: this, includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
-      iterator.current.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+      iterator.current
+          .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
   }
 
@@ -264,6 +265,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
     }
 
     if (arguments != null && arguments.length != typeVariablesCount) {
+      // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "SourceDeclarationBuilderMixin.buildAliasedTypeArguments: "
           "the numbers of type parameters and type arguments don't match.",
@@ -295,7 +297,7 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
   /// in this type declaration.
   void checkConstructorStaticConflict() {
     NameIterator<MemberBuilder> iterator =
-        constructorScope.filteredNameIterator(
+        nameSpace.filteredConstructorNameIterator(
             includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
       String name = iterator.name;
@@ -322,7 +324,7 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
     }
 
     nameSpace.forEachLocalSetter((String name, Builder setter) {
-      Builder? constructor = constructorScope.lookupLocalMember(name);
+      Builder? constructor = nameSpace.lookupConstructor(name);
       if (constructor == null || !setter.isStatic) return;
       // Coverage-ignore-block(suite): Not run.
       addProblem(templateConflictsWithConstructor.withArguments(name),

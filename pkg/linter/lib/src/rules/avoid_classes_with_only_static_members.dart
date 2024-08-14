@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid defining a class that contains only static members.';
 
@@ -45,12 +46,6 @@ const _favoriteMammal = 'weasel';
 ''';
 
 class AvoidClassesWithOnlyStaticMembers extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_classes_with_only_static_members',
-      'Classes should define instance members.',
-      correctionMessage:
-          'Try adding instance behavior or moving the members out of the class.');
-
   AvoidClassesWithOnlyStaticMembers()
       : super(
             name: 'avoid_classes_with_only_static_members',
@@ -63,7 +58,8 @@ class AvoidClassesWithOnlyStaticMembers extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_classes_with_only_static_members;
 
   @override
   void registerNodeProcessors(

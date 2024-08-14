@@ -344,7 +344,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       // be intentional in samples.
       errors.removeWhere(
         (e) =>
-            e.errorCode == HintCode.UNUSED_LOCAL_VARIABLE ||
+            e.errorCode == WarningCode.UNUSED_LOCAL_VARIABLE ||
             e.errorCode == WarningCode.UNUSED_ELEMENT,
       );
 

@@ -30,7 +30,7 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  staticElement: <thisLibrary>::@prefix::p
+  staticElement: <testLibraryFragment>::@prefix::p
   staticType: InvalidType
 ''');
   }
@@ -43,7 +43,7 @@ main() {
   for (var x in p) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
     ]);
 
@@ -61,7 +61,7 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::@prefix::p
+      staticElement: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
   body: Block
@@ -82,7 +82,7 @@ main() {
   var x = new C(p);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 76, 1),
     ]);
 
@@ -93,10 +93,10 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element: <thisLibrary>::<definingUnit>::@class::C
+      element: <testLibraryFragment>::@class::C
       type: C<dynamic>
     staticElement: ConstructorMember
-      base: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
+      base: <testLibraryFragment>::@class::C::@constructor::new
       substitution: {T: dynamic}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -104,9 +104,9 @@ InstanceCreationExpression
       SimpleIdentifier
         token: p
         parameter: ParameterMember
-          base: <thisLibrary>::<definingUnit>::@class::C::@constructor::new::@parameter::a
+          base: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
           substitution: {T: dynamic}
-        staticElement: <thisLibrary>::@prefix::p
+        staticElement: <testLibraryFragment>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
@@ -207,7 +207,7 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: package:test/a.dart::<definingUnit>::@getter::a
+  staticElement: package:test/a.dart::<fragment>::@getter::a
   staticType: int
 ''');
   }

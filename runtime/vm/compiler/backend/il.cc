@@ -582,11 +582,11 @@ Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
   }
 }
 
-bool Definition::IsArrayLength(Definition* def) {
+bool Definition::IsLengthLoad(Definition* def) {
   if (def != nullptr) {
     if (auto load = def->OriginalDefinitionIgnoreBoxingAndConstraints()
                         ->AsLoadField()) {
-      return load->IsImmutableLengthLoad();
+      return load->slot().IsLengthSlot();
     }
   }
   return false;
@@ -3267,6 +3267,17 @@ Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
     return value_defn;
   }
 
+  // Replace BoxInteger<from>(UnboxedConstant<to>(v)) with Constant(v) if [to]
+  // is an integer representation and [v] is representable in [from].
+  if (auto* const constant = value_defn->AsUnboxedConstant()) {
+    if (RepresentationUtils::IsUnboxedInteger(constant->representation())) {
+      const int64_t intval = Integer::Cast(constant->value()).AsInt64Value();
+      if (RepresentationUtils::IsRepresentable(from_representation(), intval)) {
+        return flow_graph->GetConstant(constant->value());
+      }
+    }
+  }
+
   return this;
 }
 
@@ -3281,8 +3292,6 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     if (unbox->SpeculativeModeOfInputs() == kNotSpeculative) {
       return unbox->value()->definition();
     }
-  } else if (auto unbox = value()->definition()->AsUnboxedConstant()) {
-    return flow_graph->GetConstant(unbox->value());
   }
 
   // Find a more precise box instruction.
@@ -4515,6 +4524,14 @@ LocationSummary* IndirectEntryInstr::MakeLocationSummary(
 
 void IndirectEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   JoinEntryInstr::EmitNativeCode(compiler);
+}
+
+LocationSummary* StopInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
+}
+
+void StopInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Stop(message());
 }
 
 LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,

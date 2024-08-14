@@ -11,7 +11,7 @@ class Element extends core::Object {
 }
 class InheritedElement extends self::Element {
 
-  [@vm.inferred-type.metadata=dart.collection::_Map<#lib::Element, dart.core::Object?>]
+  [@vm.inferred-type.metadata=dart._compact_hash::_Map<#lib::Element, dart.core::Object?>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   final field core::Map<self::Element, core::Object?> _dependents;
   synthetic constructor •() → self::InheritedElement
@@ -21,7 +21,7 @@ class InheritedElement extends self::Element {
   [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
   method setDependencies([@vm.inferred-arg-type.metadata=!] self::Element dependent, [@vm.inferred-arg-type.metadata=dart.core::_Smi?] core::Object? value) → void {
-    [@vm.call-site-attributes.metadata=receiverType:dart.core::Map<#lib::Element, dart.core::Object?>] [@vm.direct-call.metadata=dart.collection::__Map&_HashVMBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin.[]=] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::InheritedElement._dependents] [@vm.inferred-type.metadata=dart.collection::_Map<#lib::Element, dart.core::Object?>] this.{self::InheritedElement::_dependents}{core::Map<self::Element, core::Object?>}.{core::Map::[]=}(dependent, value){(self::Element, core::Object?) → void};
+    [@vm.call-site-attributes.metadata=receiverType:dart.core::Map<#lib::Element, dart.core::Object?>] [@vm.direct-call.metadata=dart._compact_hash::__Map&_HashVMBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin.[]=] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::InheritedElement._dependents] [@vm.inferred-type.metadata=dart._compact_hash::_Map<#lib::Element, dart.core::Object?>] this.{self::InheritedElement::_dependents}{core::Map<self::Element, core::Object?>}.{core::Map::[]=}(dependent, value){(self::Element, core::Object?) → void};
   }
 }
 

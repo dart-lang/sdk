@@ -578,6 +578,26 @@ struct StructInlineArrayInt {
   wchar_t a0[10];
 };
 
+struct StructInlineArrayVariable {
+  uint32_t a0;
+  uint8_t a1[];
+};
+
+struct StructInlineArrayVariableNested {
+  uint32_t a0;
+  uint8_t a1[][2][2];
+};
+
+struct StructInlineArrayVariableNestedDeep {
+  uint32_t a0;
+  uint8_t a1[][2][2][2][2][2][2];
+};
+
+struct StructInlineArrayVariableAlign {
+  uint8_t a0;
+  uint32_t a1[];
+};
+
 // Used for testing structs and unions by value.
 // Smallest struct with data.
 // 10 struct arguments will exhaust available registers.
@@ -4869,6 +4889,92 @@ PassInt64x7Struct12BytesHomogeneousInt32(int64_t a0,
   result += a7.a0;
   result += a7.a1;
   result += a7.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Passing a pointer to a struct
+DART_EXPORT int64_t
+PassPointerStruct12BytesHomogeneousInt32(Struct12BytesHomogeneousInt32* a0) {
+  std::cout << "PassPointerStruct12BytesHomogeneousInt32"
+            << "((" << a0->a0 << ", " << a0->a1 << ", " << a0->a2 << "))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0->a0;
+  result += a0->a1;
+  result += a0->a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Variable length array
+DART_EXPORT int64_t
+PassPointerStructInlineArrayVariable(StructInlineArrayVariable* a0) {
+  std::cout << "PassPointerStructInlineArrayVariable"
+            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+            << static_cast<int>(a0->a1[1]) << ", "
+            << static_cast<int>(a0->a1[2]) << ", "
+            << static_cast<int>(a0->a1[3]) << ", "
+            << static_cast<int>(a0->a1[4]) << ", "
+            << static_cast<int>(a0->a1[5]) << ", "
+            << static_cast<int>(a0->a1[6]) << ", "
+            << static_cast<int>(a0->a1[7]) << ", "
+            << static_cast<int>(a0->a1[8]) << ", "
+            << static_cast<int>(a0->a1[9]) << "]))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0->a0;
+  result += a0->a1[0];
+  result += a0->a1[1];
+  result += a0->a1[2];
+  result += a0->a1[3];
+  result += a0->a1[4];
+  result += a0->a1[5];
+  result += a0->a1[6];
+  result += a0->a1[7];
+  result += a0->a1[8];
+  result += a0->a1[9];
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Variable length array with variable length element having more alignment than
+// the rest of the struct.
+DART_EXPORT int64_t
+PassPointerStructInlineArrayVariableAlign(StructInlineArrayVariableAlign* a0) {
+  std::cout << "PassPointerStructInlineArrayVariableAlign"
+            << "((" << static_cast<int>(a0->a0) << ", [" << a0->a1[0] << ", "
+            << a0->a1[1] << ", " << a0->a1[2] << ", " << a0->a1[3] << ", "
+            << a0->a1[4] << ", " << a0->a1[5] << ", " << a0->a1[6] << ", "
+            << a0->a1[7] << ", " << a0->a1[8] << ", " << a0->a1[9] << "]))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0->a0;
+  result += a0->a1[0];
+  result += a0->a1[1];
+  result += a0->a1[2];
+  result += a0->a1[3];
+  result += a0->a1[4];
+  result += a0->a1[5];
+  result += a0->a1[6];
+  result += a0->a1[7];
+  result += a0->a1[8];
+  result += a0->a1[9];
 
   std::cout << "result = " << result << "\n";
 
@@ -12602,6 +12708,160 @@ DART_EXPORT intptr_t TestPassInt64x7Struct12BytesHomogeneousInt32(
   result = f(a0, a1, a2, a3, a4, a5, a6, a7);
 
   CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Passing a pointer to a struct
+DART_EXPORT intptr_t TestPassPointerStruct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct12BytesHomogeneousInt32* a0)) {
+  Struct12BytesHomogeneousInt32* a0 =
+      static_cast<Struct12BytesHomogeneousInt32*>(
+          calloc(1, sizeof(Struct12BytesHomogeneousInt32)));
+
+  a0->a0 = -1;
+  a0->a1 = 2;
+  a0->a2 = -3;
+
+  std::cout << "Calling TestPassPointerStruct12BytesHomogeneousInt32("
+            << "((" << a0->a0 << ", " << a0->a1 << ", " << a0->a2 << "))"
+            << ")\n";
+
+  int64_t result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(-2, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0->a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0->a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  free(a0);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Variable length array
+DART_EXPORT intptr_t TestPassPointerStructInlineArrayVariable(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(StructInlineArrayVariable* a0)) {
+  StructInlineArrayVariable* a0 = static_cast<StructInlineArrayVariable*>(
+      calloc(1, sizeof(StructInlineArrayVariable) + 10 * sizeof(uint8_t)));
+
+  a0->a0 = 1;
+  a0->a1[0] = 2;
+  a0->a1[1] = 3;
+  a0->a1[2] = 4;
+  a0->a1[3] = 5;
+  a0->a1[4] = 6;
+  a0->a1[5] = 7;
+  a0->a1[6] = 8;
+  a0->a1[7] = 9;
+  a0->a1[8] = 10;
+  a0->a1[9] = 11;
+
+  std::cout << "Calling TestPassPointerStructInlineArrayVariable("
+            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+            << static_cast<int>(a0->a1[1]) << ", "
+            << static_cast<int>(a0->a1[2]) << ", "
+            << static_cast<int>(a0->a1[3]) << ", "
+            << static_cast<int>(a0->a1[4]) << ", "
+            << static_cast<int>(a0->a1[5]) << ", "
+            << static_cast<int>(a0->a1[6]) << ", "
+            << static_cast<int>(a0->a1[7]) << ", "
+            << static_cast<int>(a0->a1[8]) << ", "
+            << static_cast<int>(a0->a1[9]) << "]))"
+            << ")\n";
+
+  int64_t result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(66, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0->a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0->a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  free(a0);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Variable length array with variable length element having more alignment than
+// the rest of the struct.
+DART_EXPORT intptr_t TestPassPointerStructInlineArrayVariableAlign(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(StructInlineArrayVariableAlign* a0)) {
+  StructInlineArrayVariableAlign* a0 =
+      static_cast<StructInlineArrayVariableAlign*>(calloc(
+          1, sizeof(StructInlineArrayVariableAlign) + 10 * sizeof(uint32_t)));
+
+  a0->a0 = 1;
+  a0->a1[0] = 2;
+  a0->a1[1] = 3;
+  a0->a1[2] = 4;
+  a0->a1[3] = 5;
+  a0->a1[4] = 6;
+  a0->a1[5] = 7;
+  a0->a1[6] = 8;
+  a0->a1[7] = 9;
+  a0->a1[8] = 10;
+  a0->a1[9] = 11;
+
+  std::cout << "Calling TestPassPointerStructInlineArrayVariableAlign("
+            << "((" << static_cast<int>(a0->a0) << ", [" << a0->a1[0] << ", "
+            << a0->a1[1] << ", " << a0->a1[2] << ", " << a0->a1[3] << ", "
+            << a0->a1[4] << ", " << a0->a1[5] << ", " << a0->a1[6] << ", "
+            << a0->a1[7] << ", " << a0->a1[8] << ", " << a0->a1[9] << "]))"
+            << ")\n";
+
+  int64_t result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(66, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0->a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0->a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  free(a0);
 
   return 0;
 }
@@ -21222,6 +21482,100 @@ DART_EXPORT void TestAsyncPassInt64x7Struct12BytesHomogeneousInt32(
             << ")\n";
 
   f(a0, a1, a2, a3, a4, a5, a6, a7);
+}
+
+// Used for testing structs and unions by value.
+// Passing a pointer to a struct
+DART_EXPORT void TestAsyncPassPointerStruct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct12BytesHomogeneousInt32* a0)) {
+  Struct12BytesHomogeneousInt32* a0 =
+      static_cast<Struct12BytesHomogeneousInt32*>(
+          calloc(1, sizeof(Struct12BytesHomogeneousInt32)));
+
+  a0->a0 = -1;
+  a0->a1 = 2;
+  a0->a2 = -3;
+
+  std::cout << "Calling TestAsyncPassPointerStruct12BytesHomogeneousInt32("
+            << "((" << a0->a0 << ", " << a0->a1 << ", " << a0->a2 << "))"
+            << ")\n";
+
+  f(a0);
+
+  free(a0);
+}
+
+// Used for testing structs and unions by value.
+// Variable length array
+DART_EXPORT void TestAsyncPassPointerStructInlineArrayVariable(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructInlineArrayVariable* a0)) {
+  StructInlineArrayVariable* a0 = static_cast<StructInlineArrayVariable*>(
+      calloc(1, sizeof(StructInlineArrayVariable) + 10 * sizeof(uint8_t)));
+
+  a0->a0 = 1;
+  a0->a1[0] = 2;
+  a0->a1[1] = 3;
+  a0->a1[2] = 4;
+  a0->a1[3] = 5;
+  a0->a1[4] = 6;
+  a0->a1[5] = 7;
+  a0->a1[6] = 8;
+  a0->a1[7] = 9;
+  a0->a1[8] = 10;
+  a0->a1[9] = 11;
+
+  std::cout << "Calling TestAsyncPassPointerStructInlineArrayVariable("
+            << "((" << a0->a0 << ", [" << static_cast<int>(a0->a1[0]) << ", "
+            << static_cast<int>(a0->a1[1]) << ", "
+            << static_cast<int>(a0->a1[2]) << ", "
+            << static_cast<int>(a0->a1[3]) << ", "
+            << static_cast<int>(a0->a1[4]) << ", "
+            << static_cast<int>(a0->a1[5]) << ", "
+            << static_cast<int>(a0->a1[6]) << ", "
+            << static_cast<int>(a0->a1[7]) << ", "
+            << static_cast<int>(a0->a1[8]) << ", "
+            << static_cast<int>(a0->a1[9]) << "]))"
+            << ")\n";
+
+  f(a0);
+
+  free(a0);
+}
+
+// Used for testing structs and unions by value.
+// Variable length array with variable length element having more alignment than
+// the rest of the struct.
+DART_EXPORT void TestAsyncPassPointerStructInlineArrayVariableAlign(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructInlineArrayVariableAlign* a0)) {
+  StructInlineArrayVariableAlign* a0 =
+      static_cast<StructInlineArrayVariableAlign*>(calloc(
+          1, sizeof(StructInlineArrayVariableAlign) + 10 * sizeof(uint32_t)));
+
+  a0->a0 = 1;
+  a0->a1[0] = 2;
+  a0->a1[1] = 3;
+  a0->a1[2] = 4;
+  a0->a1[3] = 5;
+  a0->a1[4] = 6;
+  a0->a1[5] = 7;
+  a0->a1[6] = 8;
+  a0->a1[7] = 9;
+  a0->a1[8] = 10;
+  a0->a1[9] = 11;
+
+  std::cout << "Calling TestAsyncPassPointerStructInlineArrayVariableAlign("
+            << "((" << static_cast<int>(a0->a0) << ", [" << a0->a1[0] << ", "
+            << a0->a1[1] << ", " << a0->a1[2] << ", " << a0->a1[3] << ", "
+            << a0->a1[4] << ", " << a0->a1[5] << ", " << a0->a1[6] << ", "
+            << a0->a1[7] << ", " << a0->a1[8] << ", " << a0->a1[9] << "]))"
+            << ")\n";
+
+  f(a0);
+
+  free(a0);
 }
 
 // Used for testing structs and unions by value.

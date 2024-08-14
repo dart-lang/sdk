@@ -181,7 +181,7 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 import "dart:collection";
 
@@ -354,7 +354,7 @@ static method main() → dynamic {
   core::print(#C11);
   core::print(#C14);
   core::print( block {
-    final core::Set<core::String> #t2 = new col::_Set::•<core::String>();
+    final core::Set<core::String> #t2 = new _co::_Set::•<core::String>();
     #t2.{core::Set::add}{Invariant}("hello"){(core::String) → core::bool};
   } =>#t2);
   core::print(#C16);

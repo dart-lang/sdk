@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Private field could be `final`.';
 
@@ -84,11 +85,6 @@ class NotAssignedInAllConstructors {
 ''';
 
 class PreferFinalFields extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_final_fields', "The private field {0} could be 'final'.",
-      correctionMessage: "Try making the field 'final'.",
-      hasPublishedDocs: true);
-
   PreferFinalFields()
       : super(
             name: 'prefer_final_fields',
@@ -100,7 +96,7 @@ class PreferFinalFields extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_final_fields;
 
   @override
   void registerNodeProcessors(

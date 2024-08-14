@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't check for `null` in custom `==` operators.";
 
@@ -62,11 +63,6 @@ bool _isParameterWithQuestionQuestion(
     _isParameter(node.leftOperand, parameter);
 
 class AvoidNullChecksInEqualityOperators extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_null_checks_in_equality_operators',
-      "Unnecessary null comparison in implementation of '=='.",
-      correctionMessage: 'Try removing the comparison.');
-
   AvoidNullChecksInEqualityOperators()
       : super(
             name: 'avoid_null_checks_in_equality_operators',
@@ -75,7 +71,8 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_null_checks_in_equality_operators;
 
   @override
   void registerNodeProcessors(

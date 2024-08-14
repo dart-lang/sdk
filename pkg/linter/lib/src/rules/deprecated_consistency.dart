@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Missing deprecated annotation.';
 
@@ -54,20 +55,6 @@ class C extends B {
 ''';
 
 class DeprecatedConsistency extends LintRule {
-  static const LintCode constructorCode = LintCode('deprecated_consistency',
-      'Constructors in a deprecated class should be deprecated.',
-      correctionMessage: 'Try marking the constructor as deprecated.');
-
-  static const LintCode parameterCode = LintCode('deprecated_consistency',
-      'Parameters that initialize a deprecated field should be deprecated.',
-      correctionMessage: 'Try marking the parameter as deprecated.');
-
-  static const LintCode fieldCode = LintCode(
-      'deprecated_consistency',
-      'Fields that are initialized by a deprecated parameter should be '
-          'deprecated.',
-      correctionMessage: 'Try marking the field as deprecated.');
-
   DeprecatedConsistency()
       : super(
           name: 'deprecated_consistency',
@@ -77,7 +64,11 @@ class DeprecatedConsistency extends LintRule {
         );
 
   @override
-  List<LintCode> get lintCodes => [constructorCode, parameterCode, fieldCode];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.deprecated_consistency_constructor,
+        LinterLintCode.deprecated_consistency_field,
+        LinterLintCode.deprecated_consistency_parameter
+      ];
 
   @override
   void registerNodeProcessors(
@@ -101,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
       rule.reportLintForOffset(nodeToAnnotate.offset, nodeToAnnotate.length,
-          errorCode: DeprecatedConsistency.constructorCode);
+          errorCode: LinterLintCode.deprecated_consistency_constructor);
     }
   }
 
@@ -114,11 +105,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
-      rule.reportLint(node, errorCode: DeprecatedConsistency.fieldCode);
+      rule.reportLint(node,
+          errorCode: LinterLintCode.deprecated_consistency_field);
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
       rule.reportLintForOffset(field.nameOffset, field.nameLength,
-          errorCode: DeprecatedConsistency.parameterCode);
+          errorCode: LinterLintCode.deprecated_consistency_parameter);
     }
   }
 }

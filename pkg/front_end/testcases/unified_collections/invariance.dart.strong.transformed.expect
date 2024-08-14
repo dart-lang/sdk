@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method main() → dynamic {
   core::List<core::int> list1 = core::_GrowableList::_literal1<core::int>(0);
@@ -25,19 +25,19 @@ static method main() → dynamic {
       #t1.{core::List::add}{Invariant}(2){(core::int?) → void};
   } =>#t1;
   core::Set<core::int> set1 = block {
-    final core::Set<core::int> #t4 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t4 = new _co::_Set::•<core::int>();
     #t4.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
   } =>#t4;
   core::Set<core::int?> set2 = block {
-    final core::Set<core::int?> #t5 = new col::_Set::•<core::int?>();
+    final core::Set<core::int?> #t5 = new _co::_Set::•<core::int?>();
     #t5.{core::Set::add}{Invariant}(0){(core::int?) → core::bool};
   } =>#t5;
   dynamic set3 = block {
-    final core::Set<core::int> #t6 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t6 = new _co::_Set::•<core::int>();
     #t6.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
   } =>#t6;
   core::Set<core::int?> set = block {
-    final core::Set<core::int?> #t7 = new col::_Set::•<core::int?>();
+    final core::Set<core::int?> #t7 = new _co::_Set::•<core::int?>();
     #t7.{core::Set::add}{Invariant}(0){(core::int?) → core::bool};
     #t7.{core::Set::addAll}{Invariant}(set1){(core::Iterable<core::int?>) → void};
     #t7.{core::Set::addAll}{Invariant}(set2){(core::Iterable<core::int?>) → void};

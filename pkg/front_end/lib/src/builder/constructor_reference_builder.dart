@@ -40,7 +40,7 @@ class ConstructorReferenceBuilder {
     if (qualifier != null) {
       String prefix = qualifier;
       String middle = typeName.name;
-      declaration = scope.lookup(prefix, charOffset, fileUri);
+      declaration = scope.lookupGetable(prefix, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);
@@ -57,7 +57,7 @@ class ConstructorReferenceBuilder {
         }
       }
     } else {
-      declaration = scope.lookup(typeName.name, charOffset, fileUri);
+      declaration = scope.lookupGetable(typeName.name, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);

@@ -16,6 +16,7 @@ class CoreTypesUtil {
   final Procedure allowInteropTarget;
   final Procedure dartifyRawTarget;
   final Procedure functionToJSTarget;
+  final Procedure functionToJSCaptureThisTarget;
   final Procedure greaterThanOrEqualToTarget;
   final Procedure inlineJSTarget;
   final Procedure isDartFunctionWrappedTarget;
@@ -35,6 +36,9 @@ class CoreTypesUtil {
             .getTopLevelProcedure('dart:_js_helper', 'dartifyRaw'),
         functionToJSTarget = coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
+        functionToJSCaptureThisTarget = coreTypes.index.getTopLevelProcedure(
+            'dart:js_interop',
+            'FunctionToJSExportedDartFunction|get#toJSCaptureThis'),
         greaterThanOrEqualToTarget =
             coreTypes.index.getProcedure('dart:core', 'num', '>='),
         inlineJSTarget =

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Sort combinator names alphabetically.';
 
@@ -28,10 +29,6 @@ export 'a.dart' show A, B hide C, D;
 ''';
 
 class CombinatorsOrdering extends LintRule {
-  static const LintCode code = LintCode(
-      'combinators_ordering', 'Sort combinator names alphabetically.',
-      correctionMessage: 'Try sorting the combinator names alphabetically.');
-
   CombinatorsOrdering()
       : super(
           name: 'combinators_ordering',
@@ -41,7 +38,7 @@ class CombinatorsOrdering extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.combinators_ordering;
 
   @override
   void registerNodeProcessors(

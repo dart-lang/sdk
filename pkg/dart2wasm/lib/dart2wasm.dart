@@ -18,8 +18,6 @@ final WasmCompilerOptions _d = WasmCompilerOptions.defaultOptions();
 
 final List<Option> options = [
   Flag("help", (o, _) {}, abbr: "h", negatable: false, defaultsTo: false),
-  Flag("export-all", (o, value) => o.translatorOptions.exportAll = value,
-      defaultsTo: _d.translatorOptions.exportAll),
   Flag("import-shared-memory",
       (o, value) => o.translatorOptions.importSharedMemory = value,
       defaultsTo: _d.translatorOptions.importSharedMemory),

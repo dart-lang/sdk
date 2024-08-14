@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,6 +28,10 @@ class Sub0 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch0(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub0(this, arg);
@@ -45,6 +49,10 @@ class Sub1 extends Base256 {
   }
 
   void visitorDispatch1(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch1(Counter counter) {
     counter.inc();
   }
 
@@ -68,6 +76,10 @@ class Sub2 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch2(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub2(this, arg);
@@ -85,6 +97,10 @@ class Sub3 extends Base256 {
   }
 
   void visitorDispatch3(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch3(Counter counter) {
     counter.inc();
   }
 
@@ -108,6 +124,10 @@ class Sub4 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch4(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub4(this, arg);
@@ -125,6 +145,10 @@ class Sub5 extends Base256 {
   }
 
   void visitorDispatch5(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch5(Counter counter) {
     counter.inc();
   }
 
@@ -148,6 +172,10 @@ class Sub6 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch6(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub6(this, arg);
@@ -165,6 +193,10 @@ class Sub7 extends Base256 {
   }
 
   void visitorDispatch7(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch7(Counter counter) {
     counter.inc();
   }
 
@@ -188,6 +220,10 @@ class Sub8 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch8(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub8(this, arg);
@@ -205,6 +241,10 @@ class Sub9 extends Base256 {
   }
 
   void visitorDispatch9(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch9(Counter counter) {
     counter.inc();
   }
 
@@ -228,6 +268,10 @@ class Sub10 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch10(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub10(this, arg);
@@ -245,6 +289,10 @@ class Sub11 extends Base256 {
   }
 
   void visitorDispatch11(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch11(Counter counter) {
     counter.inc();
   }
 
@@ -268,6 +316,10 @@ class Sub12 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch12(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub12(this, arg);
@@ -285,6 +337,10 @@ class Sub13 extends Base256 {
   }
 
   void visitorDispatch13(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch13(Counter counter) {
     counter.inc();
   }
 
@@ -308,6 +364,10 @@ class Sub14 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch14(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub14(this, arg);
@@ -325,6 +385,10 @@ class Sub15 extends Base256 {
   }
 
   void visitorDispatch15(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch15(Counter counter) {
     counter.inc();
   }
 
@@ -348,6 +412,10 @@ class Sub16 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch16(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub16(this, arg);
@@ -365,6 +433,10 @@ class Sub17 extends Base256 {
   }
 
   void visitorDispatch17(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch17(Counter counter) {
     counter.inc();
   }
 
@@ -388,6 +460,10 @@ class Sub18 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch18(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub18(this, arg);
@@ -405,6 +481,10 @@ class Sub19 extends Base256 {
   }
 
   void visitorDispatch19(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch19(Counter counter) {
     counter.inc();
   }
 
@@ -428,6 +508,10 @@ class Sub20 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch20(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub20(this, arg);
@@ -445,6 +529,10 @@ class Sub21 extends Base256 {
   }
 
   void visitorDispatch21(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch21(Counter counter) {
     counter.inc();
   }
 
@@ -468,6 +556,10 @@ class Sub22 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch22(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub22(this, arg);
@@ -485,6 +577,10 @@ class Sub23 extends Base256 {
   }
 
   void visitorDispatch23(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch23(Counter counter) {
     counter.inc();
   }
 
@@ -508,6 +604,10 @@ class Sub24 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch24(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub24(this, arg);
@@ -525,6 +625,10 @@ class Sub25 extends Base256 {
   }
 
   void visitorDispatch25(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch25(Counter counter) {
     counter.inc();
   }
 
@@ -548,6 +652,10 @@ class Sub26 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch26(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub26(this, arg);
@@ -565,6 +673,10 @@ class Sub27 extends Base256 {
   }
 
   void visitorDispatch27(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch27(Counter counter) {
     counter.inc();
   }
 
@@ -588,6 +700,10 @@ class Sub28 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch28(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub28(this, arg);
@@ -605,6 +721,10 @@ class Sub29 extends Base256 {
   }
 
   void visitorDispatch29(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch29(Counter counter) {
     counter.inc();
   }
 
@@ -628,6 +748,10 @@ class Sub30 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch30(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub30(this, arg);
@@ -645,6 +769,10 @@ class Sub31 extends Base256 {
   }
 
   void visitorDispatch31(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch31(Counter counter) {
     counter.inc();
   }
 
@@ -668,6 +796,10 @@ class Sub32 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch32(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub32(this, arg);
@@ -685,6 +817,10 @@ class Sub33 extends Base256 {
   }
 
   void visitorDispatch33(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch33(Counter counter) {
     counter.inc();
   }
 
@@ -708,6 +844,10 @@ class Sub34 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch34(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub34(this, arg);
@@ -725,6 +865,10 @@ class Sub35 extends Base256 {
   }
 
   void visitorDispatch35(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch35(Counter counter) {
     counter.inc();
   }
 
@@ -748,6 +892,10 @@ class Sub36 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch36(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub36(this, arg);
@@ -765,6 +913,10 @@ class Sub37 extends Base256 {
   }
 
   void visitorDispatch37(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch37(Counter counter) {
     counter.inc();
   }
 
@@ -788,6 +940,10 @@ class Sub38 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch38(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub38(this, arg);
@@ -805,6 +961,10 @@ class Sub39 extends Base256 {
   }
 
   void visitorDispatch39(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch39(Counter counter) {
     counter.inc();
   }
 
@@ -828,6 +988,10 @@ class Sub40 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch40(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub40(this, arg);
@@ -845,6 +1009,10 @@ class Sub41 extends Base256 {
   }
 
   void visitorDispatch41(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch41(Counter counter) {
     counter.inc();
   }
 
@@ -868,6 +1036,10 @@ class Sub42 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch42(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub42(this, arg);
@@ -885,6 +1057,10 @@ class Sub43 extends Base256 {
   }
 
   void visitorDispatch43(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch43(Counter counter) {
     counter.inc();
   }
 
@@ -908,6 +1084,10 @@ class Sub44 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch44(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub44(this, arg);
@@ -925,6 +1105,10 @@ class Sub45 extends Base256 {
   }
 
   void visitorDispatch45(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch45(Counter counter) {
     counter.inc();
   }
 
@@ -948,6 +1132,10 @@ class Sub46 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch46(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub46(this, arg);
@@ -965,6 +1153,10 @@ class Sub47 extends Base256 {
   }
 
   void visitorDispatch47(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch47(Counter counter) {
     counter.inc();
   }
 
@@ -988,6 +1180,10 @@ class Sub48 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch48(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub48(this, arg);
@@ -1005,6 +1201,10 @@ class Sub49 extends Base256 {
   }
 
   void visitorDispatch49(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch49(Counter counter) {
     counter.inc();
   }
 
@@ -1028,6 +1228,10 @@ class Sub50 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch50(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub50(this, arg);
@@ -1045,6 +1249,10 @@ class Sub51 extends Base256 {
   }
 
   void visitorDispatch51(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch51(Counter counter) {
     counter.inc();
   }
 
@@ -1068,6 +1276,10 @@ class Sub52 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch52(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub52(this, arg);
@@ -1085,6 +1297,10 @@ class Sub53 extends Base256 {
   }
 
   void visitorDispatch53(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch53(Counter counter) {
     counter.inc();
   }
 
@@ -1108,6 +1324,10 @@ class Sub54 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch54(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub54(this, arg);
@@ -1125,6 +1345,10 @@ class Sub55 extends Base256 {
   }
 
   void visitorDispatch55(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch55(Counter counter) {
     counter.inc();
   }
 
@@ -1148,6 +1372,10 @@ class Sub56 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch56(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub56(this, arg);
@@ -1165,6 +1393,10 @@ class Sub57 extends Base256 {
   }
 
   void visitorDispatch57(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch57(Counter counter) {
     counter.inc();
   }
 
@@ -1188,6 +1420,10 @@ class Sub58 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch58(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub58(this, arg);
@@ -1205,6 +1441,10 @@ class Sub59 extends Base256 {
   }
 
   void visitorDispatch59(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch59(Counter counter) {
     counter.inc();
   }
 
@@ -1228,6 +1468,10 @@ class Sub60 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch60(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub60(this, arg);
@@ -1245,6 +1489,10 @@ class Sub61 extends Base256 {
   }
 
   void visitorDispatch61(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch61(Counter counter) {
     counter.inc();
   }
 
@@ -1268,6 +1516,10 @@ class Sub62 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch62(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub62(this, arg);
@@ -1285,6 +1537,10 @@ class Sub63 extends Base256 {
   }
 
   void visitorDispatch63(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch63(Counter counter) {
     counter.inc();
   }
 
@@ -1308,6 +1564,10 @@ class Sub64 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch64(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub64(this, arg);
@@ -1325,6 +1585,10 @@ class Sub65 extends Base256 {
   }
 
   void visitorDispatch65(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch65(Counter counter) {
     counter.inc();
   }
 
@@ -1348,6 +1612,10 @@ class Sub66 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch66(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub66(this, arg);
@@ -1365,6 +1633,10 @@ class Sub67 extends Base256 {
   }
 
   void visitorDispatch67(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch67(Counter counter) {
     counter.inc();
   }
 
@@ -1388,6 +1660,10 @@ class Sub68 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch68(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub68(this, arg);
@@ -1405,6 +1681,10 @@ class Sub69 extends Base256 {
   }
 
   void visitorDispatch69(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch69(Counter counter) {
     counter.inc();
   }
 
@@ -1428,6 +1708,10 @@ class Sub70 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch70(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub70(this, arg);
@@ -1445,6 +1729,10 @@ class Sub71 extends Base256 {
   }
 
   void visitorDispatch71(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch71(Counter counter) {
     counter.inc();
   }
 
@@ -1468,6 +1756,10 @@ class Sub72 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch72(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub72(this, arg);
@@ -1485,6 +1777,10 @@ class Sub73 extends Base256 {
   }
 
   void visitorDispatch73(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch73(Counter counter) {
     counter.inc();
   }
 
@@ -1508,6 +1804,10 @@ class Sub74 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch74(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub74(this, arg);
@@ -1525,6 +1825,10 @@ class Sub75 extends Base256 {
   }
 
   void visitorDispatch75(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch75(Counter counter) {
     counter.inc();
   }
 
@@ -1548,6 +1852,10 @@ class Sub76 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch76(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub76(this, arg);
@@ -1565,6 +1873,10 @@ class Sub77 extends Base256 {
   }
 
   void visitorDispatch77(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch77(Counter counter) {
     counter.inc();
   }
 
@@ -1588,6 +1900,10 @@ class Sub78 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch78(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub78(this, arg);
@@ -1605,6 +1921,10 @@ class Sub79 extends Base256 {
   }
 
   void visitorDispatch79(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch79(Counter counter) {
     counter.inc();
   }
 
@@ -1628,6 +1948,10 @@ class Sub80 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch80(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub80(this, arg);
@@ -1645,6 +1969,10 @@ class Sub81 extends Base256 {
   }
 
   void visitorDispatch81(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch81(Counter counter) {
     counter.inc();
   }
 
@@ -1668,6 +1996,10 @@ class Sub82 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch82(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub82(this, arg);
@@ -1685,6 +2017,10 @@ class Sub83 extends Base256 {
   }
 
   void visitorDispatch83(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch83(Counter counter) {
     counter.inc();
   }
 
@@ -1708,6 +2044,10 @@ class Sub84 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch84(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub84(this, arg);
@@ -1725,6 +2065,10 @@ class Sub85 extends Base256 {
   }
 
   void visitorDispatch85(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch85(Counter counter) {
     counter.inc();
   }
 
@@ -1748,6 +2092,10 @@ class Sub86 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch86(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub86(this, arg);
@@ -1765,6 +2113,10 @@ class Sub87 extends Base256 {
   }
 
   void visitorDispatch87(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch87(Counter counter) {
     counter.inc();
   }
 
@@ -1788,6 +2140,10 @@ class Sub88 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch88(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub88(this, arg);
@@ -1805,6 +2161,10 @@ class Sub89 extends Base256 {
   }
 
   void visitorDispatch89(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch89(Counter counter) {
     counter.inc();
   }
 
@@ -1828,6 +2188,10 @@ class Sub90 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch90(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub90(this, arg);
@@ -1845,6 +2209,10 @@ class Sub91 extends Base256 {
   }
 
   void visitorDispatch91(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch91(Counter counter) {
     counter.inc();
   }
 
@@ -1868,6 +2236,10 @@ class Sub92 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch92(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub92(this, arg);
@@ -1885,6 +2257,10 @@ class Sub93 extends Base256 {
   }
 
   void visitorDispatch93(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch93(Counter counter) {
     counter.inc();
   }
 
@@ -1908,6 +2284,10 @@ class Sub94 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch94(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub94(this, arg);
@@ -1925,6 +2305,10 @@ class Sub95 extends Base256 {
   }
 
   void visitorDispatch95(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch95(Counter counter) {
     counter.inc();
   }
 
@@ -1948,6 +2332,10 @@ class Sub96 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch96(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub96(this, arg);
@@ -1965,6 +2353,10 @@ class Sub97 extends Base256 {
   }
 
   void visitorDispatch97(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch97(Counter counter) {
     counter.inc();
   }
 
@@ -1988,6 +2380,10 @@ class Sub98 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch98(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub98(this, arg);
@@ -2005,6 +2401,10 @@ class Sub99 extends Base256 {
   }
 
   void visitorDispatch99(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch99(Counter counter) {
     counter.inc();
   }
 
@@ -2028,6 +2428,10 @@ class Sub100 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch100(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub100(this, arg);
@@ -2045,6 +2449,10 @@ class Sub101 extends Base256 {
   }
 
   void visitorDispatch101(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch101(Counter counter) {
     counter.inc();
   }
 
@@ -2068,6 +2476,10 @@ class Sub102 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch102(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub102(this, arg);
@@ -2085,6 +2497,10 @@ class Sub103 extends Base256 {
   }
 
   void visitorDispatch103(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch103(Counter counter) {
     counter.inc();
   }
 
@@ -2108,6 +2524,10 @@ class Sub104 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch104(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub104(this, arg);
@@ -2125,6 +2545,10 @@ class Sub105 extends Base256 {
   }
 
   void visitorDispatch105(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch105(Counter counter) {
     counter.inc();
   }
 
@@ -2148,6 +2572,10 @@ class Sub106 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch106(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub106(this, arg);
@@ -2165,6 +2593,10 @@ class Sub107 extends Base256 {
   }
 
   void visitorDispatch107(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch107(Counter counter) {
     counter.inc();
   }
 
@@ -2188,6 +2620,10 @@ class Sub108 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch108(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub108(this, arg);
@@ -2205,6 +2641,10 @@ class Sub109 extends Base256 {
   }
 
   void visitorDispatch109(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch109(Counter counter) {
     counter.inc();
   }
 
@@ -2228,6 +2668,10 @@ class Sub110 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch110(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub110(this, arg);
@@ -2245,6 +2689,10 @@ class Sub111 extends Base256 {
   }
 
   void visitorDispatch111(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch111(Counter counter) {
     counter.inc();
   }
 
@@ -2268,6 +2716,10 @@ class Sub112 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch112(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub112(this, arg);
@@ -2285,6 +2737,10 @@ class Sub113 extends Base256 {
   }
 
   void visitorDispatch113(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch113(Counter counter) {
     counter.inc();
   }
 
@@ -2308,6 +2764,10 @@ class Sub114 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch114(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub114(this, arg);
@@ -2325,6 +2785,10 @@ class Sub115 extends Base256 {
   }
 
   void visitorDispatch115(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch115(Counter counter) {
     counter.inc();
   }
 
@@ -2348,6 +2812,10 @@ class Sub116 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch116(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub116(this, arg);
@@ -2365,6 +2833,10 @@ class Sub117 extends Base256 {
   }
 
   void visitorDispatch117(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch117(Counter counter) {
     counter.inc();
   }
 
@@ -2388,6 +2860,10 @@ class Sub118 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch118(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub118(this, arg);
@@ -2405,6 +2881,10 @@ class Sub119 extends Base256 {
   }
 
   void visitorDispatch119(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch119(Counter counter) {
     counter.inc();
   }
 
@@ -2428,6 +2908,10 @@ class Sub120 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch120(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub120(this, arg);
@@ -2445,6 +2929,10 @@ class Sub121 extends Base256 {
   }
 
   void visitorDispatch121(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch121(Counter counter) {
     counter.inc();
   }
 
@@ -2468,6 +2956,10 @@ class Sub122 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch122(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub122(this, arg);
@@ -2485,6 +2977,10 @@ class Sub123 extends Base256 {
   }
 
   void visitorDispatch123(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch123(Counter counter) {
     counter.inc();
   }
 
@@ -2508,6 +3004,10 @@ class Sub124 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch124(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub124(this, arg);
@@ -2525,6 +3025,10 @@ class Sub125 extends Base256 {
   }
 
   void visitorDispatch125(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch125(Counter counter) {
     counter.inc();
   }
 
@@ -2548,6 +3052,10 @@ class Sub126 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch126(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub126(this, arg);
@@ -2565,6 +3073,10 @@ class Sub127 extends Base256 {
   }
 
   void visitorDispatch127(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch127(Counter counter) {
     counter.inc();
   }
 
@@ -2588,6 +3100,10 @@ class Sub128 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch128(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub128(this, arg);
@@ -2605,6 +3121,10 @@ class Sub129 extends Base256 {
   }
 
   void visitorDispatch129(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch129(Counter counter) {
     counter.inc();
   }
 
@@ -2628,6 +3148,10 @@ class Sub130 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch130(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub130(this, arg);
@@ -2645,6 +3169,10 @@ class Sub131 extends Base256 {
   }
 
   void visitorDispatch131(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch131(Counter counter) {
     counter.inc();
   }
 
@@ -2668,6 +3196,10 @@ class Sub132 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch132(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub132(this, arg);
@@ -2685,6 +3217,10 @@ class Sub133 extends Base256 {
   }
 
   void visitorDispatch133(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch133(Counter counter) {
     counter.inc();
   }
 
@@ -2708,6 +3244,10 @@ class Sub134 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch134(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub134(this, arg);
@@ -2725,6 +3265,10 @@ class Sub135 extends Base256 {
   }
 
   void visitorDispatch135(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch135(Counter counter) {
     counter.inc();
   }
 
@@ -2748,6 +3292,10 @@ class Sub136 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch136(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub136(this, arg);
@@ -2765,6 +3313,10 @@ class Sub137 extends Base256 {
   }
 
   void visitorDispatch137(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch137(Counter counter) {
     counter.inc();
   }
 
@@ -2788,6 +3340,10 @@ class Sub138 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch138(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub138(this, arg);
@@ -2805,6 +3361,10 @@ class Sub139 extends Base256 {
   }
 
   void visitorDispatch139(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch139(Counter counter) {
     counter.inc();
   }
 
@@ -2828,6 +3388,10 @@ class Sub140 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch140(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub140(this, arg);
@@ -2845,6 +3409,10 @@ class Sub141 extends Base256 {
   }
 
   void visitorDispatch141(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch141(Counter counter) {
     counter.inc();
   }
 
@@ -2868,6 +3436,10 @@ class Sub142 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch142(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub142(this, arg);
@@ -2885,6 +3457,10 @@ class Sub143 extends Base256 {
   }
 
   void visitorDispatch143(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch143(Counter counter) {
     counter.inc();
   }
 
@@ -2908,6 +3484,10 @@ class Sub144 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch144(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub144(this, arg);
@@ -2925,6 +3505,10 @@ class Sub145 extends Base256 {
   }
 
   void visitorDispatch145(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch145(Counter counter) {
     counter.inc();
   }
 
@@ -2948,6 +3532,10 @@ class Sub146 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch146(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub146(this, arg);
@@ -2965,6 +3553,10 @@ class Sub147 extends Base256 {
   }
 
   void visitorDispatch147(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch147(Counter counter) {
     counter.inc();
   }
 
@@ -2988,6 +3580,10 @@ class Sub148 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch148(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub148(this, arg);
@@ -3005,6 +3601,10 @@ class Sub149 extends Base256 {
   }
 
   void visitorDispatch149(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch149(Counter counter) {
     counter.inc();
   }
 
@@ -3028,6 +3628,10 @@ class Sub150 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch150(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub150(this, arg);
@@ -3045,6 +3649,10 @@ class Sub151 extends Base256 {
   }
 
   void visitorDispatch151(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch151(Counter counter) {
     counter.inc();
   }
 
@@ -3068,6 +3676,10 @@ class Sub152 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch152(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub152(this, arg);
@@ -3085,6 +3697,10 @@ class Sub153 extends Base256 {
   }
 
   void visitorDispatch153(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch153(Counter counter) {
     counter.inc();
   }
 
@@ -3108,6 +3724,10 @@ class Sub154 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch154(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub154(this, arg);
@@ -3125,6 +3745,10 @@ class Sub155 extends Base256 {
   }
 
   void visitorDispatch155(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch155(Counter counter) {
     counter.inc();
   }
 
@@ -3148,6 +3772,10 @@ class Sub156 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch156(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub156(this, arg);
@@ -3165,6 +3793,10 @@ class Sub157 extends Base256 {
   }
 
   void visitorDispatch157(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch157(Counter counter) {
     counter.inc();
   }
 
@@ -3188,6 +3820,10 @@ class Sub158 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch158(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub158(this, arg);
@@ -3205,6 +3841,10 @@ class Sub159 extends Base256 {
   }
 
   void visitorDispatch159(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch159(Counter counter) {
     counter.inc();
   }
 
@@ -3228,6 +3868,10 @@ class Sub160 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch160(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub160(this, arg);
@@ -3245,6 +3889,10 @@ class Sub161 extends Base256 {
   }
 
   void visitorDispatch161(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch161(Counter counter) {
     counter.inc();
   }
 
@@ -3268,6 +3916,10 @@ class Sub162 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch162(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub162(this, arg);
@@ -3285,6 +3937,10 @@ class Sub163 extends Base256 {
   }
 
   void visitorDispatch163(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch163(Counter counter) {
     counter.inc();
   }
 
@@ -3308,6 +3964,10 @@ class Sub164 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch164(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub164(this, arg);
@@ -3325,6 +3985,10 @@ class Sub165 extends Base256 {
   }
 
   void visitorDispatch165(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch165(Counter counter) {
     counter.inc();
   }
 
@@ -3348,6 +4012,10 @@ class Sub166 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch166(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub166(this, arg);
@@ -3365,6 +4033,10 @@ class Sub167 extends Base256 {
   }
 
   void visitorDispatch167(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch167(Counter counter) {
     counter.inc();
   }
 
@@ -3388,6 +4060,10 @@ class Sub168 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch168(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub168(this, arg);
@@ -3405,6 +4081,10 @@ class Sub169 extends Base256 {
   }
 
   void visitorDispatch169(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch169(Counter counter) {
     counter.inc();
   }
 
@@ -3428,6 +4108,10 @@ class Sub170 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch170(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub170(this, arg);
@@ -3445,6 +4129,10 @@ class Sub171 extends Base256 {
   }
 
   void visitorDispatch171(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch171(Counter counter) {
     counter.inc();
   }
 
@@ -3468,6 +4156,10 @@ class Sub172 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch172(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub172(this, arg);
@@ -3485,6 +4177,10 @@ class Sub173 extends Base256 {
   }
 
   void visitorDispatch173(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch173(Counter counter) {
     counter.inc();
   }
 
@@ -3508,6 +4204,10 @@ class Sub174 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch174(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub174(this, arg);
@@ -3525,6 +4225,10 @@ class Sub175 extends Base256 {
   }
 
   void visitorDispatch175(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch175(Counter counter) {
     counter.inc();
   }
 
@@ -3548,6 +4252,10 @@ class Sub176 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch176(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub176(this, arg);
@@ -3565,6 +4273,10 @@ class Sub177 extends Base256 {
   }
 
   void visitorDispatch177(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch177(Counter counter) {
     counter.inc();
   }
 
@@ -3588,6 +4300,10 @@ class Sub178 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch178(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub178(this, arg);
@@ -3605,6 +4321,10 @@ class Sub179 extends Base256 {
   }
 
   void visitorDispatch179(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch179(Counter counter) {
     counter.inc();
   }
 
@@ -3628,6 +4348,10 @@ class Sub180 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch180(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub180(this, arg);
@@ -3645,6 +4369,10 @@ class Sub181 extends Base256 {
   }
 
   void visitorDispatch181(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch181(Counter counter) {
     counter.inc();
   }
 
@@ -3668,6 +4396,10 @@ class Sub182 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch182(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub182(this, arg);
@@ -3685,6 +4417,10 @@ class Sub183 extends Base256 {
   }
 
   void visitorDispatch183(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch183(Counter counter) {
     counter.inc();
   }
 
@@ -3708,6 +4444,10 @@ class Sub184 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch184(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub184(this, arg);
@@ -3725,6 +4465,10 @@ class Sub185 extends Base256 {
   }
 
   void visitorDispatch185(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch185(Counter counter) {
     counter.inc();
   }
 
@@ -3748,6 +4492,10 @@ class Sub186 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch186(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub186(this, arg);
@@ -3765,6 +4513,10 @@ class Sub187 extends Base256 {
   }
 
   void visitorDispatch187(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch187(Counter counter) {
     counter.inc();
   }
 
@@ -3788,6 +4540,10 @@ class Sub188 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch188(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub188(this, arg);
@@ -3805,6 +4561,10 @@ class Sub189 extends Base256 {
   }
 
   void visitorDispatch189(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch189(Counter counter) {
     counter.inc();
   }
 
@@ -3828,6 +4588,10 @@ class Sub190 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch190(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub190(this, arg);
@@ -3845,6 +4609,10 @@ class Sub191 extends Base256 {
   }
 
   void visitorDispatch191(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch191(Counter counter) {
     counter.inc();
   }
 
@@ -3868,6 +4636,10 @@ class Sub192 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch192(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub192(this, arg);
@@ -3885,6 +4657,10 @@ class Sub193 extends Base256 {
   }
 
   void visitorDispatch193(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch193(Counter counter) {
     counter.inc();
   }
 
@@ -3908,6 +4684,10 @@ class Sub194 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch194(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub194(this, arg);
@@ -3925,6 +4705,10 @@ class Sub195 extends Base256 {
   }
 
   void visitorDispatch195(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch195(Counter counter) {
     counter.inc();
   }
 
@@ -3948,6 +4732,10 @@ class Sub196 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch196(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub196(this, arg);
@@ -3965,6 +4753,10 @@ class Sub197 extends Base256 {
   }
 
   void visitorDispatch197(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch197(Counter counter) {
     counter.inc();
   }
 
@@ -3988,6 +4780,10 @@ class Sub198 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch198(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub198(this, arg);
@@ -4005,6 +4801,10 @@ class Sub199 extends Base256 {
   }
 
   void visitorDispatch199(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch199(Counter counter) {
     counter.inc();
   }
 
@@ -4028,6 +4828,10 @@ class Sub200 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch200(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub200(this, arg);
@@ -4045,6 +4849,10 @@ class Sub201 extends Base256 {
   }
 
   void visitorDispatch201(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch201(Counter counter) {
     counter.inc();
   }
 
@@ -4068,6 +4876,10 @@ class Sub202 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch202(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub202(this, arg);
@@ -4085,6 +4897,10 @@ class Sub203 extends Base256 {
   }
 
   void visitorDispatch203(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch203(Counter counter) {
     counter.inc();
   }
 
@@ -4108,6 +4924,10 @@ class Sub204 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch204(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub204(this, arg);
@@ -4125,6 +4945,10 @@ class Sub205 extends Base256 {
   }
 
   void visitorDispatch205(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch205(Counter counter) {
     counter.inc();
   }
 
@@ -4148,6 +4972,10 @@ class Sub206 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch206(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub206(this, arg);
@@ -4165,6 +4993,10 @@ class Sub207 extends Base256 {
   }
 
   void visitorDispatch207(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch207(Counter counter) {
     counter.inc();
   }
 
@@ -4188,6 +5020,10 @@ class Sub208 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch208(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub208(this, arg);
@@ -4205,6 +5041,10 @@ class Sub209 extends Base256 {
   }
 
   void visitorDispatch209(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch209(Counter counter) {
     counter.inc();
   }
 
@@ -4228,6 +5068,10 @@ class Sub210 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch210(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub210(this, arg);
@@ -4245,6 +5089,10 @@ class Sub211 extends Base256 {
   }
 
   void visitorDispatch211(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch211(Counter counter) {
     counter.inc();
   }
 
@@ -4268,6 +5116,10 @@ class Sub212 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch212(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub212(this, arg);
@@ -4285,6 +5137,10 @@ class Sub213 extends Base256 {
   }
 
   void visitorDispatch213(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch213(Counter counter) {
     counter.inc();
   }
 
@@ -4308,6 +5164,10 @@ class Sub214 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch214(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub214(this, arg);
@@ -4325,6 +5185,10 @@ class Sub215 extends Base256 {
   }
 
   void visitorDispatch215(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch215(Counter counter) {
     counter.inc();
   }
 
@@ -4348,6 +5212,10 @@ class Sub216 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch216(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub216(this, arg);
@@ -4365,6 +5233,10 @@ class Sub217 extends Base256 {
   }
 
   void visitorDispatch217(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch217(Counter counter) {
     counter.inc();
   }
 
@@ -4388,6 +5260,10 @@ class Sub218 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch218(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub218(this, arg);
@@ -4405,6 +5281,10 @@ class Sub219 extends Base256 {
   }
 
   void visitorDispatch219(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch219(Counter counter) {
     counter.inc();
   }
 
@@ -4428,6 +5308,10 @@ class Sub220 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch220(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub220(this, arg);
@@ -4445,6 +5329,10 @@ class Sub221 extends Base256 {
   }
 
   void visitorDispatch221(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch221(Counter counter) {
     counter.inc();
   }
 
@@ -4468,6 +5356,10 @@ class Sub222 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch222(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub222(this, arg);
@@ -4485,6 +5377,10 @@ class Sub223 extends Base256 {
   }
 
   void visitorDispatch223(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch223(Counter counter) {
     counter.inc();
   }
 
@@ -4508,6 +5404,10 @@ class Sub224 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch224(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub224(this, arg);
@@ -4525,6 +5425,10 @@ class Sub225 extends Base256 {
   }
 
   void visitorDispatch225(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch225(Counter counter) {
     counter.inc();
   }
 
@@ -4548,6 +5452,10 @@ class Sub226 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch226(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub226(this, arg);
@@ -4565,6 +5473,10 @@ class Sub227 extends Base256 {
   }
 
   void visitorDispatch227(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch227(Counter counter) {
     counter.inc();
   }
 
@@ -4588,6 +5500,10 @@ class Sub228 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch228(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub228(this, arg);
@@ -4605,6 +5521,10 @@ class Sub229 extends Base256 {
   }
 
   void visitorDispatch229(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch229(Counter counter) {
     counter.inc();
   }
 
@@ -4628,6 +5548,10 @@ class Sub230 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch230(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub230(this, arg);
@@ -4645,6 +5569,10 @@ class Sub231 extends Base256 {
   }
 
   void visitorDispatch231(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch231(Counter counter) {
     counter.inc();
   }
 
@@ -4668,6 +5596,10 @@ class Sub232 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch232(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub232(this, arg);
@@ -4685,6 +5617,10 @@ class Sub233 extends Base256 {
   }
 
   void visitorDispatch233(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch233(Counter counter) {
     counter.inc();
   }
 
@@ -4708,6 +5644,10 @@ class Sub234 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch234(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub234(this, arg);
@@ -4725,6 +5665,10 @@ class Sub235 extends Base256 {
   }
 
   void visitorDispatch235(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch235(Counter counter) {
     counter.inc();
   }
 
@@ -4748,6 +5692,10 @@ class Sub236 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch236(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub236(this, arg);
@@ -4765,6 +5713,10 @@ class Sub237 extends Base256 {
   }
 
   void visitorDispatch237(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch237(Counter counter) {
     counter.inc();
   }
 
@@ -4788,6 +5740,10 @@ class Sub238 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch238(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub238(this, arg);
@@ -4805,6 +5761,10 @@ class Sub239 extends Base256 {
   }
 
   void visitorDispatch239(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch239(Counter counter) {
     counter.inc();
   }
 
@@ -4828,6 +5788,10 @@ class Sub240 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch240(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub240(this, arg);
@@ -4845,6 +5809,10 @@ class Sub241 extends Base256 {
   }
 
   void visitorDispatch241(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch241(Counter counter) {
     counter.inc();
   }
 
@@ -4868,6 +5836,10 @@ class Sub242 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch242(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub242(this, arg);
@@ -4885,6 +5857,10 @@ class Sub243 extends Base256 {
   }
 
   void visitorDispatch243(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch243(Counter counter) {
     counter.inc();
   }
 
@@ -4908,6 +5884,10 @@ class Sub244 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch244(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub244(this, arg);
@@ -4925,6 +5905,10 @@ class Sub245 extends Base256 {
   }
 
   void visitorDispatch245(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch245(Counter counter) {
     counter.inc();
   }
 
@@ -4948,6 +5932,10 @@ class Sub246 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch246(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub246(this, arg);
@@ -4965,6 +5953,10 @@ class Sub247 extends Base256 {
   }
 
   void visitorDispatch247(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch247(Counter counter) {
     counter.inc();
   }
 
@@ -4988,6 +5980,10 @@ class Sub248 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch248(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub248(this, arg);
@@ -5005,6 +6001,10 @@ class Sub249 extends Base256 {
   }
 
   void visitorDispatch249(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch249(Counter counter) {
     counter.inc();
   }
 
@@ -5028,6 +6028,10 @@ class Sub250 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch250(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub250(this, arg);
@@ -5045,6 +6049,10 @@ class Sub251 extends Base256 {
   }
 
   void visitorDispatch251(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch251(Counter counter) {
     counter.inc();
   }
 
@@ -5068,6 +6076,10 @@ class Sub252 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch252(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub252(this, arg);
@@ -5085,6 +6097,10 @@ class Sub253 extends Base256 {
   }
 
   void visitorDispatch253(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch253(Counter counter) {
     counter.inc();
   }
 
@@ -5108,6 +6124,10 @@ class Sub254 extends Base256 {
     counter.inc();
   }
 
+  void patternDispatch254(Counter counter) {
+    counter.inc();
+  }
+
   @override
   R accept<R, A>(Visitor256<R, A> visitor, A arg) {
     return visitor.visitSub254(this, arg);
@@ -5125,6 +6145,10 @@ class Sub255 extends Base256 {
   }
 
   void visitorDispatch255(Counter counter) {
+    counter.inc();
+  }
+
+  void patternDispatch255(Counter counter) {
     counter.inc();
   }
 
@@ -5919,6 +6943,778 @@ const Visitor256<void, Counter> visitor = CounterVisitor256();
 
 void incByVisitorDispatch256(Base256 base, Counter counter) {
   base.accept(visitor, counter);
+}
+
+void incByPatternDispatch256(Base256 base, Counter counter) {
+  switch (base) {
+    case Sub0():
+      base.patternDispatch0(counter);
+
+    case Sub1():
+      base.patternDispatch1(counter);
+
+    case Sub2():
+      base.patternDispatch2(counter);
+
+    case Sub3():
+      base.patternDispatch3(counter);
+
+    case Sub4():
+      base.patternDispatch4(counter);
+
+    case Sub5():
+      base.patternDispatch5(counter);
+
+    case Sub6():
+      base.patternDispatch6(counter);
+
+    case Sub7():
+      base.patternDispatch7(counter);
+
+    case Sub8():
+      base.patternDispatch8(counter);
+
+    case Sub9():
+      base.patternDispatch9(counter);
+
+    case Sub10():
+      base.patternDispatch10(counter);
+
+    case Sub11():
+      base.patternDispatch11(counter);
+
+    case Sub12():
+      base.patternDispatch12(counter);
+
+    case Sub13():
+      base.patternDispatch13(counter);
+
+    case Sub14():
+      base.patternDispatch14(counter);
+
+    case Sub15():
+      base.patternDispatch15(counter);
+
+    case Sub16():
+      base.patternDispatch16(counter);
+
+    case Sub17():
+      base.patternDispatch17(counter);
+
+    case Sub18():
+      base.patternDispatch18(counter);
+
+    case Sub19():
+      base.patternDispatch19(counter);
+
+    case Sub20():
+      base.patternDispatch20(counter);
+
+    case Sub21():
+      base.patternDispatch21(counter);
+
+    case Sub22():
+      base.patternDispatch22(counter);
+
+    case Sub23():
+      base.patternDispatch23(counter);
+
+    case Sub24():
+      base.patternDispatch24(counter);
+
+    case Sub25():
+      base.patternDispatch25(counter);
+
+    case Sub26():
+      base.patternDispatch26(counter);
+
+    case Sub27():
+      base.patternDispatch27(counter);
+
+    case Sub28():
+      base.patternDispatch28(counter);
+
+    case Sub29():
+      base.patternDispatch29(counter);
+
+    case Sub30():
+      base.patternDispatch30(counter);
+
+    case Sub31():
+      base.patternDispatch31(counter);
+
+    case Sub32():
+      base.patternDispatch32(counter);
+
+    case Sub33():
+      base.patternDispatch33(counter);
+
+    case Sub34():
+      base.patternDispatch34(counter);
+
+    case Sub35():
+      base.patternDispatch35(counter);
+
+    case Sub36():
+      base.patternDispatch36(counter);
+
+    case Sub37():
+      base.patternDispatch37(counter);
+
+    case Sub38():
+      base.patternDispatch38(counter);
+
+    case Sub39():
+      base.patternDispatch39(counter);
+
+    case Sub40():
+      base.patternDispatch40(counter);
+
+    case Sub41():
+      base.patternDispatch41(counter);
+
+    case Sub42():
+      base.patternDispatch42(counter);
+
+    case Sub43():
+      base.patternDispatch43(counter);
+
+    case Sub44():
+      base.patternDispatch44(counter);
+
+    case Sub45():
+      base.patternDispatch45(counter);
+
+    case Sub46():
+      base.patternDispatch46(counter);
+
+    case Sub47():
+      base.patternDispatch47(counter);
+
+    case Sub48():
+      base.patternDispatch48(counter);
+
+    case Sub49():
+      base.patternDispatch49(counter);
+
+    case Sub50():
+      base.patternDispatch50(counter);
+
+    case Sub51():
+      base.patternDispatch51(counter);
+
+    case Sub52():
+      base.patternDispatch52(counter);
+
+    case Sub53():
+      base.patternDispatch53(counter);
+
+    case Sub54():
+      base.patternDispatch54(counter);
+
+    case Sub55():
+      base.patternDispatch55(counter);
+
+    case Sub56():
+      base.patternDispatch56(counter);
+
+    case Sub57():
+      base.patternDispatch57(counter);
+
+    case Sub58():
+      base.patternDispatch58(counter);
+
+    case Sub59():
+      base.patternDispatch59(counter);
+
+    case Sub60():
+      base.patternDispatch60(counter);
+
+    case Sub61():
+      base.patternDispatch61(counter);
+
+    case Sub62():
+      base.patternDispatch62(counter);
+
+    case Sub63():
+      base.patternDispatch63(counter);
+
+    case Sub64():
+      base.patternDispatch64(counter);
+
+    case Sub65():
+      base.patternDispatch65(counter);
+
+    case Sub66():
+      base.patternDispatch66(counter);
+
+    case Sub67():
+      base.patternDispatch67(counter);
+
+    case Sub68():
+      base.patternDispatch68(counter);
+
+    case Sub69():
+      base.patternDispatch69(counter);
+
+    case Sub70():
+      base.patternDispatch70(counter);
+
+    case Sub71():
+      base.patternDispatch71(counter);
+
+    case Sub72():
+      base.patternDispatch72(counter);
+
+    case Sub73():
+      base.patternDispatch73(counter);
+
+    case Sub74():
+      base.patternDispatch74(counter);
+
+    case Sub75():
+      base.patternDispatch75(counter);
+
+    case Sub76():
+      base.patternDispatch76(counter);
+
+    case Sub77():
+      base.patternDispatch77(counter);
+
+    case Sub78():
+      base.patternDispatch78(counter);
+
+    case Sub79():
+      base.patternDispatch79(counter);
+
+    case Sub80():
+      base.patternDispatch80(counter);
+
+    case Sub81():
+      base.patternDispatch81(counter);
+
+    case Sub82():
+      base.patternDispatch82(counter);
+
+    case Sub83():
+      base.patternDispatch83(counter);
+
+    case Sub84():
+      base.patternDispatch84(counter);
+
+    case Sub85():
+      base.patternDispatch85(counter);
+
+    case Sub86():
+      base.patternDispatch86(counter);
+
+    case Sub87():
+      base.patternDispatch87(counter);
+
+    case Sub88():
+      base.patternDispatch88(counter);
+
+    case Sub89():
+      base.patternDispatch89(counter);
+
+    case Sub90():
+      base.patternDispatch90(counter);
+
+    case Sub91():
+      base.patternDispatch91(counter);
+
+    case Sub92():
+      base.patternDispatch92(counter);
+
+    case Sub93():
+      base.patternDispatch93(counter);
+
+    case Sub94():
+      base.patternDispatch94(counter);
+
+    case Sub95():
+      base.patternDispatch95(counter);
+
+    case Sub96():
+      base.patternDispatch96(counter);
+
+    case Sub97():
+      base.patternDispatch97(counter);
+
+    case Sub98():
+      base.patternDispatch98(counter);
+
+    case Sub99():
+      base.patternDispatch99(counter);
+
+    case Sub100():
+      base.patternDispatch100(counter);
+
+    case Sub101():
+      base.patternDispatch101(counter);
+
+    case Sub102():
+      base.patternDispatch102(counter);
+
+    case Sub103():
+      base.patternDispatch103(counter);
+
+    case Sub104():
+      base.patternDispatch104(counter);
+
+    case Sub105():
+      base.patternDispatch105(counter);
+
+    case Sub106():
+      base.patternDispatch106(counter);
+
+    case Sub107():
+      base.patternDispatch107(counter);
+
+    case Sub108():
+      base.patternDispatch108(counter);
+
+    case Sub109():
+      base.patternDispatch109(counter);
+
+    case Sub110():
+      base.patternDispatch110(counter);
+
+    case Sub111():
+      base.patternDispatch111(counter);
+
+    case Sub112():
+      base.patternDispatch112(counter);
+
+    case Sub113():
+      base.patternDispatch113(counter);
+
+    case Sub114():
+      base.patternDispatch114(counter);
+
+    case Sub115():
+      base.patternDispatch115(counter);
+
+    case Sub116():
+      base.patternDispatch116(counter);
+
+    case Sub117():
+      base.patternDispatch117(counter);
+
+    case Sub118():
+      base.patternDispatch118(counter);
+
+    case Sub119():
+      base.patternDispatch119(counter);
+
+    case Sub120():
+      base.patternDispatch120(counter);
+
+    case Sub121():
+      base.patternDispatch121(counter);
+
+    case Sub122():
+      base.patternDispatch122(counter);
+
+    case Sub123():
+      base.patternDispatch123(counter);
+
+    case Sub124():
+      base.patternDispatch124(counter);
+
+    case Sub125():
+      base.patternDispatch125(counter);
+
+    case Sub126():
+      base.patternDispatch126(counter);
+
+    case Sub127():
+      base.patternDispatch127(counter);
+
+    case Sub128():
+      base.patternDispatch128(counter);
+
+    case Sub129():
+      base.patternDispatch129(counter);
+
+    case Sub130():
+      base.patternDispatch130(counter);
+
+    case Sub131():
+      base.patternDispatch131(counter);
+
+    case Sub132():
+      base.patternDispatch132(counter);
+
+    case Sub133():
+      base.patternDispatch133(counter);
+
+    case Sub134():
+      base.patternDispatch134(counter);
+
+    case Sub135():
+      base.patternDispatch135(counter);
+
+    case Sub136():
+      base.patternDispatch136(counter);
+
+    case Sub137():
+      base.patternDispatch137(counter);
+
+    case Sub138():
+      base.patternDispatch138(counter);
+
+    case Sub139():
+      base.patternDispatch139(counter);
+
+    case Sub140():
+      base.patternDispatch140(counter);
+
+    case Sub141():
+      base.patternDispatch141(counter);
+
+    case Sub142():
+      base.patternDispatch142(counter);
+
+    case Sub143():
+      base.patternDispatch143(counter);
+
+    case Sub144():
+      base.patternDispatch144(counter);
+
+    case Sub145():
+      base.patternDispatch145(counter);
+
+    case Sub146():
+      base.patternDispatch146(counter);
+
+    case Sub147():
+      base.patternDispatch147(counter);
+
+    case Sub148():
+      base.patternDispatch148(counter);
+
+    case Sub149():
+      base.patternDispatch149(counter);
+
+    case Sub150():
+      base.patternDispatch150(counter);
+
+    case Sub151():
+      base.patternDispatch151(counter);
+
+    case Sub152():
+      base.patternDispatch152(counter);
+
+    case Sub153():
+      base.patternDispatch153(counter);
+
+    case Sub154():
+      base.patternDispatch154(counter);
+
+    case Sub155():
+      base.patternDispatch155(counter);
+
+    case Sub156():
+      base.patternDispatch156(counter);
+
+    case Sub157():
+      base.patternDispatch157(counter);
+
+    case Sub158():
+      base.patternDispatch158(counter);
+
+    case Sub159():
+      base.patternDispatch159(counter);
+
+    case Sub160():
+      base.patternDispatch160(counter);
+
+    case Sub161():
+      base.patternDispatch161(counter);
+
+    case Sub162():
+      base.patternDispatch162(counter);
+
+    case Sub163():
+      base.patternDispatch163(counter);
+
+    case Sub164():
+      base.patternDispatch164(counter);
+
+    case Sub165():
+      base.patternDispatch165(counter);
+
+    case Sub166():
+      base.patternDispatch166(counter);
+
+    case Sub167():
+      base.patternDispatch167(counter);
+
+    case Sub168():
+      base.patternDispatch168(counter);
+
+    case Sub169():
+      base.patternDispatch169(counter);
+
+    case Sub170():
+      base.patternDispatch170(counter);
+
+    case Sub171():
+      base.patternDispatch171(counter);
+
+    case Sub172():
+      base.patternDispatch172(counter);
+
+    case Sub173():
+      base.patternDispatch173(counter);
+
+    case Sub174():
+      base.patternDispatch174(counter);
+
+    case Sub175():
+      base.patternDispatch175(counter);
+
+    case Sub176():
+      base.patternDispatch176(counter);
+
+    case Sub177():
+      base.patternDispatch177(counter);
+
+    case Sub178():
+      base.patternDispatch178(counter);
+
+    case Sub179():
+      base.patternDispatch179(counter);
+
+    case Sub180():
+      base.patternDispatch180(counter);
+
+    case Sub181():
+      base.patternDispatch181(counter);
+
+    case Sub182():
+      base.patternDispatch182(counter);
+
+    case Sub183():
+      base.patternDispatch183(counter);
+
+    case Sub184():
+      base.patternDispatch184(counter);
+
+    case Sub185():
+      base.patternDispatch185(counter);
+
+    case Sub186():
+      base.patternDispatch186(counter);
+
+    case Sub187():
+      base.patternDispatch187(counter);
+
+    case Sub188():
+      base.patternDispatch188(counter);
+
+    case Sub189():
+      base.patternDispatch189(counter);
+
+    case Sub190():
+      base.patternDispatch190(counter);
+
+    case Sub191():
+      base.patternDispatch191(counter);
+
+    case Sub192():
+      base.patternDispatch192(counter);
+
+    case Sub193():
+      base.patternDispatch193(counter);
+
+    case Sub194():
+      base.patternDispatch194(counter);
+
+    case Sub195():
+      base.patternDispatch195(counter);
+
+    case Sub196():
+      base.patternDispatch196(counter);
+
+    case Sub197():
+      base.patternDispatch197(counter);
+
+    case Sub198():
+      base.patternDispatch198(counter);
+
+    case Sub199():
+      base.patternDispatch199(counter);
+
+    case Sub200():
+      base.patternDispatch200(counter);
+
+    case Sub201():
+      base.patternDispatch201(counter);
+
+    case Sub202():
+      base.patternDispatch202(counter);
+
+    case Sub203():
+      base.patternDispatch203(counter);
+
+    case Sub204():
+      base.patternDispatch204(counter);
+
+    case Sub205():
+      base.patternDispatch205(counter);
+
+    case Sub206():
+      base.patternDispatch206(counter);
+
+    case Sub207():
+      base.patternDispatch207(counter);
+
+    case Sub208():
+      base.patternDispatch208(counter);
+
+    case Sub209():
+      base.patternDispatch209(counter);
+
+    case Sub210():
+      base.patternDispatch210(counter);
+
+    case Sub211():
+      base.patternDispatch211(counter);
+
+    case Sub212():
+      base.patternDispatch212(counter);
+
+    case Sub213():
+      base.patternDispatch213(counter);
+
+    case Sub214():
+      base.patternDispatch214(counter);
+
+    case Sub215():
+      base.patternDispatch215(counter);
+
+    case Sub216():
+      base.patternDispatch216(counter);
+
+    case Sub217():
+      base.patternDispatch217(counter);
+
+    case Sub218():
+      base.patternDispatch218(counter);
+
+    case Sub219():
+      base.patternDispatch219(counter);
+
+    case Sub220():
+      base.patternDispatch220(counter);
+
+    case Sub221():
+      base.patternDispatch221(counter);
+
+    case Sub222():
+      base.patternDispatch222(counter);
+
+    case Sub223():
+      base.patternDispatch223(counter);
+
+    case Sub224():
+      base.patternDispatch224(counter);
+
+    case Sub225():
+      base.patternDispatch225(counter);
+
+    case Sub226():
+      base.patternDispatch226(counter);
+
+    case Sub227():
+      base.patternDispatch227(counter);
+
+    case Sub228():
+      base.patternDispatch228(counter);
+
+    case Sub229():
+      base.patternDispatch229(counter);
+
+    case Sub230():
+      base.patternDispatch230(counter);
+
+    case Sub231():
+      base.patternDispatch231(counter);
+
+    case Sub232():
+      base.patternDispatch232(counter);
+
+    case Sub233():
+      base.patternDispatch233(counter);
+
+    case Sub234():
+      base.patternDispatch234(counter);
+
+    case Sub235():
+      base.patternDispatch235(counter);
+
+    case Sub236():
+      base.patternDispatch236(counter);
+
+    case Sub237():
+      base.patternDispatch237(counter);
+
+    case Sub238():
+      base.patternDispatch238(counter);
+
+    case Sub239():
+      base.patternDispatch239(counter);
+
+    case Sub240():
+      base.patternDispatch240(counter);
+
+    case Sub241():
+      base.patternDispatch241(counter);
+
+    case Sub242():
+      base.patternDispatch242(counter);
+
+    case Sub243():
+      base.patternDispatch243(counter);
+
+    case Sub244():
+      base.patternDispatch244(counter);
+
+    case Sub245():
+      base.patternDispatch245(counter);
+
+    case Sub246():
+      base.patternDispatch246(counter);
+
+    case Sub247():
+      base.patternDispatch247(counter);
+
+    case Sub248():
+      base.patternDispatch248(counter);
+
+    case Sub249():
+      base.patternDispatch249(counter);
+
+    case Sub250():
+      base.patternDispatch250(counter);
+
+    case Sub251():
+      base.patternDispatch251(counter);
+
+    case Sub252():
+      base.patternDispatch252(counter);
+
+    case Sub253():
+      base.patternDispatch253(counter);
+
+    case Sub254():
+      base.patternDispatch254(counter);
+
+    case Sub255():
+      base.patternDispatch255(counter);
+  }
 }
 
 abstract class Visitor256<R, A> {

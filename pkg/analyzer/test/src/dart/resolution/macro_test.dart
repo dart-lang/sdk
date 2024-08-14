@@ -815,7 +815,7 @@ class A {
       };
     }, r'''
 ResolvedLibraryResult #0
-  element: package:test/test.dart
+  element: <testLibrary>
   units
     ResolvedUnitResult #1
       path: /home/test/lib/test.dart
@@ -1051,7 +1051,7 @@ class User {
 
     assertResolvedLibraryResultText(result, r'''
 ResolvedLibraryResult #0
-  element: package:test/test.dart
+  element: <testLibrary>
   units
     ResolvedUnitResult #1
       path: /home/test/lib/test.dart
@@ -1095,7 +1095,7 @@ class A {}
         };
     }, r'''
 ResolvedLibraryResult #0
-  element: package:test/test.dart
+  element: <testLibrary>
   units
     ResolvedUnitResult #1
       path: /home/test/lib/test.dart
@@ -1156,7 +1156,7 @@ void f() {
         };
     }, r'''
 ResolvedLibraryResult #0
-  element: package:test/test.dart
+  element: <testLibrary>
   units
     ResolvedUnitResult #1
       path: /home/test/lib/test.dart
@@ -1168,7 +1168,7 @@ ResolvedLibraryResult #0
           ExpressionStatement
             expression: SimpleIdentifier
               token: x
-              staticElement: package:test/test.dart::@augmentation::package:test/test.macro.dart::@accessor::x
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
               staticType: int
             semicolon: ;
         rightBracket: }

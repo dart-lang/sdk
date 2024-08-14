@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid empty statements in else clauses.';
 
@@ -53,12 +54,6 @@ print('2');
 ''';
 
 class AvoidEmptyElse extends LintRule {
-  static const LintCode code = LintCode('avoid_empty_else',
-      "Empty statements are not allowed in an 'else' clause.",
-      correctionMessage:
-          'Try removing the empty statement or removing the else clause.',
-      hasPublishedDocs: true);
-
   AvoidEmptyElse()
       : super(
             name: 'avoid_empty_else',
@@ -70,7 +65,7 @@ class AvoidEmptyElse extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_empty_else;
 
   @override
   void registerNodeProcessors(

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Unnecessary null aware operator on extension on a nullable type.';
@@ -36,12 +37,6 @@ f(int? i) => i.m();
 ''';
 
 class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_null_aware_operator_on_extension_on_nullable',
-      'Unnecessary use of a null-aware operator to invoke an extension method '
-          'on a nullable type.',
-      correctionMessage: "Try removing the '?'.");
-
   UnnecessaryNullAwareOperatorOnExtensionOnNullable()
       : super(
           name: 'unnecessary_null_aware_operator_on_extension_on_nullable',
@@ -51,7 +46,8 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.unnecessary_null_aware_operator_on_extension_on_nullable;
 
   @override
   void registerNodeProcessors(

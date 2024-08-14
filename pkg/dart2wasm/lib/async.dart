@@ -9,20 +9,79 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'state_machine.dart';
+import 'translator.dart' show CompilationTask;
 
-class AsyncCodeGenerator extends StateMachineCodeGenerator {
-  AsyncCodeGenerator(super.translator, super.function, super.reference);
-
+mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   late final ClassInfo asyncSuspendStateInfo =
       translator.classInfo[translator.asyncSuspendStateClass]!;
 
-  // Note: These locals are only available in "inner" functions.
-  w.Local get _suspendStateLocal => function.locals[0];
-  w.Local get _awaitValueLocal => function.locals[1];
-  w.Local get _pendingExceptionLocal => function.locals[2];
-  w.Local get _pendingStackTraceLocal => function.locals[3];
+  @override
+  void generateOuter(
+      FunctionNode functionNode, Context? context, Source functionSource) {
+    final resumeFun = _defineInnerBodyFunction(functionNode);
 
-  w.FunctionBuilder _defineBodyFunction(FunctionNode functionNode) =>
+    // Outer (wrapper) function creates async state, calls the inner function
+    // (which runs until first suspension point, i.e. `await`), and returns the
+    // completer's future.
+
+    // (1) Create async state.
+
+    final asyncStateLocal =
+        b.addLocal(w.RefType(asyncSuspendStateInfo.struct, nullable: false));
+
+    // AsyncResumeFun _resume
+    b.global_get(translator.makeFunctionRef(resumeFun));
+
+    // WasmStructRef? _context
+    if (context != null) {
+      assert(!context.isEmpty);
+      b.local_get(context.currentLocal);
+    } else {
+      b.ref_null(w.HeapType.struct);
+    }
+
+    // _AsyncCompleter _completer
+    types.makeType(this, functionNode.emittedValueType!);
+    call(translator.makeAsyncCompleter.reference);
+
+    // Allocate `_AsyncSuspendState`
+    call(translator.newAsyncSuspendState.reference);
+    b.local_set(asyncStateLocal);
+
+    // (2) Call inner function.
+    //
+    // Note: the inner function does not throw, so we don't need a `try` block
+    // here.
+
+    b.local_get(asyncStateLocal);
+    b.ref_null(translator.topInfo.struct); // await value
+    b.ref_null(translator.topInfo.struct); // error value
+    b.ref_null(translator.stackTraceInfo.repr.struct); // stack trace
+    b.call(resumeFun);
+    b.drop(); // drop null
+
+    // (3) Return the completer's future.
+
+    b.local_get(asyncStateLocal);
+    final completerFutureGetterType = translator
+        .signatureForDirectCall(translator.completerFuture.getterReference);
+    b.struct_get(
+        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
+    translator.convertType(
+        b,
+        asyncSuspendStateInfo.struct.fields[5].type.unpacked,
+        completerFutureGetterType.inputs[0]);
+    call(translator.completerFuture.getterReference);
+    b.return_();
+    b.end();
+
+    translator.compilationQueue.add(CompilationTask(
+        resumeFun,
+        AsyncStateMachineCodeGenerator(translator, resumeFun, enclosingMember,
+            functionNode, functionSource, closures)));
+  }
+
+  w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
       m.functions.define(
           m.types.defineFunction([
             asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
@@ -37,6 +96,39 @@ class AsyncCodeGenerator extends StateMachineCodeGenerator {
             translator.topInfo.nullableType
           ]),
           "${function.functionName} inner");
+}
+
+/// Generates code for async procedures.
+class AsyncProcedureCodeGenerator
+    extends ProcedureStateMachineEntryCodeGenerator
+    with AsyncCodeGeneratorMixin {
+  AsyncProcedureCodeGenerator(
+      super.translator, super.function, super.enclosingMember);
+}
+
+/// Generates code for async closures.
+class AsyncLambdaCodeGenerator extends LambdaStateMachineEntryCodeGenerator
+    with AsyncCodeGeneratorMixin {
+  AsyncLambdaCodeGenerator(
+      super.translator, super.enclosingMember, super.lambda, super.closures);
+}
+
+class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
+  AsyncStateMachineCodeGenerator(
+      super.translator,
+      super.function,
+      super.enclosingMember,
+      super.functionNode,
+      super.functionSource,
+      super.closures);
+
+  late final ClassInfo asyncSuspendStateInfo =
+      translator.classInfo[translator.asyncSuspendStateClass]!;
+
+  w.Local get _suspendStateLocal => function.locals[0];
+  w.Local get _awaitValueLocal => function.locals[1];
+  w.Local get _pendingExceptionLocal => function.locals[2];
+  w.Local get _pendingStackTraceLocal => function.locals[3];
 
   @override
   void setSuspendStateCurrentException(void Function() emitValue) {
@@ -94,94 +186,19 @@ class AsyncCodeGenerator extends StateMachineCodeGenerator {
   }
 
   @override
-  void generateFunctions(FunctionNode functionNode, Context? context) {
-    final resumeFun = _defineBodyFunction(functionNode);
-
-    _generateOuter(functionNode, context, resumeFun);
-
-    // Forget about the outer function locals containing the type arguments,
-    // so accesses to the type arguments in the inner function will fetch them
-    // from the context.
-    typeLocals.clear();
-
-    _generateInner(functionNode, context, resumeFun);
-  }
-
-  void _generateOuter(
-      FunctionNode functionNode, Context? context, w.BaseFunction resumeFun) {
-    // Outer (wrapper) function creates async state, calls the inner function
-    // (which runs until first suspension point, i.e. `await`), and returns the
-    // completer's future.
-
-    // (1) Create async state.
-
-    final asyncStateLocal = function
-        .addLocal(w.RefType(asyncSuspendStateInfo.struct, nullable: false));
-
-    // AsyncResumeFun _resume
-    b.global_get(translator.makeFunctionRef(resumeFun));
-
-    // WasmStructRef? _context
-    if (context != null) {
-      assert(!context.isEmpty);
-      b.local_get(context.currentLocal);
-    } else {
-      b.ref_null(w.HeapType.struct);
-    }
-
-    // _AsyncCompleter _completer
-    types.makeType(this, functionNode.emittedValueType!);
-    call(translator.makeAsyncCompleter.reference);
-
-    // Allocate `_AsyncSuspendState`
-    call(translator.newAsyncSuspendState.reference);
-    b.local_set(asyncStateLocal);
-
-    // (2) Call inner function.
-    //
-    // Note: the inner function does not throw, so we don't need a `try` block
-    // here.
-
-    b.local_get(asyncStateLocal);
-    b.ref_null(translator.topInfo.struct); // await value
-    b.ref_null(translator.topInfo.struct); // error value
-    b.ref_null(translator.stackTraceInfo.repr.struct); // stack trace
-    b.call(resumeFun);
-    b.drop(); // drop null
-
-    // (3) Return the completer's future.
-
-    b.local_get(asyncStateLocal);
-    final completerFutureGetterType = translator
-        .signatureForDirectCall(translator.completerFuture.getterReference);
-    b.struct_get(
-        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-    translator.convertType(
-        function,
-        asyncSuspendStateInfo.struct.fields[5].type.unpacked,
-        completerFutureGetterType.inputs[0]);
-    call(translator.completerFuture.getterReference);
-    b.end();
-  }
-
-  void _generateInner(FunctionNode functionNode, Context? context,
-      w.FunctionBuilder resumeFun) {
+  void generateInner(FunctionNode functionNode, Context? context) {
     // void Function(_AsyncSuspendState, Object?, Object?, StackTrace?)
-
-    // Set the current Wasm function for the code generator to the inner
-    // function of the `async`, which is to contain the body.
-    function = resumeFun;
 
     // Set up locals for contexts and `this`.
     thisLocal = null;
     Context? localContext = context;
     while (localContext != null) {
       if (!localContext.isEmpty) {
-        localContext.currentLocal = function
-            .addLocal(w.RefType.def(localContext.struct, nullable: true));
+        localContext.currentLocal =
+            b.addLocal(w.RefType.def(localContext.struct, nullable: true));
         if (localContext.containsThis) {
           assert(thisLocal == null);
-          thisLocal = function.addLocal(localContext
+          thisLocal = b.addLocal(localContext
               .struct.fields[localContext.thisFieldIndex].type.unpacked
               .withNullability(false));
           translator.globals.instantiateDummyValue(b, thisLocal!.type);
@@ -375,7 +392,7 @@ class AsyncCodeGenerator extends StateMachineCodeGenerator {
     setVariable(awaitValueVar, () {
       b.local_get(_awaitValueLocal);
       translator.convertType(
-          function, _awaitValueLocal.type, translateType(awaitValueVar.type));
+          b, _awaitValueLocal.type, translateType(awaitValueVar.type));
     });
   }
 }

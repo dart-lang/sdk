@@ -19,6 +19,7 @@ class ObjectPointerVisitor;
 #define FOR_EACH_BOOTSTRAP_LIBRARY(M)                                          \
   M(Core, core)                                                                \
   M(Async, async)                                                              \
+  M(CompactHash, _compact_hash)                                                \
   M(Collection, collection)                                                    \
   M(Convert, convert)                                                          \
   M(Developer, developer)                                                      \
@@ -142,6 +143,7 @@ class ObjectPointerVisitor;
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
   RW(Library, core_library)                                                    \
+  RW(Library, _compact_hash_library)                                           \
   RW(Library, collection_library)                                              \
   RW(Library, concurrent_library)                                              \
   RW(Library, convert_library)                                                 \

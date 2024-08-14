@@ -11,13 +11,14 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -198,6 +199,9 @@ class BulkFixProcessor {
       DataDriven.new,
     ],
   };
+
+  /// Cached results of [_canBulkFix].
+  static final Map<ErrorCode, bool> _bulkFixableErrorCodes = {};
 
   static final Set<String> _errorCodes =
       errorCodeValues.map((ErrorCode code) => code.name.toLowerCase()).toSet();
@@ -737,12 +741,13 @@ class BulkFixProcessor {
     var codeName = errorCode.name;
     try {
       if (errorCode is LintCode) {
-        var generators = FixProcessor.lintProducerMap[errorCode] ?? [];
+        var generators = registeredFixGenerators.lintProducers[errorCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
         }
-        var multiGenerators = FixProcessor.lintMultiProducerMap[errorCode];
+        var multiGenerators =
+            registeredFixGenerators.lintMultiProducers[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator(context: context);
@@ -752,7 +757,8 @@ class BulkFixProcessor {
           }
         }
       } else {
-        var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
+        var generators =
+            registeredFixGenerators.nonLintProducers[errorCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
@@ -794,7 +800,8 @@ class BulkFixProcessor {
     var codeName = errorCode.name;
     try {
       if (errorCode is LintCode) {
-        var generators = FixProcessor.parseLintProducerMap[errorCode] ?? [];
+        var generators =
+            registeredFixGenerators.parseLintProducers[errorCode] ?? [];
         await _bulkApply(generators, codeName, context, parsedOnly: true);
         if (isCancelled) {
           return;
@@ -874,22 +881,6 @@ class BulkFixProcessor {
     return filteredErrors.any(_isFixableError);
   }
 
-  /// Returns whether [error] is something that might be fixable.
-  bool _isFixableError(AnalysisError error) {
-    var errorCode = error.errorCode;
-
-    // Special cases that can be bulk fixed by this class but not by
-    // FixProcessor.
-    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
-        errorCode == HintCode.UNNECESSARY_IMPORT ||
-        errorCode == WarningCode.UNUSED_IMPORT ||
-        (DirectivesOrdering.allCodes.contains(errorCode))) {
-      return true;
-    }
-
-    return FixProcessor.canBulkFix(errorCode);
-  }
-
   Future<BulkFixRequestResult> _organizeDirectives(
       List<AnalysisContext> contexts) async {
     for (var context in contexts) {
@@ -945,6 +936,56 @@ class BulkFixProcessor {
       return await generator.computeFixes();
     }
     return [];
+  }
+
+  /// Returns whether [errorCode] is an error that can be fixed in bulk.
+  static bool _canBulkFix(ErrorCode errorCode) {
+    bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
+      return generators != null &&
+          generators.any((generator) =>
+              generator(context: StubCorrectionProducerContext.instance)
+                  .canBeAppliedAcrossFiles);
+    }
+
+    return _bulkFixableErrorCodes.putIfAbsent(errorCode, () {
+      if (errorCode is LintCode) {
+        var producers = registeredFixGenerators.lintProducers[errorCode];
+        if (hasBulkFixProducers(producers)) {
+          return true;
+        }
+
+        return registeredFixGenerators.lintMultiProducers
+            .containsKey(errorCode);
+      }
+
+      var producers = registeredFixGenerators.nonLintProducers[errorCode];
+      if (hasBulkFixProducers(producers)) {
+        return true;
+      }
+
+      // We can't do detailed checks on multi-producers because the set of
+      // producers may vary depending on the resolved unit (we must configure
+      // them before we can determine the producers).
+      return registeredFixGenerators.nonLintMultiProducers
+              .containsKey(errorCode) ||
+          BulkFixProcessor.nonLintMultiProducerMap.containsKey(errorCode);
+    });
+  }
+
+  /// Returns whether [error] is something that might be fixable.
+  static bool _isFixableError(AnalysisError error) {
+    var errorCode = error.errorCode;
+
+    // Special cases that can be bulk fixed by this class but not by
+    // FixProcessor.
+    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
+        errorCode == HintCode.UNNECESSARY_IMPORT ||
+        errorCode == WarningCode.UNUSED_IMPORT ||
+        (DirectivesOrdering.allCodes.contains(errorCode))) {
+      return true;
+    }
+
+    return _canBulkFix(errorCode);
   }
 }
 

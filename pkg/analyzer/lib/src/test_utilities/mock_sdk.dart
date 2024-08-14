@@ -895,6 +895,13 @@ final class Array<T extends NativeType> extends _Compound {
       int dimension5]) = _ArraySize<T>;
 
   const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
+
+  @Since('3.6')
+  const factory Array.variable() = _ArraySize<T>.variable;
+
+  @Since('3.6')
+  const factory Array.variableMulti(List<int> dimensions) =
+      _ArraySize<T>.variableMulti;
 }
 
 final class _ArraySize<T extends NativeType> implements Array<T> {
@@ -906,16 +913,44 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 
   final List<int>? dimensions;
 
-  const _ArraySize(this.dimension1,
-      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
-      : dimensions = null;
+  final bool variableLength;
+
+  const _ArraySize(
+    this.dimension1, [
+    this.dimension2,
+    this.dimension3,
+    this.dimension4,
+    this.dimension5,
+  ])  : dimensions = null,
+        variableLength = false;
 
   const _ArraySize.multi(this.dimensions)
       : dimension1 = null,
         dimension2 = null,
         dimension3 = null,
         dimension4 = null,
-        dimension5 = null;
+        dimension5 = null,
+        variableLength = false;
+
+  static const variableLengthLength = 0;
+
+  const _ArraySize.variable([
+    this.dimension2,
+    this.dimension3,
+    this.dimension4,
+    this.dimension5,
+  ])  : dimension1 = variableLengthLength,
+        dimensions = null,
+        variableLength = true;
+
+  const _ArraySize.variableMulti(List<int> nestedDimensions)
+      : dimensions = nestedDimensions,
+        dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null,
+        variableLength = true;
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {
@@ -1281,6 +1316,10 @@ library dart.io;
 import 'dart:convert';
 
 Never exit(int code) => throw code;
+
+int get exitCode => 0;
+
+void set exitCode(int code) {}
 
 abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {

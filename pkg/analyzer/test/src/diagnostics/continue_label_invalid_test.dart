@@ -26,7 +26,7 @@ void f() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
       error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 50, 11),
     ]);
   }

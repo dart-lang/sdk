@@ -7,5 +7,9 @@ environment:
   sdk: '>=2.19.0 <3.0.0'
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  collection: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependency:
   lints: any

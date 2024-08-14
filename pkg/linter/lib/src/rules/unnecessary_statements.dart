@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using unnecessary statements.';
 
@@ -46,11 +47,6 @@ return myvar;
 ''';
 
 class UnnecessaryStatements extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_statements', 'Unnecessary statement.',
-      correctionMessage: 'Try completing the statement or breaking it up.',
-      hasPublishedDocs: true);
-
   UnnecessaryStatements()
       : super(
             name: 'unnecessary_statements',
@@ -62,7 +58,7 @@ class UnnecessaryStatements extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_statements;
 
   @override
   void registerNodeProcessors(

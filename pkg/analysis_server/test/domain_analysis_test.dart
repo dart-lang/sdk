@@ -14,6 +14,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +22,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'analysis_server_base.dart';
 import 'mocks.dart';
 import 'services/completion/dart/text_expectations.dart';
-import 'utils/tree_string_sink.dart';
 
 void main() {
   defineReflectiveSuite(() {

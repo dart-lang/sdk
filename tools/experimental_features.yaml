@@ -131,9 +131,6 @@ features:
   wildcard-variables:
     help: "Local declarations and parameters named `_` are non-binding."
 
-  digit-separators:
-    help: "Number literals with digit separators."
-
   null-aware-elements:
     help: "Null-aware elements and map entries in collections."
 
@@ -155,6 +152,17 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  digit-separators:
+    enabledIn: '3.6.0'
+    validation: |
+      main() {
+        int x = 1_000_000;
+        int y = 0xff_ff_ff;
+        double z = 1__2.3__4e5__6;
+        print('feature enabled');
+      }
+    help: "Number literals with digit separators."
 
   inference-update-3: # See https://github.com/dart-lang/language/issues/1618
     enabledIn: '3.4.0'

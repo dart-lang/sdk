@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid single cascade in expression statements.';
 
@@ -26,12 +27,6 @@ o.m();
 ''';
 
 class AvoidSingleCascadeInExpressionStatements extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_single_cascade_in_expression_statements',
-      'Unnecessary cascade expression.',
-      correctionMessage: "Try using the operator '{0}'.",
-      hasPublishedDocs: true);
-
   AvoidSingleCascadeInExpressionStatements()
       : super(
             name: 'avoid_single_cascade_in_expression_statements',
@@ -40,7 +35,8 @@ class AvoidSingleCascadeInExpressionStatements extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_single_cascade_in_expression_statements;
 
   @override
   void registerNodeProcessors(

@@ -16,7 +16,7 @@ Future<void> main(List<String> args) async {
   // Expect something like /full/path/to/sdk/pkg/some_dir/whatever/else
   if (args.length != 1) throw "Need exactly one argument.";
 
-  final List<String> changedFiles = getChangedFiles();
+  final List<String> changedFiles = getChangedFiles(collectUncommitted: false);
   String callerPath = args[0].replaceAll("\\", "/");
   if (!_shouldRun(changedFiles, callerPath)) {
     return;
@@ -291,7 +291,18 @@ Future<void> _executePendingWorkItems(List<Work> workItems) async {
 /// Queries git about changes against upstream, or origin/main if no upstream is
 /// set. This is similar (but different), I believe, to what
 /// `git cl presubmit` does.
-List<String> getChangedFiles() {
+List<String> getChangedFiles({required bool collectUncommitted}) {
+  Set<String> paths = {};
+  void collectChanges(ProcessResult processResult) {
+    for (String line in processResult.stdout.toString().split("\n")) {
+      List<String> split = line.split("\t");
+      if (split.length != 2) continue;
+      if (split[0] == 'D') continue; // Don't check deleted files.
+      String path = split[1].trim().replaceAll("\\", "/");
+      paths.add(path);
+    }
+  }
+
   ProcessResult result = Process.runSync(
       "git",
       [
@@ -300,7 +311,7 @@ List<String> getChangedFiles() {
         "diff",
         "--name-status",
         "--no-renames",
-        "@{u}...HEAD"
+        "@{u}...HEAD",
       ],
       runInShell: true);
   if (result.exitCode != 0) {
@@ -312,23 +323,31 @@ List<String> getChangedFiles() {
           "diff",
           "--name-status",
           "--no-renames",
-          "origin/main...HEAD"
+          "origin/main...HEAD",
         ],
         runInShell: true);
   }
   if (result.exitCode != 0) {
     throw "Failure";
   }
+  collectChanges(result);
 
-  List<String> paths = [];
-  for (String line in result.stdout.toString().split("\n")) {
-    List<String> split = line.split("\t");
-    if (split.length != 2) continue;
-    if (split[0] == 'D') continue; // Don't check deleted files.
-    String path = split[1].trim().replaceAll("\\", "/");
-    paths.add(path);
+  if (collectUncommitted) {
+    result = Process.runSync(
+        "git",
+        [
+          "-c",
+          "core.quotePath=false",
+          "diff",
+          "--name-status",
+          "--no-renames",
+          "HEAD",
+        ],
+        runInShell: true);
+    collectChanges(result);
   }
-  return paths;
+
+  return paths.toList();
 }
 
 /// If [inner] is a dir or file inside [outer] this returns the index into

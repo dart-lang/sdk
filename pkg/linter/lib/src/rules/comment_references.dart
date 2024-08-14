@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Only reference in-scope identifiers in doc comments.';
 
@@ -66,10 +67,6 @@ information.
 ''';
 
 class CommentReferences extends LintRule {
-  static const LintCode code = LintCode(
-      'comment_references', "The referenced name isn't visible in scope.",
-      correctionMessage: 'Try adding an import for the referenced name.');
-
   CommentReferences()
       : super(
             name: 'comment_references',
@@ -78,7 +75,7 @@ class CommentReferences extends LintRule {
             categories: {LintRuleCategory.documentationCommentMaintenance});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.comment_references;
 
   @override
   void registerNodeProcessors(

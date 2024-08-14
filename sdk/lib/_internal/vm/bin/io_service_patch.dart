@@ -57,11 +57,11 @@ class _IOService {
     do {
       id = _getNextId();
     } while (_messageMap.containsKey(id));
-    final SendPort servicePort = _servicePorts._getPort(id);
-    _ensureInitialize();
     final Completer completer = new Completer();
-    _messageMap[id] = completer;
     try {
+      final SendPort servicePort = _servicePorts._getPort(id);
+      _ensureInitialize();
+      _messageMap[id] = completer;
       servicePort.send(<dynamic>[id, _replyToPort, request, data]);
     } catch (error) {
       _messageMap.remove(id)!.complete(error);

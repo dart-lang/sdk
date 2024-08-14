@@ -358,24 +358,24 @@ class OmitObviousLocalVariableTypesLintBulkTest extends BulkFixProcessorTest {
   Future<void> test_singleFile() async {
     await resolveTestCode('''
 List f() {
-  List<int> l = [1];
+  List<String> l = ['a'];
   return l;
 }
 
 void f2() {
-  for (int i in [1]) {
+  for (String i in ['a']) {
     print(i);
   }
 }
 ''');
     await assertHasFix('''
 List f() {
-  var l = <int>[1];
+  var l = <String>['a'];
   return l;
 }
 
 void f2() {
-  for (var i in [1]) {
+  for (var i in ['a']) {
     print(i);
   }
 }
@@ -393,16 +393,16 @@ class OmitObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
 
   Future<void> test_for() async {
     await resolveTestCode('''
-void f(List<int> list) {
-  for (int i = 0; i < list.length; i++) {
-    print(i);
+void f(List<String> list) {
+  for (double d = 0.5; d < list.length; d += 1) {
+    print(d);
   }
 }
 ''');
     await assertHasFix('''
-void f(List<int> list) {
-  for (var i = 0; i < list.length; i++) {
-    print(i);
+void f(List<String> list) {
+  for (var d = 0.5; d < list.length; d += 1) {
+    print(d);
   }
 }
 ''');
@@ -411,15 +411,15 @@ void f(List<int> list) {
   Future<void> test_forEach() async {
     await resolveTestCode('''
 void f() {
-  for (int i in [1]) {
-    print(i);
+  for (String s in ['a']) {
+    print(s);
   }
 }
 ''');
     await assertHasFix('''
 void f() {
-  for (var i in [1]) {
-    print(i);
+  for (var s in ['a']) {
+    print(s);
   }
 }
 ''');
@@ -428,15 +428,15 @@ void f() {
   Future<void> test_forEach_final() async {
     await resolveTestCode('''
 void f() {
-  for (final int i in [1]) {
-    print(i);
+  for (final String s in ['a']) {
+    print(s);
   }
 }
 ''');
     await assertHasFix('''
 void f() {
-  for (final i in [1]) {
-    print(i);
+  for (final s in ['a']) {
+    print(s);
   }
 }
 ''');
@@ -477,13 +477,13 @@ class C<T> {}
   Future<void> test_generic_listLiteral() async {
     await resolveTestCode('''
 List f() {
-  List<int> l = [1];
+  List<int> l = <int>[];
   return l;
 }
 ''');
     await assertHasFix('''
 List f() {
-  var l = <int>[1];
+  var l = <int>[];
   return l;
 }
 ''');
@@ -507,13 +507,13 @@ String f() {
   Future<void> test_generic_mapLiteral() async {
     await resolveTestCode('''
 Map f() {
-  Map<String, int> m = {'a': 1};
+  Map<String, double> m = {'a': 1.5};
   return m;
 }
 ''');
     await assertHasFix('''
 Map f() {
-  var m = <String, int>{'a': 1};
+  var m = <String, double>{'a': 1.5};
   return m;
 }
 ''');
@@ -522,13 +522,13 @@ Map f() {
   Future<void> test_generic_mapLiteral_const() async {
     await resolveTestCode('''
 Map f() {
-  const Map<String, int> m = const {'a': 1};
+  const Map<String, double> m = const {'a': 1.5};
   return m;
 }
 ''');
     await assertHasFix('''
 Map f() {
-  const m = const <String, int>{'a': 1};
+  const m = const <String, double>{'a': 1.5};
   return m;
 }
 ''');
@@ -537,13 +537,13 @@ Map f() {
   Future<void> test_generic_setLiteral() async {
     await resolveTestCode('''
 Set f() {
-  Set<int> s = {1};
+  Set<double> s = {1.5};
   return s;
 }
 ''');
     await assertHasFix('''
 Set f() {
-  var s = <int>{1};
+  var s = <double>{1.5};
   return s;
 }
 ''');
@@ -582,13 +582,13 @@ String f() {
   Future<void> test_generic_setLiteral_recordType() async {
     await resolveTestCode('''
 Set f() {
-  Set<(int, int)> s = {(1, 2)};
+  Set<(double, double)> s = {(1.5, 2.5)};
   return s;
 }
 ''');
     await assertHasFix('''
 Set f() {
-  var s = <(int, int)>{(1, 2)};
+  var s = <(double, double)>{(1.5, 2.5)};
   return s;
 }
 ''');
@@ -642,13 +642,13 @@ String f() {
   Future<void> test_simple_recordType() async {
     await resolveTestCode(r'''
 String f() {
-  (int, String) r = (3, '');
+  (double, String) r = (3.5, '');
   return r.$2;
 }
 ''');
     await assertHasFix(r'''
 String f() {
-  var r = (3, '');
+  var r = (3.5, '');
   return r.$2;
 }
 ''');

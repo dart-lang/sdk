@@ -121,7 +121,7 @@ class GenericInferenceState<TypeParameter extends Object> extends State {
 /// This class defines methods that the analyzer or CFE can use to instrument
 /// their type inference logic. The implementations are found in
 /// [SharedInferenceLogWriterImpl].
-abstract interface class SharedInferenceLogWriter<Type extends SharedType,
+abstract interface class SharedInferenceLogWriter<Type extends SharedType<Type>,
     TypeParameter extends Object> {
   /// If [inProgress] is `true`, verifies that generic type inference is in
   /// progress; otherwise, verifies that generic type inference is not in
@@ -266,7 +266,7 @@ abstract interface class SharedInferenceLogWriter<Type extends SharedType,
 /// from classes derived from [SharedInferenceLogWriterImpl], but these methods
 /// are not exposed in [SharedInferenceLogWriter] so that they won't be called
 /// accidentally on their own.
-abstract class SharedInferenceLogWriterImpl<Type extends SharedType,
+abstract class SharedInferenceLogWriterImpl<Type extends SharedType<Type>,
         TypeParameter extends Object>
     implements SharedInferenceLogWriter<Type, TypeParameter> {
   /// A stack of [State] objects representing the calls that have been made to

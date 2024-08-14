@@ -80,7 +80,6 @@ enum NullValues implements NullValue<Object> {
   ShowClause,
   StringLiteral,
   StructuralVariables,
-  SwitchScope,
   Token,
   Type,
   TypeArguments,

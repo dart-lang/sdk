@@ -338,10 +338,7 @@ class Object {
   bool IsImmutable() const { return ptr()->untag()->IsImmutable(); }
   void SetImmutable() const { ptr()->untag()->SetImmutable(); }
   void ClearImmutable() const { ptr()->untag()->ClearImmutable(); }
-  intptr_t GetClassId() const {
-    return !ptr()->IsHeapObject() ? static_cast<intptr_t>(kSmiCid)
-                                  : ptr()->untag()->GetClassId();
-  }
+  intptr_t GetClassId() const { return ptr()->GetClassId(); }
   inline ClassPtr clazz() const;
   static intptr_t tags_offset() { return OFFSET_OF(UntaggedObject, tags_); }
 
@@ -5353,6 +5350,7 @@ class Library : public Object {
   static LibraryPtr ConvertLibrary();
   static LibraryPtr CoreLibrary();
   static LibraryPtr CollectionLibrary();
+  static LibraryPtr CompactHashLibrary();
   static LibraryPtr DeveloperLibrary();
   static LibraryPtr FfiLibrary();
   static LibraryPtr InternalLibrary();
@@ -7162,7 +7160,7 @@ class Code : public Object {
     if (!owner->IsHeapObject()) {
       return RawSmiValue(static_cast<SmiPtr>(owner));
     }
-    return owner->GetClassId();
+    return owner->GetClassIdOfHeapObject();
   }
 
   static intptr_t owner_offset() { return OFFSET_OF(UntaggedCode, owner_); }
@@ -10325,11 +10323,11 @@ class String : public Instance {
   bool IsSymbol() const { return ptr()->untag()->IsCanonical(); }
 
   bool IsOneByteString() const {
-    return ptr()->GetClassId() == kOneByteStringCid;
+    return ptr()->GetClassIdOfHeapObject() == kOneByteStringCid;
   }
 
   bool IsTwoByteString() const {
-    return ptr()->GetClassId() == kTwoByteStringCid;
+    return ptr()->GetClassIdOfHeapObject() == kTwoByteStringCid;
   }
 
   char* ToMallocCString() const;
@@ -10913,7 +10911,9 @@ class Array : public Instance {
     untag()->set_element<std::memory_order_release>(index, value.ptr());
   }
 
-  bool IsImmutable() const { return ptr()->GetClassId() == kImmutableArrayCid; }
+  bool IsImmutable() const {
+    return ptr()->GetClassIdOfHeapObject() == kImmutableArrayCid;
+  }
 
   // Position of element type in type arguments.
   static constexpr intptr_t kElementTypeTypeArgPos = 0;
@@ -11537,15 +11537,15 @@ class TypedDataBase : public PointerBase {
   }
 
   intptr_t LengthInBytes() const {
-    return ElementSizeInBytes(ptr()->GetClassId()) * Length();
+    return ElementSizeInBytes(ptr()->GetClassIdOfHeapObject()) * Length();
   }
 
   TypedDataElementType ElementType() const {
-    return ElementType(ptr()->GetClassId());
+    return ElementType(ptr()->GetClassIdOfHeapObject());
   }
 
   intptr_t ElementSizeInBytes() const {
-    return element_size(ElementType(ptr()->GetClassId()));
+    return element_size(ElementType(ptr()->GetClassIdOfHeapObject()));
   }
 
   static intptr_t ElementSizeInBytes(classid_t cid) {
@@ -11820,7 +11820,7 @@ class TypedDataView : public TypedDataBase {
 
   static bool IsExternalTypedDataView(const TypedDataView& view_obj) {
     const auto& data = Instance::Handle(Data(view_obj));
-    intptr_t cid = data.ptr()->GetClassId();
+    intptr_t cid = data.ptr()->GetClassIdOfHeapObject();
     ASSERT(IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid));
     return IsExternalTypedDataClassId(cid);
   }
@@ -12118,7 +12118,7 @@ class ImmutableLinkedHashBase : public AllStatic {
 };
 
 // Corresponds to
-// - _Map in dart:collection
+// - _Map in dart:_compact_hash
 // - "new Map()",
 // - non-const map literals, and
 // - the default constructor of LinkedHashMap in dart:collection.
@@ -12191,7 +12191,7 @@ class Map : public LinkedHashBase {
 };
 
 // Corresponds to
-// - _ConstMap in dart:collection
+// - _ConstMap in dart:_compact_hash
 // - const map literals
 class ConstMap : public AllStatic {
  public:
@@ -12221,7 +12221,7 @@ class ConstMap : public AllStatic {
 };
 
 // Corresponds to
-// - _Set in dart:collection,
+// - _Set in dart:_compact_hash,
 // - "new Set()",
 // - non-const set literals, and
 // - the default constructor of LinkedHashSet in dart:collection.
@@ -12292,7 +12292,7 @@ class Set : public LinkedHashBase {
 };
 
 // Corresponds to
-// - _ConstSet in dart:collection
+// - _ConstSet in dart:_compact_hash
 // - const set literals
 class ConstSet : public AllStatic {
  public:
@@ -13236,13 +13236,14 @@ ClassPtr Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  return IsolateGroup::Current()->class_table()->At(ptr()->GetClassId());
+  return IsolateGroup::Current()->class_table()->At(
+      ptr()->GetClassIdOfHeapObject());
 }
 
 DART_FORCE_INLINE
 void Object::setPtr(ObjectPtr value, intptr_t default_cid) {
   ptr_ = value;
-  intptr_t cid = value->GetClassIdMayBeSmi();
+  intptr_t cid = value->GetClassId();
   // Free-list elements cannot be wrapped in a handle.
   ASSERT(cid != kFreeListElement);
   ASSERT(cid != kForwardingCorpse);
@@ -13425,7 +13426,7 @@ inline void TypeArguments::SetHash(intptr_t value) const {
 }
 
 inline uint16_t String::CharAt(StringPtr str, intptr_t index) {
-  switch (str->GetClassId()) {
+  switch (str->GetClassIdOfHeapObject()) {
     case kOneByteStringCid:
       return OneByteString::CharAt(static_cast<OneByteStringPtr>(str), index);
     case kTwoByteStringCid:

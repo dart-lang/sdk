@@ -45,6 +45,12 @@ abstract class ValueType implements StorageType {
 
   /// Whether this type is defaultable. Primitive types are always defaultable.
   bool get defaultable => true;
+
+  /// The heap [DefType] referenced by this type if any.
+  ///
+  /// Used by the type builder to determine the set of [DefType]s referenced in
+  /// a module.
+  DefType? get containedDefType => null;
 }
 
 enum NumTypeKind { i32, i64, f32, f64, v128 }
@@ -201,6 +207,12 @@ class RefType extends ValueType {
     if (other is! RefType) return false;
     if (nullable && !other.nullable) return false;
     return heapType.isSubtypeOf(other.heapType);
+  }
+
+  @override
+  DefType? get containedDefType {
+    final type = heapType;
+    return type is DefType ? type : null;
   }
 
   @override
@@ -739,6 +751,21 @@ class StructType extends DataType {
     if (fields.length < other.fields.length) return false;
     for (int i = 0; i < other.fields.length; i++) {
       if (!fields[i].isSubtypeOf(other.fields[i])) return false;
+    }
+    return true;
+  }
+
+  /// Whether this is structurally equivalent to [other].
+  ///
+  /// The result should be the same as:
+  /// `isStructuralSubtypeOf(other) && other.isStructuralSubtypeOf(this)`.
+  bool isStructurallyEqualTo(StructType other) {
+    if (fields.length != other.fields.length) return false;
+    for (int i = 0; i < other.fields.length; i++) {
+      var f1 = fields[i];
+      var f2 = other.fields[i];
+      if (f1.mutable != f2.mutable) return false;
+      if (f1.type != f2.type) return false;
     }
     return true;
   }

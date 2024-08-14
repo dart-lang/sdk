@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart' as type_utils;
 
 const _desc = r'Prefer using `??=` over testing for `null`.';
@@ -67,12 +68,6 @@ Expression? _getExpressionCondition(Expression rawExpression) {
 }
 
 class PreferConditionalAssignment extends LintRule {
-  static const LintCode code = LintCode('prefer_conditional_assignment',
-      "The 'if' statement could be replaced by a null-aware assignment.",
-      correctionMessage:
-          "Try using the '??=' operator to conditionally assign a value.",
-      hasPublishedDocs: true);
-
   PreferConditionalAssignment()
       : super(
             name: 'prefer_conditional_assignment',
@@ -81,7 +76,7 @@ class PreferConditionalAssignment extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_conditional_assignment;
 
   @override
   void registerNodeProcessors(

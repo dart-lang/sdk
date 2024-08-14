@@ -1,0 +1,327 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/loops.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/loops.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/loops.dart'
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/loops.dart'
+
+
+Function 'testFor', static, reflectable, debuggable
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  PushInt              0
+  PopLocal             r0
+  PushInt              0
+  PopLocal             r1
+L2:
+  CheckStack           1
+  Push                 r1
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  CompareIntLt
+  JumpIfFalse          L1
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  InterfaceCall        CP#2, 2
+  AddInt
+  PopLocal             r0
+  Push                 r1
+  PushInt              1
+  AddInt
+  StoreLocal           r1
+  Drop1
+  Jump                 L2
+L1:
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'testForBreak', static, reflectable, debuggable
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  PushInt              0
+  PopLocal             r0
+  PushInt              0
+  PopLocal             r1
+L3:
+  CheckStack           1
+  Push                 r1
+  PushInt              0
+  CompareIntGe
+  JumpIfFalse          L1
+  Push                 r1
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  CompareIntGe
+  JumpIfFalse          L2
+  Jump                 L1
+L2:
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  InterfaceCall        CP#2, 2
+  AddInt
+  PopLocal             r0
+  Push                 r1
+  PushInt              1
+  AddInt
+  StoreLocal           r1
+  Drop1
+  Jump                 L3
+L1:
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'testForContinue', static, reflectable, debuggable
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  PushInt              0
+  PopLocal             r0
+  PushInt              100
+  NegateInt
+  PopLocal             r1
+L4:
+  CheckStack           1
+  Push                 r1
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  CompareIntLt
+  JumpIfFalse          L1
+  Push                 r1
+  PushInt              0
+  CompareIntLt
+  JumpIfFalse          L2
+  Jump                 L3
+L2:
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  InterfaceCall        CP#2, 2
+  AddInt
+  PopLocal             r0
+L3:
+  Push                 r1
+  PushInt              1
+  AddInt
+  StoreLocal           r1
+  Drop1
+  Jump                 L4
+L1:
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'testWhile', static, reflectable, debuggable
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+  PushInt              0
+  PopLocal             r0
+  PushInt              0
+  PopLocal             r1
+L2:
+  CheckStack           1
+  Push                 r1
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  CompareIntLt
+  JumpIfFalse          L1
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  PopLocal             r2
+  Push                 r2
+  PushInt              1
+  AddInt
+  StoreLocal           r1
+  PopLocal             r3
+  Push                 r2
+  InterfaceCall        CP#2, 2
+  AddInt
+  PopLocal             r0
+  Jump                 L2
+L1:
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'testDoWhile', static, reflectable, debuggable
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  PushInt              0
+  PopLocal             r0
+  PushInt              0
+  PopLocal             r1
+L1:
+  CheckStack           1
+  Push                 r0
+  Push                 FP[-5]
+  Push                 r1
+  InterfaceCall        CP#0, 2
+  AddInt
+  PopLocal             r0
+  Push                 r1
+  PushInt              1
+  AddInt
+  PopLocal             r1
+  Push                 r1
+  Push                 FP[-5]
+  InterfaceCall        CP#2, 1
+  CompareIntLt
+  JumpIfTrue           L1
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+
+Function 'testForIn', static, reflectable, debuggable
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                3
+  CheckStack           0
+  PushInt              0
+  PopLocal             r0
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r1
+L2:
+  CheckStack           1
+  Push                 r1
+  InterfaceCall        CP#2, 1
+  JumpIfFalse          L1
+  Push                 r1
+  InterfaceCall        CP#4, 1
+  PopLocal             r2
+  Push                 r0
+  Push                 r2
+  AddInt
+  PopLocal             r0
+  Jump                 L2
+L1:
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::Iterable::get:iterator', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::Iterator::moveNext', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall 'dart:core::Iterator::get:current', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+}
+
+
+Function 'testForInWithOuterVar', static, reflectable, debuggable
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:core::int
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+  PushInt              0
+  PopLocal             r0
+  PushInt              42
+  PopLocal             r1
+  Push                 FP[-5]
+  InterfaceCall        CP#0, 1
+  PopLocal             r2
+L2:
+  CheckStack           1
+  Push                 r2
+  InterfaceCall        CP#2, 1
+  JumpIfFalse          L1
+  Push                 r2
+  InterfaceCall        CP#4, 1
+  PopLocal             r3
+  Push                 r3
+  PopLocal             r1
+  Push                 r0
+  Push                 r1
+  AddInt
+  PopLocal             r0
+  Jump                 L2
+L1:
+  Push                 r0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InterfaceCall 'dart:core::Iterable::get:iterator', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall 'dart:core::Iterator::moveNext', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall 'dart:core::Iterator::get:current', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+

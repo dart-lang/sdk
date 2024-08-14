@@ -8,6 +8,8 @@
 #include "platform/atomic.h"
 #include "platform/globals.h"
 #include "platform/safe_stack.h"
+#include "platform/synchronization.h"
+#include "platform/threads.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -37,53 +39,6 @@ class Mutex;
 class ThreadState;
 class TimelineEventBlock;
 
-class Mutex {
- public:
-  explicit Mutex(NOT_IN_PRODUCT(const char* name = "anonymous mutex"));
-  ~Mutex();
-
-  ThreadId InvalidateOwner();
-  void SetCurrentThreadAsOwner();
-  bool IsOwnedByCurrentThread() const;
-
-  void Lock();
-  void Unlock();
-
- private:
-  bool TryLock();  // Returns false if lock is busy and locking failed.
-
-  MutexData data_;
-  NOT_IN_PRODUCT(const char* name_);
-#if defined(DEBUG)
-  ThreadId owner_;
-#endif  // defined(DEBUG)
-
-  friend class ConditionVariable;
-  friend class MallocLocker;
-  friend class MutexLocker;
-  friend class SafepointMutexLocker;
-  friend class OSThreadIterator;
-  friend class TimelineEventRecorder;
-  friend class TimelineEventRingRecorder;
-  friend class PageSpace;
-  friend void Dart_TestMutex();
-  DISALLOW_COPY_AND_ASSIGN(Mutex);
-};
-
-class ConditionVariable {
- public:
-  ConditionVariable();
-  ~ConditionVariable();
-
-  void Wait(Mutex* mutex);
-  void Notify();
-
- private:
-  Mutex* mutex_;
-  ConditionVariableData data_;
-  DISALLOW_COPY_AND_ASSIGN(ConditionVariable);
-};
-
 class BaseThread {
  public:
   bool is_os_thread() const { return is_os_thread_; }
@@ -99,6 +54,8 @@ class BaseThread {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseThread);
 };
+
+using ThreadId = platform::ThreadId;
 
 // Low-level operations on OS platform threads.
 class OSThread : public BaseThread {
@@ -240,13 +197,11 @@ class OSThread : public BaseThread {
   static uword GetThreadLocal(ThreadLocalKey key) {
     return ThreadInlineImpl::GetThreadLocal(key);
   }
-  static ThreadId GetCurrentThreadId();
   static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static void Join(ThreadJoinId id);
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static ThreadId ThreadIdFromIntPtr(intptr_t id);
-  static bool Compare(ThreadId a, ThreadId b);
 
   // This function can be called only once per OSThread, and should only be
   // called when the returned id will eventually be passed to OSThread::Join().
@@ -262,9 +217,16 @@ class OSThread : public BaseThread {
 
   static constexpr intptr_t kStackSizeBufferMax = (16 * KB * kWordSize);
   static constexpr float kStackSizeBufferFraction = 0.5;
-
-  static const ThreadId kInvalidThreadId;
   static const ThreadJoinId kInvalidThreadJoinId;
+
+  static constexpr ThreadId kInvalidThreadId = platform::kInvalidThreadId;
+  static ThreadId GetCurrentThreadId() {
+    return platform::GetCurrentThreadId();
+  }
+
+  static bool Compare(ThreadId a, ThreadId b) {
+    return platform::AreSameThreads(a, b);
+  }
 
  private:
   // The constructor is private as CreateOSThread should be used
@@ -372,78 +334,6 @@ class OSThreadIterator : public ValueObject {
   OSThread* next_;
 };
 
-class Monitor {
- public:
-  enum WaitResult { kNotified, kTimedOut };
-
-  static constexpr int64_t kNoTimeout = 0;
-
-  Monitor();
-  ~Monitor();
-
-#if defined(DEBUG)
-  bool IsOwnedByCurrentThread() const {
-    return owner_ == OSThread::GetCurrentThreadId();
-  }
-#else
-  bool IsOwnedByCurrentThread() const {
-    UNREACHABLE();
-    return false;
-  }
-#endif
-
- private:
-  bool TryEnter();  // Returns false if lock is busy and locking failed.
-  void Enter();
-  void Exit();
-
-  // Wait for notification or timeout.
-  WaitResult Wait(int64_t millis);
-  WaitResult WaitMicros(int64_t micros);
-
-  // Notify waiting threads.
-  void Notify();
-  void NotifyAll();
-
-  MonitorData data_;  // OS-specific data.
-#if defined(DEBUG)
-  ThreadId owner_;
-#endif  // defined(DEBUG)
-
-  friend class MonitorLocker;
-  friend class SafepointMonitorLocker;
-  friend class SafepointRwLock;
-  friend void Dart_TestMonitor();
-  DISALLOW_COPY_AND_ASSIGN(Monitor);
-};
-
-inline bool Mutex::IsOwnedByCurrentThread() const {
-#if defined(DEBUG)
-  return owner_ == OSThread::GetCurrentThreadId();
-#else
-  UNREACHABLE();
-  return false;
-#endif
-}
-
-inline ThreadId Mutex::InvalidateOwner() {
-#if defined(DEBUG)
-  ThreadId saved_owner = owner_;
-  owner_ = OSThread::kInvalidThreadId;
-  return saved_owner;
-#else
-  UNREACHABLE();
-#endif
-}
-
-inline void Mutex::SetCurrentThreadAsOwner() {
-#if defined(DEBUG)
-  owner_ = OSThread::GetCurrentThreadId();
-#else
-  UNREACHABLE();
-#endif
-}
-
 // Mark when we are running in a signal handler (Linux, Android) or with a
 // suspended thread (Windows, Mac, Fuchia). During this time, we cannot take
 // locks, access Thread/Isolate::Current(), or use malloc.
@@ -451,9 +341,6 @@ class ThreadInterruptScope : public ValueObject {
 #if defined(DEBUG)
  public:
   ThreadInterruptScope() {
-    ASSERT(!in_thread_interrupt_scope_);  // We don't use nested signals.
-    in_thread_interrupt_scope_ = true;
-
     // Poison attempts to use Thread::Current. This is much cheaper than adding
     // an assert in Thread::Current itself.
     saved_current_vm_thread_ = OSThread::CurrentVMThread();
@@ -462,14 +349,11 @@ class ThreadInterruptScope : public ValueObject {
 
   ~ThreadInterruptScope() {
     OSThread::SetCurrentVMThread(saved_current_vm_thread_);
-    in_thread_interrupt_scope_ = false;
   }
 
-  static bool in_thread_interrupt_scope() { return in_thread_interrupt_scope_; }
-
  private:
+  DisallowMutexLockingScope disallow_locks_;
   ThreadState* saved_current_vm_thread_;
-  static inline thread_local bool in_thread_interrupt_scope_ = false;
 #endif  // DEBUG
 };
 

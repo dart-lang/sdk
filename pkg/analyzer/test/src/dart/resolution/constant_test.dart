@@ -127,10 +127,10 @@ const v = a;
 C<double Function(int)>
   typeArguments
     double Function(int)
-      alias: package:test/a.dart::<definingUnit>::@typeAlias::F
+      alias: package:test/a.dart::<fragment>::@typeAlias::F
         typeArguments
           double
-  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
+  variable: <testLibraryFragment>::@topLevelVariable::v
 ''');
   }
 

@@ -52,6 +52,23 @@ class C {}
 ''');
   }
 
+  test_codeSpan_backSlashEscaped() async {
+    await assertDiagnostics(r'''
+/// \\\`List<int> <tag>`
+class C {}
+''', [
+      lint(12, 5), // <int>
+      lint(18, 5), // <tag>
+    ]);
+  }
+
+  test_codeSpan_multiple() async {
+    await assertNoDiagnostics(r'''
+/// `<` or `>`
+class C {}
+''');
+  }
+
   test_hangingAngleBracket_left() async {
     await assertNoDiagnostics(r'''
 /// n < 12
@@ -66,9 +83,75 @@ class C {}
 ''');
   }
 
+  test_html_cData() async {
+    await assertNoDiagnostics(r'''
+/// <[CDATA[aaa]]>
+class C {}
+''');
+  }
+
+  test_html_cData_nested() async {
+    await assertNoDiagnostics(r'''
+/// <[CDATA[<bad>]]>
+class C {}
+''');
+  }
+
+  test_html_comment() async {
+    await assertNoDiagnostics(r'''
+/// <!--comment-->
+class C {}
+''');
+  }
+
+  test_html_comment_nested() async {
+    await assertNoDiagnostics(r'''
+/// <!--<bad>-->
+class C {}
+''');
+  }
+
+  test_html_declaration() async {
+    await assertNoDiagnostics(r'''
+/// <!DOCTYPE html>
+class C {}
+''');
+  }
+
+  test_html_processingInstruction() async {
+    await assertNoDiagnostics(r'''
+/// <?aaa?>
+class C {}
+''');
+  }
+
+  test_html_processingInstruction_nested() async {
+    await assertNoDiagnostics(r'''
+/// <?<bad>?>
+class C {}
+''');
+  }
+
+  test_html_tags_valid() async {
+    await assertNoDiagnostics(r'''
+/// <table class="properties">
+/// <th scope="row">
+/// <br />
+/// <h1> Test. </h1>
+class C {}
+''');
+  }
+
   test_notDocComment() async {
     await assertNoDiagnostics(r'''
 // List<int> <tag>
+class C {}
+''');
+  }
+
+  test_notHtml_space() async {
+    await assertNoDiagnostics(r'''
+/// n < 0 || n > 512
 class C {}
 ''');
   }
@@ -131,17 +214,6 @@ class C {}
     ]);
   }
 
-  test_unintendedHtml_multipleTags() async {
-    await assertDiagnostics(r'''
-/// <assignment> -> <variable> = <expression>
-class C {}
-''', [
-      lint(4, 12), // <assignment>
-      lint(20, 10), // <variable>
-      lint(33, 12), // <expression>
-    ]);
-  }
-
   test_unintendedHtml_nested() async {
     await assertDiagnostics(r'''
 /// Text List<List<int>>.
@@ -150,15 +222,6 @@ class C {}
       // This is how HTML parses the tag, from the first opening angle bracket
       // to the first closing angle bracket.
       lint(13, 10), // <List<int>
-    ]);
-  }
-
-  test_unintendedHtml_notIdentifier() async {
-    await assertDiagnostics(r'''
-/// n < 0 || n > 512
-class C {}
-''', [
-      lint(6, 10), // < 0 || n >
     ]);
   }
 
@@ -180,10 +243,24 @@ class C {}
     ]);
   }
 
-  test_validHtmlTag() async {
-    await assertNoDiagnostics(r'''
-/// <h1> Test. </h1>
+  test_unintendedHtml_tags_multiple() async {
+    await assertDiagnostics(r'''
+/// <assignment> -> <variable> = <expression>
 class C {}
-''');
+''', [
+      lint(4, 12), // <assignment>
+      lint(20, 10), // <variable>
+      lint(33, 12), // <expression>
+    ]);
+  }
+
+  test_unintendedHtml_tags_slash() async {
+    await assertDiagnostics(r'''
+/// </bad> <bad/>
+class C {}
+''', [
+      lint(4, 6), // </bad>
+      lint(11, 6), // <bad/>
+    ]);
   }
 }

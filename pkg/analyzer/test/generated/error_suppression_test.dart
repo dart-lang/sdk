@@ -226,7 +226,7 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''');
   }
 
-  test_type_ignore_mismatch() async {
+  test_type_ignore_mismatch_lintVsWarning() async {
     await assertErrorsInCode('''
 // ignore: type=lint
 int _x = 1;
@@ -235,7 +235,7 @@ int _x = 1;
     ]);
   }
 
-  test_type_ignoreForFile_match() async {
+  test_type_ignoreForFile_match_lint() async {
     await assertNoErrorsInCode('''
 // ignore_for_file: type=lint
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
@@ -249,7 +249,16 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''');
   }
 
-  test_type_ignoreForFile_mismatch() async {
+  test_type_ignoreForFile_match_warning() async {
+    await assertNoErrorsInCode('''
+// ignore_for_file: type=warning
+void f() {
+  var x = 1;
+}
+''');
+  }
+
+  test_type_ignoreForFile_mismatch_lintVsWarning() async {
     await assertErrorsInCode('''
 // ignore_for_file: type=lint
 int a = 0;

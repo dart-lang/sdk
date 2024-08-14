@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
-import 'package:analyzer/src/dart/analysis/unit_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -78,7 +78,7 @@ class LibraryAnalyzer {
 
   final LibraryElementImpl _libraryElement;
 
-  final Map<FileState, UnitAnalysis> _libraryUnits = {};
+  final Map<FileState, FileAnalysis> _libraryFiles = {};
   late final LibraryVerificationContext _libraryVerificationContext;
 
   final TestingData? _testingData;
@@ -95,7 +95,7 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
-      units: _libraryUnits,
+      files: _libraryFiles,
     );
   }
 
@@ -110,13 +110,13 @@ class LibraryAnalyzer {
 
     // Return full results.
     var results = <UnitAnalysisResult>[];
-    for (var unitAnalysis in _libraryUnits.values) {
-      var errors = unitAnalysis.errorListener.errors;
-      errors = _filterIgnoredErrors(unitAnalysis, errors);
+    for (var fileAnalysis in _libraryFiles.values) {
+      var errors = fileAnalysis.errorListener.errors;
+      errors = _filterIgnoredErrors(fileAnalysis, errors);
       results.add(
         UnitAnalysisResult(
-          unitAnalysis.file,
-          unitAnalysis.unit,
+          fileAnalysis.file,
+          fileAnalysis.unit,
           errors,
         ),
       );
@@ -134,10 +134,10 @@ class LibraryAnalyzer {
     required CompilationUnitElementImpl unitElement,
     required OperationPerformanceImpl performance,
   }) {
-    var unitAnalysis = performance.run('parse', (performance) {
+    var fileAnalysis = performance.run('parse', (performance) {
       return _parse(file);
     });
-    var parsedUnit = unitAnalysis.unit;
+    var parsedUnit = fileAnalysis.unit;
     parsedUnit.declaredElement = unitElement;
 
     var node = NodeLocator(offset).searchWithin(parsedUnit);
@@ -207,8 +207,9 @@ class LibraryAnalyzer {
         }
       }
 
+      _libraryFiles.clear();
       _parseAndResolve();
-      var unit = _libraryUnits.values.first.unit;
+      var unit = _libraryFiles.values.first.unit;
       return AnalysisForCompletionResult(
         fileState: file,
         parsedUnit: unit,
@@ -218,13 +219,13 @@ class LibraryAnalyzer {
   }
 
   void _checkForInconsistentLanguageVersionOverride() {
-    var libraryUnitAnalysis = _libraryUnits.values.first;
+    var libraryUnitAnalysis = _libraryFiles.values.first;
     var libraryUnit = libraryUnitAnalysis.unit;
     var libraryOverrideToken = libraryUnit.languageVersionToken;
 
     var elementToUnit = <CompilationUnitElement, CompilationUnit>{};
-    for (var unitAnalysis in _libraryUnits.values) {
-      elementToUnit[unitAnalysis.element] = unitAnalysis.unit;
+    for (var fileAnalysis in _libraryFiles.values) {
+      elementToUnit[fileAnalysis.element] = fileAnalysis.unit;
     }
 
     for (var directive in libraryUnit.directives) {
@@ -259,22 +260,22 @@ class LibraryAnalyzer {
     }
   }
 
-  void _computeConstantErrors(UnitAnalysis unitAnalysis) {
+  void _computeConstantErrors(FileAnalysis fileAnalysis) {
     ConstantVerifier constantVerifier = ConstantVerifier(
-        unitAnalysis.errorReporter, _libraryElement, _declaredVariables,
+        fileAnalysis.errorReporter, _libraryElement, _declaredVariables,
         retainDataForTesting: _testingData != null);
-    unitAnalysis.unit.accept(constantVerifier);
+    fileAnalysis.unit.accept(constantVerifier);
     _testingData?.recordExhaustivenessDataForTesting(
-        unitAnalysis.file.uri, constantVerifier.exhaustivenessDataForTesting!);
+        fileAnalysis.file.uri, constantVerifier.exhaustivenessDataForTesting!);
   }
 
   /// Compute constants in all units.
   void _computeConstants() {
     var configuration = ConstantEvaluationConfiguration();
     var constants = [
-      for (var unitAnalysis in _libraryUnits.values)
+      for (var fileAnalysis in _libraryFiles.values)
         ..._findConstants(
-          unit: unitAnalysis.unit,
+          unit: fileAnalysis.unit,
           configuration: configuration,
         ),
     ];
@@ -286,18 +287,18 @@ class LibraryAnalyzer {
     );
   }
 
-  /// Compute diagnostics in [_libraryUnits], including errors and warnings,
+  /// Compute diagnostics in [_libraryFiles], including errors and warnings,
   /// lints, and a few other cases.
   void _computeDiagnostics() {
-    for (var unitAnalysis in _libraryUnits.values) {
-      _computeVerifyErrors(unitAnalysis);
+    for (var fileAnalysis in _libraryFiles.values) {
+      _computeVerifyErrors(fileAnalysis);
     }
 
     MemberDuplicateDefinitionVerifier.checkLibrary(
       inheritance: _inheritance,
       libraryVerificationContext: _libraryVerificationContext,
       libraryElement: _libraryElement,
-      units: _libraryUnits,
+      files: _libraryFiles,
     );
 
     _libraryVerificationContext.constructorFieldsVerifier.report();
@@ -305,22 +306,22 @@ class LibraryAnalyzer {
     if (_analysisOptions.warning) {
       var usedImportedElements = <UsedImportedElements>[];
       var usedLocalElements = <UsedLocalElements>[];
-      for (var unitAnalysis in _libraryUnits.values) {
+      for (var fileAnalysis in _libraryFiles.values) {
         {
           var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
-          unitAnalysis.unit.accept(visitor);
+          fileAnalysis.unit.accept(visitor);
           usedLocalElements.add(visitor.usedElements);
         }
         {
           var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
-          unitAnalysis.unit.accept(visitor);
+          fileAnalysis.unit.accept(visitor);
           usedImportedElements.add(visitor.usedElements);
         }
       }
       var usedElements = UsedLocalElements.merge(usedLocalElements);
-      for (var unitAnalysis in _libraryUnits.values) {
+      for (var fileAnalysis in _libraryFiles.values) {
         _computeWarnings(
-          unitAnalysis,
+          fileAnalysis,
           usedImportedElements: usedImportedElements,
           usedElements: usedElements,
         );
@@ -335,12 +336,12 @@ class LibraryAnalyzer {
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var unitAnalysis in _libraryUnits.values) {
+    for (var fileAnalysis in _libraryFiles.values) {
       IgnoreValidator(
-        unitAnalysis.errorReporter,
-        unitAnalysis.errorListener.errors,
-        unitAnalysis.ignoreInfo,
-        unitAnalysis.unit.lineInfo,
+        fileAnalysis.errorReporter,
+        fileAnalysis.errorListener.errors,
+        fileAnalysis.ignoreInfo,
+        fileAnalysis.unit.lineInfo,
         _analysisOptions.unignorableNames,
       ).reportErrors();
     }
@@ -348,20 +349,20 @@ class LibraryAnalyzer {
 
   void _computeLints() {
     var definingUnit = _libraryElement.definingCompilationUnit;
-    var analysesToContextUnits = <UnitAnalysis, LintRuleUnitContext>{};
+    var analysesToContextUnits = <FileAnalysis, LintRuleUnitContext>{};
     LintRuleUnitContext? definingContextUnit;
     WorkspacePackage? workspacePackage;
-    for (var unitAnalysis in _libraryUnits.values) {
+    for (var fileAnalysis in _libraryFiles.values) {
       var linterContextUnit = LintRuleUnitContext(
-        file: unitAnalysis.file.resource,
-        content: unitAnalysis.file.content,
-        unit: unitAnalysis.unit,
-        errorReporter: unitAnalysis.errorReporter,
+        file: fileAnalysis.file.resource,
+        content: fileAnalysis.file.content,
+        unit: fileAnalysis.unit,
+        errorReporter: fileAnalysis.errorReporter,
       );
-      analysesToContextUnits[unitAnalysis] = linterContextUnit;
-      if (unitAnalysis.unit.declaredElement == definingUnit) {
+      analysesToContextUnits[fileAnalysis] = linterContextUnit;
+      if (fileAnalysis.unit.declaredElement == definingUnit) {
         definingContextUnit = linterContextUnit;
-        workspacePackage = unitAnalysis.file.workspacePackage;
+        workspacePackage = fileAnalysis.file.workspacePackage;
       }
     }
 
@@ -390,11 +391,11 @@ class LibraryAnalyzer {
       propagateExceptions: _analysisOptions.propagateLinterExceptions,
     ).logException;
 
-    for (var MapEntry(key: unitAnalysis, value: currentUnit)
+    for (var MapEntry(key: fileAnalysis, value: currentUnit)
         in analysesToContextUnits.entries) {
       // Skip computing lints on macro generated augmentations.
       // See: https://github.com/dart-lang/sdk/issues/54875
-      if (unitAnalysis.file.isMacroAugmentation) return;
+      if (fileAnalysis.file.isMacroAugmentation) return;
 
       var unit = currentUnit.unit;
       var errorReporter = currentUnit.errorReporter;
@@ -414,14 +415,14 @@ class LibraryAnalyzer {
     LinterVisitor(nodeRegistry, logException).afterLibrary();
   }
 
-  void _computeVerifyErrors(UnitAnalysis unitAnalysis) {
-    var errorReporter = unitAnalysis.errorReporter;
-    var unit = unitAnalysis.unit;
+  void _computeVerifyErrors(FileAnalysis fileAnalysis) {
+    var errorReporter = fileAnalysis.errorReporter;
+    var unit = fileAnalysis.unit;
 
     //
     // Use the ConstantVerifier to compute errors.
     //
-    _computeConstantErrors(unitAnalysis);
+    _computeConstantErrors(fileAnalysis);
 
     //
     // Compute inheritance and override errors.
@@ -454,14 +455,14 @@ class LibraryAnalyzer {
   }
 
   void _computeWarnings(
-    UnitAnalysis unitAnalysis, {
+    FileAnalysis fileAnalysis, {
     required List<UsedImportedElements> usedImportedElements,
     required UsedLocalElements usedElements,
   }) {
-    var errorReporter = unitAnalysis.errorReporter;
-    var unit = unitAnalysis.unit;
+    var errorReporter = fileAnalysis.errorReporter;
+    var unit = fileAnalysis.unit;
 
-    UnicodeTextVerifier(errorReporter).verify(unit, unitAnalysis.file.content);
+    UnicodeTextVerifier(errorReporter).verify(unit, fileAnalysis.file.content);
 
     unit.accept(DeadCodeVerifier(errorReporter, _libraryElement));
 
@@ -510,7 +511,7 @@ class LibraryAnalyzer {
     // Unused local elements.
     unit.accept(
       UnusedLocalElementsVerifier(
-        unitAnalysis.errorListener,
+        fileAnalysis.errorListener,
         usedElements,
         _inheritance,
         _libraryElement,
@@ -521,7 +522,7 @@ class LibraryAnalyzer {
     // Find code that uses features from an SDK version that does not satisfy
     // the SDK constraints specified in analysis options.
     //
-    var package = unitAnalysis.file.workspacePackage;
+    var package = fileAnalysis.file.workspacePackage;
     var sdkVersionConstraint =
         (package is PubPackage) ? package.sdkVersionConstraint : null;
     if (sdkVersionConstraint != null) {
@@ -536,14 +537,14 @@ class LibraryAnalyzer {
   /// Return a subset of the given [errors] that are not marked as ignored in
   /// the [file].
   List<AnalysisError> _filterIgnoredErrors(
-    UnitAnalysis unitAnalysis,
+    FileAnalysis fileAnalysis,
     List<AnalysisError> errors,
   ) {
     if (errors.isEmpty) {
       return errors;
     }
 
-    IgnoreInfo ignoreInfo = unitAnalysis.ignoreInfo;
+    IgnoreInfo ignoreInfo = fileAnalysis.ignoreInfo;
     if (!ignoreInfo.hasIgnores) {
       return errors;
     }
@@ -584,7 +585,7 @@ class LibraryAnalyzer {
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
-  UnitAnalysis _parse(FileState file) {
+  FileAnalysis _parse(FileState file) {
     var errorListener = RecordingErrorListener();
     var unit = file.parse(
       errorListener: errorListener,
@@ -593,24 +594,25 @@ class LibraryAnalyzer {
 
     // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
 
-    var result = UnitAnalysis(
+    var result = FileAnalysis(
       file: file,
       errorListener: errorListener,
       unit: unit,
     );
-    _libraryUnits[file] = result;
+    _libraryFiles[file] = result;
     return result;
   }
 
   /// Parse and resolve all files in [_library].
   void _parseAndResolve() {
     _resolveDirectives(
-      containerKind: _library,
-      containerElement: _libraryElement,
+      enclosingFile: null,
+      fileKind: _library,
+      fileElement: _libraryElement.definingCompilationUnit,
     );
 
-    for (var unitAnalysis in _libraryUnits.values) {
-      _resolveFile(unitAnalysis);
+    for (var fileAnalysis in _libraryFiles.values) {
+      _resolveFile(fileAnalysis);
     }
 
     _computeConstants();
@@ -671,6 +673,7 @@ class LibraryAnalyzer {
   }
 
   void _resolveAugmentationImportDirective({
+    required FileAnalysis enclosingFile,
     required AugmentationImportDirectiveImpl? directive,
     required AugmentationImportElementImpl element,
     required AugmentationImportState state,
@@ -733,55 +736,44 @@ class LibraryAnalyzer {
       return;
     }
 
-    var augmentationFile = importedAugmentationKind.file;
-    var augmentationUnitAnalysis = _parse(augmentationFile);
-
     var importedAugmentation = element.importedAugmentation!;
-    augmentationUnitAnalysis.unit.declaredElement =
-        importedAugmentation.definingCompilationUnit;
-
-    for (var directive in augmentationUnitAnalysis.unit.directives) {
-      if (directive is AugmentationImportDirectiveImpl) {
-        directive.element = importedAugmentation;
-      }
-    }
 
     _resolveDirectives(
-      containerKind: importedAugmentationKind,
-      containerElement: importedAugmentation,
+      enclosingFile: enclosingFile,
+      fileKind: importedAugmentationKind,
+      fileElement: importedAugmentation.definingCompilationUnit,
     );
   }
 
-  /// Parses the file of [containerKind], and resolves directives.
+  /// Parses the file of [fileKind], and resolves directives.
   /// Recursively parses augmentations and parts.
   void _resolveDirectives({
-    required LibraryOrAugmentationFileKind containerKind,
-    required LibraryOrAugmentationElementImpl containerElement,
+    required FileAnalysis? enclosingFile,
+    required FileKind fileKind,
+    required CompilationUnitElementImpl fileElement,
   }) {
-    var containerFile = containerKind.file;
-    var containerUnitAnalysis = _parse(containerFile);
-    var containerUnit = containerUnitAnalysis.unit;
-    var containerUnitElement = containerElement.definingCompilationUnit;
-    containerUnit.declaredElement = containerUnitElement;
+    var fileAnalysis = _parse(fileKind.file);
+    var containerUnit = fileAnalysis.unit;
+    containerUnit.declaredElement = fileElement;
 
-    var containerErrorReporter = containerUnitAnalysis.errorReporter;
-    containerUnitAnalysis.element = containerUnitElement;
+    var containerErrorReporter = fileAnalysis.errorReporter;
+    fileAnalysis.element = fileElement;
 
     var augmentationImportIndex = 0;
     var libraryExportIndex = 0;
     var libraryImportIndex = 0;
     var partIndex = 0;
 
-    LibraryIdentifier? libraryNameNode;
     var seenAugmentations = <AugmentationFileKind>{};
-    var seenPartSources = <Source>{};
     for (Directive directive in containerUnit.directives) {
       if (directive is AugmentationImportDirectiveImpl) {
         var index = augmentationImportIndex++;
         _resolveAugmentationImportDirective(
+          enclosingFile: fileAnalysis,
           directive: directive,
-          element: containerElement.augmentationImports[index],
-          state: containerKind.augmentationImports[index],
+          element: fileElement
+              .libraryOrAugmentationElement.augmentationImports[index],
+          state: fileKind.augmentationImports[index],
           errorReporter: containerErrorReporter,
           seenAugmentations: seenAugmentations,
         );
@@ -789,53 +781,52 @@ class LibraryAnalyzer {
         var index = libraryExportIndex++;
         _resolveLibraryExportDirective(
           directive: directive,
-          element: containerElement.libraryExports[index],
-          state: containerKind.libraryExports[index],
+          element: fileElement.libraryExports[index],
+          state: fileKind.libraryExports[index],
           errorReporter: containerErrorReporter,
         );
       } else if (directive is ImportDirectiveImpl) {
         var index = libraryImportIndex++;
         _resolveLibraryImportDirective(
           directive: directive,
-          element: containerElement.libraryImports[index],
-          state: containerKind.libraryImports[index],
+          element: fileElement.libraryImports[index],
+          state: fileKind.libraryImports[index],
           errorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryAugmentationDirectiveImpl) {
         _resolveLibraryAugmentationDirective(
           directive: directive,
-          containerKind: containerKind,
-          containerElement: containerElement,
+          containerKind: fileKind as LibraryOrAugmentationFileKind,
+          containerElement: fileElement.libraryOrAugmentationElement,
           containerErrorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryDirectiveImpl) {
-        if (containerElement is LibraryElementImpl) {
-          directive.element = containerElement;
-          libraryNameNode = directive.name2;
+        if (fileKind == _library) {
+          directive.element = _libraryElement;
         }
       } else if (directive is PartDirectiveImpl) {
-        if (containerKind is LibraryFileKind &&
-            containerElement is LibraryElementImpl) {
-          var index = partIndex++;
-          _resolvePartDirective(
-            directive: directive,
-            partState: containerKind.partIncludes[index],
-            partElement: containerElement.parts[index],
-            errorReporter: containerErrorReporter,
-            libraryNameNode: libraryNameNode,
-            seenPartSources: seenPartSources,
-          );
-        }
+        var index = partIndex++;
+        _resolvePartDirective(
+          enclosingFile: fileAnalysis,
+          directive: directive,
+          partState: fileKind.partIncludes[index],
+          partElement: fileElement.parts[index],
+          errorReporter: containerErrorReporter,
+        );
+      } else if (directive is PartOfDirectiveImpl) {
+        // TODO(scheglov): this should be LibraryFragment.
+        directive.element = _libraryElement;
       }
     }
 
     // The macro augmentation does not have an explicit `import` directive.
     // So, we look into the file augmentation imports.
-    var macroImport = containerKind.augmentationImports.lastOrNull;
+    var macroImport = fileKind.augmentationImports.lastOrNull;
     if (macroImport is AugmentationImportWithFile) {
       var importedFile = macroImport.importedFile;
       if (importedFile.isMacroAugmentation) {
         _resolveAugmentationImportDirective(
+          enclosingFile: fileAnalysis,
           directive: null,
           element: _libraryElement.augmentationImports.last,
           state: macroImport,
@@ -854,18 +845,18 @@ class LibraryAnalyzer {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
           directive: docImports[i].import as ImportDirectiveImpl,
-          state: containerKind.docImports[i],
+          state: fileKind.docImports[i],
           errorReporter: containerErrorReporter,
         );
       }
     }
   }
 
-  void _resolveFile(UnitAnalysis unitAnalysis) {
-    var source = unitAnalysis.file.source;
-    var errorListener = unitAnalysis.errorListener;
-    var unit = unitAnalysis.unit;
-    var unitElement = unitAnalysis.element;
+  void _resolveFile(FileAnalysis fileAnalysis) {
+    var source = fileAnalysis.file.source;
+    var errorListener = fileAnalysis.errorListener;
+    var unit = fileAnalysis.unit;
+    var unitElement = fileAnalysis.element;
 
     TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
         _testingData != null ? TypeConstraintGenerationDataForTesting() : null;
@@ -880,13 +871,13 @@ class LibraryAnalyzer {
         elementWalker: ElementWalker.forCompilationUnit(
           unitElement,
           libraryFilePath: _library.file.path,
-          unitFilePath: unitAnalysis.file.path,
+          unitFilePath: fileAnalysis.file.path,
         ),
         dataForTesting: inferenceDataForTesting,
       ),
     );
     _testingData?.recordTypeConstraintGenerationDataForTesting(
-        unitAnalysis.file.uri, inferenceDataForTesting!);
+        fileAnalysis.file.uri, inferenceDataForTesting!);
 
     var docImportLibraries = [
       for (var import in _library.docImports)
@@ -911,7 +902,7 @@ class LibraryAnalyzer {
         _testingData != null, unit.featureSet,
         typeSystemOperations: _typeSystemOperations);
     _testingData?.recordFlowAnalysisDataForTesting(
-        unitAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
+        fileAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
 
     var resolver = ResolverVisitor(_inheritance, _libraryElement,
         libraryResolutionContext, source, _typeProvider, errorListener,
@@ -920,7 +911,7 @@ class LibraryAnalyzer {
         flowAnalysisHelper: flowAnalysisHelper);
     unit.accept(resolver);
     _testingData?.recordTypeConstraintGenerationDataForTesting(
-        unitAnalysis.file.uri, resolver.inferenceHelper.dataForTesting!);
+        fileAnalysis.file.uri, resolver.inferenceHelper.dataForTesting!);
   }
 
   void _resolveLibraryAugmentationDirective({
@@ -978,7 +969,7 @@ class LibraryAnalyzer {
     required LibraryImportState state,
     required ErrorReporter errorReporter,
   }) {
-    _resolveNamespaceDirective(
+    _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
     );
@@ -996,7 +987,7 @@ class LibraryAnalyzer {
     required ErrorReporter errorReporter,
   }) {
     directive.element = element;
-    _resolveNamespaceDirective(
+    _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
     );
@@ -1051,7 +1042,7 @@ class LibraryAnalyzer {
   }) {
     directive.element = element;
     directive.prefix?.staticElement = element.prefix?.element;
-    _resolveNamespaceDirective(
+    _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
     );
@@ -1062,23 +1053,12 @@ class LibraryAnalyzer {
     );
   }
 
-  void _resolveNamespaceDirective({
-    required List<Configuration> configurationNodes,
-    required List<file_state.DirectiveUri> configurationUris,
-  }) {
-    for (var i = 0; i < configurationNodes.length; i++) {
-      var node = configurationNodes[i] as ConfigurationImpl;
-      node.resolvedUri = configurationUris[i].asDirectiveUri;
-    }
-  }
-
   void _resolvePartDirective({
+    required FileAnalysis enclosingFile,
     required PartDirectiveImpl directive,
     required PartIncludeState partState,
     required PartElementImpl partElement,
     required ErrorReporter errorReporter,
-    required LibraryIdentifier? libraryNameNode,
-    required Set<Source> seenPartSources,
   }) {
     StringLiteral partUri = directive.uri;
 
@@ -1096,7 +1076,7 @@ class LibraryAnalyzer {
       errorReporter.atNode(
         directive.uri,
         CompileTimeErrorCode.INVALID_URI,
-        arguments: [partState.uri.relativeUriStr],
+        arguments: [partState.selectedUri.relativeUriStr],
       );
       return;
     }
@@ -1105,7 +1085,7 @@ class LibraryAnalyzer {
       errorReporter.atNode(
         directive.uri,
         CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        arguments: [partState.uri.relativeUriStr],
+        arguments: [partState.selectedUri.relativeUriStr],
       );
       return;
     }
@@ -1130,58 +1110,71 @@ class LibraryAnalyzer {
       return;
     }
 
-    if (includedKind is PartOfNameFileKind) {
-      if (!includedKind.libraries.contains(_library)) {
-        var name = includedKind.unlinked.name;
-        if (libraryNameNode == null) {
-          errorReporter.atNode(
-            partUri,
-            CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
-            arguments: [name],
-          );
-        } else {
-          errorReporter.atNode(
-            partUri,
-            CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
-            arguments: [libraryNameNode.name, name],
-          );
-        }
-        return;
-      }
-    } else if (includedKind.library != _library) {
+    //
+    // Validate that the part source is unique in the library.
+    //
+    if (_libraryFiles.containsKey(includedFile)) {
       errorReporter.atNode(
         partUri,
-        CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
-        arguments: [_library.file.uriStr, includedFile.uriStr],
+        CompileTimeErrorCode.DUPLICATE_PART,
+        arguments: [includedFile.uri],
       );
       return;
     }
 
-    var partUnitAnalysis = _parse(includedFile);
-
     var partElementUri = partElement.uri;
-    if (partElementUri is DirectiveUriWithUnitImpl) {
-      partUnitAnalysis.element = partElementUri.unit;
-      partUnitAnalysis.unit.declaredElement = partElementUri.unit;
-    }
-
-    var partSource = includedKind.file.source;
-
-    for (var directive in partUnitAnalysis.unit.directives) {
-      if (directive is PartOfDirectiveImpl) {
-        directive.element = _libraryElement;
+    if (partElementUri is! DirectiveUriWithUnitImpl) {
+      switch (includedKind) {
+        case PartOfNameFileKind():
+          if (!_libraryElement.featureSet.isEnabled(Feature.enhanced_parts)) {
+            var name = includedKind.unlinked.name;
+            var libraryName = _libraryElement.name;
+            if (libraryName.isEmpty) {
+              errorReporter.atNode(
+                partUri,
+                CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
+                arguments: [name],
+              );
+            } else {
+              errorReporter.atNode(
+                partUri,
+                CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+                arguments: [libraryName, name],
+              );
+            }
+          }
+        case PartOfUriFileKind():
+          errorReporter.atNode(
+            partUri,
+            CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+            arguments: [
+              enclosingFile.file.uriStr,
+              includedFile.uriStr,
+            ],
+          );
       }
+      return;
     }
 
-    //
-    // Validate that the part source is unique in the library.
-    //
-    if (!seenPartSources.add(partSource)) {
-      errorReporter.atNode(
-        partUri,
-        CompileTimeErrorCode.DUPLICATE_PART,
-        arguments: [partSource.uri],
-      );
+    _resolveUriConfigurations(
+      configurationNodes: directive.configurations,
+      configurationUris: partState.uris.configurations,
+    );
+
+    _resolveDirectives(
+      enclosingFile: enclosingFile,
+      fileKind: includedKind,
+      fileElement: partElementUri.unit,
+    );
+  }
+
+  void _resolveUriConfigurations({
+    required List<ConfigurationImpl> configurationNodes,
+    required List<file_state.DirectiveUri> configurationUris,
+  }) {
+    for (var i = 0; i < configurationNodes.length; i++) {
+      var node = configurationNodes[i];
+      node.resolvedUri = configurationUris[i].asDirectiveUri;
     }
   }
 }

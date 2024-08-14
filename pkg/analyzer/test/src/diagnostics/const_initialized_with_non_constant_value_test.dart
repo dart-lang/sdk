@@ -22,7 +22,7 @@ f(p) {
   const c = p;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 19,
           1),
     ]);

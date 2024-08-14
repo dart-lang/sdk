@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use case expressions that are valid in Dart 3.0.';
 
@@ -236,13 +237,7 @@ switch (n) {
 ```
 ''';
 
-// TODO(pq): add a dart.dev doc link when a doc is final (https://github.com/dart-lang/linter/issues/4055)
-
 class InvalidCasePatterns extends LintRule {
-  static const LintCode code = LintCode('invalid_case_patterns',
-      "This expression is not valid in a 'case' clause in Dart 3.0.",
-      correctionMessage: 'Try refactoring the expression to be valid in 3.0.');
-
   InvalidCasePatterns()
       : super(
             name: 'invalid_case_patterns',
@@ -254,7 +249,7 @@ class InvalidCasePatterns extends LintRule {
   // TODO(pq): update to add specific messages w/ specific corrections
   // https://github.com/dart-lang/linter/issues/4172
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.invalid_case_patterns;
 
   @override
   void registerNodeProcessors(

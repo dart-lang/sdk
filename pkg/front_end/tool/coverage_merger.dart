@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show LineSplitter, utf8;
 import 'dart:io';
-import 'dart:typed_data';
+import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $SPACE, $CARET, $LF, $CR;
@@ -23,12 +24,14 @@ void main(List<String> arguments) {
   Uri? packagesUri;
   bool addCommentsToFiles = false;
   bool removeCommentsFromFiles = false;
+  bool addAndRemoveCommentsInFiles = false;
 
   for (String argument in arguments) {
     const String coverage = "--coverage=";
     const String packages = "--packages=";
     const String comment = "--comment";
     const String removeComments = "--remove-comments";
+    const String addAndRemoveComments = "--add-and-remove-comments";
     if (argument.startsWith(coverage)) {
       coverageUri =
           Uri.base.resolveUri(Uri.file(argument.substring(coverage.length)));
@@ -39,6 +42,8 @@ void main(List<String> arguments) {
       addCommentsToFiles = true;
     } else if (argument == removeComments) {
       removeCommentsFromFiles = true;
+    } else if (argument == addAndRemoveComments) {
+      addAndRemoveCommentsInFiles = true;
     } else {
       throw "Unsupported argument: $argument";
     }
@@ -59,11 +64,12 @@ void main(List<String> arguments) {
     extraCoverageBlockIgnores: ["coverage-ignore-block(suite):"],
     addCommentsToFiles: addCommentsToFiles,
     removeCommentsFromFiles: removeCommentsFromFiles,
+    addAndRemoveCommentsInFiles: addAndRemoveCommentsInFiles,
   );
   print("Done in ${stopwatch.elapsed}");
 }
 
-Map<Uri, CoverageInfo>? mergeFromDirUri(
+Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
   Uri packagesUri,
   Uri coverageUri, {
   required bool silent,
@@ -71,7 +77,8 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
   required List<String> extraCoverageBlockIgnores,
   bool addCommentsToFiles = false,
   bool removeCommentsFromFiles = false,
-}) {
+  bool addAndRemoveCommentsInFiles = false,
+}) async {
   void output(Object? object) {
     if (silent) return;
     print(object);
@@ -134,6 +141,7 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
 
   Map<Uri, CoverageInfo> result = {};
 
+  List<Uri> needsFormatting = [];
   for (Uri uri in knownUris.toList()
     ..sort(((a, b) => a.toString().compareTo(b.toString())))) {
     // Don't care about coverage for testing stuff.
@@ -151,7 +159,7 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
     List<int> hitsSorted =
         hit == null ? const [] : (hit._data.keys.toList()..sort());
 
-    CoverageInfo processInfo = process(
+    CoverageInfo processInfo = _process(
       packageConfig,
       uri,
       miss ?? const {},
@@ -160,6 +168,8 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
       extraCoverageBlockIgnores,
       addCommentsToFiles: addCommentsToFiles,
       removeCommentsFromFiles: removeCommentsFromFiles,
+      addAndRemoveCommentsInFiles: addAndRemoveCommentsInFiles,
+      needsFormatting: needsFormatting,
     );
     if (processInfo.visualization.trim().isNotEmpty) {
       output(processInfo.visualization);
@@ -176,6 +186,26 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
       hitsTotal += processInfo.hitCount;
       missesTotal += processInfo.missCount;
     }
+  }
+
+  if (needsFormatting.isNotEmpty) {
+    Process p = await Process.start(Platform.resolvedExecutable, [
+      "format",
+      ...needsFormatting.map((uri) => new File.fromUri(uri).path)
+    ]);
+
+    p.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((String line) {
+      stderr.writeln("stderr> $line");
+    });
+    p.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((String line) {
+      stdout.writeln("stdout> $line");
+    });
   }
 
   output("Processed $filesCount files with $errorsCount error(s) and "
@@ -207,7 +237,7 @@ class CoverageInfo {
       : error = false;
 }
 
-CoverageInfo process(
+CoverageInfo _process(
   PackageConfig packageConfig,
   Uri uri,
   Set<int> untrimmedMisses,
@@ -216,6 +246,8 @@ CoverageInfo process(
   List<String> extraCoverageBlockIgnores, {
   bool addCommentsToFiles = false,
   bool removeCommentsFromFiles = false,
+  bool addAndRemoveCommentsInFiles = false,
+  List<Uri>? needsFormatting,
 }) {
   Uri? fileUri = packageConfig.resolve(uri);
   if (fileUri == null) {
@@ -248,40 +280,15 @@ CoverageInfo process(
     CompilationUnitBegin unitBegin =
         ast.children!.first as CompilationUnitBegin;
     Token? token = unitBegin.token;
-    List<Token> removeComments = [];
-    while (token != null && !token.isEof) {
-      Token? comment = token.precedingComments;
-      while (comment != null) {
-        String message = comment.lexeme.trim().toLowerCase();
-        while (message.startsWith("//") || message.startsWith("/*")) {
-          message = message.substring(2).trim();
-        }
-        for (String coverageIgnoreString in const [
-          "coverage-ignore(suite): not run.",
-          "coverage-ignore-block(suite): not run.",
-        ]) {
-          if (message.startsWith(coverageIgnoreString)) {
-            removeComments.add(comment);
-          }
-        }
-        comment = comment.next;
-      }
-      token = token.next;
-    }
+    List<Token> removeComments =
+        _findTokensWithCoverageIgnoreSuiteComments(token);
     String sourceText = source.text;
     StringBuffer sb = new StringBuffer();
     int from = 0;
     for (Token token in removeComments) {
       String substring = sourceText.substring(from, token.charOffset);
       sb.write(substring);
-      from = token.charEnd;
-      // Remove whitespace after too.
-      while (sourceText.length > from &&
-          (sourceText.codeUnitAt(from) == $SPACE ||
-              sourceText.codeUnitAt(from) == $LF ||
-              sourceText.codeUnitAt(from) == $CR)) {
-        from++;
-      }
+      from = _includeWhitespaceAfter(sourceText, token.charEnd);
     }
     sb.write(sourceText.substring(from));
     f.writeAsStringSync(sb.toString());
@@ -293,15 +300,36 @@ CoverageInfo process(
   }
 
   List<int> allSorted = [...hitsSorted, ...untrimmedMisses]..sort();
-  AstIndexerAndIgnoreCollector astIndexer =
-      AstIndexerAndIgnoreCollector.collect(
-          ast, extraCoverageIgnores, extraCoverageBlockIgnores,
-          hitsSorted: hitsSorted, allSorted: allSorted);
 
+  AstIndexerAndIgnoreCollector astIndexer;
+
+  if (addAndRemoveCommentsInFiles) {
+    // 1) Pretend like the comments that would be removed by the comment remover
+    //    aren't there (virtually removing them).
+    // 2) Now add the comments as when adding comments, but also removing the
+    //    old comments.
+    // 3) Add the new comments to the ignoredIntervals, allowing the below to
+    //    proceed as if was run on the newly commented stuff, thus returning the
+    //    (now) correct hit and miss count.
+    astIndexer = AstIndexerAndIgnoreCollector.collect(
+        ast, extraCoverageIgnores, extraCoverageBlockIgnores,
+        ignoresToIgnore: _commentTextToRemove,
+        hitsSorted: hitsSorted,
+        allSorted: allSorted);
+  } else {
+    astIndexer = AstIndexerAndIgnoreCollector.collect(
+        ast, extraCoverageIgnores, extraCoverageBlockIgnores,
+        hitsSorted: hitsSorted, allSorted: allSorted);
+  }
+
+  IntervalListBuilder? ignoredIntervalsBuilder;
+  if (addAndRemoveCommentsInFiles) {
+    ignoredIntervalsBuilder = astIndexer.ignoredStartEnd.clone();
+  }
   IntervalList ignoredIntervals =
       astIndexer.ignoredStartEnd.buildIntervalList();
 
-  if (addCommentsToFiles) {
+  if (addCommentsToFiles || addAndRemoveCommentsInFiles) {
     String sourceText = source.text;
     StringBuffer sb = new StringBuffer();
     int from = 0;
@@ -354,6 +382,53 @@ CoverageInfo process(
         processed.add(commentOn);
       }
     }
+
+    List<int> removeFrom = [];
+    List<int> removeTo = [];
+    if (addAndRemoveCommentsInFiles) {
+      CompilationUnitBegin unitBegin =
+          ast.children!.first as CompilationUnitBegin;
+      Token? token = unitBegin.token;
+      List<Token> removeComments =
+          _findTokensWithCoverageIgnoreSuiteComments(token);
+      for (Token token in removeComments) {
+        if (removeTo.isNotEmpty && removeTo.last == token.charOffset) {
+          // Not sure if this can happen, but if it does we extend the previous
+          // added to (i.e. end of what has to be removed).
+          removeTo[removeTo.length - 1] =
+              _includeWhitespaceAfter(sourceText, token.charEnd);
+        } else {
+          removeFrom.add(token.charOffset);
+          removeTo.add(_includeWhitespaceAfter(sourceText, token.charEnd));
+        }
+      }
+    }
+
+    void addChunk(int from, final int to) {
+      if (addAndRemoveCommentsInFiles && removeFrom.isNotEmpty) {
+        int fromIndex = binarySearch(removeFrom, from);
+        if (removeFrom[fromIndex] < from && removeTo[fromIndex] < from) {
+          fromIndex++;
+        }
+        // We have to add from `from` to `token.charOffset`, but possibly remove
+        // from `removeFrom[fromIndex]` to `removeTo[fromIndex]`,
+        // `removeFrom[fromIndex+1]` to `removeTo[fromIndex+1]` etc.
+        while (fromIndex < removeFrom.length && removeFrom[fromIndex] < to) {
+          if (from < removeFrom[fromIndex]) {
+            sb.write(sourceText.substring(from, removeFrom[fromIndex]));
+          }
+          from = removeTo[fromIndex];
+          fromIndex++;
+        }
+        // Now add any remaining text until the token.
+        if (from < to) {
+          sb.write(sourceText.substring(from, to));
+        }
+      } else {
+        sb.write(sourceText.substring(from, to));
+      }
+    }
+
     for (_CommentOn entry in processed) {
       // If - on a file without ignore comments - an ignore comment is
       // pushed down (say inside an if instead of outside it), on a subsequent
@@ -391,11 +466,21 @@ CoverageInfo process(
           token.previous?.lexeme == ":" ||
           token.previous?.lexeme == ";" ||
           token.previous?.lexeme == "=" ||
-          token.lexeme == "?.") {
+          token.lexeme == "?." ||
+          token.lexeme == "?") {
         extra = "\n  ";
         // If adding an extra linebreak would introduce an empty line we won't
         // add it.
         for (int i = token.charOffset - 1; i >= token.previous!.charEnd; i--) {
+          if (removeFrom.isNotEmpty) {
+            int fromIndex = binarySearch(removeFrom, i);
+            if (removeFrom[fromIndex] <= i && removeTo[fromIndex] >= i) {
+              // This is being removed. Change i to skip the rest.
+              i = removeFrom[fromIndex];
+              continue;
+            }
+          }
+
           int codeUnit = sourceText.codeUnitAt(i);
           if (codeUnit == $SPACE) {
             // We ignore spaces.
@@ -413,8 +498,7 @@ CoverageInfo process(
       if (token.precedingComments != null) {
         token = token.precedingComments!;
       }
-      String substring = sourceText.substring(from, token.charOffset);
-      sb.write(substring);
+      addChunk(from, token.charOffset);
 
       // The extra spaces at the end makes the formatter format better if for
       // instance there's comments after this.
@@ -423,14 +507,21 @@ CoverageInfo process(
       } else {
         sb.write("$extra// Coverage-ignore(suite): Not run.\n  ");
       }
+      ignoredIntervalsBuilder?.addIntervalIncludingEnd(
+          entry.beginToken.charOffset, entry.endToken.charEnd);
       from = token.charOffset;
     }
-    sb.write(sourceText.substring(from));
+    addChunk(from, sourceText.length);
     f.writeAsStringSync(sb.toString());
 
-    // Return a fake result.
-    return new CoverageInfo(
-        allCovered: true, missCount: -1, hitCount: -1, visualization: "fake");
+    if (addAndRemoveCommentsInFiles) {
+      ignoredIntervals = ignoredIntervalsBuilder!.buildIntervalList();
+      needsFormatting?.add(fileUri);
+    } else {
+      // Return a fake result.
+      return new CoverageInfo(
+          allCovered: true, missCount: -1, hitCount: -1, visualization: "fake");
+    }
   }
 
   // TODO(jensj): Extract all comments and use those as well here.
@@ -569,6 +660,42 @@ CoverageInfo process(
       visualization: visualization.toString());
 }
 
+int _includeWhitespaceAfter(String sourceText, int from) {
+  while (sourceText.length > from &&
+      (sourceText.codeUnitAt(from) == $SPACE ||
+          sourceText.codeUnitAt(from) == $LF ||
+          sourceText.codeUnitAt(from) == $CR)) {
+    from++;
+  }
+  return from;
+}
+
+const List<String> _commentTextToRemove = const [
+  "coverage-ignore(suite): not run.",
+  "coverage-ignore-block(suite): not run.",
+];
+
+List<Token> _findTokensWithCoverageIgnoreSuiteComments(Token? token) {
+  List<Token> comments = [];
+  while (token != null && !token.isEof) {
+    Token? comment = token.precedingComments;
+    while (comment != null) {
+      String message = comment.lexeme.trim().toLowerCase();
+      while (message.startsWith("//") || message.startsWith("/*")) {
+        message = message.substring(2).trim();
+      }
+      for (String coverageIgnoreString in _commentTextToRemove) {
+        if (message.startsWith(coverageIgnoreString)) {
+          comments.add(comment);
+        }
+      }
+      comment = comment.next;
+    }
+    token = token.next;
+  }
+  return comments;
+}
+
 ({bool allCovered, Set<int> trimmedMisses}) _trimIgnoredAndPrintPercentages(
     StringBuffer visualization,
     IntervalList ignoredIntervals,
@@ -662,6 +789,7 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   final List<String> _coverageBlockIgnores = [
     "coverage-ignore-block:",
   ];
+  final List<String> _ignoresToIgnore = [];
 
   final IntervalListBuilder ignoredStartEnd = new IntervalListBuilder();
 
@@ -675,13 +803,19 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   late final _AstIndexerAndIgnoreCollectorBody _collectorBody =
       new _AstIndexerAndIgnoreCollectorBody(this);
 
-  static AstIndexerAndIgnoreCollector collect(ParserAstNode ast,
-      List<String> extraCoverageIgnores, List<String> extraCoverageBlockIgnores,
-      {required List<int> hitsSorted, required List<int> allSorted}) {
+  static AstIndexerAndIgnoreCollector collect(
+    ParserAstNode ast,
+    List<String> extraCoverageIgnores,
+    List<String> extraCoverageBlockIgnores, {
+    required List<int> hitsSorted,
+    required List<int> allSorted,
+    List<String> ignoresToIgnore = const [],
+  }) {
     AstIndexerAndIgnoreCollector collector =
         new AstIndexerAndIgnoreCollector._(hitsSorted, allSorted);
     collector._coverageIgnores.addAll(extraCoverageIgnores);
     collector._coverageBlockIgnores.addAll(extraCoverageBlockIgnores);
+    collector._ignoresToIgnore.addAll(ignoresToIgnore);
     ast.accept(collector);
 
     assert(collector.positionNodeIndex.length ==
@@ -706,9 +840,18 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
       while (message.startsWith("//") || message.startsWith("/*")) {
         message = message.substring(2).trim();
       }
-      for (String coverageIgnoreString in coverageIgnores) {
+      bool skipComment = false;
+      for (String coverageIgnoreString in _ignoresToIgnore) {
         if (message.startsWith(coverageIgnoreString)) {
-          return true;
+          skipComment = true;
+          break;
+        }
+      }
+      if (!skipComment) {
+        for (String coverageIgnoreString in coverageIgnores) {
+          if (message.startsWith(coverageIgnoreString)) {
+            return true;
+          }
         }
       }
       comment = comment.next;
@@ -735,7 +878,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   /// If there is not it will add a note to add one if that makes sense (in that
   /// there is possible coverage but no actual coverage).
   bool _checkCommentAndIgnoreCoverageWithBeginAndEnd(
-      Token tokenWithPossibleComment, Token beginToken, Token endToken,
+      final Token tokenWithPossibleComment,
+      final Token beginToken,
+      final Token endToken,
       {required bool allowReplace,
       bool isBlock = false,
       bool allowOnBraceStart = false}) {
@@ -1173,6 +1318,19 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
       return;
     }
     super.visitEndingBinaryExpressionHandle(node);
+  }
+
+  @override
+  void visitIndexedExpressionHandle(IndexedExpressionHandle node) {
+    // Given `a?[b]` if `a` is null `b` won't execute.
+    // Having the comment before the `?` looks better.
+    if (node.question != null &&
+        _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+            node.question!, node.openSquareBracket, node.closeSquareBracket,
+            allowReplace: true)) {
+      return;
+    }
+    super.visitIndexedExpressionHandle(node);
   }
 
   @override

@@ -5014,6 +5014,12 @@ FfiSizeAnnotationDimensions:
   problemMessage: "Field '#name' must have an 'Array' annotation that matches the dimensions."
   external: test/ffi_test.dart
 
+FfiVariableLengthArrayNotLast:
+  # Used by dart:ffi
+  problemMessage: "Variable length 'Array's must only occur as the last field of Structs."
+  correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
+  external: test/ffi_test.dart
+
 FfiStructGeneric:
   # Used by dart:ffi
   problemMessage: "#string '#name' should not be generic."

@@ -105,9 +105,9 @@ void f() {
 ''');
   }
 
-  Future<void> test_function_hasZero_partOfName_noLibrary() async {
+  Future<void> test_function_hasZero_partOfUri_noLibrary() async {
     await resolveTestCode('''
-part of my_lib;
+part of 'a.dart';
 test() {}
 void f() {
   test(1);

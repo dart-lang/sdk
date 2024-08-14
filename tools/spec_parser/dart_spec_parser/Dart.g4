@@ -4,11 +4,8 @@
 
 // CHANGES:
 //
-// v0.44 Change rule structure such that the association of metadata
-// with non-terminals can be explained in a simple and consistent way.
-// The derivable terms do not change. Remove `metadata` from the kind
-// of `forLoopParts` where the iteration variable is an existing variable
-// in scope (this is not implemented, is inconsistent anyway).
+// v0.46 Update rule about augmenting extension type declaration to omit
+// the primary constructor.
 //
 // v0.45 Support null-aware elements.
 //
@@ -465,8 +462,10 @@ mixinMemberDeclaration
     ;
 
 extensionTypeDeclaration
-    :    AUGMENT? EXTENSION TYPE CONST? typeWithParameters
+    :    EXTENSION TYPE CONST? typeWithParameters
          representationDeclaration interfaces?
+         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
          LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
     ;
 
@@ -1240,7 +1239,7 @@ outerPattern
     ;
 
 outerPatternDeclarationPrefix
-    : (FINAL | VAR) outerPattern
+    :    (FINAL | VAR) outerPattern
     ;
 
 patternAssignment

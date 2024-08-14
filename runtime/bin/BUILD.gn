@@ -135,13 +135,6 @@ build_native_assets_api("native_assets_api_product") {
   ]
 }
 
-# TODO(aam): Remove once https://dart-review.googlesource.com/c/sdk/+/377541
-# rolls into flutter engine.
-source_set("concurrent_api") {
-}
-source_set("concurrent_api_product") {
-}
-
 static_library("crashpad") {
   configs += [
     "..:dart_arch_config",

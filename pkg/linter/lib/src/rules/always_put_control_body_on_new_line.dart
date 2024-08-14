@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Separate the control structure expression from its statement.';
 
@@ -50,11 +51,6 @@ when the Dart formatter is used.
 ''';
 
 class AlwaysPutControlBodyOnNewLine extends LintRule {
-  static const LintCode code = LintCode('always_put_control_body_on_new_line',
-      'Statement should be on a separate line.',
-      correctionMessage: 'Try moving the statement to a new line.',
-      hasPublishedDocs: true);
-
   AlwaysPutControlBodyOnNewLine()
       : super(
             name: 'always_put_control_body_on_new_line',
@@ -63,7 +59,7 @@ class AlwaysPutControlBodyOnNewLine extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.always_put_control_body_on_new_line;
 
   @override
   void registerNodeProcessors(

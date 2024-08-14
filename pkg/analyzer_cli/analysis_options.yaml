@@ -16,7 +16,6 @@ linter:
     - always_declare_return_types
     - avoid_unused_constructor_parameters
     - directives_ordering
-    - enable_null_safety
     - flutter_style_todos
     - library_annotations
     - omit_local_variable_types

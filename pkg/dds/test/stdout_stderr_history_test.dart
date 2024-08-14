@@ -28,20 +28,12 @@ Future<void> streamHistoryTest(
   int i = 1;
   service.onEvent(stream).listen((event) async {
     final string = decodeBase64(event.bytes!);
-    if (stream == EventStreams.kStdout) {
-      if (!string.startsWith(stream)) {
-        // Likely "The Dart VM service is listening..." or one of the other
-        // messages printed when the VM service is enabled.
-        return;
-      }
-      expect(string, '$stream log$i\n');
-    } else {
-      // Newlines are sent as separate events for some reason. Ignore them.
-      if (!string.startsWith(stream)) {
-        return;
-      }
-      expect(string, '$stream log$i');
+    if (!string.startsWith(stream)) {
+      // Likely "The Dart VM service is listening..." or one of the other
+      // messages printed when the VM service is enabled.
+      return;
     }
+    expect(string, '$stream log$i\n');
     i++;
 
     if (i == 10) {

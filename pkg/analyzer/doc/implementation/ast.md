@@ -25,7 +25,8 @@ should be uncommon.
 If the change is to add some new tokens or child nodes, then doing so ought to
 be a non-breaking change. For each of the children you'll need to add a new
 getter and a new parameter to the constructor on the implementation class, but
-the implementation classes aren't public API.
+the implementation classes aren't public API. When adding new tokens, you may
+also have to update `beginToken`/`endToken`.
 
 If the change requires a modification to an existing part of the public API,
 then it needs to be handled by first adding the replacement for the modified

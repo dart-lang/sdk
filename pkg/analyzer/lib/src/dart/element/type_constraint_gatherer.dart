@@ -365,13 +365,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // constraints:
     //   If `P` is a record type or `Record`.
     if (Q_nullability == NullabilitySuffix.none && Q.isDartCoreRecord) {
-      if (_typeSystemOperations.isRecordType(P)) {
+      if (P is SharedRecordType<DartType>) {
         return true;
       }
     }
 
-    if (_typeSystemOperations.isRecordType(P) &&
-        _typeSystemOperations.isRecordType(Q)) {
+    if (P is SharedRecordType<DartType> && Q is SharedRecordType<DartType>) {
       return _recordType(P as RecordTypeImpl, Q as RecordTypeImpl, leftSchema,
           nodeForTesting: nodeForTesting);
     }

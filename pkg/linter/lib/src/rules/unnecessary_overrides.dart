@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -51,12 +52,6 @@ It's valid to override a member in the following cases:
 ''';
 
 class UnnecessaryOverrides extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_overrides', 'Unnecessary override.',
-      correctionMessage:
-          'Try adding behavior in the overriding member or removing the override.',
-      hasPublishedDocs: true);
-
   UnnecessaryOverrides()
       : super(
             name: 'unnecessary_overrides',
@@ -65,7 +60,7 @@ class UnnecessaryOverrides extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_overrides;
 
   @override
   void registerNodeProcessors(

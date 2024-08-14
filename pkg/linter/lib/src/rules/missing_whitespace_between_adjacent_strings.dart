@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Missing whitespace between adjacent strings.';
 
@@ -33,11 +34,6 @@ var s =
 ''';
 
 class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
-  static const LintCode code = LintCode(
-      'missing_whitespace_between_adjacent_strings',
-      'Missing whitespace between adjacent strings.',
-      correctionMessage: 'Try adding whitespace between the strings.');
-
   MissingWhitespaceBetweenAdjacentStrings()
       : super(
             name: 'missing_whitespace_between_adjacent_strings',
@@ -46,7 +42,8 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.missing_whitespace_between_adjacent_strings;
 
   @override
   void registerNodeProcessors(

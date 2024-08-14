@@ -32,7 +32,6 @@ import '../builder/declaration_builders.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
-import 'collections.dart';
 
 typedef SharedMatchContext = shared
     .MatchContext<TreeNode, Expression, Pattern, DartType, VariableDeclaration>;
@@ -796,7 +795,6 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   double? asDouble({bool negated = false}) {
     if (value == 0 && negated) {
-      // Coverage-ignore-block(suite): Not run.
       return -0.0;
     }
     BigInt intValue = new BigInt.from(negated ? -value : value);
@@ -839,7 +837,6 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   ShadowLargeIntLiteral(this._strippedLiteral, this.literal, this.fileOffset)
       : super(0);
 
-  // Coverage-ignore(suite): Not run.
   double? asDouble({bool negated = false}) {
     BigInt? intValue =
         BigInt.tryParse(negated ? '-${_strippedLiteral}' : _strippedLiteral);
@@ -3124,106 +3121,6 @@ class InternalRecordLiteral extends InternalExpression {
   }
 }
 
-class IfCaseMapEntry extends TreeNode
-    with InternalTreeNode, ControlFlowMapEntry {
-  Expression expression;
-  PatternGuard patternGuard;
-  MapLiteralEntry then;
-  MapLiteralEntry? otherwise;
-  List<Statement> prelude;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
-
-  IfCaseMapEntry(
-      {required this.prelude,
-      required this.expression,
-      required this.patternGuard,
-      required this.then,
-      this.otherwise}) {
-    expression.parent = this;
-    patternGuard.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.write('if (');
-    expression.toTextInternal(printer);
-    printer.write(' case ');
-    patternGuard.toTextInternal(printer);
-    printer.write(') ');
-    then.toTextInternal(printer);
-    if (otherwise != null) {
-      printer.write(' else ');
-      otherwise!.toTextInternal(printer);
-    }
-  }
-
-  @override
-  String toString() {
-    return "IfCaseMapEntry(${toStringInternal()})";
-  }
-}
-
-class PatternForMapEntry extends TreeNode
-    with InternalTreeNode, ControlFlowMapEntry
-    implements ForMapEntry {
-  PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
-
-  @override
-  final List<VariableDeclaration> variables;
-
-  @override
-  Expression? condition;
-
-  @override
-  final List<Expression> updates;
-
-  @override
-  MapLiteralEntry body;
-
-  PatternForMapEntry(
-      {required this.patternVariableDeclaration,
-      required this.intermediateVariables,
-      required this.variables,
-      required this.condition,
-      required this.updates,
-      required this.body});
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
-    printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
-      if (index > 0) {
-        printer.write(', ');
-      }
-      printer.writeVariableDeclaration(variables[index],
-          includeModifiersAndType: index == 0);
-    }
-    printer.write('; ');
-    if (condition != null) {
-      printer.writeExpression(condition!);
-    }
-    printer.write('; ');
-    printer.writeExpressions(updates);
-    printer.write(') ');
-    body.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "PatternForMapEntry(${toStringInternal()})";
-  }
-}
-
 /// Data structure used by the body builder in place of [ObjectPattern], to
 /// allow additional information to be captured that is needed during type
 /// inference.
@@ -3297,6 +3194,7 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
     value = v.transform(value)..parent = this;
   }

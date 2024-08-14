@@ -133,30 +133,35 @@ class NullAwareElement extends ControlFlowElement with ControlFlowElementMixin {
   NullAwareElement(this.expression);
 
   @override
+  // Coverage-ignore(suite): Not run.
   MapLiteralEntry? toMapLiteralEntry(
       void Function(TreeNode from, TreeNode to) onConvertElement) {
     return unsupported("toMapLiteralEntry", fileOffset, getFileUri(this));
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('?');
     printer.writeExpression(expression);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
     expression = v.transform(expression);
     expression.parent = this;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
     expression = v.transform(expression);
     expression.parent = this;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
     expression.accept(v);
   }
@@ -259,10 +264,19 @@ class IfElement extends ControlFlowElement with ControlFlowElementMixin {
 }
 
 /// A 'for' element in a list or set literal.
-class ForElement extends ControlFlowElement with ControlFlowElementMixin {
+class ForElement extends ControlFlowElement
+    with ControlFlowElementMixin
+    implements ForElementBase {
+  @override
   final List<VariableDeclaration> variables; // May be empty, but not null.
+
+  @override
   Expression? condition; // May be null.
+
+  @override
   final List<Expression> updates; // May be empty, but not null.
+
+  @override
   Expression body;
 
   ForElement(this.variables, this.condition, this.updates, this.body) {
@@ -550,9 +564,19 @@ class IfCaseElement extends ControlFlowElementImpl
   }
 }
 
+abstract interface class ForElementBase implements AuxiliaryExpression {
+  List<VariableDeclaration> get variables;
+
+  abstract Expression? condition;
+
+  List<Expression> get updates;
+
+  abstract Expression body;
+}
+
 class PatternForElement extends ControlFlowElementImpl
     with ControlFlowElementMixin
-    implements ForElement {
+    implements ForElementBase {
   PatternVariableDeclaration patternVariableDeclaration;
   List<VariableDeclaration> intermediateVariables;
 
@@ -616,7 +640,10 @@ class PatternForElement extends ControlFlowElementImpl
   }
 }
 
-mixin ControlFlowMapEntry implements MapLiteralEntry {
+/// Base class for all control-flow map entries.
+sealed class ControlFlowMapEntry implements MapLiteralEntry {}
+
+mixin ControlFlowMapEntryMixin implements MapLiteralEntry {
   @override
   Expression get key {
     throw new UnsupportedError('ControlFlowMapEntry.key getter');
@@ -651,8 +678,72 @@ mixin ControlFlowMapEntry implements MapLiteralEntry {
   String toStringInternal() => toText(defaultAstTextStrategy);
 }
 
+/// A null-aware entry in a map literal.
+class NullAwareMapEntry extends TreeNode
+    with ControlFlowMapEntryMixin
+    implements ControlFlowMapEntry {
+  /// `true` if the key expression is null-aware, that is, marked with `?`.
+  bool isKeyNullAware;
+
+  @override
+  Expression key;
+
+  /// `true` if the value expression is null-aware, that is, marked with `?`.
+  bool isValueNullAware;
+
+  @override
+  Expression value;
+
+  NullAwareMapEntry(
+      {required this.isKeyNullAware,
+      required this.key,
+      required this.isValueNullAware,
+      required this.value});
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    if (isKeyNullAware) {
+      printer.write('?');
+    }
+    key.toTextInternal(printer);
+    printer.write(': ');
+    if (isValueNullAware) {
+      printer.write('?');
+    }
+    value.toTextInternal(printer);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void transformChildren(Transformer v) {
+    key = v.transform(key);
+    key.parent = this;
+    value = v.transform(value);
+    value.parent = this;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    key = v.transform(key);
+    key.parent = this;
+    value = v.transform(value);
+    value.parent = this;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitChildren(Visitor v) {
+    key.accept(v);
+    value.accept(v);
+  }
+}
+
 /// A spread element in a map literal.
-class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
+class SpreadMapEntry extends TreeNode
+    with ControlFlowMapEntryMixin
+    implements ControlFlowMapEntry {
   Expression expression;
   bool isNullAware;
 
@@ -700,7 +791,9 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
 }
 
 /// An 'if' element in a map literal.
-class IfMapEntry extends TreeNode with ControlFlowMapEntry {
+class IfMapEntry extends TreeNode
+    with ControlFlowMapEntryMixin
+    implements ControlFlowMapEntry {
   Expression condition;
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
@@ -764,11 +857,30 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 }
 
+abstract interface class ForMapEntryBase implements TreeNode, MapLiteralEntry {
+  List<VariableDeclaration> get variables;
+
+  abstract Expression? condition;
+
+  List<Expression> get updates;
+
+  abstract MapLiteralEntry body;
+}
+
 /// A 'for' element in a map literal.
-class ForMapEntry extends TreeNode with ControlFlowMapEntry {
+class ForMapEntry extends TreeNode
+    with ControlFlowMapEntryMixin
+    implements ForMapEntryBase, ControlFlowMapEntry {
+  @override
   final List<VariableDeclaration> variables; // May be empty, but not null.
+
+  @override
   Expression? condition; // May be null.
+
+  @override
   final List<Expression> updates; // May be empty, but not null.
+
+  @override
   MapLiteralEntry body;
 
   ForMapEntry(this.variables, this.condition, this.updates, this.body) {
@@ -840,8 +952,64 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 }
 
+class PatternForMapEntry extends TreeNode
+    with InternalTreeNode, ControlFlowMapEntryMixin
+    implements ForMapEntryBase, ControlFlowMapEntry {
+  PatternVariableDeclaration patternVariableDeclaration;
+  List<VariableDeclaration> intermediateVariables;
+
+  @override
+  final List<VariableDeclaration> variables;
+
+  @override
+  Expression? condition;
+
+  @override
+  final List<Expression> updates;
+
+  @override
+  MapLiteralEntry body;
+
+  PatternForMapEntry(
+      {required this.patternVariableDeclaration,
+      required this.intermediateVariables,
+      required this.variables,
+      required this.condition,
+      required this.updates,
+      required this.body});
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    patternVariableDeclaration.toTextInternal(printer);
+    printer.write('for (');
+    for (int index = 0; index < variables.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(variables[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write('; ');
+    if (condition != null) {
+      printer.writeExpression(condition!);
+    }
+    printer.write('; ');
+    printer.writeExpressions(updates);
+    printer.write(') ');
+    body.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "PatternForMapEntry(${toStringInternal()})";
+  }
+}
+
 /// A 'for-in' element in a map literal.
-class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
+class ForInMapEntry extends TreeNode
+    with ControlFlowMapEntryMixin
+    implements ControlFlowMapEntry {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Expression? syntheticAssignment; // May be null.
@@ -937,6 +1105,53 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 }
 
+class IfCaseMapEntry extends TreeNode
+    with InternalTreeNode, ControlFlowMapEntryMixin
+    implements ControlFlowMapEntry {
+  Expression expression;
+  PatternGuard patternGuard;
+  MapLiteralEntry then;
+  MapLiteralEntry? otherwise;
+  List<Statement> prelude;
+
+  /// The type of the expression against which this pattern is matched.
+  ///
+  /// This is set during inference.
+  DartType? matchedValueType;
+
+  IfCaseMapEntry(
+      {required this.prelude,
+      required this.expression,
+      required this.patternGuard,
+      required this.then,
+      this.otherwise}) {
+    expression.parent = this;
+    patternGuard.parent = this;
+    then.parent = this;
+    otherwise?.parent = this;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('if (');
+    expression.toTextInternal(printer);
+    printer.write(' case ');
+    patternGuard.toTextInternal(printer);
+    printer.write(') ');
+    then.toTextInternal(printer);
+    if (otherwise != null) {
+      printer.write(' else ');
+      otherwise!.toTextInternal(printer);
+    }
+  }
+
+  @override
+  String toString() {
+    return "IfCaseMapEntry(${toStringInternal()})";
+  }
+}
+
 /// Convert [entry] to an [Expression], if possible. If [entry] cannot be
 /// converted an error reported through [helper] and an invalid expression is
 /// returned.
@@ -950,76 +1165,83 @@ Expression convertToElement(
   void onConvertMapEntry(TreeNode from, TreeNode to), {
   DartType? actualType,
 }) {
-  if (entry is SpreadMapEntry) {
-    return new SpreadElement(entry.expression, isNullAware: entry.isNullAware)
-      ..elementType = actualType
-      ..fileOffset = entry.expression.fileOffset;
-  }
-  if (entry is IfMapEntry) {
-    IfElement result = new IfElement(
-        entry.condition,
-        convertToElement(entry.then, helper, onConvertMapEntry),
-        entry.otherwise == null
-            ? null
-            :
-            // Coverage-ignore(suite): Not run.
-            convertToElement(entry.otherwise!, helper, onConvertMapEntry))
-      ..fileOffset = entry.fileOffset;
-    onConvertMapEntry(entry, result);
-    return result;
-  }
-  if (entry is IfCaseMapEntry) {
-    IfCaseElement result = new IfCaseElement(
-        prelude: entry.prelude,
-        expression: entry.expression,
-        patternGuard: entry.patternGuard,
-        then: convertToElement(entry.then, helper, onConvertMapEntry),
-        otherwise: entry.otherwise == null
-            ? null
-            :
-            // Coverage-ignore(suite): Not run.
-            convertToElement(entry.otherwise!, helper, onConvertMapEntry))
-      ..matchedValueType = entry.matchedValueType
-      ..fileOffset = entry.fileOffset;
-    onConvertMapEntry(entry, result);
-    return result;
-  }
-  if (entry is ForMapEntry) {
-    if (entry is PatternForMapEntry) {
-      PatternForElement result = new PatternForElement(
-          patternVariableDeclaration: entry.patternVariableDeclaration,
-          intermediateVariables: entry.intermediateVariables,
-          variables: entry.variables,
-          condition: entry.condition,
-          updates: entry.updates,
-          body: convertToElement(entry.body, helper, onConvertMapEntry))
-        ..fileOffset = entry.fileOffset;
-      onConvertMapEntry(entry, result);
-      return result;
-    } else {
-      ForElement result = new ForElement(
-          entry.variables,
-          entry.condition,
-          entry.updates,
-          convertToElement(entry.body, helper, onConvertMapEntry))
-        ..fileOffset = entry.fileOffset;
-      onConvertMapEntry(entry, result);
-      return result;
+  if (entry is ControlFlowMapEntry) {
+    switch (entry) {
+      case SpreadMapEntry():
+        return new SpreadElement(entry.expression,
+            isNullAware: entry.isNullAware)
+          ..elementType = actualType
+          ..fileOffset = entry.expression.fileOffset;
+      case IfMapEntry():
+        IfElement result = new IfElement(
+            entry.condition,
+            convertToElement(entry.then, helper, onConvertMapEntry),
+            entry.otherwise == null
+                ? null
+                :
+                // Coverage-ignore(suite): Not run.
+                convertToElement(entry.otherwise!, helper, onConvertMapEntry))
+          ..fileOffset = entry.fileOffset;
+        onConvertMapEntry(entry, result);
+        return result;
+      case NullAwareMapEntry():
+        // Coverage-ignore(suite): Not run.
+        return _convertToErroneousElement(entry, helper);
+      case IfCaseMapEntry():
+        IfCaseElement result = new IfCaseElement(
+            prelude: entry.prelude,
+            expression: entry.expression,
+            patternGuard: entry.patternGuard,
+            then: convertToElement(entry.then, helper, onConvertMapEntry),
+            otherwise: entry.otherwise == null
+                ? null
+                :
+                // Coverage-ignore(suite): Not run.
+                convertToElement(entry.otherwise!, helper, onConvertMapEntry))
+          ..matchedValueType = entry.matchedValueType
+          ..fileOffset = entry.fileOffset;
+        onConvertMapEntry(entry, result);
+        return result;
+      case PatternForMapEntry():
+        PatternForElement result = new PatternForElement(
+            patternVariableDeclaration: entry.patternVariableDeclaration,
+            intermediateVariables: entry.intermediateVariables,
+            variables: entry.variables,
+            condition: entry.condition,
+            updates: entry.updates,
+            body: convertToElement(entry.body, helper, onConvertMapEntry))
+          ..fileOffset = entry.fileOffset;
+        onConvertMapEntry(entry, result);
+        return result;
+      case ForMapEntry():
+        ForElement result = new ForElement(
+            entry.variables,
+            entry.condition,
+            entry.updates,
+            convertToElement(entry.body, helper, onConvertMapEntry))
+          ..fileOffset = entry.fileOffset;
+        onConvertMapEntry(entry, result);
+        return result;
+      case ForInMapEntry():
+        ForInElement result = new ForInElement(
+            entry.variable,
+            entry.iterable,
+            entry.syntheticAssignment,
+            entry.expressionEffects,
+            convertToElement(entry.body, helper, onConvertMapEntry),
+            entry.problem,
+            isAsync: entry.isAsync)
+          ..fileOffset = entry.fileOffset;
+        onConvertMapEntry(entry, result);
+        return result;
     }
+  } else {
+    return _convertToErroneousElement(entry, helper);
   }
-  if (entry is ForInMapEntry) {
-    ForInElement result = new ForInElement(
-        entry.variable,
-        entry.iterable,
-        entry.syntheticAssignment,
-        entry.expressionEffects,
-        convertToElement(entry.body, helper, onConvertMapEntry),
-        entry.problem,
-        isAsync: entry.isAsync)
-      ..fileOffset = entry.fileOffset;
-    onConvertMapEntry(entry, result);
-    return result;
-  }
+}
+
+Expression _convertToErroneousElement(
+    MapLiteralEntry entry, InferenceHelper? helper) {
   Expression key = entry.key;
   if (key is InvalidExpression) {
     Expression value = entry.value;
@@ -1052,9 +1274,10 @@ bool isConvertibleToMapEntry(Expression element) {
       case IfCaseElement():
         return isConvertibleToMapEntry(element.then) &&
             (element.otherwise == null ||
-                // Coverage-ignore(suite): Not run.
                 isConvertibleToMapEntry(element.otherwise!));
       case ForElement():
+        return isConvertibleToMapEntry(element.body);
+      case PatternForElement():
         return isConvertibleToMapEntry(element.body);
       case ForInElement():
         return isConvertibleToMapEntry(element.body);
@@ -1071,95 +1294,89 @@ bool isConvertibleToMapEntry(Expression element) {
 /// [onConvertElement] is called when a [ForElement], [ForInElement], or
 /// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
 /// [IfMapEntry], respectively.
-MapLiteralEntry convertToMapEntry(ControlFlowElement element,
-    InferenceHelper helper, void onConvertElement(TreeNode from, TreeNode to)) {
-  switch (element) {
-    case SpreadElement():
-      return new SpreadMapEntry(element.expression,
-          isNullAware: element.isNullAware)
-        ..fileOffset = element.expression.fileOffset;
-
-    case NullAwareElement():
-      return convertToErroneousMapEntry(element, helper);
-
-    case IfElement():
-      IfMapEntry result = new IfMapEntry(
-          element.condition,
-          _convertNestedToMapEntry(element.then, helper, onConvertElement),
-          element.otherwise == null
-              ? null
-              : _convertNestedToMapEntry(
-                  element.otherwise!, helper, onConvertElement))
-        ..fileOffset = element.fileOffset;
-      onConvertElement(element, result);
-      return result;
-
-    case IfCaseElement():
-      IfCaseMapEntry result = new IfCaseMapEntry(
-          prelude: [],
-          expression: element.expression,
-          patternGuard: element.patternGuard,
-          then:
-              _convertNestedToMapEntry(element.then, helper, onConvertElement),
-          otherwise: element.otherwise == null
-              ? null
-              :
-              // Coverage-ignore(suite): Not run.
-              _convertNestedToMapEntry(
-                  element.otherwise!, helper, onConvertElement))
-        ..matchedValueType = element.matchedValueType
-        ..fileOffset = element.fileOffset;
-      onConvertElement(element, result);
-      return result;
-
-    case PatternForElement():
-      PatternForMapEntry result = new PatternForMapEntry(
-          patternVariableDeclaration: element.patternVariableDeclaration,
-          intermediateVariables: element.intermediateVariables,
-          variables: element.variables,
-          condition: element.condition,
-          updates: element.updates,
-          body:
-              _convertNestedToMapEntry(element.body, helper, onConvertElement))
-        ..fileOffset = element.fileOffset;
-      onConvertElement(element, result);
-      return result;
-
-    case ForElement():
-      ForMapEntry result = new ForMapEntry(
-          element.variables,
-          element.condition,
-          element.updates,
-          _convertNestedToMapEntry(element.body, helper, onConvertElement))
-        ..fileOffset = element.fileOffset;
-      onConvertElement(element, result);
-      return result;
-
-    case ForInElement():
-      ForInMapEntry result = new ForInMapEntry(
-          element.variable,
-          element.iterable,
-          element.syntheticAssignment,
-          element.expressionEffects,
-          _convertNestedToMapEntry(element.body, helper, onConvertElement),
-          element.problem,
-          isAsync: element.isAsync)
-        ..fileOffset = element.fileOffset;
-      onConvertElement(element, result);
-      return result;
-  }
-}
-
-MapLiteralEntry _convertNestedToMapEntry(Expression element,
-    InferenceHelper helper, void onConvertElement(TreeNode from, TreeNode to)) {
+MapLiteralEntry convertToMapEntry(Expression element, InferenceHelper helper,
+    void onConvertElement(TreeNode from, TreeNode to)) {
   if (element is ControlFlowElement) {
-    return convertToMapEntry(element, helper, onConvertElement);
+    switch (element) {
+      case SpreadElement():
+        return new SpreadMapEntry(element.expression,
+            isNullAware: element.isNullAware)
+          ..fileOffset = element.expression.fileOffset;
+
+      case NullAwareElement():
+        // Coverage-ignore(suite): Not run.
+        return _convertToErroneousMapEntry(element, helper);
+
+      case IfElement():
+        IfMapEntry result = new IfMapEntry(
+            element.condition,
+            convertToMapEntry(element.then, helper, onConvertElement),
+            element.otherwise == null
+                ? null
+                : convertToMapEntry(
+                    element.otherwise!, helper, onConvertElement))
+          ..fileOffset = element.fileOffset;
+        onConvertElement(element, result);
+        return result;
+
+      case IfCaseElement():
+        IfCaseMapEntry result = new IfCaseMapEntry(
+            prelude: [],
+            expression: element.expression,
+            patternGuard: element.patternGuard,
+            then: convertToMapEntry(element.then, helper, onConvertElement),
+            otherwise: element.otherwise == null
+                ? null
+                : convertToMapEntry(
+                    element.otherwise!, helper, onConvertElement))
+          ..matchedValueType = element.matchedValueType
+          ..fileOffset = element.fileOffset;
+        onConvertElement(element, result);
+        return result;
+
+      case PatternForElement():
+        PatternForMapEntry result = new PatternForMapEntry(
+            patternVariableDeclaration: element.patternVariableDeclaration,
+            intermediateVariables: element.intermediateVariables,
+            variables: element.variables,
+            condition: element.condition,
+            updates: element.updates,
+            body: convertToMapEntry(element.body, helper, onConvertElement))
+          ..fileOffset = element.fileOffset;
+        onConvertElement(element, result);
+        return result;
+
+      case ForElement():
+        ForMapEntry result = new ForMapEntry(
+            element.variables,
+            element.condition,
+            element.updates,
+            convertToMapEntry(element.body, helper, onConvertElement))
+          ..fileOffset = element.fileOffset;
+        onConvertElement(element, result);
+        return result;
+
+      case ForInElement():
+        ForInMapEntry result = new ForInMapEntry(
+            element.variable,
+            element.iterable,
+            element.syntheticAssignment,
+            element.expressionEffects,
+            convertToMapEntry(element.body, helper, onConvertElement),
+            element.problem,
+            isAsync: element.isAsync)
+          ..fileOffset = element.fileOffset;
+        onConvertElement(element, result);
+        return result;
+    }
   } else {
-    return convertToErroneousMapEntry(element, helper);
+    // Coverage-ignore-block(suite): Not run.
+    return _convertToErroneousMapEntry(element, helper);
   }
 }
 
-MapLiteralEntry convertToErroneousMapEntry(
+// Coverage-ignore(suite): Not run.
+MapLiteralEntry _convertToErroneousMapEntry(
     Expression element, InferenceHelper helper) {
   return new MapLiteralEntry(
       helper.buildProblem(

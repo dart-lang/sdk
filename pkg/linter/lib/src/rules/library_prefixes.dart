@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../utils.dart';
 
 const _desc =
@@ -35,14 +36,6 @@ import 'package:javascript_utils/javascript_utils.dart' as js_utils;
 ''';
 
 class LibraryPrefixes extends LintRule {
-  static const LintCode code =
-      LintCode('library_prefixes',
-          "The prefix '{0}' isn't a lower_case_with_underscores identifier.",
-          correctionMessage:
-              'Try changing the prefix to follow the lower_case_with_underscores '
-              'style.',
-          hasPublishedDocs: true);
-
   LibraryPrefixes()
       : super(
             name: 'library_prefixes',
@@ -51,7 +44,7 @@ class LibraryPrefixes extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.library_prefixes;
 
   @override
   void registerNodeProcessors(

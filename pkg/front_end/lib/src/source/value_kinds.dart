@@ -19,7 +19,6 @@ import '../base/combinator.dart' as type;
 import '../base/configuration.dart' as type;
 import '../base/constant_context.dart' as type;
 import '../base/identifiers.dart' as type;
-import '../base/local_scope.dart' as type;
 import '../base/modifier.dart' as type;
 import '../base/operator.dart' as type;
 import '../base/scope.dart' as type;
@@ -190,8 +189,6 @@ class ValueKinds {
       const SingleValueKind<type.SwitchExpressionCase>();
   static const ValueKind SwitchExpressionCaseList =
       const SingleValueKind<List<type.SwitchExpressionCase>>();
-  static const ValueKind SwitchScopeOrNull =
-      const SingleValueKind<type.SwitchScope>(NullValues.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
   static const ValueKind StatementOrNull =
       const SingleValueKind<type.Statement>(NullValues.Block);

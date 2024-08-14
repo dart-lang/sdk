@@ -2941,9 +2941,6 @@ class MiniAstOperations
       property.isPromotable;
 
   @override
-  bool isRecordType(Type type) => type is RecordType;
-
-  @override
   bool isSubtypeOf(Type leftType, Type rightType) {
     return _typeSystem.isSubtype(leftType, rightType);
   }
@@ -3192,12 +3189,6 @@ class MiniAstOperations
   @override
   TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2) =>
       TypeSchema.fromType(glb(typeSchema1.toType(), typeSchema2.toType()));
-
-  @override
-  bool typeSchemaIsDynamic(TypeSchema typeSchema) {
-    var type = typeSchema.toType();
-    return type is DynamicType;
-  }
 
   @override
   bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {

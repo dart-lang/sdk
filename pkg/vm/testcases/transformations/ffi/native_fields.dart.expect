@@ -184,7 +184,7 @@ constants  {
   #C39 = 1
   #C40 = 2
   #C41 = 3
-  #C42 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C39, dimension2:#C40, dimension3:#C41, dimension4:#C4, dimension5:#C4, dimensions:#C4}
+  #C42 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C39, dimension2:#C40, dimension3:#C41, dimension4:#C4, dimension5:#C4, dimensions:#C4, variableLength:#C24}
   #C43 = "manyNumbers"
   #C44 = ffi::Native<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>> {symbol:#C43, assetId:#C23, isLeaf:#C24}
   #C45 = core::pragma {name:#C21, options:#C44}

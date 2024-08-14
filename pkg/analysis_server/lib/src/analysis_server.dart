@@ -16,6 +16,7 @@ import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
@@ -27,7 +28,6 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -44,6 +44,7 @@ import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -226,10 +227,6 @@ abstract class AnalysisServer {
   /// Starts completed and will be replaced each time a context rebuild starts.
   Completer<void> analysisContextRebuildCompleter = Completer()..complete();
 
-  /// A completer for tracking LSP client initialization
-  /// (see [lspClientInitialized]).
-  final Completer<void> _lspClientInitializedCompleter = Completer();
-
   /// The workspace for rename refactorings.
   late final refactoringWorkspace =
       RefactoringWorkspace(driverMap.values, searchEngine);
@@ -241,6 +238,9 @@ abstract class AnalysisServer {
   /// A mapping of [ProducerGenerator]s to the set of lint names with which they
   /// are associated (can fix).
   final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
+
+  /// A completer for [lspUninitialized].
+  final Completer<void> _lspUninitializedCompleter = Completer<void>();
 
   AnalysisServer(
     this.options,
@@ -388,18 +388,18 @@ abstract class AnalysisServer {
   /// by the client.
   LspClientConfiguration get lspClientConfiguration;
 
-  /// A [Future] that completes once the client has initialized.
+  /// A [Future] that completes when the LSP server moves into the initialized
+  /// state and can handle normal LSP requests.
   ///
-  /// For the LSP server, this happens when the client sends the `initialized`
-  /// notification. For LSP-over-Legacy this happens when the first LSP request
-  /// triggers initializetion.
+  /// Completes with the [InitializedStateMessageHandler] that is active.
   ///
-  /// This future can be used by handlers requiring unit results to wait for
-  /// complete initialization even if the client sends the requests before
-  /// analysis roots have been initialized (for example because of async
-  /// requests to get configuration back from the client).
-  Future<void> get lspClientInitialized =>
-      _lspClientInitializedCompleter.future;
+  /// When the server leaves the initialized state, [lspUninitialized] will
+  /// complete.
+  FutureOr<InitializedStateMessageHandler> get lspInitialized;
+
+  /// A [Future] that completes once the server transitions out of an
+  /// initialized state.
+  Future<void> get lspUninitialized => _lspUninitializedCompleter.future;
 
   /// Returns the function that can send `openUri` request to the client.
   /// Returns `null` is the client does not support it.
@@ -480,11 +480,11 @@ abstract class AnalysisServer {
     }
   }
 
-  /// Completes [lspClientInitialized], signalling that LSP has finished
-  /// initializing.
-  void completeLspInitialization() {
-    if (!_lspClientInitializedCompleter.isCompleted) {
-      _lspClientInitializedCompleter.complete();
+  /// Completes [lspUninitialized], signalling that the server has moved out
+  /// of a state where it can handle standard LSP requests.
+  void completeLspUninitialization() {
+    if (!_lspUninitializedCompleter.isCompleted) {
+      _lspUninitializedCompleter.complete();
     }
   }
 
@@ -914,6 +914,8 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   Future<void> shutdown() async {
+    completeLspUninitialization();
+
     await analysisDriverSchedulerEventsSubscription?.cancel();
     analysisDriverSchedulerEventsSubscription = null;
 

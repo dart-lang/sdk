@@ -10,7 +10,7 @@ import 'builder.dart';
 class ModuleBuilder with Builder<ir.Module> {
   final Uri? sourceMapUrl;
   final List<int> watchPoints;
-  final types = TypesBuilder();
+  late final types = TypesBuilder(this);
   late final functions = FunctionsBuilder(this);
   final tables = TablesBuilder();
   final memories = MemoriesBuilder();
@@ -33,11 +33,12 @@ class ModuleBuilder with Builder<ir.Module> {
     final finalTables = tables.build();
     final finalMemories = memories.build();
     final finalGlobals = globals.build();
+    final finalTags = tags.build();
     return ir.Module(
         sourceMapUrl,
         finalFunctions,
         finalTables,
-        tags.build(),
+        finalTags,
         finalMemories,
         exports.build(),
         finalGlobals,
@@ -47,7 +48,8 @@ class ModuleBuilder with Builder<ir.Module> {
           ...finalFunctions.imported,
           ...finalTables.imported,
           ...finalMemories.imported,
-          ...finalGlobals.imported
+          ...finalGlobals.imported,
+          ...finalTags.imported,
         ],
         watchPoints);
   }

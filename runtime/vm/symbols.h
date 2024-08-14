@@ -54,6 +54,7 @@ class ObjectPointerVisitor;
   V(CurrentContextVar, ":current_context_var")                                 \
   V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
+  V(DartCompactHash, "dart:_compact_hash")                                     \
   V(DartConcurrent, "dart:concurrent")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
@@ -518,6 +519,7 @@ class ObjectPointerVisitor;
     ":dynamic_assert_assignable_stc_check")                                    \
   V(dyn_module_callable, "dyn-module:callable")                                \
   V(dyn_module_extendable, "dyn-module:extendable")                            \
+  V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
   V(end, "end")                                                                \
   V(executable, "executable")                                                  \
   V(from, "from")                                                              \

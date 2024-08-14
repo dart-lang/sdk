@@ -35,6 +35,7 @@ abstract class RpcErrorCodes {
   static const kFileDoesNotExist = 141;
   static const kPermissionDenied = 142;
   static const kExpectsUriParamWithFileScheme = 143;
+  static const kUnknownUriScheme = 144;
 
   // Experimental (used in private rpcs).
   // static const kFileSystemAlreadyExists = 1001;
@@ -53,5 +54,6 @@ abstract class RpcErrorCodes {
     kFileDoesNotExist: 'The file does not exist',
     kPermissionDenied: 'Permission denied',
     kExpectsUriParamWithFileScheme: 'File scheme expected on uri',
+    kUnknownUriScheme: 'URI scheme is not supported',
   };
 }

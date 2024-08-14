@@ -4,8 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final for parameter declarations if they are not reassigned.';
@@ -63,10 +65,6 @@ void mutableParameter(String label) { // OK
 ''';
 
 class PreferFinalParameters extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_final_parameters', "The parameter '{0}' should be final.",
-      correctionMessage: 'Try making the parameter final.');
-
   PreferFinalParameters()
       : super(
             name: 'prefer_final_parameters',
@@ -79,7 +77,7 @@ class PreferFinalParameters extends LintRule {
       const ['unnecessary_final', 'avoid_final_parameters'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_final_parameters;
 
   @override
   void registerNodeProcessors(
@@ -130,6 +128,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var declaredElement = param.declaredElement;
         if (declaredElement != null &&
             !declaredElement.isInitializingFormal &&
+            !declaredElement.isWildcardVariable &&
             !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportLint(param, arguments: [param.name!.lexeme]);
         }

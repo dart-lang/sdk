@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'A code block is missing a specified language.';
 
@@ -41,11 +42,6 @@ class A {}
 ''';
 
 class MissingCodeBlockLanguageInDocComment extends LintRule {
-  static const LintCode code = LintCode(
-      'missing_code_block_language_in_doc_comment',
-      'The code block is missing a specified language.',
-      correctionMessage: 'Try adding a language to the code block.');
-
   MissingCodeBlockLanguageInDocComment()
       : super(
             name: 'missing_code_block_language_in_doc_comment',
@@ -54,7 +50,8 @@ class MissingCodeBlockLanguageInDocComment extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.missing_code_block_language_in_doc_comment;
 
   @override
   void registerNodeProcessors(

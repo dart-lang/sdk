@@ -568,13 +568,15 @@ class ObjectFormatter extends Formatter {
   bool hasChildren(object) => true;
 
   children(object) {
-    var type = dart.getType(object);
+    var typeSigHolder = dart.getTypeSignatureContainer(object);
     var ret = LinkedHashSet<NameValuePair>();
     // We use a Set rather than a List to avoid duplicates.
     var fields = Set<NameValuePair>();
-    addPropertiesFromSignature(dart.getFields(type), fields, object, true);
+    addPropertiesFromSignature(
+        dart.getFields(typeSigHolder), fields, object, true);
     var getters = Set<NameValuePair>();
-    addPropertiesFromSignature(dart.getGetters(type), getters, object, true);
+    addPropertiesFromSignature(
+        dart.getGetters(typeSigHolder), getters, object, true);
     ret.addAll(sortProperties(fields));
     ret.addAll(sortProperties(getters));
     addMetadataChildren(object, ret);

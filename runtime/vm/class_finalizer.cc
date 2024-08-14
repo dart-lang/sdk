@@ -1056,7 +1056,7 @@ class CidRewriteVisitor : public ObjectVisitor {
       TypePtr type = Type::RawCast(obj);
       type->untag()->set_type_class_id(Map(type->untag()->type_class_id()));
     } else {
-      intptr_t old_cid = obj->GetClassId();
+      intptr_t old_cid = obj->GetClassIdOfHeapObject();
       intptr_t new_cid = Map(old_cid);
       if (old_cid != new_cid) {
         // Don't touch objects that are unchanged. In particular, Instructions,

@@ -19,6 +19,7 @@ import 'library_augmentation_directive_test.dart'
 import 'mixin_test.dart' as mixin_;
 import 'null_aware_elements_test.dart' as null_aware_elements_test;
 import 'part_directive_test.dart' as part_directive;
+import 'part_of_directive_test.dart' as part_of_directive;
 import 'top_level_function_test.dart' as top_level_function;
 import 'top_level_variable_test.dart' as top_level_variable;
 import 'type_alias_test.dart' as type_alias;
@@ -41,6 +42,7 @@ main() {
     mixin_.main();
     null_aware_elements_test.main();
     part_directive.main();
+    part_of_directive.main();
     top_level_function.main();
     top_level_variable.main();
     type_alias.main();

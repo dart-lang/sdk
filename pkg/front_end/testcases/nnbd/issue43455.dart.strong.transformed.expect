@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 class C<X extends core::Object?, Y extends core::Object> extends core::Object {
   synthetic constructor •() → self::C<self::C::X%, self::C::Y>
@@ -9,22 +9,22 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
     ;
   method test(covariant-by-class self::C::X% x, covariant-by-class self::C::Y? y) → dynamic {
     core::Set<core::Object?> v = block {
-      final core::Set<core::Object?> #t1 = new col::_Set::•<core::Object?>();
+      final core::Set<core::Object?> #t1 = new _co::_Set::•<core::Object?>();
       #t1.{core::Set::add}{Invariant}(x){(core::Object?) → core::bool};
       #t1.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
     } =>#t1;
     core::Set<core::Object?> w = block {
-      final core::Set<core::Object?> #t2 = new col::_Set::•<core::Object?>();
+      final core::Set<core::Object?> #t2 = new _co::_Set::•<core::Object?>();
       #t2.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
       #t2.{core::Set::add}{Invariant}(x){(core::Object?) → core::bool};
     } =>#t2;
     core::Set<core::Object?> p = block {
-      final core::Set<core::Object?> #t3 = new col::_Set::•<core::Object?>();
+      final core::Set<core::Object?> #t3 = new _co::_Set::•<core::Object?>();
       #t3.{core::Set::add}{Invariant}(y){(core::Object?) → core::bool};
       #t3.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
     } =>#t3;
     core::Set<core::Object?> q = block {
-      final core::Set<core::Object?> #t4 = new col::_Set::•<core::Object?>();
+      final core::Set<core::Object?> #t4 = new _co::_Set::•<core::Object?>();
       #t4.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
       #t4.{core::Set::add}{Invariant}(y){(core::Object?) → core::bool};
     } =>#t4;
@@ -38,12 +38,12 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
     self::assertLeftSubtype<core::Set<core::Object?>>(q);
     if(x is core::Object?) {
       core::Set<core::Object?> v = block {
-        final core::Set<core::Object?> #t5 = new col::_Set::•<core::Object?>();
+        final core::Set<core::Object?> #t5 = new _co::_Set::•<core::Object?>();
         #t5.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */}){(core::Object?) → core::bool};
         #t5.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
       } =>#t5;
       core::Set<core::Object?> w = block {
-        final core::Set<core::Object?> #t6 = new col::_Set::•<core::Object?>();
+        final core::Set<core::Object?> #t6 = new _co::_Set::•<core::Object?>();
         #t6.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
         #t6.{core::Set::add}{Invariant}(x{self::C::X% & core::Object? /* '%' & '?' = '%' */}){(core::Object?) → core::bool};
       } =>#t6;
@@ -58,7 +58,7 @@ static method assertRightSubtype(dynamic x) → dynamic {
   x as core::Set<core::Object?>;
 }
 static method assertLeftSubtype<X extends core::Object? = dynamic>(self::assertLeftSubtype::X% x) → dynamic {
-  new col::_Set::•<core::Object?>() as self::assertLeftSubtype::X%;
+  new _co::_Set::•<core::Object?>() as self::assertLeftSubtype::X%;
 }
 static method main() → dynamic {
   new self::C::•<core::int?, core::int>().{self::C::test}(42, null){(core::int?, core::int?) → dynamic};

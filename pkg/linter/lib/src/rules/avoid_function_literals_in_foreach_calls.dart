@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using `forEach` with a function literal.';
 
@@ -59,12 +60,6 @@ bool _isIterable(DartType? type) =>
     type != null && type.implementsInterface('Iterable', 'dart.core');
 
 class AvoidFunctionLiteralsInForeachCalls extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_function_literals_in_foreach_calls',
-      "Function literals shouldn't be passed to 'forEach'.",
-      correctionMessage: "Try using a 'for' loop.",
-      hasPublishedDocs: true);
-
   AvoidFunctionLiteralsInForeachCalls()
       : super(
             name: 'avoid_function_literals_in_foreach_calls',
@@ -73,7 +68,8 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_function_literals_in_foreach_calls;
 
   @override
   void registerNodeProcessors(

@@ -10,6 +10,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
@@ -25,7 +26,6 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
-import '../util/helpers.dart' show DelayedActionPerformer;
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -110,8 +110,8 @@ enum ScopeKind {
 
 abstract class LookupScope {
   ScopeKind get kind;
-  Builder? lookup(String name, int charOffset, Uri fileUri);
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri);
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri);
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri);
   // TODO(johnniwinther): Should this be moved to an outer scope interface?
   void forEachExtension(void Function(ExtensionBuilder) f);
 }
@@ -182,15 +182,8 @@ Builder? _normalizeBuilderLookup(Builder? builder,
     required bool forStaticAccess}) {
   if (builder == null) return null;
   if (builder.next != null) {
-    return new AmbiguousBuilder(
-        name.isEmpty
-            ?
-            // Coverage-ignore(suite): Not run.
-            classNameOrDebugName
-            : name,
-        builder,
-        charOffset,
-        fileUri);
+    return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
+        builder, charOffset, fileUri);
   } else if (forStaticAccess && builder.isDeclarationInstanceMember) {
     return null;
   } else if (builder is MemberBuilder && builder.isConflictingSetter) {
@@ -218,7 +211,7 @@ Builder? _normalizeCrossLookup(Builder? builder,
 mixin LookupScopeMixin implements LookupScope {
   String get classNameOrDebugName;
 
-  Builder? lookupIn(
+  Builder? lookupGetableIn(
       String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
     return normalizeLookup(
         getable: getables[name],
@@ -230,7 +223,7 @@ mixin LookupScopeMixin implements LookupScope {
         isSetter: false);
   }
 
-  Builder? lookupSetterIn(String name, int charOffset, Uri fileUri,
+  Builder? lookupSetableIn(String name, int charOffset, Uri fileUri,
       Map<String, Builder>? getables) {
     return normalizeLookup(
         getable: getables?[name],
@@ -244,22 +237,20 @@ mixin LookupScopeMixin implements LookupScope {
 }
 
 /// A [LookupScope] based directly on a [NameSpace].
-class NameSpaceLookupScope implements LookupScope {
-  final LookupScope? _parent;
-
-  final NameSpace _nameSpace;
-
+abstract class BaseNameSpaceLookupScope implements LookupScope {
   @override
   final ScopeKind kind;
 
   final String classNameOrDebugName;
 
-  NameSpaceLookupScope(this._nameSpace, this.kind, this.classNameOrDebugName,
-      {LookupScope? parent})
-      : this._parent = parent;
+  BaseNameSpaceLookupScope(this.kind, this.classNameOrDebugName);
+
+  NameSpace get _nameSpace;
+
+  LookupScope? get _parent;
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
         getable: _nameSpace.lookupLocalMember(name, setter: false),
         setable: _nameSpace.lookupLocalMember(name, setter: true),
@@ -268,11 +259,11 @@ class NameSpaceLookupScope implements LookupScope {
         fileUri: fileUri,
         classNameOrDebugName: classNameOrDebugName,
         isSetter: false);
-    return builder ?? _parent?.lookup(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
         getable: _nameSpace.lookupLocalMember(name, setter: false),
         setable: _nameSpace.lookupLocalMember(name, setter: true),
@@ -281,7 +272,7 @@ class NameSpaceLookupScope implements LookupScope {
         fileUri: fileUri,
         classNameOrDebugName: classNameOrDebugName,
         isSetter: true);
-    return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
   @override
@@ -291,27 +282,16 @@ class NameSpaceLookupScope implements LookupScope {
   }
 }
 
-// TODO(johnniwinther): Avoid this.
-class MutableNameSpaceLookupScope extends NameSpaceLookupScope {
-  MutableNameSpaceLookupScope(
-      super.nameSpace, super.kind, super.classNameOrDebugName,
-      {required super.parent});
-
-  NameSpace? _replacedNamedSpace;
-  LookupScope? _replacedParent;
-
-  /// This scope becomes equivalent to [scope]. This is used for parts to
-  /// become part of their library's scope.
-  void replaceNameSpaceAndParent(NameSpace nameSpace, LookupScope parent) {
-    _replacedNamedSpace = nameSpace;
-    _replacedParent = parent;
-  }
+class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
+  @override
+  final NameSpace _nameSpace;
 
   @override
-  LookupScope? get _parent => _replacedParent ?? super._parent;
+  final LookupScope? _parent;
 
-  @override
-  NameSpace get _nameSpace => _replacedNamedSpace ?? super._nameSpace;
+  NameSpaceLookupScope(this._nameSpace, super.kind, super.classNameOrDebugName,
+      {LookupScope? parent})
+      : _parent = parent;
 }
 
 class TypeParameterScope with LookupScopeMixin {
@@ -321,42 +301,38 @@ class TypeParameterScope with LookupScopeMixin {
   TypeParameterScope(this._parent, this._typeParameters);
 
   @override
+  // Coverage-ignore(suite): Not run.
   ScopeKind get kind => ScopeKind.typeParameters;
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
-    return lookupIn(name, charOffset, fileUri, _typeParameters) ??
-        _parent.lookup(name, charOffset, fileUri);
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
+    return lookupGetableIn(name, charOffset, fileUri, _typeParameters) ??
+        _parent.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? builder =
-        lookupSetterIn(name, charOffset, fileUri, _typeParameters);
-    return builder ?? _parent.lookupSetter(name, charOffset, fileUri);
+        lookupSetableIn(name, charOffset, fileUri, _typeParameters);
+    return builder ?? _parent.lookupSetable(name, charOffset, fileUri);
   }
 
   @override
   String get classNameOrDebugName => "type parameter";
 
   static LookupScope fromList(
-      LookupScope parent, List<TypeVariableBuilderBase>? typeVariableBuilders) {
+      LookupScope parent, List<TypeVariableBuilder>? typeVariableBuilders) {
     if (typeVariableBuilders == null) return parent;
     Map<String, Builder> map = {};
-    for (TypeVariableBuilderBase typeVariableBuilder in typeVariableBuilders) {
-      // TODO(johnniwinther,kallentu): Why are structural variables treated
-      // differently from nominal variable here but not for instance in
-      // `BodyBuilder.enterStructuralVariablesScope`?
-      if (typeVariableBuilder is NominalVariableBuilder &&
-          typeVariableBuilder.isWildcard) {
-        continue;
-      }
+    for (TypeVariableBuilder typeVariableBuilder in typeVariableBuilders) {
+      if (typeVariableBuilder.isWildcard) continue;
       map[typeVariableBuilder.name] = typeVariableBuilder;
     }
     return new TypeParameterScope(parent, map);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent.forEachExtension(f);
   }
@@ -379,7 +355,7 @@ class FixedLookupScope implements LookupScope {
         this._parent = parent;
 
   @override
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
         getable: _getables?[name],
         setable: _setables?[name],
@@ -388,20 +364,24 @@ class FixedLookupScope implements LookupScope {
         fileUri: fileUri,
         classNameOrDebugName: classNameOrDebugName,
         isSetter: false);
-    return builder ?? _parent?.lookup(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
-        getable: _getables?[name],
-        setable: _setables?[name],
+        getable: _getables
+            // Coverage-ignore(suite): Not run.
+            ?[name],
+        setable: _setables
+            // Coverage-ignore(suite): Not run.
+            ?[name],
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,
         classNameOrDebugName: classNameOrDebugName,
         isSetter: true);
-    return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
+    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
   @override
@@ -410,91 +390,58 @@ class FixedLookupScope implements LookupScope {
   }
 }
 
-class ConstructorScope {
-  /// Constructors declared in this scope.
-  final Map<String, MemberBuilder> _local;
+// Coverage-ignore(suite): Not run.
+// TODO(johnniwinther): Use this instead of [SourceLibraryBuilderScope].
+class CompilationUnitScope extends BaseNameSpaceLookupScope {
+  final CompilationUnit _compilationUnit;
 
-  final String className;
+  @override
+  final LookupScope? _parent;
 
-  ConstructorScope(this.className, this._local);
+  CompilationUnitScope(
+      this._compilationUnit, super.kind, super.classNameOrDebugName,
+      {LookupScope? parent})
+      : _parent = parent;
 
+  @override
+  NameSpace get _nameSpace => _compilationUnit.libraryBuilder.nameSpace;
+}
+
+class SourceLibraryBuilderScope extends BaseNameSpaceLookupScope {
+  final SourceLibraryBuilder _libraryBuilder;
+
+  SourceLibraryBuilderScope(
+      this._libraryBuilder, super.kind, super.classNameOrDebugName);
+
+  @override
+  NameSpace get _nameSpace => _libraryBuilder.nameSpace;
+
+  @override
+  LookupScope? get _parent => _libraryBuilder.importScope;
+}
+
+abstract class ConstructorScope {
+  MemberBuilder? lookup(String name, int charOffset, Uri fileUri);
+}
+
+class DeclarationNameSpaceConstructorScope implements ConstructorScope {
+  final String _className;
+
+  final DeclarationNameSpace _nameSpace;
+
+  DeclarationNameSpaceConstructorScope(this._className, this._nameSpace);
+
+  @override
   MemberBuilder? lookup(String name, int charOffset, Uri fileUri) {
-    MemberBuilder? builder = _local[name];
+    MemberBuilder? builder = _nameSpace.lookupConstructor(name);
     if (builder == null) return null;
     if (builder.next != null) {
       return new AmbiguousMemberBuilder(
-          name.isEmpty ? className : name, builder, charOffset, fileUri);
+          name.isEmpty ? _className : name, builder, charOffset, fileUri);
     } else {
       return builder;
     }
   }
-
-  MemberBuilder? lookupLocalMember(String name) {
-    return _local[name];
-  }
-
-  void addLocalMember(String name, MemberBuilder builder) {
-    _local[name] = builder;
-  }
-
-  void addLocalMembers(Map<String, MemberBuilder> map) {
-    _local.addAll(map);
-  }
-
-  /// Returns an iterator of all constructors mapped in this scope,
-  /// including duplicate constructors mapped to the same name.
-  Iterator<MemberBuilder> get unfilteredIterator =>
-      new ConstructorScopeIterator(this);
-
-  /// Returns an iterator of all constructors mapped in this scope,
-  /// including duplicate constructors mapped to the same name.
-  ///
-  /// Compared to [unfilteredIterator] this iterator also gives access to the
-  /// name that the builders are mapped to.
-  NameIterator<MemberBuilder> get unfilteredNameIterator =>
-      new ConstructorScopeNameIterator(this);
-
-  /// Returns a filtered iterator of constructors mapped in this scope.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
-  Iterator<T> filteredIterator<T extends MemberBuilder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
-    return new FilteredIterator<T>(unfilteredIterator,
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
-  }
-
-  /// Returns a filtered iterator of constructors mapped in this scope.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
-  ///
-  /// Compared to [filteredIterator] this iterator also gives access to the
-  /// name that the builders are mapped to.
-  NameIterator<T> filteredNameIterator<T extends MemberBuilder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
-    return new FilteredNameIterator<T>(unfilteredNameIterator,
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
-  }
-
-  @override
-  String toString() => "ConstructorScope($className, ${_local.keys})";
 }
 
 /// Computes a builder for the import/export collision between [declaration] and
@@ -762,9 +709,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   ProcedureKind? get kind => null;
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     throw new UnsupportedError('$runtimeType.buildOutlineExpressions');
   }
@@ -962,15 +907,14 @@ class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
   }
 }
 
-/// Iterator over builders mapped in a [ConstructorScope], including duplicates
-/// for each directly mapped builder.
-class ConstructorScopeIterator implements Iterator<MemberBuilder> {
-  Iterator<MemberBuilder> local;
+/// Iterator over builders mapped in a [ConstructorNameSpace], including
+/// duplicates for each directly mapped builder.
+class ConstructorNameSpaceIterator implements Iterator<MemberBuilder> {
+  Iterator<MemberBuilder>? _local;
 
   MemberBuilder? _current;
 
-  ConstructorScopeIterator(ConstructorScope scope)
-      : local = scope._local.values.iterator;
+  ConstructorNameSpaceIterator(this._local);
 
   @override
   bool moveNext() {
@@ -979,9 +923,12 @@ class ConstructorScopeIterator implements Iterator<MemberBuilder> {
       _current = next;
       return true;
     }
-    if (local.moveNext()) {
-      _current = local.current;
-      return true;
+    if (_local != null) {
+      if (_local!.moveNext()) {
+        _current = _local!.current;
+        return true;
+      }
+      _local = null;
     }
     return false;
   }
@@ -993,20 +940,18 @@ class ConstructorScopeIterator implements Iterator<MemberBuilder> {
   }
 }
 
-/// Iterator over builders mapped in a [ConstructorScope], including duplicates
-/// for each directly mapped builder.
+/// Iterator over builders mapped in a [ConstructorNameSpace], including
+/// duplicates for each directly mapped builder.
 ///
-/// Compared to [ConstructorScopeIterator] this iterator also gives
+/// Compared to [ConstructorNameSpaceIterator] this iterator also gives
 /// access to the name that the builders are mapped to.
-class ConstructorScopeNameIterator extends ConstructorScopeIterator
+class ConstructorNameSpaceNameIterator extends ConstructorNameSpaceIterator
     implements NameIterator<MemberBuilder> {
-  final Iterator<String> localNames;
+  Iterator<String>? _localNames;
 
   String? _name;
 
-  ConstructorScopeNameIterator(ConstructorScope scope)
-      : localNames = scope._local.keys.iterator,
-        super(scope);
+  ConstructorNameSpaceNameIterator(this._localNames, super.local);
 
   @override
   bool moveNext() {
@@ -1015,11 +960,15 @@ class ConstructorScopeNameIterator extends ConstructorScopeIterator
       _current = next;
       return true;
     }
-    if (local.moveNext()) {
-      localNames.moveNext();
-      _current = local.current;
-      _name = localNames.current;
-      return true;
+    if (_local != null) {
+      if (_local!.moveNext()) {
+        _localNames!.moveNext();
+        _current = _local!.current;
+        _name = _localNames!.current;
+        return true;
+      }
+      _local = null;
+      _localNames = null;
     }
     _current = null;
     _name = null;
@@ -1369,22 +1318,22 @@ class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
 }
 
 class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
-  final ConstructorScope _originConstructorScope;
-  Map<SourceClassBuilder, ConstructorScope> _augmentationConstructorScopes = {};
+  final DeclarationNameSpace _originConstructorNameSpace;
+  Map<SourceClassBuilder, DeclarationNameSpace>
+      _augmentationConstructorNameSpaces = {};
 
   MergedClassMemberScope(SourceClassBuilder origin)
-      : _originConstructorScope = origin.constructorScope,
+      : _originConstructorNameSpace = origin.nameSpace,
         super(origin, origin.nameSpace);
 
   @override
   SourceLibraryBuilder get originLibrary => _origin.libraryBuilder;
 
-  void _addAugmentationConstructorScope(ConstructorScope constructorScope,
+  void _addAugmentationConstructorScope(DeclarationNameSpace nameSpace,
       {required bool inPatchLibrary}) {
-    constructorScope._local
-        .forEach((String name, MemberBuilder newConstructor) {
+    nameSpace.forEachConstructor((String name, MemberBuilder newConstructor) {
       MemberBuilder? existingConstructor =
-          _originConstructorScope.lookupLocalMember(name);
+          _originConstructorNameSpace.lookupConstructor(name);
       bool isAugmentationBuilder = inPatchLibrary
           ? newConstructor.hasPatchAnnotation
           : newConstructor.isAugmentation;
@@ -1425,12 +1374,12 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
               noLength,
               newConstructor.fileUri);
         } else {
-          _originConstructorScope.addLocalMember(name, newConstructor);
-          for (ConstructorScope augmentationConstructorScope
-              in _augmentationConstructorScopes.values) {
+          _originConstructorNameSpace.addConstructor(name, newConstructor);
+          for (DeclarationNameSpace augmentationConstructorNameSpace
+              in _augmentationConstructorNameSpaces.values) {
             // Coverage-ignore-block(suite): Not run.
             _addConstructorToAugmentationScope(
-                augmentationConstructorScope, name, newConstructor);
+                augmentationConstructorNameSpace, name, newConstructor);
           }
         }
         if (inPatchLibrary &&
@@ -1446,21 +1395,20 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         }
       }
     });
-    _originConstructorScope._local
-        .forEach((String name, MemberBuilder originConstructor) {
-      _addConstructorToAugmentationScope(
-          constructorScope, name, originConstructor);
+    _originConstructorNameSpace
+        .forEachConstructor((String name, MemberBuilder originConstructor) {
+      _addConstructorToAugmentationScope(nameSpace, name, originConstructor);
     });
   }
 
   void _addConstructorToAugmentationScope(
-      ConstructorScope augmentationConstructorScope,
+      DeclarationNameSpace augmentationConstructorNameSpace,
       String name,
       MemberBuilder constructor) {
     Builder? augmentationConstructor =
-        augmentationConstructorScope.lookupLocalMember(name);
+        augmentationConstructorNameSpace.lookupConstructor(name);
     if (augmentationConstructor == null) {
-      augmentationConstructorScope.addLocalMember(name, constructor);
+      augmentationConstructorNameSpace.addConstructor(name, constructor);
     }
   }
 
@@ -1471,7 +1419,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         augmentations: null,
         setterAugmentations: null,
         inPatchLibrary: builder.libraryBuilder.isPatchLibrary);
-    _addAugmentationConstructorScope(builder.constructorScope,
+    _addAugmentationConstructorScope(builder.nameSpace,
         inPatchLibrary: builder.libraryBuilder.isPatchLibrary);
   }
 

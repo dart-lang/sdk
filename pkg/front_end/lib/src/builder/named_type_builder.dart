@@ -198,13 +198,13 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Builder? member;
     String? qualifier = typeName.qualifier;
     if (qualifier != null) {
-      Builder? prefix = scope.lookup(qualifier, charOffset, fileUri);
+      Builder? prefix = scope.lookupGetable(qualifier, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
         _isDeferred = prefix.deferred;
         member = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
       }
     } else {
-      member = scope.lookup(typeName.name, typeName.nameOffset, fileUri);
+      member = scope.lookupGetable(typeName.name, typeName.nameOffset, fileUri);
     }
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);

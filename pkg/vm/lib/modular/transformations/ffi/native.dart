@@ -764,7 +764,7 @@ class FfiNativeTransformer extends FfiTransformer {
 
     // Array types must have an @Array annotation denoting its size.
     if (isArrayType(ffiType)) {
-      final dimensions = ensureArraySizeAnnotation(node, ffiType);
+      final dimensions = ensureArraySizeAnnotation(node, ffiType, false);
       return (
         ffiType,
         NativeTypeCfe.withoutLayout(this, dartType, arrayDimensions: dimensions)

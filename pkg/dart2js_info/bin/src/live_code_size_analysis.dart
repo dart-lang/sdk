@@ -34,7 +34,7 @@
 ///   * Shut down the coverage server (Ctrl-C)
 ///
 ///   * Finally, run this tool.
-library compiler.tool.live_code_size_analysis;
+library;
 
 import 'dart:convert';
 import 'dart:io';

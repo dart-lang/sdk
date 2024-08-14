@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _details = r'''
@@ -58,14 +59,6 @@ Widget buildLogo() {
 ''';
 
 class SizedBoxShrinkExpand extends LintRule {
-  static const LintCode code = LintCode(
-      'sized_box_shrink_expand',
-      "Use 'SizedBox.{0}' to avoid needing to specify the 'height' and "
-          "'width'.",
-      correctionMessage:
-          "Try using 'SizedBox.{0}' and removing the 'height' and 'width' "
-          'arguments.');
-
   SizedBoxShrinkExpand()
       : super(
             name: 'sized_box_shrink_expand',
@@ -74,7 +67,7 @@ class SizedBoxShrinkExpand extends LintRule {
             categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.sized_box_shrink_expand;
 
   @override
   void registerNodeProcessors(

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/linter.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use string in part of directives.';
 
@@ -31,12 +32,6 @@ part of '../../my_library.dart';
 ''';
 
 class UseStringInPartOfDirectives extends LintRule {
-  static const LintCode code = LintCode(
-      'use_string_in_part_of_directives', 'The part-of directive uses a library name.',
-      correctionMessage:
-          'Try converting the directive to use the URI of the library.',
-      hasPublishedDocs: true);
-
   UseStringInPartOfDirectives()
       : super(
           name: 'use_string_in_part_of_directives',
@@ -46,7 +41,7 @@ class UseStringInPartOfDirectives extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_string_in_part_of_directives;
 
   @override
   void registerNodeProcessors(

@@ -21,7 +21,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
   @override
   final String commandName;
 
-  final ProducerGenerator generator;
+  final RefactoringProducerGenerator generator;
 
   RefactorCommandHandler(super.server, this.commandName, this.generator);
 

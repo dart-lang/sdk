@@ -15,6 +15,7 @@ class KernelConstantErrorReporter extends ErrorReporter {
   KernelConstantErrorReporter(this.loader);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get supportsTrackingReportedErrors => true;
 
   @override

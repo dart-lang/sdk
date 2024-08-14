@@ -239,631 +239,506 @@ import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dar
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
-import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
-import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/ffi_code.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/rules/always_declare_return_types.dart';
-import 'package:linter/src/rules/always_put_control_body_on_new_line.dart';
-import 'package:linter/src/rules/always_put_required_named_parameters_first.dart';
-import 'package:linter/src/rules/always_specify_types.dart';
-import 'package:linter/src/rules/always_use_package_imports.dart';
-import 'package:linter/src/rules/annotate_overrides.dart';
-import 'package:linter/src/rules/annotate_redeclares.dart';
-import 'package:linter/src/rules/avoid_annotating_with_dynamic.dart';
-import 'package:linter/src/rules/avoid_empty_else.dart';
-import 'package:linter/src/rules/avoid_escaping_inner_quotes.dart';
-import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
-import 'package:linter/src/rules/avoid_init_to_null.dart';
-import 'package:linter/src/rules/avoid_multiple_declarations_per_line.dart';
-import 'package:linter/src/rules/avoid_null_checks_in_equality_operators.dart';
-import 'package:linter/src/rules/avoid_print.dart';
-import 'package:linter/src/rules/avoid_private_typedef_functions.dart';
-import 'package:linter/src/rules/avoid_redundant_argument_values.dart';
-import 'package:linter/src/rules/avoid_relative_lib_imports.dart';
-import 'package:linter/src/rules/avoid_renaming_method_parameters.dart';
-import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
-import 'package:linter/src/rules/avoid_returning_null_for_void.dart';
-import 'package:linter/src/rules/avoid_single_cascade_in_expression_statements.dart';
-import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
-import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
-import 'package:linter/src/rules/avoid_unnecessary_containers.dart';
-import 'package:linter/src/rules/avoid_unused_constructor_parameters.dart';
-import 'package:linter/src/rules/avoid_void_async.dart';
-import 'package:linter/src/rules/await_only_futures.dart';
-import 'package:linter/src/rules/cascade_invocations.dart';
-import 'package:linter/src/rules/cast_nullable_to_non_nullable.dart';
-import 'package:linter/src/rules/combinators_ordering.dart';
-import 'package:linter/src/rules/comment_references.dart';
-import 'package:linter/src/rules/constant_identifier_names.dart';
-import 'package:linter/src/rules/curly_braces_in_flow_control_structures.dart';
-import 'package:linter/src/rules/dangling_library_doc_comments.dart';
-import 'package:linter/src/rules/deprecated_member_use_from_same_package.dart';
-import 'package:linter/src/rules/diagnostic_describe_all_properties.dart';
-import 'package:linter/src/rules/directives_ordering.dart';
-import 'package:linter/src/rules/discarded_futures.dart';
-import 'package:linter/src/rules/empty_catches.dart';
-import 'package:linter/src/rules/empty_constructor_bodies.dart';
-import 'package:linter/src/rules/empty_statements.dart';
-import 'package:linter/src/rules/eol_at_end_of_file.dart';
-import 'package:linter/src/rules/exhaustive_cases.dart';
-import 'package:linter/src/rules/flutter_style_todos.dart';
-import 'package:linter/src/rules/hash_and_equals.dart';
-import 'package:linter/src/rules/implicit_call_tearoffs.dart';
-import 'package:linter/src/rules/implicit_reopen.dart';
-import 'package:linter/src/rules/invalid_case_patterns.dart';
-import 'package:linter/src/rules/leading_newlines_in_multiline_strings.dart';
-import 'package:linter/src/rules/library_annotations.dart';
-import 'package:linter/src/rules/no_duplicate_case_values.dart';
-import 'package:linter/src/rules/no_leading_underscores_for_library_prefixes.dart';
-import 'package:linter/src/rules/no_leading_underscores_for_local_identifiers.dart';
-import 'package:linter/src/rules/no_literal_bool_comparisons.dart';
-import 'package:linter/src/rules/non_constant_identifier_names.dart';
-import 'package:linter/src/rules/noop_primitive_operations.dart';
-import 'package:linter/src/rules/null_check_on_nullable_type_parameter.dart';
-import 'package:linter/src/rules/null_closures.dart';
-import 'package:linter/src/rules/omit_local_variable_types.dart';
-import 'package:linter/src/rules/omit_obvious_local_variable_types.dart';
-import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
-import 'package:linter/src/rules/prefer_collection_literals.dart';
-import 'package:linter/src/rules/prefer_conditional_assignment.dart';
-import 'package:linter/src/rules/prefer_const_constructors.dart';
-import 'package:linter/src/rules/prefer_const_constructors_in_immutables.dart';
-import 'package:linter/src/rules/prefer_const_declarations.dart';
-import 'package:linter/src/rules/prefer_const_literals_to_create_immutables.dart';
-import 'package:linter/src/rules/prefer_contains.dart';
-import 'package:linter/src/rules/prefer_double_quotes.dart';
-import 'package:linter/src/rules/prefer_expression_function_bodies.dart';
-import 'package:linter/src/rules/prefer_final_fields.dart';
-import 'package:linter/src/rules/prefer_final_in_for_each.dart';
-import 'package:linter/src/rules/prefer_final_locals.dart';
-import 'package:linter/src/rules/prefer_final_parameters.dart';
-import 'package:linter/src/rules/prefer_for_elements_to_map_fromIterable.dart';
-import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
-import 'package:linter/src/rules/prefer_generic_function_type_aliases.dart';
-import 'package:linter/src/rules/prefer_if_elements_to_conditional_expressions.dart';
-import 'package:linter/src/rules/prefer_if_null_operators.dart';
-import 'package:linter/src/rules/prefer_initializing_formals.dart';
-import 'package:linter/src/rules/prefer_inlined_adds.dart';
-import 'package:linter/src/rules/prefer_int_literals.dart';
-import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
-import 'package:linter/src/rules/prefer_is_empty.dart';
-import 'package:linter/src/rules/prefer_is_not_empty.dart';
-import 'package:linter/src/rules/prefer_is_not_operator.dart';
-import 'package:linter/src/rules/prefer_iterable_whereType.dart';
-import 'package:linter/src/rules/prefer_null_aware_operators.dart';
-import 'package:linter/src/rules/prefer_relative_imports.dart';
-import 'package:linter/src/rules/prefer_single_quotes.dart';
-import 'package:linter/src/rules/prefer_spread_collections.dart';
-import 'package:linter/src/rules/prefer_typing_uninitialized_variables.dart';
-import 'package:linter/src/rules/prefer_void_to_null.dart';
-import 'package:linter/src/rules/require_trailing_commas.dart';
-import 'package:linter/src/rules/sized_box_for_whitespace.dart';
-import 'package:linter/src/rules/slash_for_doc_comments.dart';
-import 'package:linter/src/rules/sort_child_properties_last.dart';
-import 'package:linter/src/rules/sort_constructors_first.dart';
-import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
-import 'package:linter/src/rules/type_annotate_public_apis.dart';
-import 'package:linter/src/rules/type_init_formals.dart';
-import 'package:linter/src/rules/type_literal_in_constant_pattern.dart';
-import 'package:linter/src/rules/unawaited_futures.dart';
-import 'package:linter/src/rules/unnecessary_await_in_return.dart';
-import 'package:linter/src/rules/unnecessary_brace_in_string_interps.dart';
-import 'package:linter/src/rules/unnecessary_breaks.dart';
-import 'package:linter/src/rules/unnecessary_const.dart';
-import 'package:linter/src/rules/unnecessary_constructor_name.dart';
-import 'package:linter/src/rules/unnecessary_final.dart';
-import 'package:linter/src/rules/unnecessary_getters_setters.dart';
-import 'package:linter/src/rules/unnecessary_lambdas.dart';
-import 'package:linter/src/rules/unnecessary_late.dart';
-import 'package:linter/src/rules/unnecessary_library_directive.dart';
-import 'package:linter/src/rules/unnecessary_library_name.dart';
-import 'package:linter/src/rules/unnecessary_new.dart';
-import 'package:linter/src/rules/unnecessary_null_aware_assignments.dart';
-import 'package:linter/src/rules/unnecessary_null_checks.dart';
-import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
-import 'package:linter/src/rules/unnecessary_nullable_for_final_variable_declarations.dart';
-import 'package:linter/src/rules/unnecessary_overrides.dart';
-import 'package:linter/src/rules/unnecessary_parenthesis.dart';
-import 'package:linter/src/rules/unnecessary_raw_strings.dart';
-import 'package:linter/src/rules/unnecessary_string_escapes.dart';
-import 'package:linter/src/rules/unnecessary_string_interpolations.dart';
-import 'package:linter/src/rules/unnecessary_this.dart';
-import 'package:linter/src/rules/unnecessary_to_list_in_spreads.dart';
-import 'package:linter/src/rules/unreachable_from_main.dart';
-import 'package:linter/src/rules/use_decorated_box.dart';
-import 'package:linter/src/rules/use_enums.dart';
-import 'package:linter/src/rules/use_full_hex_values_for_flutter_colors.dart';
-import 'package:linter/src/rules/use_function_type_syntax_for_parameters.dart';
-import 'package:linter/src/rules/use_key_in_widget_constructors.dart';
-import 'package:linter/src/rules/use_named_constants.dart';
-import 'package:linter/src/rules/use_raw_strings.dart';
-import 'package:linter/src/rules/use_rethrow_when_possible.dart';
-import 'package:linter/src/rules/use_string_in_part_of_directives.dart';
-import 'package:linter/src/rules/use_super_parameters.dart';
+import 'package:linter/src/linter_lint_codes.dart';
 
 final _builtInLintMultiProducers = {
-  CommentReferences.code: [
+  LinterLintCode.comment_references: [
     ImportLibrary.forType,
   ],
-  DeprecatedMemberUseFromSamePackage.code: [
+  LinterLintCode.deprecated_member_use_from_same_package_without_message: [
     DataDriven.new,
   ],
-  DeprecatedMemberUseFromSamePackage.codeWithMessage: [
+  LinterLintCode.deprecated_member_use_from_same_package_with_message: [
     DataDriven.new,
   ],
 };
 
 final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
-  AlwaysDeclareReturnTypes.functionCode: [
+  LinterLintCode.always_declare_return_types_of_functions: [
     AddReturnType.new,
   ],
-  AlwaysDeclareReturnTypes.methodCode: [
+  LinterLintCode.always_declare_return_types_of_methods: [
     AddReturnType.new,
   ],
-  AlwaysPutControlBodyOnNewLine.code: [
+  LinterLintCode.always_put_control_body_on_new_line: [
     UseCurlyBraces.nonBulk,
   ],
-  AlwaysPutRequiredNamedParametersFirst.code: [
+  LinterLintCode.always_put_required_named_parameters_first: [
     MakeRequiredNamedParametersFirst.new,
   ],
-  AlwaysSpecifyTypes.code: [
+  LinterLintCode.always_specify_types_add_type: [
     AddTypeAnnotation.bulkFixable,
   ],
-  AlwaysUsePackageImports.code: [
+  LinterLintCode.always_specify_types_specify_type: [
+    AddTypeAnnotation.bulkFixable,
+  ],
+  LinterLintCode.always_specify_types_replace_keyword: [
+    AddTypeAnnotation.bulkFixable,
+  ],
+  LinterLintCode.always_specify_types_split_to_types: [
+    AddTypeAnnotation.bulkFixable,
+  ],
+  LinterLintCode.always_use_package_imports: [
     ConvertToPackageImport.new,
   ],
-  AnnotateOverrides.code: [
+  LinterLintCode.annotate_overrides: [
     AddOverride.new,
   ],
-  AnnotateRedeclares.code: [
+  LinterLintCode.annotate_redeclares: [
     AddRedeclare.new,
   ],
-  AvoidAnnotatingWithDynamic.code: [
+  LinterLintCode.avoid_annotating_with_dynamic: [
     RemoveTypeAnnotation.other,
   ],
-  AvoidEmptyElse.code: [
+  LinterLintCode.avoid_empty_else: [
     RemoveEmptyElse.new,
   ],
-  AvoidEscapingInnerQuotes.code: [
+  LinterLintCode.avoid_escaping_inner_quotes: [
     ConvertQuotes.new,
   ],
-  AvoidFunctionLiteralsInForeachCalls.code: [
+  LinterLintCode.avoid_function_literals_in_foreach_calls: [
     ConvertForEachToForLoop.new,
   ],
-  AvoidInitToNull.code: [
+  LinterLintCode.avoid_init_to_null: [
     RemoveInitializer.bulkFixable,
   ],
-  AvoidMultipleDeclarationsPerLine.code: [
+  LinterLintCode.avoid_multiple_declarations_per_line: [
     SplitMultipleDeclarations.new,
   ],
-  AvoidNullChecksInEqualityOperators.code: [
+  LinterLintCode.avoid_null_checks_in_equality_operators: [
     RemoveComparison.new,
   ],
-  AvoidPrint.code: [
+  LinterLintCode.avoid_print: [
     MakeConditionalOnDebugMode.new,
     RemovePrint.new,
   ],
-  AvoidPrivateTypedefFunctions.code: [
+  LinterLintCode.avoid_private_typedef_functions: [
     InlineTypedef.new,
   ],
-  AvoidRedundantArgumentValues.code: [
+  LinterLintCode.avoid_redundant_argument_values: [
     RemoveArgument.new,
   ],
-  AvoidRelativeLibImports.code: [
+  LinterLintCode.avoid_relative_lib_imports: [
     ConvertToPackageImport.new,
   ],
-  AvoidRenamingMethodParameters.code: [
+  LinterLintCode.avoid_renaming_method_parameters: [
     RenameMethodParameter.new,
   ],
-  AvoidReturnTypesOnSetters.code: [
+  LinterLintCode.avoid_return_types_on_setters: [
     RemoveTypeAnnotation.other,
   ],
-  AvoidReturningNullForVoid.fromFunction: [
+  LinterLintCode.avoid_returning_null_for_void_from_function: [
     RemoveReturnedValue.new,
   ],
-  AvoidReturningNullForVoid.fromMethod: [
+  LinterLintCode.avoid_returning_null_for_void_from_method: [
     RemoveReturnedValue.new,
   ],
-  AvoidSingleCascadeInExpressionStatements.code: [
+  LinterLintCode.avoid_single_cascade_in_expression_statements: [
     // TODO(brianwilkerson): This fix should be applied to some non-lint
     //  diagnostics and should also be available as an assist.
     ReplaceCascadeWithDot.new,
   ],
-  AvoidTypesAsParameterNames.code: [
+  LinterLintCode.avoid_types_as_parameter_names: [
     ConvertToOnType.new,
   ],
-  AvoidTypesOnClosureParameters.code: [
+  LinterLintCode.avoid_types_on_closure_parameters: [
     ReplaceWithIdentifier.new,
     RemoveTypeAnnotation.other,
   ],
-  AvoidUnusedConstructorParameters.code: [
+  LinterLintCode.avoid_unused_constructor_parameters: [
     RemoveUnusedParameter.new,
   ],
-  AvoidUnnecessaryContainers.code: [
+  LinterLintCode.avoid_unnecessary_containers: [
     FlutterRemoveWidget.new,
   ],
-  AvoidVoidAsync.code: [
+  LinterLintCode.avoid_void_async: [
     ReplaceReturnTypeFuture.new,
   ],
-  AwaitOnlyFutures.code: [
+  LinterLintCode.await_only_futures: [
     RemoveAwait.new,
   ],
-  CascadeInvocations.code: [
+  LinterLintCode.cascade_invocations: [
     ConvertToCascade.new,
   ],
-  CastNullableToNonNullable.code: [
+  LinterLintCode.cast_nullable_to_non_nullable: [
     AddNullCheck.withoutAssignabilityCheck,
   ],
-  CombinatorsOrdering.code: [
+  LinterLintCode.combinators_ordering: [
     SortCombinators.new,
   ],
-  ConstantIdentifierNames.code: [
+  LinterLintCode.constant_identifier_names: [
     RenameToCamelCase.new,
   ],
-  CurlyBracesInFlowControlStructures.code: [
+  LinterLintCode.curly_braces_in_flow_control_structures: [
     UseCurlyBraces.new,
   ],
-  DanglingLibraryDocComments.code: [
+  LinterLintCode.dangling_library_doc_comments: [
     MoveDocCommentToLibraryDirective.new,
   ],
-  DiagnosticDescribeAllProperties.code: [
+  LinterLintCode.diagnostic_describe_all_properties: [
     AddDiagnosticPropertyReference.new,
   ],
-  DirectivesOrdering.dartDirectiveGoFirst: [
+  LinterLintCode.directives_ordering_dart: [
     OrganizeImports.new,
   ],
-  DirectivesOrdering.directiveSectionOrderedAlphabetically: [
+  LinterLintCode.directives_ordering_alphabetical: [
     OrganizeImports.new,
   ],
-  DirectivesOrdering.exportDirectiveAfterImportDirectives: [
+  LinterLintCode.directives_ordering_exports: [
     OrganizeImports.new,
   ],
-  DirectivesOrdering.packageDirectiveBeforeRelative: [
+  LinterLintCode.directives_ordering_package_before_relative: [
     OrganizeImports.new,
   ],
-  DiscardedFutures.code: [
+  LinterLintCode.discarded_futures: [
     AddAsync.new,
     WrapInUnawaited.new,
   ],
-  EmptyCatches.code: [
+  LinterLintCode.empty_catches: [
     RemoveEmptyCatch.new,
   ],
-  EmptyConstructorBodies.code: [
+  LinterLintCode.empty_constructor_bodies: [
     RemoveEmptyConstructorBody.new,
   ],
-  EmptyStatements.code: [
+  LinterLintCode.empty_statements: [
     RemoveEmptyStatement.new,
     ReplaceWithBrackets.new,
   ],
-  EolAtEndOfFile.code: [
+  LinterLintCode.eol_at_end_of_file: [
     AddEolAtEndOfFile.new,
   ],
-  ExhaustiveCases.code: [
+  LinterLintCode.exhaustive_cases: [
     AddMissingEnumLikeCaseClauses.new,
   ],
-  FlutterStyleTodos.code: [
+  LinterLintCode.flutter_style_todos: [
     ConvertToFlutterStyleTodo.new,
   ],
-  HashAndEquals.code: [
+  LinterLintCode.hash_and_equals: [
     CreateMethod.equalityOrHashCode,
   ],
-  ImplicitCallTearoffs.code: [
+  LinterLintCode.implicit_call_tearoffs: [
     AddExplicitCall.new,
   ],
-  ImplicitReopen.code: [
+  LinterLintCode.implicit_reopen: [
     AddReopen.new,
   ],
-  InvalidCasePatterns.code: [
+  LinterLintCode.invalid_case_patterns: [
     AddConst.new,
   ],
-  LeadingNewlinesInMultilineStrings.code: [
+  LinterLintCode.leading_newlines_in_multiline_strings: [
     AddLeadingNewlineToString.new,
   ],
-  LibraryAnnotations.code: [
+  LinterLintCode.library_annotations: [
     MoveAnnotationToLibraryDirective.new,
   ],
-  NoDuplicateCaseValues.code: [
+  LinterLintCode.no_duplicate_case_values: [
     RemoveDuplicateCase.new,
   ],
-  NoLeadingUnderscoresForLibraryPrefixes.code: [
+  LinterLintCode.no_leading_underscores_for_library_prefixes: [
     RemoveLeadingUnderscore.new,
   ],
-  NoLeadingUnderscoresForLocalIdentifiers.code: [
+  LinterLintCode.no_leading_underscores_for_local_identifiers: [
     RemoveLeadingUnderscore.new,
   ],
-  NoLiteralBoolComparisons.code: [
+  LinterLintCode.no_literal_bool_comparisons: [
     ConvertToBooleanExpression.new,
   ],
-  NonConstantIdentifierNames.code: [
+  LinterLintCode.non_constant_identifier_names: [
     RenameToCamelCase.new,
   ],
-  NoopPrimitiveOperations.code: [
+  LinterLintCode.noop_primitive_operations: [
     RemoveInvocation.new,
   ],
-  NullCheckOnNullableTypeParameter.code: [
+  LinterLintCode.null_check_on_nullable_type_parameter: [
     ReplaceNullCheckWithCast.new,
   ],
-  NullClosures.code: [
+  LinterLintCode.null_closures: [
     ReplaceNullWithClosure.new,
   ],
-  OmitLocalVariableTypes.code: [
+  LinterLintCode.omit_local_variable_types: [
     ReplaceWithVar.new,
   ],
-  OmitObviousLocalVariableTypes.code: [
+  LinterLintCode.omit_obvious_local_variable_types: [
     ReplaceWithVar.new,
   ],
-  PreferAdjacentStringConcatenation.code: [
+  LinterLintCode.prefer_adjacent_string_concatenation: [
     RemoveOperator.new,
   ],
-  PreferCollectionLiterals.code: [
+  LinterLintCode.prefer_collection_literals: [
     ConvertToMapLiteral.new,
     ConvertToSetLiteral.new,
   ],
-  PreferConditionalAssignment.code: [
+  LinterLintCode.prefer_conditional_assignment: [
     ReplaceWithConditionalAssignment.new,
   ],
-  PreferConstConstructors.code: [
+  LinterLintCode.prefer_const_constructors: [
     AddConst.new,
     ReplaceNewWithConst.new,
   ],
-  PreferConstConstructorsInImmutables.code: [
+  LinterLintCode.prefer_const_constructors_in_immutables: [
     AddConst.new,
   ],
-  PreferConstDeclarations.code: [
+  LinterLintCode.prefer_const_declarations: [
     ReplaceFinalWithConst.new,
   ],
-  PreferConstLiteralsToCreateImmutables.code: [
+  LinterLintCode.prefer_const_literals_to_create_immutables: [
     AddConst.new,
   ],
-  PreferContains.alwaysFalse: [
+  LinterLintCode.prefer_contains_always_false: [
     ConvertToContains.new,
   ],
-  PreferContains.alwaysTrue: [
+  LinterLintCode.prefer_contains_always_true: [
     ConvertToContains.new,
   ],
-  PreferContains.useContains: [
+  LinterLintCode.prefer_contains_use_contains: [
     ConvertToContains.new,
   ],
-  PreferDoubleQuotes.code: [
+  LinterLintCode.prefer_double_quotes: [
     ConvertToDoubleQuotes.new,
   ],
-  PreferExpressionFunctionBodies.code: [
+  LinterLintCode.prefer_expression_function_bodies: [
     ConvertToExpressionFunctionBody.new,
   ],
-  PreferFinalFields.code: [
+  LinterLintCode.prefer_final_fields: [
     MakeFinal.new,
   ],
-  PreferFinalInForEach.code: [
+  LinterLintCode.prefer_final_in_for_each_pattern: [
     MakeFinal.new,
   ],
-  PreferFinalLocals.code: [
+  LinterLintCode.prefer_final_in_for_each_variable: [
     MakeFinal.new,
   ],
-  PreferFinalParameters.code: [
+  LinterLintCode.prefer_final_locals: [
     MakeFinal.new,
   ],
-  PreferForElementsToMapFromIterable.code: [
+  LinterLintCode.prefer_final_parameters: [
+    MakeFinal.new,
+  ],
+  LinterLintCode.prefer_for_elements_to_map_fromIterable: [
     ConvertMapFromIterableToForLiteral.new,
   ],
-  PreferFunctionDeclarationsOverVariables.code: [
+  LinterLintCode.prefer_function_declarations_over_variables: [
     ConvertToFunctionDeclaration.new,
   ],
-  PreferGenericFunctionTypeAliases.code: [
+  LinterLintCode.prefer_generic_function_type_aliases: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  PreferIfElementsToConditionalExpressions.code: [
+  LinterLintCode.prefer_if_elements_to_conditional_expressions: [
     ConvertConditionalExpressionToIfElement.new,
   ],
-  PreferIfNullOperators.code: [
+  LinterLintCode.prefer_if_null_operators: [
     ConvertToIfNull.new,
   ],
-  PreferInitializingFormals.code: [
+  LinterLintCode.prefer_initializing_formals: [
     ConvertToInitializingFormal.new,
   ],
-  PreferInlinedAdds.single: [
+  LinterLintCode.prefer_inlined_adds_single: [
     ConvertAddAllToSpread.new,
     InlineInvocation.new,
   ],
-  PreferInlinedAdds.multiple: [
+  LinterLintCode.prefer_inlined_adds_multiple: [
     ConvertAddAllToSpread.new,
     InlineInvocation.new,
   ],
-  PreferIntLiterals.code: [
+  LinterLintCode.prefer_int_literals: [
     ConvertToIntLiteral.new,
   ],
-  PreferInterpolationToComposeStrings.code: [
+  LinterLintCode.prefer_interpolation_to_compose_strings: [
     ReplaceWithInterpolation.new,
   ],
-  PreferIsEmpty.alwaysFalse: [
+  LinterLintCode.prefer_is_empty_always_false: [
     ReplaceWithIsEmpty.new,
   ],
-  PreferIsEmpty.alwaysTrue: [
+  LinterLintCode.prefer_is_empty_always_true: [
     ReplaceWithIsEmpty.new,
   ],
-  PreferIsEmpty.useIsEmpty: [
+  LinterLintCode.prefer_is_empty_use_is_empty: [
     ReplaceWithIsEmpty.new,
   ],
-  PreferIsEmpty.useIsNotEmpty: [
+  LinterLintCode.prefer_is_empty_use_is_not_empty: [
     ReplaceWithIsEmpty.new,
   ],
-  PreferIsNotEmpty.code: [
+  LinterLintCode.prefer_is_not_empty: [
     UseIsNotEmpty.new,
   ],
-  PreferIsNotOperator.code: [
+  LinterLintCode.prefer_is_not_operator: [
     ConvertIntoIsNot.new,
   ],
-  PreferIterableWhereType.code: [
+  LinterLintCode.prefer_iterable_whereType: [
     ConvertToWhereType.new,
   ],
-  PreferNullAwareOperators.code: [
+  LinterLintCode.prefer_null_aware_operators: [
     ConvertToNullAware.new,
   ],
-  PreferRelativeImports.code: [
+  LinterLintCode.prefer_relative_imports: [
     ConvertToRelativeImport.new,
   ],
-  PreferSingleQuotes.code: [
+  LinterLintCode.prefer_single_quotes: [
     ConvertToSingleQuotes.new,
   ],
-  PreferSpreadCollections.code: [
+  LinterLintCode.prefer_spread_collections: [
     ConvertAddAllToSpread.new,
   ],
-  PreferTypingUninitializedVariables.forField: [
+  LinterLintCode.prefer_typing_uninitialized_variables_for_field: [
     AddTypeAnnotation.bulkFixable,
   ],
-  PreferTypingUninitializedVariables.forVariable: [
+  LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable: [
     AddTypeAnnotation.bulkFixable,
   ],
-  PreferVoidToNull.code: [
+  LinterLintCode.prefer_void_to_null: [
     ReplaceNullWithVoid.new,
   ],
-  RequireTrailingCommas.code: [
+  LinterLintCode.require_trailing_commas: [
     AddTrailingComma.new,
   ],
-  SizedBoxForWhitespace.code: [
+  LinterLintCode.sized_box_for_whitespace: [
     ReplaceContainerWithSizedBox.new,
   ],
-  SlashForDocComments.code: [
+  LinterLintCode.slash_for_doc_comments: [
     ConvertDocumentationIntoLine.new,
   ],
-  SortChildPropertiesLast.code: [
+  LinterLintCode.sort_child_properties_last: [
     SortChildPropertyLast.new,
   ],
-  SortConstructorsFirst.code: [
+  LinterLintCode.sort_constructors_first: [
     SortConstructorFirst.new,
   ],
-  SortUnnamedConstructorsFirst.code: [
+  LinterLintCode.sort_unnamed_constructors_first: [
     SortUnnamedConstructorFirst.new,
   ],
-  TypeAnnotatePublicApis.code: [
+  LinterLintCode.specify_nonobvious_local_variable_types: [
     AddTypeAnnotation.bulkFixable,
   ],
-  TypeInitFormals.code: [
+  LinterLintCode.type_annotate_public_apis: [
+    AddTypeAnnotation.bulkFixable,
+  ],
+  LinterLintCode.type_init_formals: [
     RemoveTypeAnnotation.other,
   ],
-  TypeLiteralInConstantPattern.code: [
+  LinterLintCode.type_literal_in_constant_pattern: [
     ConvertToConstantPattern.new,
     ConvertToWildcardPattern.new,
   ],
-  UnawaitedFutures.code: [
+  LinterLintCode.unawaited_futures: [
     AddAwait.unawaited,
     WrapInUnawaited.new,
   ],
-  UnnecessaryAwaitInReturn.code: [
+  LinterLintCode.unnecessary_await_in_return: [
     RemoveAwait.new,
   ],
-  UnnecessaryBraceInStringInterps.code: [
+  LinterLintCode.unnecessary_brace_in_string_interps: [
     RemoveInterpolationBraces.new,
   ],
-  UnnecessaryBreaks.code: [
+  LinterLintCode.unnecessary_breaks: [
     RemoveBreak.new,
   ],
-  UnnecessaryConst.code: [
+  LinterLintCode.unnecessary_const: [
     RemoveUnnecessaryConst.new,
   ],
-  UnnecessaryConstructorName.code: [
+  LinterLintCode.unnecessary_constructor_name: [
     RemoveConstructorName.new,
   ],
-  UnnecessaryFinal.withType: [
+  LinterLintCode.unnecessary_final_with_type: [
     ReplaceFinalWithVar.new,
   ],
-  UnnecessaryFinal.withoutType: [
+  LinterLintCode.unnecessary_final_without_type: [
     ReplaceFinalWithVar.new,
   ],
-  UnnecessaryGettersSetters.code: [
+  LinterLintCode.unnecessary_getters_setters: [
     MakeFieldPublic.new,
   ],
-  UnnecessaryLambdas.code: [
+  LinterLintCode.unnecessary_lambdas: [
     ReplaceWithTearOff.new,
   ],
-  UnnecessaryLate.code: [
+  LinterLintCode.unnecessary_late: [
     RemoveUnnecessaryLate.new,
   ],
-  UnnecessaryLibraryDirective.code: [
+  LinterLintCode.unnecessary_library_directive: [
     RemoveUnnecessaryLibraryDirective.new,
   ],
-  UnnecessaryLibraryName.code: [
+  LinterLintCode.unnecessary_library_name: [
     RemoveLibraryName.new,
   ],
-  UnnecessaryNew.code: [
+  LinterLintCode.unnecessary_new: [
     RemoveUnnecessaryNew.new,
   ],
-  UnnecessaryNullAwareAssignments.code: [
+  LinterLintCode.unnecessary_null_aware_assignments: [
     RemoveAssignment.new,
   ],
-  UnnecessaryNullChecks.code: [
+  LinterLintCode.unnecessary_null_checks: [
     RemoveNonNullAssertion.new,
   ],
-  UnnecessaryNullInIfNullOperators.code: [
+  LinterLintCode.unnecessary_null_in_if_null_operators: [
     RemoveIfNullOperator.new,
   ],
-  UnnecessaryNullableForFinalVariableDeclarations.code: [
+  LinterLintCode.unnecessary_nullable_for_final_variable_declarations: [
     RemoveQuestionMark.new,
   ],
-  UnnecessaryOverrides.code: [
+  LinterLintCode.unnecessary_overrides: [
     RemoveMethodDeclaration.new,
   ],
-  UnnecessaryParenthesis.code: [
+  LinterLintCode.unnecessary_parenthesis: [
     RemoveUnnecessaryParentheses.new,
   ],
-  UnnecessaryRawStrings.code: [
+  LinterLintCode.unnecessary_raw_strings: [
     RemoveUnnecessaryRawString.new,
   ],
-  UnnecessaryStringEscapes.code: [
+  LinterLintCode.unnecessary_string_escapes: [
     RemoveUnnecessaryStringEscape.new,
   ],
-  UnnecessaryStringInterpolations.code: [
+  LinterLintCode.unnecessary_string_interpolations: [
     RemoveUnnecessaryStringInterpolation.new,
   ],
-  UnnecessaryToListInSpreads.code: [
+  LinterLintCode.unnecessary_to_list_in_spreads: [
     RemoveToList.new,
   ],
-  UnnecessaryThis.code: [
+  LinterLintCode.unnecessary_this: [
     RemoveThisExpression.new,
   ],
-  UnreachableFromMain.code: [
+  LinterLintCode.unreachable_from_main: [
     RemoveUnusedElement.new,
   ],
-  UseDecoratedBox.code: [
+  LinterLintCode.use_decorated_box: [
     ReplaceWithDecoratedBox.new,
   ],
-  UseEnums.code: [
+  LinterLintCode.use_enums: [
     ConvertClassToEnum.new,
   ],
-  UseFullHexValuesForFlutterColors.code: [
+  LinterLintCode.use_full_hex_values_for_flutter_colors: [
     ReplaceWithEightDigitHex.new,
   ],
-  UseFunctionTypeSyntaxForParameters.code: [
+  LinterLintCode.use_function_type_syntax_for_parameters: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  UseKeyInWidgetConstructors.code: [
+  LinterLintCode.use_key_in_widget_constructors: [
     AddKeyToConstructors.new,
   ],
-  UseNamedConstants.code: [
+  LinterLintCode.use_named_constants: [
     ReplaceWithNamedConstant.new,
   ],
-  UseRawStrings.code: [
+  LinterLintCode.use_raw_strings: [
     ConvertToRawString.new,
   ],
-  UseRethrowWhenPossible.code: [
+  LinterLintCode.use_rethrow_when_possible: [
     UseRethrow.new,
   ],
-  UseStringInPartOfDirectives.code: [
+  LinterLintCode.use_string_in_part_of_directives: [
     ReplaceWithPartOrUriEmpty.new,
   ],
-  UseSuperParameters.singleParam: [
+  LinterLintCode.use_super_parameters_single: [
     ConvertToSuperParameters.new,
   ],
-  UseSuperParameters.multipleParams: [
+  LinterLintCode.use_super_parameters_multiple: [
     ConvertToSuperParameters.new,
+  ],
+  LinterLintCode.use_truncating_division: [
+    UseEffectiveIntegerDivision.new,
   ],
 };
 
@@ -1554,9 +1429,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
     ReplaceColonWithEquals.new,
   ],
-  HintCode.DIVISION_OPTIMIZATION: [
-    UseEffectiveIntegerDivision.new,
-  ],
   HintCode.UNNECESSARY_IMPORT: [
     RemoveUnusedImport.new,
   ],
@@ -1980,32 +1852,25 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
 };
 
 final _builtInParseLintProducers = <LintCode, List<ProducerGenerator>>{
-  PreferGenericFunctionTypeAliases.code: [
+  LinterLintCode.prefer_generic_function_type_aliases: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  SlashForDocComments.code: [
+  LinterLintCode.slash_for_doc_comments: [
     ConvertDocumentationIntoLine.new,
   ],
-  UnnecessaryConst.code: [
+  LinterLintCode.unnecessary_const: [
     RemoveUnnecessaryConst.new,
   ],
-  UnnecessaryNew.code: [
+  LinterLintCode.unnecessary_new: [
     RemoveUnnecessaryNew.new,
   ],
-  UnnecessaryStringEscapes.code: [
+  LinterLintCode.unnecessary_string_escapes: [
     RemoveUnnecessaryStringEscape.new,
   ],
-  UseFunctionTypeSyntaxForParameters.code: [
+  LinterLintCode.use_function_type_syntax_for_parameters: [
     ConvertToGenericFunctionSyntax.new,
   ],
 };
-
-Future<List<Fix>> computeFixes(DartFixContext context) async {
-  return [
-    ...await FixProcessor(context).compute(),
-    ...await FixInFileProcessor(context).compute(),
-  ];
-}
 
 /// Registers each mapping of diagnostic -> list-of-producers with
 /// [FixProcessor].
@@ -2013,173 +1878,15 @@ void registerBuiltInProducers() {
   // This function can be called many times during test runs so these statements
   // should not result in duplicate producers (i.e. they should only add to maps
   // or sets or otherwise ensure producers that already exist are not added).
-  FixProcessor.lintMultiProducerMap.addAll(_builtInLintMultiProducers);
-  FixProcessor.lintProducerMap.addAll(_builtInLintProducers);
-  FixProcessor.nonLintMultiProducerMap.addAll(_builtInNonLintMultiProducers);
-  FixProcessor.nonLintProducerMap.addAll(_builtInNonLintProducers);
-  FixProcessor.parseLintProducerMap.addAll(_builtInParseLintProducers);
-  FixProcessor.ignoreProducerGenerators.addAll([
+  registeredFixGenerators.lintMultiProducers.addAll(_builtInLintMultiProducers);
+  registeredFixGenerators.lintProducers.addAll(_builtInLintProducers);
+  registeredFixGenerators.nonLintMultiProducers
+      .addAll(_builtInNonLintMultiProducers);
+  registeredFixGenerators.nonLintProducers.addAll(_builtInNonLintProducers);
+  registeredFixGenerators.parseLintProducers.addAll(_builtInParseLintProducers);
+  registeredFixGenerators.ignoreProducerGenerators.addAll([
     IgnoreDiagnosticOnLine.new,
     IgnoreDiagnosticInFile.new,
     IgnoreDiagnosticInAnalysisOptionsFile.new,
   ]);
-}
-
-/// Computer for Dart "fix all in file" fixes.
-class FixInFileProcessor {
-  final DartFixContext context;
-
-  FixInFileProcessor(this.context);
-
-  Future<List<Fix>> compute() async {
-    var error = context.error;
-    var errors = context.resolvedResult.errors
-        .where((e) => error.errorCode.name == e.errorCode.name);
-    if (errors.length < 2) {
-      return const <Fix>[];
-    }
-
-    var instrumentationService = context.instrumentationService;
-    var workspace = context.workspace;
-    var resolvedResult = context.resolvedResult;
-
-    /// Helper to create a [DartFixContextImpl] for a given error.
-    DartFixContext createFixContext(AnalysisError error) {
-      return DartFixContext(
-        instrumentationService: instrumentationService,
-        workspace: workspace,
-        resolvedResult: resolvedResult,
-        error: error,
-      );
-    }
-
-    var generators = _getGenerators(error.errorCode);
-
-    var fixes = <Fix>[];
-    for (var generator in generators) {
-      if (generator(context: StubCorrectionProducerContext.instance)
-          .canBeAppliedAcrossSingleFile) {
-        _FixState fixState = _EmptyFixState(
-          ChangeBuilder(workspace: workspace),
-        );
-
-        // First try to fix the specific error we started from. We should only
-        // include fix-all-in-file when we produce an individual fix at this
-        // location.
-        fixState = await _fixError(
-            createFixContext(error), fixState, generator, error);
-
-        // The original error was not fixable, don't continue.
-        if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {
-          continue;
-        }
-
-        // Compute fixes for the rest of the errors.
-        for (var error in errors.where((item) => item != error)) {
-          var fixContext = createFixContext(error);
-          fixState = await _fixError(fixContext, fixState, generator, error);
-        }
-        if (fixState is _NotEmptyFixState) {
-          var sourceChange = fixState.builder.sourceChange;
-          if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
-            var fixKind = fixState.fixKind;
-            sourceChange.id = fixKind.id;
-            sourceChange.message = fixKind.message;
-            fixes.add(Fix(kind: fixKind, change: sourceChange));
-          }
-        }
-      }
-    }
-    return fixes;
-  }
-
-  Future<_FixState> _fixError(
-    DartFixContext fixContext,
-    _FixState fixState,
-    ProducerGenerator generator,
-    AnalysisError diagnostic,
-  ) async {
-    var context = CorrectionProducerContext.createResolved(
-      applyingBulkFixes: true,
-      dartFixContext: fixContext,
-      diagnostic: diagnostic,
-      resolvedResult: fixContext.resolvedResult,
-      selectionOffset: diagnostic.offset,
-      selectionLength: diagnostic.length,
-    );
-
-    var producer = generator(context: context);
-
-    try {
-      var localBuilder = fixState.builder.copy();
-      var fixKind = producer.fixKind;
-      await producer.compute(localBuilder);
-      assert(
-        !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
-        'Producers used in bulk fixes must not modify the FixKind during '
-        'computation. $producer changed from $fixKind to ${producer.fixKind}.',
-      );
-
-      var multiFixKind = producer.multiFixKind;
-      if (multiFixKind == null) {
-        return fixState;
-      }
-
-      // TODO(pq): consider discarding the change if the producer's fixKind
-      // doesn't match a previously cached one.
-      return _NotEmptyFixState(
-        builder: localBuilder,
-        fixKind: multiFixKind,
-        fixCount: fixState.fixCount + 1,
-      );
-    } on ConflictingEditException {
-      // If a conflicting edit was added in [compute], then the [localBuilder]
-      // is discarded and we revert to the previous state of the builder.
-      return fixState;
-    }
-  }
-
-  List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
-    if (errorCode is LintCode) {
-      return FixProcessor.lintProducerMap[errorCode] ?? [];
-    } else {
-      // TODO(pq): consider support for multiGenerators
-      return FixProcessor.nonLintProducerMap[errorCode] ?? [];
-    }
-  }
-}
-
-/// [_FixState] that is still empty.
-class _EmptyFixState implements _FixState {
-  @override
-  final ChangeBuilder builder;
-
-  _EmptyFixState(this.builder);
-
-  @override
-  int get fixCount => 0;
-}
-
-/// State associated with producing fix-all-in-file fixes.
-abstract class _FixState {
-  ChangeBuilder get builder;
-
-  int get fixCount;
-}
-
-/// [_FixState] that has a fix, so knows its kind.
-class _NotEmptyFixState implements _FixState {
-  @override
-  final ChangeBuilder builder;
-
-  final FixKind fixKind;
-
-  @override
-  final int fixCount;
-
-  _NotEmptyFixState({
-    required this.builder,
-    required this.fixKind,
-    required this.fixCount,
-  });
 }

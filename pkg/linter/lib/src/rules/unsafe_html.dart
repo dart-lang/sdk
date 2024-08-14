@@ -34,25 +34,6 @@ var script = ScriptElement()..src = 'foo.js';
 ''';
 
 class UnsafeHtml extends LintRule {
-  // TODO(brianwilkerson): These lint codes aren't being used by the lint, but
-  //  are being used to pass the test that ensures that all lint rules define
-  //  their own codes. We would like to use the codes in the future, but doing
-  //  so requires coordination with other tool teams.
-  static const LintCode attributeCode = LintCode(
-      'unsafe_html', "Assigning to the attribute '{0}' is unsafe.",
-      correctionMessage: 'Try finding a different way to implement the page.',
-      uniqueName: 'LintCode.unsafe_html_attribute');
-
-  static const LintCode methodCode = LintCode(
-      'unsafe_html', "Invoking the method '{0}' is unsafe.",
-      correctionMessage: 'Try finding a different way to implement the page.',
-      uniqueName: 'LintCode.unsafe_html_method');
-
-  static const LintCode constructorCode = LintCode(
-      'unsafe_html', "Invoking the constructor '{0}' is unsafe.",
-      correctionMessage: 'Try finding a different way to implement the page.',
-      uniqueName: 'LintCode.unsafe_html_constructor');
-
   UnsafeHtml()
       : super(
             name: 'unsafe_html',
@@ -60,6 +41,9 @@ class UnsafeHtml extends LintRule {
             details: _details,
             categories: {LintRuleCategory.errors});
 
+  // TODO(brianwilkerson): This lint is not yet using the generated LintCodes.
+  //   We would like to use the codes in the future, but doing
+  //   so requires coordination with other tool teams.
   @override
   List<LintCode> get lintCodes => [
         _Visitor.unsafeAttributeCode,

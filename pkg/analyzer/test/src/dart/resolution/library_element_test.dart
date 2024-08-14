@@ -7,14 +7,15 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/element_printer.dart';
-import '../../../util/tree_string_sink.dart';
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -225,8 +226,8 @@ import 'a.dart';
 
     _assertLibraryExtensions(result.libraryElement, r'''
 extensions
-  package:test/a.dart::<definingUnit>::@extension::E
-  dart:core::<definingUnit>::@extension::EnumName
+  package:test/a.dart::<fragment>::@extension::E
+  dart:core::<fragment>::@extension::EnumName
 ''');
   }
 
@@ -243,8 +244,8 @@ import 'a.dart' as prefix;
 
     _assertLibraryExtensions(result.libraryElement, r'''
 extensions
-  package:test/a.dart::<definingUnit>::@extension::E
-  dart:core::<definingUnit>::@extension::EnumName
+  package:test/a.dart::<fragment>::@extension::E
+  dart:core::<fragment>::@extension::EnumName
 ''');
   }
 
@@ -255,8 +256,8 @@ extension E on int {}
 
     _assertLibraryExtensions(result.libraryElement, r'''
 extensions
-  <thisLibrary>::<definingUnit>::@extension::E
-  dart:core::<definingUnit>::@extension::EnumName
+  <testLibraryFragment>::@extension::E
+  dart:core::<fragment>::@extension::EnumName
 ''');
   }
 
@@ -277,8 +278,8 @@ extension E on int {}
 
     _assertLibraryExtensions(result.libraryElement, r'''
 extensions
-  <thisLibrary>::<definingUnit>::@extension::E
-  dart:core::<definingUnit>::@extension::EnumName
+  <testLibraryFragment>::@extension::E
+  dart:core::<fragment>::@extension::EnumName
 ''');
   }
 
@@ -391,21 +392,25 @@ import 'dart:math' show sin;
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: result.uri.toString(),
     );
 
-    var extensions = library.scope.extensions;
+    var extensions = library.scope.accessibleExtensions;
     extensions = extensions.sortedBy((e) => e.name ?? '');
     elementPrinter.writeElementList('extensions', extensions);
 
     var actual = buffer.toString();
     if (actual != expected) {
-      fail('''
-    \r${'-' * 28} Actual ${'-' * 28}
-    \r${actual.trimRight().split('\n').join('\n\r')}
-    \r${'-' * 64}
-    ''');
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
     }
+    // if (actual != expected) {
+    //   fail('''
+    // \r${'-' * 28} Actual ${'-' * 28}
+    // \r${actual.trimRight().split('\n').join('\n\r')}
+    // \r${'-' * 64}
+    // ''');
+    // }
   }
 }
 

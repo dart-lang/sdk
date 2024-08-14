@@ -7,13 +7,14 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
 import 'closures.dart';
+import 'code_generator.dart';
 import 'dispatch_table.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
 
 /// This class is responsible for collecting import and export annotations.
-/// It also creates Wasm functions for Dart members and manages the worklist
-/// used to achieve tree shaking.
+/// It also creates Wasm functions for Dart members and manages the compilation
+/// queue used to achieve tree shaking.
 class FunctionCollector {
   final Translator translator;
 
@@ -21,14 +22,12 @@ class FunctionCollector {
   final Map<Reference, w.BaseFunction> _functions = {};
   // Names of exported functions
   final Map<Reference, String> _exports = {};
-  // Functions for which code has not yet been generated
-  final List<Reference> _worklist = [];
   // Selector IDs that are invoked via GDT.
   final Set<int> _calledSelectors = {};
   // Class IDs for classes that are allocated somewhere in the program
   final Set<int> _allocatedClasses = {};
-  // For each class ID, which functions should be added to the worklist if an
-  // allocation of that class is encountered
+  // For each class ID, which functions should be added to the compilation queue
+  // if an allocation of that class is encountered
   final Map<int, List<Reference>> _pendingAllocation = {};
 
   FunctionCollector(this.translator);
@@ -45,10 +44,6 @@ class FunctionCollector {
     }
   }
 
-  bool isWorkListEmpty() => _worklist.isEmpty;
-
-  Reference popWorkList() => _worklist.removeLast();
-
   void _importOrExport(Member member) {
     String? importName =
         translator.getPragma(member, "wasm:import", member.name.text);
@@ -59,14 +54,9 @@ class FunctionCollector {
         String module = importName.substring(0, dot);
         String name = importName.substring(dot + 1);
         if (member is Procedure) {
-          // Define the function type in a singular recursion group to enable it
-          // to be unified with function types defined in FFI modules or using
-          // `WebAssembly.Function`.
-          m.types.splitRecursionGroup();
           w.FunctionType ftype = _makeFunctionType(
               translator, member.reference, null,
               isImportOrExport: true);
-          m.types.splitRecursionGroup();
           _functions[member.reference] =
               m.functions.import(module, name, ftype, "$importName (import)");
         }
@@ -76,15 +66,8 @@ class FunctionCollector {
         translator.getPragma(member, "wasm:export", member.name.text);
     if (exportName != null) {
       if (member is Procedure) {
-        // Although we don't need type unification for the types of exported
-        // functions, we still place these types in singleton recursion groups,
-        // since Binaryen's `--closed-world` optimization mode requires all
-        // publicly exposed types to be defined in separate recursion groups
-        // from GC types.
-        m.types.splitRecursionGroup();
         _makeFunctionType(translator, member.reference, null,
             isImportOrExport: true);
-        m.types.splitRecursionGroup();
       }
       addExport(member.reference, exportName);
     }
@@ -97,19 +80,20 @@ class FunctionCollector {
   String? getExport(Reference target) => _exports[target];
 
   void initialize() {
-    // Add exports to the module and add exported functions to the worklist
+    // Add exports to the module and add exported functions to the compilationQueue
     for (var export in _exports.entries) {
       Reference target = export.key;
       Member node = target.asMember;
       if (node is Procedure) {
-        _worklist.add(target);
         assert(!node.isInstanceMember);
         assert(!node.isGetter);
         w.FunctionType ftype =
             _makeFunctionType(translator, target, null, isImportOrExport: true);
-        w.BaseFunction function = m.functions.define(ftype, "$node");
+        w.FunctionBuilder function = m.functions.define(ftype, "$node");
         _functions[target] = function;
         m.exports.export(export.value, function);
+        translator.compilationQueue.add(AstCompilationTask(function,
+            getMemberCodeGenerator(translator, function, target), target));
       } else if (node is Field) {
         w.Table? table = translator.getTable(node);
         if (table != null) {
@@ -133,13 +117,24 @@ class FunctionCollector {
 
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
-      _worklist.add(target);
-      return m.functions.define(
-          translator.signatureForDirectCall(target), _getFunctionName(target));
+      final function = m.functions.define(
+          translator.signatureForDirectCall(target), getFunctionName(target));
+      translator.compilationQueue.add(AstCompilationTask(function,
+          getMemberCodeGenerator(translator, function, target), target));
+      return function;
     });
   }
 
   w.FunctionType getFunctionType(Reference target) {
+    // We first try to get the function type by seeing if we already
+    // compiled the [target] function.
+    //
+    // We do that because [target] may refer to a imported/exported function
+    // which get their function type translated differently (it would be
+    // incorrect to use [_getFunctionType]).
+    final existingFunction = getExistingFunction(target);
+    if (existingFunction != null) return existingFunction.type;
+
     return _getFunctionType(target);
   }
 
@@ -164,7 +159,7 @@ class FunctionCollector {
     return member.accept1(_FunctionTypeGenerator(translator), target);
   }
 
-  String _getFunctionName(Reference target) {
+  String getFunctionName(Reference target) {
     if (target.isTearOffReference) {
       return "${target.asMember} tear-off";
     }

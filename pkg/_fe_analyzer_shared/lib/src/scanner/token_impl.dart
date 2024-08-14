@@ -35,7 +35,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    */
   static const int LAZY_THRESHOLD = 4;
 
-  dynamic /* String | LazySubstring */ valueOrLazySubstring;
+  late Object /* String | LazySubstring */ valueOrLazySubstring;
 
   /**
    * Creates a non-lazy string token. If [canonicalize] is true, the string
@@ -83,27 +83,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
   }
 
   @override
-  String get lexeme {
-    if (valueOrLazySubstring is String) {
-      return valueOrLazySubstring;
-    } else {
-      assert(valueOrLazySubstring is _LazySubstring);
-      dynamic data = valueOrLazySubstring.data;
-      int start = valueOrLazySubstring.start;
-      int end = start + (valueOrLazySubstring as _LazySubstring).length;
-      if (data is String) {
-        final bool canonicalize = valueOrLazySubstring.boolValue;
-        valueOrLazySubstring = canonicalize
-            ? canonicalizeSubString(data, start, end)
-            : data.substring(start, end);
-      } else {
-        final bool isAscii = valueOrLazySubstring.boolValue;
-        valueOrLazySubstring =
-            canonicalizeUtf8SubString(data, start, end, isAscii);
-      }
-      return valueOrLazySubstring;
-    }
-  }
+  String get lexeme => valueOrLazySubstring = valueOrLazySubstring.toString();
 
   @override
   bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
@@ -194,7 +174,7 @@ class DartDocToken extends CommentTokenImpl
  */
 abstract class _LazySubstring {
   /** The original data, either a string or a Uint8List */
-  get data;
+  Object get data;
 
   int get start;
   int get length;
@@ -211,7 +191,7 @@ abstract class _LazySubstring {
 
   _LazySubstring.internal();
 
-  factory _LazySubstring(data, int start, int length, bool b) {
+  factory _LazySubstring(Object data, int start, int length, bool b) {
     // See comment on [CompactLazySubstring].
     if (start < 0x100000 && length < 0x200) {
       int fields = (start << 9);
@@ -223,6 +203,25 @@ abstract class _LazySubstring {
       return new _FullLazySubstring(data, start, length, b);
     }
   }
+
+  String _resolve() {
+    Object data = this.data;
+    int start = this.start;
+    int end = start + this.length;
+    if (data is String) {
+      final bool canonicalize = this.boolValue;
+      return canonicalize
+          ? canonicalizeSubString(data, start, end)
+          : data.substring(start, end);
+    } else {
+      final Uint8List bytes = data as Uint8List;
+      final bool isAscii = this.boolValue;
+      return canonicalizeUtf8SubString(bytes, start, end, isAscii);
+    }
+  }
+
+  @override
+  String toString() => _resolve();
 }
 
 /**
@@ -234,7 +233,7 @@ abstract class _LazySubstring {
  */
 class _CompactLazySubstring extends _LazySubstring {
   @override
-  final dynamic data;
+  final Object data;
   final int fields;
 
   _CompactLazySubstring(this.data, this.fields) : super.internal();
@@ -249,7 +248,7 @@ class _CompactLazySubstring extends _LazySubstring {
 
 class _FullLazySubstring extends _LazySubstring {
   @override
-  final dynamic data;
+  final Object data;
   @override
   final int start;
   @override

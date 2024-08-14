@@ -335,6 +335,7 @@ class SourceCompilationUnitImpl
         "Source library builder as already been created for $this.");
     _libraryBuilder = _sourceLibraryBuilder;
     if (isPart) {
+      // Coverage-ignore-block(suite): Not run.
       // This is a part with no enclosing library.
       addProblem(messagePartOrphan, 0, 1, fileUri);
       _clearPartsAndReportExporters();
@@ -628,8 +629,7 @@ class SourceCompilationUnitImpl
     // a name space and its import scope should be nested within its parent's
     // import scope.
     _sourceLibraryBuilder._nameSpace = libraryBuilder.nameSpace;
-    _sourceLibraryBuilder._scope.replaceNameSpaceAndParent(
-        libraryBuilder.nameSpace, libraryBuilder._importScope);
+    _sourceLibraryBuilder._importScope = libraryBuilder.importScope;
 
     // TODO(ahe): Include metadata from part?
 
@@ -728,7 +728,9 @@ class SourceCompilationUnitImpl
 
   @override
   void addImportsToScope() {
-    bool hasCoreImport = originImportUri == dartCore && !forPatchLibrary;
+    bool hasCoreImport = originImportUri == dartCore &&
+        // Coverage-ignore(suite): Not run.
+        !forPatchLibrary;
     for (Import import in _builderFactoryResult.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
         // Coverage-ignore-block(suite): Not run.
@@ -965,8 +967,8 @@ class SourceCompilationUnitImpl
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
 
-        Iterator<SourceMemberBuilder> iterator = declaration.constructorScope
-            .filteredIterator<SourceMemberBuilder>(
+        Iterator<SourceMemberBuilder> iterator = declaration.nameSpace
+            .filteredConstructorIterator<SourceMemberBuilder>(
                 includeDuplicates: false, includeAugmentations: true);
         while (iterator.moveNext()) {
           processSourceMemberBuilder(iterator.current,
@@ -1017,8 +1019,8 @@ class SourceCompilationUnitImpl
         count += computeDefaultTypesForVariables(declaration.typeParameters,
             inErrorRecovery: issues.isNotEmpty);
 
-        Iterator<SourceMemberBuilder> iterator = declaration.constructorScope
-            .filteredIterator<SourceMemberBuilder>(
+        Iterator<SourceMemberBuilder> iterator = declaration.nameSpace
+            .filteredConstructorIterator<SourceMemberBuilder>(
                 includeDuplicates: false, includeAugmentations: true);
         while (iterator.moveNext()) {
           processSourceMemberBuilder(iterator.current,
@@ -1179,27 +1181,6 @@ class SourceCompilationUnitImpl
       }
     }
     return count;
-  }
-
-  @override
-  void computeShowHideElements(ClassMembersBuilder membersBuilder) {
-    for (ExtensionBuilder _extensionBuilder
-        in _builderFactoryResult.extensions) {
-      ExtensionBuilder extensionBuilder = _extensionBuilder;
-      if (extensionBuilder is! SourceExtensionBuilder) continue;
-      DartType onType = extensionBuilder.extension.onType;
-      if (onType is InterfaceType) {
-        // TODO(cstefantsova): Handle private names.
-        List<Supertype> supertypes = membersBuilder.hierarchyBuilder
-            .getNodeFromClass(onType.classNode)
-            .superclasses;
-        Map<String, Supertype> supertypesByName = <String, Supertype>{};
-        for (Supertype supertype in supertypes) {
-          // TODO(cstefantsova): Should only non-generic supertypes be allowed?
-          supertypesByName[supertype.classNode.name] = supertype;
-        }
-      }
-    }
   }
 
   @override

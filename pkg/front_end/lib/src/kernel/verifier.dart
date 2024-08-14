@@ -33,7 +33,6 @@ List<LocatedMessage> verifyComponent(
   return listener.errors;
 }
 
-// Coverage-ignore(suite): Not run.
 class FastaVerificationErrorListener implements VerificationErrorListener {
   final CompilerContext compilerContext;
   List<LocatedMessage> errors = [];
@@ -41,6 +40,7 @@ class FastaVerificationErrorListener implements VerificationErrorListener {
   FastaVerificationErrorListener(this.compilerContext);
 
   @override
+  // Coverage-ignore(suite): Not run.
   void reportError(String details,
       {required TreeNode? node,
       required Uri? problemUri,

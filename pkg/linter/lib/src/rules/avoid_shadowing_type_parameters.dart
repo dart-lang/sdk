@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid shadowing type parameters.';
 
@@ -29,11 +32,6 @@ class A<T> {
 ''';
 
 class AvoidShadowingTypeParameters extends LintRule {
-  static const LintCode code = LintCode('avoid_shadowing_type_parameters',
-      "The type parameter '{0}' shadows a type parameter from the enclosing {1}.",
-      correctionMessage: 'Try renaming one of the type parameters.',
-      hasPublishedDocs: true);
-
   AvoidShadowingTypeParameters()
       : super(
             name: 'avoid_shadowing_type_parameters',
@@ -42,12 +40,12 @@ class AvoidShadowingTypeParameters extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_shadowing_type_parameters;
 
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.libraryElement);
     registry.addFunctionDeclarationStatement(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -55,9 +53,14 @@ class AvoidShadowingTypeParameters extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  /// Whether the `wildcard_variables` feature is enabled.
+  final bool _wildCardVariablesEnabled;
+
   final LintRule rule;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, LibraryElement? library)
+      : _wildCardVariablesEnabled =
+            library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
@@ -126,7 +129,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         .toSet();
 
     for (var parameter in typeParameters.typeParameters) {
-      if (ancestorTypeParameterNames.contains(parameter.name.lexeme)) {
+      var lexeme = parameter.name.lexeme;
+      if (_wildCardVariablesEnabled && lexeme == '_') continue;
+      if (ancestorTypeParameterNames.contains(lexeme)) {
         rule.reportLint(parameter,
             arguments: [parameter.name.lexeme, ancestorKind]);
       }

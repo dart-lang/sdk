@@ -7426,8 +7426,13 @@ class WarningCode extends AnalyzerErrorCode {
         "this is the only name in the list.",
   );
 
-  ///  This is the new replacement for [HintCode.UNNECESSARY_CAST].
-  static const HintCode UNNECESSARY_CAST = HintCode.UNNECESSARY_CAST;
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_CAST = WarningCode(
+    'UNNECESSARY_CAST',
+    "Unnecessary cast.",
+    correctionMessage: "Try removing the cast.",
+    hasPublishedDocs: true,
+  );
 
   ///  No parameters.
   static const WarningCode UNNECESSARY_CAST_PATTERN = WarningCode(
@@ -7568,12 +7573,24 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT].
-  static const HintCode UNUSED_ELEMENT = HintCode.UNUSED_ELEMENT;
+  ///  Parameters:
+  ///  0: the name that is declared but not referenced
+  static const WarningCode UNUSED_ELEMENT = WarningCode(
+    'UNUSED_ELEMENT',
+    "The declaration '{0}' isn't referenced.",
+    correctionMessage: "Try removing the declaration of '{0}'.",
+    hasPublishedDocs: true,
+  );
 
-  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
-  static const HintCode UNUSED_ELEMENT_PARAMETER =
-      HintCode.UNUSED_ELEMENT_PARAMETER;
+  ///  Parameters:
+  ///  0: the name of the parameter that is declared but not used
+  static const WarningCode UNUSED_ELEMENT_PARAMETER = WarningCode(
+    'UNUSED_ELEMENT',
+    "A value for optional parameter '{0}' isn't ever given.",
+    correctionMessage: "Try removing the unused parameter.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNUSED_ELEMENT_PARAMETER',
+  );
 
   ///  Parameters:
   ///  0: the name of the unused field

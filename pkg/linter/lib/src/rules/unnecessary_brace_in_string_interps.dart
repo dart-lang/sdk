@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using braces in interpolation when not needed.';
 
@@ -34,10 +35,6 @@ bool isIdentifierPart(Token? token) =>
     token is StringToken && token.lexeme.startsWith(identifierPart);
 
 class UnnecessaryBraceInStringInterps extends LintRule {
-  static const LintCode code = LintCode('unnecessary_brace_in_string_interps',
-      'Unnecessary braces in a string interpolation.',
-      correctionMessage: 'Try removing the braces.', hasPublishedDocs: true);
-
   UnnecessaryBraceInStringInterps()
       : super(
             name: 'unnecessary_brace_in_string_interps',
@@ -46,7 +43,7 @@ class UnnecessaryBraceInStringInterps extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_brace_in_string_interps;
 
   @override
   void registerNodeProcessors(

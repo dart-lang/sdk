@@ -6,26 +6,28 @@ import '../type_inference/nullability_suffix.dart';
 
 /// Common interface for data structures used by the implementations to
 /// represent the type `dynamic`.
-abstract interface class SharedDynamicType implements SharedType {}
+abstract interface class SharedDynamicType<Type extends SharedType<Type>>
+    implements SharedType<Type> {}
 
 /// Common interface for data structures used by the implementations to
 /// represent a type resulting from a compile-time error.
 ///
 /// The implementations may choose to suppress further errors that arise from
 /// the use of this type.
-abstract interface class SharedInvalidType implements SharedType {}
+abstract interface class SharedInvalidType<Type extends SharedType<Type>>
+    implements SharedType<Type> {}
 
 /// Common interface for data structures used by the implementations to
 /// represent a name/type pair.
-abstract interface class SharedNamedType<Type extends SharedType> {
+abstract interface class SharedNamedType<Type extends SharedType<Type>> {
   String get name;
   Type get type;
 }
 
 /// Common interface for data structures used by the implementations to
 /// represent a record type.
-abstract interface class SharedRecordType<Type extends SharedType>
-    implements SharedType {
+abstract interface class SharedRecordType<Type extends SharedType<Type>>
+    implements SharedType<Type> {
   List<SharedNamedType<Type>> get namedTypes;
 
   List<Type> get positionalTypes;
@@ -33,7 +35,7 @@ abstract interface class SharedRecordType<Type extends SharedType>
 
 /// Common interface for data structures used by the implementations to
 /// represent a type.
-abstract interface class SharedType {
+abstract interface class SharedType<Type extends SharedType<Type>> {
   /// If this type ends in a suffix (`?` or `*`), the suffix it ends with;
   /// otherwise [NullabilitySuffix.none].
   NullabilitySuffix get nullabilitySuffix;
@@ -45,13 +47,15 @@ abstract interface class SharedType {
   /// be changed if doing so would improve the UX.
   String getDisplayString();
 
-  bool isStructurallyEqualTo(SharedType other);
+  bool isStructurallyEqualTo(SharedType<Type> other);
 }
 
 /// Common interface for data structures used by the implementations to
 /// represent the unknown type schema (`_`).
-abstract interface class SharedUnknownType implements SharedType {}
+abstract interface class SharedUnknownType<Type extends SharedType<Type>>
+    implements SharedType<Type> {}
 
 /// Common interface for data structures used by the implementations to
 /// represent the type `void`.
-abstract interface class SharedVoidType implements SharedType {}
+abstract interface class SharedVoidType<Type extends SharedType<Type>>
+    implements SharedType<Type> {}

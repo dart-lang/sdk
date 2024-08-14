@@ -30,6 +30,9 @@ class WillRenameFilesHandler
       RenameFilesParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<WorkspaceEdit?>> handle(RenameFilesParams params,
       MessageInfo message, CancellationToken token) async {
     var pathMapping = <String, String>{};

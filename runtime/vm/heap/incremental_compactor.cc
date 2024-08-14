@@ -252,10 +252,11 @@ bool GCIncrementalCompactor::SelectEvacuationCandidates(PageSpace* old_space) {
 
   old_space->ReleaseBumpAllocation();
 
-  const intptr_t num_tasks = Utils::Maximum(1, FLAG_scavenger_tasks);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  const intptr_t num_tasks =
+      isolate_group->heap()->new_space()->NumScavengeWorkers();
   RELEASE_ASSERT(num_tasks > 0);
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
-  IsolateGroup* isolate_group = IsolateGroup::Current();
   for (intptr_t i = 0; i < num_tasks; i++) {
     if (i < (num_tasks - 1)) {
       // Begin compacting on a helper thread.
@@ -480,8 +481,7 @@ class IncrementalForwardingVisitor : public ObjectPointerVisitor,
     const intptr_t length = typed_data_views_.length();
     for (intptr_t i = 0; i < length; ++i) {
       auto raw_view = typed_data_views_[i];
-      const classid_t cid =
-          raw_view->untag()->typed_data()->GetClassIdMayBeSmi();
+      const classid_t cid = raw_view->untag()->typed_data()->GetClassId();
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
       // the inner pointer.
@@ -754,7 +754,7 @@ class EpilogueTask : public ThreadPool::Task {
             ObjectPtr copied_obj = UntaggedObject::FromAddr(copied);
 
             copied_obj->untag()->ClearIsEvacuationCandidateUnsynchronized();
-            if (IsTypedDataClassId(copied_obj->GetClassId())) {
+            if (IsTypedDataClassId(copied_obj->GetClassIdOfHeapObject())) {
               static_cast<TypedDataPtr>(copied_obj)
                   ->untag()
                   ->RecomputeDataField();
@@ -877,9 +877,10 @@ void GCIncrementalCompactor::Evacuate(PageSpace* old_space) {
       old_space->pages_, isolate_group->store_buffer()->PopAll(),
       old_space->heap_->new_space()->head(), &old_space->pages_lock_);
 
-  // This must use FLAG_scavenger_tasks because that determines the number of
+  // This must use NumScavengeWorkers because that determines the number of
   // freelists available for workers.
-  const intptr_t num_tasks = Utils::Maximum(1, FLAG_scavenger_tasks);
+  const intptr_t num_tasks =
+      isolate_group->heap()->new_space()->NumScavengeWorkers();
   RELEASE_ASSERT(num_tasks > 0);
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, num_tasks);
   for (intptr_t i = 0; i < num_tasks; i++) {

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Only use double quotes for strings containing single quotes.';
 
@@ -43,11 +44,6 @@ useStrings(
 ''';
 
 class PreferSingleQuotes extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_single_quotes', 'Unnecessary use of double quotes.',
-      correctionMessage:
-          'Try using single quotes unless the string contains single quotes.');
-
   PreferSingleQuotes()
       : super(
             name: 'prefer_single_quotes',
@@ -59,7 +55,7 @@ class PreferSingleQuotes extends LintRule {
   List<String> get incompatibleRules => const ['prefer_double_quotes'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_single_quotes;
 
   @override
   void registerNodeProcessors(

@@ -882,8 +882,11 @@ DART_FORCE_INLINE uword UntaggedObject::to_offset(intptr_t length) {
   }
 }
 
-inline intptr_t ObjectPtr::GetClassId() const {
+inline intptr_t ObjectPtr::GetClassIdOfHeapObject() const {
   return untag()->GetClassId();
+}
+inline intptr_t ObjectPtr::GetClassId() const {
+  return IsHeapObject() ? GetClassIdOfHeapObject() : kSmiCid;
 }
 
 #define POINTER_FIELD(type, name)                                              \

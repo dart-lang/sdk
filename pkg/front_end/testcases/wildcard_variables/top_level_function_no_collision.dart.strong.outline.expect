@@ -1,9 +1,9 @@
 library;
 import self as self;
 
-static method fn(wildcard dynamic _, wildcard dynamic _) → void
+static method fn(wildcard dynamic _#wc0#formal, wildcard dynamic _#wc1#formal) → void
   ;
-static method fn2(wildcard dynamic _, wildcard dynamic _, wildcard dynamic _) → void
+static method fn2(wildcard dynamic _#wc2#formal, wildcard dynamic _#wc3#formal, wildcard dynamic _#wc4#formal) → void
   ;
 static method test() → dynamic
   ;

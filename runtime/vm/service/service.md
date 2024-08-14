@@ -2085,6 +2085,9 @@ class @Code extends @Object {
 
   // What kind of code object is this?
   CodeKind kind;
+
+  // This code object's corresponding function.
+  @Function function [optional];
 }
 ```
 
@@ -2097,6 +2100,9 @@ class Code extends Object {
 
   // What kind of code object is this?
   CodeKind kind;
+
+  // This code object's corresponding function.
+  @Function function [optional];
 }
 ```
 
@@ -3188,7 +3194,7 @@ class Instance extends Object {
   //   RegExp
   @Instance pattern [optional];
 
-// The function associated with a Closure instance.
+  // The function associated with a Closure instance.
   //
   // Provided for instance kinds:
   //   Closure

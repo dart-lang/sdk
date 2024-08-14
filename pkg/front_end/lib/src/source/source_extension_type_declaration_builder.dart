@@ -29,7 +29,6 @@ import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart';
-import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
@@ -37,6 +36,7 @@ import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
@@ -56,12 +56,13 @@ class SourceExtensionTypeDeclarationBuilder
 
   MergedClassMemberScope? _mergedScope;
 
-  final LookupScope _scope;
+  final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
-  final NameSpace _nameSpace;
+  late final LookupScope _scope;
 
-  @override
-  final ConstructorScope constructorScope;
+  late final DeclarationNameSpace _nameSpace;
+
+  late final ConstructorScope _constructorScope;
 
   @override
   final List<NominalVariableBuilder>? typeParameters;
@@ -83,8 +84,7 @@ class SourceExtensionTypeDeclarationBuilder
       this.typeParameters,
       this.interfaceBuilders,
       this.typeParameterScope,
-      NameSpace nameSpace,
-      this.constructorScope,
+      this._nameSpaceBuilder,
       SourceLibraryBuilder parent,
       this.constructorReferences,
       int startOffset,
@@ -92,24 +92,33 @@ class SourceExtensionTypeDeclarationBuilder
       int endOffset,
       this.indexedContainer,
       this.representationFieldBuilder)
-      : _nameSpace = nameSpace,
-        _scope = new NameSpaceLookupScope(
-            nameSpace, ScopeKind.declaration, "extension type $name",
-            parent: typeParameterScope),
-        _extensionTypeDeclaration = new ExtensionTypeDeclaration(
+      : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: parent.fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset);
+        super(metadata, modifiers, name, parent, nameOffset) {}
 
   @override
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  ConstructorScope get constructorScope => _constructorScope;
+
+  @override
+  void buildScopes(LibraryBuilder coreLibrary) {
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(this);
+    _scope = new NameSpaceLookupScope(
+        _nameSpace, ScopeKind.declaration, "extension type $name",
+        parent: typeParameterScope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
+  }
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -397,7 +406,7 @@ class SourceExtensionTypeDeclarationBuilder
             }
           }
         } else if (declaration != null && declaration.typeVariablesCount > 0) {
-          List<TypeVariableBuilderBase>? typeParameters;
+          List<TypeVariableBuilder>? typeParameters;
           switch (declaration) {
             case ClassBuilder():
               typeParameters = declaration.typeVariables;
@@ -411,11 +420,11 @@ class SourceExtensionTypeDeclarationBuilder
             case InvalidTypeDeclarationBuilder():
             case OmittedTypeDeclarationBuilder():
             case ExtensionBuilder():
-            case TypeVariableBuilderBase():
+            case TypeVariableBuilder():
           }
           if (typeParameters != null) {
             for (int i = 0; i < typeParameters.length; i++) {
-              TypeVariableBuilderBase typeParameter = typeParameters[i];
+              TypeVariableBuilder typeParameter = typeParameters[i];
               if (_checkRepresentationDependency(
                   typeParameter.defaultType!,
                   rootExtensionTypeDeclaration,
@@ -579,7 +588,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator =
-        constructorScope.filteredIterator<SourceFactoryBuilder>(
+        nameSpace.filteredConstructorIterator<SourceFactoryBuilder>(
             parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
@@ -587,18 +596,16 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    super.buildOutlineExpressions(
-        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
 
-    Iterator<SourceMemberBuilder> iterator = constructorScope.filteredIterator(
-        parent: this, includeDuplicates: false, includeAugmentations: true);
+    Iterator<SourceMemberBuilder> iterator =
+        nameSpace.filteredConstructorIterator(
+            parent: this, includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
-      iterator.current.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+      iterator.current
+          .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
   }
 
@@ -738,7 +745,7 @@ class SourceExtensionTypeDeclarationBuilder
       name = new Name("", name.library);
     }
 
-    Builder? builder = constructorScope.lookupLocalMember(name.text);
+    Builder? builder = nameSpace.lookupConstructor(name.text);
     if (builder is SourceExtensionTypeConstructorBuilder) {
       return builder;
     }

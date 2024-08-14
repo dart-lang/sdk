@@ -218,7 +218,6 @@ class TypeInferrerImpl implements TypeInferrer {
     List<NamedExpression> namedArguments = <NamedExpression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.namedParameters) {
-      // Coverage-ignore-block(suite): Not run.
       flowAnalysis.declare(parameter, parameter.type, initialized: true);
       namedArguments.add(new NamedExpression(parameter.name!,
           new VariableGetImpl(parameter, forNullGuardedAccess: false)));

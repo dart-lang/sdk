@@ -13,18 +13,17 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
-  late List<String> registeredLintNames;
+  late Set<String> registeredLintNames;
 
   setUp(() {
     if (Registry.ruleRegistry.isEmpty) {
       registerLintRules();
     }
 
-    registeredLintNames = [
+    registeredLintNames = {
       for (var rule in Registry.ruleRegistry)
-        ...rule.lintCodes
-            .map((e) => e.uniqueName.replaceFirst('LintCode.', '')),
-    ];
+        ...rule.lintCodes.map((e) => e.name.replaceFirst('LintCode.', '')),
+    };
   });
 
   /// Ensure server lint name representations correspond w/ actual lint rules.

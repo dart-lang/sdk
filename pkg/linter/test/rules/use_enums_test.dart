@@ -144,7 +144,7 @@ class _E {
       error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 76, 2),
       // We are reversing the deprecation: This code will remain a `HintCode`.
       // ignore: deprecated_member_use
-      error(HintCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
+      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 83, 1),
     ]);
   }
 

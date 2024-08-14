@@ -5,9 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
@@ -48,10 +50,6 @@ void mutableCase() {
 ''';
 
 class PreferFinalLocals extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_final_locals', 'Local variables should be final.',
-      correctionMessage: 'Try making the variable final.');
-
   PreferFinalLocals()
       : super(
             name: 'prefer_final_locals',
@@ -63,7 +61,7 @@ class PreferFinalLocals extends LintRule {
   List<String> get incompatibleRules => const ['unnecessary_final'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_final_locals;
 
   @override
   void registerNodeProcessors(
@@ -151,6 +149,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else {
       if (!node.hasPotentiallyMutatedDeclaredVariableInScope(function)) {
+        if (node.pattern.containsJustWildcards) return;
         rule.reportLintForToken(node.keyword);
       }
     }
@@ -169,7 +168,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       var declaredElement = variable.declaredElement;
       if (declaredElement != null &&
-          function.isPotentiallyMutatedInScope(declaredElement)) {
+          (declaredElement.isWildcardVariable ||
+              function.isPotentiallyMutatedInScope(declaredElement))) {
         return;
       }
     }
@@ -178,6 +178,25 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (node.type != null) {
       rule.reportLint(node.type);
     }
+  }
+}
+
+extension on DartPattern {
+  bool get containsJustWildcards {
+    var pattern = this;
+    return switch (pattern) {
+      ListPattern() => pattern.elements
+          .every((e) => e is DartPattern && e.containsJustWildcards),
+      MapPattern() => pattern.elements
+          .every((e) => e is MapPatternEntry && e.value is WildcardPattern),
+      ObjectPattern() =>
+        pattern.fields.every((e) => e.pattern.containsJustWildcards),
+      ParenthesizedPattern() => pattern.pattern.containsJustWildcards,
+      RecordPattern() =>
+        pattern.fields.every((e) => e.pattern.containsJustWildcards),
+      WildcardPattern() => true,
+      _ => false,
+    };
   }
 }
 

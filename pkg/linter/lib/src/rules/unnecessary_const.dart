@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `const` keyword.';
 
@@ -34,10 +35,6 @@ m(){
 ''';
 
 class UnnecessaryConst extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_const', "Unnecessary 'const' keyword.",
-      correctionMessage: 'Try removing the keyword.', hasPublishedDocs: true);
-
   UnnecessaryConst()
       : super(
             name: 'unnecessary_const',
@@ -49,7 +46,7 @@ class UnnecessaryConst extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_const;
 
   @override
   void registerNodeProcessors(

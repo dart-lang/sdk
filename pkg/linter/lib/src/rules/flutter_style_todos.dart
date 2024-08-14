@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use Flutter TODO format: '
     '// TODO(username): message, https://URL-to-issue.';
@@ -33,10 +34,6 @@ that is given.
 ''';
 
 class FlutterStyleTodos extends LintRule {
-  static const LintCode code = LintCode(
-      'flutter_style_todos', "To-do comment doesn't follow the Flutter style.",
-      correctionMessage: 'Try following the Flutter style for to-do comments.');
-
   static final _todoRegExp = RegExp(r'//+\s*TODO\b', caseSensitive: false);
 
   static final RegExp _todoExpectedRegExp =
@@ -50,7 +47,7 @@ class FlutterStyleTodos extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.flutter_style_todos;
 
   @override
   void registerNodeProcessors(

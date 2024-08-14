@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Sort child properties last in widget instance creations.';
@@ -81,12 +82,6 @@ Exception: It's allowed to have parameter with a function expression after the
 ''';
 
 class SortChildPropertiesLast extends LintRule {
-  static const LintCode code = LintCode('sort_child_properties_last',
-      "The '{0}' argument should be last in widget constructor invocations.",
-      correctionMessage:
-          'Try moving the argument to the end of the argument list.',
-      hasPublishedDocs: true);
-
   SortChildPropertiesLast()
       : super(
             name: 'sort_child_properties_last',
@@ -95,7 +90,7 @@ class SortChildPropertiesLast extends LintRule {
             categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.sort_child_properties_last;
 
   @override
   void registerNodeProcessors(

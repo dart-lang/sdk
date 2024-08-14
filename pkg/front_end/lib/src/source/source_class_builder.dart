@@ -9,7 +9,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show equalsName;
-import 'package:kernel/reference_from_index.dart' show IndexedContainer;
+import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart'
@@ -44,7 +44,6 @@ import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
@@ -53,18 +52,18 @@ import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 Class initializeClass(
-    Class? cls,
     List<NominalVariableBuilder>? typeVariables,
     String name,
     SourceLibraryBuilder parent,
     int startCharOffset,
     int charOffset,
     int charEndOffset,
-    IndexedContainer? referencesFrom,
+    IndexedClass? indexedClass,
     {required bool isAugmentation}) {
-  cls ??= new Class(
+  Class cls = new Class(
       name: name,
       typeParameters:
           NominalVariableBuilder.typeParametersFromBuilders(typeVariables),
@@ -72,7 +71,7 @@ Class initializeClass(
       // from index even when available.
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
       // that we end up creating unneeded nodes.
-      reference: isAugmentation ? null : referencesFrom?.reference,
+      reference: isAugmentation ? null : indexedClass?.reference,
       fileUri: parent.fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -89,15 +88,19 @@ Class initializeClass(
 
 class SourceClassBuilder extends ClassBuilderImpl
     with ClassDeclarationMixin, SourceTypedDeclarationBuilderMixin
-    implements Comparable<SourceClassBuilder>, ClassDeclaration {
+    implements
+        Comparable<SourceClassBuilder>,
+        ClassDeclaration,
+        SourceDeclarationBuilder {
   final Class actualCls;
 
-  final LookupScope _scope;
+  final DeclarationNameSpaceBuilder nameSpaceBuilder;
 
-  final NameSpace _nameSpace;
+  late final LookupScope _scope;
 
-  @override
-  final ConstructorScope constructorScope;
+  late final DeclarationNameSpace _nameSpace;
+
+  late final ConstructorScope _constructorScope;
 
   @override
   List<NominalVariableBuilder>? typeVariables;
@@ -120,7 +123,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? mixedInTypeBuilder;
 
-  final IndexedContainer? indexedContainer;
+  final IndexedClass? indexedClass;
 
   @override
   final bool isMacro;
@@ -175,16 +178,14 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       this.typeParameterScope,
-      NameSpace nameSpace,
-      this.constructorScope,
+      this.nameSpaceBuilder,
       SourceLibraryBuilder parent,
       this.constructorReferences,
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
-      this.indexedContainer,
-      {Class? cls,
-      this.mixedInTypeBuilder,
+      this.indexedClass,
+      {this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
       this.isMacro = false,
       this.isSealed = false,
@@ -193,12 +194,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isFinal = false,
       bool isAugmentation = false,
       this.isMixinClass = false})
-      : _nameSpace = nameSpace,
-        _scope = new NameSpaceLookupScope(
-            nameSpace, ScopeKind.declaration, "class $name",
-            parent: typeParameterScope),
-        actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset, indexedContainer,
+      : actualCls = initializeClass(typeVariables, name, parent,
+            startCharOffset, nameOffset, charEndOffset, indexedClass,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
         super(metadata, modifiers, name, parent, nameOffset) {
@@ -209,7 +206,20 @@ class SourceClassBuilder extends ClassBuilderImpl
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  ConstructorScope get constructorScope => _constructorScope;
+
+  @override
+  void buildScopes(LibraryBuilder coreLibrary) {
+    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
+    _scope = new NameSpaceLookupScope(
+        _nameSpace, ScopeKind.declaration, "class $name",
+        parent: typeParameterScope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
+  }
 
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ?
@@ -272,7 +282,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     nameSpace.unfilteredIterator.forEach(buildBuilders);
-    constructorScope.unfilteredIterator.forEach(buildBuilders);
+    nameSpace.unfilteredConstructorIterator.forEach(buildBuilders);
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
@@ -375,14 +385,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         inConstFields: inConstFields);
   }
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     void build(Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+          classHierarchy, delayedDefaultValueCloners);
     }
 
     MetadataBuilder.buildAnnotations(
@@ -405,13 +413,12 @@ class SourceClassBuilder extends ClassBuilderImpl
                 inMetadata: true,
                 inConstFields: false),
             classHierarchy,
-            delayedActionPerformers,
             typeParameterScope);
       }
     }
 
-    constructorScope
-        .filteredIterator(
+    nameSpace
+        .filteredConstructorIterator(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .forEach(build);
     nameSpace
@@ -464,7 +471,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       name = new Name("", name.library);
     }
 
-    Builder? builder = constructorScope.lookupLocalMember(name.text);
+    Builder? builder = nameSpace.lookupConstructor(name.text);
     if (builder is SourceConstructorBuilder) {
       return builder;
     }
@@ -515,6 +522,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     if (arguments != null && arguments.length != typeVariablesCount) {
+      // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "SourceClassBuilder.buildAliasedTypeArguments: "
           "the numbers of type parameters and type arguments don't match.",
@@ -975,8 +983,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Iterator<SourceFactoryBuilder> iterator = constructorScope.filteredIterator(
-        parent: this, includeDuplicates: true, includeAugmentations: true);
+    Iterator<SourceFactoryBuilder> iterator =
+        nameSpace.filteredConstructorIterator(
+            parent: this, includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -1151,8 +1160,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   void addSyntheticConstructor(
       SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
-    constructorBuilder.next = constructorScope.lookupLocalMember(name);
-    constructorScope.addLocalMember(name, constructorBuilder);
+    constructorBuilder.next = nameSpace.lookupConstructor(name);
+    nameSpace.addConstructor(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);
@@ -1191,8 +1200,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         .filteredIterator(
             parent: this, includeDuplicates: true, includeAugmentations: true)
         .forEach(buildMembers);
-    constructorScope
-        .filteredIterator(
+    nameSpace
+        .filteredConstructorIterator(
             parent: this, includeDuplicates: true, includeAugmentations: true)
         .forEach(buildMembers);
     return count;
@@ -1436,9 +1445,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                     interfaceMemberOrigin.fileOffset, noLength)
           ]);
     } else if (declaredFunction?.typeParameters != null) {
-      Map<TypeParameter, DartType> substitutionMap =
-          <TypeParameter, DartType>{};
-
       // Since the bound of `interfaceFunction!.parameter[i]` may have changed
       // during substitution, it can affect the nullabilities of the types in
       // the substitution map. The first parameter to
@@ -1457,12 +1463,25 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
         updateBoundNullabilities(interfaceTypeParameters);
       }
-      for (int i = 0; i < declaredFunction!.typeParameters.length; ++i) {
-        substitutionMap[interfaceFunction.typeParameters[i]] =
-            new TypeParameterType.forAlphaRenaming(
-                interfaceTypeParameters[i], declaredFunction.typeParameters[i]);
+
+      Substitution substitution;
+      if (declaredFunction!.typeParameters.isEmpty) {
+        substitution = Substitution.empty;
+      } else if (declaredFunction.typeParameters.length == 1) {
+        substitution = Substitution.fromSingleton(
+            interfaceFunction.typeParameters[0],
+            new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[0],
+                declaredFunction.typeParameters[0]));
+      } else {
+        Map<TypeParameter, DartType> substitutionMap =
+            <TypeParameter, DartType>{};
+        for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
+          substitutionMap[interfaceFunction.typeParameters[i]] =
+              new TypeParameterType.forAlphaRenaming(interfaceTypeParameters[i],
+                  declaredFunction.typeParameters[i]);
+        }
+        substitution = Substitution.fromMap(substitutionMap);
       }
-      Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         TypeParameter declaredParameter = declaredFunction.typeParameters[i];
         TypeParameter interfaceParameter = interfaceFunction.typeParameters[i];

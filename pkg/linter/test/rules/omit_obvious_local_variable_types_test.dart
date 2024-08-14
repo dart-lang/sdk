@@ -17,6 +17,18 @@ class OmitObviousLocalVariableTypesTest extends LintRuleTest {
   @override
   String get lintRule => 'omit_obvious_local_variable_types';
 
+  test_as() async {
+    await assertDiagnostics(r'''
+f() {
+  int i = n as int;
+}
+
+num n = 1;
+''', [
+      lint(8, 3),
+    ]);
+  }
+
   test_cascade() async {
     await assertDiagnostics(r'''
 f() {
@@ -34,22 +46,20 @@ class A {
   test_forEach_inferredList() async {
     await assertDiagnostics(r'''
 f() {
-  for (int i in [1, 2, 3]) { }
+  for (String s in ['a', 'b', 'c']) { }
 }
 ''', [
-      lint(13, 3),
+      lint(13, 6),
     ]);
   }
 
   test_forEach_listWithNonObviousElement() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 f() {
   var j = "Hello".length;
   for (int i in [j, 1, j + 1]) { }
 }
-''', [
-      lint(39, 3),
-    ]);
+''');
   }
 
   test_forEach_noDeclaredType() async {
@@ -63,9 +73,9 @@ f() {
   test_forEach_nonObviousIterable() async {
     await assertNoDiagnostics(r'''
 f() {
-  var list = [1, 2, 3];
   for (int i in list) { }
 }
+var list = [1, 2, 3];
 ''');
   }
 
@@ -146,6 +156,35 @@ class A {}
     ]);
   }
 
+  test_list() async {
+    await assertDiagnostics(r'''
+f() {
+  List<String> a = ['a', 'b', ('c' as dynamic) as String];
+}
+''', [
+      lint(8, 12),
+    ]);
+  }
+
+  test_list_ok1() async {
+    await assertNoDiagnostics(r'''
+f() {
+  List<Object> a = [1, true, 2];
+}
+
+''');
+  }
+
+  test_list_ok2() async {
+    await assertNoDiagnostics(r'''
+f() {
+  List<Object> a = [1, foo(2), 3];
+}
+
+List<X> foo<X>(X x) => [x];
+''');
+  }
+
   test_literal_bool() async {
     await assertDiagnostics(r'''
 f() {
@@ -176,13 +215,11 @@ f() {
   }
 
   test_literal_int() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 f() {
   int i = 1;
 }
-''', [
-      lint(8, 3),
-    ]);
+''');
   }
 
   // `Null` is not obvious, the inferred type is `dynamic`.
@@ -229,6 +266,52 @@ f() {
 f() {
   var a = 'a', b = 'b';
 }
+''');
+  }
+
+  test_map() async {
+    await assertDiagnostics(r'''
+f() {
+  Map<double, String> a = {1.5: 'a'};
+}
+''', [
+      lint(8, 19),
+    ]);
+  }
+
+  test_map_ok1() async {
+    await assertNoDiagnostics(r'''
+f() {
+  Map<Object, String> a = {1: 'a', true: 'b'};
+}
+''');
+  }
+
+  test_map_ok2() async {
+    await assertNoDiagnostics(r'''
+f() {
+  Map<int, Object> a = {1: 'a', 2: #b};
+}
+''');
+  }
+
+  test_map_ok3() async {
+    await assertNoDiagnostics(r'''
+f() {
+  Map<int, String> a = {1: 'a', i: 'b'};
+}
+
+var i = 2;
+''');
+  }
+
+  test_map_ok4() async {
+    await assertNoDiagnostics(r'''
+f() {
+  Map<int, String> a = {1: 'a', 2: b};
+}
+
+var b = 'b';
 ''');
   }
 

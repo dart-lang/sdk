@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary parentheses can be removed.';
 
@@ -44,10 +45,6 @@ include:
 ''';
 
 class UnnecessaryParenthesis extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_parenthesis', 'Unnecessary use of parentheses.',
-      correctionMessage: 'Try removing the parentheses.');
-
   UnnecessaryParenthesis()
       : super(
             name: 'unnecessary_parenthesis',
@@ -56,7 +53,7 @@ class UnnecessaryParenthesis extends LintRule {
             categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_parenthesis;
 
   @override
   void registerNodeProcessors(

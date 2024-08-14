@@ -30,7 +30,7 @@ void foo() {
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
-  element: <thisLibrary>::<definingUnit>::@typeAlias::F
+  element: <testLibraryFragment>::@typeAlias::F
   type: InvalidType
 ''');
   }
@@ -64,7 +64,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <thisLibrary>::<definingUnit>::@getter::A
+  element: <testLibraryFragment>::@getter::A
   type: InvalidType
 ''');
   }
@@ -88,10 +88,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<definingUnit>::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  element: <thisLibrary>::<definingUnit>::@getter::A
+  element: <testLibraryFragment>::@getter::A
   type: InvalidType
 ''');
   }

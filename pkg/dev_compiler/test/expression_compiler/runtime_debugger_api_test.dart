@@ -14,16 +14,25 @@ void main(List<String> args) async {
 }
 
 Future<void> runAllTests(bool soundNullSafety, List<String> args) async {
-  var driver = await ExpressionEvaluationTestDriver.init();
+  final driver = await ExpressionEvaluationTestDriver.init();
   tearDownAll(() async {
     await driver.finish();
   });
   final mode = soundNullSafety ? 'Sound' : 'Weak';
   group('($mode null safety)', () {
     group('(AMD module system)', () {
-      var setup = SetupCompilerOptions(
+      final setup = SetupCompilerOptions(
         soundNullSafety: soundNullSafety,
         moduleFormat: ModuleFormat.amd,
+        args: args,
+        enableExperiments: [],
+      );
+      runSharedTests(setup, driver);
+    });
+    group('(DDC module system)', () {
+      final setup = SetupCompilerOptions(
+        soundNullSafety: soundNullSafety,
+        moduleFormat: ModuleFormat.ddc,
         args: args,
         enableExperiments: [],
       );
@@ -111,6 +120,7 @@ main() {
   var set = <String>{ 'a', 'b', 'c' };
   var list = <int>[1, 2, 3];
   var map = <String, int>{'a': 1, 'b': 2};
+  var stream = Stream.fromIterable([1, 2, 3]);
   var record = (0, 2, name: 'cat');
   var object = Object();
 
@@ -151,7 +161,8 @@ void runSharedTests(
     test('getClassMetadata (object)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression: 'dart.getClassMetadata("dart:core", "Object")',
+          expression:
+              'dart.getClassMetadata("dart:core", "Object", {"objectInstance": object})',
           expectedResult: {
             'className': 'Object',
             'fields': {},
@@ -172,7 +183,7 @@ void runSharedTests(
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass")',
+              'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass", {"objectInstance": base})',
           expectedResult: {
             'className': 'BaseClass',
             'superClassName': 'Object',
@@ -234,7 +245,7 @@ void runSharedTests(
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
+              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass", {"objectInstance": derived})',
           expectedResult: {
             'className': 'DerivedClass',
             'superClassName': 'BaseClass',
@@ -302,6 +313,7 @@ void runSharedTests(
             'className': 'Object',
             'libraryId': 'dart:core',
             'runtimeKind': 'object',
+            'length': 0,
           });
     });
 
@@ -313,6 +325,7 @@ void runSharedTests(
             'className': 'BaseClass',
             'libraryId': 'package:eval_test/test.dart',
             'runtimeKind': 'object',
+            'length': 9,
           });
     });
 
@@ -348,6 +361,18 @@ void runSharedTests(
             'className': 'IdentityMap<String, int>',
             'libraryId': 'dart:_js_helper',
             'runtimeKind': 'map',
+            'length': 2,
+          });
+    });
+
+    test('getObjectMetadata (Stream)', () async {
+      await driver.checkRuntimeInFrame(
+          breakpointId: 'BP',
+          expression: 'dart.getObjectMetadata(stream)',
+          expectedResult: {
+            'className': '_MultiStream<int>',
+            'libraryId': 'dart:async',
+            'runtimeKind': 'object',
             'length': 2,
           });
     });
@@ -594,6 +619,7 @@ void runSharedTests(
             'className': typeName,
             'libraryId': 'dart:_rti',
             'runtimeKind': 'object',
+            'length': 13,
           });
     });
 

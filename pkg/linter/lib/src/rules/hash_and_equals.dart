@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
@@ -53,11 +54,6 @@ class Better {
 ''';
 
 class HashAndEquals extends LintRule {
-  static const LintCode code = LintCode(
-      'hash_and_equals', "Missing a corresponding override of '{0}'.",
-      correctionMessage: "Try overriding '{0}' or removing '{1}'.",
-      hasPublishedDocs: true);
-
   HashAndEquals()
       : super(
             name: 'hash_and_equals',
@@ -66,7 +62,7 @@ class HashAndEquals extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.hash_and_equals;
 
   @override
   void registerNodeProcessors(

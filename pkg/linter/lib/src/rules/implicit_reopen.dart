@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't implicitly reopen classes.";
 
@@ -50,11 +51,6 @@ class C extends I {}
 ''';
 
 class ImplicitReopen extends LintRule {
-  static const LintCode code = LintCode('implicit_reopen',
-      "The {0} '{1}' reopens '{2}' because it is not marked '{3}'",
-      correctionMessage:
-          "Try marking '{1}' '{3}' or annotating it with '@reopen'");
-
   ImplicitReopen()
       : super(
             name: 'implicit_reopen',
@@ -64,7 +60,7 @@ class ImplicitReopen extends LintRule {
             categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.implicit_reopen;
 
   @override
   void registerNodeProcessors(

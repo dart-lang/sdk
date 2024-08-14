@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = 'Invocation of various collection methods with arguments of '
@@ -69,10 +70,6 @@ void someFunction() {
 ''';
 
 class CollectionMethodsUnrelatedType extends LintRule {
-  static const LintCode code = LintCode('collection_methods_unrelated_type',
-      "The argument type '{0}' isn't related to '{1}'.",
-      hasPublishedDocs: true);
-
   CollectionMethodsUnrelatedType()
       : super(
             name: 'collection_methods_unrelated_type',
@@ -81,7 +78,7 @@ class CollectionMethodsUnrelatedType extends LintRule {
             categories: {LintRuleCategory.unintentional});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.collection_methods_unrelated_type;
 
   @override
   void registerNodeProcessors(

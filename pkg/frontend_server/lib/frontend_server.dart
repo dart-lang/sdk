@@ -191,6 +191,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Respect the nullability of types at runtime.',
       defaultsTo: true,
       hide: true)
+  ..addOption('dynamic-interface',
+      help: 'Path to dynamic module interface yaml file.')
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, e.g. set-literals.',
       hide: true)
@@ -620,6 +622,11 @@ class FrontendCompiler implements CompilerInterface {
       ];
     }
 
+    final String? dynamicInterfaceFilePath = options['dynamic-interface'];
+    final Uri? dynamicInterfaceUri = dynamicInterfaceFilePath == null
+        ? null
+        : resolveInputUri(dynamicInterfaceFilePath);
+
     _processedOptions = new ProcessedOptions(options: compilerOptions);
 
     KernelCompilationResults? results;
@@ -654,7 +661,8 @@ class FrontendCompiler implements CompilerInterface {
         // TODO(aam): Remove linkedDependencies once platform is directly
         // embedded into VM snapshot and http://dartbug.com/30111 is fixed.
         compilerOptions.additionalDills = <Uri>[
-          sdkRoot.resolve(platformKernelDill)
+          sdkRoot.resolve(platformKernelDill),
+          ...compilerOptions.additionalDills
         ];
       }
       results = await _runWithPrintRedirection(() => compileToKernel(
@@ -667,6 +675,7 @@ class FrontendCompiler implements CompilerInterface {
               deleteToStringPackageUris: options['delete-tostring-package-uri'],
               keepClassNamesImplementing:
                   options['keep-class-names-implementing'],
+              dynamicInterface: dynamicInterfaceUri,
               aot: options['aot'],
               targetOS: options['target-os'],
               useGlobalTypeFlowAnalysis: options['tfa'],

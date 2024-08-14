@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/rules/diagnostic_describe_all_properties.dart';
+import 'package:linter/src/linter_lint_codes.dart';
 
 class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   AddDiagnosticPropertyReference({required super.context});
@@ -347,7 +347,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     for (var error in unitResult.errors) {
       var errorCode = error.errorCode;
       if (errorCode.type == ErrorType.LINT &&
-          errorCode == DiagnosticDescribeAllProperties.code &&
+          errorCode == LinterLintCode.diagnostic_describe_all_properties &&
           error.offset > startOffset &&
           error.offset < endOffset) {
         propertyErrors.add(error);

@@ -185,8 +185,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     // Validate 'this' is a typed data view.
     const uword view_header = ReadHeaderRelaxed(view);
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
-    ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()) ||
-           IsUnmodifiableTypedDataViewClassId(view->GetClassIdMayBeSmi()));
+    ASSERT(IsTypedDataViewClassId(view->GetClassId()) ||
+           IsUnmodifiableTypedDataViewClassId(view->GetClassId()));
 
     // Validate that the backing store is not a forwarding word. There is a data
     // race reader the backing store's header unless there is only one worker.
@@ -200,7 +200,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
         // views. This can cause the RecomputeDataFieldForInternalTypedData to
         // run inappropriately, but when the object copy continues it will fix
         // the data_ pointer.
-        ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
+        ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassIdOfHeapObject()),
+                     is_external);
       }
     }
 #endif
@@ -214,7 +215,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     // Now we update the inner pointer.
 #if defined(DEBUG)
     if (!parallel) {
-      ASSERT(IsTypedDataClassId(td->GetClassId()));
+      ASSERT(IsTypedDataClassId(td->GetClassIdOfHeapObject()));
     }
 #endif
     view->untag()->RecomputeDataFieldForInternalTypedData();
@@ -850,9 +851,9 @@ Scavenger::~Scavenger() {
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
                                    GCReason reason) const {
+  intptr_t num_mutators = heap_->isolate_group()->MutatorCount();
   bool grow = false;
-  if (2 * heap_->isolate_group()->MutatorCount() >
-      (old_size_in_words / kPageSizeInWords)) {
+  if (2 * num_mutators > (old_size_in_words / kPageSizeInWords)) {
     // Not enough TLABs to give two to each mutator.
     grow = true;
   }
@@ -873,11 +874,18 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
     }
   }
 
-  if (grow) {
-    return Utils::Minimum(max_semi_capacity_in_words_,
-                          old_size_in_words * FLAG_new_gen_growth_factor);
-  }
-  return old_size_in_words;
+  // Let new-space scale up with the number of active mutators.
+  intptr_t limit = max_semi_capacity_in_words_ *
+                   Utils::Minimum(num_mutators, static_cast<intptr_t>(8));
+  // But only when old-space is big enough.
+  limit = Utils::Minimum(limit, heap_->old_space()->UsedInWords() / 8);
+  // Preserve old behavior when heap size is small.
+  limit = Utils::Maximum(limit, max_semi_capacity_in_words_);
+  // Align to TLAB size.
+  limit = Utils::RoundDown(limit, kPageSizeInWords);
+
+  intptr_t growth_factor = grow ? FLAG_new_gen_growth_factor : 1;
+  return Utils::Minimum(old_size_in_words * growth_factor, limit);
 }
 
 class CollectStoreBufferScavengeVisitor : public ObjectPointerVisitor {
@@ -894,7 +902,7 @@ class CollectStoreBufferScavengeVisitor : public ObjectPointerVisitor {
       RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
 
       RELEASE_ASSERT_WITH_MSG(!obj->untag()->IsCardRemembered(), msg_);
-      if (obj.GetClassId() == kArrayCid) {
+      if (obj.GetClassIdOfHeapObject() == kArrayCid) {
         const uword length =
             Smi::Value(static_cast<UntaggedArray*>(obj.untag())->length());
         RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),
@@ -1414,7 +1422,7 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessObject(ObjectPtr obj) {
   }
 #endif
 
-  intptr_t cid = obj->GetClassId();
+  intptr_t cid = obj->GetClassIdOfHeapObject();
   if (UNLIKELY(cid == kWeakPropertyCid)) {
     WeakPropertyPtr weak_property = static_cast<WeakPropertyPtr>(obj);
     if (!IsScavengeSurvivor(weak_property->untag()->key())) {
@@ -1712,7 +1720,7 @@ void Scavenger::PruneWeak(GCLinkedList<Type, PtrType>* list) {
   while (weak != Object::null()) {
     PtrType next;
     if (weak->IsOldObject()) {
-      ASSERT(weak->GetClassId() == Type::kClassId);
+      ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
       next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
       weak->untag()->next_seen_by_gc_ = Type::null();
       list->Enqueue(weak);
@@ -1720,13 +1728,13 @@ void Scavenger::PruneWeak(GCLinkedList<Type, PtrType>* list) {
       uword header = ReadHeaderRelaxed(weak);
       if (IsForwarding(header)) {
         weak = static_cast<PtrType>(ForwardedObj(header));
-        ASSERT(weak->GetClassId() == Type::kClassId);
+        ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
         next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
         weak->untag()->next_seen_by_gc_ = Type::null();
         list->Enqueue(weak);
       } else {
         // Collected in this scavenge.
-        ASSERT(weak->GetClassId() == Type::kClassId);
+        ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
         next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
       }
     }
@@ -1979,6 +1987,39 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
          failed_to_promote_);
 }
 
+static constexpr intptr_t kMinAutoScavengeWorkers = 2;
+static constexpr intptr_t kMaxAutoScavengeWorkers = 4;
+
+intptr_t Scavenger::NumScavengeWorkers() {
+  intptr_t num_tasks = FLAG_scavenger_tasks;
+  if (num_tasks == -1) {
+    // --scavenger_tasks=-1 => dynamically choose workers
+    num_tasks = heap_->isolate_group()->MutatorCount();
+    if (num_tasks < kMinAutoScavengeWorkers) {
+      num_tasks = kMinAutoScavengeWorkers;
+    }
+    if (num_tasks > kMaxAutoScavengeWorkers) {
+      num_tasks = kMaxAutoScavengeWorkers;
+    }
+  } else if (num_tasks == 0) {
+    // --scavenger_tasks=0 => serial scavenge
+    num_tasks = 1;
+  }
+  ASSERT(num_tasks > 0);
+  ASSERT(num_tasks <= NumDataFreelists());
+  return num_tasks;
+}
+
+intptr_t Scavenger::NumDataFreelists() {
+  if (FLAG_scavenger_tasks == -1) {
+    return kMaxAutoScavengeWorkers;
+  } else if (FLAG_scavenger_tasks == 0) {
+    return 1;
+  } else {
+    return FLAG_scavenger_tasks;
+  }
+}
+
 intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
   FreeList* freelist = heap_->old_space()->DataFreeList(0);
   SerialScavengerVisitor visitor(heap_->isolate_group(), this, from, freelist,
@@ -1993,8 +2034,7 @@ intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
 
 intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   intptr_t bytes_promoted = 0;
-  const intptr_t num_tasks = FLAG_scavenger_tasks;
-  ASSERT(num_tasks > 0);
+  const intptr_t num_tasks = NumScavengeWorkers();
 
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
   RelaxedAtomic<uintptr_t> num_busy = 0;

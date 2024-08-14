@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer an 8-digit hexadecimal integer (for example, 0xFFFFFFFF) to '
@@ -31,14 +32,6 @@ Color(0x00000001);
 ''';
 
 class UseFullHexValuesForFlutterColors extends LintRule {
-  static const LintCode code = LintCode(
-      'use_full_hex_values_for_flutter_colors',
-      "Instances of 'Color' should be created using an 8-digit hexadecimal "
-          "integer (such as '0xFFFFFFFF').",
-      correctionMessage:
-          "Try using an 8-digit hexadecimal integer to create the 'Color'.",
-      hasPublishedDocs: true);
-
   UseFullHexValuesForFlutterColors()
       : super(
             name: 'use_full_hex_values_for_flutter_colors',
@@ -47,7 +40,8 @@ class UseFullHexValuesForFlutterColors extends LintRule {
             categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.use_full_hex_values_for_flutter_colors;
 
   @override
   void registerNodeProcessors(

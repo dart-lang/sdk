@@ -6655,6 +6655,19 @@ Message _withArgumentsFfiStructGeneric(String string, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiVariableLengthArrayNotLast =
+    messageFfiVariableLengthArrayNotLast;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiVariableLengthArrayNotLast = const MessageCode(
+  "FfiVariableLengthArrayNotLast",
+  problemMessage:
+      r"""Variable length 'Array's must only occur as the last field of Structs.""",
+  correctionMessage:
+      r"""Try adjusting the arguments in the 'Array' annotation.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateFieldAlreadyInitializedAtDeclaration =
     const Template<Message Function(String name)>(

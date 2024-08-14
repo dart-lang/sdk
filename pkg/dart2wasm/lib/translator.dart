@@ -31,7 +31,6 @@ import 'types.dart';
 /// Options controlling the translation.
 class TranslatorOptions {
   bool enableAsserts = false;
-  bool exportAll = false;
   bool importSharedMemory = false;
   bool inlining = true;
   bool jsCompatibility = false;
@@ -101,6 +100,7 @@ class Translator with KernelNodes {
   late final Globals globals;
   late final Constants constants;
   late final Types types;
+  late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
   late final DynamicForwarders dynamicForwarders;
 
@@ -133,7 +133,6 @@ class Translator with KernelNodes {
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
-  final List<_FunctionGenerator> _pendingFunctions = [];
   late final w.ModuleBuilder m;
   late final w.FunctionBuilder initFunction;
   late final w.ValueType voidMarker;
@@ -288,6 +287,7 @@ class Translator with KernelNodes {
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
     dispatchTable = DispatchTable(this);
+    compilationQueue = CompilationQueue();
     functions = FunctionCollector(this);
     types = Types(this);
     dynamicForwarders = DynamicForwarders(this);
@@ -314,90 +314,9 @@ class Translator with KernelNodes {
     dispatchTable.build();
 
     functions.initialize();
-    while (!functions.isWorkListEmpty()) {
-      Reference reference = functions.popWorkList();
-      Member member = reference.asMember;
-      var function = functions.getExistingFunction(reference) as w.BaseFunction;
-
-      String canonicalName = "$member";
-      if (reference.isSetter) {
-        canonicalName = "$canonicalName=";
-      } else if (reference.isGetter || reference.isTearOffReference) {
-        int dot = canonicalName.indexOf('.');
-        canonicalName =
-            '${canonicalName.substring(0, dot + 1)}=${canonicalName.substring(dot + 1)}';
-      }
-      canonicalName = member.enclosingLibrary == libraries.first
-          ? canonicalName
-          : "${member.enclosingLibrary.importUri} $canonicalName";
-
-      String? exportName = functions.getExport(reference);
-
-      if (options.printKernel || options.printWasm) {
-        String header = "#${function.name}: $canonicalName";
-        if (exportName != null) {
-          header = "$header (exported as $exportName)";
-        }
-        if (reference.isTypeCheckerReference) {
-          header = "$header (type checker)";
-        }
-        print(header);
-        print(member.function
-            ?.computeFunctionType(Nullability.nonNullable)
-            .toStringInternal());
-      }
-      if (options.printKernel && !reference.isTypeCheckerReference) {
-        if (member is Constructor) {
-          Class cls = member.enclosingClass;
-          for (Field field in cls.fields) {
-            if (field.isInstanceMember && field.initializer != null) {
-              print("${field.name}: ${field.initializer}");
-            }
-          }
-          for (Initializer initializer in member.initializers) {
-            print(initializer);
-          }
-        }
-        Statement? body = member.function?.body;
-        if (body != null) {
-          print(body);
-        }
-        if (!options.printWasm) print("");
-      }
-
-      if (options.exportAll && exportName == null) {
-        m.exports.export(canonicalName, function);
-      }
-
-      final CodeGenerator codeGen = CodeGenerator.forFunction(
-          this, member.function, function as w.FunctionBuilder, reference);
-      codeGen.generate();
-
-      if (options.printWasm) {
-        print(codeGen.function.type);
-        print(codeGen.function.body.trace);
-      }
-
-      // The constructor allocator, initializer, and body functions all
-      // share the same Closures, which will contain all the lambdas in the
-      // constructor initializer and body. But, we only want to generate
-      // the lambda functions once, so we only generate lambdas when the
-      // constructor initializer methods are generated.
-      if (member is! Constructor || reference.isInitializerReference) {
-        for (Lambda lambda in codeGen.closures.lambdas.values) {
-          w.BaseFunction lambdaFunction = CodeGenerator.forFunction(
-                  this, lambda.functionNode, lambda.function, reference)
-              .generateLambda(lambda, codeGen.closures);
-          _printFunction(lambdaFunction, "$canonicalName (closure)");
-        }
-      }
-
-      // Use an indexed loop to handle pending closure trampolines, since new
-      // entries might be added during iteration.
-      for (int i = 0; i < _pendingFunctions.length; i++) {
-        _pendingFunctions[i].generate(this);
-      }
-      _pendingFunctions.clear();
+    while (!compilationQueue.isEmpty) {
+      final task = compilationQueue.pop();
+      task.run(this, options.printKernel, options.printWasm);
     }
 
     constructorClosures.clear();
@@ -758,26 +677,20 @@ class Translator with KernelNodes {
     w.BaseFunction makeTrampoline(
         w.FunctionType signature, int posArgCount, List<String> argNames) {
       final trampoline = m.functions.define(signature, "$name trampoline");
-
-      // Defer generation of the trampoline body to avoid cyclic dependency
-      // when a tear-off constant is used as default value in the torn-off
-      // function.
-      _pendingFunctions.add(_ClosureTrampolineGenerator(trampoline, target,
-          typeCount, posArgCount, argNames, paramInfo, takesContextOrReceiver));
-
+      compilationQueue.add(CompilationTask(
+          trampoline,
+          _ClosureTrampolineGenerator(this, trampoline, target, typeCount,
+              posArgCount, argNames, paramInfo, takesContextOrReceiver)));
       return trampoline;
     }
 
     w.BaseFunction makeDynamicCallEntry() {
       final function = m.functions.define(
           dynamicCallVtableEntryFunctionType, "$name dynamic call entry");
-
-      // Defer generation of the trampoline body to avoid cyclic dependency
-      // when a tear-off constant is used as default value in the torn-off
-      // function.
-      _pendingFunctions.add(_ClosureDynamicEntryGenerator(
-          functionNode, target, paramInfo, name, function));
-
+      compilationQueue.add(CompilationTask(
+          function,
+          _ClosureDynamicEntryGenerator(
+              this, functionNode, target, paramInfo, name, function)));
       return function;
     }
 
@@ -826,9 +739,7 @@ class Translator with KernelNodes {
     return (from == voidMarker) ^ (to == voidMarker) || !from.isSubtypeOf(to);
   }
 
-  void convertType(
-      w.FunctionBuilder function, w.ValueType from, w.ValueType to) {
-    final b = function.body;
+  void convertType(w.InstructionsBuilder b, w.ValueType from, w.ValueType to) {
     if (from == voidMarker || to == voidMarker) {
       if (from != voidMarker) {
         b.drop();
@@ -856,7 +767,7 @@ class Translator with KernelNodes {
         // Boxing
         ClassInfo info = classInfo[boxedClasses[from]!]!;
         assert(info.struct.isSubtypeOf(to.heapType));
-        w.Local temp = function.addLocal(from);
+        w.Local temp = b.addLocal(from);
         b.local_set(temp);
         b.i32_const(info.classId);
         b.local_get(temp);
@@ -887,6 +798,11 @@ class Translator with KernelNodes {
   ParameterInfo paramInfoForDispatchTableCall(Reference target) {
     assert(target.asMember.isInstanceMember);
     return dispatchTable.selectorForTarget(target).paramInfo;
+  }
+
+  AstCallTarget directCallTarget(Reference target) {
+    final signature = signatureForDirectCall(target);
+    return AstCallTarget(signature, this, target);
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
@@ -1074,17 +990,23 @@ class Translator with KernelNodes {
     if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
       return false;
     }
-    if (membersContainingInnerFunctions.contains(member)) return false;
-    if (membersBeingGenerated.contains(member)) return false;
     if (target.isInitializerReference) return true;
     if (member is Field) return true;
-    if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
       return true;
     }
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
+  }
+
+  bool supportsInlining(Reference target) {
+    final Member member = target.asMember;
+    if (membersContainingInnerFunctions.contains(member)) return false;
+    if (membersBeingGenerated.contains(member)) return false;
+    if (member is Field) return true;
+    if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
+    return true;
   }
 
   T? getPragma<T>(Annotatable node, String name, [T? defaultValue]) {
@@ -1117,10 +1039,8 @@ class Translator with KernelNodes {
     return null;
   }
 
-  w.ValueType makeArray(w.FunctionBuilder function, w.ArrayType arrayType,
+  w.ValueType makeArray(w.InstructionsBuilder b, w.ArrayType arrayType,
       int length, void Function(w.ValueType, int) generateItem) {
-    final b = function.body;
-
     final w.ValueType elementType = arrayType.elementType.type.unpacked;
     final arrayTypeRef = w.RefType.def(arrayType, nullable: false);
 
@@ -1129,7 +1049,7 @@ class Translator with KernelNodes {
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {
-        final w.Local arrayLocal = function.addLocal(arrayTypeRef);
+        final w.Local arrayLocal = b.addLocal(arrayTypeRef);
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
@@ -1186,11 +1106,108 @@ class Translator with KernelNodes {
   }
 }
 
-abstract class _FunctionGenerator {
-  void generate(Translator translator);
+class CompilationQueue {
+  final List<CompilationTask> _pending = [];
+
+  bool get isEmpty => _pending.isEmpty;
+  void add(CompilationTask entry) => _pending.add(entry);
+  CompilationTask pop() => _pending.removeLast();
 }
 
-class _ClosureTrampolineGenerator implements _FunctionGenerator {
+class CompilationTask {
+  final w.FunctionBuilder function;
+  final CodeGenerator _codeGenerator;
+
+  CompilationTask(this.function, this._codeGenerator);
+
+  void run(Translator translator, bool printKernel, bool printWasm) {
+    _codeGenerator.generate(function.body, function.locals.toList(), null);
+    if (printWasm) {
+      print("#${function.name} (synthetic)");
+      print(function.type);
+      print(function.body.trace);
+    }
+  }
+}
+
+// Compilation task for AST.
+class AstCompilationTask extends CompilationTask {
+  final Reference reference;
+
+  AstCompilationTask(super.function, super._createCodeGenerator, this.reference)
+      : super();
+
+  @override
+  void run(Translator translator, bool printKernel, bool printWasm) {
+    final member = reference.asMember;
+
+    final codeGen = getMemberCodeGenerator(translator, function, reference);
+    codeGen.generate(function.body, function.locals.toList(), null);
+
+    if (printKernel || printWasm) {
+      final (:name, :exportName) = _getNames(translator);
+
+      String header = "#${function.name}: $name";
+      if (exportName != null) {
+        header = "$header (exported as $exportName)";
+      }
+      if (reference.isTypeCheckerReference) {
+        header = "$header (type checker)";
+      }
+      print(header);
+      print(member.function
+          ?.computeFunctionType(Nullability.nonNullable)
+          .toStringInternal());
+    }
+    if (printKernel && !reference.isTypeCheckerReference) {
+      if (member is Constructor) {
+        Class cls = member.enclosingClass;
+        for (Field field in cls.fields) {
+          if (field.isInstanceMember && field.initializer != null) {
+            print("${field.name}: ${field.initializer}");
+          }
+        }
+        for (Initializer initializer in member.initializers) {
+          print(initializer);
+        }
+      }
+      Statement? body = member.function?.body;
+      if (body != null) {
+        print(body);
+      }
+      if (!printWasm) print("");
+    }
+
+    if (printWasm) {
+      print(function.type);
+      print(function.body.trace);
+    }
+  }
+
+  ({String name, String? exportName}) _getNames(Translator translator) {
+    final member = reference.asMember;
+    String canonicalName = "$member";
+    if (reference.isSetter) {
+      canonicalName = "$canonicalName=";
+    } else if (reference.isGetter || reference.isTearOffReference) {
+      int dot = canonicalName.indexOf('.');
+      canonicalName =
+          '${canonicalName.substring(0, dot + 1)}=${canonicalName.substring(dot + 1)}';
+    }
+    canonicalName = member.enclosingLibrary ==
+            translator.component.mainMethod!.enclosingLibrary
+        ? canonicalName
+        : "${member.enclosingLibrary.importUri} $canonicalName";
+
+    return (
+      name: canonicalName,
+      exportName: translator.functions.getExport(reference)
+    );
+  }
+}
+
+class _ClosureTrampolineGenerator implements CodeGenerator {
+  final Translator translator;
   final w.FunctionBuilder trampoline;
   final w.BaseFunction target;
   final int typeCount;
@@ -1200,6 +1217,7 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
   final bool takesContextOrReceiver;
 
   _ClosureTrampolineGenerator(
+      this.translator,
       this.trampoline,
       this.target,
       this.typeCount,
@@ -1209,14 +1227,16 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       this.takesContextOrReceiver);
 
   @override
-  void generate(Translator translator) {
-    final b = trampoline.body;
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    assert(returnLabel == null);
+
     int targetIndex = 0;
     if (takesContextOrReceiver) {
       w.Local receiver = trampoline.locals[0];
       b.local_get(receiver);
       translator.convertType(
-          trampoline, receiver.type, target.type.inputs[targetIndex++]);
+          b, receiver.type, target.type.inputs[targetIndex++]);
     }
     int argIndex = 1;
     for (int i = 0; i < typeCount; i++) {
@@ -1227,11 +1247,10 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       if (i < posArgCount) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(
-            trampoline, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
       } else {
-        translator.constants.instantiateConstant(trampoline, b,
-            paramInfo.positional[i]!, target.type.inputs[targetIndex++]);
+        translator.constants.instantiateConstant(
+            b, paramInfo.positional[i]!, target.type.inputs[targetIndex++]);
       }
     }
     int argNameIndex = 0;
@@ -1240,12 +1259,11 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       if (argNameIndex < argNames.length && argNames[argNameIndex] == argName) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(
-            trampoline, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
         argNameIndex++;
       } else {
-        translator.constants.instantiateConstant(trampoline, b,
-            paramInfo.named[argName]!, target.type.inputs[targetIndex++]);
+        translator.constants.instantiateConstant(
+            b, paramInfo.named[argName]!, target.type.inputs[targetIndex++]);
       }
     }
     assert(argIndex == trampoline.type.inputs.length);
@@ -1254,9 +1272,7 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
 
     b.call(target);
 
-    translator.convertType(
-        trampoline,
-        translator.outputOrVoid(target.type.outputs),
+    translator.convertType(b, translator.outputOrVoid(target.type.outputs),
         translator.outputOrVoid(trampoline.type.outputs));
     b.end();
   }
@@ -1264,18 +1280,22 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
 
 /// Similar to [_ClosureTrampolineGenerator], but generates dynamic call
 /// entries.
-class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
+class _ClosureDynamicEntryGenerator implements CodeGenerator {
+  final Translator translator;
   final FunctionNode functionNode;
   final w.BaseFunction target;
   final ParameterInfo paramInfo;
   final String name;
   final w.FunctionBuilder function;
 
-  _ClosureDynamicEntryGenerator(
-      this.functionNode, this.target, this.paramInfo, this.name, this.function);
+  _ClosureDynamicEntryGenerator(this.translator, this.functionNode, this.target,
+      this.paramInfo, this.name, this.function);
 
   @override
-  void generate(Translator translator) {
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    assert(returnLabel == null);
+
     final b = function.body;
 
     final bool takesContextOrReceiver =
@@ -1308,11 +1328,10 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
 
       // Get context, downcast it to expected type
       b.local_get(closureLocal);
-      translator.convertType(function, closureLocal.type, closureBaseType);
+      translator.convertType(b, closureLocal.type, closureBaseType);
       b.struct_get(translator.closureLayouter.closureBaseStruct,
           FieldIndex.closureContext);
-      translator.convertType(
-          function, closureContextType, targetInputs[inputIdx]);
+      translator.convertType(b, closureContextType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -1322,7 +1341,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       b.i32_const(typeIdx);
       b.array_get(translator.typeArrayType);
       translator.convertType(
-          function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+          b, translator.topInfo.nullableType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -1344,12 +1363,12 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         b.i32_const(posIdx);
         b.array_get(translator.nullableObjectArrayType);
         b.else_();
-        translator.constants.instantiateConstant(function, b,
-            paramInfo.positional[posIdx]!, translator.topInfo.nullableType);
+        translator.constants.instantiateConstant(
+            b, paramInfo.positional[posIdx]!, translator.topInfo.nullableType);
         b.end();
       }
       translator.convertType(
-          function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+          b, translator.topInfo.nullableType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -1364,7 +1383,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       return null;
     }
 
-    final namedArgValueIndexLocal = function
+    final namedArgValueIndexLocal = b
         .addLocal(translator.classInfo[translator.boxedIntClass]!.nullableType);
 
     for (String paramName in paramInfo.names) {
@@ -1375,7 +1394,6 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       // Get passed value
       b.local_get(namedArgsListLocal);
       translator.constants.instantiateConstant(
-          function,
           b,
           SymbolConstant(paramName, null),
           translator.classInfo[translator.symbolClass]!.nonNullableType);
@@ -1387,12 +1405,11 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         // Shape check passed, parameter must be passed
         b.local_get(namedArgsListLocal);
         b.local_get(namedArgValueIndexLocal);
-        translator.convertType(
-            function, namedArgValueIndexLocal.type, w.NumType.i64);
+        translator.convertType(b, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
         translator.convertType(
-            function,
+            b,
             translator.nullableObjectArrayType.elementType.type.unpacked,
             target.type.inputs[inputIdx]);
       } else {
@@ -1403,14 +1420,12 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         if (functionNodeDefaultValue != null) {
           // Used by the member, has a default value
           translator.constants.instantiateConstant(
-              function,
               b,
               (functionNodeDefaultValue as ConstantExpression).constant,
               translator.topInfo.nullableType);
         } else {
           // Not used by the member
           translator.constants.instantiateConstant(
-            function,
             b,
             paramInfoDefaultValue!,
             translator.topInfo.nullableType,
@@ -1419,22 +1434,19 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         b.else_(); // value index not null
         b.local_get(namedArgsListLocal);
         b.local_get(namedArgValueIndexLocal);
-        translator.convertType(
-            function, namedArgValueIndexLocal.type, w.NumType.i64);
+        translator.convertType(b, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
         b.end();
         translator.convertType(
-            function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+            b, translator.topInfo.nullableType, targetInputs[inputIdx]);
       }
       inputIdx += 1;
     }
 
     b.call(target);
 
-    translator.convertType(
-        function,
-        translator.outputOrVoid(target.type.outputs),
+    translator.convertType(b, translator.outputOrVoid(target.type.outputs),
         translator.outputOrVoid(function.type.outputs));
 
     b.end(); // end function
@@ -1503,8 +1515,8 @@ class PartialInstantiator {
           ),
           name);
       final b = function.body;
-      translator.constants.instantiateConstant(function, b,
-          TypeLiteralConstant(type), translator.types.nonNullableTypeType);
+      translator.constants.instantiateConstant(
+          b, TypeLiteralConstant(type), translator.types.nonNullableTypeType);
       for (int i = 1; i < wasmTarget.type.inputs.length; ++i) {
         b.local_get(b.locals[i - 1]);
       }
@@ -1531,10 +1543,10 @@ class PartialInstantiator {
           ),
           name);
       final b = function.body;
-      translator.constants.instantiateConstant(function, b,
-          TypeLiteralConstant(type1), translator.types.nonNullableTypeType);
-      translator.constants.instantiateConstant(function, b,
-          TypeLiteralConstant(type2), translator.types.nonNullableTypeType);
+      translator.constants.instantiateConstant(
+          b, TypeLiteralConstant(type1), translator.types.nonNullableTypeType);
+      translator.constants.instantiateConstant(
+          b, TypeLiteralConstant(type2), translator.types.nonNullableTypeType);
       for (int i = 2; i < wasmTarget.type.inputs.length; ++i) {
         b.local_get(b.locals[i - 2]);
       }
@@ -1549,55 +1561,95 @@ class PartialInstantiator {
 
 class PolymorphicDispatchers {
   final Translator translator;
-  final cache = <SelectorInfo, w.BaseFunction>{};
+  final cache = <SelectorInfo, PolymorphicDispatcherCallTarget>{};
 
   PolymorphicDispatchers(this.translator);
 
-  w.BaseFunction getPolymorphicDispatcher(SelectorInfo selector) {
+  CallTarget getPolymorphicDispatcher(SelectorInfo selector) {
     assert(selector.targetRanges.length > 1);
     return cache.putIfAbsent(selector, () {
-      final name = '${selector.name} (polymorphic dispatcher)';
-      final signature = selector.signature;
-      final inputs = signature.inputs;
-      final outputs = signature.outputs;
-      final function = translator.m.functions
-          .define(translator.m.types.defineFunction(inputs, outputs), name);
-
-      final b = function.body;
-
-      final targetRanges = selector.staticDispatchRanges
-          .map((entry) => (range: entry.range, value: entry.target))
-          .toList();
-
-      final bool needFallback =
-          selector.targetRanges.length > selector.staticDispatchRanges.length;
-      void emitDirectCall(Reference target) {
-        for (int i = 0; i < inputs.length; ++i) {
-          b.local_get(b.locals[i]);
-        }
-        b.call(translator.functions.getFunction(target));
-      }
-
-      void emitDispatchTableCall() {
-        for (int i = 0; i < inputs.length; ++i) {
-          b.local_get(b.locals[i]);
-        }
-        b.local_get(b.locals[0]);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.i32_const(selector.offset!);
-        b.i32_add();
-        b.call_indirect(signature, translator.dispatchTable.wasmTable);
-        translator.functions.recordSelectorUse(selector);
-      }
-
-      b.local_get(b.locals[0]);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.classIdSearch(targetRanges, outputs, emitDirectCall,
-          needFallback ? emitDispatchTableCall : null);
-      b.return_();
-      b.end();
-
-      return function;
+      return PolymorphicDispatcherCallTarget(translator, selector);
     });
+  }
+}
+
+class PolymorphicDispatcherCallTarget extends CallTarget {
+  final Translator translator;
+  final SelectorInfo selector;
+
+  PolymorphicDispatcherCallTarget(this.translator, this.selector)
+      : super(selector.signature);
+
+  @override
+  String get name => '${selector.name} (polymorphic dispatcher)';
+
+  @override
+  bool get supportsInlining => true;
+
+  @override
+  bool get shouldInline => selector.staticDispatchRanges.length <= 2;
+
+  @override
+  CodeGenerator get inliningCodeGen =>
+      PolymorphicDispatcherCodeGenerator(translator, selector);
+
+  @override
+  late final w.BaseFunction function = (() {
+    final function = translator.m.functions.define(
+        translator.m.types.defineFunction(signature.inputs, signature.outputs),
+        name);
+    translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
+    return function;
+  })();
+}
+
+class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
+  final Translator translator;
+  final SelectorInfo selector;
+
+  PolymorphicDispatcherCodeGenerator(this.translator, this.selector);
+
+  @override
+  void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
+      w.Label? returnLabel) {
+    final signature = selector.signature;
+
+    final targetRanges = selector.staticDispatchRanges
+        .map((entry) => (range: entry.range, value: entry.target))
+        .toList();
+
+    final bool needFallback =
+        selector.targetRanges.length > selector.staticDispatchRanges.length;
+
+    void emitDirectCall(Reference target) {
+      for (int i = 0; i < signature.inputs.length; ++i) {
+        b.local_get(paramLocals[i]);
+      }
+      b.call(translator.functions.getFunction(target));
+    }
+
+    void emitDispatchTableCall() {
+      for (int i = 0; i < signature.inputs.length; ++i) {
+        b.local_get(paramLocals[i]);
+      }
+      b.local_get(paramLocals[0]);
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.i32_const(selector.offset!);
+      b.i32_add();
+      b.call_indirect(signature, translator.dispatchTable.wasmTable);
+      translator.functions.recordSelectorUse(selector);
+    }
+
+    b.local_get(paramLocals[0]);
+    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.classIdSearch(targetRanges, signature.outputs, emitDirectCall,
+        needFallback ? emitDispatchTableCall : null);
+
+    if (returnLabel != null) {
+      b.br(returnLabel);
+    } else {
+      b.return_();
+    }
+    b.end();
   }
 }

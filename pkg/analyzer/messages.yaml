@@ -13293,6 +13293,7 @@ CompileTimeErrorCode:
       code:
 
       ```dart
+      %language=3.4
       %uri="lib/part_file.dart"
       part of lib;
       ```
@@ -13302,6 +13303,7 @@ CompileTimeErrorCode:
       name to specify which library it's a part of:
 
       ```dart
+      %language=3.4
       part [!'part_file.dart'!];
       ```
 
@@ -13311,6 +13313,7 @@ CompileTimeErrorCode:
       by URI:
 
       ```dart
+      %language=3.4
       %uri="lib/part_file.dart"
       part of 'test.dart';
       ```
@@ -20543,6 +20546,17 @@ FfiCode:
         external Array<Uint8> a0;
       }
       ```
+
+      If this is a variable length inline array, change the annotation to `Array.variable()`:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class MyStruct extends Struct {
+        @Array.variable()
+        external Array<Uint8> a0;
+      }
+      ```
   NON_SIZED_TYPE_ARGUMENT:
     problemMessage: "The type '{1}' isn't a valid type argument for '{0}'. The type argument must be a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
     correctionMessage: "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
@@ -20664,6 +20678,65 @@ FfiCode:
       @Packed(4)
       final class C extends Struct {
         external Pointer<Uint8> notEmpty;
+      }
+      ```
+  VARIABLE_LENGTH_ARRAY_NOT_LAST:
+    problemMessage: "Variable length 'Array's must only occur as the last field of Structs."
+    correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a variable length inline `Array`
+      is not the last member of a `Struct`.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `a0` has a
+      type with three nested arrays, but only two dimensions are given in the
+      `Array` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class C extends Struct {
+        [!@Array.variable()!]
+        external Array<Uint8> a0;
+
+        @Uint8()
+        external int a1;
+      }
+      ```
+
+      #### Common fixes
+
+      Move the variable length inline `Array` to be the last field in the struct.
+
+      ```dart
+      import 'dart:ffi';
+
+      final class C extends Struct {
+        @Uint8()
+        external int a1;
+
+        @Array.variable()
+        external Array<Uint8> a0;
+      }
+      ```
+
+      If the inline array has a fixed size, annotate it with the size:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class C extends Struct {
+        @Array(10)
+        external Array<Uint8> a0;
+
+        @Uint8()
+        external int a1;
       }
       ```
   SIZE_ANNOTATION_DIMENSIONS:
@@ -20977,6 +21050,7 @@ HintCode:
       This code is deprecated in favor of the
       'deprecated_member_from_same_package' lint rule, and will be removed.
   DIVISION_OPTIMIZATION:
+    removedIn: "3.5"
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
     correctionMessage: "Try re-writing the expression to use the '~/' operator."
     hasPublishedDocs: true
@@ -21128,42 +21202,6 @@ HintCode:
       Reported when the macro uses `Builder.report()` with `Severity.info`.
       Parameters:
       0: the message
-  UNNECESSARY_CAST:
-    problemMessage: Unnecessary cast.
-    correctionMessage: Try removing the cast.
-    deprecatedMessage: Use 'WarningCode.UNNECESSARY_CAST' instead.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the value being cast is already
-      known to be of the type that it's being cast to.
-
-      #### Example
-
-      The following code produces this diagnostic because `n` is already known to
-      be an `int` as a result of the `is` test:
-
-      ```dart
-      void f(num n) {
-        if (n is int) {
-          ([!n as int!]).isEven;
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary cast:
-
-      ```dart
-      void f(num n) {
-        if (n is int) {
-          n.isEven;
-        }
-      }
-      ```
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
@@ -21258,79 +21296,6 @@ HintCode:
         }
       }
       ```
-  UNUSED_ELEMENT:
-    problemMessage: "The declaration '{0}' isn't referenced."
-    correctionMessage: "Try removing the declaration of '{0}'."
-    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT' instead.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name that is declared but not referenced
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a private declaration isn't
-      referenced in the library that contains the declaration. The following
-      kinds of declarations are analyzed:
-      - Private top-level declarations and all of their members
-      - Private members of public declarations
-      - Optional parameters of private functions for which a value is never
-        passed
-
-      Not all references to an element will mark it as "used":
-      - Assigning a value to a top-level variable (with a standard `=`
-        assignment, or a null-aware `??=` assignment) does not count as using
-        it.
-      - Referring to an element in a doc comment reference does not count as
-        using it.
-      - Referring to a class, mixin, or enum on the right side of an `is`
-        expression does not count as using it.
-
-      #### Example
-
-      Assuming that no code in the library references `_C`, the following code
-      produces this diagnostic:
-
-      ```dart
-      class [!_C!] {}
-      ```
-
-      Assuming that no code in the library passes a value for `y` in any
-      invocation of `_m`, the following code produces this diagnostic:
-
-      ```dart
-      class C {
-        void _m(int x, [int? [!y!]]) {}
-
-        void n() => _m(0);
-      }
-      ```
-
-      #### Common fixes
-
-      If the declaration isn't needed, then remove it:
-
-      ```dart
-      class C {
-        void _m(int x) {}
-
-        void n() => _m(0);
-      }
-      ```
-
-      If the declaration is intended to be used, then add the code to use it.
-  UNUSED_ELEMENT_PARAMETER:
-    sharedName: UNUSED_ELEMENT
-    problemMessage: "A value for optional parameter '{0}' isn't ever given."
-    correctionMessage: Try removing the unused parameter.
-    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the parameter that is declared but not used
-  UNUSED_LOCAL_VARIABLE:
-    aliasFor: WarningCode.UNUSED_LOCAL_VARIABLE
-    comment: This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
@@ -21648,6 +21613,9 @@ ParserErrorCode:
   NORMAL_BEFORE_OPTIONAL_PARAMETERS:
     problemMessage: Normal parameters must occur before optional parameters.
     correctionMessage: Try moving all of the normal parameters before the optional parameters.
+  PART_OF_NAME:
+    problemMessage: "The 'part of' directive can't use a name with the enhanced-parts feature."
+    correctionMessage: "Try using 'part of' with a URI instead."
   POSITIONAL_AFTER_NAMED_ARGUMENT:
     problemMessage: Positional arguments must occur before named arguments.
     correctionMessage: Try moving all of the positional arguments before the named arguments.
@@ -26867,8 +26835,40 @@ WarningCode:
       Parameters:
       0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
-    aliasFor: HintCode.UNNECESSARY_CAST
-    comment: This is the new replacement for [HintCode.UNNECESSARY_CAST].
+    problemMessage: Unnecessary cast.
+    correctionMessage: Try removing the cast.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value being cast is already
+      known to be of the type that it's being cast to.
+
+      #### Example
+
+      The following code produces this diagnostic because `n` is already known to
+      be an `int` as a result of the `is` test:
+
+      ```dart
+      void f(num n) {
+        if (n is int) {
+          ([!n as int!]).isEven;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary cast:
+
+      ```dart
+      void f(num n) {
+        if (n is int) {
+          n.isEven;
+        }
+      }
+      ```
   UNNECESSARY_CAST_PATTERN:
     problemMessage: Unnecessary cast pattern.
     correctionMessage: Try removing the cast pattern.
@@ -27294,11 +27294,73 @@ WarningCode:
       }
       ```
   UNUSED_ELEMENT:
-    aliasFor: HintCode.UNUSED_ELEMENT
-    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT].
+    problemMessage: "The declaration '{0}' isn't referenced."
+    correctionMessage: "Try removing the declaration of '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name that is declared but not referenced
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a private declaration isn't
+      referenced in the library that contains the declaration. The following
+      kinds of declarations are analyzed:
+      - Private top-level declarations and all of their members
+      - Private members of public declarations
+      - Optional parameters of private functions for which a value is never
+        passed
+
+      Not all references to an element will mark it as "used":
+      - Assigning a value to a top-level variable (with a standard `=`
+        assignment, or a null-aware `??=` assignment) does not count as using
+        it.
+      - Referring to an element in a doc comment reference does not count as
+        using it.
+      - Referring to a class, mixin, or enum on the right side of an `is`
+        expression does not count as using it.
+
+      #### Example
+
+      Assuming that no code in the library references `_C`, the following code
+      produces this diagnostic:
+
+      ```dart
+      class [!_C!] {}
+      ```
+
+      Assuming that no code in the library passes a value for `y` in any
+      invocation of `_m`, the following code produces this diagnostic:
+
+      ```dart
+      class C {
+        void _m(int x, [int? [!y!]]) {}
+
+        void n() => _m(0);
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration isn't needed, then remove it:
+
+      ```dart
+      class C {
+        void _m(int x) {}
+
+        void n() => _m(0);
+      }
+      ```
+
+      If the declaration is intended to be used, then add the code to use it.
   UNUSED_ELEMENT_PARAMETER:
-    aliasFor: HintCode.UNUSED_ELEMENT_PARAMETER
-    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
+    sharedName: UNUSED_ELEMENT
+    problemMessage: "A value for optional parameter '{0}' isn't ever given."
+    correctionMessage: Try removing the unused parameter.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the parameter that is declared but not used
   UNUSED_FIELD:
     problemMessage: "The value of the field '{0}' isn't used."
     correctionMessage: Try removing the field, or using it.

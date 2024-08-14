@@ -156,8 +156,9 @@ class Dart2jsTarget extends Target {
         jsInteropReporter,
         jsInteropChecks.exportChecker,
         jsInteropChecks.extensionIndex);
-    var jsUtilOptimizer =
-        JsUtilOptimizer(coreTypes, hierarchy, jsInteropChecks.extensionIndex);
+    var jsUtilOptimizer = JsUtilOptimizer(
+        coreTypes, hierarchy, jsInteropChecks.extensionIndex,
+        isDart2JS: true);
     for (var library in libraries) {
       // Shared transformer has static checks, so we still visit even if there
       // are errors.

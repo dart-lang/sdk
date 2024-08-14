@@ -20,22 +20,22 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
 
   late final LookupScope _scope;
 
-  final NameSpace _nameSpace;
+  final DeclarationNameSpace _nameSpace;
 
-  @override
-  final ConstructorScope constructorScope;
+  late final ConstructorScope _constructorScope;
 
   List<NominalVariableBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, LibraryBuilder parent)
-      : _nameSpace = new NameSpaceImpl(),
-        constructorScope = new ConstructorScope(extension.name, const {}),
+      : _nameSpace = new DeclarationNameSpaceImpl(),
         super(/* metadata = */ null, 0, extension.name, parent,
             extension.fileOffset) {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extension.name}",
         parent: parent.scope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(extension.name, _nameSpace);
     for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       Name name = descriptor.name;
       switch (descriptor.kind) {
@@ -89,10 +89,15 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   List<NominalVariableBuilder>? get typeParameters {

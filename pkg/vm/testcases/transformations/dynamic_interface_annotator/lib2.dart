@@ -43,3 +43,44 @@ Object? sfield9;
 Object? _sfield10;
 void smethod10() {}
 void _smethod11() {}
+
+class _E1 {
+  final int _x;
+  const _E1(this._x);
+}
+
+class _E2 extends _E1 {
+  final int _y;
+  const _E2(super._x, this._y);
+}
+
+mixin H {
+  void foo() {
+    _foo();
+  }
+
+  void _foo() {
+    _smethod12();
+  }
+
+  static void _smethod12() {
+    _smethod13();
+  }
+}
+
+void _smethod13() {}
+
+class _I1<T> {}
+
+class _I2 {}
+
+class _I3 {}
+
+mixin class J implements _I1<_I2> {
+  static const _const14 = {'key': _E2(3, 4)};
+  static int _smethod15() => 42;
+
+  var _ifield16 = _const14;
+  var _ifield17 = _smethod15();
+  _I3? _ifield18;
+}

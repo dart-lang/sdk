@@ -12,14 +12,14 @@ import 'dynamic_forwarders.dart';
 import 'translator.dart';
 import 'types.dart';
 
-typedef CodeGenCallback = void Function(CodeGenerator);
+typedef CodeGenCallback = void Function(AstCodeGenerator);
 
 /// Specialized code generation for external members.
 ///
 /// The code is generated either inlined at the call site, or as the body of
 /// the member in [generateMemberIntrinsic].
 class Intrinsifier {
-  final CodeGenerator codeGen;
+  final AstCodeGenerator codeGen;
 
   static const w.ValueType boolType = w.NumType.i32;
   static const w.ValueType intType = w.NumType.i64;
@@ -164,7 +164,7 @@ class Intrinsifier {
 
     // int.bitlength
     if (cls == translator.coreTypes.intClass && name == 'bitLength') {
-      w.Local temp = codeGen.function.addLocal(w.NumType.i64);
+      w.Local temp = b.addLocal(w.NumType.i64);
       b.i64_const(64);
       codeGen.wrap(receiver, w.NumType.i64);
       b.local_tee(temp);
@@ -537,21 +537,21 @@ class Intrinsifier {
               .translateStorageType(types.rtt.typeRowDisplacementOffsetsType)
               .unpacked;
           translator.constants.instantiateConstant(
-              null, b, types.rtt.typeRowDisplacementOffsets, type);
+              b, types.rtt.typeRowDisplacementOffsets, type);
           return type;
         case "_typeRowDisplacementTable":
           final type = translator
               .translateStorageType(types.rtt.typeRowDisplacementTableType)
               .unpacked;
-          translator.constants.instantiateConstant(
-              null, b, types.rtt.typeRowDisplacementTable, type);
+          translator.constants
+              .instantiateConstant(b, types.rtt.typeRowDisplacementTable, type);
           return type;
         case "_typeRowDisplacementSubstTable":
           final type = translator
               .translateStorageType(types.rtt.typeRowDisplacementSubstTableType)
               .unpacked;
           translator.constants.instantiateConstant(
-              null, b, types.rtt.typeRowDisplacementSubstTable, type);
+              b, types.rtt.typeRowDisplacementSubstTable, type);
           return type;
         case "_typeNames":
           final type =
@@ -560,7 +560,7 @@ class Intrinsifier {
             b.ref_null((type as w.RefType).heapType);
           } else {
             translator.constants
-                .instantiateConstant(null, b, types.rtt.typeNames, type);
+                .instantiateConstant(b, types.rtt.typeNames, type);
           }
           return type;
       }
@@ -652,8 +652,8 @@ class Intrinsifier {
 
             final sourceArrayRefType =
                 w.RefType.def(arrayType, nullable: false);
-            final sourceArrayLocal = codeGen.addLocal(sourceArrayRefType);
-            final newArrayLocal = codeGen.addLocal(sourceArrayRefType);
+            final sourceArrayLocal = b.addLocal(sourceArrayRefType);
+            final newArrayLocal = b.addLocal(sourceArrayRefType);
 
             codeGen.wrap(sourceArray, sourceArrayRefType);
             b.local_tee(sourceArrayLocal);
@@ -1033,7 +1033,7 @@ class Intrinsifier {
             b.array_new_default(arrayType);
           } else {
             // Initialize to the provided value
-            w.Local lengthTemp = codeGen.addLocal(w.NumType.i32);
+            w.Local lengthTemp = b.addLocal(w.NumType.i32);
             b.local_set(lengthTemp);
             codeGen.wrap(initialValue, arrayType.elementType.type.unpacked);
             b.local_get(lengthTemp);
@@ -1164,8 +1164,7 @@ class Intrinsifier {
     ClassInfo receiverInfo = translator.classInfo[translator.listBaseClass]!;
     codeGen.wrap(
         node.arguments.positional.single, receiverInfo.nonNullableType);
-    w.Local receiverLocal =
-        codeGen.function.addLocal(receiverInfo.nonNullableType);
+    w.Local receiverLocal = b.addLocal(receiverInfo.nonNullableType);
     b.local_set(receiverLocal);
 
     ClassInfo newInfo = translator.classInfo[newClass]!;
@@ -1227,7 +1226,7 @@ class Intrinsifier {
       assert(receiver.name.text == "call");
       w.RefType receiverType =
           translator.translateType(dartTypeOf(receiver.receiver)) as w.RefType;
-      w.Local temp = codeGen.addLocal(receiverType);
+      w.Local temp = b.addLocal(receiverType);
       codeGen.wrap(receiver.receiver, receiverType);
       b.local_set(temp);
       w.FunctionType functionType = receiverType.heapType as w.FunctionType;
@@ -1256,7 +1255,7 @@ class Intrinsifier {
           [receiver.arguments.types.single]);
       w.RefType receiverType =
           translator.translateType(wasmFunctionType) as w.RefType;
-      w.Local tableIndex = codeGen.addLocal(w.NumType.i32);
+      w.Local tableIndex = b.addLocal(w.NumType.i32);
       codeGen.wrap(receiver.arguments.positional.single, w.NumType.i32);
       b.local_set(tableIndex);
       w.FunctionType functionType = receiverType.heapType as w.FunctionType;
@@ -1273,7 +1272,7 @@ class Intrinsifier {
   }
 
   /// Generate Wasm function for an intrinsic member.
-  bool generateMemberIntrinsic(Reference target, w.FunctionBuilder function,
+  bool generateMemberIntrinsic(Reference target, w.FunctionType functionType,
       List<w.Local> paramLocals, w.Label? returnLabel) {
     Member member = target.asMember;
     if (member is! Procedure) return false;
@@ -1309,7 +1308,7 @@ class Intrinsifier {
       ClassInfo boolInfo = translator.classInfo[translator.boxedBoolClass]!;
       ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
       ClassInfo doubleInfo = translator.classInfo[translator.boxedDoubleClass]!;
-      w.Local cid = function.addLocal(w.NumType.i32);
+      w.Local cid = b.addLocal(w.NumType.i32);
 
       // If the references are identical, return true.
       b.local_get(first);
@@ -1400,8 +1399,7 @@ class Intrinsifier {
     if (member.enclosingLibrary == translator.coreTypes.coreLibrary &&
         name == "identityHashCode") {
       final w.Local arg = paramLocals[0];
-      final w.Local nonNullArg =
-          function.addLocal(translator.topInfo.nonNullableType);
+      final w.Local nonNullArg = b.addLocal(translator.topInfo.nonNullableType);
       final List<int> classIds = translator.valueClasses.keys
           .map((cls) => translator.classInfo[cls]!.classId)
           .toList()
@@ -1454,7 +1452,7 @@ class Intrinsifier {
       Class cls = member.enclosingClass!;
       ClassInfo classInfo = translator.classInfo[cls]!;
       w.ArrayType arrayType =
-          (function.type.outputs.single as w.RefType).heapType as w.ArrayType;
+          (functionType.outputs.single as w.RefType).heapType as w.ArrayType;
       w.Local object = paramLocals[0];
       w.Local preciseObject = codeGen.addLocal(classInfo.nonNullableType);
       b.local_get(object);
@@ -1478,63 +1476,63 @@ class Intrinsifier {
         CodeGenCallback? code = _unaryOperatorMap[intType]![op];
         if (code != null) {
           w.ValueType resultType = _unaryResultMap[op] ?? intType;
-          w.ValueType inputType = function.type.inputs.single;
-          w.ValueType outputType = function.type.outputs.single;
-          b.local_get(function.locals[0]);
-          translator.convertType(function, inputType, intType);
+          w.ValueType inputType = functionType.inputs.single;
+          w.ValueType outputType = functionType.outputs.single;
+          b.local_get(paramLocals[0]);
+          translator.convertType(b, inputType, intType);
           code(codeGen);
-          translator.convertType(function, resultType, outputType);
+          translator.convertType(b, resultType, outputType);
           return true;
         }
       } else if (functionNode.requiredParameterCount == 1) {
         CodeGenCallback? code = _binaryOperatorMap[intType]![intType]![op];
         if (code != null) {
-          w.ValueType leftType = function.type.inputs[0];
-          w.ValueType rightType = function.type.inputs[1];
-          w.ValueType outputType = function.type.outputs.single;
+          w.ValueType leftType = functionType.inputs[0];
+          w.ValueType rightType = functionType.inputs[1];
+          w.ValueType outputType = functionType.outputs.single;
           if (rightType == intType) {
             // int parameter
-            b.local_get(function.locals[0]);
-            translator.convertType(function, leftType, intType);
-            b.local_get(function.locals[1]);
+            b.local_get(paramLocals[0]);
+            translator.convertType(b, leftType, intType);
+            b.local_get(paramLocals[1]);
             code(codeGen);
             if (!isComparison(op)) {
-              translator.convertType(function, intType, outputType);
+              translator.convertType(b, intType, outputType);
             }
             return true;
           }
           // num parameter
           ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
           w.Label intArg = b.block(const [], [intInfo.nonNullableType]);
-          b.local_get(function.locals[1]);
-          b.br_on_cast(intArg, function.locals[1].type as w.RefType,
+          b.local_get(paramLocals[1]);
+          b.br_on_cast(intArg, paramLocals[1].type as w.RefType,
               intInfo.nonNullableType);
           // double argument
           b.drop();
-          b.local_get(function.locals[0]);
-          translator.convertType(function, leftType, intType);
+          b.local_get(paramLocals[0]);
+          translator.convertType(b, leftType, intType);
           b.f64_convert_i64_s();
-          b.local_get(function.locals[1]);
-          translator.convertType(function, rightType, doubleType);
+          b.local_get(paramLocals[1]);
+          translator.convertType(b, rightType, doubleType);
           // Inline double op
           CodeGenCallback doubleCode =
               _binaryOperatorMap[doubleType]![doubleType]![op]!;
           doubleCode(codeGen);
           if (!isComparison(op)) {
-            translator.convertType(function, doubleType, outputType);
+            translator.convertType(b, doubleType, outputType);
           }
           b.return_();
           b.end();
           // int argument
-          translator.convertType(function, intInfo.nonNullableType, intType);
-          w.Local rightTemp = function.addLocal(intType);
+          translator.convertType(b, intInfo.nonNullableType, intType);
+          w.Local rightTemp = b.addLocal(intType);
           b.local_set(rightTemp);
-          b.local_get(function.locals[0]);
-          translator.convertType(function, leftType, intType);
+          b.local_get(paramLocals[0]);
+          translator.convertType(b, leftType, intType);
           b.local_get(rightTemp);
           code(codeGen);
           if (!isComparison(op)) {
-            translator.convertType(function, intType, outputType);
+            translator.convertType(b, intType, outputType);
           }
           return true;
         }
@@ -1549,12 +1547,12 @@ class Intrinsifier {
         CodeGenCallback? code = _unaryOperatorMap[doubleType]![op];
         if (code != null) {
           w.ValueType resultType = _unaryResultMap[op] ?? doubleType;
-          w.ValueType inputType = function.type.inputs.single;
-          w.ValueType outputType = function.type.outputs.single;
-          b.local_get(function.locals[0]);
-          translator.convertType(function, inputType, doubleType);
+          w.ValueType inputType = functionType.inputs.single;
+          w.ValueType outputType = functionType.outputs.single;
+          b.local_get(paramLocals[0]);
+          translator.convertType(b, inputType, doubleType);
           code(codeGen);
-          translator.convertType(function, resultType, outputType);
+          translator.convertType(b, resultType, outputType);
           return true;
         }
       }
@@ -1562,26 +1560,26 @@ class Intrinsifier {
 
     if (member.enclosingClass == translator.closureClass &&
         name == "_isInstantiationClosure") {
-      assert(function.locals.length == 1);
-      b.local_get(function.locals[0]); // ref _Closure
+      assert(paramLocals.length == 1);
+      b.local_get(paramLocals[0]); // ref _Closure
       b.emitInstantiationClosureCheck(translator);
       return true;
     }
 
     if (member.enclosingClass == translator.closureClass &&
         name == "_instantiatedClosure") {
-      assert(function.locals.length == 1);
-      b.local_get(function.locals[0]); // ref _Closure
+      assert(paramLocals.length == 1);
+      b.local_get(paramLocals[0]); // ref _Closure
       b.emitGetInstantiatedClosure(translator);
       return true;
     }
 
     if (member.enclosingClass == translator.closureClass &&
         name == "_instantiationClosureTypeHash") {
-      assert(function.locals.length == 1);
+      assert(paramLocals.length == 1);
 
       // Instantiation context, to be passed to the hash function.
-      b.local_get(function.locals[0]); // ref _Closure
+      b.local_get(paramLocals[0]); // ref _Closure
       b.ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
           nullable: false));
       b.struct_get(translator.closureLayouter.closureBaseStruct,
@@ -1591,7 +1589,7 @@ class Intrinsifier {
           nullable: false));
 
       // Hash function.
-      b.local_get(function.locals[0]); // ref _Closure
+      b.local_get(paramLocals[0]); // ref _Closure
       b.emitGetInstantiatedClosure(translator);
       b.emitGetClosureVtable(translator);
       b.ref_cast(w.RefType.def(
@@ -1607,7 +1605,7 @@ class Intrinsifier {
 
     if (member.enclosingClass == translator.closureClass &&
         name == "_instantiationClosureTypeEquals") {
-      assert(function.locals.length == 2);
+      assert(paramLocals.length == 2);
 
       final w.StructType closureBaseStruct =
           translator.closureLayouter.closureBaseStruct;
@@ -1616,17 +1614,17 @@ class Intrinsifier {
           translator.closureLayouter.instantiationContextBaseStruct,
           nullable: false);
 
-      b.local_get(function.locals[0]); // ref _Closure
+      b.local_get(paramLocals[0]); // ref _Closure
       b.ref_cast(w.RefType(closureBaseStruct, nullable: false));
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
       b.ref_cast(instantiationContextBase);
 
-      b.local_get(function.locals[1]); // ref _Closure
+      b.local_get(paramLocals[1]); // ref _Closure
       b.ref_cast(w.RefType(closureBaseStruct, nullable: false));
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
       b.ref_cast(instantiationContextBase);
 
-      b.local_get(function.locals[0]);
+      b.local_get(paramLocals[0]);
       b.emitGetInstantiatedClosure(translator);
       b.emitGetClosureVtable(translator);
       b.ref_cast(w.RefType.def(
@@ -1643,55 +1641,53 @@ class Intrinsifier {
 
     if (member.enclosingClass == translator.closureClass &&
         name == "_isInstanceTearOff") {
-      assert(function.locals.length == 1);
-      b.local_get(function.locals[0]); // ref _Closure
+      assert(paramLocals.length == 1);
+      b.local_get(paramLocals[0]); // ref _Closure
       b.emitTearOffCheck(translator);
       return true;
     }
 
     if (member.enclosingClass == translator.closureClass &&
         name == "_instanceTearOffReceiver") {
-      assert(function.locals.length == 1);
-      b.local_get(function.locals[0]); // ref _Closure
+      assert(paramLocals.length == 1);
+      b.local_get(paramLocals[0]); // ref _Closure
       b.emitGetTearOffReceiver(translator);
       return true;
     }
 
     if (member.enclosingClass == translator.closureClass && name == "_vtable") {
-      assert(function.locals.length == 1);
-      b.local_get(function.locals[0]); // ref _Closure
+      assert(paramLocals.length == 1);
+      b.local_get(paramLocals[0]); // ref _Closure
       b.emitGetClosureVtable(translator);
       return true;
     }
 
     if (member.enclosingClass == translator.coreTypes.functionClass &&
         name == "apply") {
-      assert(function.type.inputs.length == 3);
+      assert(functionType.inputs.length == 3);
 
-      final closureLocal = function.locals[0]; // ref #ClosureBase
-      final posArgsNullableLocal = function.locals[1]; // ref null Object
-      final namedArgsLocal = function.locals[2]; // ref null Object
+      final closureLocal = paramLocals[0]; // ref #ClosureBase
+      final posArgsNullableLocal = paramLocals[1]; // ref null Object
+      final namedArgsLocal = paramLocals[2]; // ref null Object
 
       // Create empty type arguments array.
-      final typeArgsLocal = function.addLocal(translator.makeArray(function,
-          translator.typeArrayType, 0, (elementType, elementIndex) {}));
+      final typeArgsLocal = b.addLocal(translator.makeArray(
+          b, translator.typeArrayType, 0, (elementType, elementIndex) {}));
       b.local_set(typeArgsLocal);
 
       // Create empty list for positional args if the argument is null
-      final posArgsLocal =
-          function.addLocal(translator.nullableObjectArrayTypeRef);
+      final posArgsLocal = b.addLocal(translator.nullableObjectArrayTypeRef);
       b.local_get(posArgsNullableLocal);
       b.ref_is_null();
 
       b.if_([], [translator.nullableObjectArrayTypeRef]);
       translator.makeArray(
-          function, translator.nullableObjectArrayType, 0, (_, __) {});
+          b, translator.nullableObjectArrayType, 0, (_, __) {});
 
       b.else_();
       // List argument may be a custom list type, convert it to `WasmListBase`
       // with `WasmListBase.of`.
       translator.constants.instantiateConstant(
-        function,
         b,
         TypeLiteralConstant(DynamicType()),
         translator.types.nonNullableTypeType,
@@ -1706,33 +1702,33 @@ class Intrinsifier {
       // Convert named argument map to list, to be passed to shape and type
       // checkers and the dynamic call entry.
       final namedArgsListLocal =
-          function.addLocal(translator.nullableObjectArrayTypeRef);
+          b.addLocal(translator.nullableObjectArrayTypeRef);
       b.local_get(namedArgsLocal);
       codeGen.call(translator.namedParameterMapToArray.reference);
       b.local_set(namedArgsListLocal);
 
       final noSuchMethodBlock = b.block();
 
-      generateDynamicFunctionCall(translator, function, closureLocal,
-          typeArgsLocal, posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+      generateDynamicFunctionCall(translator, b, closureLocal, typeArgsLocal,
+          posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
       b.return_();
 
       b.end(); // noSuchMethodBlock
 
       generateNoSuchMethodCall(
           translator,
-          function,
+          b,
           () => b.local_get(closureLocal),
-          () => createInvocationObject(translator, function, "call",
-              typeArgsLocal, posArgsLocal, namedArgsListLocal));
+          () => createInvocationObject(translator, b, "call", typeArgsLocal,
+              posArgsLocal, namedArgsListLocal));
 
       return true;
     }
 
     // Error._throw
     if (member.enclosingClass == translator.errorClass && name == "_throw") {
-      final objectLocal = function.locals[0]; // ref #Top
-      final stackTraceLocal = function.locals[1]; // ref Object
+      final objectLocal = paramLocals[0]; // ref #Top
+      final stackTraceLocal = paramLocals[1]; // ref Object
 
       final notErrorBlock = b.block([], [objectLocal.type]);
 
@@ -1744,7 +1740,7 @@ class Intrinsifier {
       b.br_on_cast_fail(
           notErrorBlock, objectLocal.type as w.RefType, errorRefType);
 
-      final errorLocal = function.addLocal(errorRefType);
+      final errorLocal = b.addLocal(errorRefType);
       b.local_tee(errorLocal);
 
       b.struct_get(errorClassInfo.struct, stackTraceFieldIndex);

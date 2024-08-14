@@ -110,7 +110,7 @@ import 'lib1.dart' deferred as a;
 f(var v) {
   bool b = v is a.A;
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
       error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 75, 3),
     ]);
   }

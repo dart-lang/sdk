@@ -12,6 +12,7 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
@@ -44,10 +45,6 @@ void f() {}
 ''';
 
 class UnreachableFromMain extends LintRule {
-  static const LintCode code = LintCode('unreachable_from_main',
-      "Unreachable member '{0}' in an executable library.",
-      correctionMessage: 'Try referencing the member or removing it.');
-
   UnreachableFromMain()
       : super(
           name: 'unreachable_from_main',
@@ -58,7 +55,7 @@ class UnreachableFromMain extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unreachable_from_main;
 
   @override
   void registerNodeProcessors(

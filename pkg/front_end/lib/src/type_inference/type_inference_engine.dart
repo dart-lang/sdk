@@ -577,9 +577,6 @@ class OperationsCfe
   }
 
   @override
-  bool isRecordType(DartType type) => type is RecordType;
-
-  @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
       covariant Member property) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
@@ -864,9 +861,6 @@ class OperationsCfe
       glb(typeSchema1, typeSchema2);
 
   @override
-  bool typeSchemaIsDynamic(DartType typeSchema) => typeSchema is DynamicType;
-
-  @override
   DartType typeToSchema(DartType type) => type;
 
   @override
@@ -985,6 +979,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   NullabilitySuffix typeSchemaNullabilitySuffix(DartType typeSchema) {
     return typeSchema.nullabilitySuffix;
   }

@@ -5,15 +5,13 @@
 void main() async {
   /* bl */
   /*sl:1 */ print('About to loop!');
-  await for (var /*s:3*/ /*s:5*/ i in foobar /*sl:2*/ ()) {
-    /*s:4*/ /*s:6*/ /*nbb:6:7*/ print(i);
+  await for (var /*s:4*/ i in /*s:3*/ foobar()) {
+    print(i);
   }
-  /*s:7*/ /*nbb:7:8*/ print('Done!');
-  /*nbb:0:7*/
-  /*s:8*/
+  print('Done!');
 }
 
-Stream<int> foobar() async* {
+Stream<int> foobar() /*sl:2*/ async* {
   // The testing framework should not step into the 'real body' at all.
   /*nb*/
   yield 1;

@@ -3828,6 +3828,26 @@ class B extends A {
     );
   }
 
+  Future<void> test_method_wildcardParams() async {
+    await _assertWriteOverride(
+      content: '''
+class A {
+  void m(int _, [int _]) { }
+}
+class B extends A {
+}
+''',
+      nameToOverride: 'm',
+      expected: '''
+  @override void m(int _, [int _]) {
+    // TODO: implement m
+  }
+''',
+      displayText: 'm(int _, [int _]) { … }',
+      selection: SourceRange(122, 0),
+    );
+  }
+
   Future<void> test_mixin_method_of_interface() async {
     await _assertWriteOverride(
       content: '''

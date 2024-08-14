@@ -39,7 +39,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: <thisLibrary>::@augmentation::package:test/b.dart
+  element: package:test/a.dart::@augmentation::package:test/b.dart
 ''');
   }
 
@@ -58,7 +58,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: <thisLibrary>
+  element: <testLibrary>
 ''');
   }
 
@@ -79,7 +79,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: <thisLibrary>::@augmentation::package:test/test.dart
+  element: package:test/a.dart::@augmentation::package:test/test.dart
 ''');
   }
 
@@ -100,7 +100,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: <thisLibrary>
+  element: <testLibrary>
 ''');
   }
 
@@ -123,7 +123,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: <thisLibrary>
+  element: <testLibrary>
 ''');
   }
 
@@ -146,7 +146,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: <thisLibrary>
+  element: <testLibrary>
 ''');
   }
 
@@ -176,7 +176,7 @@ LibraryAugmentationDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: <thisLibrary>
+  element: <testLibrary>
 ''');
   }
 }
@@ -226,14 +226,20 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::math
+    element: package:test/a.dart::@fragment::package:test/b.dart::@prefix::math
   name: Random
-  element: dart:math::<definingUnit>::@class::Random
+  element: dart:math::<fragment>::@class::Random
   type: Random
 ''');
     }
   }
 
+  @SkippedTest(reason: r'''
+We use library fragment scopes now.
+And we will remove support for library augmentations.
+We keep this test for now as a reference.
+Later we will decide if we want to adapt it into enhanced parts. 
+''')
   test_namespace_import_libraryImports() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
@@ -257,9 +263,9 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: <thisLibrary>::@prefix::math
+    element: package:test/a.dart::<fragment>::@prefix::math
   name: Random
-  element: dart:math::<definingUnit>::@class::Random
+  element: dart:math::<fragment>::@class::Random
   type: Random
 ''');
     }
@@ -306,7 +312,7 @@ A bar() => throw 0;
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <thisLibrary>::@augmentation::package:test/b.dart::@class::A
+  element: package:test/a.dart::@fragment::package:test/b.dart::@class::A
   type: A
 ''');
     }
@@ -320,7 +326,7 @@ NamedType
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <thisLibrary>::@augmentation::package:test/b.dart::@class::A
+  element: package:test/a.dart::@fragment::package:test/b.dart::@class::A
   type: A
 ''');
     }
@@ -347,7 +353,7 @@ A bar() => throw 0;
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <thisLibrary>::<definingUnit>::@class::A
+  element: package:test/a.dart::<fragment>::@class::A
   type: A
 ''');
     }
@@ -361,7 +367,7 @@ NamedType
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <thisLibrary>::<definingUnit>::@class::A
+  element: package:test/a.dart::<fragment>::@class::A
   type: A
 ''');
     }

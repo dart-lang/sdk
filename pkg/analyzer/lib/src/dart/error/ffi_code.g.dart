@@ -496,6 +496,13 @@ class FfiCode extends AnalyzerErrorCode {
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
   );
 
+  ///  No parameters.
+  static const FfiCode VARIABLE_LENGTH_ARRAY_NOT_LAST = FfiCode(
+    'VARIABLE_LENGTH_ARRAY_NOT_LAST',
+    "Variable length 'Array's must only occur as the last field of Structs.",
+    correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
+  );
+
   /// Initialize a newly created error code to have the given [name].
   const FfiCode(
     String name,

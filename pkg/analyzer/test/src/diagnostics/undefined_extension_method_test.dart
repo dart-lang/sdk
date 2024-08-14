@@ -47,7 +47,7 @@ MethodInvocation
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element: <thisLibrary>::<definingUnit>::@extension::E
+    element: <testLibraryFragment>::@extension::E
     extendedType: String
     staticType: null
   operator: .

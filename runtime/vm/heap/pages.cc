@@ -54,7 +54,7 @@ static constexpr intptr_t kConservativeInitialMarkSpeed = 20;
 
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
     : heap_(heap),
-      num_freelists_(Utils::Maximum(FLAG_scavenger_tasks, 1) + 1),
+      num_freelists_(Scavenger::NumDataFreelists() + 1),
       freelists_(new FreeList[num_freelists_]),
       pages_lock_(),
       max_capacity_in_words_(max_capacity_in_words),
@@ -762,7 +762,7 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
   explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) {}
   void VisitObject(ObjectPtr obj) override {
     array_->AddValue(obj->untag()->HeapSize() / kObjectAlignment);
-    array_->AddValue(obj->GetClassId());
+    array_->AddValue(obj->GetClassIdOfHeapObject());
   }
 
  private:
@@ -1188,7 +1188,7 @@ class CollectStoreBufferEvacuateVisitor : public ObjectPointerVisitor {
       RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
 
       RELEASE_ASSERT_WITH_MSG(!obj->untag()->IsCardRemembered(), msg_);
-      if (obj.GetClassId() == kArrayCid) {
+      if (obj.GetClassIdOfHeapObject() == kArrayCid) {
         const uword length =
             Smi::Value(static_cast<UntaggedArray*>(obj.untag())->length());
         RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),
@@ -1378,7 +1378,8 @@ void PageSpace::Sweep(bool exclusive) {
   GCSweeper sweeper;
 
   intptr_t shard = 0;
-  const intptr_t num_shards = Utils::Maximum(FLAG_scavenger_tasks, 1);
+  const intptr_t num_shards = heap_->new_space()->NumScavengeWorkers();
+  ASSERT(num_shards < num_freelists_);
   if (exclusive) {
     for (intptr_t i = 0; i < num_shards; i++) {
       DataFreeList(i)->mutex()->Lock();

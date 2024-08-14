@@ -160,8 +160,9 @@ enum BenchmarkPhases {
   dill_finalizeExports,
 
   outline_kernelBuildOutlines,
-  outline_becomeCoreLibrary,
   outline_resolveParts,
+  outline_becomeCoreLibrary,
+  outline_buildScopes,
   outline_computeMacroDeclarations,
   outline_computeLibraryScopes,
   outline_computeMacroApplications,
@@ -187,8 +188,8 @@ enum BenchmarkPhases {
   outline_buildMacroDeclarationsForPhase2,
   outline_buildClassHierarchyMembers,
   outline_computeHierarchy,
-  outline_computeShowHideElements,
   outline_installTypedefTearOffs,
+  outline_performRedirectingFactoryInference,
   outline_performTopLevelInference,
   outline_checkOverrides,
   outline_checkAbstractMembers,
@@ -279,7 +280,6 @@ enum BenchmarkSubdivides {
   inferRedirectingFactoryTypeArguments,
 
   buildOutlineExpressions,
-  delayedActionPerformer,
 
   computeMacroApplications_macroExecutorProvider,
   macroApplications_macroExecutorLoadMacro,

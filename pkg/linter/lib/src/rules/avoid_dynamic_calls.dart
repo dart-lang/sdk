@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid method calls or property accesses on a `dynamic` target.';
 
@@ -93,10 +94,6 @@ void functionTypeWithParameters(Function() function) {
 ''';
 
 class AvoidDynamicCalls extends LintRule {
-  static const LintCode code = LintCode('avoid_dynamic_calls',
-      "Method invocation or property access on a 'dynamic' target.",
-      correctionMessage: 'Try giving the target a type.');
-
   AvoidDynamicCalls()
       : super(
           name: 'avoid_dynamic_calls',
@@ -109,7 +106,7 @@ class AvoidDynamicCalls extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_dynamic_calls;
 
   @override
   void registerNodeProcessors(

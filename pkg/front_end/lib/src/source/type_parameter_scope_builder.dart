@@ -10,6 +10,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import 'name_scheme.dart';
+import 'source_field_builder.dart';
 
 // The kind of type parameter scope built by a [TypeParameterScopeBuilder]
 // object.
@@ -117,6 +118,8 @@ class TypeParameterScopeBuilder {
 
   final Map<String, List<Builder>> setterAugmentations =
       <String, List<Builder>>{};
+
+  List<SourceFieldBuilder>? primaryConstructorFields;
 
   // TODO(johnniwinther): Stop using [_name] for determining the declaration
   // kind.
@@ -331,14 +334,18 @@ class TypeParameterScopeBuilder {
     unresolvedNamedTypes.add(type);
   }
 
+  void addPrimaryConstructorField(SourceFieldBuilder builder) {
+    (primaryConstructorFields ??= []).add(builder);
+  }
+
   /// Resolves type variables in [unresolvedNamedTypes] and propagate other
   /// types to [parent].
-  void resolveNamedTypes(List<NominalVariableBuilder>? typeVariables,
+  void resolveNamedTypes(List<TypeVariableBuilder>? typeVariables,
       ProblemReporting problemReporting) {
-    Map<String, NominalVariableBuilder>? map;
+    Map<String, Builder>? map;
     if (typeVariables != null) {
-      map = <String, NominalVariableBuilder>{};
-      for (NominalVariableBuilder builder in typeVariables) {
+      map = <String, Builder>{};
+      for (TypeVariableBuilder builder in typeVariables) {
         if (builder.isWildcard) continue;
         map[builder.name] = builder;
       }
@@ -381,60 +388,7 @@ class TypeParameterScopeBuilder {
     unresolvedNamedTypes.clear();
   }
 
-  /// Resolves type variables in [unresolvedNamedTypes] and propagate other
-  /// types to [parent].
-  void resolveNamedTypesWithStructuralVariables(
-      List<StructuralVariableBuilder>? typeVariables,
-      ProblemReporting problemReporting) {
-    Map<String, StructuralVariableBuilder>? map;
-    if (typeVariables != null) {
-      map = <String, StructuralVariableBuilder>{};
-      for (StructuralVariableBuilder builder in typeVariables) {
-        map[builder.name] = builder;
-      }
-    }
-    LookupScope? lookupScope;
-    for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
-      TypeName typeName = namedTypeBuilder.typeName;
-      String? qualifier = typeName.qualifier;
-      String name = qualifier ?? typeName.name;
-      Builder? declaration;
-      if (members != null) {
-        // Coverage-ignore-block(suite): Not run.
-        declaration = members![name];
-      }
-      if (declaration == null && map != null) {
-        declaration = map[name];
-      }
-      if (declaration == null) {
-        // Since name didn't resolve in this scope, propagate it to the
-        // parent declaration.
-        parent!.registerUnresolvedNamedType(namedTypeBuilder);
-      } else if (qualifier != null) {
-        // Coverage-ignore-block(suite): Not run.
-        // Attempt to use a member or type variable as a prefix.
-        int nameOffset = typeName.fullNameOffset;
-        int nameLength = typeName.fullNameLength;
-        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
-            qualifier, namedTypeBuilder.typeName.name);
-        problemReporting.addProblem(
-            message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
-        namedTypeBuilder.bind(
-            problemReporting,
-            namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
-                message.withLocation(
-                    namedTypeBuilder.fileUri!, nameOffset, nameLength)));
-      } else {
-        lookupScope ??= toLookupScope(typeVariables);
-        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!, problemReporting);
-      }
-    }
-    unresolvedNamedTypes.clear();
-  }
-
-  LookupScope toLookupScope(
-      List<TypeVariableBuilderBase>? typeVariableBuilders) {
+  LookupScope toLookupScope(List<TypeVariableBuilder>? typeVariableBuilders) {
     LookupScope lookupScope = new FixedLookupScope(
         ScopeKind.typeParameters, name,
         getables: members, setables: setters);
@@ -446,6 +400,95 @@ class TypeParameterScopeBuilder {
         getables: members, setables: setters, extensions: extensions);
   }
 
+  DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
+      Map<String, NominalVariableBuilder>? typeVariables) {
+    return new DeclarationNameSpaceBuilder._(
+        members, setters, constructors, extensions, typeVariables);
+  }
+
   @override
   String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
+}
+
+class DeclarationNameSpaceBuilder {
+  final Map<String, Builder>? _getables;
+  final Map<String, MemberBuilder>? _setables;
+  final Map<String, MemberBuilder>? _constructors;
+  final Set<ExtensionBuilder>? _extensions;
+  final Map<String, NominalVariableBuilder>? _typeVariables;
+
+  DeclarationNameSpaceBuilder.empty()
+      : _getables = null,
+        _setables = null,
+        _constructors = null,
+        _extensions = null,
+        _typeVariables = null;
+
+  DeclarationNameSpaceBuilder._(this._getables, this._setables,
+      this._constructors, this._extensions, this._typeVariables);
+
+  void addLocalMember(String name, MemberBuilder builder,
+      {required bool setter}) {
+    (setter
+        ?
+        // Coverage-ignore(suite): Not run.
+        _setables
+        : _getables)![name] = builder;
+  }
+
+  MemberBuilder? lookupLocalMember(String name, {required bool setter}) {
+    return (setter
+        ?
+        // Coverage-ignore(suite): Not run.
+        _setables
+        : _getables)![name] as MemberBuilder?;
+  }
+
+  void addConstructor(String name, MemberBuilder builder) {
+    _constructors![name] = builder;
+  }
+
+  Iterable<MemberBuilder> get constructors =>
+      _constructors?.values ?? // Coverage-ignore(suite): Not run.
+      [];
+
+  DeclarationNameSpace buildNameSpace(IDeclarationBuilder parent,
+      {bool includeConstructors = true}) {
+    void setParent(MemberBuilder? member) {
+      while (member != null) {
+        member.parent = parent;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (_typeVariables != null) {
+        NominalVariableBuilder? tv = _typeVariables![name];
+        if (tv != null) {
+          parent.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(member as MemberBuilder);
+    }
+
+    _getables?.forEach(setParentAndCheckConflicts);
+    _setables?.forEach(setParentAndCheckConflicts);
+    _constructors?.forEach(setParentAndCheckConflicts);
+
+    return new DeclarationNameSpaceImpl(
+        getables: _getables,
+        setables: _setables,
+        extensions: _extensions,
+        // TODO(johnniwinther): Handle constructors in extensions consistently.
+        // Currently they are not part of the name space but still processed
+        // for instance when inferring redirecting factories.
+        constructors: includeConstructors ? _constructors : null);
+  }
 }

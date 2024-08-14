@@ -8,11 +8,17 @@ To start a tooling daemon run `dart tooling-daemon`.
 If you have access to `Dart` then you can use the [package:dtd](#packagedtd)
 package.
 
-Otherwise, if you are creating your own client that will communicate with DTD using RPC,
-make sure to follow the entire
+Otherwise, if you are creating your own client that will communicate with DTD
+using RPC, make sure to follow the entire
 [Dart Tooling Daemon RPC protocol](#dart-tooling-daemon-rpc-protocol) section.
 
 The Dart Tooling Daemon Protocol uses JSON-RPC 2.0.
+
+## Common Services Definitions
+
+Some common services are defined to ensure that different tools can provide the
+same functionality consistently to DTD clients. Details of these can be found in
+[dtd_common_services](./dtd_common_services.md).
 
 ## Visualizing DTD interactions
 
@@ -80,19 +86,19 @@ sequenceDiagram
     participant dtd as Dart Tooling Daemon
     participant c2 as Client 2
 
-    Note right of c1: Client 1 registers the foo.bar method.
-    c1->>dtd: registerService(service: "foo", method: "bar")
+    Note right of c1: Client 1 registers the Foo.bar method.
+    c1->>dtd: registerService(service: "Foo", method: "bar")
     activate dtd
-    dtd-->>c2: ServiceRegistered({"service": "foo", "method": "bar"})
+    dtd-->>c2: ServiceRegistered({"service": "Foo", "method": "bar"})
     dtd-->>c1: Success
     deactivate dtd
 
-    Note left of c2: Client 2 calls foo.bar
-    c2->>dtd: foo.bar({{"a": 1, "b": 2}})
+    Note left of c2: Client 2 calls Foo.bar
+    c2->>dtd: Foo.bar({{"a": 1, "b": 2}})
     activate dtd
 
     Note left of dtd: dtd forwards the service method call to Client 1.
-    dtd->>c1: foo.bar({{"a": 1, "b": 2}})
+    dtd->>c1: Foo.bar({{"a": 1, "b": 2}})
     activate c1
 
     Note right of c1: Client 1 handles the<br/>request and responds to the Dart Tooling Daemon.
@@ -105,7 +111,7 @@ sequenceDiagram
 
     Note right of c1: Client 1 disconnects.
     activate dtd
-    dtd-->>c2: ServiceUnregistered({"service": "foo", "method": "bar"})
+    dtd-->>c2: ServiceUnregistered({"service": "Foo", "method": "bar"})
     deactivate dtd
 ```
 
@@ -118,7 +124,7 @@ named values in the arguments).
   "jsonrpc": "2.0",
   "method": "registerService",
   "params": {
-    "service": "foo",
+    "service": "Foo",
     "method": "bar",
     "capabilities": {
       "supportsAdditionalFoo": true,
@@ -139,7 +145,7 @@ registered and unregistered.
         "streamId": "Service",
         "eventKind": "ServiceRegistered",
         "eventData": {
-          "service": "foo",
+          "service": "Foo",
           "method": "bar",
           // Capabilities are included only if the client provided them
           "capabilities": {
@@ -157,7 +163,7 @@ registered and unregistered.
         "streamId": "Service",
         "eventKind": "ServiceUnregistered",
         "eventData": {
-          "service": "foo",
+          "service": "Foo",
           "method": "bar",
           // Unregistered events do not contain capabilities
         }
@@ -348,7 +354,7 @@ If the _method_ has already been registered on the _service_, the _132_
   "jsonrpc": "2.0",
   "method": "registerService",
   "params": {
-    "service": "foo",
+    "service": "Foo",
     "method": "bar",
   },
   "id": "2"
@@ -392,7 +398,7 @@ If service method does not exist, the -32601 (Method not found)
 
 Assume that a client has registered a service method with:
 
-- service: `foo`
+- service: `Foo`
 - method: `bar`
 
 Then calling that service method might look like:
@@ -400,7 +406,7 @@ Then calling that service method might look like:
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "foo.bar",
+  "method": "Foo.bar",
   "params": { "baz": 3 },
   "id": "2"
 }
@@ -480,7 +486,7 @@ service method.
 
 Assume that a client has registered a service method with:
 
-- service: `foo`
+- service: `Foo`
 - method: `bar`
 
 Then calling that service method might look like:
@@ -488,7 +494,7 @@ Then calling that service method might look like:
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "foo.bar",
+  "method": "Foo.bar",
   "params": { "baz": 3 },
   "id": "2"
 }

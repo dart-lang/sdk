@@ -145,7 +145,7 @@ void fn() {
   var f = (var a) => a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 23, 5),
     ]);
   }

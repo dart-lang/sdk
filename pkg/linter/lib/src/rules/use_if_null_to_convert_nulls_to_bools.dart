@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use `??` operators to convert `null`s to `bool`s.';
 
@@ -35,10 +36,6 @@ if (nullableBool ?? true) {
 ''';
 
 class UseIfNullToConvertNullsToBools extends LintRule {
-  static const LintCode code = LintCode('use_if_null_to_convert_nulls_to_bools',
-      "Use an if-null operator to convert a 'null' to a 'bool'.",
-      correctionMessage: 'Try using an if-null operator.');
-
   UseIfNullToConvertNullsToBools()
       : super(
           name: 'use_if_null_to_convert_nulls_to_bools',
@@ -48,7 +45,7 @@ class UseIfNullToConvertNullsToBools extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_if_null_to_convert_nulls_to_bools;
 
   @override
   void registerNodeProcessors(

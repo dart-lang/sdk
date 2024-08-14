@@ -10,7 +10,6 @@
 /// This library is separate from `expect.dart` because it uses
 /// `fromEnvironment` constants that cannot be precompiled,
 /// and we precompile `expect.dart`.
-
 library expect_config;
 
 import 'package:smith/smith.dart';

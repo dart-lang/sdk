@@ -7,7 +7,7 @@ library dart._interceptors;
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
-import 'dart:_foreign_helper' show JS, JS_GET_FLAG, TYPE_REF;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG, TYPE_REF, JS_RTI_PARAMETER;
 import 'dart:math' show Random, ln2;
 import 'dart:_rti' as rti show createRuntimeType, Rti;
 import 'dart:_runtime' as dart;

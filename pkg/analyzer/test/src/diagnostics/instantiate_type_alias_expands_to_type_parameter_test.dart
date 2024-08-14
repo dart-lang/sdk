@@ -118,7 +118,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: <thisLibrary>::<definingUnit>::@typeAlias::B
+      element: <testLibraryFragment>::@typeAlias::B
       type: InvalidType
     staticElement: <null>
   argumentList: ArgumentList

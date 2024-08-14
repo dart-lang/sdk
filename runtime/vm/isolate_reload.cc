@@ -74,8 +74,8 @@ class ObjectLocator : public ObjectVisitor {
       : context_(context), count_(0) {}
 
   void VisitObject(ObjectPtr obj) override {
-    InstanceMorpher* morpher =
-        context_->instance_morpher_by_cid_.LookupValue(obj->GetClassId());
+    InstanceMorpher* morpher = context_->instance_morpher_by_cid_.LookupValue(
+        obj->GetClassIdOfHeapObject());
     if (morpher != nullptr) {
       morpher->AddObject(obj);
       count_++;
@@ -1978,7 +1978,7 @@ class InvalidationCollector : public ObjectVisitor {
   virtual ~InvalidationCollector() {}
 
   void VisitObject(ObjectPtr obj) override {
-    intptr_t cid = obj->GetClassId();
+    intptr_t cid = obj->GetClassIdOfHeapObject();
     if (cid == kFunctionCid) {
       const Function& func =
           Function::Handle(zone_, static_cast<FunctionPtr>(obj));

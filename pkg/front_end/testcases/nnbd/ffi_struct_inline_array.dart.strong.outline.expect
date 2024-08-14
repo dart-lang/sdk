@@ -18,6 +18,6 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_struct_inline_array.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType>{_ArraySize.dimension1: 8, _ArraySize.dimension2: null, _ArraySize.dimension3: null, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_struct_inline_array.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType>{_ArraySize.dimension1: 8, _ArraySize.dimension2: null, _ArraySize.dimension3: null, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_struct_inline_array.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType>{_ArraySize.dimension1: 8, _ArraySize.dimension2: null, _ArraySize.dimension3: null, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null, _ArraySize.variableLength: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_struct_inline_array.dart:10:4 -> InstanceConstant(const _ArraySize<NativeType>{_ArraySize.dimension1: 8, _ArraySize.dimension2: null, _ArraySize.dimension3: null, _ArraySize.dimension4: null, _ArraySize.dimension5: null, _ArraySize.dimensions: null, _ArraySize.variableLength: false})
 Extra constant evaluation: evaluated: 2, effectively constant: 2

@@ -168,18 +168,14 @@ class _AsyncRun {
 
   @ReifyFunctionTypes(false)
   static void _scheduleImmediateJSOverride(void Function() callback) {
-    dart.addAsyncCallback();
     JS('void', '#.scheduleImmediate(#)', dart.global_, () {
-      dart.removeAsyncCallback();
       callback();
     });
   }
 
   @ReifyFunctionTypes(false)
   static void _scheduleImmediateWithPromise(void Function() callback) {
-    dart.addAsyncCallback();
     JS('', '#.Promise.resolve(null).then(#)', dart.global_, () {
-      dart.removeAsyncCallback();
       callback();
     });
   }
@@ -526,10 +522,6 @@ Completer<T> _makeAsyncAwaitCompleter<T>() {
 /// completer for convenience of the transformed code.
 Future _asyncStartSync(
     _WrappedAsyncBody bodyFunction, _AsyncAwaitCompleter completer) {
-  // Invoke the async callback so that the function body considers itself to be
-  // in an async context. The first async break will call the corresponding
-  // removeAsyncCallback.
-  dart.addAsyncCallback();
   bodyFunction(async_status_codes.SUCCESS, null);
   completer.isSync = true;
   return completer.future;
@@ -546,13 +538,6 @@ Future _asyncStartSync(
 void _asyncAwait(Object? object, _WrappedAsyncBody bodyFunction,
     _AsyncAwaitCompleter completer) {
   _awaitOnObject(object, bodyFunction);
-  // If this is the first async break since the function began then mark the end
-  // of the async section. But if a hot restart happened, then the state of the
-  // program is reset so the async callback shouldn't be invoked.
-  if (!completer.isSync &&
-      dart.hotRestartIteration == completer.hotRestartIteration) {
-    dart.removeAsyncCallback();
-  }
 }
 
 /// Completes the future of an `async` function.
@@ -564,13 +549,6 @@ void _asyncAwait(Object? object, _WrappedAsyncBody bodyFunction,
 /// implicitly).
 void _asyncReturn(Object? object, _AsyncAwaitCompleter completer) {
   completer.complete(object);
-  // If this is the first async break since the function began then mark the end
-  // of the async section. But if a hot restart happened, then the state of the
-  // program is reset so the async callback shouldn't be invoked.
-  if (!completer.isSync &&
-      dart.hotRestartIteration == completer.hotRestartIteration) {
-    dart.removeAsyncCallback();
-  }
 }
 
 /// Completes the future of an `async` function with an error.
@@ -582,13 +560,6 @@ void _asyncReturn(Object? object, _AsyncAwaitCompleter completer) {
 void _asyncRethrow(Object? object, _AsyncAwaitCompleter completer) {
   // The error is a js-error.
   completer.completeError(dart.getThrown(object)!, dart.stackTrace(object));
-  // If this is the first async break since the function began then mark the end
-  // of the async section. But if a hot restart happened, then the state of the
-  // program is reset so the async callback shouldn't be invoked.
-  if (!completer.isSync &&
-      dart.hotRestartIteration == completer.hotRestartIteration) {
-    dart.removeAsyncCallback();
-  }
 }
 
 /// Awaits on the given [object].

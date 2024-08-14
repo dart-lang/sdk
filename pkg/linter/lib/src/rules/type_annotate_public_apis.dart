@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Type annotate public APIs.';
@@ -50,10 +51,6 @@ With types, all of this is clarified.
 ''';
 
 class TypeAnnotatePublicApis extends LintRule {
-  static const LintCode code = LintCode(
-      'type_annotate_public_apis', 'Missing type annotation on a public API.',
-      correctionMessage: 'Try adding a type annotation.');
-
   TypeAnnotatePublicApis()
       : super(
             name: 'type_annotate_public_apis',
@@ -65,7 +62,7 @@ class TypeAnnotatePublicApis extends LintRule {
             });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.type_annotate_public_apis;
 
   @override
   void registerNodeProcessors(

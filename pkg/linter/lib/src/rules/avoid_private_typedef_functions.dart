@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid private typedef functions.';
 
@@ -28,10 +29,6 @@ m(void Function() f);
 ''';
 
 class AvoidPrivateTypedefFunctions extends LintRule {
-  static const LintCode code = LintCode('avoid_private_typedef_functions',
-      'The typedef is unnecessary because it is only used in one place.',
-      correctionMessage: 'Try inlining the type or using it in other places.');
-
   AvoidPrivateTypedefFunctions()
       : super(
             name: 'avoid_private_typedef_functions',
@@ -40,7 +37,7 @@ class AvoidPrivateTypedefFunctions extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_private_typedef_functions;
 
   @override
   void registerNodeProcessors(

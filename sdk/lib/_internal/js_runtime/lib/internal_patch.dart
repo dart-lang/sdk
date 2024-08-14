@@ -9,6 +9,7 @@ import 'dart:_internal' show patch;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper'
     show JS, JS_GET_FLAG, createJsSentinel, isJsSentinel;
+import 'dart:typed_data' show Uint8List;
 
 @patch
 @pragma('dart2js:tryInline')
@@ -77,3 +78,7 @@ bool isSentinel(dynamic value) => isJsSentinel(value);
 @patch
 @pragma('dart2js:tryInline')
 T unsafeCast<T>(dynamic v) => v;
+
+@patch
+Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
+    throw 'Unsupported operation';

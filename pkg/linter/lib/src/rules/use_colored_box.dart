@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use `ColoredBox`.';
@@ -39,10 +40,6 @@ Widget buildArea() {
 ''';
 
 class UseColoredBox extends LintRule {
-  static const LintCode code = LintCode('use_colored_box',
-      "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'.",
-      correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.");
-
   UseColoredBox()
       : super(
             name: 'use_colored_box',
@@ -51,7 +48,7 @@ class UseColoredBox extends LintRule {
             categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_colored_box;
 
   @override
   void registerNodeProcessors(

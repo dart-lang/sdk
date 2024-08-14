@@ -1558,7 +1558,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
 
 void Object::FinalizeReadOnlyObject(ObjectPtr object) {
   NoSafepointScope no_safepoint;
-  intptr_t cid = object->GetClassId();
+  intptr_t cid = object->GetClassIdOfHeapObject();
   if (cid == kOneByteStringCid) {
     OneByteStringPtr str = static_cast<OneByteStringPtr>(object);
     if (String::GetCachedHash(str) == 0) {
@@ -2011,18 +2011,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
-    // Pre-register the collection library so we can place the vm class
-    // Map there rather than the core library.
-    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    // Pre-register dart:_compact_hash library so that we could place
+    // collection classes (_Map, _ConstMap, _Set, _ConstSet) here.
+    lib = Library::LookupLibrary(thread, Symbols::DartCompactHash());
     if (lib.IsNull()) {
-      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib = Library::NewLibraryHelper(Symbols::DartCompactHash(), true);
       lib.SetLoadRequested();
       lib.Register(thread);
     }
+    object_store->set_bootstrap_library(ObjectStore::kCompactHash, lib);
 
-    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
     ASSERT(!lib.IsNull());
-    ASSERT(lib.ptr() == Library::CollectionLibrary());
+    ASSERT(lib.ptr() == Library::CompactHashLibrary());
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
     cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
@@ -2056,6 +2056,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_is_prefinalized();
     RegisterPrivateClass(cls, Symbols::_ConstSet(), lib);
     pending_classes.Add(cls);
+
+    // Pre-register the collection library.
+    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
 
     // Pre-register the async library so we can place the vm class
     // FutureOr there rather than the core library.
@@ -2747,7 +2756,7 @@ void Object::InitializeObject(uword address,
 void Object::CheckHandle() const {
 #if defined(DEBUG)
   if (ptr_ != Object::null()) {
-    intptr_t cid = ptr_->GetClassIdMayBeSmi();
+    intptr_t cid = ptr_->GetClassId();
     if (cid >= kNumPredefinedCids) {
       cid = kInstanceCid;
     }
@@ -2899,6 +2908,7 @@ bool Object::IsNotTemporaryScopedHandle() const {
 ObjectPtr Object::Clone(const Object& orig,
                         Heap::Space space,
                         bool load_with_relaxed_atomics) {
+  ASSERT(orig.ptr()->IsHeapObject());
   // Generic function types should be cloned with FunctionType::Clone.
   ASSERT(!orig.IsFunctionType() || !FunctionType::Cast(orig).IsGeneric());
   const Class& cls = Class::Handle(orig.clazz());
@@ -2928,7 +2938,7 @@ ObjectPtr Object::Clone(const Object& orig,
             size - kHeaderSizeInBytes);
   }
 
-  if (IsTypedDataClassId(raw_clone->GetClassId())) {
+  if (IsTypedDataClassId(raw_clone->GetClassIdOfHeapObject())) {
     auto raw_typed_data = TypedData::RawCast(raw_clone);
     raw_typed_data.untag()->RecomputeDataField();
   }
@@ -14812,6 +14822,10 @@ LibraryPtr Library::CollectionLibrary() {
   return IsolateGroup::Current()->object_store()->collection_library();
 }
 
+LibraryPtr Library::CompactHashLibrary() {
+  return IsolateGroup::Current()->object_store()->_compact_hash_library();
+}
+
 LibraryPtr Library::DeveloperLibrary() {
   return IsolateGroup::Current()->object_store()->developer_library();
 }
@@ -23519,7 +23533,7 @@ uword String::Hash(const uint16_t* characters, intptr_t len) {
 }
 
 intptr_t String::CharSize() const {
-  intptr_t class_id = ptr()->GetClassId();
+  intptr_t class_id = ptr()->GetClassIdOfHeapObject();
   if (class_id == kOneByteStringCid) {
     return kOneByteChar;
   }
@@ -24300,8 +24314,8 @@ bool String::EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
     return true;  // Both handles point to the same raw instance.
   }
   NoSafepointScope no_safepoint;
-  intptr_t str1_class_id = str1.ptr()->GetClassId();
-  intptr_t str2_class_id = str2.ptr()->GetClassId();
+  intptr_t str1_class_id = str1.ptr()->GetClassIdOfHeapObject();
+  intptr_t str2_class_id = str2.ptr()->GetClassIdOfHeapObject();
   switch (str1_class_id) {
     case kOneByteStringCid:
       EQUALS_IGNORING_PRIVATE_KEY(str2_class_id, OneByteString, str1, str2);
@@ -27124,6 +27138,7 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
         Instance::Cast(*pragma).GetField(*reusable_field_handle);
     if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
         (pragma_name != Symbols::dyn_module_callable().ptr()) &&
+        (pragma_name != Symbols::dyn_module_implicitly_callable().ptr()) &&
         (pragma_name != Symbols::dyn_module_extendable().ptr())) {
       continue;
     }

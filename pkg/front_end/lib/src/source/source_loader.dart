@@ -78,7 +78,6 @@ import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../macros/macro_injected_impl.dart' as injected;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
-import '../util/helpers.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
@@ -88,6 +87,7 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
+import 'source_factory_builder.dart';
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -254,6 +254,7 @@ class SourceLoader extends Loader {
     };
     assert(
         expectedFutureProblemsForCurrentPhase.isEmpty || hasSeenError,
+        // Coverage-ignore(suite): Not run.
         "Expected problems to be reported, but there were none.\n"
         "Current compilation phase: ${currentPhase}\n"
         "Expected at these locations:\n"
@@ -1110,6 +1111,7 @@ severity: $severity
       "dart:core" => defaultDartCoreSource,
       "dart:async" => defaultDartAsyncSource,
       "dart:collection" => defaultDartCollectionSource,
+      "dart:_compact_hash" => defaultDartCompactHashSource,
       "dart:_internal" => defaultDartInternalSource,
       "dart:typed_data" => defaultDartTypedDataSource,
       _ => message == null ? "" : "/* ${message.problemMessage} */",
@@ -1337,7 +1339,7 @@ severity: $severity
     Builder parent = libraryBuilder;
     if (enclosingClassOrExtension != null) {
       Builder? builder = dietListener.memberScope
-          .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
+          .lookupGetable(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
@@ -1381,6 +1383,7 @@ severity: $severity
         /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
+        libraryBuilder.fileUri,
         /* start char offset = */ 0,
         /* char offset = */ 0,
         /* open paren offset = */ -1,
@@ -1473,13 +1476,11 @@ severity: $severity
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
       _compilationUnits.remove(augmentationLibrary.fileUri);
       augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
-      augmentationLibrary.applyAugmentations();
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
-        _compilationUnits.values.every(
-            (compilationUnit) => !(compilationUnit is SourceCompilationUnit &&
-                // Coverage-ignore(suite): Not run.
+        _compilationUnits.values.every((compilationUnit) =>
+            !(compilationUnit is SourceCompilationUnit &&
                 compilationUnit.isAugmenting)),
         // Coverage-ignore(suite): Not run.
         "Augmentation library found in libraryBuilders: " +
@@ -1507,6 +1508,13 @@ severity: $severity
                 .join(', ') +
             ".");
     ticker.logMs("Applied augmentations");
+  }
+
+  void buildScopes(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
+    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
+      sourceLibraryBuilder.buildScopes(coreLibrary);
+    }
+    ticker.logMs("Resolved scopes");
   }
 
   /// Compute library scopes for [libraryBuilders].
@@ -1729,8 +1737,8 @@ severity: $severity
             Map<String, List<String>>? constructorMap;
             for (ClassBuilder macroClass in macroClasses) {
               List<String> constructors = [];
-              NameIterator<MemberBuilder> iterator = macroClass.constructorScope
-                  .filteredNameIterator(
+              NameIterator<MemberBuilder> iterator = macroClass.nameSpace
+                  .filteredConstructorNameIterator(
                       includeDuplicates: false, includeAugmentations: true);
               while (iterator.moveNext()) {
                 constructors.add(iterator.name);
@@ -1870,13 +1878,13 @@ severity: $severity
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List<TypeVariableBuilderBase> sortedTypeVariables =
+    List<TypeVariableBuilder> sortedTypeVariables =
         sortAllTypeVariablesTopologically([
       ...unboundFunctionTypeTypeVariableBuilders.keys,
       ...unboundTypeVariableBuilders.keys
     ]);
 
-    for (TypeVariableBuilderBase builder in sortedTypeVariables) {
+    for (TypeVariableBuilder builder in sortedTypeVariables) {
       switch (builder) {
         case NominalVariableBuilder():
           SourceLibraryBuilder? libraryBuilder =
@@ -2080,8 +2088,9 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    Iterator<MemberBuilder> iterator = builder.constructorScope
-        .filteredIterator(includeDuplicates: false, includeAugmentations: true);
+    Iterator<MemberBuilder> iterator = builder.nameSpace
+        .filteredConstructorIterator(
+            includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
       MemberBuilder constructor = iterator.current;
       if (constructor.isConstructor && !constructor.isSynthetic) {
@@ -2648,13 +2657,6 @@ severity: $severity
     ticker.logMs("Computed class hierarchy");
   }
 
-  void computeShowHideElements() {
-    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
-      libraryBuilder.computeShowHideElements(membersBuilder);
-    }
-    ticker.logMs("Computed show and hide elements");
-  }
-
   /// Creates an [InterfaceType] for the `dart:core` type by the given [name].
   ///
   /// This method can be called before [coreTypes] has been computed and only
@@ -2898,24 +2900,10 @@ severity: $severity
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    List<DelayedActionPerformer> delayedActionPerformers =
-        <DelayedActionPerformer>[];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.buildOutlineExpressions(
-          classHierarchy, delayedDefaultValueCloners, delayedActionPerformers);
+          classHierarchy, delayedDefaultValueCloners);
     }
-
-    target.benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.beginSubdivide(BenchmarkSubdivides.delayedActionPerformer);
-    for (DelayedActionPerformer delayedActionPerformer
-        in delayedActionPerformers) {
-      delayedActionPerformer.performDelayedActions(allowFurtherDelays: false);
-    }
-    target.benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.endSubdivide();
-    ticker.logMs("Build outline expressions");
   }
 
   void buildClassHierarchy(
@@ -2943,15 +2931,47 @@ severity: $severity
         new TypeInferenceEngineImpl(instrumentation, target.benchmarker);
   }
 
-  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
+  void inferRedirectingFactories(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    /// Inferring redirecting factories partially overlaps with top-level
+    /// inference, since the formal parameters of the redirection targets should
+    /// be inferred, and they can be formal initializing parameters requiring
+    /// inference. [RedirectingFactoryBuilder.buildOutlineExpressions] can
+    /// invoke inference on those formal parameters. Therefore, the top-level
+    /// inference should be prepared before we can infer redirecting factories.
+
     /// The first phase of top level initializer inference, which consists of
     /// creating kernel objects for all fields and top level variables that
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
-    inferableTypes.inferTypes(typeInferenceEngine.hierarchyBuilder);
 
+    // TODO(cstefantsova): Put the redirecting factory inference into a separate
+    // step.
+
+    // Redirecting factory invocations can occur in outline expressions and
+    // should be processed before them. The outline expressions within
+    // redirecting factory invocations themselves are minimal, containing only
+    // the target and possibly some type arguments, and don't depend on other
+    // kinds of outline expressions themselves.
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      List<RedirectingFactoryBuilder>? redirectingFactoryBuilders =
+          library.redirectingFactoryBuilders;
+      if (redirectingFactoryBuilders != null) {
+        for (RedirectingFactoryBuilder redirectingFactoryBuilder
+            in redirectingFactoryBuilders) {
+          redirectingFactoryBuilder.buildOutlineExpressions(
+              classHierarchy, delayedDefaultValueCloners);
+        }
+      }
+    }
+
+    ticker.logMs("Performed redirecting factory inference");
+  }
+
+  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
+    inferableTypes.inferTypes(typeInferenceEngine.hierarchyBuilder);
     typeInferenceEngine.isTypeInferencePrepared = true;
 
     ticker.logMs("Performed top level inference");
@@ -3338,10 +3358,6 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _Map<K, V> {
-  _Map();
-}
-
 abstract class LinkedHashSet<E> implements Set<E> {
   factory LinkedHashSet(
       {bool Function(E, E)? equals,
@@ -3349,13 +3365,19 @@ abstract class LinkedHashSet<E> implements Set<E> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _Set<E> {
-  _Set();
-}
-
 class _UnmodifiableSet {
   final Map _map;
   const _UnmodifiableSet(this._map);
+}
+""";
+
+/// A minimal implementation of dart:collection that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
+const String defaultDartCompactHashSource = """
+class _Map<K, V> {
+}
+
+class _Set<E> {
 }
 """;
 

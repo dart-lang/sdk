@@ -202,7 +202,7 @@ class DartFixPromptManager {
             : Commands.previewFixAllInWorkspace;
         unawaited(_executeCommand(execHandler, userPromptSender, command));
 
-      case doNotShowAgainActionText:
+      case (doNotShowAgainActionText, _):
         preferences.showDartFixPrompts = false;
 
       default:

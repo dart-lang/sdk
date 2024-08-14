@@ -34,7 +34,6 @@ import '../base/scope.dart';
 import 'source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
-import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_builder_mixins.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_member_builder.dart';
@@ -268,6 +267,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   FormalParameterBuilder? getFormal(Identifier identifier) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
+        if (formal.isWildcard &&
+            identifier.name == '_' &&
+            formal.charOffset == identifier.nameOffset) {
+          return formal;
+        }
         if (formal.name == identifier.name &&
             formal.charOffset == identifier.nameOffset) {
           return formal;
@@ -310,7 +314,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
 
   void buildFunction() {
@@ -477,9 +480,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
@@ -510,7 +511,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
                   inMetadata: true,
                   inConstFields: false),
               classHierarchy,
-              delayedActionPerformers,
               computeTypeParameterScope(parentScope));
         }
       }
@@ -521,8 +521,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals!) {
-          formal.buildOutlineExpressions(
-              libraryBuilder, delayedActionPerformers);
+          formal.buildOutlineExpressions(libraryBuilder);
         }
       }
       hasBuiltOutlineExpressions = true;

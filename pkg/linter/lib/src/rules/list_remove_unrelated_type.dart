@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Invocation of `remove` with references of unrelated types.';
 
@@ -119,9 +120,6 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 ''';
 
 class ListRemoveUnrelatedType extends LintRule {
-  static const LintCode code = LintCode('list_remove_unrelated_type',
-      "The argument type '{0}' isn't related to '{1}'.");
-
   ListRemoveUnrelatedType()
       : super(
           name: 'list_remove_unrelated_type',
@@ -132,5 +130,5 @@ class ListRemoveUnrelatedType extends LintRule {
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

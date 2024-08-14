@@ -3,6 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:_internal" as _in;
+import "dart:_compact_hash" as _co;
 import "dart:math" as math;
 
 import "dart:collection";
@@ -204,7 +205,7 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toSet() → core::Set<self::_MyList&Object&ListMixin::E%> {
-    core::Set<self::_MyList&Object&ListMixin::E%> result = new col::_Set::•<self::_MyList&Object&ListMixin::E%>();
+    core::Set<self::_MyList&Object&ListMixin::E%> result = new _co::_Set::•<self::_MyList&Object&ListMixin::E%>();
     for (core::int i = 0; i.{core::num::<}(this.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       result.{core::Set::add}(this.{core::List::[]}(i){(core::int) → self::_MyList&Object&ListMixin::E%}){(self::_MyList&Object&ListMixin::E%) → core::bool};
     }

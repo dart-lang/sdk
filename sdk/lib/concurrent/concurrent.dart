@@ -15,9 +15,9 @@ library dart.concurrent;
 ///
 /// Mutex objects are owned by an isolate which created them.
 abstract interface class Mutex {
-  factory Mutex({String debug_name = "mutex"}) => Mutex._(debug_name);
+  factory Mutex() => Mutex._();
 
-  external factory Mutex._(String debug_name);
+  external factory Mutex._();
 
   /// Acquire exclusive ownership of this mutex.
   ///

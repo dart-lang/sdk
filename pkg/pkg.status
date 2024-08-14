@@ -241,6 +241,7 @@ vm/test/*: SkipByDesign # Only meant to run on vm
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
+_macros/test/executor/executor_test: Skip # dartbug.com/56002
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths

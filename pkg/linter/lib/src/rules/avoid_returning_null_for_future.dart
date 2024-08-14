@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid returning null for Future.';
 
@@ -16,11 +17,6 @@ developer simply forgot to put an `async` keyword on the function.
 ''';
 
 class AvoidReturningNullForFuture extends LintRule {
-  static const LintCode code = LintCode('avoid_returning_null_for_future',
-      "Don't return 'null' when the return type is 'Future'.",
-      correctionMessage:
-          "Try making the function 'async', or returning 'Future.value(null)'.");
-
   AvoidReturningNullForFuture()
       : super(
             name: 'avoid_returning_null_for_future',
@@ -30,5 +26,5 @@ class AvoidReturningNullForFuture extends LintRule {
             categories: {LintRuleCategory.errors});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

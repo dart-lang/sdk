@@ -159,7 +159,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _checkForDivisionOptimizationHint(node);
     _deprecatedVerifier.binaryExpression(node);
     _checkForInvariantNanComparison(node);
     _checkForInvariantNullComparison(node);
@@ -847,45 +846,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         arguments: [entry.value.name!],
       );
     }
-  }
-
-  /// Checks the passed binary expression for [HintCode.DIVISION_OPTIMIZATION].
-  ///
-  /// Returns whether a hint code is generated.
-  bool _checkForDivisionOptimizationHint(BinaryExpression node) {
-    if (node.operator.type != TokenType.SLASH) return false;
-
-    // Return if the two operands are not each `int`.
-    var leftType = node.leftOperand.staticType;
-    if (leftType == null || !leftType.isDartCoreInt) return false;
-
-    var rightType = node.rightOperand.staticType;
-    if (rightType == null || !rightType.isDartCoreInt) return false;
-
-    // Return if the '/' operator is not defined in core, or if we don't know
-    // its static type.
-    var methodElement = node.staticElement;
-    if (methodElement == null) return false;
-
-    var libraryElement = methodElement.library;
-    if (!libraryElement.isDartCore) return false;
-
-    var parent = node.parent;
-    if (parent is! ParenthesizedExpression) return false;
-
-    var outermostParentheses = parent.thisOrAncestorMatching(
-        (e) => e.parent is! ParenthesizedExpression) as ParenthesizedExpression;
-    var grandParent = outermostParentheses.parent;
-    if (grandParent is! MethodInvocation) return false;
-
-    // Report an error if the `(x / y)` expression has `toInt()` invoked on it.
-    if (grandParent.methodName.name == 'toInt' &&
-        grandParent.argumentList.arguments.isEmpty) {
-      _errorReporter.atNode(grandParent, HintCode.DIVISION_OPTIMIZATION);
-      return true;
-    }
-
-    return false;
   }
 
   /// Generate hints related to duplicate elements (keys) in sets (maps).

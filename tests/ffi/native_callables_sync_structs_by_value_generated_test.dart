@@ -378,6 +378,21 @@ final testCases = [
           passInt64x7Struct12BytesHomogeneousInt32),
       passInt64x7Struct12BytesHomogeneousInt32AfterCallback),
   AsyncCallbackTest(
+      "PassPointerStruct12BytesHomogeneousInt32",
+      Pointer.fromFunction<PassPointerStruct12BytesHomogeneousInt32Type>(
+          passPointerStruct12BytesHomogeneousInt32),
+      noChecksAsync),
+  AsyncCallbackTest(
+      "PassPointerStructInlineArrayVariable",
+      Pointer.fromFunction<PassPointerStructInlineArrayVariableType>(
+          passPointerStructInlineArrayVariable),
+      noChecksAsync),
+  AsyncCallbackTest(
+      "PassPointerStructInlineArrayVariableAlign",
+      Pointer.fromFunction<PassPointerStructInlineArrayVariableAlignType>(
+          passPointerStructInlineArrayVariableAlign),
+      noChecksAsync),
+  AsyncCallbackTest(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -5133,6 +5148,104 @@ Future<void> passInt64x7Struct12BytesHomogeneousInt32AfterCallback() async {
   final result = await PassInt64x7Struct12BytesHomogeneousInt32Result.future;
   print("after callback result = $result");
   Expect.approxEquals(5, result);
+}
+
+typedef PassPointerStruct12BytesHomogeneousInt32Type = Void Function(
+    Pointer<Struct12BytesHomogeneousInt32>);
+
+// Global variable that stores the result.
+final PassPointerStruct12BytesHomogeneousInt32Result = Completer<double>();
+
+/// Passing a pointer to a struct
+void passPointerStruct12BytesHomogeneousInt32(
+    Pointer<Struct12BytesHomogeneousInt32> a0) {
+  print("passPointerStruct12BytesHomogeneousInt32(${a0})");
+
+  double result = 0;
+
+  result += a0.ref.a0;
+  result += a0.ref.a1;
+  result += a0.ref.a2;
+
+  print("result = $result");
+  PassPointerStruct12BytesHomogeneousInt32Result.complete(result);
+}
+
+Future<void> passPointerStruct12BytesHomogeneousInt32AfterCallback() async {
+  final result = await PassPointerStruct12BytesHomogeneousInt32Result.future;
+  print("after callback result = $result");
+  Expect.approxEquals(-2, result);
+}
+
+typedef PassPointerStructInlineArrayVariableType = Void Function(
+    Pointer<StructInlineArrayVariable>);
+
+// Global variable that stores the result.
+final PassPointerStructInlineArrayVariableResult = Completer<double>();
+
+/// Variable length array
+void passPointerStructInlineArrayVariable(
+    Pointer<StructInlineArrayVariable> a0) {
+  print("passPointerStructInlineArrayVariable(${a0})");
+
+  double result = 0;
+
+  result += a0.ref.a0;
+  result += a0.ref.a1[0];
+  result += a0.ref.a1[1];
+  result += a0.ref.a1[2];
+  result += a0.ref.a1[3];
+  result += a0.ref.a1[4];
+  result += a0.ref.a1[5];
+  result += a0.ref.a1[6];
+  result += a0.ref.a1[7];
+  result += a0.ref.a1[8];
+  result += a0.ref.a1[9];
+
+  print("result = $result");
+  PassPointerStructInlineArrayVariableResult.complete(result);
+}
+
+Future<void> passPointerStructInlineArrayVariableAfterCallback() async {
+  final result = await PassPointerStructInlineArrayVariableResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(66, result);
+}
+
+typedef PassPointerStructInlineArrayVariableAlignType = Void Function(
+    Pointer<StructInlineArrayVariableAlign>);
+
+// Global variable that stores the result.
+final PassPointerStructInlineArrayVariableAlignResult = Completer<double>();
+
+/// Variable length array with variable length element having more alignment than
+/// the rest of the struct.
+void passPointerStructInlineArrayVariableAlign(
+    Pointer<StructInlineArrayVariableAlign> a0) {
+  print("passPointerStructInlineArrayVariableAlign(${a0})");
+
+  double result = 0;
+
+  result += a0.ref.a0;
+  result += a0.ref.a1[0];
+  result += a0.ref.a1[1];
+  result += a0.ref.a1[2];
+  result += a0.ref.a1[3];
+  result += a0.ref.a1[4];
+  result += a0.ref.a1[5];
+  result += a0.ref.a1[6];
+  result += a0.ref.a1[7];
+  result += a0.ref.a1[8];
+  result += a0.ref.a1[9];
+
+  print("result = $result");
+  PassPointerStructInlineArrayVariableAlignResult.complete(result);
+}
+
+Future<void> passPointerStructInlineArrayVariableAlignAfterCallback() async {
+  final result = await PassPointerStructInlineArrayVariableAlignResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(66, result);
 }
 
 typedef ReturnStruct1ByteIntType = Void Function(Int8);

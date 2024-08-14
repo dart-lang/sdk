@@ -103,37 +103,6 @@ class _IdentifierFinder extends BaseVisitorVoid {
   }
 }
 
-class YieldFinder extends BaseVisitorVoid {
-  bool hasYield = false;
-  bool hasThis = false;
-  bool _nestedFunction = false;
-
-  @override
-  void visitThis(This node) {
-    hasThis = true;
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    var savedNested = _nestedFunction;
-    _nestedFunction = true;
-    super.visitFunctionExpression(node);
-    _nestedFunction = savedNested;
-  }
-
-  @override
-  void visitYield(Yield node) {
-    if (!_nestedFunction) hasYield = true;
-    super.visitYield(node);
-  }
-
-  @override
-  void visitNode(Node node) {
-    if (hasYield && hasThis) return; // found both, nothing more to do.
-    super.visitNode(node);
-  }
-}
-
 /// Given the function [fn], returns a function declaration statement, binding
 /// `this` and `super` if necessary (using an arrow function).
 Statement toBoundFunctionStatement(Fun fn, Identifier name) {

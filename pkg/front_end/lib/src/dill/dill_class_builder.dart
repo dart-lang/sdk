@@ -22,18 +22,17 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
 
 mixin DillClassMemberAccessMixin implements ClassMemberAccess {
-  NameSpace get nameSpace;
-  ConstructorScope get constructorScope;
+  DeclarationNameSpace get nameSpace;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      constructorScope.filteredIterator<T>(
+      nameSpace.filteredConstructorIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      constructorScope.filteredNameIterator<T>(
+      nameSpace.filteredConstructorNameIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
 
   @override
@@ -55,10 +54,9 @@ class DillClassBuilder extends ClassBuilderImpl
 
   late final LookupScope _scope;
 
-  final NameSpace _nameSpace;
+  final DeclarationNameSpace _nameSpace;
 
-  @override
-  final ConstructorScope constructorScope;
+  late final ConstructorScope _constructorScope;
 
   List<NominalVariableBuilder>? _typeVariables;
 
@@ -67,21 +65,25 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? _interfaceBuilders;
 
   DillClassBuilder(this.cls, DillLibraryBuilder parent)
-      : _nameSpace = new NameSpaceImpl(),
-        constructorScope =
-            new ConstructorScope(cls.name, <String, MemberBuilder>{}),
+      : _nameSpace = new DeclarationNameSpaceImpl(),
         super(/*metadata builders*/ null, computeModifiers(cls), cls.name,
             parent, cls.fileOffset) {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class ${cls.name}",
         parent: parent.scope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(cls.name, _nameSpace);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _nameSpace;
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   bool get isEnum => cls.isEnum;
@@ -153,12 +155,12 @@ class DillClassBuilder extends ClassBuilderImpl
     DillConstructorBuilder builder =
         new DillConstructorBuilder(constructor, constructorTearOff, this);
     String name = constructor.name.text;
-    constructorScope.addLocalMember(name, builder);
+    nameSpace.addConstructor(name, builder);
   }
 
   void addFactory(Procedure factory, Procedure? factoryTearOff) {
     String name = factory.name.text;
-    constructorScope.addLocalMember(
+    nameSpace.addConstructor(
         name, new DillFactoryBuilder(factory, factoryTearOff, this));
   }
 

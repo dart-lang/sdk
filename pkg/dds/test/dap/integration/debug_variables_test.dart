@@ -496,8 +496,10 @@ void main(List<String> args) {
       String typeName, {
       required String constructor,
       required List<String> expectedDisplayStrings,
+      ValueFormat? format,
     }) {
-      test('renders a $typeName', () async {
+      final testTypeName = '$typeName ${format?.toJson() ?? ''}'.trim();
+      test('renders a $testTypeName', () async {
         final client = dap.client;
         final testFile = dap.createTestFile('''
 import 'dart:typed_data';
@@ -520,10 +522,11 @@ void main(List<String> args) {
             [1]: ${expectedDisplayStrings[1]}, eval: myVariable[1]
             [2]: ${expectedDisplayStrings[2]}, eval: myVariable[2]
         ''',
+          format: format,
         );
       });
 
-      test('renders a $typeName subset', () async {
+      test('renders a $testTypeName subset', () async {
         final client = dap.client;
         final testFile = dap.createTestFile('''
 import 'dart:typed_data';
@@ -544,6 +547,7 @@ void main(List<String> args) {
           expectedVariables: '''
             [1]: ${expectedDisplayStrings[1]}, eval: myVariable[1]
         ''',
+          format: format,
           start: 1,
           count: 1,
         );
@@ -559,6 +563,12 @@ void main(List<String> args) {
       'Uint8List',
       constructor: 'Uint8List.fromList([1, 2, 3])',
       expectedDisplayStrings: ['1', '2', '3'],
+    );
+    checkList(
+      'Uint8List',
+      constructor: 'Uint8List.fromList([1, 2, 3])',
+      expectedDisplayStrings: ['0x1', '0x2', '0x3'],
+      format: ValueFormat(hex: true), // Hex display of typed_data lists.
     );
     checkList(
       'Uint16List',

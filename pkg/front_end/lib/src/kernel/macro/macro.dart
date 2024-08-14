@@ -740,8 +740,9 @@ class MacroApplications {
         required macro.DeclarationKind targetDeclarationKind}) async {
       try {
         application.instanceIdentifier = (instanceIdCache[application] ??=
-            injected.macroImplementation!.macroRunner
-                .run(libraryUri, macroClassName)) as injected.RunningMacro;
+                injected.macroImplementation!.macroRunner
+                    .run(libraryUri, application.classBuilder.name))
+            as injected.RunningMacro;
       } catch (_) {
         applicationData.libraryBuilder.addProblem(
             messageUnsupportedMacroApplication,

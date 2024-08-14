@@ -683,6 +683,7 @@ class FieldBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
@@ -735,7 +736,6 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isNativeMethod {
     return _member.isNative;
   }
@@ -790,6 +790,7 @@ class ProcedureBodyBuilderContext extends BodyBuilderContext
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 
@@ -879,6 +880,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 
@@ -907,6 +909,7 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 
@@ -938,6 +941,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 
@@ -967,6 +971,7 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 

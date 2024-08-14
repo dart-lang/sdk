@@ -15726,6 +15726,17 @@ final class MyStruct extends Struct {
 }
 ```
 
+If this is a variable length inline array, change the annotation to `Array.variable()`:
+
+```dart
+import 'dart:ffi';
+
+final class MyStruct extends Struct {
+  @Array.variable()
+  external Array<Uint8> a0;
+}
+```
+
 ### non_sized_type_argument
 
 _The type '{1}' isn't a valid type argument for '{0}'. The type argument must be
@@ -23674,6 +23685,65 @@ enum E {
 }
 ```
 
+### variable_length_array_not_last
+
+_Variable length 'Array's must only occur as the last field of Structs._
+
+#### Description
+
+The analyzer produces this diagnostic when a variable length inline `Array`
+is not the last member of a `Struct`.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the field `a0` has a
+type with three nested arrays, but only two dimensions are given in the
+`Array` annotation:
+
+```dart
+import 'dart:ffi';
+
+final class C extends Struct {
+  [!@Array.variable()!]
+  external Array<Uint8> a0;
+
+  @Uint8()
+  external int a1;
+}
+```
+
+#### Common fixes
+
+Move the variable length inline `Array` to be the last field in the struct.
+
+```dart
+import 'dart:ffi';
+
+final class C extends Struct {
+  @Uint8()
+  external int a1;
+
+  @Array.variable()
+  external Array<Uint8> a0;
+}
+```
+
+If the inline array has a fixed size, annotate it with the size:
+
+```dart
+import 'dart:ffi';
+
+final class C extends Struct {
+  @Array(10)
+  external Array<Uint8> a0;
+
+  @Uint8()
+  external int a1;
+}
+```
+
 ### variable_pattern_keyword_in_declaration_context
 
 _Variable patterns in declaration context can't specify 'var' or 'final'
@@ -24976,7 +25046,7 @@ Widget buildRow() {
 
 ### avoid_web_libraries_in_flutter
 
-_Don't use web-only libraries outside Flutter web plugin packages._
+_Don't use web-only libraries outside Flutter web plugins._
 
 #### Description
 
@@ -26775,9 +26845,9 @@ C c = C(const [1]);
 
 ### prefer_contains
 
-_Always false because indexOf is always greater or equal -1._
+_Always 'false' because 'indexOf' is always greater than or equal to -1._
 
-_Always true because indexOf is always greater or equal -1._
+_Always 'true' because 'indexOf' is always greater than or equal to -1._
 
 _Unnecessary use of 'indexOf' to test for containment._
 
@@ -28142,8 +28212,6 @@ var o = Object();
 
 _Local variables should not be marked as 'final'._
 
-_Local variables should not be marked as 'final'._
-
 #### Description
 
 The analyzer produces this diagnostic when a local variable is marked as
@@ -29287,9 +29355,9 @@ part of 'lib.dart';
 
 ### use_super_parameters
 
-_Convert '{0}' to a super parameter._
+_Parameter '{0}' could be a super parameter._
 
-_Convert {0} to super parameters._
+_Parameters '{0}' could be super parameters._
 
 #### Description
 

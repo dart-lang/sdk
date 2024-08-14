@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't use adjacent strings in list.";
 
@@ -35,11 +36,6 @@ List<String> list = <String>[
 ''';
 
 class NoAdjacentStringsInList extends LintRule {
-  static const LintCode code = LintCode('no_adjacent_strings_in_list',
-      "Don't use adjacent strings in a list literal.",
-      correctionMessage: 'Try adding a comma between the strings.',
-      hasPublishedDocs: true);
-
   NoAdjacentStringsInList()
       : super(
             name: 'no_adjacent_strings_in_list',
@@ -48,7 +44,7 @@ class NoAdjacentStringsInList extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.no_adjacent_strings_in_list;
 
   @override
   void registerNodeProcessors(

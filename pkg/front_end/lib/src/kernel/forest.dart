@@ -18,10 +18,13 @@ import 'collections.dart'
         ForInMapEntry,
         ForMapEntry,
         IfCaseElement,
+        IfCaseMapEntry,
         IfElement,
         IfMapEntry,
         NullAwareElement,
+        NullAwareMapEntry,
         PatternForElement,
+        PatternForMapEntry,
         SpreadElement;
 
 import 'internal_ast.dart';
@@ -193,6 +196,24 @@ class Forest {
   MapLiteralEntry createMapEntry(
       int fileOffset, Expression key, Expression value) {
     return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
+  }
+
+  /// Return a representation of a null-aware key/value pair, were either the
+  /// key or the value might be `null`, in a literal map at the given
+  /// [fileOffset]. The [key] is the representation of the expression used to
+  /// compute the key. The [value] is the representation of the expression used
+  /// to compute the value.
+  NullAwareMapEntry createNullAwareMapEntry(int fileOffset,
+      {required bool isKeyNullAware,
+      required Expression key,
+      required bool isValueNullAware,
+      required Expression value}) {
+    return new NullAwareMapEntry(
+        isKeyNullAware: isKeyNullAware,
+        key: key,
+        isValueNullAware: isValueNullAware,
+        value: value)
+      ..fileOffset = fileOffset;
   }
 
   LoadLibrary createLoadLibrary(

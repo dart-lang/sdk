@@ -604,7 +604,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
               libraryBuilder,
               sourceClassBuilder,
               sourceClassBuilder.cls,
-              sourceClassBuilder.indexedContainer,
+              sourceClassBuilder.indexedClass,
               combinedMemberSignature,
               kind,
               superClassMember: _superClassMember,

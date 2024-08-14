@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::Foo<self::Foo::T%>
+    ;
+  method make() → dynamic
+    ;
+}

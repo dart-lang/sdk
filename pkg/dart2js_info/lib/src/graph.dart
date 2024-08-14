@@ -9,7 +9,7 @@
 /// Portions of the code in this library was adapted from
 /// `package:analyzer/src/generated/collection_utilities.dart`.
 // TODO(sigmund): move this into a shared place, like quiver?
-library dart2js_info.src.graph;
+library;
 
 import 'dart:math' as math;
 

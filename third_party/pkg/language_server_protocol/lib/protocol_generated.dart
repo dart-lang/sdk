@@ -10083,7 +10083,7 @@ class CodeActionKind implements ToJsonable {
       other is CodeActionKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -10516,7 +10516,7 @@ class CodeActionTriggerKind implements ToJsonable {
       other is CodeActionTriggerKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -12715,7 +12715,7 @@ class CompletionItemKind implements ToJsonable {
       other is CompletionItemKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -12876,7 +12876,7 @@ class CompletionItemTag implements ToJsonable {
       other is CompletionItemTag && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -13714,7 +13714,7 @@ class CompletionTriggerKind implements ToJsonable {
       other is CompletionTriggerKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -15683,7 +15683,7 @@ class DiagnosticSeverity implements ToJsonable {
       other is DiagnosticSeverity && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -15718,7 +15718,7 @@ class DiagnosticTag implements ToJsonable {
       other is DiagnosticTag && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -17166,7 +17166,7 @@ class DocumentDiagnosticReportKind implements ToJsonable {
       other is DocumentDiagnosticReportKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -17679,7 +17679,7 @@ class DocumentHighlightKind implements ToJsonable {
       other is DocumentHighlightKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -19781,7 +19781,7 @@ class ErrorCodes implements ToJsonable {
       other is ErrorCodes && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -20179,7 +20179,7 @@ class FailureHandlingKind implements ToJsonable {
       other is FailureHandlingKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -20218,7 +20218,7 @@ class FileChangeType implements ToJsonable {
       other is FileChangeType && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -20921,7 +20921,7 @@ class FileOperationPatternKind implements ToJsonable {
       other is FileOperationPatternKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -21611,7 +21611,7 @@ class FoldingRangeKind implements ToJsonable {
       other is FoldingRangeKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -23830,7 +23830,7 @@ class InlayHintKind implements ToJsonable {
       other is InlayHintKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -25113,7 +25113,7 @@ class InsertTextFormat implements ToJsonable {
       other is InsertTextFormat && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -25158,7 +25158,7 @@ class InsertTextMode implements ToJsonable {
       other is InsertTextMode && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -26069,7 +26069,7 @@ class MarkupKind implements ToJsonable {
       other is MarkupKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -26165,7 +26165,7 @@ class MessageType implements ToJsonable {
       other is MessageType && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -26488,7 +26488,7 @@ class Method implements ToJsonable {
   bool operator ==(Object other) => other is Method && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -26681,7 +26681,7 @@ class MonikerKind implements ToJsonable {
       other is MonikerKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -27154,7 +27154,7 @@ class NotebookCellKind implements ToJsonable {
       other is NotebookCellKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -29112,7 +29112,7 @@ class PositionEncodingKind implements ToJsonable {
       other is PositionEncodingKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -29276,7 +29276,7 @@ class PrepareSupportDefaultBehavior implements ToJsonable {
       other is PrepareSupportDefaultBehavior && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -31424,7 +31424,7 @@ class ResourceOperationKind implements ToJsonable {
       other is ResourceOperationKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -31922,7 +31922,7 @@ class SemanticTokenModifiers implements ToJsonable {
       other is SemanticTokenModifiers && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -33488,7 +33488,7 @@ class SemanticTokenTypes implements ToJsonable {
       other is SemanticTokenTypes && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -35671,7 +35671,7 @@ class SignatureHelpTriggerKind implements ToJsonable {
       other is SignatureHelpTriggerKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -36142,7 +36142,7 @@ class SymbolKind implements ToJsonable {
       other is SymbolKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -36169,7 +36169,7 @@ class SymbolTag implements ToJsonable {
       other is SymbolTag && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -37825,7 +37825,7 @@ class TextDocumentSaveReason implements ToJsonable {
       other is TextDocumentSaveReason && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -38044,7 +38044,7 @@ class TextDocumentSyncKind implements ToJsonable {
       other is TextDocumentSyncKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -38269,7 +38269,7 @@ class TokenFormat implements ToJsonable {
       other is TokenFormat && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -38298,7 +38298,7 @@ class TraceValues implements ToJsonable {
       other is TraceValues && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -39435,7 +39435,7 @@ class UniquenessLevel implements ToJsonable {
       other is UniquenessLevel && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  String toJson() => _value;
 
   @override
   String toString() => _value.toString();
@@ -39730,7 +39730,7 @@ class WatchKind implements ToJsonable {
       other is WatchKind && other._value == _value;
 
   @override
-  Object toJson() => _value;
+  int toJson() => _value;
 
   @override
   String toString() => _value.toString();

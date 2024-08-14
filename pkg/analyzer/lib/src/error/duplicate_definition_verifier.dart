@@ -8,8 +8,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/unit_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -69,6 +69,14 @@ class DuplicateDefinitionVerifier {
       if (identifier != null) {
         // The identifier can be null if this is a parameter list for a generic
         // function type.
+
+        // Skip wildcard `super._`.
+        if (parameter is SuperFormalParameter &&
+            identifier.lexeme == '_' &&
+            _currentLibrary.hasWildcardVariablesFeatureEnabled) {
+          continue;
+        }
+
         _checkDuplicateIdentifier(definedNames, identifier,
             element: parameter.declaredElement!);
       }
@@ -85,11 +93,13 @@ class DuplicateDefinitionVerifier {
               element: variable.declaredElement!);
         }
       } else if (statement is FunctionDeclarationStatement) {
-        _checkDuplicateIdentifier(
-          definedNames,
-          statement.functionDeclaration.name,
-          element: statement.functionDeclaration.declaredElement!,
-        );
+        if (!_isWildCardFunction(statement)) {
+          _checkDuplicateIdentifier(
+            definedNames,
+            statement.functionDeclaration.name,
+            element: statement.functionDeclaration.declaredElement!,
+          );
+        }
       } else if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
           _checkDuplicateIdentifier(definedNames, variable.node.name,
@@ -255,6 +265,10 @@ class DuplicateDefinitionVerifier {
       }
     }
   }
+
+  bool _isWildCardFunction(FunctionDeclarationStatement statement) =>
+      statement.functionDeclaration.name.lexeme == '_' &&
+      _currentLibrary.hasWildcardVariablesFeatureEnabled;
 
   static bool _isGetterSetterPair(Element a, Element b) {
     if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
@@ -805,26 +819,26 @@ class MemberDuplicateDefinitionVerifier {
     required InheritanceManager3 inheritance,
     required LibraryVerificationContext libraryVerificationContext,
     required LibraryElement libraryElement,
-    required Map<FileState, UnitAnalysis> units,
+    required Map<FileState, FileAnalysis> files,
   }) {
-    MemberDuplicateDefinitionVerifier forUnit(UnitAnalysis unitAnalysis) {
+    MemberDuplicateDefinitionVerifier forUnit(FileAnalysis fileAnalysis) {
       return MemberDuplicateDefinitionVerifier._(
         inheritance,
         libraryElement,
-        unitAnalysis.element,
-        unitAnalysis.errorReporter,
+        fileAnalysis.element,
+        fileAnalysis.errorReporter,
         libraryVerificationContext.duplicationDefinitionContext,
       );
     }
 
     // Check all instance members.
-    for (var unitAnalysis in units.values) {
-      forUnit(unitAnalysis)._checkUnit(unitAnalysis.unit);
+    for (var fileAnalysis in files.values) {
+      forUnit(fileAnalysis)._checkUnit(fileAnalysis.unit);
     }
 
     // Check all static members.
-    for (var unitAnalysis in units.values) {
-      forUnit(unitAnalysis)._checkUnitStatic(unitAnalysis.unit);
+    for (var fileAnalysis in files.values) {
+      forUnit(fileAnalysis)._checkUnitStatic(fileAnalysis.unit);
     }
   }
 

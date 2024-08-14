@@ -69,6 +69,54 @@ abstract class NameSpace {
       required bool includeAugmentations});
 }
 
+abstract class DeclarationNameSpace implements NameSpace {
+  MemberBuilder? lookupConstructor(String name);
+
+  void addConstructor(String name, MemberBuilder builder);
+
+  void forEachConstructor(void Function(String, MemberBuilder) f);
+
+  /// Returns an iterator of all constructors mapped in this scope,
+  /// including duplicate constructors mapped to the same name.
+  Iterator<MemberBuilder> get unfilteredConstructorIterator;
+
+  /// Returns an iterator of all constructors mapped in this scope,
+  /// including duplicate constructors mapped to the same name.
+  ///
+  /// Compared to [unfilteredConstructorIterator] this iterator also gives
+  /// access to the name that the builders are mapped to.
+  NameIterator<MemberBuilder> get unfilteredConstructorNameIterator;
+
+  /// Returns a filtered iterator of constructors mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  Iterator<T> filteredConstructorIterator<T extends MemberBuilder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations});
+
+  /// Returns a filtered iterator of constructors mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  ///
+  /// Compared to [filteredConstructorIterator] this iterator also gives access
+  /// to the name that the builders are mapped to.
+  NameIterator<T> filteredConstructorNameIterator<T extends MemberBuilder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations});
+}
+
 class NameSpaceImpl implements NameSpace {
   Map<String, Builder>? _getables;
   Map<String, MemberBuilder>? _setables;
@@ -159,6 +207,64 @@ class NameSpaceImpl implements NameSpace {
   @override
   NameIterator<Builder> get unfilteredNameIterator =>
       new ScopeNameIterator(_getables, _setables, _extensions?.iterator);
+}
+
+class DeclarationNameSpaceImpl extends NameSpaceImpl
+    implements DeclarationNameSpace {
+  Map<String, MemberBuilder>? _constructors;
+
+  DeclarationNameSpaceImpl(
+      {super.getables,
+      super.setables,
+      super.extensions,
+      Map<String, MemberBuilder>? constructors})
+      : _constructors = constructors;
+
+  @override
+  void addConstructor(String name, MemberBuilder builder) {
+    (_constructors ??= {})[name] = builder;
+  }
+
+  @override
+  MemberBuilder? lookupConstructor(String name) => _constructors?[name];
+
+  /// Returns an iterator of all constructors mapped in this scope,
+  /// including duplicate constructors mapped to the same name.
+  @override
+  Iterator<MemberBuilder> get unfilteredConstructorIterator =>
+      new ConstructorNameSpaceIterator(_constructors?.values.iterator);
+
+  @override
+  NameIterator<MemberBuilder> get unfilteredConstructorNameIterator =>
+      new ConstructorNameSpaceNameIterator(
+          _constructors?.keys.iterator, _constructors?.values.iterator);
+
+  @override
+  Iterator<T> filteredConstructorIterator<T extends MemberBuilder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredIterator<T>(unfilteredConstructorIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
+  }
+
+  @override
+  NameIterator<T> filteredConstructorNameIterator<T extends MemberBuilder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredNameIterator<T>(unfilteredConstructorNameIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
+  }
+
+  @override
+  void forEachConstructor(void Function(String, MemberBuilder) f) {
+    _constructors?.forEach(f);
+  }
 }
 
 abstract class LazyNameSpace extends NameSpaceImpl {
@@ -373,8 +479,8 @@ class PrefixNameSpace extends NameSpaceImpl {
       nameSpace._getables?.forEach(mergeMember);
     }
     if (nameSpace._setables != null) {
-      map = _setables ??= // Coverage-ignore(suite): Not run.
-          {};
+      // Coverage-ignore-block(suite): Not run.
+      map = _setables ??= {};
       nameSpace._setables?.forEach(mergeMember);
     }
     if (nameSpace._extensions != null) {

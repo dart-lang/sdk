@@ -1,0 +1,4 @@
+set noparent
+file:/tools/OWNERS_VM
+# In addition to VM team allow global owners.
+file:/OWNERS

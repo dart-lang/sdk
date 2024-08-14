@@ -52,7 +52,6 @@ import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
-import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/macro/macro.dart';
@@ -72,13 +71,13 @@ import '../kernel/utils.dart'
         exportNeverSentinel,
         toKernelCombinators,
         unserializableExportName;
-import '../util/helpers.dart';
 import 'builder_factory.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'outline_builder.dart';
 import 'source_builder_factory.dart';
+import 'source_builder_mixins.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_extension_builder.dart';
@@ -98,9 +97,9 @@ part 'source_compilation_unit.dart';
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   late final SourceCompilationUnit compilationUnit;
 
-  final LookupScope _importScope;
+  LookupScope _importScope;
 
-  final MutableNameSpaceLookupScope _scope;
+  late final LookupScope _scope;
 
   NameSpace _nameSpace;
 
@@ -189,6 +188,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// if [SourceLoader.computeFieldPromotability] hasn't been called.
   FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
+  /// Redirecting factory builders defined in the library. They should be
+  /// collected as they are built, so that we can build the outline expressions
+  /// in the right order.
+  ///
+  /// See [SourceLoader.buildOutlineExpressions] for details.
+  List<RedirectingFactoryBuilder>? redirectingFactoryBuilders;
+
   // TODO(johnniwinther): Remove this.
   final Map<String, List<Builder>>? augmentations;
 
@@ -231,11 +237,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         ScopeKind.typeParameters, 'omitted-types',
         getables: omittedTypes, parent: importScope);
     NameSpace libraryNameSpace = libraryTypeParameterScopeBuilder.toNameSpace();
-    MutableNameSpaceLookupScope scope = new MutableNameSpaceLookupScope(
-        libraryNameSpace,
-        ScopeKind.typeParameters,
-        libraryTypeParameterScopeBuilder.name,
-        parent: importScope);
     NameSpace exportNameSpace = origin?.exportNameSpace ?? new NameSpaceImpl();
     return new SourceLibraryBuilder._(
         loader: loader,
@@ -247,7 +248,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
         importNameSpace: importNameSpace,
         importScope: importScope,
-        scope: scope,
         libraryNameSpace: libraryNameSpace,
         exportNameSpace: exportNameSpace,
         origin: origin,
@@ -274,7 +274,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
       required NameSpace importNameSpace,
       required LookupScope importScope,
-      required MutableNameSpaceLookupScope scope,
       required NameSpace libraryNameSpace,
       required NameSpace exportNameSpace,
       required SourceLibraryBuilder? origin,
@@ -292,7 +291,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         _immediateOrigin = origin,
         _nameOrigin = nameOrigin,
         _importScope = importScope,
-        _scope = scope,
         _nameSpace = libraryNameSpace,
         _exportNameSpace = exportNameSpace,
         super(fileUri) {
@@ -309,6 +307,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Coverage-ignore(suite): Not run.
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
+    _scope = new SourceLibraryBuilderScope(
+        this, ScopeKind.typeParameters, libraryTypeParameterScopeBuilder.name);
     compilationUnit = new SourceCompilationUnitImpl(
         this, libraryTypeParameterScopeBuilder,
         importUri: importUri,
@@ -396,6 +396,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   LookupScope get scope => _scope;
+
+  LookupScope get importScope => _importScope;
 
   @override
   NameSpace get nameSpace => _nameSpace;
@@ -746,6 +748,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           unhandled(
               'member', 'exportScope', builder.charOffset, builder.fileUri);
         }
+      }
+    }
+  }
+
+  void buildScopes(LibraryBuilder coreLibrary) {
+    Iterable<SourceLibraryBuilder>? augmentationLibraries =
+        this.augmentationLibraries;
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.buildScopes(coreLibrary);
+      }
+    }
+
+    Iterator<Builder> iterator = localMembersIterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      if (builder is SourceDeclarationBuilder) {
+        builder.buildScopes(coreLibrary);
+      }
+    }
+
+    if (augmentationLibraries != null) {
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.applyAugmentations();
       }
     }
   }
@@ -1122,16 +1148,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         inConstFields: inConstFields);
   }
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.buildOutlineExpressions(classHierarchy,
-            delayedDefaultValueCloners, delayedActionPerformers);
+        augmentationLibrary.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       }
     }
 
@@ -1151,20 +1175,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceClassBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else if (declaration is SourceExtensionBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else if (declaration is SourceMemberBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else if (declaration is SourceTypeAliasBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else {
         assert(
             declaration is PrefixBuilder ||
@@ -1919,14 +1943,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (isOptional &&
           formal.variable!.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
-        // Wildcard optional parameters can't be used so we allow having no
-        // initializer.
-        if (libraryFeatures.wildcardVariables.isEnabled &&
-            formal.isWildcard &&
-            !formal.isSuperInitializingFormal &&
-            !formal.isInitializingFormal) {
-          continue;
-        }
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
                 formal.name, formal.variable!.type),
@@ -2156,6 +2172,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (typeArguments.isEmpty) return;
 
     if (functionType.typeParameters.length != typeArguments.length) {
+      // Coverage-ignore-block(suite): Not run.
       assert(loader.assertProblemReportedElsewhere(
           "SourceLibraryBuilder.checkBoundsInInstantiation: "
           "the numbers of type parameters and type arguments don't match.",
@@ -2194,8 +2211,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is SourceFieldBuilder) {
         declaration.checkTypes(this, typeEnvironment);
       } else if (declaration is SourceProcedureBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeVariables;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeVariables;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
@@ -2209,29 +2225,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         }
       } else if (declaration is SourceClassBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeVariables;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeVariables;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeParameters;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeParameters;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeParameters;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeParameters;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
-        List<TypeVariableBuilderBase>? typeVariables =
-            declaration.typeVariables;
+        List<TypeVariableBuilder>? typeVariables = declaration.typeVariables;
         if (typeVariables != null && typeVariables.isNotEmpty) {
           checkTypeVariableDependencies(typeVariables);
         }
@@ -2247,12 +2259,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     checkPendingBoundsChecks(typeEnvironment);
   }
 
-  void checkTypeVariableDependencies(
-      List<TypeVariableBuilderBase> typeVariables) {
-    Map<TypeVariableBuilderBase, TypeVariableTraversalState>
+  void checkTypeVariableDependencies(List<TypeVariableBuilder> typeVariables) {
+    Map<TypeVariableBuilder, TypeVariableTraversalState>
         typeVariablesTraversalState =
-        <TypeVariableBuilderBase, TypeVariableTraversalState>{};
-    for (TypeVariableBuilderBase typeVariable in typeVariables) {
+        <TypeVariableBuilder, TypeVariableTraversalState>{};
+    for (TypeVariableBuilder typeVariable in typeVariables) {
       if ((typeVariablesTraversalState[typeVariable] ??=
               TypeVariableTraversalState.unvisited) ==
           TypeVariableTraversalState.unvisited) {
@@ -2295,18 +2306,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-  }
-
-  void computeShowHideElements(ClassMembersBuilder membersBuilder) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        this.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.computeShowHideElements(membersBuilder);
-      }
-    }
-
-    compilationUnit.computeShowHideElements(membersBuilder);
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {

@@ -68,6 +68,7 @@ import self as cac;
 import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:_internal" as _in;
+import "dart:_compact_hash" as _co;
 import "dart:math" as math;
 import "cache_lookups.dart" as self;
 
@@ -271,7 +272,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toSet() → core::Set<cac::_CustomList&Object&ListMixin::E%> {
-    core::Set<cac::_CustomList&Object&ListMixin::E%> result = new col::_Set::•<cac::_CustomList&Object&ListMixin::E%>();
+    core::Set<cac::_CustomList&Object&ListMixin::E%> result = new _co::_Set::•<cac::_CustomList&Object&ListMixin::E%>();
     for (core::int i = 0; i.{core::num::<}(this.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       result.{core::Set::add}(this.{core::List::[]}(i){(core::int) → cac::_CustomList&Object&ListMixin::E%}){(cac::_CustomList&Object&ListMixin::E%) → core::bool};
     }

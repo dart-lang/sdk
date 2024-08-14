@@ -544,9 +544,6 @@ class TypeSystemOperations
   }
 
   @override
-  bool isRecordType(DartType type) => type is RecordType;
-
-  @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
   }
@@ -750,9 +747,6 @@ class TypeSystemOperations
   DartType typeSchemaGlb(DartType typeSchema1, DartType typeSchema2) {
     return typeSystem.greatestLowerBound(typeSchema1, typeSchema2);
   }
-
-  @override
-  bool typeSchemaIsDynamic(DartType typeSchema) => typeSchema is DynamicType;
 
   @override
   bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {

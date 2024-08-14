@@ -216,8 +216,9 @@ void ObjectStore::InitKnownObjects() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
-  const Library& collection_lib = Library::Handle(zone, collection_library());
-  cls = collection_lib.LookupClassAllowPrivate(Symbols::_Set());
+  const Library& compact_hash_lib =
+      Library::Handle(zone, _compact_hash_library());
+  cls = compact_hash_lib.LookupClassAllowPrivate(Symbols::_Set());
   ASSERT(!cls.IsNull());
   set_set_impl_class(cls);
 

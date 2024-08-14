@@ -1749,6 +1749,12 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try moving the '{0}' clause before the '{1}' clause.",
   );
 
+  static const ParserErrorCode PART_OF_NAME = ParserErrorCode(
+    'PART_OF_NAME',
+    "The 'part of' directive can't use a name with the enhanced-parts feature.",
+    correctionMessage: "Try using 'part of' with a URI instead.",
+  );
+
   static const ParserErrorCode PATTERN_ASSIGNMENT_DECLARES_VARIABLE =
       ParserErrorCode(
     'PATTERN_ASSIGNMENT_DECLARES_VARIABLE',

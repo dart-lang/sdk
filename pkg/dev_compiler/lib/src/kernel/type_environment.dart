@@ -23,6 +23,30 @@ abstract class DDCTypeEnvironment {
   /// Returns the index of [parameter] in this environment for use in a type
   /// recipe or a negative value if the parameter was not found.
   int recipeIndexOf(TypeParameter parameter);
+
+  /// Returns all class type parameters in this type environment.
+  ///
+  /// For the example:
+  /// Class Foo<T> {
+  ///   method<U> {
+  ///     ... // this
+  ///   }
+  /// }
+  ///
+  /// classTypeParameters in this would return ['T'].
+  List<TypeParameter> get classTypeParameters;
+
+  /// Returns all class type parameters in this type environment.
+  ///
+  /// For the example:
+  /// Class Foo<T> {
+  ///   method<U> {
+  ///     ... // this
+  ///   }
+  /// }
+  ///
+  /// functionTypeParameters this would return ['U'].
+  List<TypeParameter> get functionTypeParameters;
 }
 
 /// An empty environment that signals no type parameters are present or needed.
@@ -45,6 +69,12 @@ class EmptyTypeEnvironment implements DDCTypeEnvironment {
   int recipeIndexOf(TypeParameter parameter) {
     return -1;
   }
+
+  @override
+  List<TypeParameter> get classTypeParameters => UnmodifiableListView([]);
+
+  @override
+  List<TypeParameter> get functionTypeParameters => UnmodifiableListView([]);
 }
 
 /// A type environment introduced by a class with one or more generic type
@@ -78,6 +108,54 @@ class ClassTypeEnvironment implements DDCTypeEnvironment {
     // class rti with all type arguments.
     return i + 1;
   }
+
+  @override
+  List<TypeParameter> get classTypeParameters =>
+      UnmodifiableListView(_typeParameters);
+
+  @override
+  List<TypeParameter> get functionTypeParameters => UnmodifiableListView([]);
+}
+
+/// A type environment introduced by a subroutine, wherein an RTI object is
+/// explicitly provided.
+class RtiTypeEnvironment implements DDCTypeEnvironment {
+  final List<TypeParameter> _typeParameters;
+
+  RtiTypeEnvironment(this._typeParameters);
+
+  @override
+  DDCTypeEnvironment extend(List<TypeParameter> parameters) {
+    /// RtiTypeEnvironments are only used for constructors, factories, and type
+    /// signatures - none of which can accept generic arguments.
+    throw Exception(
+        'RtiTypeEnvironments should not receive extended type parameters.');
+  }
+
+  @override
+  DDCTypeEnvironment prune(Iterable<TypeParameter> requiredParameters) {
+    // If any parameters are required, the class type environment already
+    // exists and a reference to it is suitably compact.
+    return requiredParameters.any(_typeParameters.contains)
+        ? this
+        : const EmptyTypeEnvironment();
+  }
+
+  @override
+  int recipeIndexOf(TypeParameter parameter) {
+    var i = _typeParameters.indexOf(parameter);
+    if (i < 0) return i;
+    // Index for class type parameters is one based. Zero refers to the full
+    // class rti with all type arguments.
+    return i + 1;
+  }
+
+  @override
+  List<TypeParameter> get classTypeParameters =>
+      UnmodifiableListView(_typeParameters);
+
+  @override
+  List<TypeParameter> get functionTypeParameters => UnmodifiableListView([]);
 }
 
 /// A type environment containing multiple type parameters.
@@ -115,8 +193,12 @@ class BindingTypeEnvironment implements DDCTypeEnvironment {
     return i + 1;
   }
 
-  /// The type parameters in this environment.
-  List<TypeParameter> get parameters => UnmodifiableListView(_typeParameters);
+  @override
+  List<TypeParameter> get classTypeParameters => UnmodifiableListView([]);
+
+  @override
+  List<TypeParameter> get functionTypeParameters =>
+      UnmodifiableListView(_typeParameters);
 
   /// Returns `true` if this environment only contains a single type parameter.
   bool get isSingleTypeParameter => _typeParameters.length == 1;
@@ -155,10 +237,6 @@ class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
           // No type parameters are needed from this environment.
           : const EmptyTypeEnvironment();
     }
-    if (!classEnvironmentNeeded) {
-      // None of the parameters are needed from the class environment.
-      return BindingTypeEnvironment(additionalParameters.toList());
-    }
     // This is already the exact environment needed.
     if (additionalParameters.length == _typeParameters.length) return this;
     // An extended class environment with fewer additional parameters is needed.
@@ -183,6 +261,11 @@ class ExtendedClassTypeEnvironment implements DDCTypeEnvironment {
     return -1;
   }
 
-  List<TypeParameter> get extendedParameters =>
+  @override
+  List<TypeParameter> get classTypeParameters =>
+      UnmodifiableListView(_classEnvironment.classTypeParameters);
+
+  @override
+  List<TypeParameter> get functionTypeParameters =>
       UnmodifiableListView(_typeParameters);
 }

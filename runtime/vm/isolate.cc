@@ -275,7 +275,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(FinalizeWeakPersistentHandlesVisitor);
 };
 
-void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
+void MutatorThreadPool::OnEnterIdleLocked(MutexLocker* ml, Worker* worker) {
   if (FLAG_idle_timeout_micros == 0) return;
 
   // If the isolate has not started running application code yet, we ignore the
@@ -285,7 +285,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   int64_t idle_expiry = 0;
   // Obtain the idle time we should wait.
   if (isolate_group_->idle_time_handler()->ShouldNotifyIdle(&idle_expiry)) {
-    MonitorLeaveScope mls(ml);
+    MutexUnlocker mls(ml);
     NotifyIdle();
     return;
   }
@@ -296,7 +296,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   // Wait for the recommended idle timeout.
   // We can be woken up because of a), b) or c)
   const auto result =
-      ml->WaitMicros(idle_expiry - OS::GetCurrentMonotonicMicros());
+      worker->Sleep(idle_expiry - OS::GetCurrentMonotonicMicros());
 
   // a) If there are new tasks we have to run them.
   if (TasksWaitingToRunLocked()) return;
@@ -307,7 +307,7 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
   // c) We timed out and should run the idle notifier.
   if (result == Monitor::kTimedOut &&
       isolate_group_->idle_time_handler()->ShouldNotifyIdle(&idle_expiry)) {
-    MonitorLeaveScope mls(ml);
+    MutexUnlocker mls(ml);
     NotifyIdle();
     return;
   }
@@ -357,28 +357,18 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
-      symbols_mutex_(NOT_IN_PRODUCT("IsolateGroup::symbols_mutex_")),
-      type_canonicalization_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
-      type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
-          "IsolateGroup::type_arguments_canonicalization_mutex_")),
-      subtype_test_cache_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::subtype_test_cache_mutex_")),
-      megamorphic_table_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::megamorphic_table_mutex_")),
-      type_feedback_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::type_feedback_mutex_")),
-      patchable_call_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::patchable_call_mutex_")),
-      constant_canonicalization_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::constant_canonicalization_mutex_")),
-      kernel_data_lib_cache_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::kernel_data_lib_cache_mutex_")),
-      kernel_data_class_cache_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::kernel_data_class_cache_mutex_")),
-      kernel_constants_mutex_(
-          NOT_IN_PRODUCT("IsolateGroup::kernel_constants_mutex_")),
-      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
+      symbols_mutex_(),
+      type_canonicalization_mutex_(),
+      type_arguments_canonicalization_mutex_(),
+      subtype_test_cache_mutex_(),
+      megamorphic_table_mutex_(),
+      type_feedback_mutex_(),
+      patchable_call_mutex_(),
+      constant_canonicalization_mutex_(),
+      kernel_data_lib_cache_mutex_(),
+      kernel_data_class_cache_mutex_(),
+      kernel_constants_mutex_(),
+      field_list_mutex_(),
       boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
@@ -1758,7 +1748,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       on_shutdown_callback_(Isolate::ShutdownCallback()),
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
-      mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
+      mutex_(),
       tag_table_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),

@@ -10,8 +10,8 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::A> values = const <self::A>[self::A::a, self::A::b];
   final field core::int value2;
+  static const field core::List<self::A> values = const <self::A>[self::A::a, self::A::b];
   enum-element static const field self::A a = const self::A::•(0, "a", 0);
   enum-element static const field self::A b = const self::A::•(1, "b", 1);
   const constructor •(core::int #index, core::String #name, dynamic value) → self::A

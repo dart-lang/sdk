@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
@@ -35,11 +36,6 @@ if (todo.isNotEmpty) {
 ''';
 
 class PreferIsNotEmpty extends LintRule {
-  static const LintCode code = LintCode('prefer_is_not_empty',
-      "Use 'isNotEmpty' rather than negating the result of 'isEmpty'.",
-      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
-      hasPublishedDocs: true);
-
   PreferIsNotEmpty()
       : super(
             name: 'prefer_is_not_empty',
@@ -48,7 +44,7 @@ class PreferIsNotEmpty extends LintRule {
             categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_is_not_empty;
 
   @override
   void registerNodeProcessors(
