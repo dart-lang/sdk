@@ -2391,9 +2391,9 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
           : type_(AbstractType::Handle(zone)), types_(types) {}
 
       void VisitObject(ObjectPtr obj) override {
-        if (obj->GetClassId() == kTypeCid ||
-            obj->GetClassId() == kFunctionTypeCid ||
-            obj->GetClassId() == kRecordTypeCid) {
+        const auto cid = obj->GetClassIdOfHeapObject();
+        if (cid == kTypeCid || cid == kFunctionTypeCid ||
+            cid == kRecordTypeCid) {
           type_ ^= obj;
           types_->Add(type_);
         }
@@ -3317,7 +3317,7 @@ void Precompiler::Obfuscate() {
         : script_(Script::Handle(zone)), scripts_(scripts) {}
 
     void VisitObject(ObjectPtr obj) override {
-      if (obj->GetClassId() == kScriptCid) {
+      if (obj->GetClassIdOfHeapObject() == kScriptCid) {
         script_ ^= obj;
         scripts_->Add(Script::Cast(script_));
       }

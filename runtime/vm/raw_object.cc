@@ -560,7 +560,7 @@ VARIABLE_COMPRESSED_VISITOR(Context, raw_obj->untag()->num_variables_)
 VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(
     TypedData,
-    TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
+    TypedData::ElementSizeInBytes(raw_obj->GetClassIdOfHeapObject()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
 VARIABLE_COMPRESSED_VISITOR(Record,
@@ -715,7 +715,8 @@ intptr_t UntaggedInstance::VisitInstancePointers(
   uword tags = raw_obj->untag()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
-    instance_size = visitor->class_table()->SizeAt(raw_obj->GetClassId());
+    instance_size =
+        visitor->class_table()->SizeAt(raw_obj->GetClassIdOfHeapObject());
   }
 
   // Calculate the first and last raw object pointer fields.

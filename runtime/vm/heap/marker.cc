@@ -138,7 +138,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           }
         }
 
-        const intptr_t class_id = obj->GetClassId();
+        const intptr_t class_id = obj->GetClassIdOfHeapObject();
         ASSERT(class_id != kIllegalCid);
         ASSERT(class_id != kFreeListElement);
         ASSERT(class_id != kForwardingCorpse);
@@ -239,7 +239,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       while (MarkerWorkList::Pop(&old_work_list_, &new_work_list_, &obj)) {
         ASSERT(!has_evacuation_candidate_);
 
-        const intptr_t class_id = obj->GetClassId();
+        const intptr_t class_id = obj->GetClassIdOfHeapObject();
         ASSERT(class_id != kIllegalCid);
         ASSERT(class_id != kFreeListElement);
         ASSERT(class_id != kForwardingCorpse);
@@ -301,7 +301,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       while (old_work_list_.Pop(&obj)) {
         ASSERT(!has_evacuation_candidate_);
 
-        const intptr_t class_id = obj->GetClassId();
+        const intptr_t class_id = obj->GetClassIdOfHeapObject();
         ASSERT(class_id != kIllegalCid);
         ASSERT(class_id != kFreeListElement);
         ASSERT(class_id != kForwardingCorpse);

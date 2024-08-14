@@ -185,8 +185,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     // Validate 'this' is a typed data view.
     const uword view_header = ReadHeaderRelaxed(view);
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
-    ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()) ||
-           IsUnmodifiableTypedDataViewClassId(view->GetClassIdMayBeSmi()));
+    ASSERT(IsTypedDataViewClassId(view->GetClassId()) ||
+           IsUnmodifiableTypedDataViewClassId(view->GetClassId()));
 
     // Validate that the backing store is not a forwarding word. There is a data
     // race reader the backing store's header unless there is only one worker.
@@ -200,7 +200,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
         // views. This can cause the RecomputeDataFieldForInternalTypedData to
         // run inappropriately, but when the object copy continues it will fix
         // the data_ pointer.
-        ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
+        ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassIdOfHeapObject()),
+                     is_external);
       }
     }
 #endif
@@ -214,7 +215,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     // Now we update the inner pointer.
 #if defined(DEBUG)
     if (!parallel) {
-      ASSERT(IsTypedDataClassId(td->GetClassId()));
+      ASSERT(IsTypedDataClassId(td->GetClassIdOfHeapObject()));
     }
 #endif
     view->untag()->RecomputeDataFieldForInternalTypedData();
@@ -901,7 +902,7 @@ class CollectStoreBufferScavengeVisitor : public ObjectPointerVisitor {
       RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
 
       RELEASE_ASSERT_WITH_MSG(!obj->untag()->IsCardRemembered(), msg_);
-      if (obj.GetClassId() == kArrayCid) {
+      if (obj.GetClassIdOfHeapObject() == kArrayCid) {
         const uword length =
             Smi::Value(static_cast<UntaggedArray*>(obj.untag())->length());
         RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),
@@ -1421,7 +1422,7 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessObject(ObjectPtr obj) {
   }
 #endif
 
-  intptr_t cid = obj->GetClassId();
+  intptr_t cid = obj->GetClassIdOfHeapObject();
   if (UNLIKELY(cid == kWeakPropertyCid)) {
     WeakPropertyPtr weak_property = static_cast<WeakPropertyPtr>(obj);
     if (!IsScavengeSurvivor(weak_property->untag()->key())) {
@@ -1719,7 +1720,7 @@ void Scavenger::PruneWeak(GCLinkedList<Type, PtrType>* list) {
   while (weak != Object::null()) {
     PtrType next;
     if (weak->IsOldObject()) {
-      ASSERT(weak->GetClassId() == Type::kClassId);
+      ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
       next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
       weak->untag()->next_seen_by_gc_ = Type::null();
       list->Enqueue(weak);
@@ -1727,13 +1728,13 @@ void Scavenger::PruneWeak(GCLinkedList<Type, PtrType>* list) {
       uword header = ReadHeaderRelaxed(weak);
       if (IsForwarding(header)) {
         weak = static_cast<PtrType>(ForwardedObj(header));
-        ASSERT(weak->GetClassId() == Type::kClassId);
+        ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
         next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
         weak->untag()->next_seen_by_gc_ = Type::null();
         list->Enqueue(weak);
       } else {
         // Collected in this scavenge.
-        ASSERT(weak->GetClassId() == Type::kClassId);
+        ASSERT(weak->GetClassIdOfHeapObject() == Type::kClassId);
         next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
       }
     }

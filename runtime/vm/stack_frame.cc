@@ -231,7 +231,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     // May forward raw code. Note we don't just visit the pc marker slot first
     // because the visitor's forwarding might not be idempotent.
     visitor->VisitPointer(&pc_marker);
-    if (pc_marker->IsHeapObject() && (pc_marker->GetClassId() == kCodeCid)) {
+    if (pc_marker->GetClassId() == kCodeCid) {
       code ^= pc_marker;
       code_start = code.PayloadStart();
       ASSERT(code.compressed_stackmaps() != CompressedStackMaps::null());

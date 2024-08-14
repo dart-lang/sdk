@@ -1558,7 +1558,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
 
 void Object::FinalizeReadOnlyObject(ObjectPtr object) {
   NoSafepointScope no_safepoint;
-  intptr_t cid = object->GetClassId();
+  intptr_t cid = object->GetClassIdOfHeapObject();
   if (cid == kOneByteStringCid) {
     OneByteStringPtr str = static_cast<OneByteStringPtr>(object);
     if (String::GetCachedHash(str) == 0) {
@@ -2756,7 +2756,7 @@ void Object::InitializeObject(uword address,
 void Object::CheckHandle() const {
 #if defined(DEBUG)
   if (ptr_ != Object::null()) {
-    intptr_t cid = ptr_->GetClassIdMayBeSmi();
+    intptr_t cid = ptr_->GetClassId();
     if (cid >= kNumPredefinedCids) {
       cid = kInstanceCid;
     }
@@ -2908,6 +2908,7 @@ bool Object::IsNotTemporaryScopedHandle() const {
 ObjectPtr Object::Clone(const Object& orig,
                         Heap::Space space,
                         bool load_with_relaxed_atomics) {
+  ASSERT(orig.ptr()->IsHeapObject());
   // Generic function types should be cloned with FunctionType::Clone.
   ASSERT(!orig.IsFunctionType() || !FunctionType::Cast(orig).IsGeneric());
   const Class& cls = Class::Handle(orig.clazz());
@@ -2937,7 +2938,7 @@ ObjectPtr Object::Clone(const Object& orig,
             size - kHeaderSizeInBytes);
   }
 
-  if (IsTypedDataClassId(raw_clone->GetClassId())) {
+  if (IsTypedDataClassId(raw_clone->GetClassIdOfHeapObject())) {
     auto raw_typed_data = TypedData::RawCast(raw_clone);
     raw_typed_data.untag()->RecomputeDataField();
   }
@@ -23532,7 +23533,7 @@ uword String::Hash(const uint16_t* characters, intptr_t len) {
 }
 
 intptr_t String::CharSize() const {
-  intptr_t class_id = ptr()->GetClassId();
+  intptr_t class_id = ptr()->GetClassIdOfHeapObject();
   if (class_id == kOneByteStringCid) {
     return kOneByteChar;
   }
@@ -24313,8 +24314,8 @@ bool String::EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
     return true;  // Both handles point to the same raw instance.
   }
   NoSafepointScope no_safepoint;
-  intptr_t str1_class_id = str1.ptr()->GetClassId();
-  intptr_t str2_class_id = str2.ptr()->GetClassId();
+  intptr_t str1_class_id = str1.ptr()->GetClassIdOfHeapObject();
+  intptr_t str2_class_id = str2.ptr()->GetClassIdOfHeapObject();
   switch (str1_class_id) {
     case kOneByteStringCid:
       EQUALS_IGNORING_PRIVATE_KEY(str2_class_id, OneByteString, str1, str2);

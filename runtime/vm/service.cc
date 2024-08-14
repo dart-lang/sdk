@@ -3512,7 +3512,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
     if (raw_obj->IsPseudoObject()) {
       return kProceed;
     }
-    if (table_->CollectInstancesFor(raw_obj->GetClassId())) {
+    if (table_->CollectInstancesFor(raw_obj->GetClassIdOfHeapObject())) {
       if (count_ < limit_) {
         storage_->Add(Object::Handle(raw_obj));
       }

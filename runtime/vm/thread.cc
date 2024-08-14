@@ -1037,7 +1037,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
       // To avoid adding too much work into the remembered set, skip large
       // arrays. Write barrier elimination will not remove the barrier
       // if we can trigger GC between array allocation and store.
-      if (obj->GetClassId() == kArrayCid) {
+      if (obj->GetClassIdOfHeapObject() == kArrayCid) {
         const auto length = Smi::Value(Array::RawCast(obj)->untag()->length());
         if (length > Array::kMaxLengthForWriteBarrierElimination) {
           continue;
