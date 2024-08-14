@@ -588,14 +588,6 @@ class LibraryBuilder with MacroApplicationsContainer {
         reference.getChild('@fragment').getChild(includedFile.uriStr);
     _bindReference(unitReference, unitElement);
 
-    // var augmentation = LibraryAugmentationElementImpl(
-    //   augmentationTarget: element,
-    //   nameOffset: includedPart.unlinked.libraryKeywordOffset,
-    // );
-    // augmentation.definingCompilationUnit = unitElement;
-    // augmentation.reference =
-    //     reference.getChild('@augmentation').getChild(includedFile.uriStr);
-
     var informativeBytes = includedFile.unlinked2.informativeBytes;
     unitElement.macroGenerated = MacroGeneratedLibraryFragment(
       code: includedFile.content,

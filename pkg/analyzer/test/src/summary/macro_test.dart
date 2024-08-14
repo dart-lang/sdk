@@ -756,45 +756,11 @@ import 'order.dart';
 class X {}
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A1 {}
 void f1() {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A1 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  classes
-    class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@class::X
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -809,51 +775,11 @@ class X {
 }
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A2 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-        class A1 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  classes
-    class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@class::X
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -870,51 +796,11 @@ class X {
 }
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A1 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-        class A2 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-  classes
-    class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@class::X
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
 ''');
   }
 
@@ -927,51 +813,11 @@ import 'order.dart';
 class X {}
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A2 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-        class A1 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  classes
-    class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@class::X
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -986,55 +832,11 @@ class X1 {}
 class X2 {}
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A1 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-        class A2 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-  classes
-    class X1
-      reference: <testLibraryFragment>::@class::X1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@class::X1
-    class X2
-      reference: <testLibraryFragment>::@class::X2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@class::X2
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
 ''');
   }
 
@@ -1053,7 +855,6 @@ enum X {
 }
 ''');
 
-    configuration.forOrder();
     _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
@@ -1075,51 +876,11 @@ class X {
 }
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A2 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-        class A1 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  classes
-    class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@class::X
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -1134,54 +895,11 @@ mixin X {
 }
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A2 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-        class A1 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  classes
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  mixins
-    mixin X
-      reference: <testLibraryFragment>::@mixin::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@mixin::X
-      superclassConstraints
-        Object
 ''');
   }
 
@@ -1196,51 +914,11 @@ import 'order.dart';
 class X {}
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A2 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-        class A1 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  classes
-    class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@class::X
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
 ''');
   }
 
@@ -1255,54 +933,11 @@ mixin X {
 }
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A2 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-        class A1 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  classes
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  mixins
-    mixin X
-      reference: <testLibraryFragment>::@mixin::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@mixin::X
-      superclassConstraints
-        Object
 ''');
   }
 
@@ -1319,54 +954,11 @@ mixin X {
 }
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A1 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-        class A2 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-  classes
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-  mixins
-    mixin X
-      reference: <testLibraryFragment>::@mixin::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@mixin::X
-      superclassConstraints
-        Object
 ''');
   }
 
@@ -1379,54 +971,11 @@ import 'order.dart';
 mixin X {}
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A2 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-        class A1 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  classes
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-  mixins
-    mixin X
-      reference: <testLibraryFragment>::@mixin::X
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@mixin::X
-      superclassConstraints
-        Object
 ''');
   }
 
@@ -1441,60 +990,11 @@ mixin X1 {}
 mixin X2 {}
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryImports
-    package:test/order.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 part of 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
----
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibrary>::@fragment::package:test/test.macro.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A1 @41
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-        class A2 @53
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-  classes
-    class A1
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A1
-    class A2
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A2
-  mixins
-    mixin X1
-      reference: <testLibraryFragment>::@mixin::X1
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@mixin::X1
-      superclassConstraints
-        Object
-    mixin X2
-      reference: <testLibraryFragment>::@mixin::X2
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibraryFragment>::@mixin::X2
-      superclassConstraints
-        Object
 ''');
   }
 }
@@ -19315,18 +18815,5 @@ extension on ElementTextConfiguration {
     };
     withConstructors = false;
     withMetadata = true;
-  }
-
-  void forOrder() {
-    filter = (element) {
-      if (element is CompilationUnitElement) {
-        return element.source.uri != Uri.parse('package:test/test.dart');
-      }
-      return true;
-    };
-    withLibraryFragmentChildren = false;
-    withConstructors = false;
-    withMetadata = false;
-    withReturnType = false;
   }
 }

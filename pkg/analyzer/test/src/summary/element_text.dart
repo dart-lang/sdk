@@ -65,7 +65,6 @@ class ElementTextConfiguration {
   bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withLibraryAugmentations = false;
-  bool withLibraryFragmentChildren = true;
   bool withMacroStackTraces = false;
   bool withMetadata = true;
   bool withNonSynthetic = false;
@@ -2338,29 +2337,27 @@ class _ElementWriter extends _AbstractElementWriter {
         'libraryExports', e.libraryExports, _writeLibraryExportElement);
     _writeElements('parts', e.parts, _writePartElement);
 
-    if (configuration.withLibraryFragmentChildren) {
-      _writeElements('classes', e.classes, _writeInterfaceElement);
-      _writeElements('enums', e.enums, _writeInterfaceElement);
-      _writeElements('extensions', e.extensions, _writeExtensionElement);
-      _writeElements(
-        'extensionTypes',
-        e.extensionTypes,
-        _writeInterfaceElement,
-      );
-      _writeElements('mixins', e.mixins, _writeInterfaceElement);
-      _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
-      _writeElements(
-        'topLevelVariables',
-        e.topLevelVariables,
-        _writePropertyInducingElement,
-      );
-      _writeElements(
-        'accessors',
-        e.accessors,
-        _writePropertyAccessorElement,
-      );
-      _writeElements('functions', e.functions, _writeFunctionElement);
-    }
+    _writeElements('classes', e.classes, _writeInterfaceElement);
+    _writeElements('enums', e.enums, _writeInterfaceElement);
+    _writeElements('extensions', e.extensions, _writeExtensionElement);
+    _writeElements(
+      'extensionTypes',
+      e.extensionTypes,
+      _writeInterfaceElement,
+    );
+    _writeElements('mixins', e.mixins, _writeInterfaceElement);
+    _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
+    _writeElements(
+      'topLevelVariables',
+      e.topLevelVariables,
+      _writePropertyInducingElement,
+    );
+    _writeElements(
+      'accessors',
+      e.accessors,
+      _writePropertyAccessorElement,
+    );
+    _writeElements('functions', e.functions, _writeFunctionElement);
   }
 }
 
