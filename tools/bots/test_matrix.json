@@ -2063,15 +2063,6 @@
           "fileset": "js_platform"
         },
         {
-          "name": "ddc co19 tests unsound",
-          "arguments": [
-            "-nddc-canary-linux-chrome-unsound",
-            "co19"
-          ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
           "name": "ddc modular tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
