@@ -668,7 +668,8 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
     if (url == null) {
       String? location = headers.value(HttpHeaders.locationHeader);
       if (location == null) {
-        throw StateError("Response has no Location header for redirect");
+        throw RedirectException(
+            "Server response has no Location header for redirect", redirects);
       }
       url = Uri.parse(location);
     }
