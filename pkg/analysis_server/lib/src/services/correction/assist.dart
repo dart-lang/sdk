@@ -47,6 +47,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Add a debug reference to this property',
   );
+  static const ADD_DIGIT_SEPARATORS = AssistKind(
+    'dart.assist.add.addDigitSeparators',
+    DartAssistKindPriority.DEFAULT,
+    'Add digit separators',
+  );
   static const ADD_RETURN_TYPE = AssistKind(
     'dart.assist.add.returnType',
     DartAssistKindPriority.DEFAULT,
