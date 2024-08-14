@@ -29,7 +29,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
   final Linker linker;
-  final TypeSystemImpl _typeSystem;
+  final TypeSystemImpl typeSystem;
   final NodesToBuildType nodesToBuildType;
 
   Scope scope;
@@ -37,9 +37,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   ReferenceResolver(
     this.linker,
     this.nodesToBuildType,
-    LibraryOrAugmentationElementImpl container,
-  )   : _typeSystem = container.library.typeSystem,
-        scope = container.scope;
+    this.typeSystem,
+    this.scope,
+  );
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
@@ -429,7 +429,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     } else {
       var builder = NamedTypeBuilder.of(
         linker,
-        _typeSystem,
+        typeSystem,
         node,
         element,
         nullabilitySuffix,
@@ -444,7 +444,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.positionalFields.accept(this);
     node.namedFields?.accept(this);
 
-    var builder = RecordTypeBuilder.of(_typeSystem, node);
+    var builder = RecordTypeBuilder.of(typeSystem, node);
     node.type = builder;
     nodesToBuildType.addTypeBuilder(builder);
   }

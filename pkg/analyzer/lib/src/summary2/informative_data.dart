@@ -821,15 +821,14 @@ class InformativeDataApplier {
     );
   }
 
-  Uint8List? _getInfoUnitBytes(CompilationUnitElement element) {
+  Uint8List? _getInfoUnitBytes(CompilationUnitElementImpl element) {
     var uri = element.source.uri;
     if (_unitsInformativeBytes2[uri] case var bytes?) {
       return bytes;
     }
 
-    switch (element.enclosingElement) {
-      case LibraryAugmentationElementImpl(:var macroGenerated?):
-        return macroGenerated.informativeBytes;
+    if (element.macroGenerated case var macroGenerated?) {
+      return macroGenerated.informativeBytes;
     }
 
     return null;

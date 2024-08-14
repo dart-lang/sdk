@@ -65,6 +65,7 @@ class ElementTextConfiguration {
   bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withLibraryAugmentations = false;
+  bool withLibraryFragmentChildren = true;
   bool withMacroStackTraces = false;
   bool withMetadata = true;
   bool withNonSynthetic = false;
@@ -1547,15 +1548,6 @@ class _ElementWriter extends _AbstractElementWriter {
   void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
     _writeReference(e);
 
-    if (e is LibraryAugmentationElementImpl) {
-      if (e.macroGenerated case var macroGenerated?) {
-        _sink.writelnWithIndent('macroGeneratedCode');
-        _sink.writeln('---');
-        _sink.write(macroGenerated.code);
-        _sink.writeln('---');
-      }
-    }
-
     _writeDocumentation(e);
     _writeMetadata(e);
     _writeSinceSdkVersion(e);
@@ -2324,6 +2316,13 @@ class _ElementWriter extends _AbstractElementWriter {
   void _writeUnitElement(CompilationUnitElementImpl e) {
     _writeEnclosingElement(e);
 
+    if (e.macroGenerated case var macroGenerated?) {
+      _sink.writelnWithIndent('macroGeneratedCode');
+      _sink.writeln('---');
+      _sink.write(macroGenerated.code);
+      _sink.writeln('---');
+    }
+
     if (configuration.withImports) {
       var imports = e.libraryImports.where((import) {
         return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
@@ -2339,27 +2338,29 @@ class _ElementWriter extends _AbstractElementWriter {
         'libraryExports', e.libraryExports, _writeLibraryExportElement);
     _writeElements('parts', e.parts, _writePartElement);
 
-    _writeElements('classes', e.classes, _writeInterfaceElement);
-    _writeElements('enums', e.enums, _writeInterfaceElement);
-    _writeElements('extensions', e.extensions, _writeExtensionElement);
-    _writeElements(
-      'extensionTypes',
-      e.extensionTypes,
-      _writeInterfaceElement,
-    );
-    _writeElements('mixins', e.mixins, _writeInterfaceElement);
-    _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
-    _writeElements(
-      'topLevelVariables',
-      e.topLevelVariables,
-      _writePropertyInducingElement,
-    );
-    _writeElements(
-      'accessors',
-      e.accessors,
-      _writePropertyAccessorElement,
-    );
-    _writeElements('functions', e.functions, _writeFunctionElement);
+    if (configuration.withLibraryFragmentChildren) {
+      _writeElements('classes', e.classes, _writeInterfaceElement);
+      _writeElements('enums', e.enums, _writeInterfaceElement);
+      _writeElements('extensions', e.extensions, _writeExtensionElement);
+      _writeElements(
+        'extensionTypes',
+        e.extensionTypes,
+        _writeInterfaceElement,
+      );
+      _writeElements('mixins', e.mixins, _writeInterfaceElement);
+      _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
+      _writeElements(
+        'topLevelVariables',
+        e.topLevelVariables,
+        _writePropertyInducingElement,
+      );
+      _writeElements(
+        'accessors',
+        e.accessors,
+        _writePropertyAccessorElement,
+      );
+      _writeElements('functions', e.functions, _writeFunctionElement);
+    }
   }
 }
 

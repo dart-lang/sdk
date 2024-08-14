@@ -134,7 +134,7 @@ class LibraryMacroApplier {
 
   Future<void> add({
     required LibraryBuilder libraryBuilder,
-    required LibraryOrAugmentationElementImpl container,
+    required CompilationUnitElementImpl container,
     required ast.CompilationUnitImpl unit,
   }) async {
     for (var directive in unit.directives.reversed) {
@@ -501,7 +501,7 @@ class LibraryMacroApplier {
 
   Future<void> _addAnnotations({
     required LibraryBuilder libraryBuilder,
-    required LibraryOrAugmentationElementImpl container,
+    required CompilationUnitElementImpl container,
     required ast.AstNode targetNode,
     required Element? targetNodeElement,
     required macro.DeclarationKind targetDeclarationKind,
@@ -553,7 +553,7 @@ class LibraryMacroApplier {
 
   Future<void> _addAnnotationsDefault({
     required LibraryBuilder libraryBuilder,
-    required LibraryOrAugmentationElementImpl container,
+    required CompilationUnitElementImpl container,
     required List<ast.Annotation> annotations,
     required _MacroTarget macroTarget,
     required macro.DeclarationKind targetDeclarationKind,
@@ -625,7 +625,7 @@ class LibraryMacroApplier {
 
   Future<void> _addAnnotationsInjected({
     required LibraryBuilder libraryBuilder,
-    required LibraryOrAugmentationElementImpl container,
+    required CompilationUnitElementImpl container,
     required List<ast.Annotation> annotations,
     required _MacroTarget macroTarget,
     required macro.DeclarationKind targetDeclarationKind,
@@ -665,7 +665,7 @@ class LibraryMacroApplier {
 
   Future<void> _addClassLike({
     required LibraryBuilder libraryBuilder,
-    required LibraryOrAugmentationElementImpl container,
+    required CompilationUnitElementImpl container,
     required MacroTargetElement targetElement,
     required ast.Declaration classNode,
     required macro.DeclarationKind classDeclarationKind,
@@ -795,7 +795,7 @@ class LibraryMacroApplier {
 
   /// If [annotation] references a macro, invokes the right callback.
   _AnnotationMacro? _importedMacro({
-    required LibraryOrAugmentationElementImpl container,
+    required CompilationUnitElementImpl container,
     required ast.Annotation annotation,
   }) {
     var arguments = annotation.arguments;
@@ -827,7 +827,7 @@ class LibraryMacroApplier {
   }
 
   (ClassElementImpl, String?)? _lookupMacroClassAndConstructorName({
-    required LibraryOrAugmentationElementImpl container,
+    required CompilationUnitElementImpl container,
     required ast.Annotation annotation,
   }) {
     String? prefix;

@@ -1039,8 +1039,7 @@ class A {}
     var generatedContent = generatedFile!.content!;
 
     await _verifyTokens(mainFileMacroUri, generatedContent, [
-      _Token('augment', SemanticTokenTypes.keyword),
-      _Token('library', SemanticTokenTypes.keyword),
+      _Token('part of', SemanticTokenTypes.keyword),
       _Token("'package:test/main.dart'", SemanticTokenTypes.string),
       _Token('augment', SemanticTokenTypes.keyword),
       _Token('class', SemanticTokenTypes.keyword),

@@ -1787,7 +1787,7 @@ class B {
 self::@class::B::@method::foo
   97 7:16 |A| REFERENCE
 self::@fragment::package:test/test.macro.dart::@function::f
-  54 3:12 |A| REFERENCE
+  46 3:12 |A| REFERENCE
 ''');
   }
 

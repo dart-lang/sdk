@@ -732,7 +732,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   final LibraryElementImpl library;
 
   // TODO(scheglov): Remove after removing [LibraryAugmentationElementImpl].
-  late final LibraryOrAugmentationElementImpl libraryOrAugmentationElement;
+  late LibraryOrAugmentationElementImpl libraryOrAugmentationElement;
 
   /// The libraries exported by this unit.
   List<LibraryExportElementImpl> _libraryExports =
@@ -778,6 +778,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// The scope of this fragment, `null` if it has not been created yet.
   LibraryFragmentScope? _scope;
+
+  MacroGeneratedLibraryFragment? macroGenerated;
 
   ElementLinkedData? linkedData;
 
@@ -4480,8 +4482,6 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   final LibraryOrAugmentationElementImpl augmentationTarget;
 
-  MacroGeneratedAugmentationLibrary? macroGenerated;
-
   LibraryAugmentationElementLinkedData? linkedData;
 
   LibraryAugmentationElementImpl({
@@ -5454,12 +5454,12 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
       visitor.visitLocalVariableElement(this);
 }
 
-/// Additional information for a macro generated augmentation library.
-class MacroGeneratedAugmentationLibrary {
+/// Additional information for a macro generated fragment.
+class MacroGeneratedLibraryFragment {
   final String code;
   final Uint8List informativeBytes;
 
-  MacroGeneratedAugmentationLibrary({
+  MacroGeneratedLibraryFragment({
     required this.code,
     required this.informativeBytes,
   });

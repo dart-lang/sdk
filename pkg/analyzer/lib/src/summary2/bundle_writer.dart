@@ -141,8 +141,8 @@ class BundleWriter {
 
     _writePropertyAccessorAugmentations();
 
-    var lastAugmentation = libraryElement.augmentations.lastOrNull;
-    var macroGenerated = lastAugmentation?.macroGenerated;
+    var lastUnit = libraryElement.units.lastOrNull;
+    var macroGenerated = lastUnit?.macroGenerated;
 
     _libraries.add(
       _Library(
@@ -155,10 +155,6 @@ class BundleWriter {
   }
 
   void _writeAugmentationElement(LibraryAugmentationElementImpl augmentation) {
-    _sink.writeOptionalObject(augmentation.macroGenerated, (macroGenerated) {
-      _sink.writeStringUtf8(macroGenerated.code);
-      _sink.writeUint8List(macroGenerated.informativeBytes);
-    });
     _writeUnitElement(augmentation.definingCompilationUnit);
     // The offset where resolution for the augmentation starts.
     // We need it to skip resolution information from the unit.
@@ -755,6 +751,11 @@ class BundleWriter {
       unitElement.accessors.where((e) => !e.isSynthetic).toList(),
       _writePropertyAccessorElement,
     );
+
+    _sink.writeOptionalObject(unitElement.macroGenerated, (macroGenerated) {
+      _sink.writeStringUtf8(macroGenerated.code);
+      _sink.writeUint8List(macroGenerated.informativeBytes);
+    });
   }
 
   static TypeParameterVarianceTag _encodeVariance(
@@ -1298,8 +1299,8 @@ class _Library {
   final int offset;
   final List<int> classMembersOffsets;
 
-  /// The only (if any) macro generated augmentation.
-  final MacroGeneratedAugmentationLibrary? macroGenerated;
+  /// The only (if any) macro generated fragment.
+  final MacroGeneratedLibraryFragment? macroGenerated;
 
   _Library({
     required this.uriStr,
