@@ -9,10 +9,18 @@ library;
 import 'package:analyzer_utilities/tools.dart';
 
 import '../../../analyzer/tool/messages/error_code_info.dart';
+import '../util/path_utils.dart';
 
 Future<void> main() async {
-  await GeneratedFile('lib/src/linter_lint_codes.dart', (String pkgPath) async {
-    var out = StringBuffer('''
+  await generateCodesFile().generate(linterPackageRoot);
+}
+
+String get generatedCodesPath =>
+    pathRelativeToPackageRoot(const ['lib', 'src', 'linter_lint_codes.dart']);
+
+GeneratedFile generateCodesFile() =>
+    GeneratedFile(generatedCodesPath, (String pkgPath) async {
+      var out = StringBuffer('''
 // Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -37,26 +45,26 @@ import 'analyzer.dart';
 class LinterLintCode extends LintCode {
 ''');
 
-    for (var MapEntry(key: errorName, value: codeInfo)
-        in lintMessages['LintCode']!.entries) {
-      if (codeInfo.isRemoved) continue;
-      out.write(codeInfo.toAnalyzerComments(indent: '  '));
-      if (codeInfo.deprecatedMessage case var deprecatedMessage?) {
-        out.writeln('  @Deprecated("$deprecatedMessage")');
+      for (var MapEntry(key: errorName, value: codeInfo)
+          in lintMessages['LintCode']!.entries) {
+        if (codeInfo.isRemoved) continue;
+        out.write(codeInfo.toAnalyzerComments(indent: '  '));
+        if (codeInfo.deprecatedMessage case var deprecatedMessage?) {
+          out.writeln('  @Deprecated("$deprecatedMessage")');
+        }
+        out.writeln('  static const LintCode $errorName =');
+        out.writeln(codeInfo.toAnalyzerCode('LinterLintCode', errorName));
+        out.writeln();
       }
-      out.writeln('  static const LintCode $errorName =');
-      out.writeln(codeInfo.toAnalyzerCode('LinterLintCode', errorName));
-      out.writeln();
-    }
 
-    out.writeln('''
+      out.writeln('''
   static const LintCode removed_lint = LinterLintCode(
     'removed_lint',
     'Removed lint.',
   );
 ''');
 
-    out.writeln('''
+      out.writeln('''
   const LinterLintCode(
     super.name,
     super.problemMessage, {
@@ -74,6 +82,5 @@ class LinterLintCode extends LintCode {
   }
 }
 ''');
-    return out.toString();
-  }).generate(linterPkgPath);
-}
+      return out.toString();
+    });

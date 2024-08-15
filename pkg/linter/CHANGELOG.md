@@ -1,7 +1,8 @@
 # 3.6.0-wip
 
-- new _(experimental)_ lint: `omit_obvious_local_variable_types`
 - new lint: `use_truncating_division`
+- new _(experimental)_ lint: `omit_obvious_local_variable_types`
+- new _(experimental)_ lint: `specify_nonobvious_local_variable_types`
 
 # 3.5.0
 
