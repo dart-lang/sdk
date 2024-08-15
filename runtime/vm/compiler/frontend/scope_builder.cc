@@ -1373,7 +1373,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
     variable->set_is_late();
     variable->set_late_init_offset(initializer_offset);
   }
-  if (helper.IsSynthesized()) {
+  if (helper.IsSynthesized() || helper.IsWildcard()) {
     variable->set_invisible(true);
   }
 
@@ -1679,6 +1679,9 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   }
   if (helper.IsCovariant()) {
     variable->set_is_explicit_covariant_parameter();
+  }
+  if (helper.IsWildcard()) {
+    variable->set_invisible(true);
   }
 
   const bool needs_covariant_check_in_method =
