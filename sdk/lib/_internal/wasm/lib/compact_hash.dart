@@ -4,6 +4,7 @@
 
 import "dart:_internal"
     show IterableElementError, ClassID, TypeTest, unsafeCast;
+import "dart:_list" show GrowableList;
 import "dart:_wasm";
 
 import "dart:collection";
@@ -443,7 +444,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   /// This function is unsafe: it does not perform any type checking on
   /// keys and values assuming that caller has ensured that types are
   /// correct.
-  void _populateUnsafe(List<Object?> keyValuePairs) {
+  void _populateUnsafe(GrowableList<Object?> keyValuePairs) {
     assert(keyValuePairs.length.isEven);
     int size = _roundUpToPowerOfTwo(keyValuePairs.length);
     if (size < _HashBase._INITIAL_INDEX_SIZE) {
@@ -1130,5 +1131,6 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
 }
 
 @pragma('wasm:prefer-inline')
-Map<K, V> createMapFromKeyValueListUnsafe<K, V>(List<Object?> keyValuePairs) =>
+Map<K, V> createMapFromKeyValueListUnsafe<K, V>(
+        GrowableList<Object?> keyValuePairs) =>
     DefaultMap<K, V>().._populateUnsafe(keyValuePairs);

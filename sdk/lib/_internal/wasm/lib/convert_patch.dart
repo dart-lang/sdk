@@ -6,10 +6,11 @@ import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
 import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
 import "dart:_js_string_convert";
 import "dart:_js_types";
+import "dart:_list" show GrowableList;
 import "dart:_string";
 import "dart:_typed_data";
 import "dart:_wasm";
-import "dart:typed_data" show Uint8List, Uint16List;
+import "dart:typed_data" show Uint8List;
 
 /// This patch library has no additional parts.
 
@@ -87,7 +88,7 @@ class _JsonListener {
   *
   * When building [Map] this will contain array of key-value pairs.
   */
-  List<dynamic>? currentContainer;
+  GrowableList<dynamic>? currentContainer;
 
   /** The most recently read value. */
   Object? value;
@@ -95,13 +96,13 @@ class _JsonListener {
   /** Pushes the currently active container. */
   void beginContainer() {
     stack.add(currentContainer);
-    currentContainer = [];
+    currentContainer = GrowableList.empty();
   }
 
   /** Pops the top container from the [stack]. */
   void popContainer() {
     value = currentContainer;
-    currentContainer = unsafeCast<List?>(stack.removeLast());
+    currentContainer = unsafeCast<GrowableList?>(stack.removeLast());
   }
 
   void handleString(String value) {
@@ -125,12 +126,12 @@ class _JsonListener {
   }
 
   void propertyName() {
-    unsafeCast<List>(currentContainer).add(value);
+    unsafeCast<GrowableList>(currentContainer).add(value);
     value = null;
   }
 
   void propertyValue() {
-    final keyValuePairs = unsafeCast<List>(currentContainer);
+    final keyValuePairs = unsafeCast<GrowableList>(currentContainer);
     if (reviver case final reviver?) {
       final key = keyValuePairs.last;
       keyValuePairs.add(reviver(key, value));
@@ -143,7 +144,7 @@ class _JsonListener {
   void endObject() {
     popContainer();
     value = createMapFromKeyValueListUnsafe<String, dynamic>(
-        unsafeCast<List>(value));
+        unsafeCast<GrowableList>(value));
   }
 
   void beginArray() {
