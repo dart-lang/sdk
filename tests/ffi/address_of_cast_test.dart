@@ -52,7 +52,8 @@ void testStructField() {
       sumFirstTwoElements(myStruct.arr2.address.cast());
   Expect.equals(arr2SumFirstTwoElements, expectedArr2);
 
-  final arr2SumTwoPointers = sumFirstTwoElements(myStruct.arr2.address.cast());
+  final arr2SumTwoPointers = sumTwoPointers(
+      myStruct.arr2[0].address.cast(), myStruct.arr2[1].address.cast());
   Expect.equals(arr2SumTwoPointers, expectedArr2);
 }
 
