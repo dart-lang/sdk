@@ -179,6 +179,8 @@ class ArgumentsDescriptor : public ValueObject {
   // A cache of VM heap allocated arguments descriptors.
   static ArrayPtr cached_args_descriptors_[kCachedDescriptorCount];
 
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class VMSerializationRoots;
   friend class VMDeserializationRoots;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);

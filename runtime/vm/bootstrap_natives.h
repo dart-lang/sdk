@@ -268,6 +268,7 @@ namespace dart {
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \
+  V(Internal_loadDynamicModule, 1)                                             \
   V(Internal_allocateOneByteString, 1)                                         \
   V(Internal_allocateTwoByteString, 1)                                         \
   V(Internal_writeIntoOneByteString, 3)                                        \

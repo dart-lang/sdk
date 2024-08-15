@@ -445,4 +445,7 @@ external String intern(String str);
 
 @patch
 Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
-    throw 'Unsupported operation';
+    Future.value(_loadDynamicModule(bytes!));
+
+@pragma("vm:external-name", "Internal_loadDynamicModule")
+external Object? _loadDynamicModule(Uint8List bytes);

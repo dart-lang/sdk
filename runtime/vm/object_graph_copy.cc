@@ -33,6 +33,7 @@
   V(CodeSourceMap)                                                             \
   V(CompressedStackMaps)                                                       \
   V(ContextScope)                                                              \
+  V(Bytecode)                                                                  \
   V(DynamicLibrary)                                                            \
   V(Error)                                                                     \
   V(ExceptionHandlers)                                                         \

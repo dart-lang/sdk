@@ -7,7 +7,9 @@
 
 #include "vm/allocation.h"
 #include "vm/frame_layout.h"
+#include "vm/interpreter.h"
 #include "vm/object.h"
+#include "vm/stack_frame_kbc.h"
 #include "vm/stub_code.h"
 
 #if defined(TARGET_ARCH_IA32)
@@ -44,6 +46,7 @@ class StackFrame : public ValueObject {
 
   // The pool pointer is not implemented on all architectures.
   static int SavedCallerPpSlotFromFp() {
+    // Never called on an interpreter frame.
     if (runtime_frame_layout.saved_caller_pp_from_fp !=
         kSavedCallerFpSlotFromFp) {
       return runtime_frame_layout.saved_caller_pp_from_fp;
@@ -53,30 +56,37 @@ class StackFrame : public ValueObject {
   }
 
   bool IsMarkedForLazyDeopt() const {
+    ASSERT(!is_interpreted());
     uword raw_pc =
         *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize));
     return raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint();
   }
   void MarkForLazyDeopt() {
+    ASSERT(!is_interpreted());
     set_pc(StubCode::DeoptimizeLazyFromReturn().EntryPoint());
   }
   void UnmarkForLazyDeopt() {
     // If this frame was marked for lazy deopt, pc_ was computed to be the
     // original return address using the pending deopts table in GetCallerPc.
     // Write this value back into the frame.
+    ASSERT(!is_interpreted());
     uword original_pc = pc();
     ASSERT(original_pc != StubCode::DeoptimizeLazyFromReturn().EntryPoint());
     set_pc(original_pc);
   }
 
   void set_pc(uword value) {
-    *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize)) = value;
+    *reinterpret_cast<uword*>(sp() + ((is_interpreted() ? kKBCSavedPcSlotFromSp
+                                                        : kSavedPcSlotFromSp) *
+                                      kWordSize)) = value;
     pc_ = value;
   }
 
   void set_pc_marker(CodePtr code) {
     *reinterpret_cast<CodePtr*>(
-        fp() + (runtime_frame_layout.code_from_fp * kWordSize)) = code;
+        fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
+                                  : runtime_frame_layout.code_from_fp) *
+                kWordSize)) = code;
   }
 
   // Visit objects in the frame.
@@ -102,8 +112,15 @@ class StackFrame : public ValueObject {
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
 
+#if defined(DART_DYNAMIC_MODULES)
+  bool is_interpreted() const { return is_interpreted_; }
+#else
+  bool is_interpreted() const { return false; }
+#endif
+
   FunctionPtr LookupDartFunction() const;
   CodePtr LookupDartCode() const;
+  BytecodePtr LookupDartBytecode() const;
   bool FindExceptionHandler(Thread* thread,
                             uword* handler_pc,
                             bool* needs_stacktrace,
@@ -114,7 +131,11 @@ class StackFrame : public ValueObject {
 
   static void DumpCurrentTrace();
 
-  uword GetCallerSp() const { return fp() + (kCallerSpSlotFromFp * kWordSize); }
+  uword GetCallerSp() const {
+    return fp() +
+           ((is_interpreted() ? kKBCCallerSpSlotFromFp : kCallerSpSlotFromFp) *
+            kWordSize);
+  }
 
  protected:
   explicit StackFrame(Thread* thread)
@@ -134,15 +155,20 @@ class StackFrame : public ValueObject {
 
  private:
   CodePtr GetCodeObject() const;
+  BytecodePtr GetBytecodeObject() const;
 
   uword GetCallerFp() const {
-    return *(reinterpret_cast<uword*>(fp() +
-                                      (kSavedCallerFpSlotFromFp * kWordSize)));
+    return *(reinterpret_cast<uword*>(
+        fp() + ((is_interpreted() ? kKBCSavedCallerFpSlotFromFp
+                                  : kSavedCallerFpSlotFromFp) *
+                kWordSize)));
   }
 
   uword GetCallerPc() const {
     uword raw_pc = *(reinterpret_cast<uword*>(
-        fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
+        fp() + ((is_interpreted() ? kKBCSavedCallerPcSlotFromFp
+                                  : kSavedCallerPcSlotFromFp) *
+                kWordSize)));
     ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow().EntryPoint());
     if (raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint()) {
       return thread_->pending_deopts().FindPendingDeopt(GetCallerFp());
@@ -154,6 +180,10 @@ class StackFrame : public ValueObject {
   uword sp_;
   uword pc_;
   Thread* thread_;
+
+#if defined(DART_DYNAMIC_MODULES)
+  bool is_interpreted_ = false;
+#endif
 
   // The iterators FrameSetIterator and StackFrameIterator set the private
   // fields fp_ and sp_ when they return the respective frame objects.
@@ -192,7 +222,9 @@ class ExitFrame : public StackFrame {
 // dart code.
 class EntryFrame : public StackFrame {
  public:
-  bool IsValid() const { return StubCode::InInvocationStub(pc()); }
+  bool IsValid() const {
+    return StubCode::InInvocationStub(pc(), is_interpreted());
+  }
   bool IsDartFrame(bool validate = true) const { return false; }
   bool IsStubFrame() const { return false; }
   bool IsEntryFrame() const { return true; }
@@ -261,9 +293,11 @@ class StackFrameIterator {
       if (fp_ == 0) {
         return false;
       }
-      const uword pc =
-          *(reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize)));
-      return !StubCode::InInvocationStub(pc);
+      const uword pc = *(reinterpret_cast<uword*>(
+          sp_ +
+          ((is_interpreted() ? kKBCSavedPcSlotFromSp : kSavedPcSlotFromSp) *
+           kWordSize)));
+      return !StubCode::InInvocationStub(pc, is_interpreted());
     }
 
     // Get next non entry/exit frame in the set (assumes a next frame exists).
@@ -272,6 +306,14 @@ class StackFrameIterator {
    private:
     explicit FrameSetIterator(Thread* thread)
         : fp_(0), sp_(0), pc_(0), stack_frame_(thread), thread_(thread) {}
+
+#if defined(DART_DYNAMIC_MODULES)
+    bool is_interpreted() const { return is_interpreted_; }
+    void CheckIfInterpreted(uword exit_marker);
+#else
+    bool is_interpreted() const { return false; }
+#endif
+
     void Unpoison();
 
     uword fp_;
@@ -279,6 +321,10 @@ class StackFrameIterator {
     uword pc_;
     StackFrame stack_frame_;  // Singleton frame returned by NextFrame().
     Thread* thread_;
+
+#if defined(DART_DYNAMIC_MODULES)
+    bool is_interpreted_ = false;
+#endif
 
     friend class StackFrameIterator;
     DISALLOW_COPY_AND_ASSIGN(FrameSetIterator);
@@ -298,6 +344,8 @@ class StackFrameIterator {
   // stack frames.
   void SetupLastExitFrameData();
   void SetupNextExitFrameData();
+
+  void CheckInterpreterExitFrame(uword exit_marker);
 
   bool validate_;     // Validate each frame as we traverse the frames.
   EntryFrame entry_;  // Singleton entry frame returned by NextEntryFrame().

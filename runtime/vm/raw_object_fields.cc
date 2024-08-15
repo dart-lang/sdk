@@ -34,7 +34,7 @@ namespace dart {
   F(Function, owner_)                                                          \
   F(Function, signature_)                                                      \
   F(Function, data_)                                                           \
-  F(Function, ic_data_array_)                                                  \
+  F(Function, ic_data_array_or_bytecode_)                                      \
   F(Function, code_)                                                           \
   F(ClosureData, context_scope_)                                               \
   F(ClosureData, parent_function_)                                             \
@@ -91,6 +91,12 @@ namespace dart {
   F(Code, compressed_stackmaps_)                                               \
   F(Code, inlined_id_to_function_)                                             \
   F(Code, code_source_map_)                                                    \
+  F(Bytecode, object_pool_)                                                    \
+  F(Bytecode, instructions_)                                                   \
+  F(Bytecode, function_)                                                       \
+  F(Bytecode, exception_handlers_)                                             \
+  F(Bytecode, pc_descriptors_)                                                 \
+  F(Bytecode, closures_)                                                       \
   F(ExceptionHandlers, handled_types_data_)                                    \
   F(Context, parent_)                                                          \
   F(SingleTargetCache, target_)                                                \

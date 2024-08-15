@@ -530,9 +530,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex* unlinked_call_map_mutex() { return &unlinked_call_map_mutex_; }
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
   SafepointRwLock* program_lock() { return program_lock_.get(); }
 
@@ -907,9 +907,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex unlinked_call_map_mutex_;
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   Mutex initializer_functions_mutex_;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
   // Protect access to boxed_field_list_.
   Mutex field_list_mutex_;

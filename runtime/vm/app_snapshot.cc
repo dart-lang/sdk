@@ -1702,7 +1702,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     } else if (kind == Snapshot::kFullJIT) {
       NOT_IN_PRECOMPILED(s->Push(func->untag()->unoptimized_code()));
       s->Push(func->untag()->code());
-      s->Push(func->untag()->ic_data_array());
+      s->Push(func->untag()->ic_data_array_or_bytecode());
     }
     if (kind != Snapshot::kFullAOT) {
       NOT_IN_PRECOMPILED(s->Push(func->untag()->positional_parameter_names()));
@@ -1737,7 +1737,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       } else if (s->kind() == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(WriteCompressedField(func, unoptimized_code));
         WriteCompressedField(func, code);
-        WriteCompressedField(func, ic_data_array);
+        WriteCompressedField(func, ic_data_array_or_bytecode);
       }
 
       if (kind != Snapshot::kFullAOT) {
@@ -1917,7 +1917,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       if (kind == Snapshot::kFullJIT) {
         func->untag()->unoptimized_code_ = static_cast<CodePtr>(d.ReadRef());
         func->untag()->code_ = static_cast<CodePtr>(d.ReadRef());
-        func->untag()->ic_data_array_ = static_cast<ArrayPtr>(d.ReadRef());
+        func->untag()->ic_data_array_or_bytecode_ = d.ReadRef();
       }
 #endif
 

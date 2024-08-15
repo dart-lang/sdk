@@ -1948,8 +1948,15 @@ void Precompiler::TraceForRetainedFunctions() {
         function ^= functions.At(j);
         function.DropUncompiledImplicitClosureFunction();
 
-        const bool retained =
-            possibly_retained_functions_.ContainsKey(function);
+        bool retained = possibly_retained_functions_.ContainsKey(function);
+#if defined(DART_DYNAMIC_MODULES)
+        // Retain abstract functions annotated with entry point
+        // pragmas as they can be used as targets of interface calls.
+        if (function.is_abstract() &&
+            functions_with_entry_point_pragmas_.ContainsKey(function)) {
+          retained = true;
+        }
+#endif  // defined(DART_DYNAMIC_MODULES)
         if (retained) {
           AddTypesOf(function);
         }
@@ -2575,6 +2582,14 @@ void Precompiler::DropTransitiveUserDefinedConstants() {
         if (cls.constants() == Array::null()) {
           continue;
         }
+#if defined(DART_DYNAMIC_MODULES)
+        // Retain constant tables of exported classes to allow constant
+        // canonicalization at runtime.
+        if (HasApiUse(cls)) {
+          continue;
+        }
+#endif  // defined(DART_DYNAMIC_MODULES)
+
         typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
 
         CanonicalInstancesSet constants_set(cls.constants());

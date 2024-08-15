@@ -1684,7 +1684,7 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
       OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
     }
-    if (frame->IsDartFrame()) {
+    if (frame->IsDartFrame() && !frame->is_interpreted()) {
       code = frame->LookupDartCode();
       stack_trace->AppendCodeFrames(frame, code);
     }
@@ -1743,6 +1743,9 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   StackTraceUtils::CollectFrames(
       thread, /*skip_frames=*/0,
       [&](const StackTraceUtils::Frame& frame) {
+        if (frame.code.IsNull()) {
+          return;
+        }
         if (frame.frame != nullptr) {  // Synchronous portion of the stack.
           stack_trace->AppendCodeFrames(frame.frame, frame.code);
         } else {

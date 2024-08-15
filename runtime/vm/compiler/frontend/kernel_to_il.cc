@@ -798,6 +798,7 @@ LocalVariable* FlowGraphBuilder::LookupVariable(intptr_t kernel_offset) {
 
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   const Function& function = parsed_function_->function();
+  ASSERT(!function.is_declared_in_bytecode());
 
 #ifdef DEBUG
   // Check that all functions that are explicitly marked as recognized with the

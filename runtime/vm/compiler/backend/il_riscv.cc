@@ -700,6 +700,11 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // T0: Closure with a cached entry point.
     __ LoadFieldFromOffset(A1, T0,
                            compiler::target::Closure::entry_point_offset());
+#if defined(DART_DYNAMIC_MODULES)
+    ASSERT(FUNCTION_REG != A1);
+    __ LoadCompressedFieldFromOffset(
+        FUNCTION_REG, T0, compiler::target::Closure::function_offset());
+#endif
   } else {
     ASSERT(locs()->in(0).reg() == FUNCTION_REG);
     // FUNCTION_REG: Function.

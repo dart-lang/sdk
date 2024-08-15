@@ -525,6 +525,7 @@ COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
 COMPRESSED_VISITOR(Closure)
 COMPRESSED_VISITOR(LibraryPrefix)
+COMPRESSED_VISITOR(Bytecode)
 REGULAR_VISITOR(SingleTargetCache)
 REGULAR_VISITOR(UnlinkedCall)
 NULL_VISITOR(MonomorphicSmiableCall)
@@ -679,6 +680,16 @@ intptr_t UntaggedCode::VisitCodePointers(CodePtr raw_obj,
   ASSERT(length == 0);
   return Code::InstanceSize(0);
 #endif
+}
+
+bool UntaggedBytecode::ContainsPC(ObjectPtr raw_obj, uword pc) {
+  if (raw_obj->IsBytecode()) {
+    BytecodePtr raw_bytecode = static_cast<BytecodePtr>(raw_obj);
+    uword start = raw_bytecode->untag()->instructions_;
+    uword size = raw_bytecode->untag()->instructions_size_;
+    return (pc - start) <= size;  // pc may point past last instruction.
+  }
+  return false;
 }
 
 intptr_t UntaggedObjectPool::VisitObjectPoolPointers(

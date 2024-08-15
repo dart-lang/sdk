@@ -726,6 +726,20 @@ class MarkingWeakVisitor : public HandleVisitor {
 void GCMarker::Prologue() {
   isolate_group_->ReleaseStoreBuffers();
   new_marking_stack_.PushAll(tlab_deferred_marking_stack_.PopAll());
+
+#if defined(DART_DYNAMIC_MODULES)
+  isolate_group_->ForEachIsolate(
+      [&](Isolate* isolate) {
+        Thread* mutator_thread = isolate->mutator_thread();
+        if (mutator_thread != nullptr) {
+          Interpreter* interpreter = mutator_thread->interpreter();
+          if (interpreter != nullptr) {
+            interpreter->ClearLookupCache();
+          }
+        }
+      },
+      /*at_safepoint=*/true);
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 void GCMarker::Epilogue() {}

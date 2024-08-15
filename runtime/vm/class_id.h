@@ -38,6 +38,7 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(WeakSerializationReference)                                                \
   V(WeakArray)                                                                 \
   V(Code)                                                                      \
+  V(Bytecode)                                                                  \
   V(Instructions)                                                              \
   V(InstructionsSection)                                                       \
   V(InstructionsTable)                                                         \

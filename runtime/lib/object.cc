@@ -5,6 +5,7 @@
 #include "vm/bootstrap_natives.h"
 
 #include "lib/invocation_mirror.h"
+#include "vm/bytecode_reader.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
@@ -558,6 +559,61 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
   }
 
   return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Internal_loadDynamicModule, 0, 1) {
+#if defined(DART_DYNAMIC_MODULES)
+  GET_NON_NULL_NATIVE_ARGUMENT(TypedData, module_bytes,
+                               arguments->NativeArgAt(0));
+
+  const intptr_t length = module_bytes.LengthInBytes();
+  uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(length));
+  if (data == nullptr) {
+    const auto& exception = Instance::Handle(
+        zone, thread->isolate_group()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+  }
+  {
+    NoSafepointScope no_safepoint;
+    // The memory does not overlap.
+    memcpy(data, module_bytes.DataAddr(0), length);  // NOLINT
+  }
+  const ExternalTypedData& typed_data = ExternalTypedData::Handle(
+      zone,
+      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, length));
+  auto& function = Function::Handle();
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    bytecode::BytecodeLoader loader(thread, typed_data);
+    function = loader.LoadBytecode();
+  }
+
+  if (function.IsNull()) {
+    return Object::null();
+  }
+  ASSERT(function.is_static());
+  ASSERT(function.is_declared_in_bytecode());
+  auto& result = Object::Handle(zone);
+  if (function.NumParameters() == 0) {
+    result = DartEntry::InvokeFunction(function, Object::empty_array());
+  } else {
+    ASSERT(function.NumParameters() == 1);
+    // <String>[]
+    const auto& arg0 = Array::Handle(
+        zone, Array::New(0, Type::Handle(zone, Type::StringType())));
+    const auto& args = Array::Handle(zone, Array::New(1));
+    args.SetAt(0, arg0);
+    result = DartEntry::InvokeFunction(function, args);
+  }
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+  return result.ptr();
+#else
+  Exceptions::ThrowUnsupportedError(
+      "Loading of dynamic modules is not supported.");
+  return Object::null();
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 0, 2) {
