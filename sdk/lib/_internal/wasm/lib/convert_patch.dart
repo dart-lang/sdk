@@ -6,6 +6,7 @@ import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
 import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
 import "dart:_js_string_convert";
 import "dart:_js_types";
+import "dart:_js_helper" show jsStringToDartString;
 import "dart:_list" show GrowableList;
 import "dart:_string";
 import "dart:_typed_data";
@@ -21,7 +22,8 @@ dynamic _parseJson(
     String source, Object? Function(Object? key, Object? value)? reviver) {
   _JsonListener listener = new _JsonListener(reviver);
   var parser = new _JsonStringParser(listener);
-  parser.chunk = source;
+  parser.chunk = unsafeCast<StringBase>(
+      source is JSStringImpl ? jsStringToDartString(source) : source);
   parser.chunkEnd = source.length;
   parser.parse(0);
   parser.close();
@@ -1459,8 +1461,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
  * Chunked JSON parser that parses [String] chunks.
  */
 class _JsonStringParser extends _JsonParserWithListener
-    with _ChunkedJsonParser<String> {
-  String chunk = '';
+    with _ChunkedJsonParser<StringBase> {
+  StringBase chunk = unsafeCast<StringBase>('');
   int chunkEnd = 0;
 
   _JsonStringParser(_JsonListener listener) : super(listener);
@@ -1535,7 +1537,8 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
-    _parser.chunk = chunk;
+    _parser.chunk = unsafeCast<StringBase>(
+        chunk is JSStringImpl ? jsStringToDartString(chunk) : chunk);
     _parser.chunkEnd = end;
     _parser.parse(start);
     if (isLast) _parser.close();
