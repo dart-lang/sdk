@@ -566,6 +566,16 @@
         "compiler": "app_jitk"
       }
     },
+    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|simarm|simarm64|simarm64c)": {
+      "options": {
+        "compiler": "dart2bytecode"
+      }
+    },
+    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|simarm|simarm64|simarm64c)": {
+      "options": {
+        "compiler": "dart2bytecode"
+      }
+    },
     "ddc-(linux|win)-chrome": {
       "options": {
         "checked": true,

@@ -42,6 +42,7 @@ declare_args() {
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot
+# ........dart2bytecode.snapshot (if dart_dynamic_modules)
 # ........dart2js.dart.snapshot
 # ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
@@ -141,6 +142,12 @@ if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
+      ] ]
+}
+if (dart_dynamic_modules) {
+  _platform_sdk_snapshots += [ [
+        "dart2bytecode",
+        "../utils/dart2bytecode:dart2bytecode",
       ] ]
 }
 
