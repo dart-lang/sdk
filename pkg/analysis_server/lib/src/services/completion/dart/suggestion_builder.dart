@@ -347,69 +347,22 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion to insert a closure matching the given function [type].
-  /// If [includeTrailingComma] is `true` then the completion text will include
-  /// a trailing comma, such as when the closure is part of an argument list.
-  void suggestClosure(FunctionType type, {bool includeTrailingComma = false}) {
-    var includeTypes =
-        request.fileState.analysisOptions.codeStyleOptions.specifyTypes;
-    var indent = getRequestLineIndent(request);
-    var parametersString = buildClosureParameters(type,
-        includeTypes: includeTypes, includeKeywords: true);
-    // Build a short version of the parameter string without keywords or types
-    // for the completion label because they're less useful there and may push
-    // the end of the completion (`=>` vs `() {}`) off the end.
-    var parametersDisplayString = buildClosureParameters(type,
-        includeKeywords: false, includeTypes: false);
-
-    var blockBuffer = StringBuffer(parametersString);
-    blockBuffer.writeln(' {');
-    blockBuffer.write('$indent  ');
-    var blockSelectionOffset = blockBuffer.length;
-    blockBuffer.writeln();
-    blockBuffer.write('$indent}');
-
-    var expressionBuffer = StringBuffer(parametersString);
-    expressionBuffer.write(' => ');
-    var expressionSelectionOffset = expressionBuffer.length;
-
-    if (includeTrailingComma) {
-      blockBuffer.write(',');
-      expressionBuffer.write(',');
-    }
-
-    CompletionSuggestion createSuggestion({
-      required String completion,
+  /// Add a suggestion to insert a closure.
+  void suggestClosure(
+      {required String completion,
       required String displayText,
-      required int selectionOffset,
-    }) {
-      return DartCompletionSuggestion(
-        CompletionSuggestionKind.INVOCATION,
-        Relevance.closure,
-        completion,
-        selectionOffset,
-        0,
-        false,
-        false,
-        displayText: displayText,
-        elementLocation: null, // type.element is Null for FunctionType.
-      );
-    }
-
-    _addSuggestion(
-      createSuggestion(
-        completion: blockBuffer.toString(),
-        displayText: '$parametersDisplayString {}',
-        selectionOffset: blockSelectionOffset,
-      ),
-    );
-    _addSuggestion(
-      createSuggestion(
-        completion: expressionBuffer.toString(),
-        displayText: '$parametersDisplayString =>',
-        selectionOffset: expressionSelectionOffset,
-      ),
-    );
+      required int selectionOffset}) {
+    _addSuggestion(DartCompletionSuggestion(
+      CompletionSuggestionKind.INVOCATION,
+      Relevance.closure,
+      completion,
+      selectionOffset,
+      0,
+      false,
+      false,
+      displayText: displayText,
+      elementLocation: null, // type.element is Null for FunctionType.
+    ));
   }
 
   /// Add a suggestion for a [constructor]. If a [kind] is provided it will be
