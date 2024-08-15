@@ -44,6 +44,19 @@ void testStructField() {
   //                    ^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+
+  myNativeNonLeaf(myStruct.value.address.cast());
+  //                             ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
+  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+
+  myNative(myStruct.value.address.cast<Int32>());
+  //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                              ^^^^^^^^^^^^^
+  // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
+  //                      ^^^^^^^
+  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 }
 
 void testUnionField() {
@@ -59,6 +72,19 @@ void testUnionField() {
   //                   ^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+
+  myNativeNonLeaf(myUnion.value.address.cast());
+  //                            ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
+  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
+
+  myNative(myUnion.value.address.cast<Int32>());
+  //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                             ^^^^^^^^^^^^^
+  // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
+  //                     ^^^^^^^
+  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 }
 
 void main() {
@@ -68,11 +94,15 @@ void main() {
 }
 
 final class MyStruct extends Struct {
+  @Int32()
+  external int value;
   @Array(2)
   external Array<Int32> arr;
 }
 
 final class MyUnion extends Union {
+  @Int32()
+  external int value;
   @Array(2)
   external Array<Int32> arr;
 }

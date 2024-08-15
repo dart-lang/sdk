@@ -55,6 +55,15 @@ void testStructField() {
   final arr2SumTwoPointers = sumTwoPointers(
       myStruct.arr2[0].address.cast(), myStruct.arr2[1].address.cast());
   Expect.equals(arr2SumTwoPointers, expectedArr2);
+
+  myStruct.value1 = 22;
+  myStruct.value2 = 3222;
+
+  final expectedStructValueSum = myStruct.value1 + myStruct.value2;
+
+  final structValueSumTwoPointers = sumTwoPointers(
+      myStruct.value1.address.cast(), myStruct.value2.address.cast());
+  Expect.equals(structValueSumTwoPointers, expectedStructValueSum);
 }
 
 void testUnionField() {
@@ -72,6 +81,14 @@ void testUnionField() {
   final arrSumTwoPointers = sumTwoPointers(
       myUnion.arr[0].address.cast(), myUnion.arr[1].address.cast());
   Expect.equals(arrSumTwoPointers, expected);
+
+  myUnion.value1 = 234522;
+  myUnion.value2 = 3322542;
+
+  final expectedStructValueSum = myUnion.value1 + myUnion.value2;
+  final structValueSumTwoPointers = sumTwoPointers(
+      myUnion.value1.address.cast(), myUnion.value2.address.cast());
+  Expect.equals(structValueSumTwoPointers, expectedStructValueSum);
 }
 
 void testTypedData() {
@@ -94,6 +111,12 @@ void main() {
 }
 
 final class MyStruct extends Struct {
+  @Int32()
+  external int value1;
+
+  @Int32()
+  external int value2;
+
   @Array<Int32>(2)
   external Array<Int32> arr1;
 
@@ -102,6 +125,12 @@ final class MyStruct extends Struct {
 }
 
 final class MyUnion extends Union {
+  @Int32()
+  external int value1;
+
+  @Int32()
+  external int value2;
+
   @Array<Int32>(2)
   external Array<Int32> arr;
 }
