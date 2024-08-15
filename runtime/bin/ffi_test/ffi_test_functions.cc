@@ -93,7 +93,7 @@ DART_EXPORT int32_t SumFirstTwoElements(int32_t* arr) {
 }
 
 DART_EXPORT int32_t SumTwoPointers(int32_t* a, int32_t* b) {
-  std::cout << "SumFirstTwoElements(" << *a << ", " << *b << ")\n";
+  std::cout << "SumTwoPointers(" << *a << ", " << *b << ")\n";
   const int32_t retval = *a + *b;
   std::cout << "returning " << retval << "\n";
   return retval;
