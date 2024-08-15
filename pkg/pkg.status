@@ -199,6 +199,7 @@ vm_service/test/valid_source_locations_test: SkipByDesign # Debugger is disabled
 vm_service/test/validate_timer_port_behavior_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/vm_timeline_flags_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/weak_properties_test: SkipByDesign # Uses 'dart:mirrors' library
+vm_service/test/wildcard_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/yield_positions_with_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
 
 [ $mode == debug ]
