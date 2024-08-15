@@ -948,6 +948,9 @@ class StandardTestSuite extends TestSuite {
 
     var commonArguments = _commonArgumentsFromFile(testFile);
 
+    var args = configuration.compilerConfiguration
+        .computeCompilerArguments(testFile, const [], commonArguments);
+
     // Use existing HTML document if available.
     String content;
     var customHtml = File(
@@ -986,6 +989,7 @@ class StandardTestSuite extends TestSuite {
             testFile.ddcOptions.contains('--interop-null-assertions');
         var weakNullSafetyErrors =
             testFile.ddcOptions.contains('--weak-null-safety-errors');
+        var ddcModuleFormat = args.contains('--modules=ddc');
         content = ddcHtml(
             nameNoExt,
             nameFromModuleRootNoExt,
@@ -996,7 +1000,8 @@ class StandardTestSuite extends TestSuite {
             nullAssertions,
             nativeNonNullAsserts,
             jsInteropNonNullAsserts,
-            weakNullSafetyErrors);
+            weakNullSafetyErrors,
+            ddcModuleFormat: ddcModuleFormat);
       } else {
         throw UnsupportedError(
             'Unexpected compiler in browser test: ${configuration.compiler}');
@@ -1016,8 +1021,6 @@ class StandardTestSuite extends TestSuite {
     };
     assert(supportedCompilers.contains(configuration.compiler));
 
-    var args = configuration.compilerConfiguration
-        .computeCompilerArguments(testFile, const [], commonArguments);
     var compilation = configuration.compilerConfiguration
         .computeCompilationArtifact(outputDir, args, environmentOverrides);
     commands.addAll(compilation.commands);
