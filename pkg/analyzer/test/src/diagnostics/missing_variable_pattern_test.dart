@@ -23,8 +23,8 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
 
     var node1 = findNode.caseClause('case final a').guardedPattern;
@@ -57,8 +57,8 @@ void f(int x) {
   if (x case final b) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
 
     var node1 = findNode.caseClause('case final a').guardedPattern;
@@ -90,9 +90,9 @@ void f(int x) {
   if (x case final a || final a) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
       error(WarningCode.DEAD_CODE, 37, 10),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -120,8 +120,8 @@ void f(int x) {
   if (x case 0 && final a || final a) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -157,7 +157,7 @@ void f(num x) {
   if (x case final int a || 2) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
@@ -167,7 +167,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     name: a
     declaredElement: isFinal a@39
@@ -190,7 +190,7 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -217,7 +217,7 @@ void f(num x) {
   if (x case final int a || 2 || 3) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
@@ -229,7 +229,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -258,8 +258,8 @@ void f(num x) {
   if (x case final int a || final int a || 3) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 59, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
@@ -270,7 +270,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -281,7 +281,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@54
@@ -304,11 +304,11 @@ void f(int x) {
   if (x case final a || final a || final a) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
       error(WarningCode.DEAD_CODE, 37, 10),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
       error(WarningCode.DEAD_CODE, 48, 10),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -345,9 +345,9 @@ void f(num x) {
   if (x case final int a || 2 || final int a) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -357,7 +357,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -375,7 +375,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     name: a
     declaredElement: isFinal a@59
@@ -392,7 +392,7 @@ void f(num x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
@@ -409,7 +409,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@44
@@ -433,9 +433,9 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
       error(WarningCode.DEAD_CODE, 42, 10),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -472,7 +472,7 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 6),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -510,9 +510,9 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
       error(WarningCode.DEAD_CODE, 48, 10),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -545,7 +545,7 @@ void f(num x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 55, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
@@ -555,7 +555,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     name: a
     declaredElement: isFinal a@50
@@ -581,7 +581,7 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -612,10 +612,10 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
       error(WarningCode.DEAD_CODE, 59, 4),
       error(WarningCode.UNREACHABLE_SWITCH_CASE, 59, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
 
     var node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
@@ -653,7 +653,7 @@ void f(num x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
     ]);
   }
 
@@ -667,7 +667,7 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
     ]);
   }
 
@@ -684,7 +684,7 @@ void f(int x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
   }
 
@@ -701,7 +701,7 @@ void f(num x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
     ]);
   }
 }

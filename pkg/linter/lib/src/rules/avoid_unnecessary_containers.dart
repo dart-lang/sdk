@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Avoid unnecessary containers.';
@@ -48,22 +49,15 @@ Widget buildRow() {
 ''';
 
 class AvoidUnnecessaryContainers extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_unnecessary_containers', "Unnecessary instance of 'Container'.",
-      correctionMessage:
-          "Try removing the 'Container' (but not its children) from the "
-          'widget tree.',
-      hasPublishedDocs: true);
-
   AvoidUnnecessaryContainers()
       : super(
             name: 'avoid_unnecessary_containers',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_unnecessary_containers;
 
   @override
   void registerNodeProcessors(

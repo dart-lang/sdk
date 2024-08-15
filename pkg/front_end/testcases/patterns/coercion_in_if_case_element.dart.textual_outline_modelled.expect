@@ -1,0 +1,7 @@
+expectThrows<Exception>(void Function() f) {}
+
+main() {}
+
+testList(dynamic x, dynamic list) {}
+
+testSet(dynamic x, dynamic list) {}

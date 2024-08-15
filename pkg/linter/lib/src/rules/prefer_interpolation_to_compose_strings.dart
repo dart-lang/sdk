@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use interpolation to compose strings and values.';
 
@@ -30,22 +31,16 @@ and read than concatenation.
 ''';
 
 class PreferInterpolationToComposeStrings extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_interpolation_to_compose_strings',
-      'Use interpolation to compose strings and values.',
-      correctionMessage:
-          'Try using string interpolation to build the composite string.',
-      hasPublishedDocs: true);
-
   PreferInterpolationToComposeStrings()
       : super(
             name: 'prefer_interpolation_to_compose_strings',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.prefer_interpolation_to_compose_strings;
 
   @override
   void registerNodeProcessors(

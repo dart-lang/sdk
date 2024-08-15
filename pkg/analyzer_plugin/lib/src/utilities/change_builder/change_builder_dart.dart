@@ -2239,11 +2239,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           continue;
         }
         for (var combinator in element.combinators) {
-          if (combinator is ShowElementCombinator) {
-            shownNames.add(combinator.shownNames.toList());
-          }
-          if (combinator is HideElementCombinator) {
-            hiddenNames.add(combinator.hiddenNames.toList());
+          switch (combinator) {
+            case ShowElementCombinator():
+              shownNames.add(combinator.shownNames.toList());
+            case HideElementCombinator():
+              hiddenNames.add(combinator.hiddenNames.toList());
           }
         }
       }

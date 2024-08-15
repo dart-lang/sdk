@@ -27,15 +27,15 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: self::@function::a
+    staticElement: <testLibraryFragment>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic Function()
-  staticType: dynamic
+  staticInvokeType: Object Function()
+  staticType: Object
   typeArgumentTypes
-    dynamic
+    Object
 ''');
   }
 }

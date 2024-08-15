@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../util/leak_detector_visitor.dart';
 
 const _desc = r'Close instances of `dart:core` `Sink`.';
@@ -63,22 +64,18 @@ for more information.
 ''';
 
 class CloseSinks extends LintRule {
-  static const LintCode code = LintCode(
-      'close_sinks', "Unclosed instance of 'Sink'.",
-      correctionMessage:
-          "Try invoking 'close' in the function in which the 'Sink' was "
-          'created.',
-      hasPublishedDocs: true);
-
   CloseSinks()
       : super(
             name: 'close_sinks',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {
+              LintRuleCategory.errorProne,
+              LintRuleCategory.memoryLeaks
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.close_sinks;
 
   @override
   void registerNodeProcessors(

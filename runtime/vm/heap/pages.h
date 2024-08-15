@@ -299,6 +299,7 @@ class PageSpace {
 
   // Bulk data allocation.
   FreeList* DataFreeList(intptr_t i = 0) {
+    ASSERT((kDataFreelist + i) < num_freelists_);
     return &freelists_[kDataFreelist + i];
   }
   void AcquireLock(FreeList* freelist);

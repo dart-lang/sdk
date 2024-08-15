@@ -10,6 +10,7 @@ import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
@@ -40,21 +41,16 @@ class A {
 ''';
 
 class PreferConstConstructorsInImmutables extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_const_constructors_in_immutables',
-      "Constructors in '@immutable' classes should be declared as 'const'.",
-      correctionMessage: "Try adding 'const' to the constructor declaration.",
-      hasPublishedDocs: true);
-
   PreferConstConstructorsInImmutables()
       : super(
             name: 'prefer_const_constructors_in_immutables',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.prefer_const_constructors_in_immutables;
 
   @override
   void registerNodeProcessors(

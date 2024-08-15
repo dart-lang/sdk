@@ -119,14 +119,16 @@ extension ElementExtension on Element {
   }
 
   /// Return true if this element is a wildcard variable.
-  bool get isWildcardVariable =>
-      name == '_' &&
-      (this is LocalVariableElement ||
-          this is TypeParameterElement ||
-          (this is ParameterElement &&
-              this is! FieldFormalParameterElement &&
-              this is! SuperFormalParameterElement)) &&
-      (library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false);
+  bool get isWildcardVariable {
+    return name == '_' &&
+        (this is LocalVariableElement ||
+            this is PrefixElement ||
+            this is TypeParameterElement ||
+            (this is ParameterElement &&
+                this is! FieldFormalParameterElement &&
+                this is! SuperFormalParameterElement)) &&
+        library.hasWildcardVariablesFeatureEnabled;
+  }
 }
 
 extension ExecutableElementExtension on ExecutableElement {
@@ -150,6 +152,13 @@ extension ExecutableElementExtensionQuestion on ExecutableElement? {
 extension InterfaceTypeExtension on InterfaceType {
   bool get isDartCoreObjectNone {
     return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.none;
+  }
+}
+
+extension LibraryExtension on LibraryElement? {
+  bool get hasWildcardVariablesFeatureEnabled {
+    var self = this;
+    return self?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
   }
 }
 

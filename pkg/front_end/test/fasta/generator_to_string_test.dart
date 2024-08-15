@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/builder/declaration_builders.dart';
@@ -72,19 +73,21 @@ Future<void> main() async {
     SourceLibraryBuilder libraryBuilder = new SourceLibraryBuilder(
         importUri: uri,
         fileUri: uri,
+        originImportUri: uri,
         packageLanguageVersion:
             new ImplicitLanguageVersion(defaultLanguageVersion),
         loader: new KernelTarget(
+                c,
                 const MockFileSystem(),
                 false,
-                new DillTarget(c.options.ticker, uriTranslator,
+                new DillTarget(c, c.options.ticker, uriTranslator,
                     new NoneTarget(new TargetFlags())),
                 uriTranslator)
             .loader,
         isUnsupported: false,
         isAugmentation: false,
         isPatch: false);
-    libraryBuilder.markLanguageVersionFinal();
+    libraryBuilder.compilationUnit.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder = new LoadLibraryBuilder(
         libraryBuilder,
         /*dummyLibraryDependency,*/ -1,
@@ -123,7 +126,8 @@ Future<void> main() async {
             inMetadata: false,
             inConstFields: false),
         uri: uri,
-        enclosingScope: new Scope.immutable(kind: ScopeKind.functionBody),
+        enclosingScope:
+            new FixedLocalScope(kind: ScopeKind.library, debugName: "dummy"),
         coreTypes: coreTypes,
         hierarchy: hierarchy,
         typeInferrer:

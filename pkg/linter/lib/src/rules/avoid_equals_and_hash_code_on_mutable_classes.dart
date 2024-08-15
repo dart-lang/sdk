@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid overloading operator == and hashCode on classes not marked `@immutable`.';
@@ -65,21 +66,19 @@ class C {
 ''';
 
 class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_equals_and_hash_code_on_mutable_classes',
-      "The method '{0}' should not be overridden in classes not annotated with '@immutable'.",
-      correctionMessage:
-          "Try removing the override or annotating the class with '@immutable'.");
-
   AvoidEqualsAndHashCodeOnMutableClasses()
       : super(
             name: 'avoid_equals_and_hash_code_on_mutable_classes',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.avoid_equals_and_hash_code_on_mutable_classes;
 
   @override
   void registerNodeProcessors(

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -35,20 +37,8 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
-abstract final class Category {
-  /// A category representing possible coding errors.
-  static const String errors = 'errors';
-
-  /// A category representing Pub-related rules.
-  static const String pub = 'pub';
-
-  /// A category representing matters of style, largely derived from Effective
-  /// Dart.
-  static const String style = 'style';
-}
-
-/// The result of attempting to evaluate an expression.
-class LinterConstantEvaluationResult {
+/// The result of attempting to evaluate an expression as a constant.
+final class LinterConstantEvaluationResult {
   /// The value of the expression, or `null` if has [errors].
   final DartObject? value;
 
@@ -61,17 +51,27 @@ class LinterConstantEvaluationResult {
 /// Provides access to information needed by lint rules that is not available
 /// from AST nodes or the element model.
 abstract class LinterContext {
-  List<LinterContextUnit> get allUnits;
+  /// The list of all compilation units that make up the library under analysis,
+  /// including the defining compilation unit, all parts, and all augmentations.
+  List<LintRuleUnitContext> get allUnits;
 
-  LinterContextUnit get definingUnit;
+  /// The defining compilation unit of the library under analysis.
+  LintRuleUnitContext get definingUnit;
 
   InheritanceManager3 get inheritanceManager;
 
-  /// Whether the [definingUnit] is in a package's top-level `lib` directory.
+  /// Whether the [definingUnit]'s location is in a package's top-level 'lib'
+  /// directory, including locations deeply nested, and locations in the
+  /// package-implementation directory, 'lib/src'.
   bool get isInLibDir;
+
+  /// Whether the [definingUnit] is in a [package]'s "test" directory.
+  bool get isInTestDirectory;
 
   LibraryElement? get libraryElement;
 
+  /// The package in which the library being analyzed lives, or `null` if it
+  /// does not live in a package.
   WorkspacePackage? get package;
 
   TypeProvider get typeProvider;
@@ -86,15 +86,53 @@ abstract class LinterContext {
   }
 }
 
-class LinterContextImpl implements LinterContext {
+/// A [LinterContext] for a library, resolved into [ParsedUnitResult]s.
+final class LinterContextWithParsedResults implements LinterContext {
   @override
-  final List<LinterContextUnit> allUnits;
+  final List<LintRuleUnitContext> allUnits;
 
   @override
-  final LinterContextUnit definingUnit;
+  final LintRuleUnitContext definingUnit;
+
+  @override
+  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+
+  LinterContextWithParsedResults(this.allUnits, this.definingUnit);
+
+  @override
+  bool get isInLibDir => LinterContext._isInLibDir(
+      definingUnit.unit.declaredElement?.source.fullName, package);
+
+  @override
+  bool get isInTestDirectory => false;
+
+  @override
+  LibraryElement get libraryElement => throw UnsupportedError(
+      'LinterContext with parsed results does not include a LibraryElement');
+
+  @override
+  WorkspacePackage? get package => null;
+
+  @override
+  TypeProvider get typeProvider => throw UnsupportedError(
+      'LinterContext with parsed results does not include a TypeProvider');
+
+  @override
+  TypeSystem get typeSystem => throw UnsupportedError(
+      'LinterContext with parsed results does not include a TypeSystem');
+}
+
+/// A [LinterContext] for a library, resolved into [ResolvedUnitResult]s.
+final class LinterContextWithResolvedResults implements LinterContext {
+  @override
+  final List<LintRuleUnitContext> allUnits;
+
+  @override
+  final LintRuleUnitContext definingUnit;
 
   @override
   final WorkspacePackage? package;
+
   @override
   final TypeProvider typeProvider;
 
@@ -104,7 +142,7 @@ class LinterContextImpl implements LinterContext {
   @override
   final InheritanceManager3 inheritanceManager;
 
-  LinterContextImpl(
+  LinterContextWithResolvedResults(
     this.allUnits,
     this.definingUnit,
     this.typeProvider,
@@ -118,55 +156,17 @@ class LinterContextImpl implements LinterContext {
       definingUnit.unit.declaredElement?.source.fullName, package);
 
   @override
-  LibraryElement get libraryElement =>
-      definingUnit.unit.declaredElement!.library;
-}
-
-class LinterContextParsedImpl implements LinterContext {
-  @override
-  final List<LinterContextUnit> allUnits;
-
-  @override
-  final LinterContextUnit definingUnit;
-
-  @override
-  final InheritanceManager3 inheritanceManager = InheritanceManager3();
-
-  LinterContextParsedImpl(
-    this.allUnits,
-    this.definingUnit,
-  );
-
-  @override
-  bool get isInLibDir {
-    return LinterContext._isInLibDir(
-        definingUnit.unit.declaredElement?.source.fullName, package);
+  bool get isInTestDirectory {
+    if (package case var package?) {
+      var file = definingUnit.file;
+      return package.isInTestDirectory(file);
+    }
+    return false;
   }
 
   @override
   LibraryElement get libraryElement =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  WorkspacePackage? get package => null;
-
-  @override
-  TypeProvider get typeProvider =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  TypeSystem get typeSystem =>
-      throw UnsupportedError('LinterContext with parsed results');
-}
-
-class LinterContextUnit {
-  final String content;
-
-  final CompilationUnit unit;
-
-  final ErrorReporter errorReporter;
-
-  LinterContextUnit(this.content, this.unit, this.errorReporter);
+      definingUnit.unit.declaredElement!.library;
 }
 
 class LinterOptions extends DriverOptions {
@@ -230,8 +230,15 @@ abstract class LintRule {
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 
-  /// The lint code associated with this linter.
-  LintCode get lintCode => _LintCode(name, description);
+  /// The lint code associated with this linter, if it is only associated with a
+  /// single lint code.
+  ///
+  /// Note that this property is just a convenient shorthand for a rule to
+  /// associate a lint rule with a single lint code. Use [lintCodes] for the
+  /// full list of (possibly multiple) lint codes which a lint rule may be
+  /// associated with.
+  LintCode get lintCode => throw UnimplementedError(
+      "'lintCode' is not implemented for $runtimeType");
 
   /// The lint codes associated with this lint rule.
   List<LintCode> get lintCodes => [lintCode];
@@ -319,6 +326,77 @@ abstract class LintRule {
   }
 }
 
+abstract final class LintRuleCategory {
+  /// A category of rules that help to minimize binary size.
+  static const String binarySize = 'binary size';
+
+  /// A category of rules that encourage brevity in the source code.
+  static const String brevity = 'brevity';
+
+  /// A category of rules that help to maintain documentation comments.
+  static const String documentationCommentMaintenance =
+      'documentation comment maintenance';
+
+  /// A category of rules that align with the Effective Dart style guide.
+  static const String effectiveDart = 'effective dart';
+
+  /// A category representing possible coding errors.
+  // TODO(srawlins): Hopefully deprecate this (or just rename `error_prone`
+  // back to this one).
+  static const String errors = 'errors';
+
+  /// A category of rules that protect against error-prone code.
+  static const String errorProne = 'error-prone';
+
+  /// A category of rules that help to write Flutter code.
+  static const String flutter = 'flutter';
+
+  /// A category of rules that promote language feature usage.
+  static const String languageFeatureUsage = 'language feature usage';
+
+  /// A category of rules that protect against possibly memory-leaking code.
+  static const String memoryLeaks = 'memory leaks';
+
+  /// A category of rules that protect against non-performant code.
+  static const String nonPerformant = 'non-performant';
+
+  /// A category representing Pub-related rules.
+  static const String pub = 'pub';
+
+  /// A category of rules that promote a healthy public interface.
+  static const String publicInterface = 'public interface';
+
+  /// A category representing matters of style, largely derived from Effective
+  /// Dart.
+  static const String style = 'style';
+
+  /// A category of rules that protect against code that probably doesn't do
+  /// what you think it does, or that shouldn't be used as it is.
+  static const String unintentional = 'unintentional';
+
+  /// A category of rules that protect against unused code.
+  static const String unusedCode = 'unused code';
+
+  /// A category of rules that help to write code deployed to the web.
+  static const String web = 'web';
+}
+
+/// Provides access to information needed by lint rules that is not available
+/// from AST nodes or the element model.
+class LintRuleUnitContext {
+  final File file;
+  final String content;
+  final ErrorReporter errorReporter;
+  final CompilationUnit unit;
+
+  LintRuleUnitContext({
+    required this.file,
+    required this.content,
+    required this.errorReporter,
+    required this.unit,
+  });
+}
+
 /// An error listener that only records whether any constant related errors have
 /// been reported.
 class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
@@ -372,16 +450,6 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
       }
     }
   }
-}
-
-class _LintCode extends LintCode {
-  static final registry = <String, _LintCode>{};
-
-  factory _LintCode(String name, String message) {
-    return registry[name + message] ??= _LintCode._(name, message);
-  }
-
-  _LintCode._(super.name, super.message);
 }
 
 extension on AstNode {

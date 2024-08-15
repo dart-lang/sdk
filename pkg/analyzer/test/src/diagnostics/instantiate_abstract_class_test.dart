@@ -23,7 +23,7 @@ abstract class A<E> {
 void f() {
   var a = const A<int>();
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
       error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 64, 6),
     ]);
 
@@ -38,7 +38,7 @@ abstract class A {
 void f() {
   A a = const A();
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
       error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 59, 1),
     ]);
   }

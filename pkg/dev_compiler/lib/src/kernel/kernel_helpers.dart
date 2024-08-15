@@ -45,15 +45,9 @@ String escapeIdentifier(String identifier) {
 ///
 /// The caller of this function has to make sure that this name is unique in
 /// the current scope.
-///
-/// In the current encoding, generic classes are generated in a function scope
-/// which avoids name clashes of the escaped class name.
 String getLocalClassName(Class node) => escapeIdentifier(node.name);
 
 /// Returns the escaped name for the type parameter [node].
-///
-/// In the current encoding, generic classes are generated in a function scope
-/// which avoids name clashes of the escaped parameter name.
 String getTypeParameterName(
     /* TypeParameter | StructuralParameter */ Object node) {
   assert(node is TypeParameter || node is StructuralParameter);

@@ -248,17 +248,7 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
   sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 
   dartMainRunner(function testMainWrapper() {
-    // Some callbacks are not scheduled with timers/microtasks, so they don't
-    // go through our async tracking (e.g. DOM events). For those tests, check
-    // if the result of calling `main()` is a Future, and if so, wait for it.
-    let result = $testId.$testIdAlias.main();
-    // TODO(46377) DDC should control this code and expose a mechanism to run
-    // the main method that properly waits for completion.
-    if (result?.constructor?.name == '_Future') {
-      sdk.dart.addAsyncCallback();
-      result.whenComplete(sdk.dart.removeAsyncCallback);
-    }
-    return result;
+    return $testId.$testIdAlias.main();
   });
 });
 </script>

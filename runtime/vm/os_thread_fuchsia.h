@@ -18,7 +18,6 @@
 namespace dart {
 
 typedef pthread_key_t ThreadLocalKey;
-typedef zx_handle_t ThreadId;
 typedef pthread_t ThreadJoinId;
 
 static const ThreadLocalKey kUnsetThreadLocalKey =
@@ -38,38 +37,6 @@ class ThreadInlineImpl {
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
-};
-
-class MutexData {
- private:
-  MutexData() {}
-  ~MutexData() {}
-
-  pthread_mutex_t* mutex() { return &mutex_; }
-
-  pthread_mutex_t mutex_;
-
-  friend class Mutex;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MutexData);
-};
-
-class MonitorData {
- private:
-  MonitorData() {}
-  ~MonitorData() {}
-
-  pthread_mutex_t* mutex() { return &mutex_; }
-  pthread_cond_t* cond() { return &cond_; }
-
-  pthread_mutex_t mutex_;
-  pthread_cond_t cond_;
-
-  friend class Monitor;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MonitorData);
 };
 
 }  // namespace dart

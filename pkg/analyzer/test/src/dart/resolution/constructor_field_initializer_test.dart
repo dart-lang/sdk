@@ -42,7 +42,7 @@ augment class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: _foo
-    staticElement: self::@augmentation::package:test/test.dart::@classAugmentation::A::@field::_foo
+    staticElement: package:test/a.dart::@fragment::package:test/test.dart::@classAugmentation::A::@field::_foo
     staticType: null
   equals: =
   expression: IntegerLiteral
@@ -64,12 +64,12 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: f
-    staticElement: self::@class::A::@field::f
+    staticElement: <testLibraryFragment>::@class::A::@field::f
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@class::A::@constructor::new::@parameter::a
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
     staticType: int
 ''');
   }
@@ -87,7 +87,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    staticElement: self::@class::A::@field::x
+    staticElement: <testLibraryFragment>::@class::A::@field::x
     staticType: null
   equals: =
   expression: FunctionExpressionInvocation
@@ -106,14 +106,14 @@ ConstructorFieldInitializer
                 expression: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: a
-                    staticElement: self::@class::A::@constructor::new::@parameter::a
+                    staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
                     staticType: int
                   operator: +
                   rightOperand: IntegerLiteral
                     literal: 1
-                    parameter: dart:core::@class::num::@method::+::@parameter::other
+                    parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
                     staticType: int
-                  staticElement: dart:core::@class::num::@method::+
+                  staticElement: dart:core::<fragment>::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
                 semicolon: ;
@@ -145,7 +145,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    staticElement: self::@class::A::@field::x
+    staticElement: <testLibraryFragment>::@class::A::@field::x
     staticType: null
   equals: =
   expression: FunctionExpressionInvocation
@@ -160,14 +160,14 @@ ConstructorFieldInitializer
           expression: BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
-              staticElement: self::@class::A::@constructor::new::@parameter::a
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
               staticType: int
             operator: +
             rightOperand: IntegerLiteral
               literal: 1
-              parameter: dart:core::@class::num::@method::+::@parameter::other
+              parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
               staticType: int
-            staticElement: dart:core::@class::num::@method::+
+            staticElement: dart:core::<fragment>::@class::num::@method::+
             staticInvokeType: num Function(num)
             staticType: int
         declaredElement: @43
@@ -203,12 +203,12 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    staticElement: self::@class::A::@field::x
+    staticElement: <testLibraryFragment>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -234,7 +234,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -255,12 +255,12 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    staticElement: self::@class::A::@field::x
+    staticElement: <testLibraryFragment>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -287,7 +287,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -313,7 +313,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -334,12 +334,12 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    staticElement: self::@class::A::@field::x
+    staticElement: <testLibraryFragment>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -365,7 +365,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -391,7 +391,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -416,7 +416,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }
@@ -441,7 +441,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@getter::a
+    staticElement: <testLibraryFragment>::@getter::a
     staticType: int
 ''');
   }

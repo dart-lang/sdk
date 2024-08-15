@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use enums rather than classes that behave like enums.';
 
@@ -62,18 +63,15 @@ enum LogPriority {
 ''';
 
 class UseEnums extends LintRule {
-  static const LintCode code = LintCode('use_enums', 'Class should be an enum.',
-      correctionMessage: 'Try using an enum rather than a class.');
-
   UseEnums()
       : super(
             name: 'use_enums',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_enums;
 
   @override
   void registerNodeProcessors(

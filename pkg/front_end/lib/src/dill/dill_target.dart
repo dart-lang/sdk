@@ -25,14 +25,14 @@ class DillTarget {
 
   final Target backendTarget;
 
-  final CompilerContext context = CompilerContext.current;
+  final CompilerContext context;
 
   /// Shared with [CompilerContext].
-  final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
+  Map<Uri, Source> get uriToSource => context.uriToSource;
 
   final Benchmarker? benchmarker;
 
-  DillTarget(this.ticker, this.uriTranslator, this.backendTarget,
+  DillTarget(this.context, this.ticker, this.uriTranslator, this.backendTarget,
       {this.benchmarker}) {
     loader = new DillLoader(this);
   }
@@ -61,6 +61,7 @@ class DillTarget {
       {List<Uri>? involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
+        context,
         fileUri != null
             ? message.withLocation(fileUri, charOffset, length)
             :

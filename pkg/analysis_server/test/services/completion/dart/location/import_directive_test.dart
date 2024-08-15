@@ -32,13 +32,12 @@ suggestions
 
   Future<void> test_afterHide_beforeSemicolon() async {
     newFile('$testPackageLibPath/ab.dart', '''
-library libAB;
 part "ab_part.dart";
 class A0 {}
 class B0 {}
 ''');
     newFile('$testPackageLibPath/ab_part.dart', '''
-part of libAB;
+part of 'ab.dart';
 var T1;
 P0 F1() => new P0();
 class P0 {}
@@ -344,7 +343,6 @@ suggestions
 
   Future<void> test_afterShow_beforeSemicolon() async {
     newFile('$testPackageLibPath/ab.dart', '''
-library libAB;
 part "ab_part.dart";
 class A0 {}
 class B0 {}
@@ -352,7 +350,7 @@ class _A1 {}
 void f(_A1 a) {}
 ''');
     newFile('$testPackageLibPath/ab_part.dart', '''
-part of libAB;
+part of 'ab.dart';
 var T1;
 P1 F1() => new P1();
 typedef P1 F2(int blat);

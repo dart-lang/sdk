@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:linter/src/rules.dart';
@@ -16,24 +17,36 @@ void main() {
 }
 
 class DeprecatedRule extends LintRule {
+  static const LintCode code = LintCode('deprecated_rule', 'Deprecated rule.',
+      correctionMessage: 'Try deprecated rule.');
+
   DeprecatedRule()
       : super(
           name: 'deprecated_rule',
           description: '',
           details: '...',
-          categories: {Category.errors},
+          categories: {LintRuleCategory.errors},
           state: State.deprecated(since: dart2_12),
         );
+
+  @override
+  LintCode get lintCode => code;
 }
 
 class RemovedRule extends LintRule {
+  static const LintCode code = LintCode('removed_rule', 'Removed rule.',
+      correctionMessage: 'Try removed rule.');
+
   RemovedRule()
       : super(
             name: 'removed_rule',
             description: '',
             details: '...',
-            categories: {Category.errors},
+            categories: {LintRuleCategory.errors},
             state: State.removed());
+
+  @override
+  LintCode get lintCode => code;
 }
 
 @reflectiveTest

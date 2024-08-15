@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
@@ -21,7 +22,7 @@ class DartAssistContextImpl implements DartAssistContext {
   final ResolvedUnitResult resolveResult;
 
   @override
-  final Map<ProducerGenerator, Set<String>> producerGeneratorsForLintRules;
+  final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
 
   @override
   final int selectionOffset;

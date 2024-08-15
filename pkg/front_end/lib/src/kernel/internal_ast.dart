@@ -17,6 +17,8 @@
 /// This means that in some cases multiple shadow classes may extend the same
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
+library;
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:kernel/ast.dart';
@@ -30,7 +32,6 @@ import '../builder/declaration_builders.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
-import 'collections.dart';
 
 typedef SharedMatchContext = shared
     .MatchContext<TreeNode, Expression, Pattern, DartType, VariableDeclaration>;
@@ -785,13 +786,15 @@ abstract class InitializerJudgment implements AuxiliaryInitializer {
 
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
+  /// The literal text of the number, as it appears in the source, which may
+  /// include digit separators (and may not be safe for parsing with
+  /// `int.parse`).
   final String? literal;
 
   IntJudgment(int value, this.literal) : super(value);
 
   double? asDouble({bool negated = false}) {
     if (value == 0 && negated) {
-      // Coverage-ignore-block(suite): Not run.
       return -0.0;
     }
     BigInt intValue = new BigInt.from(negated ? -value : value);
@@ -822,16 +825,21 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 }
 
 class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
+  /// The parsable String source, stripped of any digit separators.
+  final String _strippedLiteral;
+
+  /// The original textual source, possibly with digit separators.
   final String literal;
   @override
   final int fileOffset;
   bool isParenthesized = false;
 
-  ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
+  ShadowLargeIntLiteral(this._strippedLiteral, this.literal, this.fileOffset)
+      : super(0);
 
-  // Coverage-ignore(suite): Not run.
   double? asDouble({bool negated = false}) {
-    BigInt? intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
+    BigInt? intValue =
+        BigInt.tryParse(negated ? '-${_strippedLiteral}' : _strippedLiteral);
     if (intValue == null) {
       return null;
     }
@@ -844,7 +852,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   }
 
   int? asInt64({bool negated = false}) {
-    return int.tryParse(negated ? '-${literal}' : literal);
+    return int.tryParse(negated ? '-${_strippedLiteral}' : _strippedLiteral);
   }
 
   @override
@@ -3113,256 +3121,6 @@ class InternalRecordLiteral extends InternalExpression {
   }
 }
 
-class IfCaseElement extends InternalExpression with ControlFlowElement {
-  Expression expression;
-  PatternGuard patternGuard;
-  Expression then;
-  Expression? otherwise;
-  List<Statement> prelude;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
-
-  IfCaseElement(
-      {required this.prelude,
-      required this.expression,
-      required this.patternGuard,
-      required this.then,
-      this.otherwise}) {
-    setParents(prelude, this);
-    expression.parent = this;
-    patternGuard.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    throw new UnsupportedError("IfCaseElement.acceptInference");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.write('if (');
-    printer.writeExpression(expression);
-    printer.write(' case ');
-    patternGuard.toTextInternal(printer);
-    printer.write(') ');
-    printer.writeExpression(then);
-    if (otherwise != null) {
-      printer.write(' else ');
-      printer.writeExpression(otherwise!);
-    }
-  }
-
-  @override
-  MapLiteralEntry? toMapLiteralEntry(
-      void Function(TreeNode from, TreeNode to) onConvertElement) {
-    MapLiteralEntry? thenEntry;
-    Expression then = this.then;
-    if (then is ControlFlowElement) {
-      ControlFlowElement thenElement = then;
-      thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
-    }
-    if (thenEntry == null) return null;
-    MapLiteralEntry? otherwiseEntry;
-    Expression? otherwise = this.otherwise;
-    if (otherwise != null) {
-      // Coverage-ignore-block(suite): Not run.
-      if (otherwise is ControlFlowElement) {
-        ControlFlowElement otherwiseElement = otherwise;
-        otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
-      }
-      if (otherwiseEntry == null) return null;
-    }
-    IfCaseMapEntry result = new IfCaseMapEntry(
-        prelude: prelude,
-        expression: expression,
-        patternGuard: patternGuard,
-        then: thenEntry,
-        otherwise: otherwiseEntry)
-      ..matchedValueType = matchedValueType
-      ..fileOffset = fileOffset;
-    onConvertElement(this, result);
-    return result;
-  }
-
-  @override
-  String toString() {
-    return "IfCaseElement(${toStringInternal()})";
-  }
-}
-
-class IfCaseMapEntry extends TreeNode
-    with InternalTreeNode, ControlFlowMapEntry {
-  Expression expression;
-  PatternGuard patternGuard;
-  MapLiteralEntry then;
-  MapLiteralEntry? otherwise;
-  List<Statement> prelude;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
-
-  IfCaseMapEntry(
-      {required this.prelude,
-      required this.expression,
-      required this.patternGuard,
-      required this.then,
-      this.otherwise}) {
-    expression.parent = this;
-    patternGuard.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.write('if (');
-    expression.toTextInternal(printer);
-    printer.write(' case ');
-    patternGuard.toTextInternal(printer);
-    printer.write(') ');
-    then.toTextInternal(printer);
-    if (otherwise != null) {
-      printer.write(' else ');
-      otherwise!.toTextInternal(printer);
-    }
-  }
-
-  @override
-  String toString() {
-    return "IfCaseMapEntry(${toStringInternal()})";
-  }
-}
-
-class PatternForElement extends InternalExpression
-    with ControlFlowElement
-    implements ForElement {
-  PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
-
-  @override
-  final List<VariableDeclaration> variables; // May be empty, but not null.
-
-  @override
-  Expression? condition; // May be null.
-
-  @override
-  final List<Expression> updates; // May be empty, but not null.
-
-  @override
-  Expression body;
-
-  PatternForElement(
-      {required this.patternVariableDeclaration,
-      required this.intermediateVariables,
-      required this.variables,
-      required this.condition,
-      required this.updates,
-      required this.body});
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitorImpl visitor, DartType typeContext) {
-    throw new UnsupportedError("PatternForElement.acceptInference");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
-    printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
-      if (index > 0) {
-        printer.write(', ');
-      }
-      printer.writeVariableDeclaration(variables[index],
-          includeModifiersAndType: index == 0);
-    }
-    printer.write('; ');
-    if (condition != null) {
-      printer.writeExpression(condition!);
-    }
-    printer.write('; ');
-    printer.writeExpressions(updates);
-    printer.write(') ');
-    printer.writeExpression(body);
-  }
-
-  @override
-  MapLiteralEntry? toMapLiteralEntry(
-      void Function(TreeNode from, TreeNode to) onConvertElement) {
-    throw new UnimplementedError("toMapLiteralEntry");
-  }
-
-  @override
-  String toString() {
-    return "PatternForElement(${toStringInternal()})";
-  }
-}
-
-class PatternForMapEntry extends TreeNode
-    with InternalTreeNode, ControlFlowMapEntry
-    implements ForMapEntry {
-  PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
-
-  @override
-  final List<VariableDeclaration> variables;
-
-  @override
-  Expression? condition;
-
-  @override
-  final List<Expression> updates;
-
-  @override
-  MapLiteralEntry body;
-
-  PatternForMapEntry(
-      {required this.patternVariableDeclaration,
-      required this.intermediateVariables,
-      required this.variables,
-      required this.condition,
-      required this.updates,
-      required this.body});
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
-    printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
-      if (index > 0) {
-        printer.write(', ');
-      }
-      printer.writeVariableDeclaration(variables[index],
-          includeModifiersAndType: index == 0);
-    }
-    printer.write('; ');
-    if (condition != null) {
-      printer.writeExpression(condition!);
-    }
-    printer.write('; ');
-    printer.writeExpressions(updates);
-    printer.write(') ');
-    body.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "PatternForMapEntry(${toStringInternal()})";
-  }
-}
-
 /// Data structure used by the body builder in place of [ObjectPattern], to
 /// allow additional information to be captured that is needed during type
 /// inference.
@@ -3436,6 +3194,7 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
     value = v.transform(value)..parent = this;
   }

@@ -66,7 +66,7 @@ import '../codes/cfe_codes.dart'
         templateSdkSummaryNotFound;
 import '../macros/macro_serializer.dart' show MacroSerializer;
 import 'command_line_reporting.dart' as command_line_reporting;
-import 'compiler_context.dart' show CompilerContext;
+import 'compiler_context.dart';
 import 'messages.dart' show getLocation;
 import 'nnbd_mode.dart';
 import 'problems.dart' show DebugAbort, unimplemented;
@@ -226,20 +226,21 @@ class ProcessedOptions {
         // collecting time since the start of the VM.
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
-  FormattedMessage format(
+  FormattedMessage format(CompilerContext compilerContext,
       LocatedMessage message, Severity severity, List<LocatedMessage>? context,
       {List<Uri>? involvedFiles}) {
     int offset = message.charOffset;
     Uri? uri = message.uri;
-    Location? location =
-        offset == -1 || uri == null ? null : getLocation(uri, offset);
-    PlainAndColorizedString formatted =
-        command_line_reporting.format(message, severity, location: location);
+    Location? location = offset == -1 || uri == null
+        ? null
+        : getLocation(compilerContext, uri, offset);
+    PlainAndColorizedString formatted = command_line_reporting
+        .format(compilerContext, message, severity, location: location);
     List<FormattedMessage>? formattedContext;
     if (context != null && context.isNotEmpty) {
       formattedContext =
           new List<FormattedMessage>.generate(context.length, (int i) {
-        return format(context[i], Severity.context, null);
+        return format(compilerContext, context[i], Severity.context, null);
       });
     }
     return message.withFormatting(formatted, location?.line ?? -1,
@@ -247,16 +248,40 @@ class ProcessedOptions {
         involvedFiles: involvedFiles);
   }
 
-  void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
+  FormattedMessage formatNoSourceLine(
+      LocatedMessage message, Severity severity, List<LocatedMessage>? context,
+      {List<Uri>? involvedFiles}) {
+    PlainAndColorizedString formatted =
+        command_line_reporting.formatNoSourceLine(message, severity);
+    List<FormattedMessage>? formattedContext;
+    // Coverage-ignore(suite): Not run.
+    if (context != null && context.isNotEmpty) {
+      formattedContext =
+          new List<FormattedMessage>.generate(context.length, (int i) {
+        return formatNoSourceLine(context[i], Severity.context, null);
+      });
+    }
+    return message.withFormatting(formatted, -1, -1, severity, formattedContext,
+        involvedFiles: involvedFiles);
+  }
+
+  void _report(
+    LocatedMessage message,
+    Severity severity, {
+    required List<LocatedMessage>? context,
+    required List<Uri>? involvedFiles,
+    required FormattedMessage format(LocatedMessage message, Severity severity,
+        List<LocatedMessage>? context,
+        {List<Uri>? involvedFiles}),
+  }) {
     if (command_line_reporting.isHidden(severity)) return;
-    if (CompilerContext.current.options.setExitCodeOnProblem) {
+    if (setExitCodeOnProblem) {
       // Coverage-ignore-block(suite): Not run.
       exitCode = 1;
     }
     reportDiagnosticMessage(
         format(message, severity, context, involvedFiles: involvedFiles));
-    if (command_line_reporting.shouldThrowOn(severity)) {
+    if (command_line_reporting.shouldThrowOn(this, severity)) {
       // Coverage-ignore-block(suite): Not run.
       if (fatalDiagnosticCount++ < _raw.skipForDebugging) {
         // Skip this one. The interesting one comes later.
@@ -271,6 +296,28 @@ class ProcessedOptions {
             message.uri, message.charOffset, severity, StackTrace.current);
       }
     }
+  }
+
+  void report(CompilerContext compilerContext, LocatedMessage message,
+      Severity severity,
+      {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
+    _report(
+      message,
+      severity,
+      context: context,
+      involvedFiles: involvedFiles,
+      format: (message, severity, context, {involvedFiles}) => format(
+          compilerContext, message, severity, context,
+          involvedFiles: involvedFiles),
+    );
+  }
+
+  void reportNoSourceLine(LocatedMessage message, Severity severity,
+      {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
+    _report(message, severity,
+        context: context,
+        involvedFiles: involvedFiles,
+        format: formatNoSourceLine);
   }
 
   void reportDiagnosticMessage(DiagnosticMessage message) {
@@ -297,7 +344,7 @@ class ProcessedOptions {
 
   // TODO(askesc): Remove this and direct callers directly to report.
   void reportWithoutLocation(Message message, Severity severity) {
-    report(message.withoutLocation(), severity);
+    reportNoSourceLine(message.withoutLocation(), severity);
   }
 
   /// If `CompilerOptions.invocationModes` contains `InvocationMode.compile`, an
@@ -541,7 +588,7 @@ class ProcessedOptions {
       ticker.logMs("Read libraries file");
       PackageConfig packages = await _getPackages();
       ticker.logMs("Read packages file");
-      _uriTranslator = new UriTranslator(libraries, packages);
+      _uriTranslator = new UriTranslator(this, libraries, packages);
     }
     return _uriTranslator!;
   }
@@ -622,7 +669,7 @@ class ProcessedOptions {
     Uri input = inputs.first;
 
     if (input.isScheme('package')) {
-      report(
+      reportNoSourceLine(
           messageCantInferPackagesFromPackageUri.withLocation(
               input, -1, noLength),
           Severity.error);
@@ -684,7 +731,7 @@ class ProcessedOptions {
           // Coverage-ignore(suite): Not run.
           (Object error) {
         if (error is FormatException) {
-          report(
+          reportNoSourceLine(
               templatePackagesFileFormat
                   .withArguments(error.message)
                   .withLocation(requestedUri, error.offset ?? -1, noLength),
@@ -702,7 +749,7 @@ class ProcessedOptions {
     }
     // Coverage-ignore(suite): Not run.
     on FormatException catch (e) {
-      report(
+      reportNoSourceLine(
           templatePackagesFileFormat
               .withArguments(e.message)
               .withLocation(requestedUri, e.offset ?? -1, noLength),
@@ -887,10 +934,9 @@ class ProcessedOptions {
     try {
       return await file.readAsBytes();
     } on FileSystemException catch (error) {
-      report(
-          templateCantReadFile
-              .withArguments(error.uri, osErrorMessage(error.message))
-              .withoutLocation(),
+      reportWithoutLocation(
+          templateCantReadFile.withArguments(
+              error.uri, osErrorMessage(error.message)),
           Severity.error);
       return null;
     }

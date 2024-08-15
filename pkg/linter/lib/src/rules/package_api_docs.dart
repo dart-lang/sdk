@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Provide doc comments for all public APIs.';
 
@@ -58,19 +59,18 @@ Advice for writing good doc comments can be found in the
 ''';
 
 class PackageApiDocs extends LintRule {
-  static const LintCode code = LintCode(
-      'package_api_docs', 'Missing documentation for public API.',
-      correctionMessage: 'Try adding a documentation comment.');
-
   PackageApiDocs()
       : super(
             name: 'package_api_docs',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.publicInterface
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.package_api_docs;
 
   @override
   void registerNodeProcessors(

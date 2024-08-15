@@ -39,6 +39,17 @@ void f({int? p}) {
     ]);
   }
 
+  test_assignment_wildcard() async {
+    await assertDiagnostics(r'''
+void f([int? _]) {
+  _ = 8;
+}
+''', [
+      // No lint.
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 21, 1),
+    ]);
+  }
+
   @FailingTest(reason: 'Closures not implemented')
   test_closure_assignment() async {
     await assertDiagnostics(r'''

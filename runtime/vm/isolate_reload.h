@@ -319,7 +319,7 @@ class ProgramReloadContext {
   IsolateGroup* isolate_group() { return isolate_group_; }
   ObjectStore* object_store();
 
-  void EnsuredUnoptimizedCodeForStack();
+  ErrorPtr EnsuredUnoptimizedCodeForStack();
   void DeoptimizeDependentCode();
 
   void ReloadPhase1AllocateStorageMapsAndCheckpoint();
@@ -328,7 +328,7 @@ class ProgramReloadContext {
                                    const String& root_lib_url);
   void ReloadPhase3FinalizeLoading();
   void ReloadPhase4CommitPrepare();
-  void ReloadPhase4CommitFinish();
+  ErrorPtr ReloadPhase4CommitFinish();
   void ReloadPhase4Rollback();
 
   void CheckpointLibraries();
@@ -341,15 +341,15 @@ class ProgramReloadContext {
 
   void CommitBeforeInstanceMorphing();
   void CommitAfterInstanceMorphing();
-  void PostCommit();
+  ErrorPtr PostCommit();
 
-  void RunInvalidationVisitors();
+  ErrorPtr RunInvalidationVisitors();
   void InvalidateKernelInfos(
       Zone* zone,
       const GrowableArray<const KernelProgramInfo*>& kernel_infos);
   void InvalidateFunctions(Zone* zone,
                            const GrowableArray<const Function*>& functions);
-  void InvalidateSuspendStates(
+  ErrorPtr InvalidateSuspendStates(
       Zone* zone,
       const GrowableArray<const SuspendState*>& suspend_states);
   void InvalidateFields(Zone* zone,
@@ -357,7 +357,7 @@ class ProgramReloadContext {
                         const GrowableArray<const Instance*>& instances);
   void ResetUnoptimizedICsOnStack();
   void ResetMegamorphicCaches();
-  void InvalidateWorld();
+  ErrorPtr InvalidateWorld();
 
   struct LibraryInfo {
     bool dirty;
@@ -382,7 +382,7 @@ class ProgramReloadContext {
                          const Library& original);
   void AddStaticFieldMapping(const Field& old_field, const Field& new_field);
   void AddBecomeMapping(const Object& old, const Object& neu);
-  void RebuildDirectSubclasses();
+  void RestoreClassHierarchyInvariants();
 
   Become become_;
 

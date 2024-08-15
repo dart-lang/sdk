@@ -116,7 +116,7 @@ void Function(String) printEnableColorsReason = (_) {};
 /// `true`.
 ///
 /// Note: do not call this method directly, as it is expensive to
-/// compute. Instead, use [CompilerContext.enableColors].
+/// compute. Instead, use [enableColors].
 bool _computeEnableColors() {
   if (!stdout.supportsAnsiEscapes) {
     printEnableColorsReason(

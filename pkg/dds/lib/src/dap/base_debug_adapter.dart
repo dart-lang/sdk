@@ -143,7 +143,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
           'sendResponse was not called in ${request.command}');
     } catch (e, s) {
       // TODO(helin24): Consider adding an error type to DebugAdapterException.
-      final messageText = e is DebugAdapterException ? e.message : '$e';
+      final isDapException = e is DebugAdapterException;
+      final messageText = isDapException ? e.message : '$e';
       final errorMessage = Message(
         id: ErrorMessageType.general,
         format: '{message}',
@@ -154,8 +155,9 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
         // DAP specification did not specify how to handle the case where
         // showUser does not exist. VSCode defaults to true, but some other
         // systems might default it to false.
-        // Always pass true to be consistent.
-        showUser: true,
+        // Only show errors that are intended to be shown to the user. These
+        // include any errors in LaunchRequest or AttachRequest.
+        showUser: isDapException && e.showToUser == true,
       );
       final response = Response(
         success: false,

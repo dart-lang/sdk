@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Annotate overridden members.';
 
@@ -47,22 +48,15 @@ class Husky extends Dog {
 ''';
 
 class AnnotateOverrides extends LintRule {
-  static const LintCode code = LintCode(
-      'annotate_overrides',
-      "The member '{0}' overrides an inherited member but isn't annotated "
-          "with '@override'.",
-      correctionMessage: "Try adding the '@override' annotation.",
-      hasPublishedDocs: true);
-
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.annotate_overrides;
 
   @override
   void registerNodeProcessors(

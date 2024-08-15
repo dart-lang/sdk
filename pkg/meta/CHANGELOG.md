@@ -2,11 +2,60 @@
 
 - Add `TargetKind`s to a few annotations to match custom-wired behavior that the
   Dart analyzer has been providing:
+
   - Require that `@factory` is only used on methods.
   - Require that `@Immutable` is only used on classes, extensions, and mixins.
   - Require that `@mustBeOverridden` and `@mustCallSuper` are only used on
     overridable members.
   - Require that `@sealed` is only used on classes.
+
+- Updated `@doNotSubmit` to (1) disallow same-library access (unlike other
+  visibility annotation), (2) allow parameters marked with `@doNotSubmit` to be
+  used in nested functions, and (3) disallowed `@doNotSubmit` on required
+  parameters:
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  @doNotSubmit
+  void a() {}
+
+  void b() {
+    // HINT: invalid_use_of_do_not_submit: ...
+    a();
+  }
+  ```
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  void test({
+    @doNotSubmit bool solo = false
+  }) {
+    void nested() {
+      // OK
+      if (solo) { /*...*/ }
+    }
+  }
+  ```
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  void test({
+    // HINT: Cannot use on required parameters.
+    @doNotSubmit required bool solo
+  }) {}
+  ```
+
+  See <https://github.com/dart-lang/sdk/issues/55558> for more information.
+
+- `TargetKind.parameter` is now allowed on a _representation type_, such as:
+
+  ```dart
+  // Ok, because `int _actual` is similar to a parameter declaration.
+  extension type const FancyInt(@mustBeConst int _actual) {}
+  ```
 
 ## 1.15.0
 
@@ -41,10 +90,53 @@
   ```
 
   See <https://github.com/dart-lang/sdk/issues/52965> for more information.
+
 - Introduce `TargetKind.optionalParameter`, to indicate that an annotation is
   valid on any optional parameter declaration.
 - Introduce `TargetKind.overridableMember`, to indicate that an annotation is
   valid on any instance member declaration.
+- Introduce `TargetKind.instanceMember`, to indicate that an annotation is valid
+  on any instance member declaration.
+- Updated `@doNotSubmit` to (1) disallow same-library access (unlike other
+  visibility annotation), (2) allow parameters marked with `@doNotSubmit` to be
+  used in nested functions, and (3) disallowed `@doNotSubmit` on required
+  parameters:
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  @doNotSubmit
+  void a() {}
+
+  void b() {
+    // HINT: invalid_use_of_do_not_submit: ...
+    a();
+  }
+  ```
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  void test({
+    @doNotSubmit bool solo = false
+  }) {
+    void nested() {
+      // OK
+      if (solo) { /*...*/ }
+    }
+  }
+  ```
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  void test({
+    // HINT: Cannot use on required parameters.
+    @doNotSubmit required bool solo
+  }) {}
+  ```
+
+  See <https://github.com/dart-lang/sdk/issues/55558> for more information.
 
 ## 1.14.0
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -17,11 +19,21 @@ import 'package:analyzer/src/error/codes.g.dart';
 class RecordTypeAnnotationResolver {
   final TypeProviderImpl typeProvider;
   final ErrorReporter errorReporter;
+  final LibraryElement libraryElement;
 
   RecordTypeAnnotationResolver({
     required this.typeProvider,
     required this.errorReporter,
+    required this.libraryElement,
   });
+
+  bool get isWildCardVariablesEnabled =>
+      libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
+
+  bool isPositionalWildCard(AstNode field, String name) =>
+      field is RecordTypeAnnotationPositionalField &&
+      name == '_' &&
+      isWildCardVariablesEnabled;
 
   /// Report any named fields in the record type [node] that use a previously
   /// defined name.
@@ -30,6 +42,9 @@ class RecordTypeAnnotationResolver {
     for (var field in node.fields) {
       var name = field.name?.lexeme;
       if (name != null) {
+        // Multiple positional `_`s are legal with wildcards.
+        if (isPositionalWildCard(field, name)) continue;
+
         var previousField = usedNames[name];
         if (previousField != null) {
           errorReporter.reportError(DiagnosticFactory()
@@ -51,10 +66,13 @@ class RecordTypeAnnotationResolver {
       if (nameToken != null) {
         var name = nameToken.lexeme;
         if (name.startsWith('_')) {
-          errorReporter.atToken(
-            nameToken,
-            CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
-          );
+          // Positional record fields named `_` are legal w/ wildcards.
+          if (!isPositionalWildCard(field, name)) {
+            errorReporter.atToken(
+              nameToken,
+              CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
+            );
+          }
         } else {
           var index = RecordTypeExtension.positionalFieldIndex(name);
           if (index != null) {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -154,7 +155,7 @@ linter:
   }
 
   void test_linter_rules_internal() {
-    registerRule(InternalLint());
+    registerRule(InternalRule());
 
     getCompletions('''
 linter:
@@ -255,13 +256,19 @@ li^
   }
 }
 
-class InternalLint extends LintRule {
-  InternalLint()
+class InternalRule extends LintRule {
+  static const LintCode code = LintCode('internal_rule', 'Internal rule.',
+      correctionMessage: 'Try internal rule.');
+
+  InternalRule()
       : super(
           name: 'internal_lint',
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
           state: State.internal(),
           description: '',
           details: '',
         );
+
+  @override
+  LintCode get lintCode => code;
 }

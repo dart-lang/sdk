@@ -36,7 +36,7 @@ augment class A {
     assertResolvedNodeText(node, r'''
 AugmentedExpression
   augmentedKeyword: augmented
-  element: self::@class::A::@field::foo
+  element: package:test/a.dart::<fragment>::@class::A::@field::foo
   staticType: int
 ''');
   }
@@ -66,7 +66,7 @@ ReturnStatement
   returnKeyword: return
   expression: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@class::A::@getter::foo
+    element: package:test/a.dart::<fragment>::@class::A::@getter::foo
     staticType: int
   semicolon: ;
 ''');
@@ -100,16 +100,16 @@ Block
       expression: AssignmentExpression
         leftHandSide: AugmentedExpression
           augmentedKeyword: augmented
-          element: self::@class::A::@setter::foo
+          element: package:test/a.dart::<fragment>::@class::A::@setter::foo
           staticType: null
         operator: =
         rightHandSide: IntegerLiteral
           literal: 0
-          parameter: self::@class::A::@setter::foo::@parameter::_
+          parameter: package:test/a.dart::<fragment>::@class::A::@setter::foo::@parameter::_
           staticType: int
         readElement: <null>
         readType: null
-        writeElement: self::@class::A::@setter::foo
+        writeElement: package:test/a.dart::<fragment>::@class::A::@setter::foo
         writeType: int
         staticElement: <null>
         staticType: int
@@ -224,7 +224,7 @@ ReturnStatement
   returnKeyword: return
   expression: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@getter::foo
+    element: package:test/a.dart::<fragment>::@getter::foo
     staticType: int
   semicolon: ;
 ''');
@@ -254,16 +254,16 @@ Block
       expression: AssignmentExpression
         leftHandSide: AugmentedExpression
           augmentedKeyword: augmented
-          element: self::@setter::foo
+          element: package:test/a.dart::<fragment>::@setter::foo
           staticType: null
         operator: =
         rightHandSide: IntegerLiteral
           literal: 0
-          parameter: self::@setter::foo::@parameter::_
+          parameter: package:test/a.dart::<fragment>::@setter::foo::@parameter::_
           staticType: int
         readElement: <null>
         readType: null
-        writeElement: self::@setter::foo
+        writeElement: package:test/a.dart::<fragment>::@setter::foo
         writeType: int
         staticElement: <null>
         staticType: int
@@ -289,7 +289,7 @@ augment num foo = augmented;
     assertResolvedNodeText(node, r'''
 AugmentedExpression
   augmentedKeyword: augmented
-  element: self::@variable::foo
+  element: package:test/a.dart::<fragment>::@topLevelVariable::foo
   staticType: int
 ''');
   }

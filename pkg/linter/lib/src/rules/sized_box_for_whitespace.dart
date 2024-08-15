@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'`SizedBox` for whitespace.';
@@ -48,20 +49,15 @@ Widget buildRow() {
 ''';
 
 class SizedBoxForWhitespace extends LintRule {
-  static const LintCode code = LintCode('sized_box_for_whitespace',
-      "Use a 'SizedBox' to add whitespace to a layout.",
-      correctionMessage: "Try using a 'SizedBox' rather than a 'Container'.",
-      hasPublishedDocs: true);
-
   SizedBoxForWhitespace()
       : super(
             name: 'sized_box_for_whitespace',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.sized_box_for_whitespace;
 
   @override
   void registerNodeProcessors(

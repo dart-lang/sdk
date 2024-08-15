@@ -17,15 +17,6 @@ import '../api_prototype/file_system.dart' show FileSystem;
 import '../base/processed_options.dart' show ProcessedOptions;
 import 'command_line_reporting.dart' as command_line_reporting;
 
-final Object compilerContextKey = new Object();
-
-/// Shared context used throughout the compiler.
-///
-/// The compiler works with a single instance of this class. To avoid
-/// passing it around as an argument everywhere, it is stored as a zone-value.
-///
-/// For convenience the static getter [CompilerContext.current] retrieves the
-/// context stored in the current zone.
 class CompilerContext {
   // TODO(sigmund): Move here any method in ProcessedOptions that doesn't seem
   // appropriate as an "option", or consider merging ProcessedOptions entirely
@@ -38,8 +29,6 @@ class CompilerContext {
   /// reporting and to generate source location information in the compiled
   /// programs.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
-
-  final List<Uri> dependencies = <Uri>[];
 
   FileSystem get fileSystem => options.fileSystem;
 
@@ -56,60 +45,22 @@ class CompilerContext {
   /// Report [message], for example, by printing it.
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
-    options.report(message, severity,
+    options.report(this, message, severity,
         context: context, involvedFiles: involvedFiles);
-  }
-
-  /// Report [message], for example, by printing it.
-  // TODO(askesc): Remove this and direct callers directly to report.
-  void reportWithoutLocation(Message message, Severity severity) {
-    options.reportWithoutLocation(message, severity);
   }
 
   /// Format [message] as a text string that can be included in generated code.
   PlainAndColorizedString format(LocatedMessage message, Severity severity) {
-    return command_line_reporting.format(message, severity);
+    return command_line_reporting.format(this, message, severity);
   }
 
-  static void recordDependency(Uri uri) {
-    if (!uri.isScheme("file") &&
-        // Coverage-ignore(suite): Not run.
-        !uri.isScheme("http")) {
-      throw new ArgumentError("Expected a file or http URI, but got: '$uri'.");
-    }
-    CompilerContext? context = Zone.current[compilerContextKey];
-    if (context != null) {
-      context.dependencies.add(uri);
-    }
-  }
-
-  static CompilerContext get current {
-    CompilerContext? context = Zone.current[compilerContextKey];
-    if (context == null) {
-      // Coverage-ignore-block(suite): Not run.
-      // Note: we throw directly and don't use internalProblem, because
-      // internalProblem depends on having a compiler context available.
-      String problemMessage =
-          messageInternalProblemMissingContext.problemMessage;
-      String correctionMessage =
-          messageInternalProblemMissingContext.correctionMessage!;
-      throw "Internal problem: $problemMessage\nTip: $correctionMessage";
-    }
-    return context;
-  }
-
-  static bool get isActive => Zone.current[compilerContextKey] != null;
-
-  /// Perform [action] in a [Zone] where this [CompilerContext] will be
-  /// available as `CompilerContext.current`.
+  /// Perform [action] in a [Zone].
   Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {
     return runZoned(
-        () => new Future<T>.sync(() => action(this)).whenComplete(clear),
-        zoneValues: {compilerContextKey: this});
+        () => new Future<T>.sync(() => action(this)).whenComplete(clear));
   }
 
-  /// Perform [action] in a [Zone] where [options] will be available as
-  /// `CompilerContext.current.options`.
+  /// Perform [action] in a [Zone].
   static Future<T> runWithOptions<T>(
       ProcessedOptions options, Future<T> action(CompilerContext c),
       {bool errorOnMissingInput = true}) {
@@ -127,6 +78,5 @@ class CompilerContext {
 
   void clear() {
     clearStringCanonicalizationCache();
-    dependencies.clear();
   }
 }

@@ -9,6 +9,7 @@ import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_import
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid redundant argument values.';
 
@@ -41,21 +42,15 @@ void main() {
 ''';
 
 class AvoidRedundantArgumentValues extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_redundant_argument_values',
-      'The value of the argument is redundant because it matches the default '
-          'value.',
-      correctionMessage: 'Try removing the argument.');
-
   AvoidRedundantArgumentValues()
       : super(
             name: 'avoid_redundant_argument_values',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_redundant_argument_values;
 
   @override
   void registerNodeProcessors(

@@ -34,7 +34,7 @@ class LibraryCycle {
   /// The library cycles that this cycle references directly.
   final Set<LibraryCycle> directDependencies;
 
-  /// The cycles that use this cycle, used to [invalidate] transitively.
+  /// The cycles that use this cycle, used to [dispose] transitively.
   final List<LibraryCycle> directUsers = [];
 
   /// The transitive API signature of this cycle.
@@ -135,16 +135,16 @@ class LibraryCycle {
   /// The key of the macro kernel in the byte store.
   String get macroKey => '$implSignature.macro_kernel';
 
-  /// Invalidate this cycle and any cycles that directly or indirectly use it.
+  /// Dispose this cycle and any cycles that directly or indirectly use it.
   ///
-  /// Practically invalidation means that we clear the library cycle in all the
+  /// Practically this means that we clear the library cycle in all the
   /// [libraries] that share this [LibraryCycle] instance.
-  void invalidate() {
+  void dispose() {
     for (var library in libraries) {
       library.internal_setLibraryCycle(null);
     }
     for (var user in directUsers.toList()) {
-      user.invalidate();
+      user.dispose();
     }
     for (var directDependency in directDependencies) {
       directDependency.directUsers.remove(this);
@@ -186,20 +186,27 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    var referencedLibraries = {kind, ...kind.augmentations}
-        .map((container) => [
-              ...container.libraryImports
-                  .whereType<LibraryImportWithFile>()
-                  .map((import) => import.importedLibrary),
-              ...container.libraryExports
-                  .whereType<LibraryExportWithFile>()
-                  .map((export) => export.exportedLibrary),
-            ])
+    var referencedLibraries = kind.fileKinds
+        .map((fileKind) {
+          return [
+            ...fileKind.libraryImports
+                .whereType<LibraryImportWithFile>()
+                .map((import) => import.importedLibrary),
+            ...fileKind.libraryExports
+                .whereType<LibraryExportWithFile>()
+                .map((export) => export.exportedLibrary),
+          ];
+        })
         .flattenedToList
         .nonNulls
         .toSet();
 
     return referencedLibraries.map(walker.getNode).toList();
+  }
+
+  @override
+  String toString() {
+    return 'LibraryNode($kind)';
   }
 }
 

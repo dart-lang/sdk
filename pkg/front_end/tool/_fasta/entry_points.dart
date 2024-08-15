@@ -16,6 +16,7 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/file_system_dependency_tracker.dart';
 import 'package:front_end/src/base/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -340,7 +341,7 @@ Future<void> outline(List<String> arguments, {Benchmarker? benchmarker}) async {
       if (c.options.verbose) {
         print("Building outlines for ${arguments.join(' ')}");
       }
-      CompilerResult compilerResult = await generateKernelInternal(
+      CompilerResult compilerResult = await generateKernelInternal(c,
           buildSummary: true,
           serializeIfBuildingSummary: false,
           buildComponent: false,
@@ -360,7 +361,7 @@ Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
         print("Compiling directly to Kernel: ${arguments.join(' ')}");
       }
       CompilerResult compilerResult =
-          await generateKernelInternal(benchmarker: benchmarker);
+          await generateKernelInternal(c, benchmarker: benchmarker);
       Component component = compilerResult.component!;
       Uri uri = await _emitComponent(c.options, component,
           benchmarker: benchmarker, message: "Wrote component to ");
@@ -372,16 +373,18 @@ Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
 
 Future<Uri?> deps(List<String> arguments) async {
   return await runProtectedFromAbort<Uri?>(() async {
-    return await withGlobalOptions("deps", arguments, true,
+    FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
+    return await withGlobalOptions("deps", arguments, true, tracker: tracker,
         (CompilerContext c, _) async {
       if (c.options.verbose) {
         print("Computing deps: ${arguments.join(' ')}");
       }
       await generateKernelInternal(
+        c,
         buildSummary: true,
         serializeIfBuildingSummary: false,
       );
-      return await _emitDeps(c, c.options.output);
+      return await _emitDeps(tracker, c.options.output);
     });
   });
 }
@@ -413,11 +416,12 @@ Future<Uri> _emitComponent(ProcessedOptions options, Component component,
   return uri;
 }
 
-Future<Uri?> _emitDeps(CompilerContext context, [Uri? output]) async {
+Future<Uri?> _emitDeps(FileSystemDependencyTracker tracker,
+    [Uri? output]) async {
   Uri? dFile;
   if (output != null) {
     dFile = new File(new File.fromUri(output).path + ".d").uri;
-    await writeDepsFile(output, dFile, context.dependencies);
+    await writeDepsFile(output, dFile, tracker.dependencies);
   }
   return dFile;
 }
@@ -437,25 +441,30 @@ void _benchmarkAstVisitor(Component component, Benchmarker? benchmarker) {
 class EmptyRecursiveVisitorForBenchmarking extends RecursiveVisitor {}
 
 Future<void> compilePlatform(List<String> arguments) async {
+  FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
   await withGlobalOptions("compile_platform", arguments, false,
-      (CompilerContext c, List<String> restArguments) {
+      tracker: tracker, (CompilerContext c, List<String> restArguments) {
     c.compilingPlatform = true;
     Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
     Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[4]));
     return compilePlatformInternal(
-        c, c.options.output!, outlineOutput, hostPlatform);
+        c, tracker, c.options.output!, outlineOutput, hostPlatform);
   });
 }
 
-Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
-    Uri outlineOutput, Uri hostPlatform) async {
+Future<void> compilePlatformInternal(
+    CompilerContext c,
+    FileSystemDependencyTracker tracker,
+    Uri fullOutput,
+    Uri outlineOutput,
+    Uri hostPlatform) async {
   if (c.options.verbose) {
     print("Generating outline of ${c.options.sdkRoot} into $outlineOutput");
     print("Compiling ${c.options.sdkRoot} to $fullOutput");
   }
 
   CompilerResult result =
-      await generateKernelInternal(buildSummary: true, buildComponent: true);
+      await generateKernelInternal(c, buildSummary: true, buildComponent: true);
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary!);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
@@ -466,7 +475,7 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
   if (c.options.emitDeps) {
-    List<Uri> deps = result.deps.toList();
+    List<Uri> deps = tracker.dependencies.toList();
     for (Uri dependency in await computeHostDependencies(hostPlatform)) {
       // Add the dependencies of the compiler's own sources.
       if (dependency != outlineOutput) {

@@ -30,7 +30,7 @@ String spacesToText(Space space) {
   return text;
 }
 
-/// Returns a textual representation for [properties] used for testing.
+/// Returns a textual representation for [fieldsOfInterest] used for testing.
 String fieldsToText(StaticType type, ObjectPropertyLookup objectFieldLookup,
     Set<Key> fieldsOfInterest) {
   List<Key> sortedNames = fieldsOfInterest.toList()..sort();
@@ -64,7 +64,7 @@ String fieldsToText(StaticType type, ObjectPropertyLookup objectFieldLookup,
 /// Returns a textual representation for [type] used for testing.
 String staticTypeToText(StaticType type) => type.toString();
 
-/// Returns a textual representation of the subtypes of [type] used for testing.
+/// Returns a textual representation of [types] used for testing.
 String? typesToText(Iterable<StaticType> types) {
   if (types.isEmpty) return null;
   // TODO(johnniwinther): Sort types.

@@ -21,36 +21,48 @@ class ConvertPartOfToUriTest extends AssistProcessorTest {
 
   Future<void> test_nonSibling() async {
     newFile('$testPackageLibPath/foo.dart', '''
+// @dart = 3.4
+// preEnhancedParts
 library foo;
 part 'src/bar.dart';
 ''');
 
     testFilePath = convertPath('$testPackageLibPath/src/bar.dart');
     addTestSource('''
+// @dart = 3.4
+// preEnhancedParts
 part of foo;
 ''');
 
     await analyzeTestPackageFiles();
     await resolveTestFile();
     await assertHasAssistAt('foo', '''
+// @dart = 3.4
+// preEnhancedParts
 part of '../foo.dart';
 ''');
   }
 
   Future<void> test_sibling() async {
     newFile('$testPackageLibPath/foo.dart', '''
+// @dart = 3.4
+// preEnhancedParts
 library foo;
 part 'bar.dart';
 ''');
 
     testFilePath = convertPath('$testPackageLibPath/bar.dart');
     addTestSource('''
+// @dart = 3.4
+// preEnhancedParts
 part of foo;
 ''');
 
     await analyzeTestPackageFiles();
     await resolveTestFile();
     await assertHasAssistAt('foo', '''
+// @dart = 3.4
+// preEnhancedParts
 part of 'foo.dart';
 ''');
   }

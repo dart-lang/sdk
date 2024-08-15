@@ -4,8 +4,6 @@
 
 // NOTE: this file was originally copied from package:vm_service.
 
-library service_test_common;
-
 import 'dart:async';
 import 'dart:developer';
 import 'dart:typed_data';

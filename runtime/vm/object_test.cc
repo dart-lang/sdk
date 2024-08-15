@@ -70,11 +70,11 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   interface_name = Symbols::New(thread, "Harley");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface.set_is_implemented_unsafe();
+  interface.set_is_implemented_unsafe(true);
   interface_name = Symbols::New(thread, "Norton");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface.set_is_implemented_unsafe();
+  interface.set_is_implemented_unsafe(true);
   cls.set_interfaces(interfaces);
 
   // Finalization of types happens before the fields and functions have been
@@ -360,7 +360,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
             one_field_class.host_instance_size());
   EXPECT_EQ(header_size, field.HostOffset());
   EXPECT(!one_field_class.is_implemented());
-  one_field_class.set_is_implemented_unsafe();
+  one_field_class.set_is_implemented_unsafe(true);
   EXPECT(one_field_class.is_implemented());
 }
 
@@ -6215,14 +6215,15 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("_TypeParameter@", buffer, buffer);
     EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\",\"_vmType\":\"Map\",\"class\":{"
-        "\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
-        "Map\",\"_vmName\":\"\",\"location\":{\"type\":"
+        "\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\""
+        "_Map\",\"_vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-        "\"id\":\"\",\"uri\":\"dart:collection-patch\\/"
-        "compact_hash.dart\",\"_kind\":\"kernel\"}"
+        "\"id\":\"\",\"uri\":\"dart:_compact_hash\","
+        "\"_kind\":\"kernel\"}"
         "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
-        "true,\"id\":\"\",\"name\":\"dart.collection\",\"uri\":\"dart:"
-        "collection\"},\"typeParameters\":[{\"type\":\"@Instance\",\"_vmType\":"
+        "true,\"id\":\"\",\"name\":\"dart._compact_hash\","
+        "\"uri\":\"dart:_compact_hash\"},"
+        "\"typeParameters\":[{\"type\":\"@Instance\",\"_vmType\":"
         "\"TypeParameter\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
         "\"id\":\"\",\"name\":\"_TypeParameter\",\"_vmName\":\""
         "\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"

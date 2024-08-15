@@ -9,22 +9,18 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
-
-import 'tree_string_sink.dart';
 
 class ElementPrinter {
   final TreeStringSink _sink;
   final ElementPrinterConfiguration _configuration;
-  final String? _selfUriStr;
 
   ElementPrinter({
     required TreeStringSink sink,
     required ElementPrinterConfiguration configuration,
-    required String? selfUriStr,
   })  : _sink = sink,
-        _configuration = configuration,
-        _selfUriStr = selfUriStr;
+        _configuration = configuration;
 
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {
@@ -182,21 +178,24 @@ class ElementPrinter {
     var parent = reference.parent!;
     if (parent.parent == null) {
       var libraryUriStr = reference.name;
-      if (libraryUriStr == _selfUriStr) {
-        return 'self';
+
+      // Very often we have just the test library.
+      if (libraryUriStr == 'package:test/test.dart') {
+        return '<testLibrary>';
       }
 
-      // TODO(scheglov): Make it precise again, after Windows.
-      if (libraryUriStr.startsWith('file:')) {
-        return libraryUriStr.substring(libraryUriStr.lastIndexOf('/') + 1);
-      }
-
-      return libraryUriStr;
+      return _toPosixUriStr(libraryUriStr);
     }
 
-    // Ignore the unit, skip to the library.
-    if (parent.name == '@unit') {
-      return _referenceToString(parent.parent!);
+    // Compress often used library fragments.
+    if (parent.name == '@fragment') {
+      var libraryRef = parent.parent!;
+      if (reference.name == libraryRef.name) {
+        if (libraryRef.name == 'package:test/test.dart') {
+          return '<testLibraryFragment>';
+        }
+        return '${_referenceToString(libraryRef)}::<fragment>';
+      }
     }
 
     var name = reference.name;
@@ -215,6 +214,14 @@ class ElementPrinter {
       return '${entry.key.name}: ${_typeStr(entry.value)}';
     }).join(', ');
     return '{$entriesStr}';
+  }
+
+  String _toPosixUriStr(String uriStr) {
+    // TODO(scheglov): Make it precise again, after Windows.
+    if (uriStr.startsWith('file:')) {
+      return uriStr.substring(uriStr.lastIndexOf('/') + 1);
+    }
+    return uriStr;
   }
 
   String _typeStr(DartType type) {

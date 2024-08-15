@@ -9,6 +9,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/loader.dart';
 import '../base/modifier.dart' show abstractMask, namedMixinApplicationMask;
+import '../base/name_space.dart';
 import '../base/problems.dart' show unimplemented;
 import '../base/scope.dart';
 import '../builder/builder.dart';
@@ -21,29 +22,28 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
 
 mixin DillClassMemberAccessMixin implements ClassMemberAccess {
-  Scope get scope;
-  ConstructorScope get constructorScope;
+  DeclarationNameSpace get nameSpace;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      constructorScope.filteredIterator<T>(
+      nameSpace.filteredConstructorIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      constructorScope.filteredNameIterator<T>(
+      nameSpace.filteredConstructorNameIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      scope.filteredIterator<T>(
+      nameSpace.filteredIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      scope.filteredNameIterator<T>(
+      nameSpace.filteredNameIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
 }
 
@@ -52,6 +52,12 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   final Class cls;
 
+  late final LookupScope _scope;
+
+  final DeclarationNameSpace _nameSpace;
+
+  late final ConstructorScope _constructorScope;
+
   List<NominalVariableBuilder>? _typeVariables;
 
   TypeBuilder? _supertypeBuilder;
@@ -59,20 +65,25 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? _interfaceBuilders;
 
   DillClassBuilder(this.cls, DillLibraryBuilder parent)
-      : super(
-            /*metadata builders*/ null,
-            computeModifiers(cls),
-            cls.name,
-            new Scope(
-                kind: ScopeKind.declaration,
-                local: <String, MemberBuilder>{},
-                setters: <String, MemberBuilder>{},
-                parent: parent.scope,
-                debugName: "class ${cls.name}",
-                isModifiable: false),
-            new ConstructorScope(cls.name, <String, MemberBuilder>{}),
-            parent,
-            cls.fileOffset);
+      : _nameSpace = new DeclarationNameSpaceImpl(),
+        super(/*metadata builders*/ null, computeModifiers(cls), cls.name,
+            parent, cls.fileOffset) {
+    _scope = new NameSpaceLookupScope(
+        _nameSpace, ScopeKind.declaration, "class ${cls.name}",
+        parent: parent.scope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(cls.name, _nameSpace);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  LookupScope get scope => _scope;
+
+  @override
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   bool get isEnum => cls.isEnum;
@@ -137,19 +148,19 @@ class DillClassBuilder extends ClassBuilderImpl
   void addField(Field field) {
     DillFieldBuilder builder = new DillFieldBuilder(field, this);
     String name = field.name.text;
-    scope.addLocalMember(name, builder, setter: false);
+    nameSpace.addLocalMember(name, builder, setter: false);
   }
 
   void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
     DillConstructorBuilder builder =
         new DillConstructorBuilder(constructor, constructorTearOff, this);
     String name = constructor.name.text;
-    constructorScope.addLocalMember(name, builder);
+    nameSpace.addConstructor(name, builder);
   }
 
   void addFactory(Procedure factory, Procedure? factoryTearOff) {
     String name = factory.name.text;
-    constructorScope.addLocalMember(
+    nameSpace.addConstructor(
         name, new DillFactoryBuilder(factory, factoryTearOff, this));
   }
 
@@ -160,19 +171,19 @@ class DillClassBuilder extends ClassBuilderImpl
         // Coverage-ignore(suite): Not run.
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
-        scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
+        nameSpace.addLocalMember(name, new DillSetterBuilder(procedure, this),
             setter: true);
         break;
       case ProcedureKind.Getter:
-        scope.addLocalMember(name, new DillGetterBuilder(procedure, this),
+        nameSpace.addLocalMember(name, new DillGetterBuilder(procedure, this),
             setter: false);
         break;
       case ProcedureKind.Operator:
-        scope.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+        nameSpace.addLocalMember(name, new DillOperatorBuilder(procedure, this),
             setter: false);
         break;
       case ProcedureKind.Method:
-        scope.addLocalMember(name, new DillMethodBuilder(procedure, this),
+        nameSpace.addLocalMember(name, new DillMethodBuilder(procedure, this),
             setter: false);
         break;
     }

@@ -123,8 +123,9 @@ extension type JSFunction._(JSFunctionRepType _jsFunction)
 
 /// A JavaScript callable function created from a Dart function.
 ///
-/// See [FunctionToJSExportedDartFunction.toJS] for more details on how to
-/// convert a Dart function.
+/// See [FunctionToJSExportedDartFunction.toJS] or
+/// [FunctionToJSExportedDartFunction.toJSCaptureThis] for more details on how
+/// to convert a Dart function.
 @JS('Function')
 extension type JSExportedDartFunction._(
         JSExportedDartFunctionRepType _jsExportedDartFunction)
@@ -157,6 +158,21 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
 
   /// Creates a JavaScript `Array` of size [length] with no elements.
   external JSArray.withLength(int length);
+
+  /// The length in elements of this `Array`.
+  external int get length;
+
+  /// Sets the length in elements of this `Array`.
+  ///
+  /// Setting it smaller than the current length truncates this `Array`, and
+  /// setting it larger adds empty slots, which requires [T] to be nullable.
+  external set length(int newLength);
+
+  /// The value at [position] in this `Array`.
+  external T operator [](int position);
+
+  /// Sets the [value] at [position] in this `Array`.
+  external void operator []=(int position, T value);
 }
 
 /// A JavaScript `Promise` or a promise-like object.
@@ -192,12 +208,19 @@ extension type JSBoxedDartObject._(JSBoxedDartObjectRepType _jsBoxedDartObject)
 /// A JavaScript `ArrayBuffer`.
 @JS('ArrayBuffer')
 extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
-    implements JSObject {}
+    implements JSObject {
+  /// Creates a JavaScript `ArrayBuffer` of size [length] using an optional
+  /// [options] JavaScript object that sets the `maxByteLength`.
+  external JSArrayBuffer(int length, [JSObject options]);
+}
 
 /// A JavaScript `DataView`.
 @JS('DataView')
-extension type JSDataView._(JSDataViewRepType _jsDataView)
-    implements JSObject {}
+extension type JSDataView._(JSDataViewRepType _jsDataView) implements JSObject {
+  /// Creates a JavaScript `DataView` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [byteLength].
+  external JSDataView(JSArrayBuffer buffer, [int byteOffset, int byteLength]);
+}
 
 /// Abstract supertype of all JavaScript typed arrays.
 extension type JSTypedArray._(JSTypedArrayRepType _jsTypedArray)
@@ -206,47 +229,138 @@ extension type JSTypedArray._(JSTypedArrayRepType _jsTypedArray)
 /// A JavaScript `Int8Array`.
 @JS('Int8Array')
 extension type JSInt8Array._(JSInt8ArrayRepType _jsInt8Array)
-    implements JSTypedArray {}
+    implements JSTypedArray {
+  /// Creates a JavaScript `Int8Array` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Int8Array`.
+  external JSInt8Array([JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Int8Array` of size [length] whose elements are
+  /// initialized to 0.
+  external JSInt8Array.withLength(int length);
+}
 
 /// A JavaScript `Uint8Array`.
 @JS('Uint8Array')
 extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
-    implements JSTypedArray {}
+    implements JSTypedArray {
+  /// Creates a JavaScript `Uint8Array` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Uint8Array`.
+  external JSUint8Array([JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Uint8Array` of size [length] whose elements are
+  /// initialized to 0.
+  external JSUint8Array.withLength(int length);
+}
 
 /// A JavaScript `Uint8ClampedArray`.
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
-    JSUint8ClampedArrayRepType _jsUint8ClampedArray) implements JSTypedArray {}
+    JSUint8ClampedArrayRepType _jsUint8ClampedArray) implements JSTypedArray {
+  /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
+  /// storage, offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Uint8ClampedArray`.
+  external JSUint8ClampedArray(
+      [JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Uint8ClampedArray` of size [length] whose elements
+  /// are initialized to 0.
+  external JSUint8ClampedArray.withLength(int length);
+}
 
 /// A JavaScript `Int16Array`.
 @JS('Int16Array')
 extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
-    implements JSTypedArray {}
+    implements JSTypedArray {
+  /// Creates a JavaScript `Int16Array` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Int16Array`.
+  external JSInt16Array([JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Int16Array` of size [length] whose elements are
+  /// initialized to 0.
+  external JSInt16Array.withLength(int length);
+}
 
 /// A JavaScript `Uint16Array`.
 @JS('Uint16Array')
 extension type JSUint16Array._(JSUint16ArrayRepType _jsUint16Array)
-    implements JSTypedArray {}
+    implements JSTypedArray {
+  /// Creates a JavaScript `Uint16Array` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Uint16Array`.
+  external JSUint16Array([JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Uint16Array` of size [length] whose elements are
+  /// initialized to 0.
+  external JSUint16Array.withLength(int length);
+}
 
 /// A JavaScript `Int32Array`.
 @JS('Int32Array')
 extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
-    implements JSTypedArray {}
+    implements JSTypedArray {
+  /// Creates a JavaScript `Int32Array` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Int32Array`.
+  external JSInt32Array([JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Int32Array` of size [length] whose elements are
+  /// initialized to 0.
+  external JSInt32Array.withLength(int length);
+}
 
 /// A JavaScript `Uint32Array`.
 @JS('Uint32Array')
 extension type JSUint32Array._(JSUint32ArrayRepType _jsUint32Array)
-    implements JSTypedArray {}
+    implements JSTypedArray {
+  /// Creates a JavaScript `Uint32Array` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Uint32Array`.
+  external JSUint32Array([JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Uint32Array` of size [length] whose elements are
+  /// initialized to 0.
+  external JSUint32Array.withLength(int length);
+}
 
 /// A JavaScript `Float32Array`.
 @JS('Float32Array')
 extension type JSFloat32Array._(JSFloat32ArrayRepType _jsFloat32Array)
-    implements JSTypedArray {}
+    implements JSTypedArray {
+  /// Creates a JavaScript `Float32Array` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Float32Array`.
+  external JSFloat32Array([JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Float32Array` of size [length] whose elements are
+  /// initialized to 0.
+  external JSFloat32Array.withLength(int length);
+}
 
 /// A JavaScript `Float64Array`.
 @JS('Float64Array')
 extension type JSFloat64Array._(JSFloat64ArrayRepType _jsFloat64Array)
-    implements JSTypedArray {}
+    implements JSTypedArray {
+  /// Creates a JavaScript `Float64Array` with [buffer] as its backing storage,
+  /// offset by [byteOffset] bytes, of size [length].
+  ///
+  /// If no [buffer] is provided, creates an empty `Float64Array`.
+  external JSFloat64Array([JSArrayBuffer buffer, int byteOffset, int length]);
+
+  /// Creates a JavaScript `Float64Array` of size [length] whose elements are
+  /// initialized to 0.
+  external JSFloat64Array.withLength(int length);
+}
 
 // The various JavaScript primitive types. Crucially, unlike the Dart type
 // hierarchy, none of these types are subtypes of [JSObject]. They are just
@@ -478,7 +592,8 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   /// The Dart [Function] that this [JSExportedDartFunction] wrapped.
   ///
   /// Must be a function that was wrapped with
-  /// [FunctionToJSExportedDartFunction.toJS].
+  /// [FunctionToJSExportedDartFunction.toJS] or
+  /// [FunctionToJSExportedDartFunction.toJSCaptureThis].
   external Function get toDart;
 }
 
@@ -501,6 +616,16 @@ extension FunctionToJSExportedDartFunction on Function {
   /// Calling this on the same [Function] again will always result in a new
   /// JavaScript function.
   external JSExportedDartFunction get toJS;
+
+  /// A callable JavaScript function that wraps this [Function] and captures the
+  /// `this` value when called.
+  ///
+  /// Identical to [toJS], except the resulting [JSExportedDartFunction] will
+  /// pass `this` from JavaScript as the first argument to the converted
+  /// [Function]. Any [Function] that is converted with this member should take
+  /// in an extra parameter at the beginning of the parameter list to handle
+  /// this.
+  external JSExportedDartFunction get toJSCaptureThis;
 }
 
 /// Conversions from [JSBoxedDartObject] to [Object].

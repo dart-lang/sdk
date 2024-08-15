@@ -53,7 +53,7 @@ class ReplaceWithEightDigitHexTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.use_full_hex_values_for_flutter_colors;
 
-  Future<void> test_notHex() async {
+  Future<void> test_decimal() async {
     await resolveTestCode('''
 library dart.ui;
 
@@ -74,7 +74,7 @@ class Color {
 ''');
   }
 
-  Future<void> test_short() async {
+  Future<void> test_sixDigitHex() async {
     await resolveTestCode('''
 library dart.ui;
 
@@ -88,6 +88,69 @@ class Color {
 library dart.ui;
 
 var c = Color(0x00000001);
+
+class Color {
+  Color(int value);
+}
+''');
+  }
+
+  Future<void> test_sixDigitHex_capitalX() async {
+    await resolveTestCode('''
+library dart.ui;
+
+var c = Color(0X000001);
+
+class Color {
+  Color(int value);
+}
+''');
+    await assertHasFix('''
+library dart.ui;
+
+var c = Color(0X00000001);
+
+class Color {
+  Color(int value);
+}
+''');
+  }
+
+  Future<void> test_sixDigitHex_withIrregularSeparators() async {
+    await resolveTestCode('''
+library dart.ui;
+
+var c = Color(0x000__001);
+
+class Color {
+  Color(int value);
+}
+''');
+    await assertHasFix('''
+library dart.ui;
+
+var c = Color(0x00000__001);
+
+class Color {
+  Color(int value);
+}
+''');
+  }
+
+  Future<void> test_sixDigitHex_withTripletSeparators() async {
+    await resolveTestCode('''
+library dart.ui;
+
+var c = Color(0x00_00_01);
+
+class Color {
+  Color(int value);
+}
+''');
+    await assertHasFix('''
+library dart.ui;
+
+var c = Color(0x00_00_00_01);
 
 class Color {
   Color(int value);

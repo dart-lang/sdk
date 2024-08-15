@@ -5,7 +5,8 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../source/source_library_builder.dart';
+import '../source/builder_factory.dart';
+import '../source/type_parameter_scope_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -51,7 +52,7 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   // Coverage-ignore(suite): Not run.
   TypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     return this;
   }

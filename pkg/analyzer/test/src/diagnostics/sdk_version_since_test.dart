@@ -472,14 +472,14 @@ void f(A a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: dart:foo::@class::A::@method::foo
+    staticElement: dart:foo::<fragment>::@class::A::@method::foo
     staticType: void Function()
-  staticElement: dart:foo::@class::A::@method::foo
+  staticElement: dart:foo::<fragment>::@class::A::@method::foo
   staticType: void Function()
 ''');
   }
@@ -511,14 +511,14 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: dart:foo::@class::A::@method::foo
+    staticElement: dart:foo::<fragment>::@class::A::@method::foo
     staticType: void Function()
   staticType: void Function()
 ''');

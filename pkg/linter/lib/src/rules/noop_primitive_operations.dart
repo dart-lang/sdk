@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Noop primitive operations.';
 
@@ -50,20 +51,16 @@ string = 'hello\n'
 ''';
 
 class NoopPrimitiveOperations extends LintRule {
-  static const LintCode code = LintCode('noop_primitive_operations',
-      'The expression has no effect and can be removed.',
-      correctionMessage: 'Try removing the expression.');
-
   NoopPrimitiveOperations()
       : super(
           name: 'noop_primitive_operations',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.noop_primitive_operations;
 
   @override
   void registerNodeProcessors(

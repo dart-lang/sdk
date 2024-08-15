@@ -66,7 +66,7 @@ final Uri dummyUri = Uri.parse('test:dummy');
 
 void main() {
   CompilerContext.runWithOptions(new ProcessedOptions(inputs: [dummyUri]),
-      (_) async {
+      (CompilerContext c) async {
     _testVariableDeclarations();
     _testTryStatement();
     _testForInStatementWithSynthesizedVariable();
@@ -75,8 +75,8 @@ void main() {
     _testCascade();
     _testDeferredCheck();
     _testFactoryConstructorInvocationJudgment();
-    _testTypeAliasedConstructorInvocation();
-    _testTypeAliasedFactoryInvocation();
+    _testTypeAliasedConstructorInvocation(c);
+    _testTypeAliasedFactoryInvocation(c);
     _testFunctionDeclarationImpl();
     _testIfNullExpression();
     _testIntLiterals();
@@ -511,11 +511,12 @@ new Class<void>.foo(0, bar: 1)''',
 new library test:dummy::Class<void>.foo(0, bar: 1)''');
 }
 
-void _testTypeAliasedConstructorInvocation() {
+void _testTypeAliasedConstructorInvocation(CompilerContext c) {
   DillTarget dillTarget = new DillTarget(
+      c,
       new Ticker(),
-      new UriTranslator(
-          new TargetLibrariesSpecification('dummy'), new PackageConfig([])),
+      new UriTranslator(c.options, new TargetLibrariesSpecification('dummy'),
+          new PackageConfig([])),
       new NoneTarget(new TargetFlags()));
   DillLoader dillLoader = new DillLoader(dillTarget);
   Library library = new Library(dummyUri, fileUri: dummyUri);
@@ -581,11 +582,12 @@ const Typedef<void>.foo(0, bar: 1)''',
 const library test:dummy::Typedef<void>.foo(0, bar: 1)''');
 }
 
-void _testTypeAliasedFactoryInvocation() {
+void _testTypeAliasedFactoryInvocation(CompilerContext c) {
   DillTarget dillTarget = new DillTarget(
+      c,
       new Ticker(),
-      new UriTranslator(
-          new TargetLibrariesSpecification('dummy'), new PackageConfig([])),
+      new UriTranslator(c.options, new TargetLibrariesSpecification('dummy'),
+          new PackageConfig([])),
       new NoneTarget(new TargetFlags()));
   DillLoader dillLoader = new DillLoader(dillTarget);
   Library library = new Library(dummyUri, fileUri: dummyUri);
@@ -668,7 +670,8 @@ void _testIfNullExpression() {
 void _testIntLiterals() {
   testExpression(new IntJudgment(0, null), '0');
   testExpression(new IntJudgment(0, 'foo'), 'foo');
-  testExpression(new ShadowLargeIntLiteral('bar', TreeNode.noOffset), 'bar');
+  testExpression(
+      new ShadowLargeIntLiteral('bar', 'bar', TreeNode.noOffset), 'bar');
 }
 
 void _testInternalMethodInvocation() {

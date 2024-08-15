@@ -9,10 +9,13 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid catches without on clauses.';
 
 const _details = r'''
+From [Effective Dart](https://dart.dev/effective-dart/usage#avoid-catches-without-on-clauses):
+
 **AVOID** catches without on clauses.
 
 Using catch clauses without on clauses make your code prone to encountering
@@ -52,21 +55,18 @@ exception, the variable is not "directly used."
 ''';
 
 class AvoidCatchesWithoutOnClauses extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_catches_without_on_clauses',
-      "Catch clause should use 'on' to specify the type of exception being "
-          'caught.',
-      correctionMessage: "Try adding an 'on' clause before the 'catch'.");
-
   AvoidCatchesWithoutOnClauses()
       : super(
             name: 'avoid_catches_without_on_clauses',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_catches_without_on_clauses;
 
   @override
   void registerNodeProcessors(

@@ -29,7 +29,7 @@ f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <testLibraryFragment>::@function::foo
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -37,13 +37,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::x
+          base: <testLibraryFragment>::@function::foo::@parameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::y
+          base: <testLibraryFragment>::@function::foo::@parameter::y
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -70,7 +70,7 @@ f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <testLibraryFragment>::@function::foo
     staticType: void Function<T>({required T x, required T y})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -80,7 +80,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: x
             staticElement: ParameterMember
-              base: self::@function::foo::@parameter::x
+              base: <testLibraryFragment>::@function::foo::@parameter::x
               substitution: {T: int}
             staticType: null
           colon: :
@@ -88,7 +88,7 @@ MethodInvocation
           literal: 1
           staticType: int
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::x
+          base: <testLibraryFragment>::@function::foo::@parameter::x
           substitution: {T: int}
     rightParenthesis: )
   staticInvokeType: void Function({required int x, required int y})
@@ -115,7 +115,7 @@ f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <testLibraryFragment>::@function::foo
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -123,7 +123,7 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::x
+          base: <testLibraryFragment>::@function::foo::@parameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -150,7 +150,7 @@ f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <testLibraryFragment>::@function::foo
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -158,13 +158,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::x
+          base: <testLibraryFragment>::@function::foo::@parameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::y
+          base: <testLibraryFragment>::@function::foo::@parameter::y
           substitution: {T: int}
         staticType: int
       IntegerLiteral
@@ -195,7 +195,7 @@ f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <testLibraryFragment>::@function::foo
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -203,13 +203,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::x
+          base: <testLibraryFragment>::@function::foo::@parameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::y
+          base: <testLibraryFragment>::@function::foo::@parameter::y
           substitution: {T: int}
         staticType: int
       NamedExpression

@@ -3250,6 +3250,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitNullAwareElement(NullAwareElement node,
+      {CollectionLiteralContext? context}) {
+    inferenceLogWriter?.enterElement(node);
+
+    var elementType = context?.elementType;
+    if (elementType != null) {
+      elementType = typeSystem.makeNullable(elementType);
+    }
+
+    analyzeExpression(node.value, elementType ?? UnknownInferredType.instance);
+
+    inferenceLogWriter?.exitElement(node);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
@@ -3704,7 +3719,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, typeProvider.objectType);
+    popRewrite();
     typeAnalyzer.visitThrowExpression(node as ThrowExpressionImpl);
     flowAnalysis.flow?.handleExit();
     inferenceLogWriter?.exitExpression(node);
@@ -4581,6 +4597,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantDeclaration(
+      covariant EnumConstantDeclarationImpl node) {
+    node.metadata.accept(this);
+    _visitDocumentationComment(node.documentationComment);
+    node.arguments?.accept(this);
+  }
+
+  @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
@@ -5299,7 +5323,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     var outerScope = nameScope;
     try {
       var enclosedScope = LocalScope(nameScope);
-      BlockScope.elementsInStatements(statements).forEach(enclosedScope.add);
+      for (var statement in BlockScope.elementsInStatements(statements)) {
+        if (!statement.isWildcardFunction) {
+          enclosedScope.add(statement);
+        }
+      }
 
       nameScope = enclosedScope;
       node.nameScope = nameScope;
@@ -5598,4 +5626,11 @@ class _WhyNotPromotedVisitor
         length: property.nameLength,
         url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url);
   }
+}
+
+extension on Element {
+  bool get isWildcardFunction =>
+      this is FunctionElement &&
+      name == '_' &&
+      library.hasWildcardVariablesFeatureEnabled;
 }

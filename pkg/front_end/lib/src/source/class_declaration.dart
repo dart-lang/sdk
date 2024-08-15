@@ -98,7 +98,7 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
     }
     int count = constructorReferences!.length;
     if (count != 0) {
-      Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
+      Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
           parent: this, includeDuplicates: true, includeAugmentations: true);
       while (iterator.moveNext()) {
         MemberBuilder declaration = iterator.current;
@@ -247,7 +247,7 @@ class ClassDeclarationMemberIterator<D extends ClassDeclaration,
   ClassDeclarationMemberIterator._(
       D classDeclaration, this.augmentationBuilders,
       {required this.includeDuplicates})
-      : _iterator = classDeclaration.scope.filteredIterator<T>(
+      : _iterator = classDeclaration.nameSpace.filteredIterator<T>(
             parent: classDeclaration,
             includeDuplicates: includeDuplicates,
             includeAugmentations: false);
@@ -261,7 +261,7 @@ class ClassDeclarationMemberIterator<D extends ClassDeclaration,
     }
     if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
       D augmentationClassDeclaration = augmentationBuilders!.current;
-      _iterator = augmentationClassDeclaration.scope.filteredIterator<T>(
+      _iterator = augmentationClassDeclaration.nameSpace.filteredIterator<T>(
           parent: augmentationClassDeclaration,
           includeDuplicates: includeDuplicates,
           includeAugmentations: false);
@@ -299,7 +299,7 @@ class ClassDeclarationMemberNameIterator<D extends ClassDeclaration,
   ClassDeclarationMemberNameIterator._(
       D classDeclaration, this.augmentationBuilders,
       {required this.includeDuplicates})
-      : _iterator = classDeclaration.scope.filteredNameIterator<T>(
+      : _iterator = classDeclaration.nameSpace.filteredNameIterator<T>(
             parent: classDeclaration,
             includeDuplicates: includeDuplicates,
             includeAugmentations: false);
@@ -313,10 +313,11 @@ class ClassDeclarationMemberNameIterator<D extends ClassDeclaration,
     }
     if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
       D augmentationClassDeclaration = augmentationBuilders!.current;
-      _iterator = augmentationClassDeclaration.scope.filteredNameIterator<T>(
-          parent: augmentationClassDeclaration,
-          includeDuplicates: includeDuplicates,
-          includeAugmentations: false);
+      _iterator = augmentationClassDeclaration.nameSpace
+          .filteredNameIterator<T>(
+              parent: augmentationClassDeclaration,
+              includeDuplicates: includeDuplicates,
+              includeAugmentations: false);
     }
     if (_iterator != null) {
       if (_iterator!.moveNext()) {
@@ -358,7 +359,7 @@ class ClassDeclarationConstructorIterator<D extends ClassDeclaration,
   ClassDeclarationConstructorIterator._(
       D classDeclaration, this.augmentationBuilders,
       {required this.includeDuplicates})
-      : _iterator = classDeclaration.constructorScope.filteredIterator<T>(
+      : _iterator = classDeclaration.nameSpace.filteredConstructorIterator<T>(
             parent: classDeclaration,
             includeDuplicates: includeDuplicates,
             includeAugmentations: false);
@@ -372,8 +373,8 @@ class ClassDeclarationConstructorIterator<D extends ClassDeclaration,
     }
     if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
       D augmentationClassDeclaration = augmentationBuilders!.current;
-      _iterator = augmentationClassDeclaration.constructorScope
-          .filteredIterator<T>(
+      _iterator = augmentationClassDeclaration.nameSpace
+          .filteredConstructorIterator<T>(
               parent: augmentationClassDeclaration,
               includeDuplicates: includeDuplicates,
               includeAugmentations: false);
@@ -410,7 +411,7 @@ class ClassDeclarationConstructorNameIterator<D extends ClassDeclaration,
   ClassDeclarationConstructorNameIterator._(
       D classBuilder, this.augmentationBuilders,
       {required this.includeDuplicates})
-      : _iterator = classBuilder.constructorScope.filteredNameIterator<T>(
+      : _iterator = classBuilder.nameSpace.filteredConstructorNameIterator<T>(
             parent: classBuilder,
             includeDuplicates: includeDuplicates,
             includeAugmentations: false);
@@ -424,8 +425,8 @@ class ClassDeclarationConstructorNameIterator<D extends ClassDeclaration,
     }
     if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
       D augmentationClassDeclaration = augmentationBuilders!.current;
-      _iterator = augmentationClassDeclaration.constructorScope
-          .filteredNameIterator<T>(
+      _iterator = augmentationClassDeclaration.nameSpace
+          .filteredConstructorNameIterator<T>(
               parent: augmentationClassDeclaration,
               includeDuplicates: includeDuplicates,
               includeAugmentations: false);

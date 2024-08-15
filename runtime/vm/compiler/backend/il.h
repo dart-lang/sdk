@@ -2677,8 +2677,9 @@ class Definition : public Instruction {
   // boxing/unboxing and constraint instructions.
   Definition* OriginalDefinitionIgnoreBoxingAndConstraints();
 
-  // Helper method to determine if definition denotes an array length.
-  static bool IsArrayLength(Definition* def);
+  // Helper method to determine if definition denotes a load of
+  // length of array/growable array/string/typed data/type arguments vector.
+  static bool IsLengthLoad(Definition* def);
 
   virtual Definition* AsDefinition() { return this; }
   virtual const Definition* AsDefinition() const { return this; }
@@ -6213,6 +6214,10 @@ class LeafRuntimeCallInstr : public VariadicDefinition {
     }
     ASSERT_EQUAL(idx, TargetAddressIndex());
     return kUntagged;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
   }
 
   virtual bool MayCreateUnsafeUntaggedPointer() const {

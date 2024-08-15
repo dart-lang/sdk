@@ -89,7 +89,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    staticElement: self::@extension::E1::@getter::a
+    staticElement: <testLibraryFragment>::@extension::E1::@getter::a
     staticType: void
   staticType: void
 ''');

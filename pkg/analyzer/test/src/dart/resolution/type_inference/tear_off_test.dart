@@ -26,7 +26,7 @@ void test() {
   context = f; // 1
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 7),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 7),
     ]);
     _assertTearOff(
       'f; // 1',
@@ -44,7 +44,7 @@ void test() {
   context = f; // 1
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 7),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 7),
     ]);
     _assertTearOff(
       'f; // 1',
@@ -154,7 +154,7 @@ void test() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <testLibraryFragment>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -162,7 +162,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@function::f::@parameter::x
+          base: <testLibraryFragment>::@function::f::@parameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `final` for parameter declarations.';
 
@@ -52,22 +53,18 @@ void badExpression(int value) => print(value); // OK
 ''';
 
 class AvoidFinalParameters extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_final_parameters', "Parameters should not be marked as 'final'.",
-      correctionMessage: "Try removing the keyword 'final'.");
-
   AvoidFinalParameters()
       : super(
             name: 'avoid_final_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   List<String> get incompatibleRules => const ['prefer_final_parameters'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_final_parameters;
 
   @override
   void registerNodeProcessors(

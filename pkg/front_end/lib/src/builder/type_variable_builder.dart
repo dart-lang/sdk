@@ -22,26 +22,29 @@ enum TypeVariableKind {
   fromKernel,
 }
 
-sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
+sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
     implements TypeDeclarationBuilder {
   TypeBuilder? bound;
 
   TypeBuilder? defaultType;
 
-  TypeVariableBuilderBase? get actualOrigin;
+  TypeVariableBuilder? get actualOrigin;
 
   final TypeVariableKind kind;
+
+  final bool isWildcard;
 
   @override
   final Uri? fileUri;
 
-  TypeVariableBuilderBase(
+  TypeVariableBuilder(
       String name, Builder? compilationUnit, int charOffset, this.fileUri,
       {this.bound,
       this.defaultType,
       required this.kind,
       Variance? variableVariance,
-      List<MetadataBuilder>? metadata})
+      List<MetadataBuilder>? metadata,
+      this.isWildcard = false})
       : super(metadata, 0, name, compilationUnit, charOffset);
 
   @override
@@ -66,7 +69,7 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  TypeVariableBuilderBase get origin => actualOrigin ?? this;
+  TypeVariableBuilder get origin => actualOrigin ?? this;
 
   Variance get variance;
 
@@ -128,9 +131,9 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
   }
 
   TypeVariableCyclicDependency? findCyclicDependency(
-      {Map<TypeVariableBuilderBase, TypeVariableTraversalState>?
+      {Map<TypeVariableBuilder, TypeVariableTraversalState>?
           typeVariablesTraversalState,
-      Map<TypeVariableBuilderBase, TypeVariableBuilderBase>? cycleElements}) {
+      Map<TypeVariableBuilder, TypeVariableBuilder>? cycleElements}) {
     // Coverage-ignore(suite): Not run.
     typeVariablesTraversalState ??= {};
     cycleElements ??= {};
@@ -141,8 +144,8 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
         return null;
       case TypeVariableTraversalState.active:
         typeVariablesTraversalState[this] = TypeVariableTraversalState.visited;
-        List<TypeVariableBuilderBase>? viaTypeVariables;
-        TypeVariableBuilderBase? nextViaTypeVariable = cycleElements[this];
+        List<TypeVariableBuilder>? viaTypeVariables;
+        TypeVariableBuilder? nextViaTypeVariable = cycleElements[this];
         while (nextViaTypeVariable != null && nextViaTypeVariable != this) {
           (viaTypeVariables ??= []).add(nextViaTypeVariable);
           nextViaTypeVariable = cycleElements[nextViaTypeVariable];
@@ -156,8 +159,8 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
           TypeBuilder? unaliasedAndErasedBound = _unaliasAndErase(bound);
           TypeDeclarationBuilder? unaliasedAndErasedBoundDeclaration =
               unaliasedAndErasedBound?.declaration;
-          TypeVariableBuilderBase? nextVariable;
-          if (unaliasedAndErasedBoundDeclaration is TypeVariableBuilderBase) {
+          TypeVariableBuilder? nextVariable;
+          if (unaliasedAndErasedBoundDeclaration is TypeVariableBuilder) {
             nextVariable = unaliasedAndErasedBoundDeclaration;
           }
 
@@ -184,14 +187,12 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
   }
 }
 
-class NominalVariableBuilder extends TypeVariableBuilderBase {
+class NominalVariableBuilder extends TypeVariableBuilder {
   /// Sentinel value used to indicate that the variable has no name. This is
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
 
   final TypeParameter actualParameter;
-
-  final bool isWildcard;
 
   @override
   NominalVariableBuilder? actualOrigin;
@@ -202,7 +203,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       required TypeVariableKind kind,
       Variance? variableVariance,
       List<MetadataBuilder>? metadata,
-      this.isWildcard = false})
+      super.isWildcard = false})
       : actualParameter =
             new TypeParameter(name == noNameSentinel ? null : name, null)
               ..fileOffset = charOffset
@@ -226,7 +227,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   ///
   ///   class A<X extends A<X>> {}
   NominalVariableBuilder.fromKernel(TypeParameter parameter,
-      {required Loader? loader, this.isWildcard = false})
+      {required Loader? loader, super.isWildcard = false})
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
@@ -400,8 +401,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext,
       ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      Scope scope) {
+      LookupScope scope) {
     MetadataBuilder.buildAnnotations(parameter, metadata, bodyBuilderContext,
         libraryBuilder, fileUri!, scope);
   }
@@ -446,17 +446,17 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   }
 }
 
-List<TypeVariableBuilderBase> sortAllTypeVariablesTopologically(
-    Iterable<TypeVariableBuilderBase> typeVariables) {
+List<TypeVariableBuilder> sortAllTypeVariablesTopologically(
+    Iterable<TypeVariableBuilder> typeVariables) {
   assert(typeVariables.every((typeVariable) =>
       typeVariable is NominalVariableBuilder ||
       typeVariable is StructuralVariableBuilder));
 
-  Set<TypeVariableBuilderBase> unhandled =
-      new Set<TypeVariableBuilderBase>.identity()..addAll(typeVariables);
-  List<TypeVariableBuilderBase> result = <TypeVariableBuilderBase>[];
+  Set<TypeVariableBuilder> unhandled = new Set<TypeVariableBuilder>.identity()
+    ..addAll(typeVariables);
+  List<TypeVariableBuilder> result = <TypeVariableBuilder>[];
   while (unhandled.isNotEmpty) {
-    TypeVariableBuilderBase rootVariable = unhandled.first;
+    TypeVariableBuilder rootVariable = unhandled.first;
     unhandled.remove(rootVariable);
 
     TypeBuilder? rootVariableBound;
@@ -580,14 +580,12 @@ void _sortAllTypeVariablesTopologicallyFromRoot(
   }
 }
 
-class StructuralVariableBuilder extends TypeVariableBuilderBase {
+class StructuralVariableBuilder extends TypeVariableBuilder {
   /// Sentinel value used to indicate that the variable has no name. This is
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
 
   final StructuralParameter actualParameter;
-
-  final bool isWildcard;
 
   @override
   StructuralVariableBuilder? actualOrigin;
@@ -597,7 +595,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
       {TypeBuilder? bound,
       Variance? variableVariance,
       List<MetadataBuilder>? metadata,
-      this.isWildcard = false})
+      super.isWildcard = false})
       : actualParameter =
             new StructuralParameter(name == noNameSentinel ? null : name, null)
               ..fileOffset = charOffset
@@ -609,7 +607,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
             metadata: metadata);
 
   StructuralVariableBuilder.fromKernel(StructuralParameter parameter,
-      {this.isWildcard = false})
+      {super.isWildcard = false})
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
@@ -839,13 +837,13 @@ enum TypeVariableTraversalState {
 ///   class D<X extends E<Y>, Y extends X> {} // Error.
 class TypeVariableCyclicDependency {
   /// Type variable that's the bound of itself.
-  final TypeVariableBuilderBase typeVariableBoundOfItself;
+  final TypeVariableBuilder typeVariableBoundOfItself;
 
   /// The elements in a non-trivial self-dependency cycle.
   ///
   /// The loop is considered non-trivial if it includes more than one type
   /// variable.
-  final List<TypeVariableBuilderBase>? viaTypeVariables;
+  final List<TypeVariableBuilder>? viaTypeVariables;
 
   TypeVariableCyclicDependency(this.typeVariableBoundOfItself,
       {this.viaTypeVariables});

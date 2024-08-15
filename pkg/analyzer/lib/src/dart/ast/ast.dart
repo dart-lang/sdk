@@ -128,11 +128,7 @@ abstract final class AnnotatedNode implements AstNode {
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
-sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
-  CommentImpl? _comment;
-
-  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
-
+sealed class AnnotatedNodeImpl extends AstNodeImpl with _AnnotatedNodeMixin {
   /// Initializes a newly created annotated node.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the node
@@ -140,9 +136,8 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   AnnotatedNodeImpl({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
-  }) : _comment = comment {
-    _becomeParentOf(_comment);
-    _metadata._initialize(this, metadata);
+  }) {
+    _initializeCommentAndAnnotations(comment, metadata);
   }
 
   @override
@@ -164,25 +159,6 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   }
 
   @override
-  CommentImpl? get documentationComment => _comment;
-
-  set documentationComment(CommentImpl? comment) {
-    _comment = _becomeParentOf(comment);
-  }
-
-  @override
-  NodeListImpl<AnnotationImpl> get metadata => _metadata;
-
-  @override
-  List<AstNode> get sortedCommentAndAnnotations {
-    var comment = _comment;
-    return <AstNode>[
-      if (comment != null) comment,
-      ..._metadata,
-    ]..sort(AstNode.LEXICAL_ORDER);
-  }
-
-  @override
   ChildEntities get _childEntities {
     return ChildEntities()
       ..addNode('documentationComment', documentationComment)
@@ -191,28 +167,7 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    if (_commentIsBeforeAnnotations()) {
-      _comment?.accept(visitor);
-      _metadata.accept(visitor);
-    } else {
-      List<AstNode> children = sortedCommentAndAnnotations;
-      int length = children.length;
-      for (int i = 0; i < length; i++) {
-        children[i].accept(visitor);
-      }
-    }
-  }
-
-  /// Returns `true` if there are no annotations before the comment.
-  ///
-  /// Note that a result of `true` doesn't imply that there's a comment, nor
-  /// that there are annotations associated with this node.
-  bool _commentIsBeforeAnnotations() {
-    if (_comment == null || _metadata.isEmpty) {
-      return true;
-    }
-    Annotation firstAnnotation = _metadata[0];
-    return _comment!.offset < firstAnnotation.offset;
+    _visitCommentAndAnnotations(visitor);
   }
 }
 
@@ -1441,6 +1396,8 @@ abstract class AstVisitor<R> {
   R? visitNativeFunctionBody(NativeFunctionBody node);
 
   R? visitNullAssertPattern(NullAssertPattern node);
+
+  R? visitNullAwareElement(NullAwareElement node);
 
   R? visitNullCheckPattern(NullCheckPattern node);
 
@@ -3373,12 +3330,16 @@ final class CommentReferenceImpl extends AstNodeImpl
 
   CommentReferableExpressionImpl _expression;
 
+  @override
+  final bool isSynthetic;
+
   /// Initializes a newly created reference to a Dart element.
   ///
   /// The [newKeyword] can be `null` if the reference isn't to a constructor.
   CommentReferenceImpl({
     required this.newKeyword,
     required CommentReferableExpressionImpl expression,
+    required this.isSynthetic,
   }) : _expression = expression {
     _becomeParentOf(_expression);
   }
@@ -6942,26 +6903,17 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    var metadata = this.metadata;
-    if (metadata.isNotEmpty) {
-      return metadata.beginToken!;
-    } else if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    } else if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    } else if (keyword case var keyword?) {
-      return keyword;
-    } else if (type case var type?) {
-      return type.beginToken;
-    }
-    return thisKeyword;
-  }
-
-  @override
   Token get endToken {
     return question ?? _parameters?.endToken ?? name;
   }
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata =>
+      requiredKeyword ??
+      covariantKeyword ??
+      keyword ??
+      type?.beginToken ??
+      thisKeyword;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
@@ -8653,22 +8605,11 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    var metadata = this.metadata;
-    if (metadata.isNotEmpty) {
-      return metadata.beginToken!;
-    } else if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    } else if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    } else if (returnType case var returnType?) {
-      return returnType.beginToken;
-    }
-    return name;
-  }
+  Token get endToken => question ?? _parameters.endToken;
 
   @override
-  Token get endToken => question ?? _parameters.endToken;
+  Token get firstTokenAfterCommentAndMetadata =>
+      requiredKeyword ?? covariantKeyword ?? returnType?.beginToken ?? name;
 
   @override
   bool get isConst => false;
@@ -10203,21 +10144,21 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     // There are no children to visit.
   }
 
-  static bool isValidAsDouble(String lexeme) {
+  static bool isValidAsDouble(String source) {
     // Less than 16 characters must be a valid double since it's less than
     // 9007199254740992, 0x10000000000000, both 16 characters and 53 bits.
-    if (lexeme.length < 16) {
+    if (source.length < 16) {
       return true;
     }
 
-    var fullPrecision = BigInt.tryParse(lexeme);
+    var fullPrecision = BigInt.tryParse(source);
     if (fullPrecision == null) {
       return false;
     }
 
     // Usually handled by the length check, however, we must check this before
     // constructing a mask later, or we'd get a negative-shift runtime error.
-    int bitLengthAsInt = fullPrecision.bitLength;
+    var bitLengthAsInt = fullPrecision.bitLength;
     if (bitLengthAsInt <= 53) {
       return true;
     }
@@ -10229,35 +10170,35 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 
     // Say [lexeme] uses 100 bits as an integer. The bottom 47 must be 0s -- so
     // construct a mask of 47 ones, via of 2^n - 1 where n is 47.
-    BigInt bottomMask = (BigInt.one << (bitLengthAsInt - 53)) - BigInt.one;
+    var bottomMask = (BigInt.one << (bitLengthAsInt - 53)) - BigInt.one;
 
     return fullPrecision & bottomMask == BigInt.zero;
   }
 
-  /// Returns `true` if the given [lexeme] is a valid lexeme for an integer
+  /// Whether the given [source] is a valid lexeme for an integer
   /// literal.
   ///
   /// The flag [isNegative] should be `true` if the lexeme is preceded by a
   /// unary negation operator.
-  static bool isValidAsInteger(String lexeme, bool isNegative) {
+  static bool isValidAsInteger(String source, bool isNegative) {
     // TODO(jmesserly): this depends on the platform int implementation, and
-    // might not be accurate if run on dart4web.
+    // might not be accurate if run in a browser.
     //
     // (Prior to https://dart-review.googlesource.com/c/sdk/+/63023 there was
     // a partial implementation here which might be a good starting point.
     // _isValidDecimalLiteral relied on int.parse so that would need some fixes.
     // _isValidHexadecimalLiteral worked except for negative int64 max.)
-    if (isNegative) lexeme = '-$lexeme';
-    return int.tryParse(lexeme) != null;
+    if (isNegative) source = '-$source';
+    return int.tryParse(source) != null;
   }
 
-  /// Suggest the nearest valid double to a user.
+  /// Suggests the nearest valid double to a user.
   ///
   /// If the integer they wrote requires more than a 53 bit mantissa, or more
   /// than 10 exponent bits, do them the favor of suggesting the nearest integer
   /// that would work for them.
-  static double nearestValidDouble(String lexeme) =>
-      math.min(double.maxFinite, BigInt.parse(lexeme).toDouble());
+  static double nearestValidDouble(String source) =>
+      math.min(double.maxFinite, BigInt.parse(source).toDouble());
 }
 
 /// A node within a [StringInterpolation].
@@ -11264,31 +11205,47 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 /// A single key/value pair in a map literal.
 ///
 ///    mapLiteralEntry ::=
-///        [Expression] ':' [Expression]
+///        '?'? [Expression] ':' '?'? [Expression]
 abstract final class MapLiteralEntry implements CollectionElement {
   /// The expression computing the key with which the value is associated.
   Expression get key;
+
+  /// The question prefix for the key that may present in null-aware map
+  /// entries.
+  Token? get keyQuestion;
 
   /// The colon that separates the key from the value.
   Token get separator;
 
   /// The expression computing the value that is associated with the key.
   Expression get value;
+
+  /// The question prefix for the value that may present in null-aware map
+  /// entries.
+  Token? get valueQuestion;
 }
 
 final class MapLiteralEntryImpl extends CollectionElementImpl
     implements MapLiteralEntry {
+  @override
+  final Token? keyQuestion;
+
   ExpressionImpl _key;
 
   @override
   final Token separator;
 
+  @override
+  final Token? valueQuestion;
+
   ExpressionImpl _value;
 
   /// Initializes a newly created map literal entry.
   MapLiteralEntryImpl({
+    required this.keyQuestion,
     required ExpressionImpl key,
     required this.separator,
+    required this.valueQuestion,
     required ExpressionImpl value,
   })  : _key = key,
         _value = value {
@@ -11297,7 +11254,7 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
   }
 
   @override
-  Token get beginToken => _key.beginToken;
+  Token get beginToken => keyQuestion ?? _key.beginToken;
 
   @override
   Token get endToken => _value.endToken;
@@ -11318,8 +11275,10 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
 
   @override
   ChildEntities get _childEntities => ChildEntities()
+    ..addToken('keyQuestion', keyQuestion)
     ..addNode('key', key)
     ..addToken('separator', separator)
+    ..addToken('valueQuestion', valueQuestion)
     ..addNode('value', value);
 
   @override
@@ -12636,22 +12595,11 @@ final class NodeListImpl<E extends AstNode>
 ///        [FunctionTypedFormalParameter]
 ///      | [FieldFormalParameter]
 ///      | [SimpleFormalParameter]
-sealed class NormalFormalParameter implements FormalParameter {
-  /// The documentation comment associated with this parameter, or `null` if
-  /// this parameter doesn't have a documentation comment associated with it.
-  Comment? get documentationComment;
-
-  /// A list containing the comment and annotations associated with this
-  /// parameter, sorted in lexical order.
-  List<AstNode> get sortedCommentAndAnnotations;
-}
+sealed class NormalFormalParameter implements FormalParameter, AnnotatedNode {}
 
 sealed class NormalFormalParameterImpl extends FormalParameterImpl
+    with _AnnotatedNodeMixin
     implements NormalFormalParameter {
-  CommentImpl? _comment;
-
-  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
-
   @override
   final Token? covariantKeyword;
 
@@ -12671,17 +12619,13 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
     required this.covariantKeyword,
     required this.requiredKeyword,
     required this.name,
-  }) : _comment = comment {
-    _becomeParentOf(_comment);
-    _metadata._initialize(this, metadata);
+  }) {
+    _initializeCommentAndAnnotations(comment, metadata);
   }
 
   @override
-  CommentImpl? get documentationComment => _comment;
-
-  set documentationComment(CommentImpl? comment) {
-    _comment = _becomeParentOf(comment);
-  }
+  Token get beginToken =>
+      metadata.beginToken ?? firstTokenAfterCommentAndMetadata;
 
   @override
   ParameterKind get kind {
@@ -12690,18 +12634,6 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
       return parent.kind;
     }
     return ParameterKind.REQUIRED;
-  }
-
-  @override
-  NodeListImpl<AnnotationImpl> get metadata => _metadata;
-
-  @override
-  List<AstNode> get sortedCommentAndAnnotations {
-    var comment = _comment;
-    return <AstNode>[
-      if (comment != null) comment,
-      ..._metadata,
-    ]..sort(AstNode.LEXICAL_ORDER);
   }
 
   @override
@@ -12719,25 +12651,7 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
     // Note that subclasses are responsible for visiting the identifier because
     // they often need to visit other nodes before visiting the identifier.
     //
-    if (_commentIsBeforeAnnotations()) {
-      _comment?.accept(visitor);
-      _metadata.accept(visitor);
-    } else {
-      List<AstNode> children = sortedCommentAndAnnotations;
-      int length = children.length;
-      for (int i = 0; i < length; i++) {
-        children[i].accept(visitor);
-      }
-    }
-  }
-
-  /// Returns `true` if the comment is lexically before any annotations.
-  bool _commentIsBeforeAnnotations() {
-    if (_comment == null || _metadata.isEmpty) {
-      return true;
-    }
-    Annotation firstAnnotation = _metadata[0];
-    return _comment!.offset < firstAnnotation.offset;
+    _visitCommentAndAnnotations(visitor);
   }
 }
 
@@ -12812,6 +12726,66 @@ final class NullAssertPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
+  }
+}
+
+/// A null-aware element in a list or set literal.
+///
+///    <nullAwareExpressionElement> ::= '?' <expression>
+abstract final class NullAwareElement implements CollectionElement {
+  /// The question mark before the expression.
+  Token get question;
+
+  /// The expression computing the value that is associated with the element.
+  Expression get value;
+}
+
+final class NullAwareElementImpl extends CollectionElementImpl
+    implements NullAwareElement {
+  @override
+  final Token question;
+
+  ExpressionImpl _value;
+
+  /// Initializes a newly created null-aware element.
+  NullAwareElementImpl({
+    required this.question,
+    required ExpressionImpl value,
+  }) : _value = value {
+    _becomeParentOf(_value);
+  }
+
+  @override
+  Token get beginToken => question;
+
+  @override
+  Token get endToken => _value.endToken;
+
+  @override
+  ExpressionImpl get value => _value;
+
+  set value(ExpressionImpl expression) {
+    _value = _becomeParentOf(expression);
+  }
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('question', question)
+    ..addNode('value', value);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAwareElement(this);
+
+  @override
+  void resolveElement(
+      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    // resolver.visitNullAwareElement(this, context: context);
+    resolver.pushRewrite(null);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _value.accept(visitor);
   }
 }
 
@@ -13252,6 +13226,9 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 ///    partDirective ::=
 ///        [Annotation] 'part' [StringLiteral] ';'
 abstract final class PartDirective implements UriBasedDirective {
+  /// The configurations that control which file is actually included.
+  NodeList<Configuration> get configurations;
+
   @override
   PartElement? get element;
 
@@ -13268,6 +13245,9 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   final Token partKeyword;
 
   @override
+  final NodeListImpl<ConfigurationImpl> configurations = NodeListImpl._();
+
+  @override
   final Token semicolon;
 
   /// Initializes a newly created part directive.
@@ -13279,8 +13259,11 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     required super.metadata,
     required this.partKeyword,
     required super.uri,
+    required List<ConfigurationImpl>? configurations,
     required this.semicolon,
-  });
+  }) {
+    this.configurations._initialize(this, configurations);
+  }
 
   @override
   PartElementImpl? get element {
@@ -13297,10 +13280,17 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
     ..addNode('uri', uri)
+    ..addNodeList('configurations', configurations)
     ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    configurations.accept(visitor);
+  }
 }
 
 /// A part-of directive.
@@ -15380,24 +15370,15 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    var metadata = this.metadata;
-    if (metadata.isNotEmpty) {
-      return metadata.beginToken!;
-    } else if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    } else if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    } else if (keyword case var keyword?) {
-      return keyword;
-    } else if (type case var type?) {
-      return type.beginToken;
-    }
-    return name!;
-  }
+  Token get endToken => name ?? type!.endToken;
 
   @override
-  Token get endToken => name ?? type!.endToken;
+  Token get firstTokenAfterCommentAndMetadata =>
+      requiredKeyword ??
+      covariantKeyword ??
+      keyword ??
+      type?.beginToken ??
+      name!;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
@@ -16382,26 +16363,17 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    var metadata = this.metadata;
-    if (metadata.isNotEmpty) {
-      return metadata.beginToken!;
-    } else if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    } else if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    } else if (keyword case var keyword?) {
-      return keyword;
-    } else if (type case var type?) {
-      return type.beginToken;
-    }
-    return superKeyword;
-  }
-
-  @override
   Token get endToken {
     return question ?? _parameters?.endToken ?? name;
   }
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata =>
+      requiredKeyword ??
+      covariantKeyword ??
+      keyword ??
+      type?.beginToken ??
+      superKeyword;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
@@ -18547,6 +18519,75 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+}
+
+/// Mixin implementing shared functionality for AST nodes that can have optional
+/// annotations and an optional documentation comment.
+base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
+  CommentImpl? _comment;
+
+  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
+
+  @override
+  CommentImpl? get documentationComment => _comment;
+
+  set documentationComment(CommentImpl? comment) {
+    _comment = _becomeParentOf(comment);
+  }
+
+  /// The first token following the comment and metadata.
+  @override
+  Token get firstTokenAfterCommentAndMetadata;
+
+  @override
+  NodeListImpl<AnnotationImpl> get metadata => _metadata;
+
+  @override
+  List<AstNode> get sortedCommentAndAnnotations {
+    var comment = _comment;
+    return <AstNode>[
+      if (comment != null) comment,
+      ..._metadata,
+    ]..sort(AstNode.LEXICAL_ORDER);
+  }
+
+  /// Returns `true` if there are no annotations before the comment.
+  ///
+  /// Note that a result of `true` doesn't imply that there's a comment, nor
+  /// that there are annotations associated with this node.
+  bool _commentIsBeforeAnnotations() {
+    if (_comment == null || _metadata.isEmpty) {
+      return true;
+    }
+    Annotation firstAnnotation = _metadata[0];
+    return _comment!.offset < firstAnnotation.offset;
+  }
+
+  /// Initializes the comment and metadata pointed to by this node.
+  ///
+  /// Intended to be called from the constructor.
+  void _initializeCommentAndAnnotations(
+      CommentImpl? comment, List<AnnotationImpl>? metadata) {
+    _comment = _becomeParentOf(comment);
+    _metadata._initialize(this, metadata);
+  }
+
+  /// Visits the AST nodes associated with [documentationComment] and
+  /// [metadata] (if any).
+  ///
+  /// Intended to be called from the [AstNode.visitChildren] method.
+  void _visitCommentAndAnnotations(AstVisitor<dynamic> visitor) {
+    if (_commentIsBeforeAnnotations()) {
+      _comment?.accept(visitor);
+      _metadata.accept(visitor);
+    } else {
+      List<AstNode> children = sortedCommentAndAnnotations;
+      int length = children.length;
+      for (int i = 0; i < length; i++) {
+        children[i].accept(visitor);
+      }
+    }
   }
 }
 

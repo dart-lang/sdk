@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't assign to `void`.";
 
@@ -30,21 +31,15 @@ void main() {
 ''';
 
 class VoidChecks extends LintRule {
-  static const LintCode code = LintCode(
-      'void_checks', "Assignment to a variable of type 'void'.",
-      correctionMessage:
-          'Try removing the assignment or changing the type of the variable.',
-      hasPublishedDocs: true);
-
   VoidChecks()
       : super(
             name: 'void_checks',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.void_checks;
 
   @override
   void registerNodeProcessors(

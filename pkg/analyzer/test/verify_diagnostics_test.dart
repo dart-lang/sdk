@@ -65,6 +65,8 @@ class DocumentationValidator {
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
+    // Produces multiple diagnostics when it should only produce one.
+    'CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
     // Produces two diagnostic out of necessity.
@@ -109,7 +111,7 @@ class DocumentationValidator {
     'LintCode.implementation_imports',
     // Doesn't produce a lint for the second example, even though the analyzer
     // does when the example is pasted into a file.
-    'LintCode.prefer_inlined_adds',
+    'LintCode.prefer_inlined_adds_single',
     // Produces an unused import diagnostic.
     'LintCode.library_prefixes',
     // Produces an unused element diagnostic.
@@ -124,6 +126,11 @@ class DocumentationValidator {
     'LintCode.secure_pubspec_urls',
     // The test framework doesn't yet support lints in non-dart files.
     'LintCode.sort_pub_dependencies',
+    // Doesn't produce a lint for the first example, even though the analyzer
+    // does when the example is pasted into a file.
+    'LintCode.unnecessary_lambdas',
+    // Produces an unused_field warning.
+    'LintCode.use_setters_to_change_properties',
     // Extra warning.
     'LintCode.recursive_getters',
 

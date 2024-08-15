@@ -654,7 +654,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method after visiting the LHS of a logical binary operation
   /// ("||" or "&&").
-  /// [rightOperand] should be the LHS.  [isAnd] should indicate whether the
+  /// [leftOperand] should be the LHS.  [isAnd] should indicate whether the
   /// logical operator is "&&" or "||".  [wholeExpression] should be the whole
   /// logical binary expression.
   void logicalBinaryOp_rightBegin(Expression leftOperand, Node wholeExpression,
@@ -781,10 +781,6 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [FlowAnalysisOperations.isPropertyPromotable] will be consulted to find
   /// out whether the property is promotable.  [unpromotedType] should be the
   /// static type of the value returned by the property get.
-  ///
-  /// [isSuperAccess] indicates whether the property in question is being
-  /// accessed through `super.`. If [target] is non-null, the caller should pass
-  /// `false` for [isSuperAccess].
   ///
   /// Note: although only fields can be promoted, this method uses the
   /// nomenclature "property" rather than "field", to highlight the fact that
@@ -1143,9 +1139,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// source code (this happens, for example, with compound assignments and with
   /// for-each loops).
   ///
-  /// This should also be used for the implicit write to a non-final variable in
-  /// its initializer, to ensure that the type is promoted to non-nullable if
-  /// necessary; in this case, [viaInitializer] should be `true`.
+  /// This method should not be used for the implicit write to a non-final
+  /// variable in its initializer; in that case, use [initialize] instead.
   void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression);
 
@@ -2568,7 +2563,7 @@ class FlowModel<Type extends Object> {
     return new FlowModel<Type>.withInfo(reachable, promotionInfo);
   }
 
-  /// Returns a new [FlowModel] where the information for [reference] is
+  /// Returns a new [FlowModel] where the information for [promotionKey] is
   /// replaced with [model].
   @visibleForTesting
   FlowModel<Type> updatePromotionInfo(FlowModelHelper<Type> helper,
@@ -2580,7 +2575,7 @@ class FlowModel<Type extends Object> {
     return new FlowModel.withInfo(reachable, newPromotionInfo);
   }
 
-  /// Updates the state to indicate that an assignment was made to [variable],
+  /// Updates the state to indicate that an assignment was made to [Variable],
   /// whose key is [variableKey].  The variable is marked as definitely
   /// assigned, and any previous type promotion is removed.
   ///
@@ -2656,7 +2651,7 @@ class FlowModel<Type extends Object> {
   }
 
   /// Forms a new state to reflect a control flow path that might have come from
-  /// either `this` or the [other] state.
+  /// either the [first] or [second] state.
   ///
   /// The control flow path is considered reachable if either of the input
   /// states is reachable.  Variables are considered definitely assigned if they
@@ -2912,10 +2907,9 @@ class PatternVariableInfo<Variable> {
 /// analysis.
 ///
 /// Each instance of [PromotionInfo] is an immutable key/value pair binding a
-/// single promotion [key] (a unique integer assigned by
-/// [_FlowAnalysisImpl._promotionKeyStore] to track a particular promotable
-/// thing) with an instance of [PromotionModel] describing the promotion state
-/// of that thing.
+/// single promotion [key] (a unique integer assigned by [PromotionKeyStore] to
+/// track a particular promotable thing) with an instance of [PromotionModel]
+/// describing the promotion state of that thing.
 ///
 /// Please see the documentation for [FlowLink] for more information about how
 /// this data structure works.
@@ -3022,8 +3016,8 @@ class PromotionModel<Type extends Object> {
   /// Returns a new [PromotionModel] in which any promotions present have been
   /// dropped, and the variable has been marked as "not unassigned".
   ///
-  /// Used by [conservativeJoin] to update the state of variables at the top of
-  /// loops whose bodies write to them.
+  /// Used by [FlowModel.conservativeJoin] to update the state of variables at
+  /// the top of loops whose bodies write to them.
   PromotionModel<Type> discardPromotionsAndMarkNotUnassigned() {
     return new PromotionModel<Type>(
         promotedTypes: null,
@@ -3405,8 +3399,7 @@ class PromotionModel<Type extends Object> {
   /// caveats:
   /// - The "sets" are represented as lists (since they are expected to be very
   ///   small in real-world cases)
-  /// - The sense of equality for the union operation is determined by
-  ///   [FlowAnalysisTypeOperations.isSameType].
+  /// - The sense of equality for the union operation is determined by `==`.
   /// - The types of interests lists are considered immutable.
   static List<Type> joinTested<Type extends Object>(List<Type> types1,
       List<Type> types2, FlowAnalysisTypeOperations<Type> typeOperations) {
@@ -3770,8 +3763,7 @@ class SsaNode<Type extends Object> {
   /// used in a control flow construct.
   ///
   /// We don't bother storing flow analysis information if it's trivial (see
-  /// [_TrivialExpressionInfo]) because such information does not lead to
-  /// promotions.
+  /// [ExpressionInfo]) because such information does not lead to promotions.
   @visibleForTesting
   final ExpressionInfo<Type>? expressionInfo;
 
@@ -4072,8 +4064,8 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
   /// and `x` has been subsequently written to, then the promotion is
   /// discarded). This is done via [FlowModel.rebaseForward].
   ///
-  /// [current] should be the current flow model, and [typeOperations] should be
-  /// the callback object provided by the client for manipulating types.
+  /// [current] should be the current flow model, and [helper] should be
+  /// the instance of [_FlowAnalysisImpl].
   _Reference<Type> addPreviousInfo(ExpressionInfo<Type>? previousExpressionInfo,
       FlowModelHelper<Type> helper, FlowModel<Type> current) {
     if (previousExpressionInfo != null && previousExpressionInfo.isNonTrivial) {
@@ -4269,8 +4261,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// no such expression has been visited.
   Expression? _expressionWithReference;
 
-  /// If [_expressionVariable] is not `null`, the reference corresponding to it.
-  /// Otherwise `null`.
+  /// If [_expressionWithReference] is not `null`, the reference corresponding
+  /// to it. Otherwise `null`.
   _Reference<Type>? _expressionReference;
 
   final AssignedVariables<Node, Variable> _assignedVariables;
@@ -5598,7 +5590,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   /// Analyzes an equality check between the operands described by
-  /// [leftOperandInfo] and [rightOperandInfo].
+  /// [lhsInfo] and [rhsInfo].
   _EqualityCheckResult _equalityCheck(
       ExpressionInfo<Type> lhsInfo, ExpressionInfo<Type> rhsInfo) {
     TypeClassification leftOperandTypeClassification =
@@ -6016,7 +6008,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// Updates the [_stack] to reflect the fact that flow analysis is entering
   /// into a pattern or subpattern match.  [matchedValueInfo] should be the
-  /// [EqualityInfo] representing the value being matched.
+  /// [_Reference] representing the value being matched.
   void _pushPattern(_Reference<Type> matchedValueInfo) {
     _current = _current.split();
     _stack.add(new _TopPatternContext<Type>(matchedValueInfo, _unmatched));
@@ -6032,7 +6024,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// [allowScrutineePromotion] indicates whether pattern matches should cause
   /// the scrutinee to be promoted.
   ///
-  /// The returned value is the [EqualityInfo] representing the value being
+  /// The returned value is the [_Reference] representing the value being
   /// matched.  It should be passed to [_pushPattern].
   _Reference<Type> _pushScrutinee(Expression? scrutinee, Type scrutineeType,
       {required bool allowScrutineePromotion}) {
@@ -6062,7 +6054,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   /// Associates [expression], which should be the most recently visited
-  /// expression, with the given [Reference] object.
+  /// expression, with the given [expressionReference] object.
   void _storeExpressionReference(
       Expression expression, _Reference<Type> expressionReference) {
     _expressionWithReference = expression;
@@ -7068,8 +7060,8 @@ abstract class _PropertyTargetHelper<Expression extends Object,
   /// SSA node representing the implicit variable `this`.
   SsaNode<Type> get _thisSsaNode;
 
-  /// Gets the [Reference] associated with the [expression] (which should be the
-  /// last expression that was traversed).  If there is no [Reference]
+  /// Gets the [_Reference] associated with the [expression] (which should be
+  /// the last expression that was traversed).  If there is no [_Reference]
   /// associated with the [expression], then `null` is returned.
   _Reference<Type>? _getExpressionReference(Expression? expression);
 }
@@ -7188,7 +7180,7 @@ class _SwitchAlternativesContext<Variable extends Object, Type extends Object>
 /// [_FlowContext] representing a switch statement.
 class _SwitchStatementContext<Type extends Object>
     extends _SimpleStatementContext<Type> {
-  /// [EqualityInfo] for the value being matched.
+  /// [_Reference] for the value being matched.
   final _Reference<Type> _matchedValueInfo;
 
   /// Flow state for the code path where no switch cases have matched yet.  If

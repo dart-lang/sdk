@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -673,6 +674,155 @@ Block
           literal: 0
       semicolon: ;
   rightBracket: }
+''');
+  }
+
+  test_namedArgument_name_inAugmentation() {
+    var parseResult = parseStringWithErrors(r'''
+augment void f() {
+  foo(augmented: 0);
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED, 25, 9),
+    ]);
+
+    var node = parseResult.findNode.singleExpressionStatement;
+    assertParsedNodeText(node, r'''
+ExpressionStatement
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        NamedExpression
+          name: Label
+            label: SimpleIdentifier
+              token: augmented
+            colon: :
+          expression: IntegerLiteral
+            literal: 0
+      rightParenthesis: )
+  semicolon: ;
+''');
+  }
+
+  test_namedArgument_name_notInAugmentation() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  foo(augmented: 0);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement;
+    assertParsedNodeText(node, r'''
+ExpressionStatement
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        NamedExpression
+          name: Label
+            label: SimpleIdentifier
+              token: augmented
+            colon: :
+          expression: IntegerLiteral
+            literal: 0
+      rightParenthesis: )
+  semicolon: ;
+''');
+  }
+
+  test_namedType_class_method_returnType() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  augment augmented foo() => throw 0;
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED, 20, 9),
+    ]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: augmented
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: IntegerLiteral
+        literal: 0
+    semicolon: ;
+''');
+  }
+
+  test_namedType_topLevel_function_formalParameter_type() {
+    var parseResult = parseStringWithErrors(r'''
+augment void f(augmented a) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED, 15, 9),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+  name: f
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: augmented
+        name: a
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+''');
+  }
+
+  test_namedType_topLevel_function_returnType() {
+    var parseResult = parseStringWithErrors(r'''
+augment augmented f() => throw 0;
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED, 8, 9),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: augmented
+  name: f
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: ThrowExpression
+        throwKeyword: throw
+        expression: IntegerLiteral
+          literal: 0
+      semicolon: ;
 ''');
   }
 

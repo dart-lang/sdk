@@ -27,6 +27,7 @@ abstract class RpcErrorCodes {
 
   static const kServiceAlreadyRegistered = 111;
   static const kServiceDisappeared = 112;
+  static const kServiceNameInvalid = 113;
 
   static const kServiceMethodAlreadyRegistered = 132;
 
@@ -34,6 +35,7 @@ abstract class RpcErrorCodes {
   static const kFileDoesNotExist = 141;
   static const kPermissionDenied = 142;
   static const kExpectsUriParamWithFileScheme = 143;
+  static const kUnknownUriScheme = 144;
 
   // Experimental (used in private rpcs).
   // static const kFileSystemAlreadyExists = 1001;
@@ -45,11 +47,13 @@ abstract class RpcErrorCodes {
     kStreamNotSubscribed: 'Stream not subscribed',
     kServiceAlreadyRegistered: 'Service already registered',
     kServiceDisappeared: 'Service has disappeared',
+    kServiceNameInvalid: 'The service name is not valid',
     kServiceMethodAlreadyRegistered:
         'The service method has already been registered',
     kDirectoryDoesNotExist: 'The directory does not exist',
     kFileDoesNotExist: 'The file does not exist',
     kPermissionDenied: 'Permission denied',
     kExpectsUriParamWithFileScheme: 'File scheme expected on uri',
+    kUnknownUriScheme: 'URI scheme is not supported',
   };
 }

@@ -49,7 +49,7 @@ class Module implements Serializable {
     GlobalSection(globals.defined, watchPoints).serialize(s);
     ExportSection(exports.exported, watchPoints).serialize(s);
     StartSection(functions.start, watchPoints).serialize(s);
-    ElementSection(tables.defined, watchPoints).serialize(s);
+    ElementSection(tables.defined, tables.imported, watchPoints).serialize(s);
     DataCountSection(dataSegments.defined, watchPoints).serialize(s);
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
@@ -62,7 +62,7 @@ class Module implements Serializable {
         globals.namedCount > 0) {
       NameSection(
               <BaseFunction>[...functions.imported, ...functions.defined],
-              types.defined,
+              [for (final t in types.recursionGroups) ...t],
               <Global>[...globals.imported, ...globals.defined],
               watchPoints,
               functionNameCount: functions.namedCount,

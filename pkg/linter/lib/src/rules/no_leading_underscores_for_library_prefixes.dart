@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for library prefixes.';
@@ -28,42 +31,43 @@ import 'dart:core' as core;
 ''';
 
 class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
-  static const LintCode code = LintCode(
-      'no_leading_underscores_for_library_prefixes',
-      "The library prefix '{0}' starts with an underscore.",
-      correctionMessage:
-          'Try renaming the prefix to not start with an underscore.',
-      hasPublishedDocs: true);
-
   NoLeadingUnderscoresForLibraryPrefixes()
       : super(
             name: 'no_leading_underscores_for_library_prefixes',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.no_leading_underscores_for_library_prefixes;
 
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.libraryElement);
     registry.addImportDirective(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  /// Whether the `wildcard_variables` feature is enabled.
+  final bool _wildCardVariablesEnabled;
+
   final LintRule rule;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, LibraryElement? library)
+      : _wildCardVariablesEnabled =
+            library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 
   void checkIdentifier(SimpleIdentifier? id) {
-    if (id == null) {
-      return;
-    }
+    if (id == null) return;
 
-    if (id.name.hasLeadingUnderscore) {
+    var name = id.name;
+
+    if (_wildCardVariablesEnabled && name == '_') return;
+
+    if (name.hasLeadingUnderscore) {
       rule.reportLint(id, arguments: [id.name]);
     }
   }

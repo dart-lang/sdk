@@ -344,7 +344,12 @@ final class Array<T extends NativeType> extends _Compound {
   List<int> get _nestedDimensionsRest =>
       _nestedDimensionsRestCache ??= _nestedDimensions.sublist(1);
 
+  static const _variableLengthLength = 0;
+
   void _checkIndex(int index) {
+    if (_size == _variableLengthLength) {
+      return;
+    }
     if (index < 0 || index >= _size) {
       throw RangeError.range(index, 0, _size - 1);
     }

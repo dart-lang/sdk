@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer is! operator.';
 
@@ -30,23 +31,15 @@ if (foo is! Foo) {
 ''';
 
 class PreferIsNotOperator extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_is_not_operator',
-      "Use the 'is!' operator rather than negating the value of the 'is' "
-          'operator.',
-      correctionMessage:
-          "Try rewriting the condition to use the 'is!' operator.",
-      hasPublishedDocs: true);
-
   PreferIsNotOperator()
       : super(
             name: 'prefer_is_not_operator',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_is_not_operator;
 
   @override
   void registerNodeProcessors(

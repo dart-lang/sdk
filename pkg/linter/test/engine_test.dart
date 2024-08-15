@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
@@ -40,7 +39,7 @@ void defineLinterEngineTests() {
       test('pubspec', () {
         var visited = false;
         var options =
-            LinterOptions(enabledRules: [MockLinter((n) => visited = true)]);
+            LinterOptions(enabledRules: [MockLintRule((n) => visited = true)]);
         TestLinter(options).lintPubspecSource(contents: 'name: foo_bar');
         expect(visited, isTrue);
       });
@@ -62,12 +61,12 @@ void defineLinterEngineTests() {
 
 typedef NodeVisitor = void Function(Object node);
 
-class MockLinter extends LintRule {
+class MockLintRule extends LintRule {
   final NodeVisitor nodeVisitor;
-  MockLinter(this.nodeVisitor)
+  MockLintRule(this.nodeVisitor)
       : super(
             name: 'MockLint',
-            categories: {Category.style},
+            categories: {LintRuleCategory.style},
             description: 'Desc',
             details: 'And so on...');
 

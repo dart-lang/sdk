@@ -347,8 +347,8 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   Handler _sseHandler() {
     final handler = SseHandler(
       authCodesEnabled
-          ? Uri.parse('/$authCode/$_kSseHandlerPath')
-          : Uri.parse('/$_kSseHandlerPath'),
+          ? Uri.parse('/$authCode/$kSseHandlerPath')
+          : Uri.parse('/$kSseHandlerPath'),
       keepAlive: sseKeepAlive,
     );
 
@@ -441,7 +441,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       return null;
     }
     final pathSegments = _cleanupPathSegments(uri);
-    pathSegments.add(_kSseHandlerPath);
+    pathSegments.add(kSseHandlerPath);
     return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
@@ -456,7 +456,9 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           (e) => e.isNotEmpty,
         ),
         'devtools',
-        '', // Include trailing slash
+        // Includes a trailing slash by adding an empty string to the end of the
+        // path segments list.
+        '',
       ],
       query: 'uri=$wsUri',
     );
@@ -550,7 +552,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   StreamManager get streamManager => _streamManager;
   late StreamManager _streamManager;
 
-  static const _kSseHandlerPath = '\$debugHandler';
+  static const kSseHandlerPath = '\$debugHandler';
 
   late json_rpc.Peer vmServiceClient;
   late WebSocketChannel _vmServiceSocket;

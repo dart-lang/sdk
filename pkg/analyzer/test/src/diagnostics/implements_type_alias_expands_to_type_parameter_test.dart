@@ -40,7 +40,7 @@ class B implements T {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
-  element: self::@typeAlias::T
+  element: <testLibraryFragment>::@typeAlias::T
   type: InvalidType
 ''');
   }
@@ -66,10 +66,10 @@ NamedType
     arguments
       NamedType
         name: A
-        element: self::@class::A
+        element: <testLibraryFragment>::@class::A
         type: A
     rightBracket: >
-  element: self::@typeAlias::T
+  element: <testLibraryFragment>::@typeAlias::T
   type: InvalidType
 ''');
   }
@@ -90,7 +90,7 @@ mixin M implements T {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
-  element: self::@typeAlias::T
+  element: <testLibraryFragment>::@typeAlias::T
   type: InvalidType
 ''');
   }

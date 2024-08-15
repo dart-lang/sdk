@@ -36,6 +36,8 @@ import 'dart:_foreign_helper'
     show
         DART_CLOSURE_TO_JS,
         getInterceptor,
+        ArrayFlags,
+        HArrayFlagsGet,
         JS,
         JS_BUILTIN,
         JS_CONST,
@@ -675,11 +677,13 @@ class Primitives {
     return '';
   }
 
-  static int getTimeZoneOffsetInMinutes(DateTime receiver) {
-    // Note that JS and Dart disagree on the sign of the offset.
-    // Subtract to avoid -0.0
-    return 0 - JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver))
-        as int;
+  static int getTimeZoneOffsetInSeconds(DateTime receiver) {
+    // Note that JavaScript's Date and and Dart's DateTime disagree on the sign
+    // of the offset. Subtract to avoid -0.0. The offset in minutes could
+    // contain 'seconds' as fractional minutes.
+    num offsetInMinutes =
+        JS('num', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    return (0 - offsetInMinutes * 60).toInt();
   }
 
   static int? valueFromDecomposedDate(
@@ -1245,6 +1249,80 @@ Never throwExpressionWithWrapper(ex, wrapper) {
 
 throwUnsupportedError(message) {
   throw UnsupportedError(message);
+}
+
+/// Called from code generated for the HArrayFlagsCheck instruction.
+///
+/// The operation can be a string, or for more compact generated code, an index
+/// into a small table of operation names.  A missing `operation` or `verb`
+/// argument defaults to index 0.
+@pragma('dart2js:assumeDynamic')
+Never throwUnsupportedOperation(Object o, [Object? operation, Object? verb]) {
+  // Missing argument is defaulted manually.  The calling convention for
+  // top-level methods is that the call site provides the default values. Since
+  // the generated code omits the second or thrid argument, `undefined` is
+  // passed, which presents as Dart `null`.
+  operation ??= 0;
+  verb ??= 0;
+  final wrapper = JS('', 'Error()');
+  throwExpressionWithWrapper(
+      _diagnoseUnsupportedOperation(o, operation, verb), wrapper);
+}
+
+@pragma('dart2js:never-inline')
+Error _diagnoseUnsupportedOperation(
+    Object o, Object encodedOperation, Object encodedVerb) {
+  String operation;
+  String verb;
+
+  if (encodedOperation is String) {
+    operation = encodedOperation;
+  } else {
+    final table = JS<JSArray>('', '#.split(";")', ArrayFlags.operationNames);
+    int tableLength = JS('JSUInt31', '#.length', table);
+    int index = JS('JSUInt31', '#', encodedOperation);
+    if (index > tableLength) {
+      // Verb is also encoded with the operation.
+      // Do math in JavaScript, we know there are no edge cases.
+      // Truncating divide:
+      encodedVerb = JS<int>('', '(# / #) | 0', index, tableLength);
+      index = JS<int>('', '# % #', index, tableLength);
+    }
+    // The index should be valid by construction.
+    operation = JS<String>('', '#[#]', table, index);
+  }
+
+  if (encodedVerb is String) {
+    verb = encodedVerb;
+  } else {
+    final table = JS<JSArray>('', '#.split(";")', ArrayFlags.verbs);
+    // The index should be valid by construction.
+    verb = JS<String>('', '#[#]', table, encodedVerb);
+  }
+
+  String adjective = '';
+  String article = 'a ';
+  String object;
+  if (o is List) {
+    object = 'list';
+  } else {
+    object = 'ByteData';
+  }
+
+  final flags = HArrayFlagsGet(o);
+  if (flags & ArrayFlags.constantCheck != 0) {
+    article = 'a ';
+    adjective = 'constant ';
+  } else if (flags & ArrayFlags.unmodifiableCheck != 0) {
+    article = 'an ';
+    adjective = 'unmodifiable ';
+  } else if (flags & ArrayFlags.fixedLengthCheck != 0) {
+    article = 'a ';
+    adjective = 'fixed-length ';
+  }
+
+  final prefix = "'$operation': ";
+  return UnsupportedError('${prefix}Cannot $verb $article$adjective$object');
 }
 
 // This is used in open coded for-in loops on arrays.

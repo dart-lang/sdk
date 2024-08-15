@@ -51,7 +51,7 @@ abstract class WasmListBase<E> extends ListBase<E> {
   }
 
   @pragma("wasm:prefer-inline")
-  List<E> toList({bool growable = true}) => List.from(this, growable: growable);
+  List<E> toList({bool growable = true}) => List.of(this, growable: growable);
 }
 
 @pragma("wasm:entry-point")

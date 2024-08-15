@@ -58,7 +58,7 @@ part of dart.io;
 ///   }
 /// }
 /// ```
-final class Platform {
+abstract final class Platform {
   /// The number of individual execution units of the machine.
   static final numberOfProcessors = _Platform.numberOfProcessors;
 
@@ -70,15 +70,15 @@ final class Platform {
   /// A string representing the operating system or platform.
   ///
   /// Possible values include:
-  ///   "android"
-  ///   "fuchsia"
-  ///   "ios"
-  ///   "linux"
-  ///   "macos"
-  ///   "windows"
+  /// * "android"
+  /// * "fuchsia"
+  /// * "ios"
+  /// * "linux"
+  /// * "macos"
+  /// * "windows"
   ///
   /// Note that this list may change over time so platform-specific logic
-  /// should be guarded by the appropriate boolean getter e.g. [isMacOS].
+  /// should be guarded by the appropriate Boolean getter e.g. [isMacOS].
   @pragma("vm:platform-const")
   static final operatingSystem = _Platform.operatingSystem;
 
@@ -243,8 +243,4 @@ final class Platform {
   /// `"\r\n"`
   @pragma("vm:platform-const")
   static String get lineTerminator => isWindows ? '\r\n' : '\n';
-
-  @Deprecated("Do not instantiate this class, it will become abstract in a "
-      "future Dart version")
-  Platform();
 }

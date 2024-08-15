@@ -8,11 +8,17 @@ To start a tooling daemon run `dart tooling-daemon`.
 If you have access to `Dart` then you can use the [package:dtd](#packagedtd)
 package.
 
-Otherwise, if you are creating your own client that will communicate with DTD using RPC,
-make sure to follow the entire
+Otherwise, if you are creating your own client that will communicate with DTD
+using RPC, make sure to follow the entire
 [Dart Tooling Daemon RPC protocol](#dart-tooling-daemon-rpc-protocol) section.
 
 The Dart Tooling Daemon Protocol uses JSON-RPC 2.0.
+
+## Common Services Definitions
+
+Some common services are defined to ensure that different tools can provide the
+same functionality consistently to DTD clients. Details of these can be found in
+[dtd_common_services](./dtd_common_services.md).
 
 ## Visualizing DTD interactions
 
@@ -80,18 +86,19 @@ sequenceDiagram
     participant dtd as Dart Tooling Daemon
     participant c2 as Client 2
 
-    Note right of c1: Client 1 registers the foo.bar method.
-    c1->>dtd: registerService(service: "foo", method: "bar)
+    Note right of c1: Client 1 registers the Foo.bar method.
+    c1->>dtd: registerService(service: "Foo", method: "bar")
     activate dtd
+    dtd-->>c2: ServiceRegistered({"service": "Foo", "method": "bar"})
     dtd-->>c1: Success
     deactivate dtd
 
-    Note left of c2: Client 2 calls foo.bar
-    c2->>dtd: foo.bar({{"a": 1, "b": 2}})
+    Note left of c2: Client 2 calls Foo.bar
+    c2->>dtd: Foo.bar({{"a": 1, "b": 2}})
     activate dtd
 
     Note left of dtd: dtd forwards the service method call to Client 1.
-    dtd->>c1: foo.bar({{"a": 1, "b": 2}})
+    dtd->>c1: Foo.bar({{"a": 1, "b": 2}})
     activate c1
 
     Note right of c1: Client 1 handles the<br/>request and responds to the Dart Tooling Daemon.
@@ -101,6 +108,68 @@ sequenceDiagram
     Note right of dtd: Dart Tooling Daemon forwards the response to Client 2.
     dtd-->>c2: {"example": "response"}
     deactivate dtd
+
+    Note right of c1: Client 1 disconnects.
+    activate dtd
+    dtd-->>c2: ServiceUnregistered({"service": "Foo", "method": "bar"})
+    deactivate dtd
+```
+
+`registerService` takes an optional map of capabilities that can be used for
+evolving the service method over time (such as expressing support for additional
+named values in the arguments).
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "registerService",
+  "params": {
+    "service": "Foo",
+    "method": "bar",
+    "capabilities": {
+      "supportsAdditionalFoo": true,
+    },
+  },
+  "id": "2"
+}
+```
+
+Notifications will be sent over a special `Service` stream when services are
+registered and unregistered.
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "streamNotify",
+    "params": {
+        "streamId": "Service",
+        "eventKind": "ServiceRegistered",
+        "eventData": {
+          "service": "Foo",
+          "method": "bar",
+          // Capabilities are included only if the client provided them
+          "capabilities": {
+            "supportsAdditionalFoo": true,
+          },
+        }
+    },
+    "id": "2"
+}
+
+{
+    "jsonrpc": "2.0",
+    "method": "streamNotify",
+    "params": {
+        "streamId": "Service",
+        "eventKind": "ServiceUnregistered",
+        "eventData": {
+          "service": "Foo",
+          "method": "bar",
+          // Unregistered events do not contain capabilities
+        }
+    },
+    "id": "2"
+}
 ```
 
 ## Dart Tooling Daemon Interaction
@@ -248,6 +317,11 @@ If successful, responds with [Success](#success-responses).
 Registers the calling client as the handler for any service method calls where
 the service is _service_ and the method is _method_.
 
+Service names may not include dots `.` (though method names may), but service
+names cannot be reused across clients. If one client has registered any method
+for the service "Foo", then no other client can register a method under the
+service "Foo".
+
 To call the method registered by this call, a client can send a
 [service method](#servicemethod) call to the Dart Tooling Daemon.
 
@@ -280,7 +354,7 @@ If the _method_ has already been registered on the _service_, the _132_
   "jsonrpc": "2.0",
   "method": "registerService",
   "params": {
-    "service": "foo",
+    "service": "Foo",
     "method": "bar",
   },
   "id": "2"
@@ -324,7 +398,7 @@ If service method does not exist, the -32601 (Method not found)
 
 Assume that a client has registered a service method with:
 
-- service: `foo`
+- service: `Foo`
 - method: `bar`
 
 Then calling that service method might look like:
@@ -332,7 +406,7 @@ Then calling that service method might look like:
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "foo.bar",
+  "method": "Foo.bar",
   "params": { "baz": 3 },
   "id": "2"
 }
@@ -412,7 +486,7 @@ service method.
 
 Assume that a client has registered a service method with:
 
-- service: `foo`
+- service: `Foo`
 - method: `bar`
 
 Then calling that service method might look like:
@@ -420,7 +494,7 @@ Then calling that service method might look like:
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "foo.bar",
+  "method": "Foo.bar",
   "params": { "baz": 3 },
   "id": "2"
 }

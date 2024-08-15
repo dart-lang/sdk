@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
 
@@ -54,22 +55,18 @@ bool _isPrivateExtension(AstNode parent) {
 }
 
 class UseLateForPrivateFieldsAndVariables extends LintRule {
-  static const LintCode code = LintCode(
-      'use_late_for_private_fields_and_variables',
-      "Use 'late' for private members with a non-nullable type.",
-      correctionMessage: "Try making adding the modifier 'late'.");
-
   UseLateForPrivateFieldsAndVariables()
       : super(
           name: 'use_late_for_private_fields_and_variables',
           description: _desc,
           details: _details,
           state: State.experimental(),
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.use_late_for_private_fields_and_variables;
 
   @override
   void registerNodeProcessors(

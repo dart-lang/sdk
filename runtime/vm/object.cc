@@ -1451,8 +1451,10 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (obj->IsClass()) {
         // Won't be able to update read-only VM isolate classes if implementors
-        // are discovered later.
-        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kDynamicCid;
+        // are discovered later. We use kVoidCid instead of kDynamicCid here to
+        // be able to distinguish read-only VM isolate classes during reload.
+        // See ProgramReloadContext::RestoreClassHierarchyInvariants.
+        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kVoidCid;
       }
 #endif
     }
@@ -2009,18 +2011,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
-    // Pre-register the collection library so we can place the vm class
-    // Map there rather than the core library.
-    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    // Pre-register dart:_compact_hash library so that we could place
+    // collection classes (_Map, _ConstMap, _Set, _ConstSet) here.
+    lib = Library::LookupLibrary(thread, Symbols::DartCompactHash());
     if (lib.IsNull()) {
-      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib = Library::NewLibraryHelper(Symbols::DartCompactHash(), true);
       lib.SetLoadRequested();
       lib.Register(thread);
     }
+    object_store->set_bootstrap_library(ObjectStore::kCompactHash, lib);
 
-    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
     ASSERT(!lib.IsNull());
-    ASSERT(lib.ptr() == Library::CollectionLibrary());
+    ASSERT(lib.ptr() == Library::CompactHashLibrary());
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
     cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
@@ -2054,6 +2056,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_is_prefinalized();
     RegisterPrivateClass(cls, Symbols::_ConstSet(), lib);
     pending_classes.Add(cls);
+
+    // Pre-register the collection library.
+    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
 
     // Pre-register the async library so we can place the vm class
     // FutureOr there rather than the core library.
@@ -2439,9 +2450,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     isolate_group->class_table()->CopySizesFromClassObjects();
 
     ClassFinalizer::VerifyBootstrapClasses();
-
-    // Set up the intrinsic state of all functions (core, math and typed data).
-    compiler::Intrinsifier::InitializeState();
 
     // Adds static const fields (class ids) to the class 'ClassID');
     lib = Library::LookupLibrary(thread, Symbols::DartInternal());
@@ -5578,6 +5586,14 @@ void Class::set_implementor_cid(intptr_t value) const {
   StoreNonPointer(&untag()->implementor_cid_, value);
 }
 
+void Class::ClearImplementor() const {
+  // Check raw implementor_cid_ without normalization done by
+  // implementor_cid() accessor.
+  if (untag()->implementor_cid_ != kVoidCid) {
+    set_implementor_cid(kIllegalCid);
+  }
+}
+
 bool Class::NoteImplementor(const Class& implementor) const {
   ASSERT(!implementor.is_abstract());
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -5611,13 +5627,13 @@ int32_t Class::SourceFingerprint() const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void Class::set_is_implemented() const {
+void Class::set_is_implemented(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_is_implemented_unsafe();
+  set_is_implemented_unsafe(value);
 }
 
-void Class::set_is_implemented_unsafe() const {
-  set_state_bits(ImplementedBit::update(true, state_bits()));
+void Class::set_is_implemented_unsafe(bool value) const {
+  set_state_bits(ImplementedBit::update(value, state_bits()));
 }
 
 void Class::set_is_abstract() const {
@@ -7970,14 +7986,22 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
   ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
-  // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
 
   const Error& error =
-      Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, *this));
+      Error::Handle(zone, EnsureHasCompiledUnoptimizedCodeNoThrow());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
+}
+
+ErrorPtr Function::EnsureHasCompiledUnoptimizedCodeNoThrow() const {
+  ASSERT(!ForceOptimize());
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsDartMutatorThread());
+
+  return Compiler::EnsureUnoptimizedCode(thread, *this);
 }
 
 void Function::SwitchToUnoptimizedCode() const {
@@ -14781,6 +14805,10 @@ LibraryPtr Library::AsyncLibrary() {
   return IsolateGroup::Current()->object_store()->async_library();
 }
 
+LibraryPtr Library::ConcurrentLibrary() {
+  return IsolateGroup::Current()->object_store()->concurrent_library();
+}
+
 LibraryPtr Library::ConvertLibrary() {
   return IsolateGroup::Current()->object_store()->convert_library();
 }
@@ -14791,6 +14819,10 @@ LibraryPtr Library::CoreLibrary() {
 
 LibraryPtr Library::CollectionLibrary() {
   return IsolateGroup::Current()->object_store()->collection_library();
+}
+
+LibraryPtr Library::CompactHashLibrary() {
+  return IsolateGroup::Current()->object_store()->_compact_hash_library();
 }
 
 LibraryPtr Library::DeveloperLibrary() {
@@ -15303,7 +15335,7 @@ ErrorPtr Library::FinalizeAllClasses() {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Return Function::null() if function does not exist in libs.
-FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
+FunctionPtr Library::GetFunction(const Library& lib,
                                  const char* class_name,
                                  const char* function_name) {
   Thread* thread = Thread::Current();
@@ -15312,28 +15344,22 @@ FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
   String& class_str = String::Handle(zone);
   String& func_str = String::Handle(zone);
   Class& cls = Class::Handle(zone);
-  for (intptr_t l = 0; l < libs.length(); l++) {
-    const Library& lib = *libs[l];
-    if (strcmp(class_name, "::") == 0) {
-      cls = lib.toplevel_class();
-    } else {
-      class_str = String::New(class_name);
-      cls = lib.LookupClassAllowPrivate(class_str);
-    }
-    if (!cls.IsNull()) {
-      if (cls.EnsureIsFinalized(thread) == Error::null()) {
-        func_str = String::New(function_name);
-        if (function_name[0] == '.') {
-          func_str = String::Concat(class_str, func_str);
-        }
-        func = cls.LookupFunctionAllowPrivate(func_str);
+  if (strcmp(class_name, "::") == 0) {
+    cls = lib.toplevel_class();
+  } else {
+    class_str = String::New(class_name);
+    cls = lib.LookupClassAllowPrivate(class_str);
+  }
+  if (!cls.IsNull()) {
+    if (cls.EnsureIsFinalized(thread) == Error::null()) {
+      func_str = String::New(function_name);
+      if (function_name[0] == '.') {
+        func_str = String::Concat(class_str, func_str);
       }
-    }
-    if (!func.IsNull()) {
-      return func.ptr();
+      func = cls.LookupFunctionAllowPrivate(func_str);
     }
   }
-  return Function::null();
+  return func.ptr();
 }
 
 ObjectPtr Library::GetFunctionClosure(const String& name) const {
@@ -15363,12 +15389,14 @@ ObjectPtr Library::GetFunctionClosure(const String& name) const {
 
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 void Library::CheckFunctionFingerprints() {
-  GrowableArray<Library*> all_libs;
+  Library& lib = Library::Handle();
   Function& func = Function::Handle();
   bool fingerprints_match = true;
 
-#define CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, kind)    \
-  func = GetFunction(all_libs, #class_name, #function_name);                   \
+#define CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp, \
+                                 kind)                                         \
+  lib = Library::library();                                                    \
+  func = Library::GetFunction(lib, #class_name, #function_name);               \
   if (func.IsNull()) {                                                         \
     fingerprints_match = false;                                                \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #function_name);   \
@@ -15377,40 +15405,25 @@ void Library::CheckFunctionFingerprints() {
         func.CheckSourceFingerprint(fp, kind) && fingerprints_match;           \
   }
 
-#define CHECK_FINGERPRINTS(class_name, function_name, dest, fp)                \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, nullptr)
-#define CHECK_FINGERPRINTS_ASM_INTRINSIC(class_name, function_name, dest, fp)  \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, "asm-intrinsic")
-#define CHECK_FINGERPRINTS_GRAPH_INTRINSIC(class_name, function_name, dest,    \
-                                           fp)                                 \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp,                \
+#define CHECK_FINGERPRINTS(library, class_name, function_name, dest, fp)       \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           nullptr)
+#define CHECK_FINGERPRINTS_ASM_INTRINSIC(library, class_name, function_name,   \
+                                         dest, fp)                             \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           "asm-intrinsic")
+#define CHECK_FINGERPRINTS_GRAPH_INTRINSIC(library, class_name, function_name, \
+                                           dest, fp)                           \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
                            "graph-intrinsic")
-#define CHECK_FINGERPRINTS_OTHER(class_name, function_name, dest, fp)          \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, "other")
+#define CHECK_FINGERPRINTS_OTHER(library, class_name, function_name, dest, fp) \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           "other")
 
-  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-  GRAPH_CORE_INTRINSICS_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC);
-
-  all_libs.Add(&Library::ZoneHandle(Library::AsyncLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::ConvertLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::IsolateLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER);
-  POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
-  GRAPH_TYPED_DATA_INTRINSICS_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC);
-
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
+  POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS)
+  ASM_INTRINSICS_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC)
+  GRAPH_INTRINSICS_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC)
+  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER)
 
 #undef CHECK_FINGERPRINTS_INNER
 #undef CHECK_FINGERPRINTS
@@ -15418,19 +15431,19 @@ void Library::CheckFunctionFingerprints() {
 #undef CHECK_FINGERPRINTS_GRAPH_INTRINSIC
 #undef CHECK_FINGERPRINTS_OTHER
 
-#define CHECK_FACTORY_FINGERPRINTS(symbol, class_name, factory_name, cid, fp)  \
-  func = GetFunction(all_libs, #class_name, #factory_name);                    \
+#define CHECK_FACTORY_FINGERPRINTS(symbol, library, class_name, factory_name,  \
+                                   cid, fp)                                    \
+  lib = Library::library();                                                    \
+  func = GetFunction(lib, #class_name, #factory_name);                         \
   if (func.IsNull()) {                                                         \
     fingerprints_match = false;                                                \
-    OS::PrintErr("Function not found %s.%s\n", #class_name, #factory_name);    \
+    OS::PrintErr("Function not found %s.%s.%s\n", #library, #class_name,       \
+                 #factory_name);                                               \
   } else {                                                                     \
     fingerprints_match =                                                       \
         func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
 
 #undef CHECK_FACTORY_FINGERPRINTS
@@ -27124,6 +27137,7 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
         Instance::Cast(*pragma).GetField(*reusable_field_handle);
     if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
         (pragma_name != Symbols::dyn_module_callable().ptr()) &&
+        (pragma_name != Symbols::dyn_module_implicitly_callable().ptr()) &&
         (pragma_name != Symbols::dyn_module_extendable().ptr())) {
       continue;
     }

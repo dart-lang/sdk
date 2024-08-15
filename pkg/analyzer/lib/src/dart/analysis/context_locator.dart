@@ -26,13 +26,8 @@ import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
 
 /// An implementation of a context locator.
+// ignore:deprecated_member_use_from_same_package
 class ContextLocatorImpl implements ContextLocator {
-  /// A flag indicating if analysis contexts are limited to one corresponding
-  /// analysis options file.
-  ///
-  /// See: https://github.com/dart-lang/sdk/issues/53876
-  static bool singleOptionContexts = false;
-
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
@@ -312,22 +307,11 @@ class ContextLocatorImpl implements ContextLocator {
     }
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
 
-    if (localOptionsFile != null) {
-      (containingRoot as ContextRootImpl).optionsFileMap[folder] =
-          localOptionsFile;
-      // Add excluded globs.
-      var excludes =
-          _getExcludedGlobs(localOptionsFile, containingRoot.workspace);
-      containingRoot.excludedGlobs.addAll(excludes);
-    }
-
     //
     // Create a context root for the given [folder] if a packages or build file
     // is locally specified.
     //
-    if (localPackagesFile != null ||
-        (singleOptionContexts && localOptionsFile != null) ||
-        buildGnFile != null) {
+    if (localPackagesFile != null || buildGnFile != null) {
       if (optionsFile != null) {
         localOptionsFile = optionsFile;
       }
@@ -349,6 +333,15 @@ class ContextLocatorImpl implements ContextLocator {
       containingRoot = root;
       excludedGlobs = _getExcludedGlobs(root.optionsFile, workspace);
       root.excludedGlobs = excludedGlobs;
+    }
+
+    if (localOptionsFile != null) {
+      (containingRoot as ContextRootImpl).optionsFileMap[folder] =
+          localOptionsFile;
+      // Add excluded globs.
+      var excludes =
+          _getExcludedGlobs(localOptionsFile, containingRoot.workspace);
+      containingRoot.excludedGlobs.addAll(excludes);
     }
     _createContextRootsIn(roots, visited, folder, excludedFolders,
         containingRoot, excludedGlobs, optionsFile, packagesFile);

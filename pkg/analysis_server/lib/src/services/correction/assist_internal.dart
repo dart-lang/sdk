@@ -71,8 +71,9 @@ import 'package:analysis_server/src/services/correction/dart/split_and_condition
 import 'package:analysis_server/src/services/correction/dart/split_variable_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/surround_with.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
@@ -213,7 +214,8 @@ class AssistProcessor {
     for (var generator in _generators) {
       if (!_generatorAppliesToAnyLintRule(
         generator,
-        _assistContext.producerGeneratorsForLintRules[generator] ?? {},
+        _assistContext.producerGeneratorsForLintRules[generator] ??
+            <LintCode>{},
       )) {
         var producer = generator(context: context);
         await compute(producer);
@@ -231,7 +233,7 @@ class AssistProcessor {
   /// [errorCodes].
   bool _generatorAppliesToAnyLintRule(
     ProducerGenerator generator,
-    Set<String> errorCodes,
+    Set<LintCode> errorCodes,
   ) {
     var selectionEnd =
         _assistContext.selectionOffset + _assistContext.selectionLength;
@@ -247,7 +249,7 @@ class AssistProcessor {
       if (_assistContext.resolveResult.path == errorSource.fullName) {
         if (fileOffset >= error.offset &&
             fileOffset <= error.offset + error.length) {
-          if (errorCodes.contains(error.errorCode.name)) {
+          if (errorCodes.contains(error.errorCode)) {
             return true;
           }
         }
@@ -256,11 +258,11 @@ class AssistProcessor {
     return false;
   }
 
-  static Map<ProducerGenerator, Set<String>> computeLintRuleMap() => {
+  static Map<ProducerGenerator, Set<LintCode>> computeLintRuleMap() => {
         for (var generator in _generators)
           generator: {
             for (var MapEntry(key: lintName, value: generators)
-                in FixProcessor.lintProducerMap.entries)
+                in registeredFixGenerators.lintProducers.entries)
               if (generators.contains(generator)) lintName,
           },
       };

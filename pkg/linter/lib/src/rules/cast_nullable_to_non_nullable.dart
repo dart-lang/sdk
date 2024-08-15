@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't cast a nullable value to a non nullable type.";
 
@@ -37,22 +38,16 @@ var v = a!;
 ''';
 
 class CastNullableToNonNullable extends LintRule {
-  static const LintCode code = LintCode('cast_nullable_to_non_nullable',
-      "Don't cast a nullable value to a non-nullable type.",
-      correctionMessage:
-          "Try adding a not-null assertion ('!') to make the type "
-          'non-nullable.');
-
   CastNullableToNonNullable()
       : super(
           name: 'cast_nullable_to_non_nullable',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {LintRuleCategory.errorProne},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.cast_nullable_to_non_nullable;
 
   @override
   void registerNodeProcessors(

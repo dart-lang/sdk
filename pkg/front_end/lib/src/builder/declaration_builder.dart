@@ -5,7 +5,11 @@
 part of 'declaration_builders.dart';
 
 abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
-  Scope get scope;
+  LookupScope get scope;
+
+  DeclarationNameSpace get nameSpace;
+
+  ConstructorScope get constructorScope;
 
   LibraryBuilder get libraryBuilder;
 
@@ -40,8 +44,6 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false});
 
-  ConstructorScope get constructorScope;
-
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
 }
@@ -49,22 +51,10 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
     implements IDeclarationBuilder {
   @override
-  final Scope scope;
-
-  @override
-  final ConstructorScope constructorScope;
-
-  @override
   final Uri fileUri;
 
-  DeclarationBuilderImpl(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      LibraryBuilder parent,
-      int charOffset,
-      this.scope,
-      this.constructorScope)
+  DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
+      String name, LibraryBuilder parent, int charOffset)
       : fileUri = parent.fileUri,
         super(metadata, modifiers, name, parent, charOffset);
 

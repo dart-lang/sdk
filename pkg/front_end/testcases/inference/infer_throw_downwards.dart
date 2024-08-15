@@ -7,10 +7,10 @@ library test;
 
 T f<T>() => throw '';
 
-var x = throw /*@typeArgs=dynamic*/ f();
+var x = throw /*@typeArgs=Object*/ f();
 
 void g() {
-  var /*@type=Never*/ x = throw /*@typeArgs=dynamic*/ f();
+  var /*@type=Never*/ x = throw /*@typeArgs=Object*/ f();
 }
 
 main() {}

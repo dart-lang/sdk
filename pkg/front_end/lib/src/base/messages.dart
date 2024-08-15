@@ -11,13 +11,19 @@ import 'compiler_context.dart' show CompilerContext;
 
 export '../codes/cfe_codes.dart';
 
-Location? getLocation(Uri uri, int charOffset) {
-  return CompilerContext.current.uriToSource[uri]?.getLocation(uri, charOffset);
+Location? getLocation(CompilerContext context, Uri uri, int charOffset) {
+  return context.uriToSource[uri]?.getLocation(uri, charOffset);
 }
 
-String? getSourceLine(Location? location, [Map<Uri, Source>? uriToSource]) {
+String? getSourceLine(CompilerContext context, Location? location,
+    [Map<Uri, Source>? uriToSource]) {
   if (location == null) return null;
-  uriToSource ??= CompilerContext.current.uriToSource;
+  uriToSource ??= context.uriToSource;
+  return uriToSource[location.file]?.getTextLine(location.line);
+}
+
+// Coverage-ignore(suite): Not run.
+String? getSourceLineFromMap(Location location, Map<Uri, Source> uriToSource) {
   return uriToSource[location.file]?.getTextLine(location.line);
 }
 

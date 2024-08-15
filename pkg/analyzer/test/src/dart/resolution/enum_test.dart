@@ -29,7 +29,7 @@ enum E {
 ListLiteral
   leftBracket: [
   rightBracket: ]
-  parameter: self::@enum::E::@constructor::new::@parameter::a
+  parameter: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
   staticType: List<int>
 ''');
   }
@@ -55,7 +55,7 @@ GenericFunctionType
     parameter: SimpleFormalParameter
       type: NamedType
         name: double
-        element: dart:core::@class::double
+        element: dart:core::<fragment>::@class::double
         type: double
       declaredElement: @-1
         type: double
@@ -96,14 +96,14 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: ParameterMember
-            base: self::@enum::E::@constructor::named::@parameter::a
+            base: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
   constructorElement: ConstructorMember
-    base: self::@enum::E::@constructor::named
+    base: <testLibraryFragment>::@enum::E::@constructor::named
     substitution: {T: int}
-  declaredElement: self::@enum::E::@field::v
+  declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
 
@@ -126,14 +126,14 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: ParameterMember
-            base: self::@enum::E::@constructor::new::@parameter::a
+            base: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
   constructorElement: ConstructorMember
-    base: self::@enum::E::@constructor::new
+    base: <testLibraryFragment>::@enum::E::@constructor::new
     substitution: {T: int}
-  declaredElement: self::@enum::E::@field::v
+  declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
 
@@ -155,7 +155,7 @@ EnumConstantDeclaration
       arguments
         NamedType
           name: double
-          element: dart:core::@class::double
+          element: dart:core::<fragment>::@class::double
           type: double
       rightBracket: >
     constructorSelector: ConstructorSelector
@@ -170,14 +170,14 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: ParameterMember
-            base: self::@enum::E::@constructor::named::@parameter::a
+            base: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a
             substitution: {T: double}
           staticType: double
       rightParenthesis: )
   constructorElement: ConstructorMember
-    base: self::@enum::E::@constructor::named
+    base: <testLibraryFragment>::@enum::E::@constructor::named
     substitution: {T: double}
-  declaredElement: self::@enum::E::@field::v
+  declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
 
@@ -205,11 +205,11 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: self::@enum::E::@constructor::named::@parameter::a
+          parameter: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a
           staticType: int
       rightParenthesis: )
-  constructorElement: self::@enum::E::@constructor::named
-  declaredElement: self::@enum::E::@field::v
+  constructorElement: <testLibraryFragment>::@enum::E::@constructor::named
+  declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
 
@@ -231,11 +231,11 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: self::@enum::E::@constructor::new::@parameter::a
+          parameter: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
           staticType: int
       rightParenthesis: )
-  constructorElement: self::@enum::E::@constructor::new
-  declaredElement: self::@enum::E::@field::v
+  constructorElement: <testLibraryFragment>::@enum::E::@constructor::new
+  declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
 
@@ -250,8 +250,8 @@ enum E {
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
-  constructorElement: self::@enum::E::@constructor::new
-  declaredElement: self::@enum::E::@field::v
+  constructorElement: <testLibraryFragment>::@enum::E::@constructor::new
+  declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
 
@@ -285,7 +285,7 @@ EnumConstantDeclaration
           staticType: int
       rightParenthesis: )
   constructorElement: <null>
-  declaredElement: self::@enum::E::@field::v
+  declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
 
@@ -313,7 +313,7 @@ EnumConstantDeclaration
           staticType: int
       rightParenthesis: )
   constructorElement: <null>
-  declaredElement: self::@enum::E::@field::v
+  declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
 
@@ -337,7 +337,7 @@ FieldDeclaration
         initializer: IntegerLiteral
           literal: 42
           staticType: int
-        declaredElement: self::@enum::E::@field::foo
+        declaredElement: <testLibraryFragment>::@enum::E::@field::foo
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -369,7 +369,7 @@ MethodDeclaration
         staticType: int
       staticType: Never
     semicolon: ;
-  declaredElement: self::@enum::E::@getter::foo
+  declaredElement: <testLibraryFragment>::@enum::E::@getter::foo
     type: T Function()
 ''');
   }
@@ -401,7 +401,7 @@ ImplementsClause
   interfaces
     NamedType
       name: I
-      element: self::@class::I
+      element: <testLibraryFragment>::@class::I
       type: I
 ''');
   }
@@ -432,7 +432,7 @@ enum E<T> {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   name: foo
   typeParameters: TypeParameterList
@@ -450,7 +450,7 @@ MethodDeclaration
         element: T@7
         type: T
       name: t
-      declaredElement: self::@enum::E::@method::foo::@parameter::t
+      declaredElement: <testLibraryFragment>::@enum::E::@method::foo::@parameter::t
         type: T
     parameter: SimpleFormalParameter
       type: NamedType
@@ -458,7 +458,7 @@ MethodDeclaration
         element: U@27
         type: U
       name: u
-      declaredElement: self::@enum::E::@method::foo::@parameter::u
+      declaredElement: <testLibraryFragment>::@enum::E::@method::foo::@parameter::u
         type: U
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -467,7 +467,7 @@ MethodDeclaration
       literal: 0
       staticType: int
     semicolon: ;
-  declaredElement: self::@enum::E::@method::foo
+  declaredElement: <testLibraryFragment>::@enum::E::@method::foo
     type: int Function<U>(T, U)
 ''');
   }
@@ -485,7 +485,7 @@ enum E {
 MethodDeclaration
   returnType: NamedType
     name: String
-    element: dart:core::@class::String
+    element: dart:core::<fragment>::@class::String
     type: String
   name: toString
   parameters: FormalParameterList
@@ -496,7 +496,7 @@ MethodDeclaration
     expression: SimpleStringLiteral
       literal: 'E'
     semicolon: ;
-  declaredElement: self::@enum::E::@method::toString
+  declaredElement: <testLibraryFragment>::@enum::E::@method::toString
     type: String Function()
 ''');
   }
@@ -516,7 +516,7 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element: self::@mixin::M
+      element: <testLibraryFragment>::@mixin::M
       type: M
 ''');
   }
@@ -542,14 +542,14 @@ WithClause
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@mixin::M1
+      element: <testLibraryFragment>::@mixin::M1
       type: M1<int>
     NamedType
       name: M2
-      element: self::@mixin::M2
+      element: <testLibraryFragment>::@mixin::M2
       type: M2<int>
 ''');
   }
@@ -575,14 +575,14 @@ MethodDeclaration
         element: T@7
         type: T
       name: a
-      declaredElement: self::@enum::E::@setter::foo::@parameter::a
+      declaredElement: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::a
         type: T
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: self::@enum::E::@setter::foo
+  declaredElement: <testLibraryFragment>::@enum::E::@setter::foo
     type: void Function(T)
 ''');
   }
@@ -602,19 +602,19 @@ PropertyAccess
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: self::@enum::E
+      staticElement: <testLibraryFragment>::@enum::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: _
-      staticElement: self::@enum::E::@getter::_
+      staticElement: <testLibraryFragment>::@enum::E::@getter::_
       staticType: E
-    staticElement: self::@enum::E::@getter::_
+    staticElement: <testLibraryFragment>::@enum::E::@getter::_
     staticType: E
   operator: .
   propertyName: SimpleIdentifier
     token: index
-    staticElement: dart:core::@class::Enum::@getter::index
+    staticElement: dart:core::<fragment>::@class::Enum::@getter::index
     staticType: int
   staticType: int
 ''');

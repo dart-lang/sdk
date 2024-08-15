@@ -31,13 +31,13 @@ import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
-import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -85,10 +85,14 @@ class LspAnalysisServer extends AnalysisServer {
   /// not known.
   final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
 
+  /// The message handler for the server based on the current state
+  /// (uninitialized, initializing, initialized, etc.).
   late ServerStateMessageHandler messageHandler;
 
+  /// The ID that will be used for the next outbound server-to-client request.
   int nextRequestId = 1;
 
+  /// Completers for the responses to outbound server-to-client requests.
   final Map<int, Completer<ResponseMessage>> completers = {};
 
   /// Capabilities of the server. Will be null prior to initialization as
@@ -136,6 +140,10 @@ class LspAnalysisServer extends AnalysisServer {
   /// unnecessary (at startup, when a file is re-analyzed because a file it
   /// imports was modified, etc).
   final Set<String> _filesWithClientDiagnostics = {};
+
+  /// A completer for [lspInitialized].
+  final Completer<InitializedStateMessageHandler> _lspInitializedCompleter =
+      Completer<InitializedStateMessageHandler>();
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -224,6 +232,12 @@ class LspAnalysisServer extends AnalysisServer {
   @override
   LspClientCapabilities? get lspClientCapabilities => _clientCapabilities;
 
+  /// A [Future] that completes with the [InitializedStateMessageHandler] for
+  /// the server once it transitions to the initialized state.
+  @override
+  FutureOr<InitializedStateMessageHandler> get lspInitialized =>
+      _lspInitializedCompleter.future;
+
   @override
   LspNotificationManager get notificationManager =>
       super.notificationManager as LspNotificationManager;
@@ -284,6 +298,12 @@ class LspAnalysisServer extends AnalysisServer {
       _updateDriversAndPluginsPriorityFiles();
       await _refreshAnalysisRoots();
     }
+  }
+
+  /// Completes [lspInitialized], signalling that the server has moved into an
+  /// initialized state where it can handle standard LSP requests.
+  void completeLspInitialization(InitializedStateMessageHandler handler) {
+    _lspInitializedCompleter.complete(handler);
   }
 
   /// The socket from which messages are being read has been closed.
@@ -357,14 +377,22 @@ class LspAnalysisServer extends AnalysisServer {
   @override
   int? getDocumentVersion(String path) => documentVersions[path]?.version;
 
-  /// Gets the version of a document known to the server, returning a
-  /// [OptionalVersionedTextDocumentIdentifier] with a version of `null` if the
-  /// document version is not known.
+  /// Gets the current identifier/version of a document known to the server,
+  /// returning an [OptionalVersionedTextDocumentIdentifier] with a version of
+  /// `null` if the document version is not known.
+  ///
+  /// Prefer using [LspHandlerHelperMixin.extractDocumentVersion] when you
+  /// already have a [TextDocumentIdentifier] from the client because it is
+  /// guaranteed to be what the client expected and not just the current version
+  /// the server has.
   @override
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
-      String path) {
+    String path,
+  ) {
     return OptionalVersionedTextDocumentIdentifier(
-        uri: uriConverter.toClientUri(path), version: getDocumentVersion(path));
+      uri: uriConverter.toClientUri(path),
+      version: getDocumentVersion(path),
+    );
   }
 
   @override
@@ -531,6 +559,15 @@ class LspAnalysisServer extends AnalysisServer {
   /// operation, handles should generally check the cancellation flag
   /// immediately after this function returns.
   Future<T> lockRequestsWhile<T>(FutureOr<T> Function() operation) async {
+    // TODO(dantup): Prevent this method from locking responses from the client
+    //  because this can lead to deadlocks if called during initialization where
+    //  the server may wait for something (configuration) from the client. This
+    //  might fit in with potential upcoming scheduler changes.
+    //
+    // This is currently used by Completion+FixAll (which are less likely, but
+    // possible to be called during init).
+    //
+    // https://github.com/dart-lang/sdk/issues/56311#issuecomment-2250089185
     var completer = Completer<void>();
 
     // Pause handling incoming messages until `operation` completes.
@@ -984,7 +1021,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// This is used when there are no workspace folders open directly.
   List<String> _getRootsForOpenFiles() {
     var openFiles = priorityFiles.toList();
-    var contextLocator = ContextLocator(resourceProvider: resourceProvider);
+    var contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
     var roots = contextLocator.locateRoots(includedPaths: openFiles);
 
     var packages = <String>{};

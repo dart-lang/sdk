@@ -9,7 +9,7 @@ import 'dart:core' hide Type;
 
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
-import 'package:front_end/src/kernel/resource_identifier.dart'
+import 'package:front_end/src/api_prototype/resource_identifier.dart'
     as ResourceIdentifiers;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
@@ -852,6 +852,8 @@ class TreeShaker {
   }
 
   bool isLibraryUsed(Library l) => _usedLibraries.contains(l);
+  bool isLibraryReferencedFromNativeCode(Library l) =>
+      typeFlowAnalysis.nativeCodeOracle.isLibraryReferencedFromNativeCode(l);
   bool isClassReferencedFromNativeCode(Class c) =>
       typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
@@ -1910,7 +1912,9 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
   @override
   TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
-    if (!shaker.isLibraryUsed(node) && node.importUri.scheme != 'dart') {
+    if (!shaker.isLibraryUsed(node) &&
+        !shaker.isLibraryReferencedFromNativeCode(node) &&
+        node.importUri.scheme != 'dart') {
       return removalSentinel!;
     }
     _additionalDeps.clear();

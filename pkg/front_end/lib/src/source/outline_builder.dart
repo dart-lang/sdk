@@ -75,9 +75,8 @@ import '../kernel/utils.dart';
 import 'builder_factory.dart';
 import 'offset_map.dart';
 import 'source_enum_builder.dart';
-import 'source_library_builder.dart'
-    show TypeParameterScopeBuilder, TypeParameterScopeKind, FieldInfo;
 import 'stack_listener_impl.dart';
+import 'type_parameter_scope_builder.dart';
 import 'value_kinds.dart';
 
 enum MethodBody {
@@ -831,11 +830,13 @@ class OutlineBuilder extends StackListenerImpl {
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("endPart");
     assert(checkState(partKeyword, [
+      /* uri string */ ValueKinds.ConfigurationListOrNull,
       /* offset */ ValueKinds.Integer,
       /* uri string */ ValueKinds.String,
       /* metadata */ ValueKinds.MetadataListOrNull,
     ]));
 
+    pop(); // configurations
     int charOffset = popCharOffset();
     String uri = pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
@@ -984,15 +985,16 @@ class OutlineBuilder extends StackListenerImpl {
     if (hasName) {
       name = pop();
     }
+    String? libraryName;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (name != null && name is! ParserRecovery) {
-      _compilationUnit.name =
-          flattenName(name, offsetForToken(libraryKeyword), uri);
+      libraryName = flattenName(name, offsetForToken(libraryKeyword), uri);
     } else {
       reportIfNotEnabled(
           libraryFeatures.unnamedLibraries, semicolon.charOffset, noLength);
     }
-    _compilationUnit.metadata = metadata;
+    _builderFactory.addLibraryDirective(
+        libraryName: libraryName, metadata: metadata, isAugment: false);
   }
 
   @override
@@ -1009,7 +1011,8 @@ class OutlineBuilder extends StackListenerImpl {
     pop() as int;
     pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    _compilationUnit.metadata = metadata;
+    _builderFactory.addLibraryDirective(
+        libraryName: null, metadata: metadata, isAugment: true);
   }
 
   @override
@@ -2292,7 +2295,7 @@ class OutlineBuilder extends StackListenerImpl {
       case _MethodKind.extensionTypeConstructor:
       case _MethodKind.enumConstructor:
         constructorName =
-            _compilationUnit.computeAndValidateConstructorName(identifier) ??
+            _builderFactory.computeAndValidateConstructorName(identifier) ??
                 name;
         break;
       case _MethodKind.classMethod:
@@ -2364,8 +2367,8 @@ class OutlineBuilder extends StackListenerImpl {
           for (NamedTypeBuilder unboundType in unboundTypes) {
             declaration.registerUnresolvedNamedType(unboundType);
           }
-          _compilationUnit.unboundStructuralVariables
-              .addAll(unboundTypeVariables);
+          _builderFactory
+              .registerUnboundStructuralVariables(unboundTypeVariables);
         }
         synthesizedFormals.add(new FormalParameterBuilder(
             FormalParameterKind.requiredPositional,
@@ -2791,7 +2794,11 @@ class OutlineBuilder extends StackListenerImpl {
           thisKeyword != null,
           superKeyword != null,
           identifier?.nameOffset ?? nameToken.charOffset,
-          initializerStart));
+          initializerStart,
+          // Extension type parameters should not have a lowered name for
+          // wildcard variables.
+          lowerWildcard:
+              declarationContext != DeclarationContext.ExtensionType));
     }
   }
 
@@ -3700,8 +3707,8 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endTypeVariable");
     TypeBuilder? bound = nullIfParserRecovery(pop()) as TypeBuilder?;
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilderBase>? typeParameters =
-        peek() as List<TypeVariableBuilderBase>?;
+    List<TypeVariableBuilder>? typeParameters =
+        peek() as List<TypeVariableBuilder>?;
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {

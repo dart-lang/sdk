@@ -17,6 +17,13 @@ class CommentReferencesTest extends LintRuleTest {
   @override
   String get lintRule => 'comment_references';
 
+  test_constructorTearoff() async {
+    await assertNoDiagnostics(r'''
+/// Text [Future.delayed].
+class C {}
+''');
+  }
+
   test_false() async {
     await assertDiagnostics(r'''
 /// [false]
@@ -50,6 +57,28 @@ class C {}
 ''');
   }
 
+  test_markdown_inlineLink_onePeriod() async {
+    await assertNoDiagnostics(r'''
+/// A link to [Sha256.Sha256](http://tools.ietf.org/html/rfc6234) hash function.
+class C {}
+''');
+  }
+
+  test_markdown_inlineLink_textSpansLines() async {
+    await assertNoDiagnostics(r'''
+/// A [link spanning
+/// multiple lines](http://tools.ietf.org/html/rfc6234)
+class C {}
+''');
+  }
+
+  test_markdown_inlineLink_twoPeriods() async {
+    await assertNoDiagnostics(r'''
+/// A link to [Sha256.Sha256.Sha256](http://tools.ietf.org/html/rfc6234) hash function.
+class C {}
+''');
+  }
+
   test_markdown_inlineLink_withTitle() async {
     await assertNoDiagnostics(r'''
 /// A link to [Sha256](http://tools.ietf.org/html/rfc6234 "Some") hash function.
@@ -66,9 +95,45 @@ class C {}
 ''');
   }
 
+  test_markdown_referenceLink_onePeriod() async {
+    await assertNoDiagnostics(r'''
+/// A link to [Sha256.Sha256][rfc] hash function.
+///
+/// [rfc]: http://tools.ietf.org/html/rfc6234
+class C {}
+''');
+  }
+
   test_markdown_referenceLink_shortcut() async {
     await assertNoDiagnostics(r'''
 /// A link to [rfc][] hash function.
+///
+/// [rfc]: http://tools.ietf.org/html/rfc6234
+class C {}
+''');
+  }
+
+  test_markdown_referenceLink_shortcut_onePeriod() async {
+    await assertNoDiagnostics(r'''
+/// A link to [rfc.rfc][] hash function.
+///
+/// [rfc.rfc]: http://tools.ietf.org/html/rfc6234
+class C {}
+''');
+  }
+
+  test_markdown_referenceLink_shortcut_twoPeriods() async {
+    await assertNoDiagnostics(r'''
+/// A link to [rfc.rfc.rfc][] hash function.
+///
+/// [rfc.rfc.rfc]: http://tools.ietf.org/html/rfc6234
+class C {}
+''');
+  }
+
+  test_markdown_referenceLink_twoPeriods() async {
+    await assertNoDiagnostics(r'''
+/// A link to [Sha256.Sha256.Sha256][rfc] hash function.
 ///
 /// [rfc]: http://tools.ietf.org/html/rfc6234
 class C {}
@@ -117,6 +182,36 @@ class B extends A {
 ''');
   }
 
+  test_prefixedIdentifier_importPrefix() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async' as async;
+/// Text [async.FutureOr].
+class C {}
+''');
+  }
+
+  test_prefixedIdentifier_staticMethod() async {
+    await assertNoDiagnostics(r'''
+/// Text [Future.wait].
+class C {}
+''');
+  }
+
+  test_prefixedIdentifier_staticProperty() async {
+    await assertNoDiagnostics(r'''
+/// Text [double.nan].
+class C {}
+''');
+  }
+
+  test_propertyAccess() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async' as async;
+/// Text [async.Future.value].
+class C {}
+''');
+  }
+
   test_this() async {
     await assertDiagnostics(r'''
 /// [this]
@@ -135,6 +230,13 @@ class C {}
     ]);
   }
 
+  test_typeName() async {
+    await assertNoDiagnostics(r'''
+/// Text [Future].
+class C {}
+''');
+  }
+
   test_unclosedSquareBracket() async {
     await assertNoDiagnostics(r'''
 /// [
@@ -145,10 +247,37 @@ class C {}
 
   test_unknownElement() async {
     await assertDiagnostics(r'''
-/// Parameter [y].
+/// Text [y].
+class C {}
+''', [
+      lint(10, 1),
+    ]);
+  }
+
+  test_unknownElement_dottedName() async {
+    await assertDiagnostics(r'''
+/// Parameter [y.z].
+class C {}
+''', [
+      lint(15, 3),
+    ]);
+  }
+
+  test_unknownElement_followedByColon() async {
+    await assertDiagnostics(r'''
+/// Parameter [y]: z.
 void f(int x) {}
 ''', [
       lint(15, 1),
+    ]);
+  }
+
+  test_unknownElement_twiceDottedName() async {
+    await assertDiagnostics(r'''
+/// Parameter [x.y.z].
+class C {}
+''', [
+      lint(15, 5),
     ]);
   }
 }

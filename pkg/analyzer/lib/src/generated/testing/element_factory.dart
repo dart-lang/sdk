@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -103,18 +102,6 @@ class ElementFactory {
           [List<String>? parameterNames]) =>
       classTypeAlias(typeName, objectType, parameterNames);
 
-  static CompilationUnitElementImpl compilationUnit({
-    required Source source,
-    Source? librarySource,
-    LineInfo? lineInfo,
-  }) {
-    return CompilationUnitElementImpl(
-      source: source,
-      librarySource: librarySource ?? source,
-      lineInfo: lineInfo ?? LineInfo([0]),
-    );
-  }
-
   static ConstLocalVariableElementImpl constLocalVariableElement(String name) =>
       ConstLocalVariableElementImpl(name, 0);
 
@@ -204,9 +191,6 @@ class ElementFactory {
       {FeatureSet? featureSet}) {
     FeatureSet features = featureSet ?? FeatureSet.latestLanguageVersion();
     String fileName = "/$libraryName.dart";
-    CompilationUnitElementImpl unit = compilationUnit(
-      source: NonExistingSource(fileName, toUri(fileName)),
-    );
     LibraryElementImpl library = LibraryElementImpl(
       context,
       _MockAnalysisSession(),
@@ -215,7 +199,11 @@ class ElementFactory {
       libraryName.length,
       features,
     );
-    library.definingCompilationUnit = unit;
+    library.definingCompilationUnit = CompilationUnitElementImpl(
+      library: library,
+      source: NonExistingSource(fileName, toUri(fileName)),
+      lineInfo: LineInfo([0]),
+    );
     return library;
   }
 

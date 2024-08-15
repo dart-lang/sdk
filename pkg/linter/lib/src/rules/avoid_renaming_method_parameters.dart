@@ -4,12 +4,14 @@
 
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
@@ -46,37 +48,35 @@ abstract class B extends A {
 ''';
 
 class AvoidRenamingMethodParameters extends LintRule {
-  static const LintCode parameterCode = LintCode(
-      'avoid_renaming_method_parameters',
-      "The parameter name '{0}' doesn't match the name '{1}' in the overridden "
-          'method.',
-      correctionMessage: "Try changing the name to '{1}'.",
-      hasPublishedDocs: true);
-
   AvoidRenamingMethodParameters()
       : super(
             name: 'avoid_renaming_method_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.documentationCommentMaintenance});
 
   @override
-  LintCode get lintCode => parameterCode;
+  LintCode get lintCode => LinterLintCode.avoid_renaming_method_parameters;
 
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     if (!context.isInLibDir) return;
 
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.libraryElement);
     registry.addMethodDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  /// Whether the `wildcard_variables` feature is enabled.
+  final bool _wildCardVariablesEnabled;
+
   final LintRule rule;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, LibraryElement? library)
+      : _wildCardVariablesEnabled =
+            library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -124,9 +124,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     var count = math.min(parameters.length, parentParameters.length);
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
+
       var paramIdentifier = parameters[i].name;
-      if (paramIdentifier != null &&
-          paramIdentifier.lexeme != parentParameters[i].name) {
+      if (paramIdentifier == null) {
+        continue;
+      }
+
+      var paramLexeme = paramIdentifier.lexeme;
+      if (_wildCardVariablesEnabled && paramLexeme == '_') {
+        continue; // wildcard identifier
+      }
+
+      if (paramLexeme != parentParameters[i].name) {
         rule.reportLintForToken(paramIdentifier,
             arguments: [paramIdentifier.lexeme, parentParameters[i].name]);
       }

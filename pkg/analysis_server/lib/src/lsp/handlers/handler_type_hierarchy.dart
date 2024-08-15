@@ -35,12 +35,16 @@ class PrepareTypeHierarchyHandler extends SharedMessageHandler<
     TypeHierarchyPrepareParams,
     TextDocumentPrepareTypeHierarchyResult> with _TypeHierarchyUtils {
   PrepareTypeHierarchyHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_prepareTypeHierarchy;
 
   @override
   LspJsonHandler<TypeHierarchyPrepareParams> get jsonHandler =>
       TypeHierarchyPrepareParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<TextDocumentPrepareTypeHierarchyResult>> handle(
@@ -97,12 +101,16 @@ class TypeHierarchySubtypesHandler extends SharedMessageHandler<
     TypeHierarchySubtypesParams,
     TypeHierarchySubtypesResult> with _TypeHierarchyUtils {
   TypeHierarchySubtypesHandler(super.server);
+
   @override
   Method get handlesMessage => Method.typeHierarchy_subtypes;
 
   @override
   LspJsonHandler<TypeHierarchySubtypesParams> get jsonHandler =>
       TypeHierarchySubtypesParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<TypeHierarchySubtypesResult>> handle(
@@ -136,12 +144,16 @@ class TypeHierarchySupertypesHandler extends SharedMessageHandler<
     TypeHierarchySupertypesParams,
     TypeHierarchySupertypesResult> with _TypeHierarchyUtils {
   TypeHierarchySupertypesHandler(super.server);
+
   @override
   Method get handlesMessage => Method.typeHierarchy_supertypes;
 
   @override
   LspJsonHandler<TypeHierarchySupertypesParams> get jsonHandler =>
       TypeHierarchySupertypesParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<TypeHierarchySupertypesResult>> handle(

@@ -24,6 +24,12 @@ class DartTextDocumentContentProviderTest extends LspOverLegacyTest {
     await handleRequest(request);
   }
 
+  @override
+  Future<void> setUp() async {
+    useEmptyByteStore();
+    await super.setUp();
+  }
+
   Future<void> test_valid_content() async {
     addMacros([declareInTypeMacro()]);
 

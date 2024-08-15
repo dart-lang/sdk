@@ -1243,14 +1243,6 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
   call->ReplaceWith(dispatch_table_call, current_iterator());
 }
 
-static void InheritDeoptTargetIfNeeded(Zone* zone,
-                                       Instruction* instr,
-                                       Instruction* from) {
-  if (from->env() != nullptr) {
-    instr->InheritDeoptTarget(zone, from);
-  }
-}
-
 void AotCallSpecializer::ReplaceWithConditionalDispatchTableCall(
     InstanceCallBaseInstr* call,
     LoadClassIdInstr* load_cid,
@@ -1258,30 +1250,24 @@ void AotCallSpecializer::ReplaceWithConditionalDispatchTableCall(
     const compiler::TableSelector* selector) {
   BlockEntryInstr* current_block = call->GetBlock();
   const bool has_uses = call->HasUses();
+  const auto deopt_id = call->deopt_id();
 
   const intptr_t num_cids = isolate_group()->class_table()->NumCids();
   auto* compare = new (Z) TestRangeInstr(
-      call->source(), new (Z) Value(load_cid), 0, num_cids, kUnboxedUword);
+      call->source(), new (Z) Value(load_cid), 0, num_cids - 1, kUnboxedUword);
 
-  BranchInstr* branch = new (Z) BranchInstr(compare, DeoptId::kNone);
-  InheritDeoptTargetIfNeeded(Z, branch, call);
+  BranchInstr* branch = new (Z) BranchInstr(compare, deopt_id);
 
-  TargetEntryInstr* true_target =
-      new (Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
-                               current_block->try_index(), DeoptId::kNone);
-  InheritDeoptTargetIfNeeded(Z, true_target, call);
+  TargetEntryInstr* true_target = new (Z) TargetEntryInstr(
+      flow_graph()->allocate_block_id(), current_block->try_index(), deopt_id);
   *branch->true_successor_address() = true_target;
 
-  TargetEntryInstr* false_target =
-      new (Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
-                               current_block->try_index(), DeoptId::kNone);
-  InheritDeoptTargetIfNeeded(Z, false_target, call);
+  TargetEntryInstr* false_target = new (Z) TargetEntryInstr(
+      flow_graph()->allocate_block_id(), current_block->try_index(), deopt_id);
   *branch->false_successor_address() = false_target;
 
-  JoinEntryInstr* join =
-      new (Z) JoinEntryInstr(flow_graph()->allocate_block_id(),
-                             current_block->try_index(), DeoptId::kNone);
-  InheritDeoptTargetIfNeeded(Z, join, call);
+  JoinEntryInstr* join = new (Z) JoinEntryInstr(
+      flow_graph()->allocate_block_id(), current_block->try_index(), deopt_id);
 
   current_block->ReplaceAsPredecessorWith(join);
 
@@ -1306,13 +1292,11 @@ void AotCallSpecializer::ReplaceWithConditionalDispatchTableCall(
     call->ReplaceUsesWith(phi);
   }
 
-  GotoInstr* true_goto = new (Z) GotoInstr(join, DeoptId::kNone);
-  InheritDeoptTargetIfNeeded(Z, true_goto, call);
+  GotoInstr* true_goto = new (Z) GotoInstr(join, deopt_id);
   true_target->LinkTo(true_goto);
   true_target->set_last_instruction(true_goto);
 
-  GotoInstr* false_goto = new (Z) GotoInstr(join, DeoptId::kNone);
-  InheritDeoptTargetIfNeeded(Z, false_goto, call);
+  GotoInstr* false_goto = new (Z) GotoInstr(join, deopt_id);
   false_target->LinkTo(false_goto);
   false_target->set_last_instruction(false_goto);
 
@@ -1328,7 +1312,9 @@ void AotCallSpecializer::ReplaceWithConditionalDispatchTableCall(
   call->set_next(nullptr);
   call->UnuseAllInputs();  // So it can be re-added to the graph.
   call->InsertBefore(false_goto);
-  InheritDeoptTargetIfNeeded(Z, call, call);  // Restore env use list.
+  if (call->env() != nullptr) {
+    call->env()->DeepCopyTo(Z, call);  // Restore env use list.
+  }
 
   if (has_uses) {
     phi->SetInputAt(0, new (Z) Value(dispatch_table_call));

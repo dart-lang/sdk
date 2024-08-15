@@ -411,7 +411,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     // Try to refine that the receiver is not null after this call by inserting
     // a refinement node (HTypeKnown).
     var selector = instruction.selector;
-    if (!selector.isClosureCall && !selector.appliesToNullWithoutThrow()) {
+    if (!selector.isMaybeClosureCall && !selector.appliesToNullWithoutThrow()) {
       var next = instruction.next;
       if (next is HTypeKnown && next.checkedInput == receiver) {
         // On a previous pass or iteration we already refined [receiver] by
@@ -502,5 +502,13 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   AbstractValue visitBoolConversion(HBoolConversion instruction) {
     return abstractValueDomain.intersection(
         abstractValueDomain.boolType, instruction.checkedInput.instructionType);
+  }
+
+  @override
+  AbstractValue visitArrayFlagsCheck(HArrayFlagsCheck instruction) {
+    instruction.array
+        .replaceAllUsersDominatedBy(instruction.next!, instruction);
+    AbstractValue inputType = instruction.array.instructionType;
+    return instruction.computeInstructionType(inputType, abstractValueDomain);
   }
 }

@@ -11,10 +11,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../util/element_printer.dart';
-import '../../util/tree_string_sink.dart';
 
 /// Prints AST as a tree, with properties and children.
 class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
@@ -1094,6 +1094,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writePatternMatchedValueType(node);
+    });
+  }
+
+  @override
+  void visitNullAwareElement(NullAwareElement node) {
+    _sink.writeln('NullAwareElement');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 

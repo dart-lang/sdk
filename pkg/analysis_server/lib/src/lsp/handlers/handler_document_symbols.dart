@@ -26,6 +26,9 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
       DocumentSymbolParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<TextDocumentDocumentSymbolResult>> handle(
       DocumentSymbolParams params,
       MessageInfo message,

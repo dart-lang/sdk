@@ -850,9 +850,9 @@ Scavenger::~Scavenger() {
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
                                    GCReason reason) const {
+  intptr_t num_mutators = heap_->isolate_group()->MutatorCount();
   bool grow = false;
-  if (2 * heap_->isolate_group()->MutatorCount() >
-      (old_size_in_words / kPageSizeInWords)) {
+  if (2 * num_mutators > (old_size_in_words / kPageSizeInWords)) {
     // Not enough TLABs to give two to each mutator.
     grow = true;
   }
@@ -873,11 +873,18 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
     }
   }
 
-  if (grow) {
-    return Utils::Minimum(max_semi_capacity_in_words_,
-                          old_size_in_words * FLAG_new_gen_growth_factor);
-  }
-  return old_size_in_words;
+  // Let new-space scale up with the number of active mutators.
+  intptr_t limit = max_semi_capacity_in_words_ *
+                   Utils::Minimum(num_mutators, static_cast<intptr_t>(8));
+  // But only when old-space is big enough.
+  limit = Utils::Minimum(limit, heap_->old_space()->UsedInWords() / 8);
+  // Preserve old behavior when heap size is small.
+  limit = Utils::Maximum(limit, max_semi_capacity_in_words_);
+  // Align to TLAB size.
+  limit = Utils::RoundDown(limit, kPageSizeInWords);
+
+  intptr_t growth_factor = grow ? FLAG_new_gen_growth_factor : 1;
+  return Utils::Minimum(old_size_in_words * growth_factor, limit);
 }
 
 class CollectStoreBufferScavengeVisitor : public ObjectPointerVisitor {
@@ -1979,6 +1986,39 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
          failed_to_promote_);
 }
 
+static constexpr intptr_t kMinAutoScavengeWorkers = 2;
+static constexpr intptr_t kMaxAutoScavengeWorkers = 4;
+
+intptr_t Scavenger::NumScavengeWorkers() {
+  intptr_t num_tasks = FLAG_scavenger_tasks;
+  if (num_tasks == -1) {
+    // --scavenger_tasks=-1 => dynamically choose workers
+    num_tasks = heap_->isolate_group()->MutatorCount();
+    if (num_tasks < kMinAutoScavengeWorkers) {
+      num_tasks = kMinAutoScavengeWorkers;
+    }
+    if (num_tasks > kMaxAutoScavengeWorkers) {
+      num_tasks = kMaxAutoScavengeWorkers;
+    }
+  } else if (num_tasks == 0) {
+    // --scavenger_tasks=0 => serial scavenge
+    num_tasks = 1;
+  }
+  ASSERT(num_tasks > 0);
+  ASSERT(num_tasks <= NumDataFreelists());
+  return num_tasks;
+}
+
+intptr_t Scavenger::NumDataFreelists() {
+  if (FLAG_scavenger_tasks == -1) {
+    return kMaxAutoScavengeWorkers;
+  } else if (FLAG_scavenger_tasks == 0) {
+    return 1;
+  } else {
+    return FLAG_scavenger_tasks;
+  }
+}
+
 intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
   FreeList* freelist = heap_->old_space()->DataFreeList(0);
   SerialScavengerVisitor visitor(heap_->isolate_group(), this, from, freelist,
@@ -1993,8 +2033,7 @@ intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
 
 intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   intptr_t bytes_promoted = 0;
-  const intptr_t num_tasks = FLAG_scavenger_tasks;
-  ASSERT(num_tasks > 0);
+  const intptr_t num_tasks = NumScavengeWorkers();
 
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
   RelaxedAtomic<uintptr_t> num_busy = 0;

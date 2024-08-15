@@ -241,9 +241,6 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
 ///
 /// If [testFile] is a file, use that directly. If it's a directory include
 /// everything in that directory.
-///
-/// If [testLibDirectory] is not `null`, files in [testLibDirectory] with the
-/// [testFile] name as a prefix are included.
 TestData computeTestData(FileSystemEntity testFile,
     {required Iterable<String> supportedMarkers,
     required Uri createTestUri(Uri uri, String fileName),
@@ -491,7 +488,7 @@ String withAnnotations(String sourceCode, Map<int, List<String>> annotations) {
 }
 
 /// Checks [compiledData] against the expected data in [expectedMaps] derived
-/// from [code].
+/// from [testData].code.
 Future<TestResult<T>> checkCode<T>(
     MarkerOptions markerOptions,
     String marker,

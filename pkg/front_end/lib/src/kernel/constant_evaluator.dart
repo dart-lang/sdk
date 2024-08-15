@@ -37,6 +37,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/lowering_predicates.dart';
 import '../base/common.dart';
+import '../base/problems.dart';
 import '../base/nnbd_mode.dart';
 import '../codes/cfe_codes.dart';
 import '../type_inference/delayed_expressions.dart';
@@ -1390,8 +1391,8 @@ class ConstantsTransformer extends RemovingTransformer {
                 null);
           }
         } else {
-          // If caseExpression is not ConstantExpression, an error is
-          // reported elsewhere.
+          // [caseExpression] is not [ConstantExpression].
+          assert(constantEvaluator.errorReporter.hasSeenError);
         }
       }
     }
@@ -6043,11 +6044,25 @@ abstract class ErrorReporter {
   const ErrorReporter();
 
   void report(LocatedMessage message, [List<LocatedMessage>? context]);
+
+  /// `true` if the reporter supports a query to [hasSeenError].
+  bool get supportsTrackingReportedErrors;
+
+  /// `true` if a compile-time error has been reported.
+  bool get hasSeenError;
 }
 
 // Coverage-ignore(suite): Not run.
 class SimpleErrorReporter implements ErrorReporter {
   const SimpleErrorReporter();
+
+  @override
+  bool get supportsTrackingReportedErrors => false;
+
+  @override
+  bool get hasSeenError {
+    return unsupported("SimpleErrorReporter.hasSeenError", -1, null);
+  }
 
   @override
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {

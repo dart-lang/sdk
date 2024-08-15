@@ -7,6 +7,7 @@
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/util/options.dart';
+import 'package:front_end/src/base/file_system_dependency_tracker.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart';
@@ -138,9 +139,12 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   setupWantedMap(candidates, candidatesRaw);
 
   installAdditionalTargets();
+
+  FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
   ParsedOptions parsedOptions =
       ParsedOptions.parse(arguments, optionSpecification);
-  ProcessedOptions options = analyzeCommandLine("compile", parsedOptions, true);
+  ProcessedOptions options =
+      analyzeCommandLine(tracker, "compile", parsedOptions, true);
   Uri? output = options.output;
   if (output == null) throw "No output";
   if (!output.isScheme("file")) throw "Output won't be saved";

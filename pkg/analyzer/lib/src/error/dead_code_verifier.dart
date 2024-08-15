@@ -111,6 +111,23 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     });
   }
 
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    var initializer = node.initializer;
+    if (initializer != null && node.isLate) {
+      var element = node.declaredElement;
+      // TODO(pq): ask the LocalVariableElement once implemented
+      if (_wildCardVariablesEnabled &&
+          element is LocalVariableElement &&
+          element.name == '_') {
+        _errorReporter.atNode(initializer,
+            WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER);
+      }
+    }
+
+    super.visitVariableDeclaration(node);
+  }
+
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
   void _checkCombinator(LibraryElement library, Combinator combinator) {

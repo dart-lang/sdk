@@ -37,7 +37,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -49,11 +49,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::__foo
+    parameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::__foo
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::<fragment>::@class::A::@setter::_foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -97,7 +97,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -109,11 +109,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::_
+    parameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::<fragment>::@class::A::@setter::_foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -142,7 +142,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -154,11 +154,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: package:test/a.dart::@class::A::@setter::_foo::@parameter::_
+    parameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::<fragment>::@class::A::@setter::_foo
   writeType: int
   staticElement: <null>
   staticType: int

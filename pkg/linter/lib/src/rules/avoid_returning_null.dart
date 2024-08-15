@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid returning null from members whose return type is bool, double, int,'
@@ -37,20 +38,14 @@ double getDouble() => -1.0;
 ''';
 
 class AvoidReturningNull extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_returning_null',
-      "Don't return 'null' when the return type is 'bool', 'double', 'int', "
-          "or 'num'.",
-      correctionMessage: "Try returning a sentinel value other than 'null'.");
-
   AvoidReturningNull()
       : super(
             name: 'avoid_returning_null',
             description: _desc,
             details: _details,
             state: State.removed(since: dart3_3),
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

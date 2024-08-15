@@ -105,7 +105,7 @@ class FirestoreDatabase {
     var response =
         await _client.post(_beginTransactionUrl, headers: _headers, body: body);
     if (response.statusCode == HttpStatus.ok) {
-      var result = jsonDecode(response.body);
+      var result = jsonDecode(response.body) as Map<String, dynamic>;
       _currentTransaction = result['transaction'] as String;
       if (_currentTransaction == null) {
         throw Exception("Call returned no transaction identifier");

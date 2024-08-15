@@ -30,7 +30,7 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  staticElement: self::@prefix::p
+  staticElement: <testLibraryFragment>::@prefix::p
   staticType: InvalidType
 ''');
   }
@@ -43,7 +43,7 @@ main() {
   for (var x in p) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
     ]);
 
@@ -61,7 +61,7 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
-      staticElement: self::@prefix::p
+      staticElement: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
   body: Block
@@ -82,7 +82,7 @@ main() {
   var x = new C(p);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 76, 1),
     ]);
 
@@ -93,10 +93,10 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element: self::@class::C
+      element: <testLibraryFragment>::@class::C
       type: C<dynamic>
     staticElement: ConstructorMember
-      base: self::@class::C::@constructor::new
+      base: <testLibraryFragment>::@class::C::@constructor::new
       substitution: {T: dynamic}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -104,9 +104,9 @@ InstanceCreationExpression
       SimpleIdentifier
         token: p
         parameter: ParameterMember
-          base: self::@class::C::@constructor::new::@parameter::a
+          base: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
           substitution: {T: dynamic}
-        staticElement: self::@prefix::p
+        staticElement: <testLibraryFragment>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
@@ -139,5 +139,76 @@ main() {
     var pRef = findNode.simple('p.Future');
     assertElement(pRef, findElement.prefix('p'));
     assertTypeNull(pRef);
+  }
+
+  test_wildcardResolution() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension ExtendedString on String {
+  bool get stringExt => true;
+}
+
+var a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+extension ExtendedString2 on String {
+  bool get stringExt2 => true;
+}
+''');
+
+    // Import prefixes named `_` provide access to non-private extensions
+    // in the imported library but are non-binding.
+    await assertErrorsInCode(r'''
+import 'a.dart' as _;
+import 'b.dart' as _;
+
+f() {
+  ''.stringExt;
+  ''.stringExt2;
+  _.a;
+}
+''', [
+      // String extensions are found but `_` is not bound.
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 86, 1),
+    ]);
+  }
+
+  test_wildcardResolution_preWildcards() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension ExtendedString on String {
+  bool get stringExt => true;
+}
+
+var a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+extension ExtendedString on String {
+  bool get stringExt2 => true;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+import 'a.dart' as _;
+import 'b.dart' as _;
+
+f() {
+  ''.stringExt;
+  ''.stringExt2;
+  _.a;
+}
+''');
+
+    // `_` is bound so `a` resolves to the int declared in `a.dart`.
+    var node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: package:test/a.dart::<fragment>::@getter::a
+  staticType: int
+''');
   }
 }

@@ -38,6 +38,7 @@ import 'package:front_end/src/base/incremental_compiler.dart'
     show AdvancedInvalidationResult, IncrementalCompiler;
 import 'package:front_end/src/base/messages.dart' show LocatedMessage;
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
+import 'package:front_end/src/base/problems.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/base/uri_translator.dart' show UriTranslator;
@@ -598,6 +599,14 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
   int tries = 0;
   int success = 0;
   List<String> output = [];
+
+  @override
+  bool get supportsTrackingReportedErrors => false;
+
+  @override
+  bool get hasSeenError {
+    return unsupported("StressConstantEvaluatorVisitor.hasSeenError", -1, null);
+  }
 
   StressConstantEvaluatorVisitor(
       Target target,
@@ -1214,7 +1223,7 @@ class FuzzCompiles
         LibraryFeatures libFeatures = new LibraryFeatures(
             compilationSetup.options.globalFeatures,
             builder.importUri,
-            builder.library.languageVersion);
+            builder.languageVersion);
         fuzzAstVisitorSorter =
             new FuzzAstVisitorSorter(orgData, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
@@ -1366,7 +1375,7 @@ class FuzzCompiles
         LibraryFeatures libFeatures = new LibraryFeatures(
             compilationSetup.options.globalFeatures,
             builder.importUri,
-            builder.library.languageVersion);
+            builder.languageVersion);
         fuzzAstVisitorSorter =
             new FuzzAstVisitorSorter(orgData, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
@@ -2028,7 +2037,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         linkOptions.sdkSummaryComponent =
             context.loadPlatform(linkOptions.target, linkOptions.nnbdMode);
       }
-      await CompilerContext.runWithOptions(linkOptions, (_) async {
+      await CompilerContext.runWithOptions(linkOptions,
+          (CompilerContext c) async {
         Target backendTarget = linkOptions.target;
         if (backendTarget is TestTarget) {
           backendTarget.performModularTransformations = true;
@@ -2038,6 +2048,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
             .addAll(compilationSetup.testOptions.linkDependencies.toList());
         InternalCompilerResult internalCompilerResult =
             await generateKernelInternal(
+          c,
           buildSummary: compileMode != CompileMode.full,
           serializeIfBuildingSummary: false,
           buildComponent: compileMode == CompileMode.full,
@@ -2070,7 +2081,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 
     try {
       return await CompilerContext.runWithOptions(compilationSetup.options,
-          (_) async {
+          (CompilerContext c) async {
         Component? alsoAppend = compilationSetup.testOptions.component;
         if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
           alsoAppend = null;
@@ -2083,7 +2094,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         excludedLibraries ??= const {};
 
         ValidatingInstrumentation instrumentation =
-            new ValidatingInstrumentation();
+            new ValidatingInstrumentation(c);
         await instrumentation.loadExpectations(description.uri);
 
         Component p;
@@ -2092,6 +2103,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         compilationSetup.options.inputs.add(description.uri);
         InternalCompilerResult internalCompilerResult =
             await generateKernelInternal(
+          c,
           buildSummary: compileMode == CompileMode.outline,
           serializeIfBuildingSummary: false,
           buildComponent: compileMode != CompileMode.outline,
@@ -2139,7 +2151,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
   @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    return await CompilerContext.runWithOptions(result.options, (_) async {
+    return await result.sourceTarget.context.runInContext((_) async {
       Component component = result.component;
       KernelTarget sourceTarget = result.sourceTarget;
       Target backendTarget = sourceTarget.backendTarget;
@@ -2198,11 +2210,12 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
       }
       messages.writeAll(message.plainTextFormatted, "\n");
     };
-    Result<ComponentResult> verifyResult = await CompilerContext.runWithOptions(
-        result.options, (compilerContext) async {
+
+    Result<ComponentResult> verifyResult =
+        await result.sourceTarget.context.runInContext((compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
-          result.options.target, stage, component,
+          compilerContext, stage, component,
           skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
@@ -2211,7 +2224,7 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
         return new Result<ComponentResult>(
             null, context.expectationSet["VerificationError"], "$messages");
       }
-    }, errorOnMissingInput: false);
+    });
     result.options.rawOptionsForTesting.onDiagnostic = previousOnDiagnostics;
     return verifyResult;
   }

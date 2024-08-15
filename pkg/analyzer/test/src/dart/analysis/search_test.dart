@@ -899,9 +899,9 @@ Random v2;
 
     var element = findElement.importFind('dart:math').class_('Random');
     await assertElementReferencesText(element, r'''
-self::@variable::v1
+self::@topLevelVariable::v1
   20 2:1 |Random| REFERENCE
-self::@variable::v2
+self::@topLevelVariable::v2
   31 3:1 |Random| REFERENCE
 ''');
   }
@@ -929,7 +929,7 @@ self::@class::B2
   75 6:21 |A| REFERENCE
 self::@class::B3
   109 7:30 |A| REFERENCE
-self::@variable::v2
+self::@topLevelVariable::v2
   119 8:6 |A| REFERENCE
 ''');
   }
@@ -1151,7 +1151,7 @@ class A {
 ''');
     var element = findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-package:test/other.dart::@unit::package:test/other.dart::@function::f
+package:test/other.dart::@fragment::package:test/other.dart::@function::f
   35 4:4 || INVOCATION qualified
 ''');
   }
@@ -1566,23 +1566,6 @@ self::@function::main
 ''');
   }
 
-  test_searchReferences_LibraryElement() async {
-    newFile('$testPackageLibPath/unitA.dart', 'part of lib;');
-    newFile('$testPackageLibPath/unitB.dart', 'part of lib;');
-    await resolveTestCode('''
-library lib;
-part 'unitA.dart';
-part 'unitB.dart';
-''');
-    var element = result.libraryElement;
-    await assertElementReferencesText(element, r'''
-self::@unit::package:test/unitA.dart
-  8 1:9 |lib| REFERENCE
-self::@unit::package:test/unitB.dart
-  8 1:9 |lib| REFERENCE
-''');
-  }
-
   test_searchReferences_LibraryElement_inPackage() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
 
@@ -1607,10 +1590,50 @@ part 'unitB.dart';
 ''');
     var element = result.libraryElement;
     await assertElementReferencesText(element, r'''
-self::@unit::package:aaa/unitA.dart
+self::@fragment::package:aaa/unitA.dart
   8 1:9 |lib| REFERENCE
-self::@unit::package:aaa/unitB.dart
+self::@fragment::package:aaa/unitB.dart
   8 1:9 |lib| REFERENCE
+''');
+  }
+
+  test_searchReferences_LibraryElement_partOfName() async {
+    newFile('$testPackageLibPath/unitA.dart', 'part of lib;');
+    newFile('$testPackageLibPath/unitB.dart', 'part of lib;');
+    await resolveTestCode('''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''');
+    var element = result.libraryElement;
+    await assertElementReferencesText(element, r'''
+self::@fragment::package:test/unitA.dart
+  8 1:9 |lib| REFERENCE
+self::@fragment::package:test/unitB.dart
+  8 1:9 |lib| REFERENCE
+''');
+  }
+
+  test_searchReferences_LibraryElement_partOfUri() async {
+    newFile('$testPackageLibPath/unitA.dart', r'''
+part of 'test.dart';
+''');
+
+    newFile('$testPackageLibPath/unitB.dart', r'''
+part of 'test.dart';
+''');
+
+    await resolveTestCode('''
+part 'unitA.dart';
+part 'unitB.dart';
+''');
+
+    var element = result.libraryElement;
+    await assertElementReferencesText(element, r'''
+self::@fragment::package:test/unitA.dart
+  8 1:9 |'test.dart'| REFERENCE
+self::@fragment::package:test/unitB.dart
+  8 1:9 |'test.dart'| REFERENCE
 ''');
   }
 
@@ -1687,7 +1710,7 @@ var x = [
 ''');
     var element = findElement.localVar('v');
     await assertElementReferencesText(element, r'''
-self::@variable::x
+self::@topLevelVariable::x
   30 2:21 |v| READ
 ''');
   }
@@ -1763,7 +1786,7 @@ class B {
     await assertElementReferencesText(element, r'''
 self::@class::B::@method::foo
   97 7:16 |A| REFERENCE
-self::@augmentation::package:test/test.macro.dart::@function::f
+self::@fragment::package:test/test.macro.dart::@function::f
   54 3:12 |A| REFERENCE
 ''');
   }
@@ -2197,7 +2220,7 @@ main() {
 ''');
     var element = findElement.prefix('ppp');
     await assertElementReferencesText(element, r'''
-self::@unit::package:test/my_part.dart::@variable::c
+self::@fragment::package:test/my_part.dart::@topLevelVariable::c
   16 2:1 |ppp| REFERENCE
 self::@function::main
   76 5:3 |ppp| REFERENCE
@@ -2259,7 +2282,7 @@ main() {
 self::@function::main
   76 5:3 |ppp| REFERENCE
   92 6:3 |ppp| REFERENCE
-self::@unit::package:aaa/my_part.dart::@variable::c
+self::@fragment::package:aaa/my_part.dart::@topLevelVariable::c
   16 2:1 |ppp| REFERENCE
 ''');
   }
@@ -2284,11 +2307,11 @@ _C v;
 ''');
     var element = findElement.class_('_C');
     await assertElementReferencesText(element, r'''
-self::@unit::package:test/part1.dart::@variable::v1
+self::@fragment::package:test/part1.dart::@topLevelVariable::v1
   13 1:14 |_C| REFERENCE
-self::@unit::package:test/part2.dart::@variable::v2
+self::@fragment::package:test/part2.dart::@topLevelVariable::v2
   13 1:14 |_C| REFERENCE
-self::@variable::v
+self::@topLevelVariable::v
   82 6:1 |_C| REFERENCE
 ''');
   }
@@ -2319,11 +2342,11 @@ _C v1;
 
     var element = findElement.partFind('package:test/part1.dart').class_('_C');
     await assertElementReferencesText(element, r'''
-self::@unit::package:test/part1.dart::@variable::v1
+self::@fragment::package:test/part1.dart::@topLevelVariable::v1
   25 3:1 |_C| REFERENCE
-self::@unit::package:test/part2.dart::@variable::v2
+self::@fragment::package:test/part2.dart::@topLevelVariable::v2
   13 1:14 |_C| REFERENCE
-self::@variable::v
+self::@topLevelVariable::v
   51 4:1 |_C| REFERENCE
 ''');
   }
@@ -2358,11 +2381,11 @@ _C v;
 
     var element = findElement.class_('_C');
     await assertElementReferencesText(element, r'''
-self::@variable::v
+self::@topLevelVariable::v
   63 5:1 |_C| REFERENCE
-self::@unit::package:aaa/part1.dart::@variable::v1
+self::@fragment::package:aaa/part1.dart::@topLevelVariable::v1
   13 1:14 |_C| REFERENCE
-self::@unit::package:aaa/part2.dart::@variable::v2
+self::@fragment::package:aaa/part2.dart::@topLevelVariable::v2
   13 1:14 |_C| REFERENCE
 ''');
   }
@@ -2715,7 +2738,7 @@ var f = switch (0) {
 ''');
     var element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
-self::@variable::f
+self::@topLevelVariable::f
   34 2:14 |v| READ
   43 2:23 |v| READ
   52 2:32 |v| WRITE
@@ -3254,7 +3277,7 @@ class NoMatchABCDEF {}
       }
 
       // A unit of the self library.
-      if (parent.name == '@unit' && name == 'self') {
+      if (parent.name == '@fragment' && name == 'self') {
         return 'self';
       }
 

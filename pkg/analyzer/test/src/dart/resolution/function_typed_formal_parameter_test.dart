@@ -36,7 +36,7 @@ FunctionTypedFormalParameter
         element: U@17
         type: U
       name: a
-      declaredElement: self::@function::f::@parameter::p::@parameter::a
+      declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::a
         type: U
     parameter: SimpleFormalParameter
       type: NamedType
@@ -44,10 +44,10 @@ FunctionTypedFormalParameter
         element: V@7
         type: V
       name: b
-      declaredElement: self::@function::f::@parameter::p::@parameter::b
+      declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::b
         type: V
     rightParenthesis: )
-  declaredElement: self::@function::f::@parameter::p
+  declaredElement: <testLibraryFragment>::@function::f::@parameter::p
     type: T Function<T, U>(U, V)
 ''');
   }
@@ -70,13 +70,13 @@ FunctionTypedFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       name: a
-      declaredElement: self::@function::f::@parameter::p::@parameter::a
+      declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::a
         type: int
     rightParenthesis: )
-  declaredElement: self::@function::f::@parameter::p
+  declaredElement: <testLibraryFragment>::@function::f::@parameter::p
     type: void Function(int)
 ''');
   }

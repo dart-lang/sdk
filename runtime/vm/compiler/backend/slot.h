@@ -506,6 +506,7 @@ class Slot : public ZoneAllocated {
   bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
   bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
   bool IsRecordField() const { return kind() == Kind::kRecordField; }
+  bool IsLengthSlot() const;
   bool IsImmutableLengthSlot() const;
 
   const char* Name() const;

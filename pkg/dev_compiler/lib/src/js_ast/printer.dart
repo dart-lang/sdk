@@ -4,8 +4,6 @@
 
 // ignore_for_file: omit_local_variable_types
 
-library js_ast.printer;
-
 import 'characters.dart' as char_codes;
 import 'nodes.dart';
 import 'precedence.dart';
@@ -602,10 +600,10 @@ class Printer implements NodeVisitor {
     // To preserve the intended behavior, we need to extract these as named
     // constants.  TODO(paulberry): once pattern support is enabled, inline
     // these constants back into the switch statement.
-    const sync_ = AsyncModifier.sync();
-    const async_ = AsyncModifier.async();
-    const syncStar = AsyncModifier.syncStar();
-    const asyncStar = AsyncModifier.asyncStar();
+    const sync_ = AsyncModifier.sync;
+    const async_ = AsyncModifier.async;
+    const syncStar = AsyncModifier.syncStar;
+    const asyncStar = AsyncModifier.asyncStar;
 
     switch (fun.asyncModifier) {
       case sync_:

@@ -181,7 +181,6 @@ class ValueKinds {
   static const ValueKind RecordTypeFieldBuilderListOrNull =
       const SingleValueKind<List<type.RecordTypeFieldBuilder>>(
           NullValues.RecordTypeFieldList);
-  static const ValueKind Scope = const SingleValueKind<type.Scope>();
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
   static const ValueKind SwitchCase = const SingleValueKind<type.SwitchCase>();
   static const ValueKind SwitchCaseList =
@@ -190,8 +189,6 @@ class ValueKinds {
       const SingleValueKind<type.SwitchExpressionCase>();
   static const ValueKind SwitchExpressionCaseList =
       const SingleValueKind<List<type.SwitchExpressionCase>>();
-  static const ValueKind SwitchScopeOrNull =
-      const SingleValueKind<type.Scope>(NullValues.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
   static const ValueKind StatementOrNull =
       const SingleValueKind<type.Statement>(NullValues.Block);

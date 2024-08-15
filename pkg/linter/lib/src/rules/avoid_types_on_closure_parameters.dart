@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid annotating types for function expression parameters.';
 
@@ -31,22 +32,18 @@ var names = people.map((person) => person.name);
 ''';
 
 class AvoidTypesOnClosureParameters extends LintRule {
-  static const LintCode code = LintCode('avoid_types_on_closure_parameters',
-      'Unnecessary type annotation on a function expression parameter.',
-      correctionMessage: 'Try removing the type annotation.');
-
   AvoidTypesOnClosureParameters()
       : super(
             name: 'avoid_types_on_closure_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_types_on_closure_parameters;
 
   @override
   void registerNodeProcessors(

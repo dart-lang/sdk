@@ -126,6 +126,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitArgumentList(ArgumentList node) {
+    _invalidAccessVerifier._checkForInvalidDoNotSubmitParameter(node);
+    super.visitArgumentList(node);
+  }
+
+  @override
   void visitAsExpression(AsExpression node) {
     if (isUnnecessaryCast(node, _typeSystem)) {
       _errorReporter.atNode(
@@ -153,7 +159,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _checkForDivisionOptimizationHint(node);
     _deprecatedVerifier.binaryExpression(node);
     _checkForInvariantNanComparison(node);
     _checkForInvariantNullComparison(node);
@@ -841,45 +846,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         arguments: [entry.value.name!],
       );
     }
-  }
-
-  /// Checks the passed binary expression for [HintCode.DIVISION_OPTIMIZATION].
-  ///
-  /// Returns whether a hint code is generated.
-  bool _checkForDivisionOptimizationHint(BinaryExpression node) {
-    if (node.operator.type != TokenType.SLASH) return false;
-
-    // Return if the two operands are not each `int`.
-    var leftType = node.leftOperand.staticType;
-    if (leftType == null || !leftType.isDartCoreInt) return false;
-
-    var rightType = node.rightOperand.staticType;
-    if (rightType == null || !rightType.isDartCoreInt) return false;
-
-    // Return if the '/' operator is not defined in core, or if we don't know
-    // its static type.
-    var methodElement = node.staticElement;
-    if (methodElement == null) return false;
-
-    var libraryElement = methodElement.library;
-    if (!libraryElement.isDartCore) return false;
-
-    var parent = node.parent;
-    if (parent is! ParenthesizedExpression) return false;
-
-    var outermostParentheses = parent.thisOrAncestorMatching(
-        (e) => e.parent is! ParenthesizedExpression) as ParenthesizedExpression;
-    var grandParent = outermostParentheses.parent;
-    if (grandParent is! MethodInvocation) return false;
-
-    // Report an error if the `(x / y)` expression has `toInt()` invoked on it.
-    if (grandParent.methodName.name == 'toInt' &&
-        grandParent.argumentList.arguments.isEmpty) {
-      _errorReporter.atNode(grandParent, HintCode.DIVISION_OPTIMIZATION);
-      return true;
-    }
-
-    return false;
   }
 
   /// Generate hints related to duplicate elements (keys) in sets (maps).
@@ -1628,7 +1594,12 @@ class _InvalidAccessVerifier {
         ? grandparent.staticElement
         : identifier.writeOrReadElement;
 
-    if (element == null || _inCurrentLibrary(element)) {
+    if (element == null) {
+      return;
+    }
+    _checkForInvalidDoNotSubmitAccess(identifier, element);
+
+    if (_inCurrentLibrary(element)) {
       return;
     }
 
@@ -1690,7 +1661,13 @@ class _InvalidAccessVerifier {
       element = parent.staticElement;
     }
 
-    if (element == null || _inCurrentLibrary(element)) {
+    if (element == null) {
+      return;
+    }
+
+    _checkForInvalidDoNotSubmitAccess(node, element);
+
+    if (_inCurrentLibrary(element)) {
       return;
     }
 
@@ -1705,7 +1682,12 @@ class _InvalidAccessVerifier {
 
   void verifyPatternField(PatternFieldImpl node) {
     var element = node.element;
-    if (element == null || _inCurrentLibrary(element)) {
+    if (element == null) {
+      return;
+    }
+    _checkForInvalidDoNotSubmitAccess(node, element);
+
+    if (_inCurrentLibrary(element)) {
       return;
     }
 
@@ -1743,6 +1725,95 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void _checkForInvalidDoNotSubmitAccess(AstNode node, Element element) {
+    if (element is ParameterElement || !_hasDoNotSubmit(element)) {
+      return;
+    }
+
+    // It's valid for a member annotated with `@doNotSubmit` to access another
+    // member annotated with `@doNotSubmit`. For example, this is valid:
+    // ```
+    // @doNotSubmit
+    // void foo() {}
+    //
+    // @doNotSubmit
+    // void bar() {
+    //   // OK: `foo` is annotated with `@doNotSubmit` but so is `bar`.
+    //   foo();
+    // }
+    // ```
+    var declaration = node.thisOrAncestorOfType<Declaration>();
+    if (declaration != null) {
+      var element = declaration.declaredElement;
+      if (element != null && _hasDoNotSubmit(element)) {
+        return;
+      }
+    }
+
+    var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
+    _errorReporter.atOffset(
+      offset: errorEntity.offset,
+      length: errorEntity.length,
+      errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+      arguments: [name],
+    );
+  }
+
+  // void a({@doNotSubmit int? b}) {}
+  // void c() {
+  //   // Error: `b` is annotated with `@doNotSubmit` and it's a parameter.
+  //   a(b: 0);
+  // }
+  void _checkForInvalidDoNotSubmitParameter(ArgumentList node) {
+    // void a({@doNotSubmit int? b}) {
+    //   // OK: `b` is annotated with `@doNotSubmit` but it's a parameter.
+    //   print(b);
+    // }
+    //
+    // void c({@doNotSubmit int? b}) {
+    //   void d() {
+    //     // OK: `b` is annotated with `@doNotSubmit` but it's a parent arg.
+    //     print(b);
+    //   }
+    // }
+
+    // Check if the method being called is a parent method of the current node.
+    var bodyParent = node.thisOrAncestorOfType<FunctionBody>()?.parent;
+    if (bodyParent == node.thisOrAncestorOfType<FunctionDeclaration>() ||
+        bodyParent == node.thisOrAncestorOfType<MethodDeclaration>()) {
+      return;
+    }
+
+    for (var argument in node.arguments) {
+      var element = argument.staticParameterElement;
+      if (element != null) {
+        if (!_hasDoNotSubmit(element)) {
+          continue;
+        }
+        if (argument is NamedExpression) {
+          argument = argument.name.label;
+          var (name, errorEntity) = _getIdentifierNameAndErrorEntity(
+            argument,
+            element,
+          );
+          _errorReporter.atOffset(
+            offset: errorEntity.offset,
+            length: errorEntity.length,
+            errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+            arguments: [name],
+          );
+        } else {
+          // For positional arguments.
+          _errorReporter.atNode(
+            argument,
+            WarningCode.invalid_use_of_do_not_submit_member,
+            arguments: [element.displayName],
+          );
+        }
+      }
+    }
+  }
+
   void _checkForInvalidInternalAccess({
     required AstNode? parent,
     required Token nameToken,
@@ -1771,29 +1842,6 @@ class _InvalidAccessVerifier {
   }
 
   void _checkForOtherInvalidAccess(AstNode node, Element element) {
-    bool hasDoNotSubmit = _hasDoNotSubmit(element);
-    if (hasDoNotSubmit) {
-      // It's valid for a member annotated with `@doNotSubmit` to access another
-      // member annotated with `@doNotSubmit`. For example, this is valid:
-      // ```
-      // @doNotSubmit
-      // void foo() {}
-      //
-      // @doNotSubmit
-      // void bar() {
-      //   // OK: `foo` is annotated with `@doNotSubmit` but so is `bar`.
-      //   foo();
-      // }
-      // ```
-      var declaration = node.thisOrAncestorOfType<Declaration>();
-      if (declaration != null) {
-        var element = declaration.declaredElement;
-        if (element != null && _hasDoNotSubmit(element)) {
-          return;
-        }
-      }
-    }
-
     var hasProtected = element.isProtected;
     if (hasProtected) {
       var definingClass = element.enclosingElement as InterfaceElement;
@@ -1821,44 +1869,11 @@ class _InvalidAccessVerifier {
     // At this point, [identifier] was not cleared as protected access, nor
     // cleared as access for templates or testing. Report a violation for each
     // annotation present.
-
-    String name;
-    SyntacticEntity errorEntity = node;
-
-    var parent = node.parent;
-    var grandparent = parent?.parent;
-    if (node is Identifier) {
-      if (grandparent is ConstructorName) {
-        name = grandparent.toSource();
-        errorEntity = grandparent;
-      } else {
-        name = node.name;
-      }
-    } else if (node is NamedType) {
-      if (parent is ConstructorName) {
-        name = parent.toSource();
-        errorEntity = parent;
-      } else {
-        name = node.name2.lexeme;
-      }
-    } else if (node is PatternFieldImpl) {
-      name = element.displayName;
-      errorEntity = node.errorEntity;
-    } else {
-      throw StateError('Can only handle Identifier or PatternField, but got '
-          '${node.runtimeType}');
-    }
+    var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
 
     var definingClass = element.enclosingElement;
     if (definingClass == null) {
       return;
-    }
-    if (hasDoNotSubmit) {
-      _errorReporter.atEntity(
-        errorEntity,
-        WarningCode.invalid_use_of_do_not_submit_member,
-        arguments: [name],
-      );
     }
     if (hasProtected) {
       _errorReporter.atEntity(
@@ -1888,6 +1903,7 @@ class _InvalidAccessVerifier {
       var validOverride = false;
       if (parent is MethodInvocation && parent.target is SuperExpression ||
           parent is PropertyAccess && parent.target is SuperExpression) {
+        var grandparent = parent?.parent;
         var methodDeclaration =
             grandparent?.thisOrAncestorOfType<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == name) {
@@ -2012,6 +2028,39 @@ class _InvalidAccessVerifier {
       return _hasVisibleForTemplate(element) &&
           !_hasVisibleOutsideTemplate(element);
     }
+  }
+
+  static (String, SyntacticEntity) _getIdentifierNameAndErrorEntity(
+    AstNode node,
+    Element element,
+  ) {
+    String name;
+    SyntacticEntity errorEntity = node;
+
+    var parent = node.parent;
+    var grandparent = parent?.parent;
+    if (node is Identifier) {
+      if (grandparent is ConstructorName) {
+        name = grandparent.toSource();
+        errorEntity = grandparent;
+      } else {
+        name = node.name;
+      }
+    } else if (node is NamedType) {
+      if (parent is ConstructorName) {
+        name = parent.toSource();
+        errorEntity = parent;
+      } else {
+        name = node.name2.lexeme;
+      }
+    } else if (node is PatternFieldImpl) {
+      name = element.displayName;
+      errorEntity = node.errorEntity;
+    } else {
+      throw StateError('Unhandled node type: ${node.runtimeType}');
+    }
+
+    return (name, errorEntity);
   }
 }
 

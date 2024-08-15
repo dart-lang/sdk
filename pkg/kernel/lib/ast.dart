@@ -1603,8 +1603,7 @@ class Extension extends NamedNode
   List<Expression> annotations = const <Expression>[];
 
   // Must match serialized bit positions.
-  static const int FlagExtensionTypeDeclaration = 1 << 0;
-  static const int FlagUnnamedExtension = 1 << 1;
+  static const int FlagUnnamedExtension = 1 << 0;
 
   int flags = 0;
 
@@ -1640,16 +1639,6 @@ class Extension extends NamedNode
   }
 
   Library get enclosingLibrary => parent as Library;
-
-  bool get isExtensionTypeDeclaration {
-    return flags & FlagExtensionTypeDeclaration != 0;
-  }
-
-  void set isExtensionTypeDeclaration(bool value) {
-    flags = value
-        ? (flags | FlagExtensionTypeDeclaration)
-        : (flags & ~FlagExtensionTypeDeclaration);
-  }
 
   bool get isUnnamedExtension {
     return flags & FlagUnnamedExtension != 0;
@@ -3722,7 +3711,7 @@ class FunctionNode extends TreeNode {
   /// iterable returned by the function.
   ///
   /// For `async*` functions [emittedValueType] is the type of the element of
-  /// the stream return ed by the function.
+  /// the stream returned by the function.
   ///
   /// For sync functions (those not marked with one of `async`, `sync*`, or
   /// `async*`) the value of [emittedValueType] is null.
@@ -9490,8 +9479,15 @@ class BreakStatement extends Statement {
   }
 }
 
-class WhileStatement extends Statement {
+/// Common interface for loop statements.
+abstract interface class LoopStatement implements Statement {
+  abstract Statement body;
+}
+
+class WhileStatement extends Statement implements LoopStatement {
   Expression condition;
+
+  @override
   Statement body;
 
   WhileStatement(this.condition, this.body) {
@@ -9542,8 +9538,10 @@ class WhileStatement extends Statement {
   }
 }
 
-class DoStatement extends Statement {
+class DoStatement extends Statement implements LoopStatement {
+  @override
   Statement body;
+
   Expression condition;
 
   DoStatement(this.body, this.condition) {
@@ -9595,10 +9593,12 @@ class DoStatement extends Statement {
   }
 }
 
-class ForStatement extends Statement {
+class ForStatement extends Statement implements LoopStatement {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
+
+  @override
   Statement body;
 
   ForStatement(this.variables, this.condition, this.updates, this.body) {
@@ -9673,7 +9673,7 @@ class ForStatement extends Statement {
   }
 }
 
-class ForInStatement extends Statement {
+class ForInStatement extends Statement implements LoopStatement {
   /// Offset in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
@@ -9685,7 +9685,10 @@ class ForInStatement extends Statement {
 
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
+
+  @override
   Statement body;
+
   bool isAsync; // True if this is an 'await for' loop.
 
   ForInStatement(this.variable, this.iterable, this.body,
@@ -11018,7 +11021,7 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-sealed class DartType extends Node implements SharedType {
+sealed class DartType extends Node implements SharedType<DartType> {
   const DartType();
 
   @override
@@ -11185,7 +11188,7 @@ abstract class AuxiliaryType extends DartType {
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
-class InvalidType extends DartType implements SharedInvalidType {
+class InvalidType extends DartType implements SharedInvalidType<DartType> {
   @override
   final int hashCode = 12345;
 
@@ -11238,7 +11241,7 @@ class InvalidType extends DartType implements SharedInvalidType {
   }
 }
 
-class DynamicType extends DartType implements SharedDynamicType {
+class DynamicType extends DartType implements SharedDynamicType<DartType> {
   @override
   final int hashCode = 54321;
 
@@ -11283,7 +11286,7 @@ class DynamicType extends DartType implements SharedDynamicType {
   }
 }
 
-class VoidType extends DartType implements SharedVoidType {
+class VoidType extends DartType implements SharedVoidType<DartType> {
   @override
   final int hashCode = 123121;
 

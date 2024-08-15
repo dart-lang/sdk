@@ -22,10 +22,11 @@ import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
-  final LibraryOrAugmentationElementImpl _container;
   final CompilationUnitElementImpl _unitElement;
 
-  var _isFirstLibraryDirective = true;
+  // TODO(scheglov): We need it for now, but remove it later.
+  final List<AugmentationImportElementImpl> _augmentationImports;
+
   var _augmentationDirectiveIndex = 0;
   var _exportDirectiveIndex = 0;
   var _importDirectiveIndex = 0;
@@ -36,11 +37,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
-    required LibraryOrAugmentationElementImpl container,
+    required List<AugmentationImportElementImpl> augmentationImports,
     required Reference unitReference,
     required CompilationUnitElementImpl unitElement,
   })  : _libraryBuilder = libraryBuilder,
-        _container = container,
+        _augmentationImports = augmentationImports,
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
 
@@ -59,21 +60,38 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _unitElement.typeAliases = _enclosingContext.typeAliases;
   }
 
-  /// Build exports and imports, metadata into [_container].
-  void buildLibraryElementChildren(CompilationUnitImpl unit) {
+  /// Builds exports and imports, metadata into [_unitElement].
+  void buildDirectiveElements(CompilationUnitImpl unit) {
     unit.directives.accept(this);
+  }
 
-    if (_isFirstLibraryDirective) {
-      _isFirstLibraryDirective = false;
-      var firstDirective = unit.directives.firstOrNull;
-      if (firstDirective != null) {
-        _container.documentationComment = getCommentNodeRawText(
-          firstDirective.documentationComment,
-        );
-        var firstDirectiveMetadata = firstDirective.element?.metadata;
-        if (firstDirectiveMetadata != null) {
-          _container.metadata = firstDirectiveMetadata;
-        }
+  /// Updates metadata and documentation for [_libraryBuilder].
+  ///
+  /// This method must be invoked after [buildDirectiveElements].
+  void buildLibraryMetadata(CompilationUnitImpl unit) {
+    var libraryElement = _libraryBuilder.element;
+
+    // Prefer the actual library directive.
+    var libraryDirective =
+        unit.directives.whereType<LibraryDirectiveImpl>().firstOrNull;
+    if (libraryDirective != null) {
+      libraryDirective.element = libraryElement;
+      libraryElement.documentationComment = getCommentNodeRawText(
+        libraryDirective.documentationComment,
+      );
+      libraryElement.metadata = _buildAnnotations(libraryDirective.metadata);
+      return;
+    }
+
+    // Otherwise use the first directive.
+    var firstDirective = unit.directives.firstOrNull;
+    if (firstDirective != null) {
+      libraryElement.documentationComment = getCommentNodeRawText(
+        firstDirective.documentationComment,
+      );
+      var firstDirectiveMetadata = firstDirective.element?.metadata;
+      if (firstDirectiveMetadata != null) {
+        libraryElement.metadata = firstDirectiveMetadata;
       }
     }
   }
@@ -81,7 +99,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitAugmentationImportDirective(AugmentationImportDirective node) {
     var index = _augmentationDirectiveIndex++;
-    var element = _container.augmentationImports[index];
+    var element = _augmentationImports[index];
     element.metadata = _buildAnnotations(node.metadata);
   }
 
@@ -448,7 +466,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     var index = _exportDirectiveIndex++;
-    var exportElement = _container.libraryExports[index];
+    var exportElement = _unitElement.libraryExports[index];
     exportElement.metadata = _buildAnnotations(node.metadata);
     node.element = exportElement;
   }
@@ -936,27 +954,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var index = _importDirectiveIndex++;
-    var importElement = _container.libraryImports[index];
+    var importElement = _unitElement.libraryImports[index];
     importElement.metadata = _buildAnnotations(node.metadata);
     node.element = importElement;
   }
 
   @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _container.metadata = _buildAnnotations(node.metadata);
-  }
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {}
 
   @override
-  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
-    if (_isFirstLibraryDirective) {
-      _isFirstLibraryDirective = false;
-      node.element = _container;
-      _container.documentationComment = getCommentNodeRawText(
-        node.documentationComment,
-      );
-      _container.metadata = _buildAnnotations(node.metadata);
-    }
-  }
+  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {}
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
@@ -1097,20 +1104,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var libraryElement = _container;
-    if (libraryElement is LibraryElementImpl) {
-      var index = _partDirectiveIndex++;
-      var partElement = libraryElement.parts[index];
-      partElement.metadata = _buildAnnotations(node.metadata);
-    }
+    var libraryElement = _libraryBuilder.element;
+    var index = _partDirectiveIndex++;
+    var partElement = libraryElement.parts[index];
+    partElement.metadata = _buildAnnotations(node.metadata);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    var libraryElement = _container;
-    if (libraryElement is LibraryElementImpl) {
-      libraryElement.hasPartOfDirective = true;
-    }
+    var libraryElement = _libraryBuilder.element;
+    libraryElement.hasPartOfDirective = true;
   }
 
   @override
@@ -1397,7 +1400,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     PropertyInducingElementImpl property;
     if (enclosingElement is CompilationUnitElement) {
-      var reference = enclosingRef.getChild('@variable').getChild(name);
+      var reference = enclosingRef.getChild('@topLevelVariable').getChild(name);
       var existing = reference.element;
       if (existing is TopLevelVariableElementImpl && canUseExisting(existing)) {
         property = existing;
@@ -1812,8 +1815,9 @@ class _EnclosingContext {
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
     _topLevelVariables.add(element);
-    var containerName =
-        element.isAugmentation ? '@variableAugmentation' : '@variable';
+    var containerName = element.isAugmentation
+        ? '@topLevelVariableAugmentation'
+        : '@topLevelVariable';
     return _addReference(containerName, name, element);
   }
 

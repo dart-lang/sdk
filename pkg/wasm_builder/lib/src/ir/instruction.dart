@@ -4,9 +4,21 @@
 
 part of 'instructions.dart';
 
-abstract class Instruction implements Serializable {}
+abstract class Instruction implements Serializable {
+  /// The [ValueType] types referenced by this instruction. Used to determine
+  /// which types need to be included in the module. Unused types will not be
+  /// emitted in the wasm output.
+  List<ValueType> get usedValueTypes => const [];
 
-abstract class SingleByteInstruction implements Instruction {
+  /// The [DefType] types referenced by this instruction. Used to determine
+  /// which types need to be included in the module. Unused types will not be
+  /// emitted in the wasm output.
+  List<DefType> get usedDefTypes => const [];
+
+  const Instruction();
+}
+
+abstract class SingleByteInstruction extends Instruction {
   final int byte;
 
   const SingleByteInstruction(this.byte);
@@ -15,7 +27,7 @@ abstract class SingleByteInstruction implements Instruction {
   void serialize(Serializer s) => s.writeByte(byte);
 }
 
-abstract class MultiByteInstruction implements Instruction {
+abstract class MultiByteInstruction extends Instruction {
   final List<int> bytes;
 
   const MultiByteInstruction(this.bytes);
@@ -36,8 +48,11 @@ class BeginNoEffectBlock extends MultiByteInstruction {
   const BeginNoEffectBlock() : super(const [0x02, 0x40]);
 }
 
-class BeginOneOutputBlock implements Instruction {
+class BeginOneOutputBlock extends Instruction {
   final ValueType type;
+
+  @override
+  List<ValueType> get usedValueTypes => [type];
 
   BeginOneOutputBlock(this.type);
 
@@ -48,15 +63,18 @@ class BeginOneOutputBlock implements Instruction {
   }
 }
 
-class BeginFunctionBlock implements Instruction {
+class BeginFunctionBlock extends Instruction {
   final FunctionType type;
+
+  @override
+  List<DefType> get usedDefTypes => [type];
 
   BeginFunctionBlock(this.type);
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0x02);
-    s.writeSigned(type.index);
+    s.write(type);
   }
 }
 
@@ -64,8 +82,11 @@ class BeginNoEffectLoop extends MultiByteInstruction {
   const BeginNoEffectLoop() : super(const [0x03, 0x40]);
 }
 
-class BeginOneOutputLoop implements Instruction {
+class BeginOneOutputLoop extends Instruction {
   final ValueType type;
+
+  @override
+  List<ValueType> get usedValueTypes => [type];
 
   BeginOneOutputLoop(this.type);
 
@@ -76,15 +97,18 @@ class BeginOneOutputLoop implements Instruction {
   }
 }
 
-class BeginFunctionLoop implements Instruction {
+class BeginFunctionLoop extends Instruction {
   final FunctionType type;
+
+  @override
+  List<DefType> get usedDefTypes => [type];
 
   BeginFunctionLoop(this.type);
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0x03);
-    s.writeSigned(type.index);
+    s.write(type);
   }
 }
 
@@ -92,8 +116,11 @@ class BeginNoEffectIf extends MultiByteInstruction {
   const BeginNoEffectIf() : super(const [0x04, 0x40]);
 }
 
-class BeginOneOutputIf implements Instruction {
+class BeginOneOutputIf extends Instruction {
   final ValueType type;
+
+  @override
+  List<ValueType> get usedValueTypes => [type];
 
   BeginOneOutputIf(this.type);
 
@@ -104,15 +131,18 @@ class BeginOneOutputIf implements Instruction {
   }
 }
 
-class BeginFunctionIf implements Instruction {
+class BeginFunctionIf extends Instruction {
   final FunctionType type;
+
+  @override
+  List<DefType> get usedDefTypes => [type];
 
   BeginFunctionIf(this.type);
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0x04);
-    s.writeSigned(type.index);
+    s.write(type);
   }
 }
 
@@ -124,8 +154,11 @@ class BeginNoEffectTry extends MultiByteInstruction {
   const BeginNoEffectTry() : super(const [0x06, 0x40]);
 }
 
-class BeginOneOutputTry implements Instruction {
+class BeginOneOutputTry extends Instruction {
   final ValueType type;
+
+  @override
+  List<ValueType> get usedValueTypes => [type];
 
   BeginOneOutputTry(this.type);
 
@@ -136,19 +169,22 @@ class BeginOneOutputTry implements Instruction {
   }
 }
 
-class BeginFunctionTry implements Instruction {
+class BeginFunctionTry extends Instruction {
   final FunctionType type;
+
+  @override
+  List<DefType> get usedDefTypes => [type];
 
   BeginFunctionTry(this.type);
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0x06);
-    s.writeSigned(type.index);
+    s.write(type);
   }
 }
 
-class Catch implements Instruction {
+class Catch extends Instruction {
   final Tag tag;
 
   Catch(this.tag);
@@ -164,7 +200,7 @@ class CatchAll extends SingleByteInstruction {
   const CatchAll() : super(0x19);
 }
 
-class Throw implements Instruction {
+class Throw extends Instruction {
   final Tag tag;
 
   Throw(this.tag);
@@ -176,7 +212,7 @@ class Throw implements Instruction {
   }
 }
 
-class Rethrow implements Instruction {
+class Rethrow extends Instruction {
   final int labelIndex;
 
   Rethrow(this.labelIndex);
@@ -192,7 +228,7 @@ class End extends SingleByteInstruction {
   const End() : super(0x0B);
 }
 
-class Br implements Instruction {
+class Br extends Instruction {
   final int labelIndex;
 
   Br(this.labelIndex);
@@ -204,7 +240,7 @@ class Br implements Instruction {
   }
 }
 
-class BrIf implements Instruction {
+class BrIf extends Instruction {
   final int labelIndex;
 
   BrIf(this.labelIndex);
@@ -216,7 +252,7 @@ class BrIf implements Instruction {
   }
 }
 
-class BrTable implements Instruction {
+class BrTable extends Instruction {
   final List<int> labelIndices;
   final int defaultLabelIndex;
 
@@ -237,7 +273,7 @@ class Return extends SingleByteInstruction {
   const Return() : super(0x0F);
 }
 
-class Call implements Instruction {
+class Call extends Instruction {
   final BaseFunction function;
 
   Call(this.function);
@@ -249,29 +285,35 @@ class Call implements Instruction {
   }
 }
 
-class CallIndirect implements Instruction {
+class CallIndirect extends Instruction {
   final FunctionType type;
   final Table? table;
+
+  @override
+  List<DefType> get usedDefTypes => [type];
 
   CallIndirect(this.type, this.table);
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0x11);
-    s.writeUnsigned(type.index);
+    s.write(type);
     s.writeUnsigned(table?.index ?? 0);
   }
 }
 
-class CallRef implements Instruction {
+class CallRef extends Instruction {
   final FunctionType type;
+
+  @override
+  List<DefType> get usedDefTypes => [type];
 
   CallRef(this.type);
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0x14);
-    s.writeUnsigned(type.index);
+    s.write(type);
   }
 }
 
@@ -279,8 +321,11 @@ class Drop extends SingleByteInstruction {
   const Drop() : super(0x1A);
 }
 
-class Select implements Instruction {
+class Select extends Instruction {
   final ValueType type;
+
+  @override
+  List<ValueType> get usedValueTypes => [type];
 
   Select(this.type);
 
@@ -296,7 +341,7 @@ class Select implements Instruction {
   }
 }
 
-class LocalGet implements Instruction {
+class LocalGet extends Instruction {
   final Local local;
 
   LocalGet(this.local);
@@ -308,7 +353,7 @@ class LocalGet implements Instruction {
   }
 }
 
-class LocalSet implements Instruction {
+class LocalSet extends Instruction {
   final Local local;
 
   LocalSet(this.local);
@@ -320,7 +365,7 @@ class LocalSet implements Instruction {
   }
 }
 
-class LocalTee implements Instruction {
+class LocalTee extends Instruction {
   final Local local;
 
   LocalTee(this.local);
@@ -332,7 +377,7 @@ class LocalTee implements Instruction {
   }
 }
 
-class GlobalGet implements Instruction {
+class GlobalGet extends Instruction {
   final Global global;
 
   GlobalGet(this.global);
@@ -344,7 +389,7 @@ class GlobalGet implements Instruction {
   }
 }
 
-class GlobalSet implements Instruction {
+class GlobalSet extends Instruction {
   final Global global;
 
   GlobalSet(this.global);
@@ -356,7 +401,7 @@ class GlobalSet implements Instruction {
   }
 }
 
-class TableSet implements Instruction {
+class TableSet extends Instruction {
   final Table table;
 
   TableSet(this.table);
@@ -368,7 +413,7 @@ class TableSet implements Instruction {
   }
 }
 
-class TableGet implements Instruction {
+class TableGet extends Instruction {
   final Table table;
 
   TableGet(this.table);
@@ -380,7 +425,7 @@ class TableGet implements Instruction {
   }
 }
 
-class TableSize implements Instruction {
+class TableSize extends Instruction {
   final Table table;
 
   TableSize(this.table);
@@ -412,7 +457,7 @@ class MemoryOffsetAlign implements Serializable {
   }
 }
 
-abstract class MemoryInstruction implements Instruction {
+abstract class MemoryInstruction extends Instruction {
   final MemoryOffsetAlign memory;
   final int encoding;
 
@@ -517,7 +562,7 @@ class I64Store32 extends MemoryInstruction {
   I64Store32(super.memory) : super(encoding: 0x3E);
 }
 
-class MemorySize implements Instruction {
+class MemorySize extends Instruction {
   final Memory memory;
 
   MemorySize(this.memory);
@@ -529,7 +574,7 @@ class MemorySize implements Instruction {
   }
 }
 
-class MemoryGrow implements Instruction {
+class MemoryGrow extends Instruction {
   final Memory memory;
 
   MemoryGrow(this.memory);
@@ -541,8 +586,14 @@ class MemoryGrow implements Instruction {
   }
 }
 
-class RefNull implements Instruction {
+class RefNull extends Instruction {
   final HeapType heapType;
+
+  @override
+  List<DefType> get usedDefTypes {
+    final type = heapType;
+    return type is DefType ? [type] : const [];
+  }
 
   RefNull(this.heapType);
 
@@ -557,7 +608,7 @@ class RefIsNull extends SingleByteInstruction {
   const RefIsNull() : super(0xD1);
 }
 
-class RefFunc implements Instruction {
+class RefFunc extends Instruction {
   final BaseFunction function;
 
   RefFunc(this.function);
@@ -573,7 +624,7 @@ class RefAsNonNull extends SingleByteInstruction {
   const RefAsNonNull() : super(0xD4);
 }
 
-class BrOnNull implements Instruction {
+class BrOnNull extends Instruction {
   final int labelIndex;
 
   BrOnNull(this.labelIndex);
@@ -589,7 +640,7 @@ class RefEq extends SingleByteInstruction {
   const RefEq() : super(0xD3);
 }
 
-class BrOnNonNull implements Instruction {
+class BrOnNonNull extends Instruction {
   final int labelIndex;
 
   BrOnNonNull(this.labelIndex);
@@ -601,131 +652,161 @@ class BrOnNonNull implements Instruction {
   }
 }
 
-class StructGet implements Instruction {
+class StructGet extends Instruction {
   final StructType structType;
   final int fieldIndex;
+
+  @override
+  List<DefType> get usedDefTypes => [structType];
 
   StructGet(this.structType, this.fieldIndex);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x02]);
-    s.writeUnsigned(structType.index);
+    s.write(structType);
     s.writeUnsigned(fieldIndex);
   }
 }
 
-class StructGetS implements Instruction {
+class StructGetS extends Instruction {
   final StructType structType;
   final int fieldIndex;
+
+  @override
+  List<DefType> get usedDefTypes => [structType];
 
   StructGetS(this.structType, this.fieldIndex);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x03]);
-    s.writeUnsigned(structType.index);
+    s.write(structType);
     s.writeUnsigned(fieldIndex);
   }
 }
 
-class StructGetU implements Instruction {
+class StructGetU extends Instruction {
   final StructType structType;
   final int fieldIndex;
+
+  @override
+  List<DefType> get usedDefTypes => [structType];
 
   StructGetU(this.structType, this.fieldIndex);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x04]);
-    s.writeUnsigned(structType.index);
+    s.write(structType);
     s.writeUnsigned(fieldIndex);
   }
 }
 
-class StructSet implements Instruction {
+class StructSet extends Instruction {
   final StructType structType;
   final int fieldIndex;
+
+  @override
+  List<DefType> get usedDefTypes => [structType];
 
   StructSet(this.structType, this.fieldIndex);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x05]);
-    s.writeUnsigned(structType.index);
+    s.write(structType);
     s.writeUnsigned(fieldIndex);
   }
 }
 
-class StructNew implements Instruction {
+class StructNew extends Instruction {
   final StructType structType;
+
+  @override
+  List<DefType> get usedDefTypes => [structType];
 
   StructNew(this.structType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x00]);
-    s.writeUnsigned(structType.index);
+    s.write(structType);
   }
 }
 
-class StructNewDefault implements Instruction {
+class StructNewDefault extends Instruction {
   final StructType structType;
+
+  @override
+  List<DefType> get usedDefTypes => [structType];
 
   StructNewDefault(this.structType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x01]);
-    s.writeUnsigned(structType.index);
+    s.write(structType);
   }
 }
 
-class ArrayGet implements Instruction {
+class ArrayGet extends Instruction {
   final ArrayType arrayType;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArrayGet(this.arrayType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x0b]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
   }
 }
 
-class ArrayGetS implements Instruction {
+class ArrayGetS extends Instruction {
   final ArrayType arrayType;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArrayGetS(this.arrayType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x0c]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
   }
 }
 
-class ArrayGetU implements Instruction {
+class ArrayGetU extends Instruction {
   final ArrayType arrayType;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArrayGetU(this.arrayType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x0d]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
   }
 }
 
-class ArraySet implements Instruction {
+class ArraySet extends Instruction {
   final ArrayType arrayType;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArraySet(this.arrayType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x0E]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
   }
 }
 
@@ -733,81 +814,99 @@ class ArrayLen extends MultiByteInstruction {
   const ArrayLen() : super(const [0xFB, 0x0F]);
 }
 
-class ArrayNewFixed implements Instruction {
+class ArrayNewFixed extends Instruction {
   final ArrayType arrayType;
   final int length;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArrayNewFixed(this.arrayType, this.length);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x08]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
     s.writeUnsigned(length);
   }
 }
 
-class ArrayNew implements Instruction {
+class ArrayNew extends Instruction {
   final ArrayType arrayType;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArrayNew(this.arrayType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x06]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
   }
 }
 
-class ArrayNewDefault implements Instruction {
+class ArrayNewDefault extends Instruction {
   final ArrayType arrayType;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArrayNewDefault(this.arrayType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x07]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
   }
 }
 
-class ArrayNewData implements Instruction {
+class ArrayNewData extends Instruction {
   final ArrayType arrayType;
   final BaseDataSegment data;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArrayNewData(this.arrayType, this.data);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x09]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
     s.writeUnsigned(data.index);
   }
 }
 
-class ArrayCopy implements Instruction {
+class ArrayCopy extends Instruction {
   final ArrayType destArrayType;
   final ArrayType sourceArrayType;
+
+  @override
+  List<DefType> get usedDefTypes => [destArrayType, sourceArrayType];
 
   ArrayCopy({required this.destArrayType, required this.sourceArrayType});
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x11]);
-    s.writeUnsigned(destArrayType.index);
-    s.writeUnsigned(sourceArrayType.index);
+    s.write(destArrayType);
+    s.write(sourceArrayType);
   }
 }
 
-class ArrayFill implements Instruction {
+class ArrayFill extends Instruction {
   final ArrayType arrayType;
+
+  @override
+  List<DefType> get usedDefTypes => [arrayType];
 
   ArrayFill(this.arrayType);
 
   @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x10]);
-    s.writeUnsigned(arrayType.index);
+    s.write(arrayType);
   }
 }
 
@@ -823,7 +922,7 @@ class I31GetU extends MultiByteInstruction {
   const I31GetU() : super(const [0xFB, 0x1E]);
 }
 
-class RefTest implements Instruction {
+class RefTest extends Instruction {
   final RefType targetType;
 
   RefTest(this.targetType);
@@ -835,8 +934,11 @@ class RefTest implements Instruction {
   }
 }
 
-class RefCast implements Instruction {
+class RefCast extends Instruction {
   final RefType targetType;
+
+  @override
+  List<ValueType> get usedValueTypes => [targetType];
 
   RefCast(this.targetType);
 
@@ -847,10 +949,13 @@ class RefCast implements Instruction {
   }
 }
 
-class BrOnCast implements Instruction {
+class BrOnCast extends Instruction {
   final int labelIndex;
   final RefType inputType;
   final RefType targetType;
+
+  @override
+  List<ValueType> get usedValueTypes => [inputType, targetType];
 
   BrOnCast(this.labelIndex, this.inputType, this.targetType);
 
@@ -866,10 +971,13 @@ class BrOnCast implements Instruction {
   }
 }
 
-class BrOnCastFail implements Instruction {
+class BrOnCastFail extends Instruction {
   final int labelIndex;
   final RefType inputType;
   final RefType targetType;
+
+  @override
+  List<ValueType> get usedValueTypes => [inputType, targetType];
 
   BrOnCastFail(this.labelIndex, this.inputType, this.targetType);
 
@@ -893,7 +1001,7 @@ class ExternExternalize extends MultiByteInstruction {
   const ExternExternalize() : super(const [0xFB, 0x1B]);
 }
 
-class I32Const implements Instruction {
+class I32Const extends Instruction {
   final int value;
 
   I32Const(this.value);
@@ -905,7 +1013,7 @@ class I32Const implements Instruction {
   }
 }
 
-class I64Const implements Instruction {
+class I64Const extends Instruction {
   final int value;
 
   I64Const(this.value);
@@ -917,7 +1025,7 @@ class I64Const implements Instruction {
   }
 }
 
-class F32Const implements Instruction {
+class F32Const extends Instruction {
   final double value;
 
   F32Const(this.value);
@@ -929,7 +1037,7 @@ class F32Const implements Instruction {
   }
 }
 
-class F64Const implements Instruction {
+class F64Const extends Instruction {
   final double value;
 
   F64Const(this.value);

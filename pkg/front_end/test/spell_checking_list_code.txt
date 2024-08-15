@@ -234,6 +234,7 @@ ce
 ceil
 certainly
 cfe
+cfe's
 ch
 chaining
 channel
@@ -611,6 +612,7 @@ existentially
 exp
 expanded
 expando
+expecter
 expense
 experimentation
 explaining
@@ -689,6 +691,7 @@ former
 forming
 fortunately
 fourth
+fragments
 framework
 freed
 freedom
@@ -860,6 +863,7 @@ inhibit
 init
 initializations
 initializer's
+injecting
 inlines
 insertion
 inspect
@@ -1033,6 +1037,7 @@ m
 machinery
 macos
 macro
+macro's
 macros
 maintaining
 malbounded

@@ -33,17 +33,17 @@ void f(A<int> a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     staticType: A<int>
   period: .
   identifier: SimpleIdentifier
     token: foo
     staticElement: PropertyAccessorMember
-      base: self::@extension::E::@getter::foo
+      base: <testLibraryFragment>::@extension::E::@getter::foo
       substitution: {T: int}
     staticType: List<int>
   staticElement: PropertyAccessorMember
-    base: self::@extension::E::@getter::foo
+    base: <testLibraryFragment>::@extension::E::@getter::foo
     substitution: {T: int}
   staticType: List<int>
 ''');
@@ -67,13 +67,13 @@ void f(A<int> a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     staticType: A<int>
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
@@ -106,13 +106,13 @@ extension E<T> on List<T> {
 MethodInvocation
   target: SimpleIdentifier
     token: other
-    staticElement: self::@extension::E::@method::bar::@parameter::other
+    staticElement: <testLibraryFragment>::@extension::E::@method::bar::@parameter::other
     staticType: List<T>
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: T}
     staticType: List<T> Function()
   argumentList: ArgumentList
@@ -139,13 +139,13 @@ void f(String a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     staticType: String
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: String, U: U}
     staticType: Map<String, U> Function<U>(U)
   argumentList: ArgumentList
@@ -183,17 +183,17 @@ void f(A<int> a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     staticType: A<int>
   period: .
   identifier: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
   staticElement: MethodMember
-    base: self::@extension::E::@method::foo
+    base: <testLibraryFragment>::@extension::E::@method::foo
     substitution: {T: int, U: U}
   staticType: Map<int, U> Function<U>(U)
 ''');
@@ -217,7 +217,7 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       staticType: A<int>
     period: .
     identifier: SimpleIdentifier
@@ -230,13 +230,13 @@ AssignmentExpression
   rightHandSide: IntegerLiteral
     literal: 0
     parameter: ParameterMember
-      base: self::@extension::E::@setter::foo::@parameter::value
+      base: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value
       substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
   writeElement: PropertyAccessorMember
-    base: self::@extension::E::@setter::foo
+    base: <testLibraryFragment>::@extension::E::@setter::foo
     substitution: {T: int}
   writeType: int
   staticElement: <null>
@@ -260,13 +260,13 @@ void f<S extends num>(S x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     staticType: S
   operator: .
   methodName: SimpleIdentifier
     token: test
     staticElement: MethodMember
-      base: self::@extension::Test::@method::test
+      base: <testLibraryFragment>::@extension::Test::@method::test
       substitution: {T: S}
     staticType: S Function(S) Function()
   argumentList: ArgumentList
@@ -295,7 +295,7 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       staticType: S
     rightParenthesis: )
     staticType: S
@@ -303,7 +303,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: test
     staticElement: PropertyAccessorMember
-      base: self::@extension::Test::@getter::test
+      base: <testLibraryFragment>::@extension::Test::@getter::test
       substitution: {T: S}
     staticType: S Function(S)
   staticType: S Function(S)
@@ -331,7 +331,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: x
-        staticElement: self::@function::f::@parameter::x
+        staticElement: <testLibraryFragment>::@function::f::@parameter::x
         staticType: S
       rightParenthesis: )
       staticType: S
@@ -345,13 +345,13 @@ AssignmentExpression
   rightHandSide: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: self::@function::g
+      staticElement: <testLibraryFragment>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     parameter: ParameterMember
-      base: self::@extension::Test::@setter::test::@parameter::_
+      base: <testLibraryFragment>::@extension::Test::@setter::test::@parameter::_
       substitution: {T: S}
     staticInvokeType: S Function()
     staticType: S
@@ -360,7 +360,7 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: PropertyAccessorMember
-    base: self::@extension::Test::@setter::test
+    base: <testLibraryFragment>::@extension::Test::@setter::test
     substitution: {T: S}
   writeType: S
   staticElement: <null>
@@ -436,7 +436,7 @@ PropertyAccess
       arguments
         NamedType
           name: num
-          element: dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -445,10 +445,10 @@ PropertyAccess
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
           staticType: A<int>
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -457,7 +457,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: PropertyAccessorMember
-      base: self::@extension::E::@getter::foo
+      base: <testLibraryFragment>::@extension::E::@getter::foo
       substitution: {T: num}
     staticType: List<num>
   staticType: List<num>
@@ -487,7 +487,7 @@ MethodInvocation
       arguments
         NamedType
           name: num
-          element: dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -496,10 +496,10 @@ MethodInvocation
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
           staticType: A<int>
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -508,7 +508,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: num, U: U}
     staticType: Map<num, U> Function<U>(U)
   argumentList: ArgumentList
@@ -551,7 +551,7 @@ PropertyAccess
       arguments
         NamedType
           name: num
-          element: dart:core::@class::num
+          element: dart:core::<fragment>::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -560,10 +560,10 @@ PropertyAccess
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
           staticType: A<int>
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -572,7 +572,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: num, U: U}
     staticType: Map<num, U> Function<U>(U)
   staticType: Map<num, U> Function<U>(U)
@@ -603,7 +603,7 @@ AssignmentExpression
         arguments
           NamedType
             name: num
-            element: dart:core::@class::num
+            element: dart:core::<fragment>::@class::num
             type: num
         rightBracket: >
       argumentList: ArgumentList
@@ -612,10 +612,10 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             parameter: <null>
-            staticElement: self::@function::f::@parameter::a
+            staticElement: <testLibraryFragment>::@function::f::@parameter::a
             staticType: A<int>
         rightParenthesis: )
-      element: self::@extension::E
+      element: <testLibraryFragment>::@extension::E
       extendedType: A<num>
       staticType: null
       typeArgumentTypes
@@ -630,13 +630,13 @@ AssignmentExpression
   rightHandSide: DoubleLiteral
     literal: 1.2
     parameter: ParameterMember
-      base: self::@extension::E::@setter::foo::@parameter::value
+      base: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value
       substitution: {T: num}
     staticType: double
   readElement: <null>
   readType: null
   writeElement: PropertyAccessorMember
-    base: self::@extension::E::@setter::foo
+    base: <testLibraryFragment>::@extension::E::@setter::foo
     substitution: {T: num}
   writeType: num
   staticElement: <null>
@@ -685,10 +685,10 @@ PropertyAccess
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
           staticType: A<int>
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -697,7 +697,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: PropertyAccessorMember
-      base: self::@extension::E::@getter::foo
+      base: <testLibraryFragment>::@extension::E::@getter::foo
       substitution: {T: int}
     staticType: List<int>
   staticType: List<int>
@@ -728,10 +728,10 @@ MethodInvocation
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
           staticType: A<int>
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -740,7 +740,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
@@ -784,10 +784,10 @@ PropertyAccess
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
           staticType: A<int>
       rightParenthesis: )
-    element: self::@extension::E
+    element: <testLibraryFragment>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -796,7 +796,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <testLibraryFragment>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
   staticType: Map<int, U> Function<U>(U)
@@ -827,10 +827,10 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             parameter: <null>
-            staticElement: self::@function::f::@parameter::a
+            staticElement: <testLibraryFragment>::@function::f::@parameter::a
             staticType: A<int>
         rightParenthesis: )
-      element: self::@extension::E
+      element: <testLibraryFragment>::@extension::E
       extendedType: A<int>
       staticType: null
       typeArgumentTypes
@@ -845,13 +845,13 @@ AssignmentExpression
   rightHandSide: IntegerLiteral
     literal: 0
     parameter: ParameterMember
-      base: self::@extension::E::@setter::foo::@parameter::value
+      base: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value
       substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
   writeElement: PropertyAccessorMember
-    base: self::@extension::E::@setter::foo
+    base: <testLibraryFragment>::@extension::E::@setter::foo
     substitution: {T: int}
   writeType: int
   staticElement: <null>

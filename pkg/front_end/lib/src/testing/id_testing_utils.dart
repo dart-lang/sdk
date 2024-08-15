@@ -140,7 +140,7 @@ ClassBuilder? lookupClassBuilder(
   LibraryBuilder libraryBuilder = lookupLibraryBuilder(
       compilerResult, cls.enclosingLibrary,
       required: required)!;
-  ClassBuilder? clsBuilder = libraryBuilder.scope
+  ClassBuilder? clsBuilder = libraryBuilder.nameSpace
       .lookupLocalMember(cls.name, setter: false) as ClassBuilder?;
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
@@ -155,7 +155,7 @@ ExtensionBuilder? lookupExtensionBuilder(
       compilerResult, extension.enclosingLibrary,
       required: required)!;
   ExtensionBuilder? extensionBuilder;
-  libraryBuilder.scope.forEachLocalExtension((ExtensionBuilder builder) {
+  libraryBuilder.nameSpace.forEachLocalExtension((ExtensionBuilder builder) {
     if (builder.extension == extension) {
       extensionBuilder = builder;
     }
@@ -176,10 +176,9 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   MemberBuilder? memberBuilder;
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
-      memberBuilder =
-          classBuilder.constructorScope.lookupLocalMember(memberName);
+      memberBuilder = classBuilder.nameSpace.lookupConstructor(memberName);
     } else {
-      memberBuilder = classBuilder.scope.lookupLocalMember(memberName,
+      memberBuilder = classBuilder.nameSpace.lookupLocalMember(memberName,
           setter: member is Procedure && member.isSetter) as MemberBuilder?;
     }
   }
@@ -218,7 +217,7 @@ MemberBuilder? lookupMemberBuilder(
     LibraryBuilder libraryBuilder = lookupLibraryBuilder(
         compilerResult, member.enclosingLibrary,
         required: required)!;
-    memberBuilder = libraryBuilder.scope.lookupLocalMember(member.name.text,
+    memberBuilder = libraryBuilder.nameSpace.lookupLocalMember(member.name.text,
         setter: member is Procedure && member.isSetter) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {
@@ -240,7 +239,7 @@ MemberBuilder? lookupExtensionMemberBuilder(
       lookupExtensionBuilder(compilerResult, extension, required: required);
   MemberBuilder? memberBuilder;
   if (extensionBuilder != null) {
-    memberBuilder = extensionBuilder.scope
+    memberBuilder = extensionBuilder.nameSpace
         .lookupLocalMember(memberName, setter: isSetter) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {

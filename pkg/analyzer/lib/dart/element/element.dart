@@ -106,6 +106,9 @@ abstract class AugmentedExtensionElement implements AugmentedInstanceElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedExtensionTypeElement
     implements AugmentedInterfaceElement {
+  @override
+  ExtensionTypeElement get declaration;
+
   /// The primary constructor of this extension.
   ConstructorElement get primaryConstructor;
 
@@ -387,6 +390,11 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   @override
   LibraryOrAugmentationElement get enclosingElement;
 
+  /// The [CompilationUnitElement] that uses `part` directive to include this
+  /// element, or `null` if this element is the defining unit of the library.
+  @override
+  CompilationUnitElement? get enclosingElement3;
+
   /// The enums declared in this compilation unit.
   List<EnumElement> get enums;
 
@@ -400,11 +408,25 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// The top-level functions declared in this compilation unit.
   List<FunctionElement> get functions;
 
+  /// The libraries exported by this unit.
+  List<LibraryExportElement> get libraryExports;
+
+  /// The prefixes used by [libraryImports].
+  ///
+  /// Each prefix can be used in more than one `import` directive.
+  List<PrefixElement> get libraryImportPrefixes;
+
+  /// The libraries imported by this unit.
+  List<LibraryImportElement> get libraryImports;
+
   /// The [LineInfo] for the [source].
   LineInfo get lineInfo;
 
   /// The mixins declared in this compilation unit.
   List<MixinElement> get mixins;
+
+  /// The parts included by this unit.
+  List<PartElement> get parts;
 
   @override
   AnalysisSession get session;
@@ -605,6 +627,16 @@ abstract class Element implements AnalysisTarget {
   /// This will be `null` if this element is a library because libraries are
   /// the top-level elements in the model.
   Element? get enclosingElement;
+
+  /// The element that either physically or logically encloses this element.
+  ///
+  /// For [LibraryElement] returns `null`, because libraries are the top-level
+  /// elements in the model.
+  ///
+  /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
+  /// uses `part` directive to include this element, or `null` if this element
+  /// is the defining unit of the library.
+  Element? get enclosingElement3;
 
   /// Whether the element has an annotation of the form `@alwaysThrows`.
   bool get hasAlwaysThrows;
@@ -831,8 +863,19 @@ abstract class Element implements AnalysisTarget {
   );
 
   /// Returns either this element or the most immediate ancestor of this element
+  /// for which the [predicate] returns `true`, or `null` if there is no such
+  /// element.
+  E? thisOrAncestorMatching3<E extends Element>(
+    bool Function(Element) predicate,
+  );
+
+  /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type, or `null` if there is no such element.
   E? thisOrAncestorOfType<E extends Element>();
+
+  /// Returns either this element or the most immediate ancestor of this element
+  /// that has the given type, or `null` if there is no such element.
+  E? thisOrAncestorOfType3<E extends Element>();
 
   /// Uses the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
@@ -1869,6 +1912,10 @@ abstract class LibraryAugmentationElement
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement
     implements LibraryOrAugmentationElement, _ExistingElement {
+  /// Returns `null`, because libraries are the top-level elements in the model.
+  @override
+  Null get enclosingElement3;
+
   /// The entry point for this library, or `null` if this library does
   /// not have an entry point.
   ///
@@ -2162,7 +2209,7 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class NamespaceCombinator {}
+sealed class NamespaceCombinator {}
 
 /// A parameter defined within an executable element.
 ///

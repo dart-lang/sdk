@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -19,89 +18,32 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/tree_string_sink.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisContextCollectionLowTest);
-    defineReflectiveTests(
-        AnalysisContextCollectionLowTest_SingleOptionsPerContext);
     defineReflectiveTests(AnalysisContextCollectionTest);
-    defineReflectiveTests(
-        AnalysisContextCollectionTest_SingleOptionsPerContext);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
-/// Cached state to restore on test tearDown.
-final _singleOptionsContextsDefault = ContextLocatorImpl.singleOptionContexts;
-
 @reflectiveTest
-class AnalysisContextCollectionLowTest
-    with ResourceProviderMixin, AnalysisContextCollectionLowTestMixin {}
-
-/// To be removed when `singleOptionContexts` defaults to false.
-@reflectiveTest
-class AnalysisContextCollectionLowTest_SingleOptionsPerContext
-    with ResourceProviderMixin, AnalysisContextCollectionLowTestMixin {
-  @override
-  bool get enableSingleOptionContexts => true;
-
-  @override
-  test_new_outer_inner() {
-    var outerFolder = newFolder('/test/outer');
-    newFile('/test/outer/lib/outer.dart', '');
-
-    var innerFolder = newFolder('/test/outer/inner');
-    newAnalysisOptionsYamlFile('/test/outer/inner', '');
-    newFile('/test/outer/inner/inner.dart', '');
-
-    var collection = _newCollection(includedPaths: [outerFolder.path]);
-
-    expect(collection.contexts, hasLength(2));
-
-    var outerContext = collection.contexts
-        .singleWhere((c) => c.contextRoot.root == outerFolder);
-    var innerContext = collection.contexts
-        .singleWhere((c) => c.contextRoot.root == innerFolder);
-    expect(innerContext, isNot(same(outerContext)));
-
-    // Outer and inner contexts own corresponding files.
-    expect(collection.contextFor(convertPath('/test/outer/lib/outer.dart')),
-        same(outerContext));
-    expect(collection.contextFor(convertPath('/test/outer/inner/inner.dart')),
-        same(innerContext));
-
-    // The file does not have to exist, during creation, or at all.
-    expect(collection.contextFor(convertPath('/test/outer/lib/outer2.dart')),
-        same(outerContext));
-    expect(collection.contextFor(convertPath('/test/outer/inner/inner2.dart')),
-        same(innerContext));
-  }
-}
-
-mixin AnalysisContextCollectionLowTestMixin on ResourceProviderMixin {
-  bool get enableSingleOptionContexts => false;
-
+class AnalysisContextCollectionLowTest with ResourceProviderMixin {
   Folder get sdkRoot => newFolder('/sdk');
 
   void setUp() {
-    ContextLocatorImpl.singleOptionContexts = enableSingleOptionContexts;
     createMockSdk(
       resourceProvider: resourceProvider,
       root: sdkRoot,
     );
     registerLintRules();
-  }
-
-  void tearDown() {
-    ContextLocatorImpl.singleOptionContexts = _singleOptionsContextsDefault;
   }
 
   test_contextFor_noContext() {
@@ -139,9 +81,9 @@ linter:
 
     var packageConfigFileBuilder = PackageConfigFileBuilder()
       ..add(name: 'foo', rootPath: fooFolder.path);
-    newPackageConfigJsonFile(
+    newPackageConfigJsonFileFromBuilder(
       rootFolder.path,
-      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+      packageConfigFileBuilder,
     );
 
     var optionsFile = newAnalysisOptionsYamlFile(rootFolder.path, r'''
@@ -237,419 +179,18 @@ linter:
 }
 
 @reflectiveTest
-class AnalysisContextCollectionTest
-    with ResourceProviderMixin, AnalysisContextCollectionTestMixin {}
-
-/// To be removed when `singleOptionContexts` defaults to false.
-@reflectiveTest
-class AnalysisContextCollectionTest_SingleOptionsPerContext
-    with ResourceProviderMixin, AnalysisContextCollectionTestMixin {
-  @override
-  bool get enableSingleOptionContexts => true;
-
-  @override
-  test_packageConfigWorkspace_multipleAnalysisOptions() async {
-    var workspaceRootPath = '/home';
-    var testPackageRootPath = '$workspaceRootPath/test';
-    var testPackageLibPath = '$testPackageRootPath/lib';
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
-    newFile('$testPackageLibPath/a.dart', '');
-
-    var nestedPath = '$testPackageLibPath/nested';
-    newAnalysisOptionsYamlFile(nestedPath, '');
-    newFile('$nestedPath/b.dart', '');
-
-    _assertWorkspaceCollectionText(workspaceRootPath, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-  /home/test/lib/nested
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_1
-    analyzedFiles
-      /home/test/lib/nested/b.dart
-        uri: package:test/nested/b.dart
-        analysisOptions_1
-        workspacePackage_1_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-  workspace_1: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_1_0: PubPackage
-        root: /home/test
-''');
-  }
-
-  @override
-  test_packageConfigWorkspace_multipleAnalysisOptions_nestedExclude() async {
-    var workspaceRootPath = '/home';
-    var testPackageRootPath = '$workspaceRootPath/test';
-    var testPackageLibPath = '$testPackageRootPath/lib';
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
-    newFile('$testPackageLibPath/a.dart', '');
-
-    var nestedPath = '$testPackageLibPath/nested';
-    newAnalysisOptionsYamlFile(nestedPath, r'''
-analyzer:
-  exclude:
-    - excluded/**
-''');
-    newFile('$nestedPath/b.dart', '');
-    newFile('$nestedPath/excluded/b.dart', '');
-
-    _assertWorkspaceCollectionText(workspaceRootPath, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-  /home/test/lib/nested
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_1
-    analyzedFiles
-      /home/test/lib/nested/b.dart
-        uri: package:test/nested/b.dart
-        analysisOptions_1
-        workspacePackage_1_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-  workspace_1: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_1_0: PubPackage
-        root: /home/test
-''');
-  }
-
-  @override
-  test_packageConfigWorkspace_multipleAnalysisOptions_nestedNestedExclude() async {
-    var workspaceRootPath = '/home';
-    var testPackageRootPath = '$workspaceRootPath/test';
-    var testPackageLibPath = '$testPackageRootPath/lib';
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
-    newFile('$testPackageLibPath/a.dart', '');
-
-    var nestedPath = '$testPackageLibPath/nested';
-    newAnalysisOptionsYamlFile(nestedPath, r'''
-analyzer:
-  exclude:
-    - excluded/**
-''');
-    newFile('$nestedPath/b.dart', '');
-    newFile('$nestedPath/excluded/b.dart', '');
-
-    var nestedNestedPath = '$nestedPath/nested';
-    newAnalysisOptionsYamlFile(nestedNestedPath, r'''
-analyzer:
-  exclude:
-    - excluded/**
-''');
-    newFile('$nestedNestedPath/c.dart', '');
-    newFile('$nestedNestedPath/excluded/d.dart', '');
-
-    _assertWorkspaceCollectionText(workspaceRootPath, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-  /home/test/lib/nested
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_1
-    analyzedFiles
-      /home/test/lib/nested/b.dart
-        uri: package:test/nested/b.dart
-        analysisOptions_1
-        workspacePackage_1_0
-  /home/test/lib/nested/nested
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_2
-    analyzedFiles
-      /home/test/lib/nested/nested/c.dart
-        uri: package:test/nested/nested/c.dart
-        analysisOptions_2
-        workspacePackage_2_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
-  analysisOptions_2: /home/test/lib/nested/nested/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-  workspace_1: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_1_0: PubPackage
-        root: /home/test
-  workspace_2: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_2_0: PubPackage
-        root: /home/test
-''');
-  }
-
-  @override
-  test_packageConfigWorkspace_multipleAnalysisOptions_outerExclude() async {
-    var workspaceRootPath = '/home';
-    var testPackageRootPath = '$workspaceRootPath/test';
-    var testPackageLibPath = '$testPackageRootPath/lib';
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
-analyzer:
-  exclude:
-    - excluded/**
-''');
-    newFile('$testPackageLibPath/a.dart', '');
-    newFile('$testPackageRootPath/excluded/b.dart', '');
-
-    var nestedPath = '$testPackageLibPath/nested';
-    newAnalysisOptionsYamlFile(nestedPath, '');
-    newFile('$nestedPath/b.dart', '');
-
-    _assertWorkspaceCollectionText(workspaceRootPath, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-  /home/test/lib/nested
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_1
-    analyzedFiles
-      /home/test/lib/nested/b.dart
-        uri: package:test/nested/b.dart
-        analysisOptions_1
-        workspacePackage_1_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-  workspace_1: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_1_0: PubPackage
-        root: /home/test
-''');
-  }
-
-  @override
-  test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions() async {
-    var workspaceRootPath = '/home';
-    var testPackageRootPath = '$workspaceRootPath/test';
-    var testPackageLibPath = '$testPackageRootPath/lib';
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    var rootOptionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '');
-    newFile('$testPackageLibPath/a.dart', '');
-
-    var nestedPath = '$testPackageLibPath/nested';
-    newAnalysisOptionsYamlFile(nestedPath, '');
-    newFile('$nestedPath/b.dart', '');
-
-    // Verify that despite the nested options file
-    // (/home/test/nested/analysis_options.yaml), the nested file gets analyzed
-    // with the outer one (/home/test/analysis_options.yaml) as passed into
-    // the AnalysisContextCollection.
-    _assertWorkspaceCollectionText(
-        workspaceRootPath, optionsFile: rootOptionsFile, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-      /home/test/lib/nested/b.dart
-        uri: package:test/nested/b.dart
-        analysisOptions_0
-        workspacePackage_0_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-''');
-  }
-
-  @override
-  test_packageConfigWorkspace_singleAnalysisOptions_multipleContexts() async {
-    var workspaceRootPath = '/home';
-    var testPackageRootPath = '$workspaceRootPath/test';
-    var testPackageLibPath = '$testPackageRootPath/lib';
-
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    newFile('$testPackageLibPath/a.dart', '');
-
-    var nestedPackageRootPath = '$testPackageRootPath/nested';
-    newPubspecYamlFile(nestedPackageRootPath, r'''
-name: nested
-''');
-    newSinglePackageConfigJsonFile(
-      packagePath: nestedPackageRootPath,
-      name: 'nested',
-    );
-    newFile('$nestedPackageRootPath/lib/b.dart', '');
-
-    // TODO(pq): there should only be one shared options instance
-    _assertWorkspaceCollectionText(workspaceRootPath, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-  /home/test/nested
-    packagesFile: /home/test/nested/.dart_tool/package_config.json
-    workspace: workspace_1
-    analyzedFiles
-      /home/test/nested/lib/b.dart
-        uri: package:nested/b.dart
-        analysisOptions_1
-        workspacePackage_1_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-  analysisOptions_1: /home/test/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-  workspace_1: PackageConfigWorkspace
-    root: /home/test/nested
-    pubPackages
-      workspacePackage_1_0: PubPackage
-        root: /home/test/nested
-''');
-  }
-}
-
-mixin AnalysisContextCollectionTestMixin on ResourceProviderMixin {
+class AnalysisContextCollectionTest with ResourceProviderMixin {
   final _AnalysisContextCollectionPrinterConfiguration configuration =
       _AnalysisContextCollectionPrinterConfiguration();
-
-  bool get enableSingleOptionContexts => false;
 
   Folder get sdkRoot => newFolder('/sdk');
 
   void setUp() {
-    ContextLocatorImpl.singleOptionContexts = enableSingleOptionContexts;
     createMockSdk(
       resourceProvider: resourceProvider,
       root: sdkRoot,
     );
     registerLintRules();
-  }
-
-  void tearDown() {
-    ContextLocatorImpl.singleOptionContexts = _singleOptionsContextsDefault;
   }
 
   test_basicWorkspace() async {
@@ -672,7 +213,7 @@ workspaces
   }
 
   test_packageConfigWorkspace_enabledExperiment() async {
-    configuration.showEnabledFeatures = true;
+    configuration.withEnabledFeatures = true;
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -698,7 +239,7 @@ name: test
       (analysisOptions as AnalysisOptionsImpl).contextFeatures =
           FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: ['variance'],
+        flags: ['digit-separators', 'variance'],
       );
     }, r'''
 contexts
@@ -712,30 +253,31 @@ contexts
         workspacePackage_0_0
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
-  features
-    class-modifiers
-    constant-update-2018
-    constructor-tearoffs
-    control-flow-collections
-    enhanced-enums
-    extension-methods
-    generic-metadata
-    inference-update-1
-    inference-update-2
-    inference-update-3
-    inline-class
-    named-arguments-anywhere
-    non-nullable
-    nonfunction-type-aliases
-    patterns
-    records
-    sealed-class
-    set-literals
-    spread-collections
-    super-parameters
-    triple-shift
-    unnamed-libraries
-    variance
+    features
+      class-modifiers
+      constant-update-2018
+      constructor-tearoffs
+      control-flow-collections
+      digit-separators
+      enhanced-enums
+      extension-methods
+      generic-metadata
+      inference-update-1
+      inference-update-2
+      inference-update-3
+      inline-class
+      named-arguments-anywhere
+      non-nullable
+      nonfunction-type-aliases
+      patterns
+      records
+      sealed-class
+      set-literals
+      spread-collections
+      super-parameters
+      triple-shift
+      unnamed-libraries
+      variance
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -746,8 +288,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_enabledExperiment_noAnalysisOptionsFile() async {
-    configuration.withAnalysisOptionsWithoutFiles = true;
-    configuration.showEnabledFeatures = true;
+    configuration
+      ..withAnalysisOptionsWithoutFiles = true
+      ..withEnabledFeatures = true;
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -785,30 +328,31 @@ contexts
         workspacePackage_0_0
 analysisOptions
   analysisOptions_0: <no file>
-  features
-    class-modifiers
-    constant-update-2018
-    constructor-tearoffs
-    control-flow-collections
-    enhanced-enums
-    extension-methods
-    generic-metadata
-    inference-update-1
-    inference-update-2
-    inference-update-3
-    inline-class
-    named-arguments-anywhere
-    non-nullable
-    nonfunction-type-aliases
-    patterns
-    records
-    sealed-class
-    set-literals
-    spread-collections
-    super-parameters
-    triple-shift
-    unnamed-libraries
-    variance
+    features
+      class-modifiers
+      constant-update-2018
+      constructor-tearoffs
+      control-flow-collections
+      digit-separators
+      enhanced-enums
+      extension-methods
+      generic-metadata
+      inference-update-1
+      inference-update-2
+      inference-update-3
+      inline-class
+      named-arguments-anywhere
+      non-nullable
+      nonfunction-type-aliases
+      patterns
+      records
+      sealed-class
+      set-literals
+      spread-collections
+      super-parameters
+      triple-shift
+      unnamed-libraries
+      variance
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -1531,23 +1075,34 @@ class _AnalysisContextCollectionPrinter {
         .toList();
 
     sink.writeElements('analysisOptions', filtered, (pair) {
-      var id = _idOfAnalysisOptions(pair.$1);
+      var analysisOptions = pair.$1;
       var file = pair.$2;
+      var id = _idOfAnalysisOptions(analysisOptions);
       if (file == null && configuration.withAnalysisOptionsWithoutFiles) {
         sink.writelnWithIndent('$id: <no file>');
       } else {
         _writeNamedFile(id, file);
       }
-      if (configuration.showEnabledFeatures) {
-        var options = pair.$1;
-        var contextFeatures = options.contextFeatures;
-        var enabledFeatures = ExperimentStatus.knownFeatures.values
-            .where((f) => contextFeatures.isEnabled(f))
-            .toList();
-        sink.writeElements('features', enabledFeatures, (feature) {
-          sink.writelnWithIndent(feature);
-        });
-      }
+      sink.withIndent(() {
+        if (configuration.withEnabledFeatures) {
+          var contextFeatures = analysisOptions.contextFeatures;
+          var enabledFeatures = ExperimentStatus.knownFeatures.values
+              .where((f) => contextFeatures.isEnabled(f))
+              .toList();
+          sink.writeElements('features', enabledFeatures, (feature) {
+            sink.writelnWithIndent(feature);
+          });
+        }
+        if (configuration.withLintRules) {
+          sink.writeElements(
+            'lintRules',
+            analysisOptions.lintRules,
+            (lintRule) {
+              sink.writelnWithIndent(lintRule.name);
+            },
+          );
+        }
+      });
     });
   }
 
@@ -1638,7 +1193,8 @@ class _AnalysisContextCollectionPrinter {
 }
 
 class _AnalysisContextCollectionPrinterConfiguration {
-  bool showEnabledFeatures = false;
-  bool withEmptyContextRoots = false;
   bool withAnalysisOptionsWithoutFiles = false;
+  bool withEmptyContextRoots = false;
+  bool withEnabledFeatures = false;
+  bool withLintRules = false;
 }

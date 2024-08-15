@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = "Don't type annotate initializing formals.";
 
@@ -67,19 +68,18 @@ class B extends A {
 ''';
 
 class TypeInitFormals extends LintRule {
-  static const LintCode code = LintCode('type_init_formals',
-      "Don't needlessly type annotate initializing formals.",
-      correctionMessage: 'Try removing the type.', hasPublishedDocs: true);
-
   TypeInitFormals()
       : super(
             name: 'type_init_formals',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.type_init_formals;
 
   @override
   void registerNodeProcessors(

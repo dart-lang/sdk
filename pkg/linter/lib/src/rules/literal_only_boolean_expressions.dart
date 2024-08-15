@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Boolean expression composed only with literals.';
 
@@ -110,20 +111,15 @@ bool _onlyLiterals(Expression? rawExpression) {
 }
 
 class LiteralOnlyBooleanExpressions extends LintRule {
-  static const LintCode code = LintCode('literal_only_boolean_expressions',
-      'The Boolean expression has a constant value.',
-      correctionMessage: 'Try changing the expression.',
-      hasPublishedDocs: true);
-
   LiteralOnlyBooleanExpressions()
       : super(
             name: 'literal_only_boolean_expressions',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {LintRuleCategory.unusedCode});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.literal_only_boolean_expressions;
 
   @override
   void registerNodeProcessors(

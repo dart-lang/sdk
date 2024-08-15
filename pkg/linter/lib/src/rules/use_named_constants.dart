@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const lintName = 'use_named_constants';
 
@@ -29,20 +30,16 @@ Duration.zero;
 ''';
 
 class UseNamedConstants extends LintRule {
-  static const LintCode code = LintCode('use_named_constants',
-      "Use the constant '{0}' rather than a constructor returning the same object.",
-      correctionMessage: "Try using '{0}'.");
-
   UseNamedConstants()
       : super(
           name: lintName,
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_named_constants;
 
   @override
   void registerNodeProcessors(

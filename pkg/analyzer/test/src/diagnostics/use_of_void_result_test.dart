@@ -65,7 +65,7 @@ class A {
     a = f();
   }
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 49, 1),
     ]);
   }
@@ -79,7 +79,7 @@ class A {
     a = m();
   }
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 51, 1),
     ]);
   }
@@ -148,7 +148,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
   }
 
@@ -160,7 +160,7 @@ class A {
     for(Object a = m();;) {}
   }
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 51, 1),
     ]);
   }
@@ -174,7 +174,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
   }
 
@@ -205,7 +205,7 @@ g() {
   var a = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
   }
 
@@ -628,7 +628,7 @@ void f(void x) {
   void y = x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1),
     ]);
   }
 
@@ -640,7 +640,7 @@ class A {
     Object a = f();
   }
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 45, 1),
     ]);
   }
@@ -654,7 +654,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
     ]);
   }
 
@@ -666,9 +666,9 @@ class A {
     Object a = m(), b = m();
   }
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 47, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 56, 1),
     ]);
   }
@@ -681,7 +681,7 @@ class A {
     Object a = m();
   }
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 47, 1),
     ]);
   }
@@ -695,7 +695,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1),
     ]);
   }
 

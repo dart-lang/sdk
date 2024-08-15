@@ -228,7 +228,7 @@ final F;
 f() {
   final int x;
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
     ]);
   }
 
@@ -238,7 +238,7 @@ f() {
   late final x = 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
   }
 
@@ -248,7 +248,7 @@ f() {
   late final x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
   }
 

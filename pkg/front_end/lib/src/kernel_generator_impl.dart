@@ -48,8 +48,9 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
     bool truncateSummary = false,
     bool includeOffsets = true,
     bool includeHierarchyAndCoreTypes = false}) async {
-  return await CompilerContext.runWithOptions(options, (_) async {
-    return await generateKernelInternal(
+  return await CompilerContext.runWithOptions(options,
+      (CompilerContext c) async {
+    return await generateKernelInternal(c,
         buildSummary: buildSummary,
         buildComponent: buildComponent,
         truncateSummary: truncateSummary,
@@ -61,6 +62,7 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
 /// Note that if [buildSummary] is true it will be default serialize the summary
 /// but this can be disabled by setting [serializeIfBuildingSummary] to false.
 Future<InternalCompilerResult> generateKernelInternal(
+    CompilerContext compilerContext,
     {bool buildSummary = false,
     bool serializeIfBuildingSummary = true,
     bool buildComponent = true,
@@ -71,7 +73,7 @@ Future<InternalCompilerResult> generateKernelInternal(
     Benchmarker? benchmarker,
     Instrumentation? instrumentation,
     List<Component>? additionalDillsForTesting}) async {
-  ProcessedOptions options = CompilerContext.current.options;
+  ProcessedOptions options = compilerContext.options;
   assert(options.haveBeenValidated, "Options have not been validated");
 
   options.reportNullSafetyCompilationModeInfo();
@@ -84,7 +86,7 @@ Future<InternalCompilerResult> generateKernelInternal(
       UriTranslator uriTranslator = await options.getUriTranslator();
 
       DillTarget dillTarget = new DillTarget(
-          options.ticker, uriTranslator, options.target,
+          compilerContext, options.ticker, uriTranslator, options.target,
           benchmarker: benchmarker);
 
       List<Component> loadedComponents = <Component>[];
@@ -114,8 +116,8 @@ Future<InternalCompilerResult> generateKernelInternal(
 
       dillTarget.buildOutlines();
 
-      KernelTarget kernelTarget =
-          new KernelTarget(fs, false, dillTarget, uriTranslator);
+      KernelTarget kernelTarget = new KernelTarget(
+          compilerContext, fs, false, dillTarget, uriTranslator);
       sourceLoader = kernelTarget.loader;
       sourceLoader!.instrumentation = instrumentation;
       kernelTarget.setEntryPoints(options.inputs);
@@ -135,7 +137,7 @@ Future<InternalCompilerResult> generateKernelInternal(
       kernelTarget.benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
-      return _buildInternal(
+      return _buildInternal(compilerContext,
           options: options,
           kernelTarget: kernelTarget,
           nameRoot: nameRoot,
@@ -156,7 +158,7 @@ Future<InternalCompilerResult> generateKernelInternal(
           new UriOffset(options.inputs.first, TreeNode.noOffset));
 }
 
-Future<InternalCompilerResult> _buildInternal(
+Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     {required ProcessedOptions options,
     required KernelTarget kernelTarget,
     required CanonicalName? nameRoot,
@@ -177,9 +179,9 @@ Future<InternalCompilerResult> _buildInternal(
     // Coverage-ignore-block(suite): Not run.
     if (options.verify) {
       List<LocatedMessage> errors = verifyComponent(
-          options.target, VerificationStage.outline, summaryComponent);
+          compilerContext, VerificationStage.outline, summaryComponent);
       for (LocatedMessage error in errors) {
-        options.report(error, Severity.error);
+        options.report(compilerContext, error, Severity.error);
       }
       assert(errors.isEmpty, "Verification errors found.");
     }
@@ -265,7 +267,6 @@ Future<InternalCompilerResult> _buildInternal(
           includeHierarchyAndCoreTypes ? kernelTarget.loader.hierarchy : null,
       coreTypes:
           includeHierarchyAndCoreTypes ? kernelTarget.loader.coreTypes : null,
-      deps: new List<Uri>.from(CompilerContext.current.dependencies),
       kernelTargetForTesting: retainDataForTesting ? kernelTarget : null);
 }
 
@@ -285,13 +286,6 @@ class InternalCompilerResult implements CompilerResult {
   @override
   final List<Component> loadedComponents;
 
-  /// Dependencies traversed by the compiler. Used only for generating
-  /// dependency .GN files in the dart-sdk build system.
-  /// Note this might be removed when we switch to compute dependencies without
-  /// using the compiler itself.
-  @override
-  final List<Uri> deps;
-
   @override
   final ClassHierarchy? classHierarchy;
 
@@ -308,7 +302,6 @@ class InternalCompilerResult implements CompilerResult {
       this.component,
       this.sdkComponent,
       required this.loadedComponents,
-      required this.deps,
       this.classHierarchy,
       this.coreTypes,
       this.kernelTargetForTesting});

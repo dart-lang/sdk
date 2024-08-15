@@ -3,10 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using `as`.';
 
 const _details = r'''
+NOTE: This rule was removed from the SDK in Dart 3; it is no longer functional.
+Its advice is compiler-specific and mostly obsolete with null safety.
+
 **AVOID** using `as`.
 
 If you know the type is correct, use an assertion or assign to a more
@@ -44,18 +48,15 @@ HasScrollDirection scrollable = renderObject as dynamic;
 ''';
 
 class AvoidAs extends LintRule {
-  static const LintCode code = LintCode('avoid_as', "Unnecessary use of 'as'.",
-      correctionMessage: "Try adding an explicit type check ('is').");
-
   AvoidAs()
       : super(
           name: 'avoid_as',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
           state: State.removed(since: dart2_12),
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }

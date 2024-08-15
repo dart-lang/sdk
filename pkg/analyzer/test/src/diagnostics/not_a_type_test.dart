@@ -49,7 +49,7 @@ E a;
     assertResolvedNodeText(node, r'''
 NamedType
   name: E
-  element: self::@extension::E
+  element: <testLibraryFragment>::@extension::E
   type: InvalidType
 ''');
   }
@@ -61,7 +61,7 @@ main() {
   f v = null;
 }''', [
       error(CompileTimeErrorCode.NOT_A_TYPE, 18, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 20, 1),
     ]);
   }
 }

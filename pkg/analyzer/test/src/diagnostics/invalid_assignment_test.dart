@@ -389,7 +389,7 @@ f() {
   g = () => 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
     ]);
   }
 
@@ -537,7 +537,7 @@ int Function() foo(int Function<T extends int>() f) {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: self::@function::foo::@parameter::f
+    staticElement: <testLibraryFragment>::@function::foo::@parameter::f
     staticType: int Function<T extends int>()
   staticType: int Function()
   typeArgumentTypes
@@ -701,7 +701,7 @@ f() {
   x = y;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
     ]);
   }
 
@@ -722,7 +722,7 @@ f() {
   x = '0';
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 21, 3),
     ]);
   }
@@ -895,10 +895,10 @@ void f<X extends A, Y extends B>(X x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 127, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 140, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 153, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 167, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 127, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 140, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 153, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 167, 1),
     ]);
   }
 

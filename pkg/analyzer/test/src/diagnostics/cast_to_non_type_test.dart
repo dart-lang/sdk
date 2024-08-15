@@ -19,7 +19,7 @@ class CastToNonTypeTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 var A = 0;
 f(String s) { var x = s as A; }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
       error(CompileTimeErrorCode.CAST_TO_NON_TYPE, 38, 1),
     ]);
   }

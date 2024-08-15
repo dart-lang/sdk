@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -28,7 +27,9 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -221,7 +222,10 @@ abstract class ContextResolutionTest
       libraryContext: analysisDriver.libraryContext,
       configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
-      sink: buffer,
+      sink: TreeStringSink(
+        sink: buffer,
+        indent: '',
+      ),
       withKeysGetPut: false,
     ).writeAnalysisDriver(analysisDriver.testView!);
     var actual = buffer.toString();
@@ -335,12 +339,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
-  List<String> get experiments {
-    return [
-      Feature.macros.enableString,
-      Feature.wildcard_variables.enableString,
-    ];
-  }
+  List<String> get experiments => experimentsForTests;
 
   @override
   String get packagesRootPath => '/packages';

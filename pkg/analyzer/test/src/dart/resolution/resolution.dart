@@ -21,11 +21,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 import '../../../util/element_printer.dart';
-import '../../../util/tree_string_sink.dart';
 import '../../summary/macros_environment.dart';
 import '../../summary/resolved_ast_printer.dart';
 import '../analysis/result_printer.dart';
@@ -113,7 +113,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: '${libraryElement.source.uri}',
     );
     DartObjectPrinter(
       configuration: dartObjectPrinterConfiguration,
@@ -122,8 +121,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ).write(object as DartObjectImpl?);
     var actual = buffer.toString();
     if (actual != expected) {
-      NodeTextExpectationsCollector.add(actual);
       print(actual);
+      NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
   }
@@ -275,7 +274,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
     );
 
     node.accept(
@@ -314,7 +312,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       elementPrinter: ElementPrinter(
         sink: sink,
         configuration: ElementPrinterConfiguration(),
-        selfUriStr: null,
       ),
     ).write(result);
 
@@ -520,7 +517,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withInterfaceTypeElements
         ..withRedirectedConstructors =
             nodeTextConfiguration.withRedirectedConstructors,
-      selfUriStr: '${result.libraryElement.source.uri}',
     );
     node.accept(
       ResolvedAstPrinter(

@@ -555,28 +555,6 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   return outer_scope;
 }
 
-void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
-  ASSERT(top_scope->function_level() == function_level());
-  LocalScope* scope = this;
-  while (scope != top_scope->parent()) {
-    for (intptr_t i = 0; i < scope->num_variables(); i++) {
-      LocalVariable* variable = scope->VariableAt(i);
-      if (variable->is_forced_stack() ||
-          (variable->name().ptr() == Symbols::ExceptionVar().ptr()) ||
-          (variable->name().ptr() == Symbols::SavedTryContextVar().ptr()) ||
-          (variable->name().ptr() == Symbols::ArgDescVar().ptr()) ||
-          (variable->name().ptr() ==
-           Symbols::FunctionTypeArgumentsVar().ptr())) {
-        // Don't capture those variables because the VM expects them to be on
-        // the stack.
-        continue;
-      }
-      scope->CaptureVariable(variable);
-    }
-    scope = scope->parent();
-  }
-}
-
 ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   const intptr_t kNumCapturedVars = 1;
 

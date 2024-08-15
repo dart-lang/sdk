@@ -37,14 +37,14 @@ FunctionReference
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <testLibraryFragment>::@class::A
           type: null
         period: .
         name: SimpleIdentifier
           token: foo
-          staticElement: self::@class::A::@constructor::foo
+          staticElement: <testLibraryFragment>::@class::A::@constructor::foo
           staticType: null
-        staticElement: self::@class::A::@constructor::foo
+        staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: A<T> Function<T>()
     rightParenthesis: )
     staticType: A<T> Function<T>()
@@ -53,7 +53,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -79,14 +79,14 @@ FunctionReference
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <testLibraryFragment>::@class::A
           type: null
         period: .
         name: SimpleIdentifier
           token: new
-          staticElement: self::@class::A::@constructor::new
+          staticElement: <testLibraryFragment>::@class::A::@constructor::new
           staticType: null
-        staticElement: self::@class::A::@constructor::new
+        staticElement: <testLibraryFragment>::@class::A::@constructor::new
       staticType: A<T> Function<T>()
     rightParenthesis: )
     staticType: A<T> Function<T>()
@@ -95,7 +95,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -123,21 +123,21 @@ FunctionReference
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: self::@class::A
+        element: <testLibraryFragment>::@class::A
         type: null
       period: .
       name: SimpleIdentifier
         token: foo
-        staticElement: self::@class::A::@constructor::foo
+        staticElement: <testLibraryFragment>::@class::A::@constructor::foo
         staticType: null
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
     staticType: A<T> Function<T>()
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -162,23 +162,23 @@ FunctionReference
         importPrefix: ImportPrefixReference
           name: a
           period: .
-          element: self::@prefix::a
+          element: <testLibraryFragment>::@prefix::a
         name: Future
-        element: dart:async::@class::Future
+        element: dart:async::<fragment>::@class::Future
         type: null
       period: .
       name: SimpleIdentifier
         token: delayed
-        staticElement: dart:async::@class::Future::@constructor::delayed
+        staticElement: dart:async::<fragment>::@class::Future::@constructor::delayed
         staticType: null
-      staticElement: dart:async::@class::Future::@constructor::delayed
+      staticElement: dart:async::<fragment>::@class::Future::@constructor::delayed
     staticType: Future<T> Function<T>(Duration, [FutureOr<T> Function()?])
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -201,14 +201,14 @@ void bar() {
 FunctionReference
   function: SimpleIdentifier
     token: i
-    staticElement: self::@getter::i
+    staticElement: <testLibraryFragment>::@getter::i
     staticType: dynamic
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -231,14 +231,14 @@ void bar() {
 FunctionReference
   function: SimpleIdentifier
     token: i
-    staticElement: self::@getter::i
+    staticElement: <testLibraryFragment>::@getter::i
     staticType: dynamic
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -264,7 +264,7 @@ FunctionReference
     target: MethodInvocation
       methodName: SimpleIdentifier
         token: f
-        staticElement: self::@function::f
+        staticElement: <testLibraryFragment>::@function::f
         staticType: dynamic Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -282,7 +282,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -317,7 +317,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -360,7 +360,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -384,14 +384,14 @@ void foo() {
 FunctionReference
   function: SimpleIdentifier
     token: E
-    staticElement: self::@extension::E
+    staticElement: <testLibraryFragment>::@extension::E
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -419,21 +419,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@prefix::a
+      staticElement: <testLibraryFragment>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: E
-      staticElement: package:test/a.dart::@extension::E
+      staticElement: package:test/a.dart::<fragment>::@extension::E
       staticType: InvalidType
-    staticElement: package:test/a.dart::@extension::E
+    staticElement: package:test/a.dart::<fragment>::@extension::E
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -467,16 +467,16 @@ FunctionReference
           SimpleIdentifier
             token: a
             parameter: <null>
-            staticElement: self::@function::bar::@parameter::a
+            staticElement: <testLibraryFragment>::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
-      element: self::@extension::E
+      element: <testLibraryFragment>::@extension::E
       extendedType: A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@getter::foo
+      staticElement: <testLibraryFragment>::@extension::E::@getter::foo
       staticType: int
     staticType: int
   typeArguments: TypeArgumentList
@@ -484,7 +484,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -509,14 +509,14 @@ extension E on A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <testLibraryFragment>::@extension::E::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -548,7 +548,7 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@method::foo
+      staticElement: <testLibraryFragment>::@extension::E::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -556,7 +556,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -592,16 +592,16 @@ FunctionReference
           SimpleIdentifier
             token: a
             parameter: <null>
-            staticElement: self::@function::bar::@parameter::a
+            staticElement: <testLibraryFragment>::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
-      element: self::@extension::E
+      element: <testLibraryFragment>::@extension::E
       extendedType: A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@method::foo
+      staticElement: <testLibraryFragment>::@extension::E::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -609,7 +609,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -642,7 +642,7 @@ FunctionReference
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@method::foo
+      staticElement: <testLibraryFragment>::@extension::E::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -650,7 +650,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -687,16 +687,16 @@ FunctionReference
           SimpleIdentifier
             token: a
             parameter: <null>
-            staticElement: self::@function::bar::@parameter::a
+            staticElement: <testLibraryFragment>::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
-      element: self::@extension::E
+      element: <testLibraryFragment>::@extension::E
       extendedType: A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@method::foo
+      staticElement: <testLibraryFragment>::@extension::E::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -704,7 +704,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -737,10 +737,10 @@ FunctionReference
           SimpleIdentifier
             token: a
             parameter: <null>
-            staticElement: self::@function::bar::@parameter::a
+            staticElement: <testLibraryFragment>::@function::bar::@parameter::a
             staticType: A
         rightParenthesis: )
-      element: self::@extension::E
+      element: <testLibraryFragment>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -754,7 +754,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -779,14 +779,14 @@ extension E on A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <testLibraryFragment>::@extension::E::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -819,7 +819,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -840,7 +840,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
-      staticElement: self::@function::foo
+      staticElement: <testLibraryFragment>::@function::foo
       staticType: void Function<T>(T)
     period: .
     identifier: SimpleIdentifier
@@ -854,7 +854,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -880,7 +880,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
-      staticElement: self::@function::foo
+      staticElement: <testLibraryFragment>::@function::foo
       staticType: void Function<T, U>(T, U)
     period: .
     identifier: SimpleIdentifier
@@ -894,7 +894,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -921,7 +921,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
-      staticElement: self::@function::foo
+      staticElement: <testLibraryFragment>::@function::foo
       staticType: void Function(String)
     period: .
     identifier: SimpleIdentifier
@@ -935,7 +935,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(String)
@@ -956,7 +956,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
-      staticElement: self::@function::foo
+      staticElement: <testLibraryFragment>::@function::foo
       staticType: void Function<T extends num>(T)
     period: .
     identifier: SimpleIdentifier
@@ -970,7 +970,7 @@ FunctionReference
     arguments
       NamedType
         name: String
-        element: dart:core::@class::String
+        element: dart:core::<fragment>::@class::String
         type: String
     rightBracket: >
   staticType: void Function(String)
@@ -999,21 +999,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
-      staticElement: self::@function::foo
+      staticElement: <testLibraryFragment>::@function::foo
       staticType: void Function<T>(T)
     period: .
     identifier: SimpleIdentifier
       token: m
-      staticElement: self::@extension::0::@method::m
+      staticElement: <testLibraryFragment>::@extension::0::@method::m
       staticType: null
-    staticElement: self::@extension::0::@method::m
+    staticElement: <testLibraryFragment>::@extension::0::@method::m
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1042,7 +1042,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
-      staticElement: self::@function::foo
+      staticElement: <testLibraryFragment>::@function::foo
       staticType: void Function<T>(T)
     period: .
     identifier: SimpleIdentifier
@@ -1056,7 +1056,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -1081,9 +1081,9 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element: self::@class::C
+        element: <testLibraryFragment>::@class::C
         type: C
-      staticElement: self::@class::C::@constructor::new
+      staticElement: <testLibraryFragment>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -1093,10 +1093,10 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  staticElement: self::@class::C::@method::call
+  staticElement: <testLibraryFragment>::@class::C::@method::call
   staticType: int Function(int)
   typeArgumentTypes
     int
@@ -1122,24 +1122,24 @@ ImplicitCallReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
-      staticElement: self::@class::C
+      staticElement: <testLibraryFragment>::@class::C
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: v
-      staticElement: self::@class::C::@getter::v
+      staticElement: <testLibraryFragment>::@class::C::@getter::v
       staticType: null
-    staticElement: self::@class::C::@getter::v
+    staticElement: <testLibraryFragment>::@class::C::@getter::v
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  staticElement: self::@class::C::@method::call
+  staticElement: <testLibraryFragment>::@class::C::@method::call
   staticType: int Function(int)
   typeArgumentTypes
     int
@@ -1163,21 +1163,21 @@ void foo() {
 ImplicitCallReference
   expression: SimpleIdentifier
     token: v
-    staticElement: self::@getter::v
+    staticElement: <testLibraryFragment>::@getter::v
     staticType: Object?
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       NamedType
         name: String
-        element: dart:core::@class::String
+        element: dart:core::<fragment>::@class::String
         type: String
     rightBracket: >
-  staticElement: self::@extension::E::@method::call
+  staticElement: <testLibraryFragment>::@extension::E::@method::call
   staticType: void Function(int, String)
   typeArgumentTypes
     int
@@ -1203,10 +1203,10 @@ void f(A a) {
 ImplicitCallReference
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     staticType: A
-  parameter: self::@function::g::@parameter::f
-  staticElement: self::@extensionType::A::@method::call
+  parameter: <testLibraryFragment>::@function::g::@parameter::f
+  staticElement: <testLibraryFragment>::@extensionType::A::@method::call
   staticType: void Function()
 ''');
   }
@@ -1235,19 +1235,19 @@ ImplicitCallReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: self::@prefix::prefix
+        staticElement: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: C
-        staticElement: package:test/a.dart::@class::C
+        staticElement: package:test/a.dart::<fragment>::@class::C
         staticType: null
-      staticElement: package:test/a.dart::@class::C
+      staticElement: package:test/a.dart::<fragment>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: v
-      staticElement: package:test/a.dart::@class::C::@getter::v
+      staticElement: package:test/a.dart::<fragment>::@class::C::@getter::v
       staticType: C
     staticType: C
   typeArguments: TypeArgumentList
@@ -1255,10 +1255,10 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  staticElement: package:test/a.dart::@class::C::@method::call
+  staticElement: package:test/a.dart::<fragment>::@class::C::@method::call
   staticType: int Function(int)
   typeArgumentTypes
     int
@@ -1286,24 +1286,24 @@ ImplicitCallReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: self::@prefix::prefix
+      staticElement: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: c
-      staticElement: package:test/a.dart::@getter::c
+      staticElement: package:test/a.dart::<fragment>::@getter::c
       staticType: C
-    staticElement: package:test/a.dart::@getter::c
+    staticElement: package:test/a.dart::<fragment>::@getter::c
     staticType: C
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  staticElement: package:test/a.dart::@class::C::@method::call
+  staticElement: package:test/a.dart::<fragment>::@class::C::@method::call
   staticType: int Function(int)
   typeArgumentTypes
     int
@@ -1331,9 +1331,9 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element: self::@class::C
+        element: <testLibraryFragment>::@class::C
         type: C
-      staticElement: self::@class::C::@constructor::new
+      staticElement: <testLibraryFragment>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -1343,10 +1343,10 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  staticElement: self::@class::C::@method::call
+  staticElement: <testLibraryFragment>::@class::C::@method::call
   staticType: void Function(dynamic, dynamic)
   typeArgumentTypes
     dynamic
@@ -1375,9 +1375,9 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element: self::@class::C
+        element: <testLibraryFragment>::@class::C
         type: C
-      staticElement: self::@class::C::@constructor::new
+      staticElement: <testLibraryFragment>::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -1387,10 +1387,10 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  staticElement: self::@class::C::@method::call
+  staticElement: <testLibraryFragment>::@class::C::@method::call
   staticType: int Function(int)
 ''');
   }
@@ -1411,21 +1411,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@function::bar::@parameter::a
+      staticElement: <testLibraryFragment>::@function::bar::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <testLibraryFragment>::@class::A::@getter::foo
       staticType: null
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1450,14 +1450,14 @@ abstract class A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1483,14 +1483,14 @@ abstract class B extends A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1518,21 +1518,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@function::foo::@parameter::a
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: f
-      staticElement: self::@class::A::@getter::f
+      staticElement: <testLibraryFragment>::@class::A::@getter::f
       staticType: List<int>
-    staticElement: self::@class::A::@getter::f
+    staticElement: <testLibraryFragment>::@class::A::@getter::f
     staticType: List<int>
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: String
-        element: dart:core::@class::String
+        element: dart:core::<fragment>::@class::String
         type: String
     rightBracket: >
   staticType: InvalidType
@@ -1560,14 +1560,14 @@ FunctionReference
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: self::@function::foo::@parameter::a
+        staticElement: <testLibraryFragment>::@function::foo::@parameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      staticElement: self::@class::A::@getter::f
+      staticElement: <testLibraryFragment>::@class::A::@getter::f
       staticType: List<int>
     staticType: List<int>
   typeArguments: TypeArgumentList
@@ -1575,7 +1575,7 @@ FunctionReference
     arguments
       NamedType
         name: String
-        element: dart:core::@class::String
+        element: dart:core::<fragment>::@class::String
         type: String
     rightBracket: >
   staticType: InvalidType
@@ -1598,14 +1598,14 @@ class A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1634,7 +1634,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
-      staticElement: self::@class::C::@method::foo
+      staticElement: <testLibraryFragment>::@class::C::@method::foo
       staticType: void Function<T>(T)
     period: .
     identifier: SimpleIdentifier
@@ -1648,7 +1648,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1678,14 +1678,14 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: c
-        staticElement: self::@function::bar::@parameter::c
+        staticElement: <testLibraryFragment>::@function::bar::@parameter::c
         staticType: C
       period: .
       identifier: SimpleIdentifier
         token: foo
-        staticElement: self::@class::C::@method::foo
+        staticElement: <testLibraryFragment>::@class::C::@method::foo
         staticType: void Function<T>(T)
-      staticElement: self::@class::C::@method::foo
+      staticElement: <testLibraryFragment>::@class::C::@method::foo
       staticType: void Function<T>(T)
     operator: .
     propertyName: SimpleIdentifier
@@ -1698,7 +1698,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1728,21 +1728,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@class::B::@getter::a
+      staticElement: <testLibraryFragment>::@class::B::@getter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: null
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1774,14 +1774,14 @@ FunctionReference
       leftParenthesis: (
       expression: SimpleIdentifier
         token: a
-        staticElement: self::@function::f::@parameter::a
+        staticElement: <testLibraryFragment>::@function::f::@parameter::a
         staticType: A
       rightParenthesis: )
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <testLibraryFragment>::@class::A::@getter::foo
       staticType: int
     staticType: int
   typeArguments: TypeArgumentList
@@ -1789,7 +1789,7 @@ FunctionReference
     arguments
       NamedType
         name: double
-        element: dart:core::@class::double
+        element: dart:core::<fragment>::@class::double
         type: double
     rightBracket: >
   staticType: InvalidType
@@ -1816,13 +1816,13 @@ FunctionReference
       expression: BinaryExpression
         leftOperand: SimpleIdentifier
           token: a
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <testLibraryFragment>::@function::f::@parameter::a
           staticType: A?
         operator: ??
         rightOperand: SimpleIdentifier
           token: b
           parameter: <null>
-          staticElement: self::@function::f::@parameter::b
+          staticElement: <testLibraryFragment>::@function::f::@parameter::b
           staticType: A
         staticElement: <null>
         staticInvokeType: null
@@ -1832,7 +1832,7 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -1840,7 +1840,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1872,17 +1872,17 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       staticType: int
     period: .
     identifier: SimpleIdentifier
       token: expectStaticType
       staticElement: MethodMember
-        base: self::@extension::StaticType::@method::expectStaticType
+        base: <testLibraryFragment>::@extension::StaticType::@method::expectStaticType
         substitution: {T: int, X: X}
       staticType: null
     staticElement: MethodMember
-      base: self::@extension::StaticType::@method::expectStaticType
+      base: <testLibraryFragment>::@extension::StaticType::@method::expectStaticType
       substitution: {T: int, X: X}
     staticType: void Function<X extends int Function(int)>()
   typeArguments: TypeArgumentList
@@ -1895,19 +1895,19 @@ FunctionReference
           arguments
             NamedType
               name: int
-              element: dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
           rightBracket: >
-        element: self::@typeAlias::Exactly
+        element: <testLibraryFragment>::@typeAlias::Exactly
         type: int Function(int)
-          alias: self::@typeAlias::Exactly
+          alias: <testLibraryFragment>::@typeAlias::Exactly
             typeArguments
               int
     rightBracket: >
   staticType: void Function()
   typeArgumentTypes
     int Function(int)
-      alias: self::@typeAlias::Exactly
+      alias: <testLibraryFragment>::@typeAlias::Exactly
         typeArguments
           int
 ''');
@@ -1937,7 +1937,7 @@ FunctionReference
       operator: .
       propertyName: SimpleIdentifier
         token: foo
-        staticElement: self::@extension::0::@method::foo
+        staticElement: <testLibraryFragment>::@extension::0::@method::foo
         staticType: void Function<T>(T)
       staticType: void Function<T>(T)
     operator: .
@@ -1951,7 +1951,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1982,7 +1982,7 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -1990,7 +1990,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2027,7 +2027,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2060,7 +2060,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2087,21 +2087,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@function::bar::@parameter::a
+      staticElement: <testLibraryFragment>::@function::bar::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: null
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2131,7 +2131,7 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2139,7 +2139,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2166,21 +2166,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@getter::a
+      staticElement: <testLibraryFragment>::@getter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: null
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2211,19 +2211,19 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: self::@prefix::prefix
+        staticElement: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: a
-        staticElement: package:test/a.dart::@getter::a
+        staticElement: package:test/a.dart::<fragment>::@getter::a
         staticType: A
-      staticElement: package:test/a.dart::@getter::a
+      staticElement: package:test/a.dart::<fragment>::@getter::a
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@class::A::@method::foo
+      staticElement: package:test/a.dart::<fragment>::@class::A::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2231,7 +2231,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2262,14 +2262,14 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: self::@prefix::prefix
+        staticElement: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: a
-        staticElement: package:test/a.dart::@getter::a
+        staticElement: package:test/a.dart::<fragment>::@getter::a
         staticType: A
-      staticElement: package:test/a.dart::@getter::a
+      staticElement: package:test/a.dart::<fragment>::@getter::a
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
@@ -2282,7 +2282,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2317,7 +2317,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2341,21 +2341,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@function::bar::@parameter::a
+      staticElement: <testLibraryFragment>::@function::bar::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: null
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2382,7 +2382,7 @@ FunctionReference
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2390,7 +2390,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2429,11 +2429,11 @@ FunctionReference
     identifier: SimpleIdentifier
       token: expectStaticType
       staticElement: MethodMember
-        base: self::@extension::StaticType::@method::expectStaticType
+        base: <testLibraryFragment>::@extension::StaticType::@method::expectStaticType
         substitution: {T: int, X: X}
       staticType: null
     staticElement: MethodMember
-      base: self::@extension::StaticType::@method::expectStaticType
+      base: <testLibraryFragment>::@extension::StaticType::@method::expectStaticType
       substitution: {T: int, X: X}
     staticType: void Function<X extends int Function(int)>()
   typeArguments: TypeArgumentList
@@ -2446,19 +2446,19 @@ FunctionReference
           arguments
             NamedType
               name: int
-              element: dart:core::@class::int
+              element: dart:core::<fragment>::@class::int
               type: int
           rightBracket: >
-        element: self::@typeAlias::Exactly
+        element: <testLibraryFragment>::@typeAlias::Exactly
         type: int Function(int)
-          alias: self::@typeAlias::Exactly
+          alias: <testLibraryFragment>::@typeAlias::Exactly
             typeArguments
               int
     rightBracket: >
   staticType: void Function()
   typeArgumentTypes
     int Function(int)
-      alias: self::@typeAlias::Exactly
+      alias: <testLibraryFragment>::@typeAlias::Exactly
         typeArguments
           int
 ''');
@@ -2482,14 +2482,14 @@ class B extends A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2517,14 +2517,14 @@ class A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2556,7 +2556,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2582,7 +2582,7 @@ ExpressionStatement
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: self::@prefix::prefix
+      staticElement: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2616,7 +2616,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2637,14 +2637,14 @@ void bar(void Function<T>(T a) foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::bar::@parameter::foo
+    staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2686,7 +2686,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2731,7 +2731,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2753,14 +2753,14 @@ void bar<T extends Function>(T foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::bar::@parameter::foo
+    staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2779,14 +2779,14 @@ void bar<T extends void Function<U>(U)>(T foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::bar::@parameter::foo
+    staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2810,14 +2810,14 @@ void bar<T>(T foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::bar::@parameter::foo
+    staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
     staticType: T
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2840,14 +2840,14 @@ void bar() {
 FunctionReference
   function: SimpleIdentifier
     token: i
-    staticElement: self::@getter::i
+    staticElement: <testLibraryFragment>::@getter::i
     staticType: Never
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2873,14 +2873,14 @@ class A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function()
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function()
@@ -2933,7 +2933,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@function::bar::@parameter::a
+      staticElement: <testLibraryFragment>::@function::bar::@parameter::a
       staticType: dynamic
     period: .
     identifier: SimpleIdentifier
@@ -2947,7 +2947,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2960,7 +2960,7 @@ void f(({T Function<T>(T) f1, String f2}) r) {
   int Function(int) v = r.f1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1),
     ]);
 
     var node = findNode.functionReference(r'.f1;');
@@ -2969,7 +2969,7 @@ FunctionReference
   function: PropertyAccess
     target: SimpleIdentifier
       token: r
-      staticElement: self::@function::f::@parameter::r
+      staticElement: <testLibraryFragment>::@function::f::@parameter::r
       staticType: ({T Function<T>(T) f1, String f2})
     operator: .
     propertyName: SimpleIdentifier
@@ -2989,7 +2989,7 @@ void f((T Function<T>(T), String) r) {
   int Function(int) v = r.$1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
 
     var node = findNode.functionReference(r'.$1;');
@@ -2998,7 +2998,7 @@ FunctionReference
   function: PropertyAccess
     target: SimpleIdentifier
       token: r
-      staticElement: self::@function::f::@parameter::r
+      staticElement: <testLibraryFragment>::@function::f::@parameter::r
       staticType: (T Function<T>(T), String)
     operator: .
     propertyName: SimpleIdentifier
@@ -3028,14 +3028,14 @@ class A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3060,21 +3060,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <testLibraryFragment>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: null
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3104,19 +3104,19 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
-        staticElement: self::@prefix::a
+        staticElement: <testLibraryFragment>::@prefix::a
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: package:test/a.dart::@class::A
+        staticElement: package:test/a.dart::<fragment>::@class::A
         staticType: null
-      staticElement: package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@class::A::@method::foo
+      staticElement: package:test/a.dart::<fragment>::@class::A::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -3124,7 +3124,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3154,19 +3154,19 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: self::@prefix::prefix
+        staticElement: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: package:test/a.dart::@class::A
+        staticElement: package:test/a.dart::<fragment>::@class::A
         staticType: null
-      staticElement: package:test/a.dart::@class::A
+      staticElement: package:test/a.dart::<fragment>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@class::A::@method::foo
+      staticElement: package:test/a.dart::<fragment>::@class::A::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -3174,7 +3174,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3205,19 +3205,19 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: self::@prefix::prefix
+        staticElement: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: TA
-        staticElement: package:test/a.dart::@typeAlias::TA
+        staticElement: package:test/a.dart::<fragment>::@typeAlias::TA
         staticType: Type
-      staticElement: package:test/a.dart::@typeAlias::TA
+      staticElement: package:test/a.dart::<fragment>::@typeAlias::TA
       staticType: Type
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@class::A::@method::foo
+      staticElement: package:test/a.dart::<fragment>::@class::A::@method::foo
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -3225,7 +3225,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3252,21 +3252,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: TA
-      staticElement: self::@typeAlias::TA
+      staticElement: <testLibraryFragment>::@typeAlias::TA
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <testLibraryFragment>::@class::A::@method::foo
       staticType: null
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3301,10 +3301,10 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  staticElement: self::@class::A::@method::call
+  staticElement: <testLibraryFragment>::@class::A::@method::call
   staticType: void Function()
   typeArgumentTypes
     int
@@ -3330,14 +3330,14 @@ class A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T, U>(T, U)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -3366,18 +3366,18 @@ class A {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic)
@@ -3400,14 +3400,14 @@ void bar() {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <testLibraryFragment>::@function::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3434,21 +3434,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@prefix::a
+      staticElement: <testLibraryFragment>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@function::foo
+      staticElement: package:test/a.dart::<fragment>::@function::foo
       staticType: void Function<T>(T)
-    staticElement: package:test/a.dart::@function::foo
+    staticElement: package:test/a.dart::<fragment>::@function::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3478,21 +3478,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@prefix::a
+      staticElement: <testLibraryFragment>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@function::foo
+      staticElement: package:test/a.dart::<fragment>::@function::foo
       staticType: void Function<T>(T)
-    staticElement: package:test/a.dart::@function::foo
+    staticElement: package:test/a.dart::<fragment>::@function::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3529,7 +3529,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3551,14 +3551,14 @@ PropertyAccess
   target: FunctionReference
     function: SimpleIdentifier
       token: foo
-      staticElement: self::@function::foo
+      staticElement: <testLibraryFragment>::@function::foo
       staticType: void Function<T>(T)
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
     staticType: void Function(int)
@@ -3589,14 +3589,14 @@ void bar() {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <testLibraryFragment>::@function::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3623,21 +3623,21 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: self::@prefix::prefix
+      staticElement: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@getter::foo
+      staticElement: package:test/a.dart::<fragment>::@getter::foo
       staticType: void Function<T>(T)
-    staticElement: package:test/a.dart::@getter::foo
+    staticElement: package:test/a.dart::<fragment>::@getter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3665,7 +3665,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: self::@prefix::prefix
+        staticElement: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3685,7 +3685,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3706,7 +3706,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: Cb
-      staticElement: self::@typeAlias::Cb
+      staticElement: <testLibraryFragment>::@typeAlias::Cb
       staticType: Type
     period: .
     identifier: SimpleIdentifier
@@ -3720,7 +3720,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3741,7 +3741,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: T
-      staticElement: self::@typeAlias::T
+      staticElement: <testLibraryFragment>::@typeAlias::T
       staticType: Type
     period: .
     identifier: SimpleIdentifier
@@ -3755,7 +3755,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3782,7 +3782,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3807,7 +3807,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@class::B::@method::bar::@parameter::a
+      staticElement: <testLibraryFragment>::@class::B::@method::bar::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -3821,7 +3821,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3845,7 +3845,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@prefix::a
+      staticElement: <testLibraryFragment>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3859,7 +3859,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3886,7 +3886,7 @@ FunctionReference
       expression: AsExpression
         expression: SimpleIdentifier
           token: f
-          staticElement: self::@function::foo::@parameter::f
+          staticElement: <testLibraryFragment>::@function::foo::@parameter::f
           staticType: void Function<T>(T)
         asOperator: as
         type: NamedType
@@ -3953,12 +3953,12 @@ FunctionReference
     operator: =
     rightHandSide: SimpleIdentifier
       token: f
-      parameter: self::@setter::g::@parameter::_g
-      staticElement: self::@function::foo::@parameter::f
+      parameter: <testLibraryFragment>::@setter::g::@parameter::_g
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::f
       staticType: void Function<T>(T)
     readElement: <null>
     readType: null
-    writeElement: self::@setter::g
+    writeElement: <testLibraryFragment>::@setter::g
     writeType: void Function<T>(T)
     staticElement: <null>
     staticType: void Function<T>(T)
@@ -3986,18 +3986,18 @@ FunctionReference
   function: AssignmentExpression
     leftHandSide: SimpleIdentifier
       token: f
-      staticElement: self::@function::foo::@parameter::f
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::f
       staticType: null
     operator: +=
     rightHandSide: IntegerLiteral
       literal: 1
-      parameter: self::@extension::0::@method::+::@parameter::i
+      parameter: <testLibraryFragment>::@extension::0::@method::+::@parameter::i
       staticType: int
-    readElement: self::@function::foo::@parameter::f
+    readElement: <testLibraryFragment>::@function::foo::@parameter::f
     readType: void Function<T>(T)
-    writeElement: self::@function::foo::@parameter::f
+    writeElement: <testLibraryFragment>::@function::foo::@parameter::f
     writeType: void Function<T>(T)
-    staticElement: self::@extension::0::@method::+
+    staticElement: <testLibraryFragment>::@extension::0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4018,7 +4018,7 @@ FunctionReference
     awaitKeyword: await
     expression: SimpleIdentifier
       token: f
-      staticElement: self::@function::foo::@parameter::f
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::f
       staticType: Future<void Function<T>(T)>
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -4045,14 +4045,14 @@ FunctionReference
   function: BinaryExpression
     leftOperand: SimpleIdentifier
       token: c
-      staticElement: self::@function::foo::@parameter::c
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::c
       staticType: C
     operator: +
     rightOperand: IntegerLiteral
       literal: 1
-      parameter: self::@class::C::@method::+::@parameter::i
+      parameter: <testLibraryFragment>::@class::C::@method::+::@parameter::i
       staticType: int
-    staticElement: self::@class::C::@method::+
+    staticElement: <testLibraryFragment>::@class::C::@method::+
     staticInvokeType: void Function<T>(T) Function(int)
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -4072,7 +4072,7 @@ void Function(int) foo(void Function<T>(T) f) {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: self::@function::foo::@parameter::f
+    staticElement: <testLibraryFragment>::@function::foo::@parameter::f
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4097,16 +4097,16 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element: self::@class::C
+      element: <testLibraryFragment>::@class::C
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::C::@constructor::new
+      staticElement: <testLibraryFragment>::@class::C::@constructor::new
       staticType: null
       tearOffTypeArgumentTypes
         int
-    staticElement: self::@class::C::@constructor::new
+    staticElement: <testLibraryFragment>::@class::C::@constructor::new
   staticType: C<int> Function(int)
 ''');
   }
@@ -4166,7 +4166,7 @@ FunctionReference
       leftParenthesis: (
       expression: SimpleIdentifier
         token: f
-        staticElement: self::@function::foo::@parameter::f
+        staticElement: <testLibraryFragment>::@function::foo::@parameter::f
         staticType: void Function<T>(T) Function()
       rightParenthesis: )
       staticType: void Function<T>(T) Function()
@@ -4195,9 +4195,9 @@ void Function(int) foo(Fn f) {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: self::@function::foo::@parameter::f
+    staticElement: <testLibraryFragment>::@function::foo::@parameter::f
     staticType: void Function<U>(U)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
   staticType: void Function(int)
   typeArgumentTypes
     int
@@ -4220,9 +4220,9 @@ void Function(int) foo(C c) {
 ImplicitCallReference
   expression: SimpleIdentifier
     token: c
-    staticElement: self::@function::foo::@parameter::c
+    staticElement: <testLibraryFragment>::@function::foo::@parameter::c
     staticType: C
-  staticElement: self::@class::C::@method::call
+  staticElement: <testLibraryFragment>::@class::C::@method::call
   staticType: void Function(int)
   typeArgumentTypes
     int
@@ -4241,18 +4241,18 @@ FunctionReference
   function: IndexExpression
     target: SimpleIdentifier
       token: f
-      staticElement: self::@function::foo::@parameter::f
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::f
       staticType: List<void Function<T>(T)>
     leftBracket: [
     index: IntegerLiteral
       literal: 0
       parameter: ParameterMember
-        base: dart:core::@class::List::@method::[]::@parameter::index
+        base: dart:core::<fragment>::@class::List::@method::[]::@parameter::index
         substitution: {E: void Function<T>(T)}
       staticType: int
     rightBracket: ]
     staticElement: MethodMember
-      base: dart:core::@class::List::@method::[]
+      base: dart:core::<fragment>::@class::List::@method::[]
       substitution: {E: void Function<T>(T)}
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -4278,12 +4278,12 @@ FunctionReference
   function: MethodInvocation
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::foo::@parameter::c
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::c
       staticType: C
     operator: .
     methodName: SimpleIdentifier
       token: m
-      staticElement: self::@class::C::@method::m
+      staticElement: <testLibraryFragment>::@class::C::@method::m
       staticType: void Function<T>(T) Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -4314,14 +4314,14 @@ FunctionReference
   function: PostfixExpression
     operand: SimpleIdentifier
       token: f
-      staticElement: self::@function::foo::@parameter::f
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::f
       staticType: null
     operator: ++
-    readElement: self::@function::foo::@parameter::f
+    readElement: <testLibraryFragment>::@function::foo::@parameter::f
     readType: void Function<T>(T)
-    writeElement: self::@function::foo::@parameter::f
+    writeElement: <testLibraryFragment>::@function::foo::@parameter::f
     writeType: void Function<T>(T)
-    staticElement: self::@extension::0::@method::+
+    staticElement: <testLibraryFragment>::@extension::0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4345,14 +4345,14 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
-      staticElement: self::@function::foo::@parameter::c
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::c
       staticType: C
     period: .
     identifier: SimpleIdentifier
       token: f
-      staticElement: self::@class::C::@getter::f
+      staticElement: <testLibraryFragment>::@class::C::@getter::f
       staticType: void Function<T>(T)
-    staticElement: self::@class::C::@getter::f
+    staticElement: <testLibraryFragment>::@class::C::@getter::f
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4379,13 +4379,13 @@ FunctionReference
     operator: ++
     operand: SimpleIdentifier
       token: f
-      staticElement: self::@function::foo::@parameter::f
+      staticElement: <testLibraryFragment>::@function::foo::@parameter::f
       staticType: null
-    readElement: self::@function::foo::@parameter::f
+    readElement: <testLibraryFragment>::@function::foo::@parameter::f
     readType: void Function<T>(T)
-    writeElement: self::@function::foo::@parameter::f
+    writeElement: <testLibraryFragment>::@function::foo::@parameter::f
     writeType: void Function<T>(T)
-    staticElement: self::@extension::0::@method::+
+    staticElement: <testLibraryFragment>::@extension::0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4411,14 +4411,14 @@ FunctionReference
       leftParenthesis: (
       expression: SimpleIdentifier
         token: c
-        staticElement: self::@function::foo::@parameter::c
+        staticElement: <testLibraryFragment>::@function::foo::@parameter::c
         staticType: C
       rightParenthesis: )
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      staticElement: self::@class::C::@getter::f
+      staticElement: <testLibraryFragment>::@class::C::@getter::f
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -4438,7 +4438,7 @@ void Function(int) foo(void Function<T>(T) f) {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: self::@function::foo::@parameter::f
+    staticElement: <testLibraryFragment>::@function::foo::@parameter::f
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4467,14 +4467,14 @@ void bar(void Function<T>(T a) foo) {
 FunctionReference
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::bar::@parameter::foo
+    staticElement: <testLibraryFragment>::@function::bar::@parameter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)

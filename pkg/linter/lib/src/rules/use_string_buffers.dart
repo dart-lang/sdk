@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use string buffers to compose strings.';
 
@@ -53,20 +54,15 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
 class UseStringBuffers extends LintRule {
-  static const LintCode code = LintCode('use_string_buffers',
-      "Use a string buffer rather than '+' to compose strings.",
-      correctionMessage:
-          'Try writing the parts of a string to a string buffer.');
-
   UseStringBuffers()
       : super(
             name: 'use_string_buffers',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.nonPerformant});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_string_buffers;
 
   @override
   void registerNodeProcessors(

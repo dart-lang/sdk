@@ -1053,15 +1053,20 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
     _encoding = value;
   }
 
+  void _writeString(String string) {
+    Uint8List? utf8Encoding;
+    _profileData?.appendRequestData(
+      utf8Encoding = utf8.encode(string),
+    );
+    super.add(utf8Encoding != null && identical(_encoding, utf8)
+        ? utf8Encoding
+        : _encoding.encode(string));
+  }
+
   void write(Object? obj) {
     String string = '$obj';
     if (string.isEmpty) return;
-    _profileData?.appendRequestData(
-      Uint8List.fromList(
-        utf8.encode(string),
-      ),
-    );
-    super.add(_encoding.encode(string));
+    _writeString(string);
   }
 
   void writeAll(Iterable objects, [String separator = ""]) {
@@ -1081,8 +1086,7 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   }
 
   void writeln([Object? object = ""]) {
-    write(object);
-    write("\n");
+    _writeString('$object\n');
   }
 
   void writeCharCode(int charCode) {

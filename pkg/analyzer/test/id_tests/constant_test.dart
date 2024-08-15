@@ -6,11 +6,13 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -24,8 +26,15 @@ main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest:
-          runTestFor(const ConstantsDataComputer(), [analyzerDefaultConfig]));
+      runTest: runTestFor(const ConstantsDataComputer(), [
+        TestConfig(
+          analyzerMarker,
+          'analyzer with experiments',
+          featureSet: FeatureSet.fromEnableFlags2(
+              sdkLanguageVersion: ExperimentStatus.currentVersion,
+              flags: ['digit-separators']),
+        )
+      ]));
 }
 
 class ConstantsDataComputer extends DataComputer<String> {

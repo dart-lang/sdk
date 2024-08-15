@@ -1,0 +1,17 @@
+class C<as> {}
+
+const void Function<as>()? c = null;
+
+enum E<as> {
+  e1;
+}
+
+extension Ext<as> on List {}
+
+mixin M<as> {}
+
+typedef F2<as extends Comparable<as>> = int Function();
+
+typedef int F1<as>();
+
+void foo<as>() {}

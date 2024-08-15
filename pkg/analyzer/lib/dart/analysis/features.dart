@@ -9,8 +9,14 @@ import 'package:pub_semver/pub_semver.dart';
 /// depends on the supported Dart SDK version, and possibly on the presence of
 /// experimental flags.
 abstract class Feature {
+  /// Feature information for augmentations.
+  static final augmentations = ExperimentalFeatures.augmentations;
+
   /// Feature information for class modifiers.
   static final class_modifiers = ExperimentalFeatures.class_modifiers;
+
+  /// Feature information for number literal digit separators.
+  static final digit_separators = ExperimentalFeatures.digit_separators;
 
   /// Feature information for the 2018 constant update.
   static final constant_update_2018 = ExperimentalFeatures.constant_update_2018;
@@ -27,6 +33,9 @@ abstract class Feature {
 
   /// Feature information for enhanced enums.
   static final enhanced_enums = ExperimentalFeatures.enhanced_enums;
+
+  /// Feature information for enhanced parts.
+  static final enhanced_parts = ExperimentalFeatures.enhanced_parts;
 
   /// Feature information for extension methods.
   static final extension_methods = ExperimentalFeatures.extension_methods;

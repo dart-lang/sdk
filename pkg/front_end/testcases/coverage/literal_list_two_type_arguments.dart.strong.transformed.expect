@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/literal_list_two_type_arguments.dart:7:21: Error: List literal requires exactly one type argument.
+//   var y = <int, int>[1, 2, 3]; // Error
+//                     ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  core::List<core::int> x = core::_GrowableList::_literal3<core::int>(1, 2, 3);
+  core::List<invalid-type> y = core::_GrowableList::_literal3<invalid-type>(1, 2, 3);
+}

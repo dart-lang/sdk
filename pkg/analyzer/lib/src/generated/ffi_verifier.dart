@@ -499,8 +499,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             arguments: ['T', 'Native'],
           );
         } else {
-          _checkFfiNativeField(errorNode, declarationElement, metadata,
-              ffiSignature, annotationValue);
+          _checkFfiNativeField(
+            errorNode,
+            declarationElement,
+            metadata,
+            ffiSignature,
+            annotationValue,
+            false,
+          );
         }
       }
 
@@ -515,6 +521,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     NodeList<Annotation> metadata,
     DartType ffiSignature,
     DartObject annotationValue,
+    bool allowVariableLength,
   ) {
     DartType type;
 
@@ -574,7 +581,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else if (ffiSignature.isArray) {
       // Array fields need an `@Array` size annotation.
       _validateSizeOfAnnotation(
-          errorToken, metadata, ffiSignature.arrayDimensions);
+        errorToken,
+        metadata,
+        ffiSignature.arrayDimensions,
+        allowVariableLength,
+      );
     } else if (ffiSignature.isHandle || ffiSignature.isNativeFunction) {
       _errorReporter.atToken(
         errorToken,
@@ -1466,7 +1477,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           );
         }
         var arrayDimensions = declaredType.arrayDimensions;
-        _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
+        var fieldElement = node.fields.variables.first.declaredElement;
+        var lastElement = (fieldElement?.enclosingElement as ClassElement?)
+            ?.fields
+            .reversed
+            .where((field) => !field.isStatic)
+            .firstOrNull;
+        var isLastField = fieldElement == lastElement;
+        _validateSizeOfAnnotation(
+          fieldType,
+          annotations,
+          arrayDimensions,
+          isLastField,
+        );
       } else if (declaredType.isCompoundSubtype) {
         var clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
@@ -1903,8 +1926,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate that the [annotations] include exactly one size annotation. If
   /// an error is produced that cannot be associated with an annotation,
   /// associate it with the [errorEntity].
-  void _validateSizeOfAnnotation(SyntacticEntity errorEntity,
-      NodeList<Annotation> annotations, int arrayDimensions) {
+  void _validateSizeOfAnnotation(
+    SyntacticEntity errorEntity,
+    NodeList<Annotation> annotations,
+    int arrayDimensions,
+    bool allowVariableLength,
+  ) {
     var ffiSizeAnnotations =
         annotations.where((annotation) => annotation.isArray).toList();
 
@@ -1928,7 +1955,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // Check number of dimensions.
     var annotation = ffiSizeAnnotations.first;
-    var dimensions = annotation.elementAnnotation?.arraySizeDimensions ?? [];
+    var (dimensions, variableLength) =
+        annotation.elementAnnotation?.arraySizeDimensions ?? (<int>[], false);
     var annotationDimensions = dimensions.length;
     if (annotationDimensions != arrayDimensions) {
       _errorReporter.atNode(
@@ -1937,7 +1965,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       );
     }
 
-    // Check dimensions are positive
+    if (variableLength) {
+      if (!allowVariableLength) {
+        _errorReporter.atNode(
+          annotation,
+          FfiCode.VARIABLE_LENGTH_ARRAY_NOT_LAST,
+        );
+      }
+    }
+
+    // Check dimensions are positive.
     List<AstNode>? getArgumentNodes() {
       var arguments = annotation.arguments?.arguments;
       if (arguments != null && arguments.length == 1) {
@@ -1950,6 +1987,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     for (int i = 0; i < dimensions.length; i++) {
+      if (i == 0 && variableLength) {
+        continue; // First dimension is variable.
+      }
       if (dimensions[i] <= 0) {
         AstNode errorNode = annotation;
         var argumentNodes = getArgumentNodes();
@@ -2032,9 +2072,12 @@ extension on Annotation {
 }
 
 extension on ElementAnnotation {
-  List<int> get arraySizeDimensions {
+  (List<int>, bool) get arraySizeDimensions {
     assert(isArray);
     var value = computeConstantValue();
+
+    var variableLength =
+        value?.getField('variableLength')?.toBoolValue() ?? false;
 
     // Element of `@Array.multi([1, 2, 3])`.
     var listField = value?.getField('dimensions');
@@ -2045,7 +2088,7 @@ extension on ElementAnnotation {
           .whereType<int>()
           .toList();
       if (listValues != null) {
-        return listValues;
+        return ([if (variableLength) 0, ...listValues], variableLength);
       }
     }
 
@@ -2064,7 +2107,7 @@ extension on ElementAnnotation {
         result.add(dimensionValue);
       }
     }
-    return result;
+    return (result, variableLength);
   }
 
   bool get isArray {

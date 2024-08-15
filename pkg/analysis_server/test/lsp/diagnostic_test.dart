@@ -505,19 +505,12 @@ version: latest
 
   /// Ensure lints included from another package work when there are multiple
   /// workspace folders.
-  ///
-  /// https://github.com/dart-lang/sdk/issues/56047
-  @skippedTest
   Future<void> test_lints_includedFromPackage() async {
-    // FailingTest() doesn't handle timeouts so this is marked as skipped.
-    // Needs to be manually updated when
-    // https://github.com/dart-lang/sdk/issues/56047 is fixed.
-
     var rootWorkspacePath = '$packagesRootPath/root';
 
     // Set up a project with an analysis_options that enables a lint.
     var lintsPackagePath = '$rootWorkspacePath/my_lints';
-    newFile('$lintsPackagePath/lib/pubspec.yaml', '''
+    newFile('$lintsPackagePath/pubspec.yaml', '''
 name: my_lints
 ''');
     newFile('$lintsPackagePath/lib/analysis_options.yaml', '''
@@ -531,8 +524,8 @@ linter:
     var projectPackagePath = '$rootWorkspacePath/my_project';
     writePackageConfig(
       projectPackagePath,
-      config: (PackageConfigFileBuilder()
-        ..add(name: 'my_lints', rootPath: lintsPackagePath)),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_lints', rootPath: lintsPackagePath),
     );
     newFile('$projectPackagePath/analysis_options.yaml', '''
 include: package:my_lints/analysis_options.yaml

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Test type of argument in `operator ==(Object other)`.';
 
@@ -68,20 +69,15 @@ class Good {
 ''';
 
 class TestTypesInEquals extends LintRule {
-  static const LintCode code = LintCode(
-      'test_types_in_equals', "Missing type test for '{0}' in '=='.",
-      correctionMessage: "Try testing the type of '{0}'.",
-      hasPublishedDocs: true);
-
   TestTypesInEquals()
       : super(
             name: 'test_types_in_equals',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.test_types_in_equals;
 
   @override
   void registerNodeProcessors(

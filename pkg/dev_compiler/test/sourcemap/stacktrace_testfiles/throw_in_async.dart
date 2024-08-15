@@ -6,6 +6,6 @@ void main() {
   /*1:main*/ test();
 }
 
-void test /*2:test*/ () async {
-  /*3:test*/ throw '>ExceptionMarker<';
+void /*2:test*/ test() async {
+  /*3*/ throw '>ExceptionMarker<';
 }

@@ -714,7 +714,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
     ]);
   }
 
@@ -763,7 +763,7 @@ void f(A a) {
   var v = a._g;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
   }
 
@@ -776,7 +776,7 @@ main() {
   var v = new A()._g;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
   }
 
@@ -1542,6 +1542,33 @@ f() {
   test_optionalParameter_isUsed_override() async {
     await assertNoErrorsInCode(r'''
 class A {
+  void _m([int? a]) {}
+}
+class B implements A {
+  void _m([int? a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_override_inAugmentation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m([int? a]) {}
+}
+class B implements A {}
+augment class B {
+  void _m([int? a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_override_ofAugmentation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+}
+augment class A {
   void _m([int? a]) {}
 }
 class B implements A {

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart' as type_utils;
 
 const _desc = r'Join return statement with assignment when possible.';
@@ -52,20 +53,15 @@ Expression? _getExpressionFromReturnStatement(Statement node) =>
     node is ReturnStatement ? node.expression : null;
 
 class JoinReturnWithAssignment extends LintRule {
-  static const LintCode code = LintCode('join_return_with_assignment',
-      "Assignment could be inlined in 'return' statement.",
-      correctionMessage:
-          "Try inlining the assigned value in the 'return' statement.");
-
   JoinReturnWithAssignment()
       : super(
             name: 'join_return_with_assignment',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.join_return_with_assignment;
 
   @override
   void registerNodeProcessors(

@@ -17,6 +17,7 @@ annotate
 api
 apis
 argument(s)
+array's
 assigning
 augment
 augmentation
@@ -122,6 +123,7 @@ re
 refutable
 resource
 sdksummary
+separators
 size
 solutions
 specially

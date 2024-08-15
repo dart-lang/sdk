@@ -58,7 +58,7 @@ IsExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -77,7 +77,7 @@ IsExpression
   isOperator: is
   type: NamedType
     name: double
-    element: dart:core::@class::double
+    element: dart:core::<fragment>::@class::double
     type: double
   staticType: bool
 ''');
@@ -95,12 +95,12 @@ void f(Object? a) {
 IsExpression
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     staticType: Object?
   isOperator: is
   type: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   staticType: bool
 ''');
@@ -118,13 +118,13 @@ void f(Object? a) {
 IsExpression
   expression: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     staticType: Object?
   isOperator: is
   notOperator: !
   type: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<fragment>::@class::int
     type: int
   staticType: bool
 ''');

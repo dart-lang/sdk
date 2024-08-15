@@ -11,7 +11,8 @@ import '../test/utils/io_utils.dart';
 
 Future<void> main() async {
   Uri executable = getDartExecutable();
-  final List<String> allChangedFiles = getChangedFiles();
+  final List<String> allChangedFiles =
+      getChangedFiles(collectUncommitted: true);
   if (allChangedFiles.isEmpty) {
     print("No changes in CL.");
     return;

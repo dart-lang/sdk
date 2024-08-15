@@ -6,54 +6,58 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:dtd_impl/src/constants.dart';
-import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:dtd/dtd.dart';
+import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:path/path.dart' as path;
 
+import '../constants.dart';
 import '../dtd_client.dart';
+import 'internal_service.dart';
 
-class FileSystemService {
+class FileSystemService extends InternalService {
   FileSystemService({required this.secret, required this.unrestrictedMode});
 
   final String secret;
   final bool unrestrictedMode;
   final List<Uri> _ideWorkspaceRoots = [];
 
-  // Note: these constants should match the values from
-  // package:dtd/src/file_system/constants.dart.
-  static const String _serviceName = 'FileSystem';
+  // Note: These values should match the values from
+  // package:dtd/src/constants.dart.
+  @override
+  String get serviceName => 'FileSystem';
+
   static const int _defaultGetProjectRootsDepth = 4;
 
+  @override
   void register(DTDClient client) {
     client
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'readFileAsString',
         _readFileAsString,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'writeFileAsString',
         _writeFileAsString,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'listDirectoryContents',
         _listDirectoryContents,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'setIDEWorkspaceRoots',
         _setIDEWorkspaceRoots,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'getIDEWorkspaceRoots',
         _getIDEWorkspaceRoots,
       )
       ..registerServiceMethod(
-        _serviceName,
+        serviceName,
         'getProjectRoots',
         _getProjectRoots,
       );

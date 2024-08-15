@@ -32,7 +32,7 @@ void f(Object o) {
 ObjectPattern
   type: NamedType
     name: B
-    element: self::@class::B
+    element: <testLibraryFragment>::@class::B
     type: B<B<Object?>>
   leftParenthesis: (
   rightParenthesis: )
@@ -56,7 +56,7 @@ void f(A<int> x) {
 ObjectPattern
   type: NamedType
     name: B
-    element: self::@class::B
+    element: <testLibraryFragment>::@class::B
     type: B<int>
   leftParenthesis: (
   rightParenthesis: )
@@ -81,7 +81,7 @@ void f(B<int> b) {
 ObjectPattern
   type: NamedType
     name: C
-    element: self::@class::C
+    element: <testLibraryFragment>::@class::C
     type: C<int, Set<int>>
   leftParenthesis: (
   rightParenthesis: )
@@ -105,7 +105,7 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A<num>
   leftParenthesis: (
   rightParenthesis: )
@@ -130,9 +130,9 @@ void f(A<int, String> x) {
 ObjectPattern
   type: NamedType
     name: L
-    element: self::@typeAlias::L
+    element: <testLibraryFragment>::@typeAlias::L
     type: B<int, String>
-      alias: self::@typeAlias::L
+      alias: <testLibraryFragment>::@typeAlias::L
         typeArguments
           int
   leftParenthesis: (
@@ -154,7 +154,7 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 90, 4),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 90, 4),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -166,10 +166,10 @@ ObjectPattern
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A<int>
   leftParenthesis: (
   fields
@@ -184,7 +184,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: PropertyAccessorMember
-        base: self::@class::A::@getter::foo
+        base: <testLibraryFragment>::@class::A::@getter::foo
         substitution: {T: int}
   rightParenthesis: )
   matchedValueType: dynamic
@@ -209,7 +209,7 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -222,7 +222,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element: self::@class::A::@getter::foo
+      element: <testLibraryFragment>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -248,7 +248,7 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -261,7 +261,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element: self::@extension::E::@getter::foo
+      element: <testLibraryFragment>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -280,14 +280,14 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 83, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 83, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -301,7 +301,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@83
           type: void Function()
         matchedValueType: void Function()
-      element: self::@class::A::@method::foo
+      element: <testLibraryFragment>::@class::A::@method::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -322,14 +322,14 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 97, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 97, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -343,7 +343,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@97
           type: void Function()
         matchedValueType: void Function()
-      element: self::@extension::E::@method::foo
+      element: <testLibraryFragment>::@extension::E::@method::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -362,14 +362,14 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 4),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 84, 4),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -383,7 +383,7 @@ ObjectPattern
         declaredElement: hasImplicitType foo2@84
           type: int
         matchedValueType: int
-      element: self::@class::A::@getter::foo
+      element: <testLibraryFragment>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -409,7 +409,7 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -440,14 +440,14 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 3),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -460,7 +460,7 @@ ObjectPattern
         declaredElement: hasImplicitType foo@81
           type: int
         matchedValueType: int
-      element: self::@class::A::@getter::foo
+      element: <testLibraryFragment>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -479,14 +479,14 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 82, 3),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -503,10 +503,10 @@ ObjectPattern
         asToken: as
         type: NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         matchedValueType: int?
-      element: self::@class::A::@getter::foo
+      element: <testLibraryFragment>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -525,14 +525,14 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 82, 3),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -548,7 +548,7 @@ ObjectPattern
           matchedValueType: int
         operator: !
         matchedValueType: int?
-      element: self::@class::A::@getter::foo
+      element: <testLibraryFragment>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -567,14 +567,14 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 82, 3),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -590,7 +590,7 @@ ObjectPattern
           matchedValueType: int
         operator: ?
         matchedValueType: int?
-      element: self::@class::A::@getter::foo
+      element: <testLibraryFragment>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -609,14 +609,14 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 82, 3),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -633,7 +633,7 @@ ObjectPattern
           matchedValueType: int
         rightParenthesis: )
         matchedValueType: int
-      element: self::@class::A::@getter::foo
+      element: <testLibraryFragment>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -652,7 +652,7 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: Object
-    element: dart:core::@class::Object
+    element: dart:core::<fragment>::@class::Object
     type: Object
   leftParenthesis: (
   fields
@@ -686,7 +686,7 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -717,14 +717,14 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 65, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 3),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 3),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@class::A
+    element: <testLibraryFragment>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -761,7 +761,7 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@extensionType::A
+    element: <testLibraryFragment>::@extensionType::A
     type: A
   leftParenthesis: (
   fields
@@ -774,7 +774,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element: self::@extensionType::A::@getter::foo
+      element: <testLibraryFragment>::@extensionType::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -800,7 +800,7 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@extensionType::A
+    element: <testLibraryFragment>::@extensionType::A
     type: A
   leftParenthesis: (
   fields
@@ -813,7 +813,7 @@ ObjectPattern
         declaredElement: hasImplicitType isFinal foo@96
           type: int
         matchedValueType: int
-      element: self::@extensionType::A::@getter::foo
+      element: <testLibraryFragment>::@extensionType::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -837,7 +837,7 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@extensionType::A
+    element: <testLibraryFragment>::@extensionType::A
     type: A
   leftParenthesis: (
   fields
@@ -875,9 +875,9 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@typeAlias::A
+    element: <testLibraryFragment>::@typeAlias::A
     type: int?
-      alias: self::@typeAlias::A
+      alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -906,14 +906,14 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 77, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 77, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@typeAlias::A
+    element: <testLibraryFragment>::@typeAlias::A
     type: dynamic
   leftParenthesis: (
   fields
@@ -948,7 +948,7 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 145, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 145, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -960,12 +960,12 @@ ObjectPattern
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::A
+    element: <testLibraryFragment>::@typeAlias::A
     type: int Function()
-      alias: self::@typeAlias::A
+      alias: <testLibraryFragment>::@typeAlias::A
         typeArguments
           int
   leftParenthesis: (
@@ -980,7 +980,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@145
           type: int
         matchedValueType: int
-      element: self::@extension::E::@getter::foo
+      element: <testLibraryFragment>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1001,16 +1001,16 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 141, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 141, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@typeAlias::A
+    element: <testLibraryFragment>::@typeAlias::A
     type: void Function()
-      alias: self::@typeAlias::A
+      alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1023,7 +1023,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@141
           type: int
         matchedValueType: int
-      element: self::@extension::E::@getter::foo
+      element: <testLibraryFragment>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1040,16 +1040,16 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 90, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 90, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@typeAlias::A
+    element: <testLibraryFragment>::@typeAlias::A
     type: void Function()
-      alias: self::@typeAlias::A
+      alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1062,7 +1062,7 @@ ObjectPattern
         declaredElement: hasImplicitType y@90
           type: int
         matchedValueType: int
-      element: dart:core::@class::Object::@getter::hashCode
+      element: dart:core::<fragment>::@class::Object::@getter::hashCode
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1080,16 +1080,16 @@ void f(Object? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 76, 3),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@typeAlias::A
+    element: <testLibraryFragment>::@typeAlias::A
     type: void Function()
-      alias: self::@typeAlias::A
+      alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1119,16 +1119,16 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 73, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@typeAlias::A
+    element: <testLibraryFragment>::@typeAlias::A
     type: ({int foo})
-      alias: self::@typeAlias::A
+      alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1158,16 +1158,16 @@ void f(x) {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
     name: A
-    element: self::@typeAlias::A
+    element: <testLibraryFragment>::@typeAlias::A
     type: (int,)
-      alias: self::@typeAlias::A
+      alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1196,7 +1196,7 @@ class A<T> {
   T get foo => throw 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -1205,7 +1205,7 @@ PatternVariableDeclaration
   pattern: ObjectPattern
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A<int>
     leftParenthesis: (
     fields
@@ -1219,14 +1219,14 @@ PatternVariableDeclaration
             type: int
           matchedValueType: int
         element: PropertyAccessorMember
-          base: self::@class::A::@getter::foo
+          base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     staticType: A<int>
   patternTypeSchema: A<dynamic>
 ''');
@@ -1243,7 +1243,7 @@ class A<T> {
   T get foo => throw 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -1257,10 +1257,10 @@ PatternVariableDeclaration
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A<int>
     leftParenthesis: (
     fields
@@ -1274,7 +1274,7 @@ PatternVariableDeclaration
             type: int
           matchedValueType: int
         element: PropertyAccessorMember
-          base: self::@class::A::@getter::foo
+          base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
     matchedValueType: A<int>
@@ -1284,10 +1284,10 @@ PatternVariableDeclaration
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: self::@class::A
+        element: <testLibraryFragment>::@class::A
         type: A<int>
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1308,7 +1308,7 @@ class A<T> {
   T get foo => throw 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
     ]);
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -1317,7 +1317,7 @@ PatternVariableDeclaration
   pattern: ObjectPattern
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: A<dynamic>
     leftParenthesis: (
     fields
@@ -1328,14 +1328,14 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           name: a
           declaredElement: a@28
             type: int
           matchedValueType: dynamic
         element: PropertyAccessorMember
-          base: self::@class::A::@getter::foo
+          base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: dynamic}
     rightParenthesis: )
     matchedValueType: A<dynamic>
@@ -1345,10 +1345,10 @@ PatternVariableDeclaration
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: self::@class::A
+        element: <testLibraryFragment>::@class::A
         type: A<dynamic>
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: dynamic}
     argumentList: ArgumentList
       leftParenthesis: (

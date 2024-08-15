@@ -27,6 +27,7 @@ import '../base/crash.dart' show Crash;
 import '../base/identifiers.dart'
     show Identifier, OperatorIdentifier, QualifiedName, SimpleIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
+import '../base/local_scope.dart';
 import '../base/problems.dart' show DebugAbort;
 import '../base/scope.dart';
 import '../builder/builder.dart';
@@ -68,7 +69,7 @@ class DietListener extends StackListenerImpl {
 
   /// For top-level declarations, this is the library scope. For class members,
   /// this is the instance scope of [currentDeclaration].
-  Scope memberScope;
+  LookupScope memberScope;
 
   @override
   final Uri uri;
@@ -826,10 +827,10 @@ class DietListener extends StackListenerImpl {
   }
 
   BodyBuilder createListener(
-      BodyBuilderContext bodyBuilderContext, Scope memberScope,
+      BodyBuilderContext bodyBuilderContext, LookupScope memberScope,
       {VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
-      Scope? formalParameterScope,
+      LocalScope? formalParameterScope,
       InferenceDataForTesting? inferenceDataForTesting}) {
     _benchmarker
         // Coverage-ignore(suite): Not run.
@@ -859,8 +860,8 @@ class DietListener extends StackListenerImpl {
 
   BodyBuilder createListenerInternal(
       BodyBuilderContext bodyBuilderContext,
-      Scope memberScope,
-      Scope? formalParameterScope,
+      LookupScope memberScope,
+      LocalScope? formalParameterScope,
       VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
       TypeInferrer typeInferrer,
@@ -868,7 +869,7 @@ class DietListener extends StackListenerImpl {
     return new BodyBuilder(
         libraryBuilder: libraryBuilder,
         context: bodyBuilderContext,
-        enclosingScope: memberScope,
+        enclosingScope: new EnclosingLocalScope(memberScope),
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
         coreTypes: coreTypes,
@@ -883,9 +884,9 @@ class DietListener extends StackListenerImpl {
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
-    final Scope typeParameterScope =
+    final LookupScope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
-    final Scope formalParameterScope =
+    final LocalScope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
     return createListener(
         builder.createBodyBuilderContext(

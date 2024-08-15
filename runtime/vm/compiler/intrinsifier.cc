@@ -75,100 +75,6 @@ bool Intrinsifier::CanIntrinsify(const ParsedFunction& parsed_function) {
   return true;
 }
 
-struct IntrinsicDesc {
-  const char* class_name;
-  const char* function_name;
-};
-
-struct LibraryIntrinsicsDesc {
-  Library& library;
-  const IntrinsicDesc* intrinsics;
-};
-
-#define DEFINE_INTRINSIC(class_name, function_name, destination, fp)           \
-  {#class_name, #function_name},
-
-// clang-format off
-static const IntrinsicDesc core_intrinsics[] = {
-  CORE_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
-  CORE_INTEGER_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
-  GRAPH_CORE_INTRINSICS_LIST(DEFINE_INTRINSIC)
-  {nullptr, nullptr},
-};
-
-static const IntrinsicDesc typed_data_intrinsics[] = {
-  GRAPH_TYPED_DATA_INTRINSICS_LIST(DEFINE_INTRINSIC)
-  {nullptr, nullptr},
-};
-
-static const IntrinsicDesc developer_intrinsics[] = {
-  DEVELOPER_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
-  {nullptr, nullptr},
-};
-
-static const IntrinsicDesc internal_intrinsics[] = {
-  INTERNAL_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
-  {nullptr, nullptr},
-};
-// clang-format on
-
-void Intrinsifier::InitializeState() {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Library& lib = Library::Handle(zone);
-  Class& cls = Class::Handle(zone);
-  Function& func = Function::Handle(zone);
-  String& str = String::Handle(zone);
-  String& str2 = String::Handle(zone);
-  Error& error = Error::Handle(zone);
-
-  const intptr_t kNumLibs = 4;
-  const LibraryIntrinsicsDesc intrinsics[kNumLibs] = {
-      {Library::Handle(zone, Library::CoreLibrary()), core_intrinsics},
-      {Library::Handle(zone, Library::TypedDataLibrary()),
-       typed_data_intrinsics},
-      {Library::Handle(zone, Library::DeveloperLibrary()),
-       developer_intrinsics},
-      {Library::Handle(zone, Library::InternalLibrary()), internal_intrinsics},
-  };
-
-  for (intptr_t i = 0; i < kNumLibs; i++) {
-    lib = intrinsics[i].library.ptr();
-    for (const IntrinsicDesc* intrinsic = intrinsics[i].intrinsics;
-         intrinsic->class_name != nullptr; intrinsic++) {
-      func = Function::null();
-      if (strcmp(intrinsic->class_name, "::") == 0) {
-        str = String::New(intrinsic->function_name);
-        func = lib.LookupFunctionAllowPrivate(str);
-      } else {
-        str = String::New(intrinsic->class_name);
-        cls = lib.LookupClassAllowPrivate(str);
-        ASSERT(FLAG_precompiled_mode || !cls.IsNull());
-        if (!cls.IsNull()) {
-          error = cls.EnsureIsFinalized(thread);
-          if (!error.IsNull()) {
-            OS::PrintErr("%s\n", error.ToErrorCString());
-          }
-          ASSERT(error.IsNull());
-          str = String::New(intrinsic->function_name);
-          if (intrinsic->function_name[0] == '.') {
-            str2 = String::New(intrinsic->class_name);
-            str = String::Concat(str2, str);
-          }
-          func = cls.LookupFunctionAllowPrivate(str);
-        }
-      }
-      if (!func.IsNull()) {
-        func.set_is_intrinsic(true);
-      } else if (!FLAG_precompiled_mode) {
-        FATAL("Intrinsifier failed to find method %s in class %s\n",
-              intrinsic->function_name, intrinsic->class_name);
-      }
-    }
-  }
-#undef SETUP_FUNCTION
-}
-
 // Returns true if fall-through code can be omitted.
 bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
                               FlowGraphCompiler* compiler) {
@@ -197,7 +103,7 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 #define EMIT_BREAKPOINT()
 #endif
 
-#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
+#define EMIT_CASE(library, class_name, function_name, enum_name, fp)           \
   case MethodRecognizer::k##enum_name: {                                       \
     compiler->assembler()->Comment("Intrinsic");                               \
     Label normal_ir_body;                                                      \
@@ -221,12 +127,7 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
   }
 
   switch (function.recognized_kind()) {
-    ALL_INTRINSICS_NO_INTEGER_LIB_LIST(EMIT_CASE);
-    default:
-      break;
-  }
-  switch (function.recognized_kind()) {
-    CORE_INTEGER_LIB_INTRINSIC_LIST(EMIT_CASE)
+    ASM_INTRINSICS_LIST(EMIT_CASE);
     default:
       break;
   }

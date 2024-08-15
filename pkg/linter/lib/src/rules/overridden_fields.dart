@@ -10,6 +10,7 @@ import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't override fields.";
 
@@ -98,22 +99,15 @@ Iterable<InterfaceType> _findAllSupertypesInMixin(MixinElement mixinElement) {
 }
 
 class OverriddenFields extends LintRule {
-  static const LintCode code = LintCode(
-      'overridden_fields', "Field overrides a field inherited from '{0}'.",
-      correctionMessage:
-          'Try removing the field, overriding the getter and setter if '
-          'necessary.',
-      hasPublishedDocs: true);
-
   OverriddenFields()
       : super(
             name: 'overridden_fields',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.overridden_fields;
 
   @override
   void registerNodeProcessors(

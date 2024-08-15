@@ -985,6 +985,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitNullAwareElement(NullAwareElement node) {
+    sink.write(node.question.lexeme);
+    _visitNode(node.value);
+  }
+
+  @override
   void visitNullCheckPattern(NullCheckPattern node) {
     _visitNode(node.pattern);
     sink.write(node.operator.lexeme);
@@ -1029,6 +1035,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('part ');
     _visitNode(node.uri);
+    _visitNodeList(node.configurations, prefix: ' ', separator: ' ');
     sink.write(';');
   }
 

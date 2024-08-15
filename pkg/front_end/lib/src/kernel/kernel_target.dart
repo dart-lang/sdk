@@ -65,7 +65,8 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../source/source_loader.dart' show SourceLoader;
+import '../source/source_loader.dart'
+    show CompilationPhaseForProblemReporting, SourceLoader;
 import '../type_inference/type_schema.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'constant_evaluator.dart' as constants
@@ -126,13 +127,13 @@ class KernelTarget {
       const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final bool excludeSource = !CompilerContext.current.options.embedSourceText;
+  bool get excludeSource => !context.options.embedSourceText;
 
-  final Map<String, String>? environmentDefines =
-      CompilerContext.current.options.environmentDefines;
+  Map<String, String>? get environmentDefines =>
+      context.options.environmentDefines;
 
-  final bool errorOnUnevaluatedConstant =
-      CompilerContext.current.options.errorOnUnevaluatedConstant;
+  bool get errorOnUnevaluatedConstant =>
+      context.options.errorOnUnevaluatedConstant;
 
   final Map<Member, DelayedDefaultValueCloner> _delayedDefaultValueCloners = {};
 
@@ -140,10 +141,10 @@ class KernelTarget {
 
   final Target backendTarget;
 
-  final CompilerContext context = CompilerContext.current;
+  final CompilerContext context;
 
   /// Shared with [CompilerContext].
-  final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
+  Map<Uri, Source> get uriToSource => context.uriToSource;
 
   MemberBuilder? _cachedDuplicatedFieldInitializerError;
   MemberBuilder? _cachedNativeAnnotation;
@@ -152,11 +153,11 @@ class KernelTarget {
 
   final Benchmarker? benchmarker;
 
-  KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
-      this.uriTranslator)
+  KernelTarget(this.context, this.fileSystem, this.includeComments,
+      DillTarget dillTarget, this.uriTranslator)
       : dillTarget = dillTarget,
         backendTarget = dillTarget.backendTarget,
-        _options = CompilerContext.current.options,
+        _options = context.options,
         ticker = dillTarget.ticker,
         benchmarker = dillTarget.benchmarker {
     assert(_options.haveBeenValidated, "Options have not been validated");
@@ -216,6 +217,7 @@ class KernelTarget {
       {List<Uri>? involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
+        context,
         fileUri != null
             ? message.withLocation(fileUri, charOffset, length)
             :
@@ -227,7 +229,7 @@ class KernelTarget {
   }
 
   String get currentSdkVersionString {
-    return CompilerContext.current.options.currentSdkVersion;
+    return context.options.currentSdkVersion;
   }
 
   Version get leastSupportedVersion => const Version(2, 12);
@@ -356,6 +358,11 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_buildScopes);
+      loader.buildScopes(loader.sourceLibraryBuilders);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
       NeededPrecompilations? result =
           context.options.globalFeatures.macros.isEnabled
@@ -381,6 +388,9 @@ class KernelTarget {
       // we instead apply them directly here.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.compilationUnit.createLibrary();
+      }
+      loader.buildScopes(augmentationLibraries);
+      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.applyAugmentations();
       }
       loader.computeLibraryScopes(augmentationLibraries);
@@ -592,11 +602,6 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.outline_computeShowHideElements);
-      loader.computeShowHideElements();
-
-      benchmarker
-          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
       List<DelayedDefaultValueCloner>?
           typedefTearOffsDelayedDefaultValueCloners =
@@ -608,6 +613,15 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
       loader.computeFieldPromotability();
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(
+              BenchmarkPhases.outline_performRedirectingFactoryInference);
+      // TODO(johnniwinther): Add an interface for registering delayed actions.
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
+      loader.inferRedirectingFactories(
+          loader.hierarchy, delayedDefaultValueCloners);
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -632,8 +646,6 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
-      // TODO(johnniwinther): Add an interface for registering delayed actions.
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
       loader.buildOutlineExpressions(
           loader.hierarchy, delayedDefaultValueCloners);
       delayedDefaultValueCloners.forEach(registerDelayedDefaultValueCloner);
@@ -662,8 +674,8 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_installAllComponentProblems);
-      installAllComponentProblems(loader.allComponentProblems);
-      loader.allComponentProblems.clear();
+      loader.installAllProblemsIntoComponent(component!,
+          currentPhase: CompilationPhaseForProblemReporting.outline);
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -790,7 +802,8 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
-      installAllComponentProblems(loader.allComponentProblems);
+      loader.installAllProblemsIntoComponent(component!,
+          currentPhase: CompilationPhaseForProblemReporting.bodyBuilding);
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -810,17 +823,6 @@ class KernelTarget {
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
-  }
-
-  void installAllComponentProblems(
-      List<FormattedMessage> allComponentProblems) {
-    if (allComponentProblems.isNotEmpty) {
-      component!.problemsAsJson ??= <String>[];
-    }
-    for (int i = 0; i < allComponentProblems.length; i++) {
-      FormattedMessage formattedMessage = allComponentProblems[i];
-      component!.problemsAsJson!.add(formattedMessage.toJsonString());
-    }
   }
 
   /// Creates a component by combining [libraries] with the libraries of
@@ -870,7 +872,7 @@ class KernelTarget {
     if (firstRoot != null) {
       // TODO(sigmund): do only for full program
       Builder? declaration =
-          firstRoot.exportScope.lookup("main", -1, firstRoot.fileUri);
+          firstRoot.exportNameSpace.lookupLocalMember("main", setter: false);
       if (declaration is AmbiguousBuilder) {
         // Coverage-ignore-block(suite): Not run.
         AmbiguousBuilder problem = declaration;
@@ -1009,7 +1011,7 @@ class KernelTarget {
       if (proc.isFactory) return;
     }
 
-    IndexedContainer? indexedClass = builder.indexedContainer;
+    IndexedContainer? indexedClass = builder.indexedClass;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -1067,7 +1069,7 @@ class KernelTarget {
       installForwardingConstructors(supertype);
     }
 
-    IndexedContainer? indexedClass = builder.indexedContainer;
+    IndexedContainer? indexedClass = builder.indexedClass;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -1781,8 +1783,8 @@ class KernelTarget {
 
   void _verify({required bool allowVerificationErrorForTesting}) {
     // TODO(ahe): How to handle errors.
-    List<LocatedMessage> errors = verifyComponent(context.options.target,
-        VerificationStage.afterModularTransformations, component!,
+    List<LocatedMessage> errors = verifyComponent(
+        context, VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
     assert(
         allowVerificationErrorForTesting || errors.isEmpty,
@@ -1808,16 +1810,20 @@ class KernelTarget {
     return loader.libraries.contains(library);
   }
 
-  void readPatchFiles(SourceLibraryBuilder libraryBuilder) {
-    assert(libraryBuilder.importUri.isScheme("dart"));
-    List<Uri>? patches =
-        uriTranslator.getDartPatches(libraryBuilder.importUri.path);
+  void readPatchFiles(SourceLibraryBuilder libraryBuilder,
+      CompilationUnit compilationUnit, Uri originImportUri) {
+    assert(
+        originImportUri.isScheme("dart"),
+        // Coverage-ignore(suite): Not run.
+        "Unexpected origin import uri: $originImportUri");
+    List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        libraryBuilder.loader.read(patch, -1,
+        loader.read(patch, -1,
             fileUri: patch,
+            originImportUri: originImportUri,
             origin: libraryBuilder,
-            accessor: libraryBuilder.compilationUnit,
+            accessor: compilationUnit,
             isPatch: true);
       }
     }

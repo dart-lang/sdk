@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,7 +25,7 @@ class DartTextDocumentContentProviderTest
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
       ...super.serverOptions.enabledExperiments,
-      Feature.macros.enableString,
+      ...experimentsForTests,
     ];
 
   @override

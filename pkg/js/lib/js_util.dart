@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Utilities for interoperating with JavaScript.
-library js_util;
+library;
 
 export 'dart:js_util';

@@ -109,7 +109,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.5.0'
+current-version: '3.6.0'
 
 features:
   variance:
@@ -131,6 +131,15 @@ features:
   wildcard-variables:
     help: "Local declarations and parameters named `_` are non-binding."
 
+  null-aware-elements:
+    help: "Null-aware elements and map entries in collections."
+
+  enhanced-parts:
+    help: "Generalize parts to be nested and have exports/imports."
+
+  augmentations:
+    help: "Augmentations - enhancing declarations from outside"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -143,6 +152,17 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  digit-separators:
+    enabledIn: '3.6.0'
+    validation: |
+      main() {
+        int x = 1_000_000;
+        int y = 0xff_ff_ff;
+        double z = 1__2.3__4e5__6;
+        print('feature enabled');
+      }
+    help: "Number literals with digit separators."
 
   inference-update-3: # See https://github.com/dart-lang/language/issues/1618
     enabledIn: '3.4.0'
@@ -357,9 +377,6 @@ features:
         print('feature enabled');
       }
     expired: true
-
-  null-aware-elements:
-    help: "Null-aware elements and map entries in collections."
 
   extension-methods:
     help: "Extension Methods"

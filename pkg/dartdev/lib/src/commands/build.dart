@@ -9,6 +9,7 @@ import 'package:dart2native/generate.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/experiments.dart';
 import 'package:dartdev/src/sdk.dart';
+import 'package:dartdev/src/utils.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:native_assets_builder/native_assets_builder.dart';
@@ -129,6 +130,8 @@ class BuildCommand extends DartdevCommand {
     stdout.writeln('Building native assets.');
     final workingDirectory = Directory.current.uri;
     final target = Target.current;
+    final targetMacOSVersion =
+        target.os == OS.macOS ? minimumSupportedMacOSVersion : null;
     final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
       dartExecutable: Uri.file(sdk.dart),
       logger: logger(verbose),
@@ -142,6 +145,8 @@ class BuildCommand extends DartdevCommand {
       supportedAssetTypes: [
         NativeCodeAsset.type,
       ],
+      targetMacOSVersion: targetMacOSVersion,
+      linkingEnabled: true,
     );
     if (!buildResult.success) {
       stderr.writeln('Native assets build failed.');
@@ -179,6 +184,10 @@ class BuildCommand extends DartdevCommand {
         buildMode: BuildModeImpl.release,
         includeParentEnvironment: true,
         buildResult: buildResult,
+        targetMacOSVersion: targetMacOSVersion,
+        supportedAssetTypes: [
+          NativeCodeAsset.type,
+        ],
       );
 
       if (!linkResult.success) {

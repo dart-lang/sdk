@@ -29,9 +29,15 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
         name.startsWith("_")) {
       return null;
     }
-    Builder? declaration = isSetter
-        ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
-        : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
+    Builder? declaration = normalizeLookup(
+        getable: nameSpace.lookupLocalMember(name, setter: false),
+        setable: nameSpace.lookupLocalMember(name, setter: true),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: this.name,
+        isSetter: isSetter,
+        forStaticAccess: true);
     // TODO(johnniwinther): Handle augmented extensions/extension type
     //  declarations.
     return declaration;
@@ -58,7 +64,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   }
 
   void forEach(void f(String name, Builder builder)) {
-    scope
+    nameSpace
         .filteredNameIterator(
             includeDuplicates: false, includeAugmentations: false)
         .forEach(f);
@@ -72,7 +78,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
       {bool setter = false, bool required = false}) {
     // TODO(johnniwinther): Support augmented on extensions/extension type
     //  declarations.
-    Builder? builder = scope.lookupLocalMember(name, setter: setter);
+    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

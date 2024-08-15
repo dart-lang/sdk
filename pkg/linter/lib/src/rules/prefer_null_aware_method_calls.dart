@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `null`-aware method calls.';
 
@@ -27,20 +28,16 @@ f?.call();
 ''';
 
 class PreferNullAwareMethodCalls extends LintRule {
-  static const LintCode code = LintCode('prefer_null_aware_method_calls',
-      "Use a null-aware invocation of the 'call' method rather than explicitly testing for 'null'.",
-      correctionMessage: "Try using '?.call()' to invoke the function.");
-
   PreferNullAwareMethodCalls()
       : super(
           name: 'prefer_null_aware_method_calls',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {LintRuleCategory.brevity, LintRuleCategory.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_null_aware_method_calls;
 
   @override
   void registerNodeProcessors(

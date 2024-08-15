@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Tighten type of initializing formal.';
 
@@ -45,21 +46,16 @@ class C extends B {
 ''';
 
 class TightenTypeOfInitializingFormals extends LintRule {
-  static const LintCode code = LintCode('tighten_type_of_initializing_formals',
-      "Use a type annotation rather than 'assert' to enforce non-nullability.",
-      correctionMessage:
-          "Try adding a type annotation and removing the 'assert'.");
-
   TightenTypeOfInitializingFormals()
       : super(
           name: 'tighten_type_of_initializing_formals',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.tighten_type_of_initializing_formals;
 
   @override
   void registerNodeProcessors(

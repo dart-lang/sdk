@@ -21,6 +21,7 @@
 #include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
+#include "bin/icu.h"
 #include "bin/isolate_data.h"
 #include "bin/loader.h"
 #include "bin/main_options.h"
@@ -1170,6 +1171,8 @@ void main(int argc, char** argv) {
 
   // Save the console state so we can restore it at shutdown.
   Console::SaveConfig();
+
+  SetupICU();
 
   // On Windows, the argv strings are code page encoded and not
   // utf8. We need to convert them to utf8.

@@ -25,8 +25,11 @@ import 'dart:_runtime' as dart;
 
 part 'annotations.dart';
 part 'linked_hash_map.dart';
+part 'linked_hash_set.dart';
 part 'identity_hash_map.dart';
+part 'identity_hash_set.dart';
 part 'custom_hash_map.dart';
+part 'custom_hash_set.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
@@ -379,9 +382,13 @@ class Primitives {
     return "";
   }
 
-  static int getTimeZoneOffsetInMinutes(DateTime receiver) {
-    // Note that JS and Dart disagree on the sign of the offset.
-    return -JS<int>('!', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+  static int getTimeZoneOffsetInSeconds(DateTime receiver) {
+    // Note that JavaScript's Date and and Dart's DateTime disagree on the sign
+    // of the offset. Subtract to avoid -0.0. The offset in minutes could
+    // contain 'seconds' as fractional minutes.
+    num offsetInMinutes =
+        JS('num', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    return (0 - offsetInMinutes * 60).toInt();
   }
 
   static int? valueFromDecomposedDate(

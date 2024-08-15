@@ -358,6 +358,8 @@ dart/thread_priority_windows_test: SkipByDesign
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
 dart/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
+dart/isolates/shared_primitives_test: SkipSlow # The test spawns children processes, which is too slow on reload bots
+dart/isolates/shared_test: SkipSlow # The test spawns children processes, which is too slow on reload bots
 dart/issue_31959_31960_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart/print_flow_graph_determinism_test: SkipSlow

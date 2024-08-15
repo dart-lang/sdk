@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't explicitly initialize variables to `null`.";
 
@@ -59,20 +60,19 @@ Item? bestDeal(List<Item> cart) {
 ''';
 
 class AvoidInitToNull extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_init_to_null', "Redundant initialization to 'null'.",
-      correctionMessage: 'Try removing the initializer.',
-      hasPublishedDocs: true);
-
   AvoidInitToNull()
       : super(
             name: 'avoid_init_to_null',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.brevity,
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_init_to_null;
 
   @override
   void registerNodeProcessors(

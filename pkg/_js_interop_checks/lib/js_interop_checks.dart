@@ -4,7 +4,10 @@
 
 // ignore_for_file: implementation_imports
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_js_interop_checks/src/transformations/export_checker.dart';
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+import 'package:front_end/src/api_prototype/codes.dart'
     show
         Message,
         LocatedMessage,
@@ -39,19 +42,14 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTearOffsDisallowed,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
-        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-import 'package:_js_interop_checks/src/transformations/export_checker.dart';
-import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
-// Used for importing CFE utility functions for constructor tear-offs.
-import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show
+        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
         templateJsInteropExtensionTypeNotInterop,
         templateJsInteropFunctionToJSRequiresStaticType,
         templateJsInteropStaticInteropExternalAccessorTypeViolation,
         templateJsInteropStaticInteropExternalFunctionTypeViolation,
         templateJsInteropStaticInteropToJSFunctionTypeViolation;
+// Used for importing CFE utility functions for constructor tear-offs.
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;

@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,12 +30,12 @@ class FixProcessorMapTest {
   }
 
   void test_lintProducerMap() {
-    _assertMap(
-        FixProcessor.lintProducerMap, lintsAllowedToHaveMultipleBulkFixes);
+    _assertMap(registeredFixGenerators.lintProducers,
+        lintsAllowedToHaveMultipleBulkFixes);
   }
 
   void test_nonLintProducerMap() {
-    _assertMap(FixProcessor.nonLintProducerMap);
+    _assertMap(registeredFixGenerators.nonLintProducers);
   }
 
   void test_registerFixForLint() {
@@ -42,15 +43,16 @@ class FixProcessorMapTest {
             {required CorrectionProducerContext context}) =>
         MockCorrectionProducer();
 
-    var lintName = 'not_a_lint';
-    expect(FixProcessor.lintProducerMap[lintName], null);
-    FixProcessor.registerFixForLint(lintName, generator);
-    expect(FixProcessor.lintProducerMap[lintName], contains(generator));
+    var lintCode = LintCode('test_rule', 'Test rule.');
+    expect(registeredFixGenerators.lintProducers[lintCode], null);
+    registeredFixGenerators.registerFixForLint(lintCode, generator);
+    expect(
+        registeredFixGenerators.lintProducers[lintCode], contains(generator));
     // Restore the map to it's original state so as to not impact other tests.
-    FixProcessor.lintProducerMap.remove(lintName);
+    registeredFixGenerators.lintProducers.remove(lintCode);
   }
 
-  void _assertMap(Map<Object, List<ProducerGenerator>> producerMap,
+  void _assertMap(Map<ErrorCode, List<ProducerGenerator>> producerMap,
       [List<String> codesAllowedToHaveMultipleBulkFixes = const []]) {
     var unexpectedBulkCodes = <String>[];
     for (var MapEntry(:key, value: generators) in producerMap.entries) {
@@ -64,7 +66,7 @@ class FixProcessorMapTest {
         }
       }
       if (bulkCount > 1) {
-        var name = key.toString();
+        var name = key.name;
         if (!codesAllowedToHaveMultipleBulkFixes.contains(name)) {
           unexpectedBulkCodes.add(name);
         }

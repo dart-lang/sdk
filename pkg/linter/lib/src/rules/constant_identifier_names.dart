@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 import '../utils.dart';
 
 const _desc = r'Prefer using lowerCamelCase for constant names.';
@@ -45,21 +46,15 @@ class Dice {
 ''';
 
 class ConstantIdentifierNames extends LintRule {
-  static const LintCode code = LintCode('constant_identifier_names',
-      "The constant name '{0}' isn't a lowerCamelCase identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lowerCamelCase style.',
-      hasPublishedDocs: true);
-
   ConstantIdentifierNames()
       : super(
             name: 'constant_identifier_names',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.constant_identifier_names;
 
   @override
   void registerNodeProcessors(

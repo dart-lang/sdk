@@ -14,12 +14,12 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/element_printer.dart';
-import '../../../util/tree_string_sink.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
@@ -102,7 +102,6 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
     );
 
     var events = collector.take();
@@ -858,7 +857,7 @@ var B = 0;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::@getter::B
+      staticElement: package:test/b.dart::<fragment>::@getter::B
       staticType: int
 [status] idle
 ''');
@@ -884,7 +883,7 @@ var B = 1.2;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::@getter::B
+      staticElement: package:test/b.dart::<fragment>::@getter::B
       staticType: double
 [status] idle
 ''');
@@ -3803,8 +3802,8 @@ void bar() {}
   flags: isLibrary
   enclosing: package:test/a.dart
   selectedElements
-    package:test/a.dart::@function::foo
-    package:test/a.dart::@function::bar
+    package:test/a.dart::<fragment>::@function::foo
+    package:test/a.dart::<fragment>::@function::bar
 [status] idle
 ''');
   }
@@ -3889,7 +3888,7 @@ class A {}
   flags: isAugmentation isMacroAugmentation
   enclosing: package:test/a.dart::@augmentation::package:test/a.macro.dart
   selectedElements
-    package:test/a.dart::@augmentation::package:test/a.macro.dart::@class::B
+    package:test/a.dart::@fragment::package:test/a.macro.dart::@class::B
 [status] idle
 ''');
   }
@@ -4227,12 +4226,16 @@ CompilationUnit
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = A();
 ''');
@@ -4284,12 +4287,16 @@ final a = A();
 
   test_partOfName_getErrors_beforeLibrary_addedFiles() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// preEnhancedParts
+// @dart = 3.4
 part of a;
 final a = A();
 ''');
@@ -4330,12 +4337,16 @@ final a = A();
 
   test_partOfName_getErrors_beforeLibrary_discovered() async {
     newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part 'b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4373,12 +4384,16 @@ final a = new A();
 
   test_partOfName_getErrors_beforeLibrary_notDiscovered() async {
     newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4400,26 +4415,30 @@ final a = new A();
     uri: package:test/b.dart
     flags: isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [status] idle
 ''');
   }
 
   test_partOfName_getResolvedUnit_afterLibrary() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4474,12 +4493,16 @@ final a = new A();
 
   test_partOfName_getResolvedUnit_beforeLibrary_addedFiles() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4516,12 +4539,16 @@ final a = new A();
 
   test_partOfName_getResolvedUnit_beforeLibrary_notDiscovered() async {
     newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4543,7 +4570,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [stream]
   ResolvedUnitResult #0
 [status] idle
@@ -4552,6 +4579,8 @@ final a = new A();
 
   test_partOfName_getResolvedUnit_changePart_invalidatesLibraryCycle() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 import 'dart:async';
 part 'b.dart';
 ''');
@@ -4573,8 +4602,8 @@ part 'b.dart';
     uri: package:test/a.dart
     flags: exists isLibrary
     errors
-      26 +8 URI_DOES_NOT_EXIST
-      7 +12 UNUSED_IMPORT
+      61 +8 URI_DOES_NOT_EXIST
+      42 +12 UNUSED_IMPORT
 [status] idle
 ''');
 
@@ -4582,6 +4611,8 @@ part 'b.dart';
     // This should invalidate library file state (specifically the library
     // cycle), so that we can re-link the library, and get new dependencies.
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of 'a.dart';
 Future<int>? f;
 ''');
@@ -4612,10 +4643,14 @@ Future<int>? f;
 
   test_partOfName_getResolvedUnit_hasLibrary_noPart() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library my.lib;
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of my.lib;
 final a = new A();
 ''');
@@ -4639,7 +4674,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      30 +1 CREATION_WITH_NON_TYPE
+      65 +1 CREATION_WITH_NON_TYPE
 [stream]
   ResolvedUnitResult #0
 [status] idle
@@ -4648,6 +4683,8 @@ final a = new A();
 
   test_partOfName_getResolvedUnit_noLibrary() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of my.lib;
 var a = new A();
 ''');
@@ -4668,7 +4705,7 @@ var a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      28 +1 CREATION_WITH_NON_TYPE
+      63 +1 CREATION_WITH_NON_TYPE
 [stream]
   ResolvedUnitResult #0
 [status] idle
@@ -4677,12 +4714,16 @@ var a = new A();
 
   test_partOfName_getUnitElement_afterLibrary() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4727,12 +4768,16 @@ final a = new A();
 
   test_partOfName_getUnitElement_beforeLibrary_addedFiles() async {
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4772,6 +4817,8 @@ final a = new A();
 
   test_partOfName_getUnitElement_noLibrary() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4797,12 +4844,16 @@ final a = new A();
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4840,12 +4891,16 @@ final a = new A();
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4883,12 +4938,16 @@ final a = new A();
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
     var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 library a;
 part '../b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4925,6 +4984,8 @@ final a = new A();
 
   test_partOfName_results_noLibrary() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4947,13 +5008,15 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [status] idle
 ''');
   }
 
   test_partOfName_results_noLibrary_priority() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
+// preEnhancedParts
 part of a;
 final a = new A();
 ''');
@@ -4977,7 +5040,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      25 +1 CREATION_WITH_NON_TYPE
+      60 +1 CREATION_WITH_NON_TYPE
 [status] idle
 ''');
   }

@@ -98,7 +98,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     LocalVariable* suspend_state_var =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::SuspendStateVar(), AbstractType::dynamic_type());
-    suspend_state_var->set_is_forced_stack();
     suspend_state_var->set_invisible(true);
     scope_->AddVariable(suspend_state_var);
     parsed_function_->set_suspend_state_var(suspend_state_var);
@@ -118,7 +117,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   }
 
   LocalVariable* context_var = parsed_function_->current_context_var();
-  context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
 
   parsed_function_->set_scope(scope_);
@@ -178,7 +176,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         LocalVariable* closure_parameter = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
             Symbols::ClosureParameter(), AbstractType::dynamic_type());
-        closure_parameter->set_is_forced_stack();
         scope_->InsertParameterAt(pos++, closure_parameter);
       } else if (!function.is_static()) {
         // We use [is_static] instead of [IsStaticFunction] because the latter
@@ -1798,7 +1795,6 @@ void ScopeBuilder::AddExceptionVariable(
 
     // If transformer did not lift the variable then there is no need
     // to lift it into the context when we encounter a YieldStatement.
-    v->set_is_forced_stack();
     current_function_scope_->AddVariable(v);
   }
 
@@ -1820,7 +1816,6 @@ void ScopeBuilder::FinalizeExceptionVariable(
     raw_variable =
         new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                           symbol, AbstractType::dynamic_type());
-    raw_variable->set_is_forced_stack();
     const bool ok = scope_->AddVariable(raw_variable);
     ASSERT(ok);
   } else {
@@ -1857,7 +1852,6 @@ void ScopeBuilder::AddSwitchVariable() {
     LocalVariable* variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::SwitchExpr(), AbstractType::dynamic_type());
-    variable->set_is_forced_stack();
     current_function_scope_->AddVariable(variable);
     result_->switch_variable = variable;
   }

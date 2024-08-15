@@ -9,14 +9,15 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
 import 'package:package_config/package_config.dart';
 
 import '../codes/cfe_codes.dart';
-import 'compiler_context.dart' show CompilerContext;
+import 'processed_options.dart';
 
 class UriTranslator {
+  final ProcessedOptions options;
   final TargetLibrariesSpecification dartLibraries;
 
   final PackageConfig packages;
 
-  UriTranslator(this.dartLibraries, this.packages);
+  UriTranslator(this.options, this.dartLibraries, this.packages);
 
   List<Uri>? getDartPatches(String libraryName) =>
       dartLibraries.libraryInfoFor(libraryName)?.patches;
@@ -74,16 +75,16 @@ class UriTranslator {
       // TODO(sigmund): catch a more precise error when
       // https://github.com/dart-lang/package_config/issues/40 is fixed.
       if (reportMessage) {
-        CompilerContext.current.reportWithoutLocation(
+        options.reportWithoutLocation(
             templateInvalidPackageUri.withArguments(uri, '$e'), Severity.error);
       }
       return null;
     }
   }
 
-  static Uri? _packageUriNotFound(Uri uri) {
+  Uri? _packageUriNotFound(Uri uri) {
     String name = uri.pathSegments.first;
-    CompilerContext.current.reportWithoutLocation(
+    options.reportWithoutLocation(
         templatePackageNotFound.withArguments(name, uri), Severity.error);
     // TODO(sigmund, ahe): ensure we only report an error once,
     // this null result will likely cause another error further down in the

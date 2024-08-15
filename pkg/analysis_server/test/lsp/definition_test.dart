@@ -5,10 +5,10 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,7 +27,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
       ...super.serverOptions.enabledExperiments,
-      Feature.macros.enableString,
+      ...experimentsForTests,
     ];
 
   Future<void> test_acrossFiles() async {

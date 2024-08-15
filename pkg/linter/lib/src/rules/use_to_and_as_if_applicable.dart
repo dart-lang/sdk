@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Start the name of the method with to/_to or as/_as if applicable.';
@@ -59,19 +60,18 @@ bool _isVoid(TypeAnnotation? returnType) =>
     returnType is NamedType && returnType.type is VoidType;
 
 class UseToAndAsIfApplicable extends LintRule {
-  static const LintCode code = LintCode('use_to_and_as_if_applicable',
-      "Start the name of the method with 'to' or 'as'.",
-      correctionMessage: "Try renaming the method to use either 'to' or 'as'.");
-
   UseToAndAsIfApplicable()
       : super(
             name: 'use_to_and_as_if_applicable',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_to_and_as_if_applicable;
 
   @override
   void registerNodeProcessors(

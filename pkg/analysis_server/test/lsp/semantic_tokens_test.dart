@@ -9,10 +9,10 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,10 +28,8 @@ void main() {
 @reflectiveTest
 class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   @override
-  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
-    ..enabledExperiments = [
-      Feature.macros.enableString,
-    ];
+  AnalysisServerOptions get serverOptions =>
+      AnalysisServerOptions()..enabledExperiments = experimentsForTests;
 
   Future<void> test_annotation() async {
     var content = '''

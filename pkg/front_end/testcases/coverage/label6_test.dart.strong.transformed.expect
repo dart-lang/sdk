@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/label6_test.dart:13:17: Error: Can't break to 'L' in a different function.
+//       if (true) break L; // Error
+//                 ^^^^^^^
+//
+import self as self;
+
+static method foo() → void {
+  #L1:
+  invalid-expression "pkg/front_end/testcases/coverage/label6_test.dart:13:17: Error: Can't break to 'L' in a different function.
+      if (true) break L; // Error
+                ^^^^^^^";
+}

@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../base/common.dart';
+import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -22,6 +23,7 @@ import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
     with SourceDeclarationBuilderMixin {
@@ -32,8 +34,19 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   MergedClassMemberScope? _mergedScope;
 
+  final DeclarationNameSpaceBuilder _nameSpaceBuilder;
+
+  late final LookupScope _scope;
+
+  late final DeclarationNameSpace _nameSpace;
+
+  late final ConstructorScope _constructorScope;
+
   @override
   final List<NominalVariableBuilder>? typeParameters;
+
+  @override
+  final LookupScope typeParameterScope;
 
   @override
   final TypeBuilder onType;
@@ -46,7 +59,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       this.extensionName,
       this.typeParameters,
       this.onType,
-      Scope scope,
+      this.typeParameterScope,
+      this._nameSpaceBuilder,
       SourceLibraryBuilder parent,
       int startOffset,
       int nameOffset,
@@ -58,12 +72,31 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
             reference: referenceFrom?.reference)
-          ..isExtensionTypeDeclaration = false
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, extensionName.name, parent, nameOffset,
-            scope) {
+        super(metadata, modifiers, extensionName.name, parent, nameOffset) {
     extensionName.attachExtension(_extension);
+  }
+
+  @override
+  LookupScope get scope => _scope;
+
+  @override
+  DeclarationNameSpace get nameSpace => _nameSpace;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ConstructorScope get constructorScope => _constructorScope;
+
+  @override
+  void buildScopes(LibraryBuilder coreLibrary) {
+    _nameSpace =
+        _nameSpaceBuilder.buildNameSpace(this, includeConstructors: false);
+    _scope = new NameSpaceLookupScope(
+        _nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
+        parent: typeParameterScope);
+    _constructorScope =
+        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
   }
 
   @override
@@ -193,16 +226,16 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       // TODO(johnniwinther): Check that type parameters and on-type match
       // with origin declaration.
 
-      scope.forEachLocalMember((String name, Builder member) {
+      nameSpace.forEachLocalMember((String name, Builder member) {
         Builder? memberAugmentation =
-            augmentation.scope.lookupLocalMember(name, setter: false);
+            augmentation.nameSpace.lookupLocalMember(name, setter: false);
         if (memberAugmentation != null) {
           member.applyAugmentation(memberAugmentation);
         }
       });
-      scope.forEachLocalSetter((String name, Builder member) {
+      nameSpace.forEachLocalSetter((String name, Builder member) {
         Builder? memberAugmentation =
-            augmentation.scope.lookupLocalMember(name, setter: true);
+            augmentation.nameSpace.lookupLocalMember(name, setter: true);
         if (memberAugmentation != null) {
           member.applyAugmentation(memberAugmentation);
         }

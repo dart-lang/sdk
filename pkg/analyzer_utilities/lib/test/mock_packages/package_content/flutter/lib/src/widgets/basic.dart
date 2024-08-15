@@ -99,6 +99,10 @@ class ClipRect extends SingleChildRenderObjectWidget {
       : super(key: key, child: child);
 }
 
+class ColoredBox extends SingleChildRenderObjectWidget {
+  ColoredBox({required Color color, Widget? child, Key? key});
+}
+
 class Column extends Flex {
   Column({
     Key? key,
@@ -109,6 +113,15 @@ class Column extends Flex {
     VerticalDirection verticalDirection = VerticalDirection.down,
     TextBaseline textBaseline,
     List<Widget> children = const <Widget>[],
+  });
+}
+
+class DecoratedBox extends SingleChildRenderObjectWidget {
+  DecoratedBox({
+    Key? key,
+    required Decoration decoration,
+    DecorationPosition position = DecorationPosition.background,
+    Widget? child,
   });
 }
 

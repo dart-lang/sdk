@@ -1,0 +1,295 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class TypeExpecter<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::TypeExpecter<self::TypeExpecter::X%>
+    : super core::Object::•()
+    ;
+  method checkType<Y extends core::Object? = dynamic>(dynamic value) → self::TypeExpecter::checkType::Y% {
+    if(!(self::TypeExpecter::X% =={core::Type::==}{(core::Object) → core::bool} self::TypeExpecter::checkType::Y%)) {
+      throw "Expected the captured type (${self::TypeExpecter::checkType::Y%}) to be the same as the passed type (${self::TypeExpecter::X%}).";
+    }
+    return value as self::TypeExpecter::checkType::Y%;
+  }
+}
+static method test1(core::int? x) → dynamic {
+  core::List<core::int> y1 = block {
+    final core::List<core::int> #t1 = <core::int>[];
+    final core::int? #t2 = x;
+    if(!(#t2 == null))
+      #t1.{core::List::add}{Invariant}(#t2{core::int}){(core::int) → void};
+  } =>#t1;
+  self::expectType<core::List<core::int>>(y1);
+  core::List<core::int> y2 = block {
+    final core::List<core::int> #t3 = <core::int>[1];
+    final core::int? #t4 = x;
+    if(!(#t4 == null))
+      #t3.{core::List::add}{Invariant}(#t4{core::int}){(core::int) → void};
+  } =>#t3;
+  self::expectType<core::List<core::int>>(y2);
+  core::List<core::num> y3 = block {
+    final core::List<core::num> #t5 = <core::num>[1.0];
+    final core::num? #t6 = x;
+    if(!(#t6 == null))
+      #t5.{core::List::add}{Invariant}(#t6{core::num}){(core::num) → void};
+  } =>#t5;
+  self::expectType<core::List<core::num>>(y3);
+}
+static method test2(dynamic x) → dynamic {
+  core::List<core::String> y1 = block {
+    final core::List<core::String> #t7 = <core::String>[];
+    final core::String? #t8 = new self::TypeExpecter::•<core::String?>().{self::TypeExpecter::checkType}<core::String?>(x){(dynamic) → core::String?};
+    if(!(#t8 == null))
+      #t7.{core::List::add}{Invariant}(#t8{core::String}){(core::String) → void};
+  } =>#t7;
+  core::List<core::String> y2 = block {
+    final core::List<core::String> #t9 = <core::String>[""];
+    final core::String? #t10 = new self::TypeExpecter::•<core::String?>().{self::TypeExpecter::checkType}<core::String?>(x){(dynamic) → core::String?};
+    if(!(#t10 == null))
+      #t9.{core::List::add}{Invariant}(#t10{core::String}){(core::String) → void};
+  } =>#t9;
+  core::List<dynamic> y3 = block {
+    final core::List<dynamic> #t11 = <dynamic>[""];
+    final dynamic #t12 = new self::TypeExpecter::•<dynamic>().{self::TypeExpecter::checkType}<dynamic>(x){(dynamic) → dynamic};
+    if(!(#t12 == null))
+      #t11.{core::List::add}{Invariant}(#t12){(dynamic) → void};
+  } =>#t11;
+}
+static method test3(core::String? key) → dynamic {
+  core::Map<core::String, core::bool> y1 = block {
+    final core::Map<core::String, core::bool> #t13 = <core::String, core::bool>{};
+    final core::String? #t14 = key;
+    if(!(#t14 == null))
+      #t13.{core::Map::[]=}{Invariant}(#t14{core::String}, false){(core::String, core::bool) → void};
+  } =>#t13;
+  self::expectType<core::Map<core::String, core::bool>>(y1);
+  core::Map<core::String, core::bool> y2 = block {
+    final core::Map<core::String, core::bool> #t15 = <core::String, core::bool>{};
+    #t15.{core::Map::[]=}{Invariant}("", false){(core::String, core::bool) → void};
+    final core::String? #t16 = key;
+    if(!(#t16 == null))
+      #t15.{core::Map::[]=}{Invariant}(#t16{core::String}, false){(core::String, core::bool) → void};
+  } =>#t15;
+  self::expectType<core::Map<core::String, core::bool>>(y2);
+  core::Map<core::Object, core::bool> y3 = block {
+    final core::Map<core::Object, core::bool> #t17 = <core::Object, core::bool>{};
+    #t17.{core::Map::[]=}{Invariant}(0, false){(core::Object, core::bool) → void};
+    final core::Object? #t18 = key;
+    if(!(#t18 == null))
+      #t17.{core::Map::[]=}{Invariant}(#t18{core::Object}, false){(core::Object, core::bool) → void};
+  } =>#t17;
+  self::expectType<core::Map<core::Object?, core::bool>>(y3);
+}
+static method test4(dynamic key) → dynamic {
+  core::Map<core::Symbol, core::num> y1 = block {
+    final core::Map<core::Symbol, core::num> #t19 = <core::Symbol, core::num>{};
+    final core::Symbol? #t20 = new self::TypeExpecter::•<core::Symbol?>().{self::TypeExpecter::checkType}<core::Symbol?>(key){(dynamic) → core::Symbol?};
+    if(!(#t20 == null))
+      #t19.{core::Map::[]=}{Invariant}(#t20{core::Symbol}, 1.0){(core::Symbol, core::num) → void};
+  } =>#t19;
+  core::Map<core::Symbol, core::num> y2 = block {
+    final core::Map<core::Symbol, core::num> #t21 = <core::Symbol, core::num>{};
+    #t21.{core::Map::[]=}{Invariant}(#C1, 1.0){(core::Symbol, core::num) → void};
+    final core::Symbol? #t22 = new self::TypeExpecter::•<core::Symbol?>().{self::TypeExpecter::checkType}<core::Symbol?>(key){(dynamic) → core::Symbol?};
+    if(!(#t22 == null))
+      #t21.{core::Map::[]=}{Invariant}(#t22{core::Symbol}, 1.0){(core::Symbol, core::num) → void};
+  } =>#t21;
+  core::Map<dynamic, core::double> y3 = block {
+    final core::Map<dynamic, core::double> #t23 = <dynamic, core::double>{};
+    #t23.{core::Map::[]=}{Invariant}(#C1, 1.0){(dynamic, core::double) → void};
+    final dynamic #t24 = new self::TypeExpecter::•<dynamic>().{self::TypeExpecter::checkType}<dynamic>(key){(dynamic) → dynamic};
+    if(!(#t24 == null))
+      #t23.{core::Map::[]=}{Invariant}(#t24, 1.0){(dynamic, core::double) → void};
+  } =>#t23;
+}
+static method test5(core::String? value) → dynamic {
+  core::Map<core::bool, core::String> y1 = block {
+    final core::Map<core::bool, core::String> #t25 = <core::bool, core::String>{};
+    final core::String? #t26 = value;
+    if(!(#t26 == null))
+      #t25.{core::Map::[]=}{Invariant}(false, #t26{core::String}){(core::bool, core::String) → void};
+  } =>#t25;
+  self::expectType<core::Map<core::bool, core::String>>(y1);
+  core::Map<core::bool, core::String> y2 = block {
+    final core::Map<core::bool, core::String> #t27 = <core::bool, core::String>{};
+    #t27.{core::Map::[]=}{Invariant}(false, ""){(core::bool, core::String) → void};
+    final core::String? #t28 = value;
+    if(!(#t28 == null))
+      #t27.{core::Map::[]=}{Invariant}(true, #t28{core::String}){(core::bool, core::String) → void};
+  } =>#t27;
+  self::expectType<core::Map<core::bool, core::String>>(y2);
+  core::Map<core::bool, core::Object> y3 = block {
+    final core::Map<core::bool, core::Object> #t29 = <core::bool, core::Object>{};
+    #t29.{core::Map::[]=}{Invariant}(false, 0){(core::bool, core::Object) → void};
+    final core::Object? #t30 = value;
+    if(!(#t30 == null))
+      #t29.{core::Map::[]=}{Invariant}(true, #t30{core::Object}){(core::bool, core::Object) → void};
+  } =>#t29;
+  self::expectType<core::Map<core::bool, core::Object?>>(y3);
+}
+static method test6(dynamic value) → dynamic {
+  core::Map<core::int, core::Symbol> y1 = block {
+    final core::Map<core::int, core::Symbol> #t31 = <core::int, core::Symbol>{};
+    final core::Symbol? #t32 = new self::TypeExpecter::•<core::Symbol?>().{self::TypeExpecter::checkType}<core::Symbol?>(value){(dynamic) → core::Symbol?};
+    if(!(#t32 == null))
+      #t31.{core::Map::[]=}{Invariant}(0, #t32{core::Symbol}){(core::int, core::Symbol) → void};
+  } =>#t31;
+  core::Map<core::int, core::Symbol> y2 = block {
+    final core::Map<core::int, core::Symbol> #t33 = <core::int, core::Symbol>{};
+    #t33.{core::Map::[]=}{Invariant}(0, #C1){(core::int, core::Symbol) → void};
+    final core::Symbol? #t34 = new self::TypeExpecter::•<core::Symbol?>().{self::TypeExpecter::checkType}<core::Symbol?>(value){(dynamic) → core::Symbol?};
+    if(!(#t34 == null))
+      #t33.{core::Map::[]=}{Invariant}(1, #t34{core::Symbol}){(core::int, core::Symbol) → void};
+  } =>#t33;
+  core::Map<core::int, dynamic> y3 = block {
+    final core::Map<core::int, dynamic> #t35 = <core::int, dynamic>{};
+    #t35.{core::Map::[]=}{Invariant}(0, #C1){(core::int, dynamic) → void};
+    final dynamic #t36 = new self::TypeExpecter::•<dynamic>().{self::TypeExpecter::checkType}<dynamic>(value){(dynamic) → dynamic};
+    if(!(#t36 == null))
+      #t35.{core::Map::[]=}{Invariant}(1, #t36){(core::int, dynamic) → void};
+  } =>#t35;
+}
+static method test7(core::int? key, core::Symbol? value) → dynamic {
+  core::Map<core::int, core::Symbol> y1 = block {
+    final core::Map<core::int, core::Symbol> #t37 = <core::int, core::Symbol>{};
+    final core::int? #t38 = key;
+    if(!(#t38 == null)) {
+      final core::Symbol? #t39 = value;
+      if(!(#t39 == null))
+        #t37.{core::Map::[]=}{Invariant}(#t38{core::int}, #t39{core::Symbol}){(core::int, core::Symbol) → void};
+    }
+  } =>#t37;
+  self::expectType<core::Map<core::int, core::Symbol>>(y1);
+  core::Map<core::int, core::Symbol> y2 = block {
+    final core::Map<core::int, core::Symbol> #t40 = <core::int, core::Symbol>{};
+    #t40.{core::Map::[]=}{Invariant}(0, #C2){(core::int, core::Symbol) → void};
+    final core::int? #t41 = key;
+    if(!(#t41 == null)) {
+      final core::Symbol? #t42 = value;
+      if(!(#t42 == null))
+        #t40.{core::Map::[]=}{Invariant}(#t41{core::int}, #t42{core::Symbol}){(core::int, core::Symbol) → void};
+    }
+  } =>#t40;
+  self::expectType<core::Map<core::int, core::Symbol>>(y2);
+  core::Map<core::int, core::Object> y3 = block {
+    final core::Map<core::int, core::Object> #t43 = <core::int, core::Object>{};
+    #t43.{core::Map::[]=}{Invariant}(0, 1.0){(core::int, core::Object) → void};
+    final core::int? #t44 = key;
+    if(!(#t44 == null)) {
+      final core::Object? #t45 = value;
+      if(!(#t45 == null))
+        #t43.{core::Map::[]=}{Invariant}(#t44{core::int}, #t45{core::Object}){(core::int, core::Object) → void};
+    }
+  } =>#t43;
+  self::expectType<core::Map<core::int, core::Object?>>(y3);
+  core::Map<core::Object, core::Symbol> y4 = block {
+    final core::Map<core::Object, core::Symbol> #t46 = <core::Object, core::Symbol>{};
+    #t46.{core::Map::[]=}{Invariant}(false, #C2){(core::Object, core::Symbol) → void};
+    final core::Object? #t47 = key;
+    if(!(#t47 == null)) {
+      final core::Symbol? #t48 = value;
+      if(!(#t48 == null))
+        #t46.{core::Map::[]=}{Invariant}(#t47{core::Object}, #t48{core::Symbol}){(core::Object, core::Symbol) → void};
+    }
+  } =>#t46;
+  self::expectType<core::Map<core::Object?, core::Symbol>>(y4);
+}
+static method test8(dynamic key, dynamic value) → dynamic {
+  core::Map<core::String, core::double> y1 = block {
+    final core::Map<core::String, core::double> #t49 = <core::String, core::double>{};
+    final core::String? #t50 = new self::TypeExpecter::•<core::String?>().{self::TypeExpecter::checkType}<core::String?>(key){(dynamic) → core::String?};
+    if(!(#t50 == null)) {
+      final core::double? #t51 = new self::TypeExpecter::•<core::double?>().{self::TypeExpecter::checkType}<core::double?>(value){(dynamic) → core::double?};
+      if(!(#t51 == null))
+        #t49.{core::Map::[]=}{Invariant}(#t50{core::String}, #t51{core::double}){(core::String, core::double) → void};
+    }
+  } =>#t49;
+  core::Map<core::String, core::double> y2 = block {
+    final core::Map<core::String, core::double> #t52 = <core::String, core::double>{};
+    #t52.{core::Map::[]=}{Invariant}("", 1.0){(core::String, core::double) → void};
+    final core::String? #t53 = new self::TypeExpecter::•<core::String?>().{self::TypeExpecter::checkType}<core::String?>(key){(dynamic) → core::String?};
+    if(!(#t53 == null)) {
+      final core::double? #t54 = new self::TypeExpecter::•<core::double?>().{self::TypeExpecter::checkType}<core::double?>(value){(dynamic) → core::double?};
+      if(!(#t54 == null))
+        #t52.{core::Map::[]=}{Invariant}(#t53{core::String}, #t54{core::double}){(core::String, core::double) → void};
+    }
+  } =>#t52;
+  core::Map<dynamic, dynamic> y3 = block {
+    final core::Map<dynamic, dynamic> #t55 = <dynamic, dynamic>{};
+    #t55.{core::Map::[]=}{Invariant}("", 1.0){(dynamic, dynamic) → void};
+    final dynamic #t56 = new self::TypeExpecter::•<dynamic>().{self::TypeExpecter::checkType}<dynamic>(key){(dynamic) → dynamic};
+    if(!(#t56 == null)) {
+      final dynamic #t57 = new self::TypeExpecter::•<dynamic>().{self::TypeExpecter::checkType}<dynamic>(value){(dynamic) → dynamic};
+      if(!(#t57 == null))
+        #t55.{core::Map::[]=}{Invariant}(#t56, #t57){(dynamic, dynamic) → void};
+    }
+  } =>#t55;
+}
+static method main() → dynamic {
+  self::test1(0);
+  self::test1(null);
+  self::test2("element");
+  self::test2(null);
+  self::expectThrows<core::TypeError>(() → void {
+    self::test2(0);
+  });
+  self::test3("key");
+  self::test3(null);
+  self::test4(#C3);
+  self::test4(null);
+  self::expectThrows<core::TypeError>(() → void {
+    self::test4("foo");
+  });
+  self::test5("value");
+  self::test5(null);
+  self::test6(#C3);
+  self::test6(null);
+  self::expectThrows<core::TypeError>(() → void {
+    self::test6("foo");
+  });
+  self::test7(0, #C2);
+  self::test7(0, null);
+  self::test7(null, #C2);
+  self::test7(null, null);
+  self::test8("key", 1.0);
+  self::test8("key", null);
+  self::test8(null, 1.0);
+  self::test8(null, null);
+  self::expectThrows<core::TypeError>(() → void {
+    self::test8(#C1, 1.0);
+  });
+  self::expectThrows<core::TypeError>(() → void {
+    self::test8("key", "value");
+  });
+  self::expectThrows<core::TypeError>(() → void {
+    self::test8(#C1, "value");
+  });
+}
+static method expectType<T extends core::Object? = dynamic>(dynamic x) → dynamic {
+  if(!(x is self::expectType::T%)) {
+    throw "Expected the passed value to be of type 'T', got '${x.{core::Object::runtimeType}{<object>}.{core::Type}}'.";
+  }
+}
+static method expectThrows<T extends core::Object? = dynamic>(() → void f) → dynamic {
+  core::bool hasThrownT = true;
+  try {
+    f(){() → void};
+    hasThrownT = false;
+  }
+  on self::expectThrows::T% catch(no-exception-var) {
+    hasThrownT = true;
+  }
+  on dynamic catch(no-exception-var) {
+    hasThrownT = false;
+  }
+  if(!hasThrownT) {
+    throw "Expected the passed function to throw.";
+  }
+}
+
+constants  {
+  #C1 = #key
+  #C2 = #value
+  #C3 = #foo
+}

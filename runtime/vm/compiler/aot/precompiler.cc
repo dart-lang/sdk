@@ -3846,7 +3846,7 @@ void Obfuscator::InitializeRenamingMap() {
 // Prevent renaming of methods that are looked up by method recognizer.
 // TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
 // where these are looked up.
-#define PREVENT_RENAMING(class_name, function_name, recognized_enum,           \
+#define PREVENT_RENAMING(library, class_name, function_name, recognized_enum,  \
                          fingerprint)                                          \
   do {                                                                         \
     PreventRenaming(#class_name);                                              \
@@ -3858,7 +3858,7 @@ void Obfuscator::InitializeRenamingMap() {
 // Prevent renaming of methods that are looked up by method recognizer.
 // TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
 // where these are looked up.
-#define PREVENT_RENAMING(class_name, function_name, recognized_enum,           \
+#define PREVENT_RENAMING(libary, class_name, function_name, recognized_enum,   \
                          fingerprint)                                          \
   do {                                                                         \
     PreventRenaming(#class_name);                                              \

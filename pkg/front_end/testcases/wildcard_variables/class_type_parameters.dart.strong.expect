@@ -18,32 +18,32 @@ class A<T extends core::Object? = dynamic, U extends self::AA> extends core::Obj
     : super core::Object::•()
     ;
 }
-class B<_ extends core::Object? = dynamic, _ extends self::AA> extends self::A<self::BB, self::BB> {
-  synthetic constructor •() → self::B<self::B::_%, self::B::_>
+class B<_#wc0#type extends core::Object? = dynamic, _#wc1#type extends self::AA> extends self::A<self::BB, self::BB> {
+  synthetic constructor •() → self::B<self::B::_#wc0#type%, self::B::_#wc1#type>
     : super self::A::•()
     ;
-  method foo<_ extends self::BB>([wildcard core::int _ = #C1]) → core::int
+  method foo<_#wc2#type extends self::BB>([wildcard core::int _#wc3#formal = #C1]) → core::int
     return 1;
 }
-class C<T extends core::Object? = dynamic, _ extends self::BB> extends self::A<self::C::T%, self::BB> {
+class C<T extends core::Object? = dynamic, _#wc4#type extends self::BB> extends self::A<self::C::T%, self::BB> {
   static const field core::int _ = #C2;
-  synthetic constructor •() → self::C<self::C::T%, self::C::_>
+  synthetic constructor •() → self::C<self::C::T%, self::C::_#wc4#type>
     : super self::A::•()
     ;
 }
-class D<_ extends core::Object? = dynamic, _ extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::D<self::D::_%, self::D::_%>
+class D<_#wc5#type extends core::Object? = dynamic, _#wc6#type extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::_#wc5#type%, self::D::_#wc6#type%>
     : super core::Object::•()
     ;
 }
-class DoesNotUseTypeVariable<_ extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::DoesNotUseTypeVariable<self::DoesNotUseTypeVariable::_%>
+class DoesNotUseTypeVariable<_#wc7#type extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::DoesNotUseTypeVariable<self::DoesNotUseTypeVariable::_#wc7#type%>
     : super core::Object::•()
     ;
   method returnsBB() → core::Type {
     return #C3;
   }
-  method alsoReturnsBB<_ extends core::Object? = dynamic, _ extends core::int>() → core::Type {
+  method alsoReturnsBB<_#wc8#type extends core::Object? = dynamic, _#wc9#type extends core::int>() → core::Type {
     return #C3;
   }
 }

@@ -96,7 +96,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 369;
+  static const int DATA_VERSION = 380;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1648,10 +1648,8 @@ class AnalysisDriver {
     var dartCoreUri = uriCache.parse('dart:core');
     var dartCoreResolution = _fsState.getFileForUri(dartCoreUri);
     if (dartCoreResolution is UriResolutionFile) {
-      var kind = dartCoreResolution.file.kind;
-      if (kind is LibraryFileKind) {
-        kind.discoverReferencedFiles();
-      }
+      var dartCoreFile = dartCoreResolution.file;
+      dartCoreFile.kind.discoverReferencedFiles();
     }
   }
 
@@ -2034,7 +2032,7 @@ class AnalysisDriver {
     for (var file in affected) {
       var kind = file.kind;
       if (kind is LibraryFileKind) {
-        kind.invalidateLibraryCycle();
+        kind.disposeLibraryCycle();
       }
       accumulatedAffected.add(file.path);
     }

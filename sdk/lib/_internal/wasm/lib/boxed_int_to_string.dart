@@ -6,7 +6,7 @@ import 'dart:_internal';
 import 'dart:_string';
 
 @patch
-class _BoxedInt {
+class BoxedInt {
   @patch
   String toRadixString(int radix) => _intToRadixString(value, radix);
 

@@ -10,8 +10,8 @@ import 'nullability_suffix.dart';
 /// client's representation of variables and types.
 abstract interface class TypeAnalyzerOperations<
         Variable extends Object,
-        Type extends SharedType,
-        TypeSchema extends Object,
+        Type extends SharedType<Type>,
+        TypeSchema extends SharedType<TypeSchema>,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
@@ -46,6 +46,10 @@ abstract interface class TypeAnalyzerOperations<
   /// Returns the type `Future` with omitted nullability and type argument
   /// [argumentType].
   Type futureType(Type argumentType);
+
+  /// Returns the type schema `Future` with omitted nullability and type
+  /// argument [argumentTypeSchema].
+  TypeSchema futureTypeSchema(TypeSchema argumentTypeSchema);
 
   /// If [type] was introduced by a class, mixin, enum, or extension type,
   /// returns a [TypeDeclarationKind] indicating what kind of thing it was
@@ -106,21 +110,19 @@ abstract interface class TypeAnalyzerOperations<
   /// type `X`.
   bool isInterfaceType(Type type);
 
-  /// Returns `true` if `Null` is a subtype of all types matching [typeSchema].
+  /// Returns `true` if `Null` is not a subtype of all types matching
+  /// [typeSchema].
   ///
   /// The predicate of [isNonNullable] could be computed directly with a subtype
   /// query, but the implementations can do that more efficiently.
   bool isNonNullable(TypeSchema typeSchema);
 
   /// Returns `true` if [type] is `Null`.
-  bool isNull(Type Type);
+  bool isNull(Type type);
 
   /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
   /// `false` for `Object?` and `Object*`.
   bool isObject(Type type);
-
-  /// Returns `true` if [type] is `R`, `R?`, or `R*` for some record type `R`.
-  bool isRecordType(Type type);
 
   /// Returns `true` if the type [type] satisfies the type schema [typeSchema].
   bool isTypeSchemaSatisfied(
@@ -155,13 +157,18 @@ abstract interface class TypeAnalyzerOperations<
   });
 
   /// Returns the type schema `Map`, with type arguments [keyTypeSchema] and
-  /// [elementTypeSchema].
+  /// [valueTypeSchema].
   TypeSchema mapTypeSchema(
       {required TypeSchema keyTypeSchema, required TypeSchema valueTypeSchema});
 
   /// If [type] takes the form `FutureOr<T>`, `FutureOr<T>?`, or `FutureOr<T>*`
   /// for some `T`, returns the type `T`. Otherwise returns `null`.
   Type? matchFutureOr(Type type);
+
+  /// If [typeSchema] takes the form `FutureOr<T>`, `FutureOr<T>?`, or
+  /// `FutureOr<T>*` for some `T`, returns the type schema `T`. Otherwise
+  /// returns `null`.
+  TypeSchema? matchTypeSchemaFutureOr(TypeSchema typeSchema);
 
   /// If [type] is a parameter type that is of a kind used in type inference,
   /// returns the corresponding parameter.
@@ -232,10 +239,6 @@ abstract interface class TypeAnalyzerOperations<
   /// Computes the greatest lower bound of [typeSchema1] and [typeSchema2].
   TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2);
 
-  /// Determines whether the given type schema corresponds to the `dynamic`
-  /// type.
-  bool typeSchemaIsDynamic(TypeSchema typeSchema);
-
   /// Returns `true` if the least closure of [leftSchema] is a subtype of
   /// [rightType].
   ///
@@ -259,6 +262,9 @@ abstract interface class TypeAnalyzerOperations<
 
   /// Computes the least upper bound of [typeSchema1] and [typeSchema2].
   TypeSchema typeSchemaLub(TypeSchema typeSchema1, TypeSchema typeSchema2);
+
+  /// Returns the nullability suffix of [typeSchema].
+  NullabilitySuffix typeSchemaNullabilitySuffix(TypeSchema typeSchema);
 
   /// Converts a type into a corresponding type schema.
   TypeSchema typeToSchema(Type type);
@@ -434,11 +440,11 @@ enum Variance {
     }
   }
 
-  /// Variance values form a lattice where unrelated is the top, invariant
-  /// is the bottom, and covariant and contravariant are incomparable.
-  /// [meet] calculates the meet of two elements of such lattice.  It can be
-  /// used, for example, to calculate the variance of a typedef type parameter
-  /// if it's encountered on the RHS of the typedef multiple times.
+  /// Variance values form a lattice where unrelated is the top, invariant is
+  /// the bottom, and covariant and contravariant are incomparable.  [meet]
+  /// calculates the meet of two elements of such lattice.  It can be used, for
+  /// example, to calculate the variance of a typedef type parameter if it's
+  /// encountered on the RHS of the typedef multiple times.
   ///
   ///       unrelated
   /// covariant   contravariant
@@ -447,3 +453,210 @@ enum Variance {
     return new Variance.fromEncoding(index | other.index);
   }
 }
+
+/// Abstract interface of a type constraint generator.
+abstract class TypeConstraintGenerator<
+    Variable extends Object,
+    Type extends SharedType<Type>,
+    TypeSchema extends SharedType<TypeSchema>,
+    InferableParameter extends Object,
+    TypeDeclarationType extends Object,
+    TypeDeclaration extends Object,
+    AstNode extends Object> {
+  /// The current sate of the constraint generator.
+  ///
+  /// The states of the generator obtained via [currentState] can be treated as
+  /// checkpoints in the constraint generation process, and the generator can
+  /// be rolled back to a state via [restoreState].
+  TypeConstraintGeneratorState get currentState;
+
+  /// Restores the constraint generator to [state].
+  ///
+  /// The [state] to restore the constraint generator to can be obtained via
+  /// [currentState].
+  void restoreState(TypeConstraintGeneratorState state);
+
+  /// Abstract type operations to be used in the matching methods.
+  TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+      TypeDeclarationType, TypeDeclaration> get typeAnalyzerOperations;
+
+  /// True if FutureOr types are required to have the empty [NullabilitySuffix]
+  /// when they are matched.
+  ///
+  /// For more information about the discrepancy between the Analyzer and the
+  /// CFE in treatment of FutureOr types, see
+  /// https://github.com/dart-lang/sdk/issues/55344 and
+  /// https://github.com/dart-lang/sdk/issues/51156#issuecomment-2158825417.
+  bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
+
+  /// Matches type [p] against type schema [q] as a subtype against supertype,
+  /// assuming [p] contains the type parameters to constrain, and [q] is the
+  /// constraining type schema, and returns true if [p] is a subtype of [q]
+  /// under some constraints, and false otherwise.
+  ///
+  /// As the generator computes the constraints making the relation possible,
+  /// it changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  ///
+  /// The algorithm for subtype constraint generation is described in
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
+  bool performSubtypeConstraintGenerationRightSchema(Type p, TypeSchema q,
+      {required AstNode? astNodeForTesting});
+
+  /// Matches type schema [p] against type [q] as a subtype against supertype,
+  /// assuming [p] is the constraining type schema, and [q] contains the type
+  /// parameters to constrain, and returns true if [p] is a subtype of [q]
+  /// under some constraints, and false otherwise.
+  ///
+  /// As the generator computes the constraints making the relation possible,
+  /// it changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  ///
+  /// The algorithm for subtype constraint generation is described in
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
+  bool performSubtypeConstraintGenerationLeftSchema(TypeSchema p, Type q,
+      {required AstNode? astNodeForTesting});
+
+  /// Matches type [p] against type schema [q] as a subtype against supertype
+  /// and returns true if [p] and [q] are both FutureOr, with or without
+  /// nullability suffixes as defined by
+  /// [enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr], and [p] is
+  /// a subtype of [q] under some constraints imposed on type parameters
+  /// occurring in [p], and false otherwise.
+  ///
+  /// As the generator computes the constraints making the relation possible,
+  /// it changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  bool performSubtypeConstraintGenerationForFutureOrRightSchema(
+      Type p, TypeSchema q,
+      {required AstNode? astNodeForTesting}) {
+    // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
+    if (typeAnalyzerOperations.matchTypeSchemaFutureOr(q) case TypeSchema q0?
+        when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
+            typeAnalyzerOperations.typeSchemaNullabilitySuffix(q) ==
+                NullabilitySuffix.none) {
+      final TypeConstraintGeneratorState state = currentState;
+
+      // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
+      // constraint set `C`.
+      if (typeAnalyzerOperations.matchFutureOr(p) case Type p0?
+          when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
+              p.nullabilitySuffix == NullabilitySuffix.none) {
+        if (performSubtypeConstraintGenerationRightSchema(p0, q0,
+            astNodeForTesting: astNodeForTesting)) {
+          return true;
+        }
+        restoreState(state);
+      }
+
+      // Or if `P` is a subtype match for `Future<Q0>` under non-empty
+      // constraint set `C`.
+      bool isMatchWithFuture = performSubtypeConstraintGenerationRightSchema(
+          p, typeAnalyzerOperations.futureTypeSchema(q0),
+          astNodeForTesting: astNodeForTesting);
+      bool matchWithFutureAddsConstraints = currentState != state;
+      if (isMatchWithFuture && matchWithFutureAddsConstraints) {
+        return true;
+      }
+      restoreState(state);
+
+      // Or if `P` is a subtype match for `Q0` under constraint set `C`.
+      if (performSubtypeConstraintGenerationRightSchema(p, q0,
+          astNodeForTesting: astNodeForTesting)) {
+        return true;
+      }
+      restoreState(state);
+
+      // Or if `P` is a subtype match for `Future<Q0>` under empty
+      // constraint set `C`.
+      if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Matches type schema [p] against type [q] as a subtype against supertype
+  /// and returns true if [p] and [q] are both FutureOr, with or without
+  /// nullability suffixes as defined by
+  /// [enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr], and [p] is
+  /// a subtype of [q] under some constraints imposed on type parameters
+  /// occurring in [q], and false otherwise.
+  ///
+  /// As the generator computes the constraints making the relation possible,
+  /// it changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  bool performSubtypeConstraintGenerationForFutureOrLeftSchema(
+      TypeSchema p, Type q,
+      {required AstNode? astNodeForTesting}) {
+    // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
+    if (typeAnalyzerOperations.matchFutureOr(q) case Type q0?
+        when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
+            q.nullabilitySuffix == NullabilitySuffix.none) {
+      final TypeConstraintGeneratorState state = currentState;
+
+      // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
+      // constraint set `C`.
+      if (typeAnalyzerOperations.matchTypeSchemaFutureOr(p) case TypeSchema p0?
+          when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
+              typeAnalyzerOperations.typeSchemaNullabilitySuffix(p) ==
+                  NullabilitySuffix.none) {
+        if (performSubtypeConstraintGenerationLeftSchema(p0, q0,
+            astNodeForTesting: astNodeForTesting)) {
+          return true;
+        }
+        restoreState(state);
+      }
+
+      // Or if `P` is a subtype match for `Future<Q0>` under non-empty
+      // constraint set `C`.
+      bool isMatchWithFuture = performSubtypeConstraintGenerationLeftSchema(
+          p, typeAnalyzerOperations.futureType(q0),
+          astNodeForTesting: astNodeForTesting);
+      bool matchWithFutureAddsConstraints = currentState != state;
+      if (isMatchWithFuture && matchWithFutureAddsConstraints) {
+        return true;
+      }
+      restoreState(state);
+
+      // Or if `P` is a subtype match for `Q0` under constraint set `C`.
+      if (performSubtypeConstraintGenerationLeftSchema(p, q0,
+          astNodeForTesting: astNodeForTesting)) {
+        return true;
+      }
+      restoreState(state);
+
+      // Or if `P` is a subtype match for `Future<Q0>` under empty
+      // constraint set `C`.
+      if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+
+/// Representation of the state of [TypeConstraintGenerator].
+///
+/// The state can be obtained via [TypeConstraintGenerator.currentState]. A
+/// [TypeConstraintGenerator] can be restored to a state via
+/// [TypeConstraintGenerator.restoreState].
+///
+/// In practice, the state is represented as an integer: the count of the
+/// constraints generated so far. Since the count only increases as the
+/// generator proceeds, restoring to a state means discarding some constraints.
+extension type TypeConstraintGeneratorState(int count) {}

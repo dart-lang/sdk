@@ -47,7 +47,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferContraContra
-    staticElement: self::@function::inferContraContra
+    staticElement: <testLibraryFragment>::@function::inferContraContra
     staticType: Exactly<T> Function<T>(Contravariant<T>, Contravariant<T>)
   staticInvokeType: Exactly<Middle> Function(Contravariant<Middle>, Contravariant<Middle>)
   staticType: Exactly<Middle>
@@ -67,7 +67,7 @@ main() {
   B<int> b = B(<num>[])..x=2.2;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
 
     var node = findNode.instanceCreation('B(<num>');
@@ -77,10 +77,10 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@class::B
+      element: <testLibraryFragment>::@class::B
       type: B<num>
     staticElement: ConstructorMember
-      base: self::@class::B::@constructor::new
+      base: <testLibraryFragment>::@class::B::@constructor::new
       substitution: {T: num}
   staticType: B<num>
 ''');
@@ -109,7 +109,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferInvInv
-    staticElement: self::@function::inferInvInv
+    staticElement: <testLibraryFragment>::@function::inferInvInv
     staticType: Exactly<T> Function<T>(Invariant<T>, Invariant<T>)
   staticInvokeType: Exactly<Object> Function(Invariant<Object>, Invariant<Object>)
   staticType: Exactly<Object>
@@ -140,7 +140,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferCovCov
-    staticElement: self::@function::inferCovCov
+    staticElement: <testLibraryFragment>::@function::inferCovCov
     staticType: Exactly<T> Function<T>(Covariant<T>, Covariant<T>)
   staticInvokeType: Exactly<Upper> Function(Covariant<Upper>, Covariant<Upper>)
   staticType: Exactly<Upper>

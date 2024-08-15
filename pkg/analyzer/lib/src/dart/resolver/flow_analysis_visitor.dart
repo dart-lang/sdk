@@ -442,6 +442,11 @@ class TypeSystemOperations
   }
 
   @override
+  DartType futureTypeSchema(DartType argumentTypeSchema) {
+    return typeSystem.typeProvider.futureType(argumentTypeSchema);
+  }
+
+  @override
   TypeDeclarationKind? getTypeDeclarationKind(DartType type) {
     if (isInterfaceType(type)) {
       return TypeDeclarationKind.interfaceDeclaration;
@@ -537,9 +542,6 @@ class TypeSystemOperations
     if (field is! FieldElement) return false;
     return field.isPromotable;
   }
-
-  @override
-  bool isRecordType(DartType type) => type is RecordType;
 
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
@@ -686,6 +688,15 @@ class TypeSystemOperations
   }
 
   @override
+  DartType? matchTypeSchemaFutureOr(DartType typeSchema) {
+    if (typeSchema is InterfaceType && typeSchema.isDartAsyncFutureOr) {
+      return typeSchema.typeArguments[0];
+    } else {
+      return null;
+    }
+  }
+
+  @override
   DartType normalize(DartType type) {
     return typeSystem.normalize(type);
   }
@@ -738,9 +749,6 @@ class TypeSystemOperations
   }
 
   @override
-  bool typeSchemaIsDynamic(DartType typeSchema) => typeSchema is DynamicType;
-
-  @override
   bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {
     return isSubtypeOf(leftSchema, rightType);
   }
@@ -754,6 +762,11 @@ class TypeSystemOperations
   @override
   DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
     return typeSystem.leastUpperBound(typeSchema1, typeSchema2);
+  }
+
+  @override
+  NullabilitySuffix typeSchemaNullabilitySuffix(DartType typeSchema) {
+    return typeSchema.nullabilitySuffix;
   }
 
   @override

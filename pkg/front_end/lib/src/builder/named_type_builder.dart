@@ -36,7 +36,9 @@ import '../base/messages.dart'
 import '../base/scope.dart';
 import '../base/uris.dart';
 import '../kernel/implicit_field_type.dart';
+import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
+import '../source/type_parameter_scope_builder.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
@@ -190,19 +192,19 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  void resolveIn(Scope scope, int charOffset, Uri fileUri,
+  void resolveIn(LookupScope scope, int charOffset, Uri fileUri,
       ProblemReporting problemReporting) {
     if (_declaration != null) return;
     Builder? member;
     String? qualifier = typeName.qualifier;
     if (qualifier != null) {
-      Builder? prefix = scope.lookup(qualifier, charOffset, fileUri);
+      Builder? prefix = scope.lookupGetable(qualifier, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
         _isDeferred = prefix.deferred;
         member = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
       }
     } else {
-      member = scope.lookup(typeName.name, typeName.nameOffset, fileUri);
+      member = scope.lookupGetable(typeName.name, typeName.nameOffset, fileUri);
     }
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);
@@ -660,14 +662,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   NamedTypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     List<TypeBuilder>? clonedArguments;
     if (typeArguments != null) {
       clonedArguments =
           new List<TypeBuilder>.generate(typeArguments!.length, (int i) {
         return typeArguments![i]
-            .clone(newTypes, contextLibrary, contextDeclaration);
+            .clone(newTypes, builderFactory, contextDeclaration);
       }, growable: false);
     }
     NamedTypeBuilderImpl newType = new NamedTypeBuilderImpl(
@@ -826,7 +828,7 @@ class _InferredNamedTypeBuilder extends NamedTypeBuilderImpl
     } else {
       InferableTypeUse inferableTypeUse =
           new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
-      library.registerInferableType(inferableTypeUse);
+      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
       return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }
   }

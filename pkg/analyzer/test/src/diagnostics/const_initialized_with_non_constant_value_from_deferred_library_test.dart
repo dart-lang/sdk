@@ -52,4 +52,21 @@ const B = a.V + 1;
           1),
     ]);
   }
+
+  test_staticMethod_ofExtension() async {
+    await assertErrorsInCode('''
+import '' deferred as self;
+extension E on int {
+  static int f(String s) => 7;
+}
+const g = self.E.f;
+''', [
+      error(CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, 7, 2),
+      error(
+          CompileTimeErrorCode
+              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+          97,
+          1),
+    ]);
+  }
 }

@@ -35,4 +35,18 @@ import 'dart:async' as _async;
 import 'dart:async' as dart_async;
 ''');
   }
+
+  test_underscores() async {
+    await assertDiagnostics(r'''
+import 'dart:async' as __;
+''', [
+      lint(23, 2),
+    ]);
+  }
+
+  test_wildcard() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async' as _;
+''');
+  }
 }

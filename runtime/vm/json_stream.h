@@ -77,6 +77,14 @@ class JSONStream : ValueObject {
  public:
   explicit JSONStream(intptr_t buf_size = 256);
 
+  // Populates the fields of this |JSONStream| that are required to call
+  // certain helper methods related to posting replies to RPCs.
+  //
+  // WARNING: It is not safe to call the following methods on a |JSONStream|
+  // until |Setup| has been called on that |JSONStream|: |PostReply|,
+  // |reply_port|, |method|, |NumObjectParameters|, |LookupObjectParam|,
+  // |num_params|, |param_keys|, |param_values|, |GetParamKey|, |GetParamValue|,
+  // |LookupParam|, |HasParam|, |ParamIs|.
   void Setup(Zone* zone,
              Dart_Port reply_port,
              const Instance& seq,
@@ -102,6 +110,7 @@ class JSONStream : ValueObject {
   }
 
   void set_reply_port(Dart_Port port);
+  Dart_Port reply_port() const { return reply_port_; }
 
   bool include_private_members() const { return include_private_members_; }
   void set_include_private_members(bool include_private_members) {
@@ -119,11 +128,7 @@ class JSONStream : ValueObject {
                  const char** param_values,
                  intptr_t num_params);
 
-  Dart_Port reply_port() const { return reply_port_; }
-
   intptr_t NumObjectParameters() const;
-  ObjectPtr GetObjectParameterKey(intptr_t i) const;
-  ObjectPtr GetObjectParameterValue(intptr_t i) const;
   ObjectPtr LookupObjectParam(const char* key) const;
 
   intptr_t num_params() const { return num_params_; }
@@ -177,6 +182,9 @@ class JSONStream : ValueObject {
 
  private:
   void Clear() { writer_.Clear(); }
+
+  ObjectPtr GetObjectParameterKey(intptr_t i) const;
+  ObjectPtr GetObjectParameterValue(intptr_t i) const;
 
   void PostNullReply(Dart_Port port);
 

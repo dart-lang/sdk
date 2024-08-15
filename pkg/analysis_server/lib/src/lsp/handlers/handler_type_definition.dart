@@ -36,6 +36,9 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
       TypeDefinitionParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   // The private type in the return type is dictated by the signature of the
   // super-method and the class's super-class.
   Future<ErrorOr<TextDocumentTypeDefinitionResult>> handle(
@@ -83,6 +86,9 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
             type = element.thisType;
           }
         } else if (node is VariableDeclaration) {
+          originEntity = node.name;
+          type = node.declaredElement?.type;
+        } else if (node is DeclaredIdentifier) {
           originEntity = node.name;
           type = node.declaredElement?.type;
         } else if (node is Expression) {

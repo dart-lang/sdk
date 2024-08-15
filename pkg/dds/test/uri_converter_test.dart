@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dds/dds.dart';
+import 'package:dds/src/bazel_uri_converter.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
@@ -73,6 +74,58 @@ void main() {
       expect(result.uris?[0], 'org-dartlang-sdk:///sdk/lib/io/io.dart');
       expect(result.uris?[1], 'file:///home/has_local.dart');
       expect(result.uris?[2], null);
+    },
+    timeout: Timeout.none,
+  );
+
+  test(
+    'DDS can handle basic google3:// paths',
+    () async {
+      Uri serviceUri = remoteVmServiceUri;
+      dds = await DartDevelopmentService.startDartDevelopmentService(
+        remoteVmServiceUri,
+        uriConverter: BazelUriConverter(
+          ['', 'workspace', 'root'].join(Platform.pathSeparator),
+        ).uriToPath,
+      );
+      serviceUri = dds!.wsUri!;
+      expect(dds!.isRunning, true);
+      final service = await vmServiceConnectUri(serviceUri.toString());
+
+      IsolateRef isolate;
+      while (true) {
+        final vm = await service.getVM();
+        if (vm.isolates!.isNotEmpty) {
+          isolate = vm.isolates!.first;
+          try {
+            isolate = await service.getIsolate(isolate.id!);
+            if ((isolate as Isolate).runnable!) {
+              break;
+            }
+          } on SentinelException {
+            // ignore
+          }
+        }
+        await Future.delayed(const Duration(seconds: 1));
+      }
+      expect(isolate, isNotNull);
+
+      final unresolvedUris = <String>[
+        // TODO(b/261234406): Handle `dart:` URIs.
+        'dart:io', // dart:io -> file:///workspace/root/io
+        'google3://workspace_name/my/script.dart', // google3://workspace_name/my/script.dart -> file:///workspace/root/my/script.dart
+        'package:foo/foo.dart', // package:foo/foo.dart -> file:///workspace/root/third_party/dart/foo/lib/foo.dart
+      ];
+      final result = await service.lookupResolvedPackageUris(
+        isolate.id!,
+        unresolvedUris,
+        local: true,
+      );
+
+      expect(result.uris?[0], 'file:///workspace/root/io');
+      expect(result.uris?[1], 'file:///workspace/root/my/script.dart');
+      expect(result.uris?[2],
+          'file:///workspace/root/third_party/dart/foo/lib/foo.dart');
     },
     timeout: Timeout.none,
   );

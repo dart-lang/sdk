@@ -15,7 +15,7 @@ typedef F<_, X, _> = X Function<_ extends X>(X _, X _);
 // Function type parameters
 void genericFunction<_, _>() {}
 void genericFunction2<_ extends Iterable<int>, _ extends num>() {}
-void genericFunction3<_ extends void Function<_>(_, _), _>() {}
+void genericFunction3<_ extends void Function<_>(int, int), _>() {}
 
 void main() {
   void genericCallback(bool Function<T, E>() func) {}

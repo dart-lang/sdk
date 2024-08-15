@@ -252,17 +252,28 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
   }
 
   int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
+  OSError* os_error = new OSError();  // capture error if any
   if (is_byte_data) {
-    ThrowIfError(Dart_TypedDataReleaseData(buffer_obj));
+    Dart_Handle handle = Dart_TypedDataReleaseData(buffer_obj);
+    if (Dart_IsError(handle)) {
+      delete os_error;
+      Dart_PropagateError(handle);
+    }
   }
   if (bytes_read >= 0) {
     if (!is_byte_data) {
-      ThrowIfError(Dart_ListSetAsBytes(buffer_obj, start, buffer, bytes_read));
+      Dart_Handle handle =
+          Dart_ListSetAsBytes(buffer_obj, start, buffer, bytes_read);
+      if (Dart_IsError(handle)) {
+        delete os_error;
+        Dart_PropagateError(handle);
+      }
     }
     Dart_SetIntegerReturnValue(args, bytes_read);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(os_error));
   }
+  delete os_error;
 }
 
 void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
@@ -295,16 +306,20 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   // Write all the data out into the file.
   char* byte_buffer = reinterpret_cast<char*>(buffer);
   bool success = file->WriteFully(byte_buffer + start, length);
-  OSError os_error;  // capture error if any
+  OSError* os_error = new OSError();  // capture error if any
 
   // Release the direct pointer acquired above.
-  ThrowIfError(Dart_TypedDataReleaseData(buffer_obj));
-
+  result = Dart_TypedDataReleaseData(buffer_obj);
+  if (Dart_IsError(result)) {
+    delete os_error;
+    Dart_PropagateError(result);
+  }
   if (!success) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(os_error));
   } else {
     Dart_SetReturnValue(args, Dart_Null());
   }
+  delete os_error;
 }
 
 void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
@@ -1145,8 +1160,9 @@ CObject* File::ReadRequest(const CObjectArray& request) {
   uint8_t* data = io_buffer->value.as_external_typed_data.data;
   const int64_t bytes_read = file->Read(data, length);
   if (bytes_read < 0) {
+    CObject* error = CObject::NewOSError();
     CObject::FreeIOBufferData(io_buffer);
-    return CObject::NewOSError();
+    return error;
   }
 
   // Possibly shrink the used malloc() storage if the actual number of bytes is
@@ -1180,8 +1196,9 @@ CObject* File::ReadIntoRequest(const CObjectArray& request) {
   uint8_t* data = io_buffer->value.as_external_typed_data.data;
   const int64_t bytes_read = file->Read(data, length);
   if (bytes_read < 0) {
+    CObject* error = CObject::NewOSError();
     CObject::FreeIOBufferData(io_buffer);
-    return CObject::NewOSError();
+    return error;
   }
 
   // Possibly shrink the used malloc() storage if the actual number of bytes is

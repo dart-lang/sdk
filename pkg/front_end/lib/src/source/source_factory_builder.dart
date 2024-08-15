@@ -24,6 +24,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../dill/dill_extension_type_member_builder.dart';
@@ -35,13 +36,13 @@ import '../kernel/kernel_helper.dart';
 import '../type_inference/inference_helper.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
-import '../util/helpers.dart';
 import 'name_scheme.dart';
 import 'redirecting_factory_body.dart';
 import 'source_class_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
+import 'source_loader.dart'
+    show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
@@ -201,16 +202,13 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   bool _hasBuiltOutlines = false;
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
     if (_delayedDefaultValueCloner != null) {
       delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
     }
-    super.buildOutlineExpressions(
-        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     _hasBuiltOutlines = true;
   }
 
@@ -486,20 +484,21 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   bool _hasBuiltOutlines = false;
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
     if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+          classHierarchy, delayedDefaultValueCloners);
     }
-    super.buildOutlineExpressions(
-        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
 
-    RedirectingFactoryTarget redirectingFactoryTarget =
-        _procedureInternal.function.redirectingFactoryTarget!;
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        _procedureInternal.function.redirectingFactoryTarget;
+    if (redirectingFactoryTarget == null) {
+      // The error is reported elsewhere.
+      return;
+    }
     List<DartType>? typeArguments = redirectingFactoryTarget.typeArguments;
     Member? target = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
@@ -518,8 +517,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
-        targetBuilder.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        targetBuilder.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       }
       if (targetBuilder is FunctionBuilder) {
         target = targetBuilder.member;
@@ -531,6 +530,23 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
             charOffset, fileUri);
       }
+
+      // Type arguments for the targets of redirecting factories can only be
+      // inferred if the formal parameters of the targets are inferred too.
+      // That may not be the case when the target's parameters are initializing
+      // parameters referring to fields with types that are to be inferred.
+      if (targetBuilder is SourceFunctionBuilderImpl) {
+        List<FormalParameterBuilder>? formals = targetBuilder.formals;
+        if (formals != null) {
+          for (FormalParameterBuilder formal in formals) {
+            TypeBuilder formalType = formal.type;
+            if (formalType is InferableTypeBuilder) {
+              formalType.inferType(classHierarchy);
+            }
+          }
+        }
+      }
+
       typeArguments = inferrer.inferRedirectingFactoryTypeArguments(
           helper,
           _procedureInternal.function.returnType,
@@ -539,8 +555,10 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           target,
           target.function!.computeFunctionType(Nullability.nonNullable));
       if (typeArguments == null) {
-        // Assume that the error is reported elsewhere, use 'dynamic' for
-        // recovery.
+        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            "RedirectingFactoryTarget.buildOutlineExpressions",
+            expectedPhase: CompilationPhaseForProblemReporting.outline));
+        // Use 'dynamic' for recovery.
         typeArguments = new List<DartType>.filled(
             declarationBuilder.typeVariablesCount, const DynamicType(),
             growable: true);
@@ -828,8 +846,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
     }
 
-    // Redirection to generative enum constructors is forbidden and is reported
-    // as an error elsewhere.
     Builder? redirectionTargetParent = redirectionTarget.target?.parent;
     bool redirectingTargetParentIsEnum = redirectionTargetParent is ClassBuilder
         ? redirectionTargetParent.isEnum
@@ -841,7 +857,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType,
           factoryType.withoutTypeParameters,
-          SubtypeCheckMode.ignoringNullabilities)) {
+          SubtypeCheckMode.withNullabilities)) {
         libraryBuilder.addProblemForRedirectingFactory(
             this,
             templateIncompatibleRedirecteeFunctionType.withArguments(
@@ -849,20 +865,13 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             redirectionTarget.charOffset,
             noLength,
             redirectionTarget.fileUri);
-      } else {
-        if (!typeEnvironment.isSubtypeOf(
-            redirecteeType,
-            factoryType.withoutTypeParameters,
-            SubtypeCheckMode.withNullabilities)) {
-          libraryBuilder.addProblemForRedirectingFactory(
-              this,
-              templateIncompatibleRedirecteeFunctionType.withArguments(
-                  redirecteeType, factoryType.withoutTypeParameters),
-              redirectionTarget.charOffset,
-              noLength,
-              redirectionTarget.fileUri);
-        }
       }
+    } else {
+      // Redirection to generative enum constructors is forbidden.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "RedirectingFactoryBuilder._checkRedirectingFactory: "
+          "Redirection to generative enum constructor.",
+          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
     }
   }
 

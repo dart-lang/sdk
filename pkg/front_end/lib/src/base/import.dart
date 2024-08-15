@@ -17,9 +17,6 @@ import 'combinator.dart' show CombinatorBuilder;
 import 'configuration.dart' show Configuration;
 
 class Import {
-  /// The library that is importing [imported];
-  final SourceLibraryBuilder importer;
-
   /// The library being imported.
   CompilationUnit? importedCompilationUnit;
 
@@ -49,7 +46,7 @@ class Import {
   LibraryDependency? libraryDependency;
 
   Import(
-      this.importer,
+      SourceLibraryBuilder importer,
       this.importedCompilationUnit,
       this.isAugmentationImport,
       this.deferred,
@@ -73,7 +70,7 @@ class Import {
   LibraryBuilder? get importedLibraryBuilder =>
       importedCompilationUnit?.libraryBuilder;
 
-  void finalizeImports(SourceLibraryBuilder importer) {
+  void finalizeImports(SourceCompilationUnit importer) {
     if (nativeImportPath != null) return;
     void Function(String, Builder) add;
     if (prefixBuilder == null) {
@@ -85,7 +82,7 @@ class Import {
         prefixBuilder!.addToExportScope(name, member, charOffset);
       };
     }
-    NameIterator<Builder> iterator = importedLibraryBuilder!.exportScope
+    NameIterator<Builder> iterator = importedLibraryBuilder!.exportNameSpace
         .filteredNameIterator(
             includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {

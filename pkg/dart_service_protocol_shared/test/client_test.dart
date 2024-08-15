@@ -69,21 +69,31 @@ void main() {
       expect(client.name, defaultClientName);
     });
 
-    test('findFirstClientThatHandlesService', () {
+    test('findClientThatHandlesServiceMethod', () {
       final client1 = TestClient();
       final client2 = TestClient();
-      client1.services['service1'] = 'alias1';
-      client2.services['service2'] = 'alias2';
+      client1.services['service1'] = ClientServiceInfo(
+          'service1', {'method': ClientServiceMethodInfo('method')});
+      client2.services['service2'] = ClientServiceInfo(
+          'service2', {'method': ClientServiceMethodInfo('method')});
       clientManager.addClient(client1);
       clientManager.addClient(client2);
 
       expect(
-        clientManager.findFirstClientThatHandlesService('service1'),
+        clientManager.findClientThatHandlesServiceMethod('service1', 'method'),
         client1,
       );
       expect(
-        clientManager.findFirstClientThatHandlesService('service2'),
+        clientManager.findClientThatHandlesServiceMethod('service1', 'xxxxx'),
+        isNull,
+      );
+      expect(
+        clientManager.findClientThatHandlesServiceMethod('service2', 'method'),
         client2,
+      );
+      expect(
+        clientManager.findClientThatHandlesServiceMethod('xxxxx', 'method'),
+        isNull,
       );
     });
 

@@ -13,7 +13,6 @@ import 'package:dev_compiler/src/kernel/js_typerep.dart';
 import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -776,7 +775,7 @@ Future<CompileResult> kernelCompile(String code) async {
   var sdkUri = Uri.file('/memory/ddc_outline.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    var buildRoot = computePlatformBinariesLocation(forceBuildDir: true);
+    var buildRoot = fe.computePlatformBinariesLocation(forceBuildDir: true);
     var outlineDill = buildRoot.resolve('ddc_outline.dill').toFilePath();
     sdkFile.writeAsBytesSync(File(outlineDill).readAsBytesSync());
   }

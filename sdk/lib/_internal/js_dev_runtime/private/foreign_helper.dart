@@ -209,6 +209,10 @@ external String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG();
 /// representations in JavaScript.
 external String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG();
 
+/// Returns the identifier associated with the RTI parameter passed to some
+/// generic constructors, factories, and signatures.
+external String JS_RTI_PARAMETER();
+
 /// Returns the JS name for [name] from the Namer.
 @pragma('ddc:trust-inline')
 external String JS_GET_NAME(JsGetName name);
@@ -300,6 +304,19 @@ Object getJSArrayInteropRti() => TYPE_REF<JSArray>();
 /// to V8's Error.captureStackTrace. See
 /// https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi.
 external RAW_DART_FUNCTION_REF(Function function);
+
+/// Returns the underlying JavaScript exception. Must be used in a catch block.
+///
+///     try {
+///       ...
+///     } catch (e) {
+///       ... JS_RAW_EXCEPTION();
+///     }
+///
+/// `e` would reference the Dart exception, which may have been thrown by a Dart
+/// throw expression, or might be translated from a JavaScript exception. The
+/// raw exception is the exception seen at the JavaScript level.
+external JS_RAW_EXCEPTION();
 
 /// Returns a reference to the internal value that represents [T].
 ///

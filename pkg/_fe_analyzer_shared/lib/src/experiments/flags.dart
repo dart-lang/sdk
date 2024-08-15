@@ -6,10 +6,17 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 5);
+const Version defaultLanguageVersion = const Version(3, 6);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
+  augmentations(
+      name: 'augmentations',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   classModifiers(
       name: 'class-modifiers',
       isEnabledByDefault: true,
@@ -45,12 +52,26 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 0),
       experimentReleasedVersion: const Version(2, 0)),
 
+  digitSeparators(
+      name: 'digit-separators',
+      isEnabledByDefault: true,
+      isExpired: false,
+      experimentEnabledVersion: const Version(3, 6),
+      experimentReleasedVersion: const Version(3, 6)),
+
   enhancedEnums(
       name: 'enhanced-enums',
       isEnabledByDefault: true,
       isExpired: true,
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17)),
+
+  enhancedParts(
+      name: 'enhanced-parts',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   extensionMethods(
       name: 'extension-methods',

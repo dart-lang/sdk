@@ -14,7 +14,6 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
-import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show
@@ -42,6 +41,7 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 /// An implementation of a context builder.
+// ignore:deprecated_member_use_from_same_package
 class ContextBuilderImpl implements ContextBuilder {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
@@ -122,8 +122,7 @@ class ContextBuilderImpl implements ContextBuilder {
     var analysisOptionsMap =
         // If there's an options file defined (as, e.g. passed into the
         // AnalysisContextCollection), use a shared options map based on it.
-        ((definedOptionsFile && optionsFile != null) ||
-                ContextLocatorImpl.singleOptionContexts)
+        (definedOptionsFile && optionsFile != null)
             ? AnalysisOptionsMap.forSharedOptions(_getAnalysisOptions(
                 contextRoot,
                 optionsFile,

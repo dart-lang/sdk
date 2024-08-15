@@ -540,7 +540,7 @@ void f() {
   v;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 1),
       error(WarningCode.DEAD_CODE, 61, 2),
     ]);
   }
@@ -555,7 +555,7 @@ void f(bool b) {
   v2;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 2),
       _notAssignedError(75, 2),
       _notAssignedError(85, 2),
       _notAssignedError(95, 2),
@@ -671,7 +671,7 @@ void f() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(WarningCode.UNUSED_ELEMENT, 38, 1),
       _notAssignedError(64, 1),
     ]);
@@ -743,7 +743,7 @@ f() {
   FutureOr<int?> v;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
   }
 
@@ -965,7 +965,7 @@ void f() {
   int v;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
   }
 
@@ -1433,7 +1433,7 @@ f() {
   dynamic v;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
     ]);
   }
 
@@ -1443,7 +1443,7 @@ f() {
   var v;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 1),
     ]);
   }
 
@@ -1453,7 +1453,7 @@ f() {
   void v;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
     ]);
   }
 

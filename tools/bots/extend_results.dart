@@ -12,7 +12,7 @@ import 'package:test_runner/bot_results.dart';
 
 const skipped = 'skipped';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   final resultsPath = args[0];
   final priorResultsPath = args[1];
   final flakyPath = args[2];

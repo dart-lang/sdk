@@ -166,7 +166,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::A::@constructor::new
+element: self::@fragment::self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -184,7 +184,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::A::@constructor::new
+element: self::@fragment::self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -201,7 +201,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::A::@constructor::named
+element: self::@fragment::self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -218,7 +218,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::A::@constructor::named
+element: self::@fragment::self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -235,7 +235,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::A::@constructor::named
+element: self::@fragment::self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -257,7 +257,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::B::@constructor::new
+element: self::@fragment::self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: optionalNamed
@@ -279,7 +279,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::B::@constructor::new
+element: self::@fragment::self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: optionalPositional
@@ -305,7 +305,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::B::@constructor::new
+element: self::@fragment::self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: requiredNamed
@@ -327,7 +327,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::B::@constructor::new
+element: self::@fragment::self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -344,7 +344,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::A::@constructor::new
+element: self::@fragment::self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -361,7 +361,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@class::A::@method::test
+element: self::@fragment::self::@class::A::@method::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -379,7 +379,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -404,7 +404,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -436,7 +436,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -459,7 +459,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -482,7 +482,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -502,7 +502,7 @@ void test(int a, [!int b, int c,!] int d) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -531,7 +531,7 @@ void test(int ^a, int b) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -551,7 +551,7 @@ void ^test({int? a}) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: optionalNamed
@@ -566,7 +566,7 @@ void ^test([int? a]) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: optionalPositional
@@ -581,7 +581,7 @@ void ^test({required int a}) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -596,7 +596,7 @@ void ^test(int a, String b) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -656,7 +656,7 @@ void test(int a) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -681,7 +681,7 @@ void ^test(int a) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@function::test
+element: self::@fragment::self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use collection literals when possible.';
 
@@ -57,20 +58,15 @@ void printHashMap(LinkedHashMap map) => printMap(map);
 ''';
 
 class PreferCollectionLiterals extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_collection_literals', 'Unnecessary constructor invocation.',
-      correctionMessage: 'Try using a collection literal.',
-      hasPublishedDocs: true);
-
   PreferCollectionLiterals()
       : super(
             name: 'prefer_collection_literals',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_collection_literals;
 
   @override
   void registerNodeProcessors(

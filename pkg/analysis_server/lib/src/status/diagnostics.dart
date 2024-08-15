@@ -840,6 +840,8 @@ class ContextsPage extends DiagnosticPageWithNav {
           buf.write(')');
         } else if (resolver is PackageMapUriResolver) {
           writeMap(resolver.packageMap);
+        } else if (resolver is PackageConfigPackageUriResolver) {
+          writeMap(resolver.packageMap);
         }
         buf.write('</p>');
       }

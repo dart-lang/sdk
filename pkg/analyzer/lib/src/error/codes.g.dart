@@ -6288,6 +6288,19 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER =
+      WarningCode(
+    'DEAD_CODE',
+    "Dead code: The assigned-to wildcard variable is marked late and can never "
+        "be referenced so this initializer will never be evaluated.",
+    correctionMessage:
+        "Try removing the code, removing the late modifier or changing the "
+        "variable to a non-wildcard.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
+  );
+
   ///  Dead code is code that is never reached. This case covers cases where the
   ///  user has an on-catch clause such as `on A catch (e)`, where a supertype of
   ///  `A` was already caught.
@@ -7413,8 +7426,13 @@ class WarningCode extends AnalyzerErrorCode {
         "this is the only name in the list.",
   );
 
-  ///  This is the new replacement for [HintCode.UNNECESSARY_CAST].
-  static const HintCode UNNECESSARY_CAST = HintCode.UNNECESSARY_CAST;
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_CAST = WarningCode(
+    'UNNECESSARY_CAST',
+    "Unnecessary cast.",
+    correctionMessage: "Try removing the cast.",
+    hasPublishedDocs: true,
+  );
 
   ///  No parameters.
   static const WarningCode UNNECESSARY_CAST_PATTERN = WarningCode(
@@ -7555,12 +7573,22 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT].
-  static const HintCode UNUSED_ELEMENT = HintCode.UNUSED_ELEMENT;
+  ///  Parameters:
+  ///  0: the name that is declared but not referenced
+  static const WarningCode UNUSED_ELEMENT = WarningCode(
+    'UNUSED_ELEMENT',
+    "The declaration '{0}' isn't referenced.",
+    correctionMessage: "Try removing the declaration of '{0}'.",
+    hasPublishedDocs: true,
+  );
 
-  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
-  static const HintCode UNUSED_ELEMENT_PARAMETER =
-      HintCode.UNUSED_ELEMENT_PARAMETER;
+  ///  Parameters:
+  ///  0: the name of the parameter that is declared but not used
+  static const WarningCode UNUSED_ELEMENT_PARAMETER = WarningCode(
+    'UNUSED_ELEMENT_PARAMETER',
+    "A value for optional parameter '{0}' isn't ever given.",
+    correctionMessage: "Try removing the unused parameter.",
+  );
 
   ///  Parameters:
   ///  0: the name of the unused field
@@ -7640,13 +7668,11 @@ class WarningCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the URI pointing to a nonexistent file
   static const WarningCode URI_DOES_NOT_EXIST_IN_DOC_IMPORT = WarningCode(
-    'URI_DOES_NOT_EXIST',
+    'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
     "Target of URI doesn't exist: '{0}'.",
     correctionMessage:
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
-    hasPublishedDocs: true,
-    uniqueName: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
   );
 
   ///  Parameters:

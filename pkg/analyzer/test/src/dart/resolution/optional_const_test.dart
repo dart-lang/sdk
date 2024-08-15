@@ -24,17 +24,17 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: package:test/a.dart::@class::B
+      element: package:test/a.dart::<fragment>::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::B::@constructor::named
+        base: package:test/a.dart::<fragment>::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::B::@constructor::named
+      base: package:test/a.dart::<fragment>::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -50,10 +50,10 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: package:test/a.dart::@class::B
+      element: package:test/a.dart::<fragment>::@class::B
       type: B<num>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::B::@constructor::new
+      base: package:test/a.dart::<fragment>::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -71,19 +71,19 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::@prefix::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: B
-      element: package:test/a.dart::@class::B
+      element: package:test/a.dart::<fragment>::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::B::@constructor::named
+        base: package:test/a.dart::<fragment>::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::B::@constructor::named
+      base: package:test/a.dart::<fragment>::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -101,12 +101,12 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::@prefix::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: B
-      element: package:test/a.dart::@class::B
+      element: package:test/a.dart::<fragment>::@class::B
       type: B<num>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::B::@constructor::new
+      base: package:test/a.dart::<fragment>::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -122,14 +122,14 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: package:test/a.dart::@class::A::@constructor::named
+      staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::named
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -144,9 +144,9 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: A
-    staticElement: package:test/a.dart::@class::A::@constructor::new
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -163,16 +163,16 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::@prefix::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: package:test/a.dart::@class::A::@constructor::named
+      staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::named
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -189,11 +189,11 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::@prefix::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: A
-    staticElement: package:test/a.dart::@class::A::@constructor::new
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -222,20 +222,20 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: self::@prefix::p
+        element: <testLibraryFragment>::@prefix::p
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: package:test/a.dart::@class::C
+      element: package:test/a.dart::<fragment>::@class::C
       type: C<int>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::C::@constructor::new
+      base: package:test/a.dart::<fragment>::@class::C::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (

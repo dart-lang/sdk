@@ -15,6 +15,13 @@ class KernelConstantErrorReporter extends ErrorReporter {
   KernelConstantErrorReporter(this.loader);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get supportsTrackingReportedErrors => true;
+
+  @override
+  bool get hasSeenError => loader.hasSeenError;
+
+  @override
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     // Try to find library.
     Uri uri = message.uri!;

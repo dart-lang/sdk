@@ -374,16 +374,11 @@ class RPCError implements Exception {
 
   /// Return a map representation of this error suitable for conversion to
   /// json.
-  Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
+  Map<String, dynamic> toMap() => <String, Object?>{
       'code': code,
       'message': message,
+      if (data != null) 'data': data,
     };
-    if (data != null) {
-      map['data'] = data;
-    }
-    return map;
-  }
 
   @override
   String toString() {
@@ -505,11 +500,6 @@ dynamic _createSpecificObject(
     // Handle simple types.
     return json;
   }
-}
-
-void _setIfNotNull(Map<String, dynamic> json, String key, Object? value) {
-  if (value == null) return;
-  json[key] = value;
 }
 
 Future<T> extensionCallHelper<T>(VmService service, String method, Map<String, dynamic> args) {

@@ -5,11 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dtd/dtd.dart' show RpcErrorCodes;
+import 'package:dtd/dtd.dart' show RpcErrorCodes, kFileSystemServiceName;
+import 'package:dtd_impl/dtd.dart';
+import 'package:dtd_impl/src/dtd_stream_manager.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:dtd_impl/dart_tooling_daemon.dart';
 
 void main() {
   late Peer client;
@@ -20,38 +21,59 @@ void main() {
     await dtd?.close();
   });
 
-  test(
-      'forbids connections where the uri token is not the first element in the path',
-      () async {
-    dtd = await DartToolingDaemon.startService([]);
+  group('auth tokens', () {
+    test('forbids connections where the URI auth code is invalid', () async {
+      dtd = await DartToolingDaemon.startService([]);
+      expect(dtd!.uri!.path, isNotEmpty); // Has code.
 
-    expect(
-      () async => await WebSocket.connect(
-        dtd!.uri!.replace(path: 'someInvalidToken').toString(), // invalid token
-      ),
-      throwsA(
-        predicate(
-          (p0) =>
-              p0 is WebSocketException &&
-              RegExp("^Connection to '.*' was not upgraded to websocket\$")
-                  .hasMatch(p0.message),
+      expect(
+        () async => await WebSocket.connect(
+          dtd!.uri!.replace(path: 'someInvalidCode').toString(),
         ),
-      ),
-    );
+        throwsA(
+          isA<WebSocketException>().having(
+            (e) => e.message,
+            'message',
+            matches(
+              RegExp("^Connection to '.*' was not upgraded to websocket\$"),
+            ),
+          ),
+        ),
+      );
+    });
 
-    expect(
-      () async => await WebSocket.connect(
-        dtd!.uri!.replace(path: '').toString(), // no token
-      ),
-      throwsA(
-        predicate(
-          (p0) =>
-              p0 is WebSocketException &&
-              RegExp("^Connection to '.*' was not upgraded to websocket\$")
-                  .hasMatch(p0.message),
+    test('forbids connections where the URI auth code is missing', () async {
+      dtd = await DartToolingDaemon.startService([]);
+
+      expect(
+        () async => await WebSocket.connect(
+          dtd!.uri!.replace(path: '').toString(),
         ),
-      ),
-    );
+        throwsA(
+          isA<WebSocketException>().having(
+            (e) => e.message,
+            'message',
+            matches(
+              RegExp("^Connection to '.*' was not upgraded to websocket\$"),
+            ),
+          ),
+        ),
+      );
+    });
+
+    test(
+        'allows connections with no URI auth code if started with --disable-service-auth-codes',
+        () async {
+      dtd = await DartToolingDaemon.startService([
+        '--disable-service-auth-codes',
+      ]);
+
+      expect(dtd!.uri!.path, isEmpty); // No code.
+
+      // Expect no exception.
+      final ws = await WebSocket.connect(dtd!.uri!.toString());
+      await ws.close();
+    });
   });
 
   group('dtd', () {
@@ -74,7 +96,7 @@ void main() {
       final eventData = {'the': 'data'};
 
       test('basics', () async {
-        var completer = Completer();
+        var completer = Completer<Map<Object?, Object?>>();
         client.registerMethod('streamNotify', (Parameters parameters) {
           completer.complete(parameters.asMap);
         });
@@ -103,7 +125,7 @@ void main() {
         });
 
         // Now cancel the stream
-        completer = Completer(); // Reset the completer
+        completer = Completer<Map<Object?, Object?>>(); // Reset the completer
         final cancelResult = await client.sendRequest(
           'streamCancel',
           {
@@ -125,7 +147,7 @@ void main() {
             const Duration(seconds: 1),
             onTimeout: () => throw TimeoutException('Timed out'),
           ),
-          throwsA(predicate((p0) => p0 is TimeoutException)),
+          throwsA(isA<TimeoutException>()),
         );
       });
 
@@ -141,10 +163,10 @@ void main() {
             "streamId": streamId,
           }),
           throwsA(
-            predicate(
-              (e) =>
-                  e is RpcException &&
-                  e.code == RpcErrorCodes.kStreamAlreadySubscribed,
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kStreamAlreadySubscribed,
             ),
           ),
         );
@@ -156,10 +178,10 @@ void main() {
             "streamId": streamId,
           }),
           throwsA(
-            predicate(
-              (e) =>
-                  e is RpcException &&
-                  e.code == RpcErrorCodes.kStreamNotSubscribed,
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kStreamNotSubscribed,
             ),
           ),
         );
@@ -209,6 +231,70 @@ void main() {
         expect(methodResponse, response1);
       });
 
+      test('disallows dots in service name', () async {
+        expect(
+          () => client.sendRequest('registerService', {
+            "service": "a.b",
+            "method": method1,
+          }),
+          throwsA(
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kServiceNameInvalid,
+            ),
+          ),
+        );
+      });
+
+      test('allows dots in service method name', () async {
+        final registerResult = await client.sendRequest('registerService', {
+          "service": service1,
+          "method": "a.b",
+        });
+
+        expect(registerResult, {"type": "Success"});
+      });
+
+      test(
+          'disconnecting while handling a service request returns an error to the caller',
+          () async {
+        // Register a never-completing request that client2 can call.
+        final requestStartedCompleter = Completer<void>();
+        client.registerMethod('$service1.$method1', (Parameters parameters) {
+          requestStartedCompleter.complete(); // Signal the request has started.
+          return Completer<void>().future; // Never complete.
+        });
+        final registerResult = await client.sendRequest('registerService', {
+          "service": service1,
+          "method": method1,
+        });
+        expect(registerResult, {"type": "Success"});
+
+        // Begin a call to that method.
+        final client2 = _createClient(uri);
+        final responseFuture = client2.sendRequest('$service1.$method1', {});
+        await requestStartedCompleter.future;
+
+        // Disconnect client1 so it never responses.
+        await client.close();
+
+        // Expect that we complete with the expected RPC error.
+        expect(
+          responseFuture,
+          throwsA(
+            isA<RpcException>().having((e) => e.code, 'code', -32000).having(
+                  (e) => e.data,
+                  'data',
+                  containsPair(
+                    'full',
+                    'Bad state: The client closed with pending request "$service1.$method1".',
+                  ),
+                ),
+          ),
+        );
+      });
+
       test('registering a service method that already exists', () async {
         final registerResult = await client.sendRequest('registerService', {
           "service": service1,
@@ -222,10 +308,10 @@ void main() {
             "method": method1,
           }),
           throwsA(
-            predicate(
-              (p0) =>
-                  p0 is RpcException &&
-                  p0.code == RpcErrorCodes.kServiceMethodAlreadyRegistered,
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kServiceMethodAlreadyRegistered,
             ),
           ),
         );
@@ -235,10 +321,10 @@ void main() {
         expect(
           () => client.sendRequest('zoo.abc', {}),
           throwsA(
-            predicate(
-              (p0) =>
-                  p0 is RpcException &&
-                  p0.code == RpcException.methodNotFound('zoo.abc').code,
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcException.methodNotFound('zoo.abc').code,
             ),
           ),
         );
@@ -258,11 +344,36 @@ void main() {
             "method": method2,
           }),
           throwsA(
-            predicate(
-              (p0) =>
-                  p0 is RpcException &&
-                  p0.code == RpcErrorCodes.kServiceAlreadyRegistered,
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kServiceAlreadyRegistered,
             ),
+          ),
+        );
+      });
+
+      test('clients cannot register an internal service', () async {
+        expect(
+          () => client.sendRequest('registerService', {
+            "service": kFileSystemServiceName,
+            "method": method2,
+          }),
+          throwsA(
+            isA<RpcException>()
+                .having(
+                  (e) => e.code,
+                  'code',
+                  RpcErrorCodes.kServiceAlreadyRegistered,
+                )
+                .having(
+                  (e) => e.data,
+                  'data',
+                  containsPair(
+                    'details',
+                    'Service \'FileSystem\' is already registered as a DTD internal service.',
+                  ),
+                ),
           ),
         );
       });
@@ -291,9 +402,136 @@ void main() {
             });
             break;
           } catch (_) {}
-          await Future.delayed(Duration(seconds: 1));
+          await Future<void>.delayed(Duration(seconds: 1));
         }
         expect(client2RegisterResult, {"type": "Success"});
+      });
+
+      group('sends notifications', () {
+        late Peer client2;
+
+        setUp(() {
+          client2 = _createClient(uri);
+        });
+
+        tearDown(() async {
+          await client2.close();
+        });
+
+        test('when a service method is registered', () async {
+          // Subscribe to the services stream.
+          final serviceStream = StreamController<Map<Object?, Object?>>();
+          client.registerMethod('streamNotify', (Parameters parameters) {
+            if (parameters['streamId'].asString ==
+                DTDStreamManager.servicesStreamId) {
+              serviceStream.add(parameters.asMap);
+            }
+          });
+          await client.sendRequest('streamListen', {
+            'streamId': DTDStreamManager.servicesStreamId,
+          });
+
+          // Register a method on a second client.
+          await client2.sendRequest(
+            'registerService',
+            {
+              'service': service1,
+              'method': method1,
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+
+          // Expect we had a service registered event.
+          final event = await serviceStream.stream.first;
+          expect(event['streamId'], DTDStreamManager.servicesStreamId);
+          expect(event['eventKind'], DTDStreamManager.serviceRegisteredId);
+          expect(
+            event['eventData'],
+            {
+              'service': 'foo1',
+              'method': 'bar1',
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+        });
+
+        test('when a service method is registered before subscribing',
+            () async {
+          // Register a method on a second client _first_.
+          await client2.sendRequest(
+            'registerService',
+            {
+              'service': service1,
+              'method': method1,
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+
+          // Subscribe to the services stream.
+          var serviceStream = StreamController<Map<Object?, Object?>>();
+          client.registerMethod('streamNotify', (Parameters parameters) {
+            if (parameters['streamId'].asString ==
+                DTDStreamManager.servicesStreamId) {
+              serviceStream.add(parameters.asMap);
+            }
+          });
+          await client.sendRequest('streamListen', {
+            'streamId': DTDStreamManager.servicesStreamId,
+          });
+
+          // Expect we had a service registered event.
+          final event = await serviceStream.stream.first;
+          expect(event['streamId'], DTDStreamManager.servicesStreamId);
+          expect(event['eventKind'], DTDStreamManager.serviceRegisteredId);
+          expect(
+            event['eventData'],
+            {
+              'service': 'foo1',
+              'method': 'bar1',
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+        });
+
+        test('when a service method is unregistered', () async {
+          // Subscribe to the services stream.
+          var serviceStream = StreamController<Map<Object?, Object?>>();
+          client.registerMethod('streamNotify', (Parameters parameters) {
+            if (parameters['streamId'].asString ==
+                DTDStreamManager.servicesStreamId) {
+              serviceStream.add(parameters.asMap);
+            }
+          });
+          await client.sendRequest('streamListen', {
+            'streamId': DTDStreamManager.servicesStreamId,
+          });
+
+          // Register a method on a second client and then close it so the
+          // service is removed.
+          await client2.sendRequest(
+            'registerService',
+            {
+              'service': service1,
+              'method': method1,
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+          await client2.close();
+
+          // Expect we had a service unregistered event (after the registered
+          // event).
+          final event = await serviceStream.stream.skip(1).first;
+          expect(event['streamId'], DTDStreamManager.servicesStreamId);
+          expect(event['eventKind'], DTDStreamManager.serviceUnregisteredId);
+          expect(
+            event['eventData'],
+            {
+              'service': 'foo1',
+              'method': 'bar1',
+              // No capabilities on unregister.
+            },
+          );
+        });
       });
     });
   });

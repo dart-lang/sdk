@@ -8,10 +8,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Declare visit methods for all registered node types.';
+const _desc = r"Declare 'visit' methods for all registered node types.";
 
 const _details = r'''
-**DO** declare a visit method for all registered node processors.
+**DO** declare a 'visit' method for all registered node processors.
 
 **BAD:**
 ```dart
@@ -64,12 +64,20 @@ const _details = r'''
 ''';
 
 class VisitRegisteredNodes extends LintRule {
+  static const LintCode code = LintCode('visit_registered_nodes', _desc,
+      correctionMessage:
+          "Try declaring a 'visit' method for all registered node types.",
+      hasPublishedDocs: true);
+
   VisitRegisteredNodes()
       : super(
             name: 'visit_registered_nodes',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {LintRuleCategory.errors});
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

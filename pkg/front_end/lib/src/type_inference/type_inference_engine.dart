@@ -577,9 +577,6 @@ class OperationsCfe
   }
 
   @override
-  bool isRecordType(DartType type) => type is RecordType;
-
-  @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
       covariant Member property) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
@@ -864,9 +861,6 @@ class OperationsCfe
       glb(typeSchema1, typeSchema2);
 
   @override
-  bool typeSchemaIsDynamic(DartType typeSchema) => typeSchema is DynamicType;
-
-  @override
   DartType typeToSchema(DartType type) => type;
 
   @override
@@ -982,6 +976,27 @@ class OperationsCfe
   @override
   bool isDartCoreFunction(DartType type) {
     return type == typeEnvironment.coreTypes.functionNonNullableRawType;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  NullabilitySuffix typeSchemaNullabilitySuffix(DartType typeSchema) {
+    return typeSchema.nullabilitySuffix;
+  }
+
+  @override
+  DartType futureTypeSchema(DartType argumentTypeSchema) {
+    return new InterfaceType(typeEnvironment.coreTypes.futureClass,
+        Nullability.nonNullable, <DartType>[argumentTypeSchema]);
+  }
+
+  @override
+  DartType? matchTypeSchemaFutureOr(DartType typeSchema) {
+    if (typeSchema is! FutureOrType) {
+      return null;
+    } else {
+      return typeSchema.typeArgument;
+    }
   }
 }
 

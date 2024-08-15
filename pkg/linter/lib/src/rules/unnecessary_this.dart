@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 import '../util/scope.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
@@ -50,19 +51,19 @@ class Box {
 ''';
 
 class UnnecessaryThis extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_this', "Unnecessary 'this.' qualifier.",
-      correctionMessage: "Try removing 'this.'.", hasPublishedDocs: true);
-
   UnnecessaryThis()
       : super(
             name: 'unnecessary_this',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.brevity,
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style,
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_this;
 
   @override
   void registerNodeProcessors(

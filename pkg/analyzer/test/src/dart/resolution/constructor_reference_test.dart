@@ -38,14 +38,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -73,14 +73,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -110,14 +110,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -142,16 +142,16 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: null
       tearOffTypeArgumentTypes
         Never
-    staticElement: self::@class::A::@constructor::foo
+    staticElement: <testLibraryFragment>::@class::A::@constructor::foo
   staticType: A<Never> Function()
 ''');
   }
@@ -173,16 +173,16 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: null
       tearOffTypeArgumentTypes
         int
-    staticElement: self::@class::A::@constructor::foo
+    staticElement: <testLibraryFragment>::@class::A::@constructor::foo
   staticType: A<int> Function()
 ''');
   }
@@ -204,14 +204,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: null
-    staticElement: self::@class::A::@constructor::foo
+    staticElement: <testLibraryFragment>::@class::A::@constructor::foo
   staticType: A<T> Function<T>()
 ''');
   }
@@ -233,14 +233,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: null
-    staticElement: self::@class::A::@constructor::foo
+    staticElement: <testLibraryFragment>::@class::A::@constructor::foo
   staticType: A<T> Function<T extends num>()
 ''');
   }
@@ -260,14 +260,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -289,14 +289,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: null
-    staticElement: self::@class::A::@constructor::foo
+    staticElement: <testLibraryFragment>::@class::A::@constructor::foo
   staticType: A Function()
 ''');
   }
@@ -318,14 +318,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -352,16 +352,16 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
       name: TA
-      element: package:test/a.dart::@typeAlias::TA
+      element: package:test/a.dart::<fragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@class::A::@constructor::foo
+      staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::foo
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::foo
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::foo
   staticType: A Function()
 ''');
   }
@@ -388,16 +388,16 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
       name: TA
-      element: package:test/a.dart::@typeAlias::TA
+      element: package:test/a.dart::<fragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: package:test/a.dart::@class::A::@constructor::new
+      staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::new
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -423,16 +423,16 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@class::A::@constructor::foo
+      staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::foo
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::foo
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::foo
   staticType: A Function()
 ''');
   }
@@ -458,16 +458,16 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: package:test/a.dart::@class::A::@constructor::new
+      staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: package:test/a.dart::@class::A::@constructor::new
+    staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
   staticType: A Function()
 ''');
   }
@@ -488,14 +488,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <testLibraryFragment>::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <testLibraryFragment>::@class::A::@constructor::new
   staticType: A<T> Function<T>()
 ''');
   }
@@ -518,14 +518,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: null
-    staticElement: self::@class::A::@constructor::foo
+    staticElement: <testLibraryFragment>::@class::A::@constructor::foo
   staticType: A<String, U> Function<U>()
 ''');
   }
@@ -546,17 +546,17 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -580,17 +580,17 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::foo
+        base: <testLibraryFragment>::@class::A::@constructor::foo
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::foo
+      base: <testLibraryFragment>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -621,24 +621,24 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           NamedType
             name: String
-            element: dart:core::@class::String
+            element: dart:core::<fragment>::@class::String
             type: String
         rightBracket: >
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::foo
+        base: <testLibraryFragment>::@class::A::@constructor::foo
         substitution: {T: String, U: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::foo
+      base: <testLibraryFragment>::@class::A::@constructor::foo
       substitution: {T: String, U: int}
   staticType: A<String, int> Function()
 ''');
@@ -665,20 +665,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::foo
+        base: <testLibraryFragment>::@class::A::@constructor::foo
         substitution: {T: int, U: String}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::foo
+      base: <testLibraryFragment>::@class::A::@constructor::foo
       substitution: {T: int, U: String}
   staticType: A<int, String> Function()
 ''');
@@ -707,24 +707,24 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
           NamedType
             name: String
-            element: dart:core::@class::String
+            element: dart:core::<fragment>::@class::String
             type: String
         rightBracket: >
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::foo
+        base: <testLibraryFragment>::@class::A::@constructor::foo
         substitution: {T: String, U: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::foo
+      base: <testLibraryFragment>::@class::A::@constructor::foo
       substitution: {T: String, U: int}
   staticType: A<String, int> Function()
 ''');
@@ -746,14 +746,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: null
-    staticElement: self::@class::A::@constructor::foo
+    staticElement: <testLibraryFragment>::@class::A::@constructor::foo
   staticType: A<U, T> Function<T, U>()
 ''');
   }
@@ -781,20 +781,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -811,7 +811,7 @@ void main() {
   var x = const <C<int> Function(int)>[Direct.new];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
     ]);
   }
 
@@ -838,20 +838,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -882,20 +882,20 @@ ConstructorReference
         arguments
           NamedType
             name: String
-            element: dart:core::@class::String
+            element: dart:core::<fragment>::@class::String
             type: String
         rightBracket: >
-      element: self::@typeAlias::TA
+      element: <testLibraryFragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: String}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: String}
   staticType: A<String> Function()
 ''');
@@ -921,20 +921,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -962,20 +962,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::foo
+        base: <testLibraryFragment>::@class::A::@constructor::foo
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::foo
+      base: <testLibraryFragment>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1045,20 +1045,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::foo
+        base: <testLibraryFragment>::@class::A::@constructor::foo
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::foo
+      base: <testLibraryFragment>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1090,20 +1090,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1134,10 +1134,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1173,10 +1173,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1210,20 +1210,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1251,20 +1251,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1292,20 +1292,20 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1335,20 +1335,20 @@ ConstructorReference
         arguments
           NamedType
             name: String
-            element: dart:core::@class::String
+            element: dart:core::<fragment>::@class::String
             type: String
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::new
+        base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: String}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::new
+      base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: String}
   staticType: A<String> Function()
 ''');
@@ -1376,27 +1376,27 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
       name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: package:test/a.dart::@typeAlias::TA
+      element: package:test/a.dart::<fragment>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::new
+        base: package:test/a.dart::<fragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::new
+      base: package:test/a.dart::<fragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1423,27 +1423,27 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::foo
+        base: package:test/a.dart::<fragment>::@class::A::@constructor::foo
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::foo
+      base: package:test/a.dart::<fragment>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1473,27 +1473,27 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::new
+        base: package:test/a.dart::<fragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::new
+      base: package:test/a.dart::<fragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1520,27 +1520,27 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<fragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::new
+        base: package:test/a.dart::<fragment>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::new
+      base: package:test/a.dart::<fragment>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
 ''');
@@ -1574,10 +1574,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<fragment>::@class::int
             type: int
         rightBracket: >
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1608,14 +1608,14 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: self::@class::A
+      element: <testLibraryFragment>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@constructor::foo
+      staticElement: <testLibraryFragment>::@class::A::@constructor::foo
       staticType: null
-    staticElement: self::@class::A::@constructor::foo
+    staticElement: <testLibraryFragment>::@class::A::@constructor::foo
   staticType: A Function()
 ''');
   }

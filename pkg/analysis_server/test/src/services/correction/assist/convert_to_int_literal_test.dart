@@ -29,6 +29,15 @@ const double myDouble = 42;
 ''');
   }
 
+  Future<void> test_decimal_negative() async {
+    await resolveTestCode('''
+const double myDouble = -/*caret*/42.0;
+''');
+    await assertHasAssist('''
+const double myDouble = -42;
+''');
+  }
+
   Future<void> test_decimal_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_int_literals]);
     verifyNoTestUnitErrors = false;
@@ -36,6 +45,24 @@ const double myDouble = 42;
 const double myDouble = /*caret*/42.0;
 ''');
     await assertNoAssist();
+  }
+
+  Future<void> test_decimal_noDigitsLeftOfDecimal() async {
+    await resolveTestCode('''
+const double myDouble = /*caret*/.0;
+''');
+    await assertHasAssist('''
+const double myDouble = 0;
+''');
+  }
+
+  Future<void> test_decimalWithSeparators() async {
+    await resolveTestCode('''
+const double myDouble = /*caret*/4_200.000_000;
+''');
+    await assertHasAssist('''
+const double myDouble = 4_200;
+''');
   }
 
   Future<void> test_notDouble() async {
@@ -47,10 +74,28 @@ const double myDouble = /*caret*/42;
 
   Future<void> test_scientific() async {
     await resolveTestCode('''
-const double myDouble = /*caret*/4.2e1;
+const double myDouble = /*caret*/4.2e3;
 ''');
     await assertHasAssist('''
-const double myDouble = 42;
+const double myDouble = 4200;
+''');
+  }
+
+  Future<void> test_scientificWithCapitalE() async {
+    await resolveTestCode('''
+const double myDouble = /*caret*/4.2E3;
+''');
+    await assertHasAssist('''
+const double myDouble = 4200;
+''');
+  }
+
+  Future<void> test_scientificWithSeparators() async {
+    await resolveTestCode('''
+const double myDouble = /*caret*/4_00.200_000e3;
+''');
+    await assertHasAssist('''
+const double myDouble = 400200;
 ''');
   }
 

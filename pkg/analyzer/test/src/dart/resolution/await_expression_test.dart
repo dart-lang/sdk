@@ -102,7 +102,7 @@ AwaitExpression
     operator: .
     propertyName: SimpleIdentifier
       token: hashCode
-      staticElement: dart:core::@class::Object::@getter::hashCode
+      staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
       staticType: int
     staticType: int
   staticType: int
@@ -148,7 +148,7 @@ AwaitExpression
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: self::@prefix::prefix
+      staticElement: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -182,7 +182,7 @@ AwaitExpression
       operator: .
       propertyName: SimpleIdentifier
         token: isEven
-        staticElement: dart:core::@class::int::@getter::isEven
+        staticElement: dart:core::<fragment>::@class::int::@getter::isEven
         staticType: bool
       staticType: bool
     operator: .

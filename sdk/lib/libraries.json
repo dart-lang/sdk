@@ -9,6 +9,9 @@
       "_builtin": {
         "uri": "_internal/vm/bin/builtin.dart"
       },
+      "_compact_hash": {
+        "uri": "_internal/vm_shared/lib/compact_hash.dart"
+      },
       "_internal": {
         "uri": "internal/internal.dart",
         "patches": [
@@ -25,8 +28,13 @@
         "uri": "collection/collection.dart",
         "patches": [
           "_internal/vm_shared/lib/collection_patch.dart",
-          "_internal/vm_shared/lib/compact_hash.dart",
           "_internal/vm/lib/hash_factories.dart"
+        ]
+      },
+      "concurrent": {
+        "uri": "concurrent/concurrent.dart",
+        "patches": [
+          "_internal/vm/lib/concurrent_patch.dart"
         ]
       },
       "convert": {
@@ -132,9 +140,6 @@
           "_internal/vm_shared/lib/map_patch.dart",
           "_internal/vm_shared/lib/null_patch.dart",
           "_internal/wasm/lib/array_patch.dart",
-          "_internal/wasm/lib/boxed_double.dart",
-          "_internal/wasm/lib/boxed_int.dart",
-          "_internal/wasm/lib/boxed_int_to_string.dart",
           "_internal/wasm/lib/core_patch.dart",
           "_internal/wasm/lib/date_patch_patch.dart",
           "_internal/wasm/lib/int_common_patch.dart",
@@ -157,6 +162,10 @@
           "_internal/wasm/lib/simd_patch.dart",
           "_internal/wasm/lib/typed_data_patch.dart"
         ]
+      },
+      "_boxed_int": {
+        "uri": "_internal/wasm/lib/boxed_int.dart",
+        "patches": "_internal/wasm/lib/boxed_int_to_string.dart"
       },
       "_string": {
         "uri": "_internal/wasm/lib/js_string.dart",
@@ -195,14 +204,11 @@
           "_internal/vm_shared/lib/map_patch.dart",
           "_internal/vm_shared/lib/null_patch.dart",
           "_internal/wasm/lib/array_patch.dart",
-          "_internal/wasm/lib/boxed_double.dart",
-          "_internal/wasm/lib/boxed_int.dart",
           "_internal/wasm/lib/core_patch.dart",
           "_internal/wasm/lib/date_patch_patch.dart",
           "_internal/wasm/lib/int_common_patch.dart",
           "_internal/wasm/lib/sync_star_patch.dart",
           "_internal/wasm/lib/weak_patch.dart",
-          "_internal/wasm_js_compatibility/lib/boxed_int_to_string.dart",
           "_internal/wasm_js_compatibility/lib/int_patch.dart",
           "_internal/wasm_js_compatibility/lib/string_buffer_patch.dart",
           "_internal/wasm_js_compatibility/lib/string_patch.dart"
@@ -214,6 +220,10 @@
           "_internal/wasm/lib/simd_patch.dart",
           "_internal/wasm_js_compatibility/lib/typed_data_patch.dart"
         ]
+      },
+      "_boxed_int": {
+        "uri": "_internal/wasm/lib/boxed_int.dart",
+        "patches": "_internal/wasm_js_compatibility/lib/boxed_int_to_string.dart"
       },
       "_string": {
         "uri": "_internal/wasm/lib/js_string.dart"
@@ -231,10 +241,17 @@
       "core": {
         "uri": "core/core.dart",
         "patches": [
-          "_internal/wasm/lib/boxed_double.dart",
-          "_internal/wasm/lib/boxed_int.dart",
           "_internal/wasm/lib/int_common_patch.dart"
         ]
+      },
+      "_boxed_int": {
+        "uri": "_internal/wasm/lib/boxed_int.dart"
+      },
+      "_boxed_double": {
+        "uri": "_internal/wasm/lib/boxed_double.dart"
+      },
+      "_compact_hash": {
+        "uri": "_internal/wasm/lib/compact_hash.dart"
       },
       "_error_utils": {
         "uri": "_internal/wasm/lib/error_utils.dart"
@@ -283,7 +300,6 @@
         "uri": "collection/collection.dart",
         "patches": [
           "_internal/vm_shared/lib/collection_patch.dart",
-          "_internal/wasm/lib/compact_hash.dart",
           "_internal/wasm/lib/hash_factories.dart"
         ]
       },
@@ -388,6 +404,9 @@
   },
   "_dart2js_common": {
     "libraries": {
+      "_array_flags": {
+        "uri": "_internal/js_runtime/lib/synced/array_flags.dart"
+      },
       "async": {
         "uri": "async/async.dart",
         "patches": "_internal/js_runtime/lib/async_patch.dart"
@@ -501,7 +520,7 @@
         "uri": "_internal/js_shared/lib/synced/embedded_names.dart"
       },
       "_async_status_codes": {
-        "uri": "_internal/js_runtime/lib/synced/async_status_codes.dart"
+        "uri": "_internal/js_shared/lib/synced/async_status_codes.dart"
       },
       "_invocation_mirror_constants": {
         "uri": "_internal/js_runtime/lib/synced/invocation_mirror_constants.dart"
@@ -518,6 +537,9 @@
     "libraries": {
       "_runtime": {
         "uri": "_internal/js_dev_runtime/private/ddc_runtime/runtime.dart"
+      },
+      "_async_status_codes": {
+        "uri": "_internal/js_shared/lib/synced/async_status_codes.dart"
       },
       "_debugger": {
         "uri": "_internal/js_dev_runtime/private/debugger.dart"

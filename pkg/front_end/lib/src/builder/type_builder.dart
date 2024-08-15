@@ -10,7 +10,8 @@ import 'package:kernel/class_hierarchy.dart';
 import '../base/messages.dart';
 import '../base/scope.dart';
 import '../kernel/type_algorithms.dart';
-import '../source/source_library_builder.dart';
+import '../source/builder_factory.dart';
+import '../source/type_parameter_scope_builder.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
@@ -377,7 +378,7 @@ sealed class TypeBuilder {
   /// resolved later.
   TypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration);
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
@@ -490,7 +491,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   TypeName get typeName;
 
-  void resolveIn(Scope scope, int charOffset, Uri fileUri,
+  void resolveIn(LookupScope scope, int charOffset, Uri fileUri,
       ProblemReporting problemReporting);
   void bind(
       ProblemReporting problemReporting, TypeDeclarationBuilder declaration);

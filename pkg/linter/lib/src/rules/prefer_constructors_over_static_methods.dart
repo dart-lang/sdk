@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer defining constructors instead of static methods to create '
@@ -46,20 +47,16 @@ bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
     _BodyVisitor(returnType).containsInstanceCreation(body);
 
 class PreferConstructorsOverStaticMethods extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_constructors_over_static_methods',
-      'Static method should be a constructor.',
-      correctionMessage: 'Try converting the method into a constructor.');
-
   PreferConstructorsOverStaticMethods()
       : super(
             name: 'prefer_constructors_over_static_methods',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.prefer_constructors_over_static_methods;
 
   @override
   void registerNodeProcessors(

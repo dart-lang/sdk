@@ -8,11 +8,14 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid returning this from methods just to enable a fluent interface.';
 
 const _details = r'''
+From [Effective Dart](https://dart.dev/effective-dart/design#avoid-returning-this-from-methods-just-to-enable-a-fluent-interface):
+
 **AVOID** returning this from methods just to enable a fluent interface.
 
 Returning `this` from a method is redundant; Dart has a cascade operator which
@@ -46,20 +49,18 @@ var buffer = StringBuffer()
 bool _returnsThis(ReturnStatement node) => node.expression is ThisExpression;
 
 class AvoidReturningThis extends LintRule {
-  static const LintCode code = LintCode(
-      'avoid_returning_this', "Don't return 'this' from a method.",
-      correctionMessage:
-          "Try changing the return type to 'void' and removing the return.");
-
   AvoidReturningThis()
       : super(
             name: 'avoid_returning_this',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_returning_this;
 
   @override
   void registerNodeProcessors(

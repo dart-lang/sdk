@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid defining a one-member abstract class when a simple function will do.';
@@ -37,20 +38,19 @@ typedef Predicate = bool Function(item);
 ''';
 
 class OneMemberAbstracts extends LintRule {
-  static const LintCode code = LintCode(
-      'one_member_abstracts', 'Unnecessary use of an abstract class.',
-      correctionMessage:
-          "Try making '{0}' a top-level function and removing the class.");
-
   OneMemberAbstracts()
       : super(
             name: 'one_member_abstracts',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.languageFeatureUsage,
+              LintRuleCategory.style,
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.one_member_abstracts;
 
   @override
   void registerNodeProcessors(

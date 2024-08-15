@@ -73,6 +73,29 @@ void f() {
     ]);
   }
 
+  test_localVariable_final_wildcard() async {
+    await assertDiagnostics(r'''
+void f() {
+  final _ = '';
+}
+''', [
+      lint(13, 5),
+    ]);
+  }
+
+  test_localVariable_final_wildcard_preWildcards() async {
+    await assertDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f() {
+  final _ = '';
+}
+''', [
+      lint(57, 5),
+    ]);
+  }
+
   test_localVariable_var() async {
     await assertNoDiagnostics(r'''
 void f() {

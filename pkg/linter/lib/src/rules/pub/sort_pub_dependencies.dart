@@ -6,6 +6,7 @@ import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 import 'package:source_span/source_span.dart';
 
 import '../../analyzer.dart';
+import '../../linter_lint_codes.dart';
 
 const _desc = r'Sort pub dependencies alphabetically.';
 
@@ -16,21 +17,15 @@ Sorting list of pub dependencies makes maintenance easier.
 ''';
 
 class SortPubDependencies extends LintRule {
-  static const LintCode code = LintCode(
-      'sort_pub_dependencies', 'Dependencies not sorted alphabetically.',
-      correctionMessage:
-          'Try sorting the dependencies alphabetically (A to Z).',
-      hasPublishedDocs: true);
-
   SortPubDependencies()
       : super(
             name: 'sort_pub_dependencies',
             description: _desc,
             details: _details,
-            categories: {Category.pub});
+            categories: {LintRuleCategory.pub});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.sort_pub_dependencies;
 
   @override
   PubspecVisitor getPubspecVisitor() => Visitor(this);

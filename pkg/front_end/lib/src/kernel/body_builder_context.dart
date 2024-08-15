@@ -9,7 +9,7 @@ import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart' show Identifier;
-import '../base/scope.dart';
+import '../base/local_scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -202,7 +202,7 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.formals');
   }
 
-  Scope computeFormalParameterInitializerScope(Scope parent) {
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
     throw new UnsupportedError(
         '${runtimeType}.computeFormalParameterInitializerScope');
   }
@@ -683,6 +683,7 @@ class FieldBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
@@ -712,7 +713,7 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   List<FormalParameterBuilder>? get formals => _member.formals;
 
   @override
-  Scope computeFormalParameterInitializerScope(Scope parent) {
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
     return _member.computeFormalParameterInitializerScope(parent);
   }
 
@@ -735,7 +736,6 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isNativeMethod {
     return _member.isNative;
   }
@@ -790,6 +790,7 @@ class ProcedureBodyBuilderContext extends BodyBuilderContext
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 
@@ -879,6 +880,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 
@@ -907,6 +909,7 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 
@@ -938,6 +941,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 
@@ -967,6 +971,7 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
 }
 

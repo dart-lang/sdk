@@ -101,7 +101,6 @@ import 'compiler_context.dart' show CompilerContext;
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
-import 'scope.dart' show ScopeKind;
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
 import 'uris.dart' show dartCore, getPartUri;
@@ -635,12 +634,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         for (DillLibraryBuilder builder
             in experimentalInvalidation.originalNotReusedLibraries) {
           if (builder.isBuilt) {
-            builder.exportScope
-                .patchUpScope(replacementMap, replacementSettersMap);
+            builder.patchUpExportScope(replacementMap, replacementSettersMap);
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
-            for (Builder builder in builder.scope.localMembers) {
+            for (Builder builder in builder.nameSpace.localMembers) {
               if (builder is DillClassBuilder) {
                 builder.clearCachedValues();
               }
@@ -686,10 +684,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool isEquivalent = true;
     StringBuffer sb = new StringBuffer();
     sb.writeln('Mismatch on ${sourceLibraryBuilder.importUri}:');
-    sourceLibraryBuilder.exportScope
+    sourceLibraryBuilder.exportNameSpace
         .forEachLocalMember((String name, Builder sourceBuilder) {
-      Builder? dillBuilder =
-          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: false);
+      Builder? dillBuilder = dillLibraryBuilder.exportNameSpace
+          .lookupLocalMember(name, setter: false);
       if (dillBuilder == null) {
         if ((name == 'dynamic' || name == 'Never') &&
             sourceLibraryBuilder.importUri == dartCore) {
@@ -702,30 +700,30 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         isEquivalent = false;
       }
     });
-    dillLibraryBuilder.exportScope
+    dillLibraryBuilder.exportNameSpace
         .forEachLocalMember((String name, Builder dillBuilder) {
-      Builder? sourceBuilder = sourceLibraryBuilder.exportScope
+      Builder? sourceBuilder = sourceLibraryBuilder.exportNameSpace
           .lookupLocalMember(name, setter: false);
       if (sourceBuilder == null) {
         sb.writeln('No source builder for ${name}: $dillBuilder');
         isEquivalent = false;
       }
     });
-    sourceLibraryBuilder.exportScope
+    sourceLibraryBuilder.exportNameSpace
         .forEachLocalSetter((String name, Builder sourceBuilder) {
-      Builder? dillBuilder =
-          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: true);
+      Builder? dillBuilder = dillLibraryBuilder.exportNameSpace
+          .lookupLocalMember(name, setter: true);
       if (dillBuilder == null) {
         sb.writeln('No dill builder for ${name}=: $sourceBuilder');
         isEquivalent = false;
       }
     });
-    dillLibraryBuilder.exportScope
+    dillLibraryBuilder.exportNameSpace
         .forEachLocalSetter((String name, Builder dillBuilder) {
-      Builder? sourceBuilder = sourceLibraryBuilder.exportScope
+      Builder? sourceBuilder = sourceLibraryBuilder.exportNameSpace
           .lookupLocalMember(name, setter: true);
       if (sourceBuilder == null) {
-        sourceBuilder = sourceLibraryBuilder.exportScope
+        sourceBuilder = sourceLibraryBuilder.exportNameSpace
             .lookupLocalMember(name, setter: false);
         if (sourceBuilder is FieldBuilder && sourceBuilder.isAssignable) {
           // Assignable fields can be lowered into a getter and setter.
@@ -813,7 +811,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (Uri uri in experimentalInvalidation.missingSources) {
         // TODO(jensj): KernelTargets "link" takes some "excludeSource"
         // setting into account.
-        uriToSource[uri] = CompilerContext.current.uriToSource[uri]!;
+        uriToSource[uri] = context.uriToSource[uri]!;
       }
     }
   }
@@ -950,8 +948,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           in experimentalInvalidation.originalNotReusedLibraries) {
         // There's only something to patch up if it was build already.
         if (builder.isBuilt) {
-          builder.exportScope
-              .patchUpScope(replacementMap, replacementSettersMap);
+          builder.patchUpExportScope(replacementMap, replacementSettersMap);
         }
       }
     }
@@ -963,7 +960,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       DillTarget dillTarget,
       UriTranslator uriTranslator) {
     return new IncrementalKernelTarget(
-        fileSystem, includeComments, dillTarget, uriTranslator);
+        context, fileSystem, includeComments, dillTarget, uriTranslator);
   }
 
   /// Create a new [IncrementalKernelTarget] object, and add the reused builders
@@ -1042,7 +1039,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (builder.isBuiltAndMarked) {
           // Clear cached calculations in classes which upon calculation can
           // mark things as needed.
-          for (Builder builder in builder.scope.localMembers) {
+          for (Builder builder in builder.nameSpace.localMembers) {
             if (builder is DillClassBuilder) {
               builder.clearCachedValues();
             }
@@ -1094,7 +1091,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Make sure the dill loader is on the same page.
       DillTarget oldDillLoadedData = _dillLoadedData!;
       DillTarget newDillLoadedData = _dillLoadedData = new DillTarget(
-          _ticker, uriTranslator, c.options.target,
+          c, _ticker, uriTranslator, c.options.target,
           benchmarker: _benchmarker);
       for (DillLibraryBuilder library
           in oldDillLoadedData.loader.libraryBuilders) {
@@ -1118,7 +1115,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
       _cleanupSourcesForBuilder(lastGoodKernelTarget, reusedResult, builder,
-          uriTranslator, CompilerContext.current.uriToSource);
+          uriTranslator, context.uriToSource);
       _incrementalSerializer
           // Coverage-ignore(suite): Not run.
           ?.invalidate(builder.fileUri);
@@ -1229,8 +1226,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       for (Uri uri in builderUris) {
-        List<int>? previousSource =
-            CompilerContext.current.uriToSource[uri]?.source;
+        List<int>? previousSource = context.uriToSource[uri]?.source;
         if (previousSource == null || previousSource.isEmpty) {
           recorderForTesting?.recordAdvancedInvalidationResult(
               AdvancedInvalidationResult.noPreviousSource);
@@ -1243,8 +1239,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 /* should this be on the library? */
                 /* this is effectively what the constant evaluator does */
                 context.options.globalFeatures.tripleShift.isEnabled);
-        bool enablePatterns = builder.library.languageVersion >=
-            ExperimentalFlag.patterns.enabledVersion;
+        bool enablePatterns =
+            builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
         String? before = textualOutline(previousSource, scannerConfiguration,
             performModelling: true, enablePatterns: enablePatterns);
         if (before == null) {
@@ -1356,7 +1352,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Now we know we're going to do it --- remove old sources.
     for (Uri fileUri in missingSources!) {
-      CompilerContext.current.uriToSource.remove(fileUri);
+      context.uriToSource.remove(fileUri);
     }
 
     recorderForTesting?.recordAdvancedInvalidationResult(
@@ -1407,7 +1403,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     IncrementalCompilerData data = new IncrementalCompilerData();
     if (_dillLoadedData == null) {
       DillTarget dillLoadedData = _dillLoadedData = new DillTarget(
-          _ticker, uriTranslator, context.options.target,
+          context, _ticker, uriTranslator, context.options.target,
           benchmarker: _benchmarker);
       int bytesLength = await _initializationStrategy.initialize(
           dillLoadedData,
@@ -1725,14 +1721,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           cleanedUpBuilders.add(removedDillBuilder);
           removedDillBuilders = true;
         }
-        _cleanupSourcesForBuilder(
-            currentKernelTarget,
-            null,
-            builder,
-            uriTranslator,
-            CompilerContext.current.uriToSource,
-            uriToSource,
-            partsUsed);
+        _cleanupSourcesForBuilder(currentKernelTarget, null, builder,
+            uriTranslator, context.uriToSource, uriToSource, partsUsed);
         _userBuilders?.remove(uri);
         _componentProblems.removeLibrary(lib, uriTranslator, partsUsed);
 
@@ -1893,8 +1883,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        Builder? scopeMember =
-            libraryBuilder.scope.lookupLocalMember(className, setter: false);
+        Builder? scopeMember = libraryBuilder.nameSpace
+            .lookupLocalMember(className, setter: false);
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
         } else {
@@ -1909,8 +1899,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (indexOfDot >= 0) {
           String beforeDot = methodName.substring(0, indexOfDot);
           String afterDot = methodName.substring(indexOfDot + 1);
-          Builder? builder =
-              libraryBuilder.scope.lookupLocalMember(beforeDot, setter: false);
+          Builder? builder = libraryBuilder.nameSpace
+              .lookupLocalMember(beforeDot, setter: false);
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
             extension = builder.extension;
@@ -1980,8 +1970,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
         importUri: libraryUri,
         fileUri: debugExprUri,
+        originImportUri: libraryUri,
         packageLanguageVersion:
-            new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+            new ImplicitLanguageVersion(libraryBuilder.languageVersion),
         loader: lastGoodKernelTarget.loader,
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
@@ -1989,14 +1980,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         isPatch: false,
       );
       debugLibrary.compilationUnit.createLibrary();
-      libraryBuilder.scope.forEachLocalMember((name, member) {
-        debugLibrary.scope.addLocalMember(name, member, setter: false);
+      libraryBuilder.nameSpace.forEachLocalMember((name, member) {
+        debugLibrary.nameSpace.addLocalMember(name, member, setter: false);
       });
-      libraryBuilder.scope.forEachLocalSetter((name, member) {
-        debugLibrary.scope.addLocalMember(name, member, setter: true);
+      libraryBuilder.nameSpace.forEachLocalSetter((name, member) {
+        debugLibrary.nameSpace.addLocalMember(name, member, setter: true);
       });
-      libraryBuilder.scope.forEachLocalExtension((member) {
-        debugLibrary.scope.addExtension(member);
+      libraryBuilder.nameSpace.forEachLocalExtension((member) {
+        debugLibrary.nameSpace.addExtension(member);
       });
       _ticker.logMs("Created debug library");
 
@@ -2030,11 +2021,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       debugLibrary = new SourceLibraryBuilder(
         importUri: libraryUri,
         fileUri: debugExprUri,
+        originImportUri: libraryUri,
         packageLanguageVersion:
-            new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+            new ImplicitLanguageVersion(libraryBuilder.languageVersion),
         loader: lastGoodKernelTarget.loader,
-        scope: debugLibrary.scope.createNestedScope(
-            debugName: "expression", kind: ScopeKind.library),
+        parentScope: debugLibrary.scope,
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
         isAugmentation: false,
@@ -2384,9 +2375,14 @@ class IncrementalKernelTarget extends KernelTarget
   Set<Class>? classMemberChanges;
   Set<Library> librariesUsed = {};
 
-  IncrementalKernelTarget(FileSystem fileSystem, bool includeComments,
-      DillTarget dillTarget, UriTranslator uriTranslator)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+  IncrementalKernelTarget(
+      CompilerContext compilerContext,
+      FileSystem fileSystem,
+      bool includeComments,
+      DillTarget dillTarget,
+      UriTranslator uriTranslator)
+      : super(compilerContext, fileSystem, includeComments, dillTarget,
+            uriTranslator);
 
   @override
   ChangedStructureNotifier get changedStructureNotifier => this;

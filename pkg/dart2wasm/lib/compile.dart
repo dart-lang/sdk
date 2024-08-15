@@ -126,6 +126,9 @@ Future<CompilerOutput?> compileToModule(
   CoreTypes coreTypes = compilerResult.coreTypes!;
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
   LibraryIndex libraryIndex = LibraryIndex(component, [
+    "dart:_boxed_double",
+    "dart:_boxed_int",
+    "dart:_compact_hash",
     "dart:_internal",
     "dart:_js_helper",
     "dart:_js_types",

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `null` in `null`-aware assignment.';
 
@@ -33,20 +34,19 @@ x ??= 1;
 ''';
 
 class UnnecessaryNullAwareAssignments extends LintRule {
-  static const LintCode code = LintCode(
-      'unnecessary_null_aware_assignments', "Unnecessary assignment of 'null'.",
-      correctionMessage: 'Try removing the assignment.',
-      hasPublishedDocs: true);
-
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.brevity,
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style,
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.unnecessary_null_aware_assignments;
 
   @override
   void registerNodeProcessors(

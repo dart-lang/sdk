@@ -212,6 +212,7 @@ class ProtocolConverter {
     } else if (_isList(instance) &&
         instance.length != null &&
         instance.bytes != null) {
+      final formatter = format ?? const VariableFormat();
       final elements = _decodeList(instance);
 
       final start = startItem ?? 0;
@@ -221,7 +222,7 @@ class ProtocolConverter {
           return dap.Variable(
             name: name,
             evaluateName: _adapter.combineEvaluateName(evaluateName, name),
-            value: element.toString(),
+            value: formatter.format(element),
             variablesReference: 0,
           );
         },

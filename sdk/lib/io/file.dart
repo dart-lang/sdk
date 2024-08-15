@@ -921,6 +921,13 @@ abstract interface class RandomAccessFile {
   /// On Windows the regions used for lock and unlock needs to match. If that
   /// is not the case unlocking will result in the OS error "The segment is
   /// already unlocked".
+  ///
+  /// On Windows, locking a file associates the lock with the specific file
+  /// handle used to acquire the lock. If the same file is opened again with a
+  /// different handle (even within the same process), attempts to write to the
+  /// locked region using the new handle will fail. To ensure successful writes
+  /// after locking, use the same [RandomAccessFile] object that acquired the
+  /// lock for subsequent write operations.
   Future<RandomAccessFile> lock(
       [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]);
 
@@ -958,6 +965,12 @@ abstract interface class RandomAccessFile {
   /// is not the case unlocking will result in the OS error "The segment is
   /// already unlocked".
   ///
+  /// On Windows, locking a file associates the lock with the specific file
+  /// handle used to acquire the lock. If the same file is opened again with a
+  /// different handle (even within the same process), attempts to write to the
+  /// locked region using the new handle will fail. To ensure successful writes
+  /// after locking, use the same [RandomAccessFile] object that acquired the
+  /// lock for subsequent write operations.
   void lockSync(
       [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]);
 

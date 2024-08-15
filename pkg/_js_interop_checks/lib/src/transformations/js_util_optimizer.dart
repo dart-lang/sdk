@@ -33,25 +33,36 @@ typedef _InvocationBuilder = Expression Function(
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
 class JsUtilOptimizer extends Transformer {
+  final Procedure _allowInteropTarget;
+  final Iterable<Procedure> _allowedInteropJsUtilTargets;
   final Procedure _callMethodTarget;
   final Procedure _callMethodTrustTypeTarget;
   final List<Procedure> _callMethodUncheckedTargets;
   final List<Procedure> _callMethodUncheckedTrustTypeTargets;
   final Procedure _callConstructorTarget;
   final List<Procedure> _callConstructorUncheckedTargets;
-  final CloneVisitorNotMembers _cloner = CloneVisitorWithMembers();
-  final Map<Member, _InvocationBuilder?> _externalInvocationBuilders = {};
   final Procedure _functionToJSTarget;
+  final Procedure _functionToJSCaptureThisTarget;
   final List<Procedure> _functionToJSTargets;
+  final List<Procedure>? _functionToJSCaptureThisTargets;
   final Procedure _functionToJSNTarget;
+  final Procedure _functionToJSCaptureThisNTarget;
   final Procedure _getPropertyTarget;
   final Procedure _getPropertyTrustTypeTarget;
   final Procedure _globalContextTarget;
   final Procedure _jsExportedDartFunctionToDartTarget;
   final Procedure _jsFunctionToDart;
+  final Procedure _jsTarget;
+  final Procedure _listEmptyFactory;
   final InterfaceType _objectType;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
+
+  final CoreTypes _coreTypes;
+  final CloneVisitorNotMembers _cloner = CloneVisitorWithMembers();
+  final ExtensionIndex _extensionIndex;
+  final Map<Member, _InvocationBuilder?> _externalInvocationBuilders = {};
+  final StatefulStaticTypeContext _staticTypeContext;
 
   /// Dynamic members in js_util that interop allowed.
   static const List<String> _allowedInteropJsUtilMembers = [
@@ -63,18 +74,9 @@ class JsUtilOptimizer extends Transformer {
     'setProperty'
   ];
 
-  final Procedure _allowInteropTarget;
-  final Iterable<Procedure> _allowedInteropJsUtilTargets;
-  final Procedure _jsTarget;
-  final Procedure _listEmptyFactory;
-
-  final CoreTypes _coreTypes;
-  final StatefulStaticTypeContext _staticTypeContext;
-
-  final ExtensionIndex _extensionIndex;
-
   JsUtilOptimizer(
-      this._coreTypes, ClassHierarchy hierarchy, this._extensionIndex)
+      this._coreTypes, ClassHierarchy hierarchy, this._extensionIndex,
+      {required bool isDart2JS})
       : _callMethodTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'callMethod'),
         _callMethodTrustTypeTarget = _coreTypes.index
@@ -95,12 +97,23 @@ class JsUtilOptimizer extends Transformer {
                 'dart:js_util', '_callConstructorUnchecked$i')),
         _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
+        _functionToJSCaptureThisTarget = _coreTypes.index.getTopLevelProcedure(
+            'dart:js_interop',
+            'FunctionToJSExportedDartFunction|get#toJSCaptureThis'),
         _functionToJSTargets = List<Procedure>.generate(
             6,
             (i) => _coreTypes.index
                 .getTopLevelProcedure('dart:js_util', '_functionToJS$i')),
+        _functionToJSCaptureThisTargets = isDart2JS
+            ? List<Procedure>.generate(
+                5,
+                (i) => _coreTypes.index.getTopLevelProcedure(
+                    'dart:js_util', '_functionToJSCaptureThis$i'))
+            : null,
         _functionToJSNTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', '_functionToJSN'),
+        _functionToJSCaptureThisNTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', '_functionToJSCaptureThisN'),
         _getPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'getProperty'),
         _getPropertyTrustTypeTarget = _coreTypes.index
@@ -500,6 +513,8 @@ class JsUtilOptimizer extends Transformer {
       // https://github.com/dart-lang/sdk/issues/53367 is resolved.
     } else if (target == _functionToJSTarget) {
       invocation = _lowerFunctionToJS(node);
+    } else if (target == _functionToJSCaptureThisTarget) {
+      invocation = _lowerFunctionToJS(node, captureThis: true);
     } else if (target == _jsExportedDartFunctionToDartTarget) {
       invocation = _lowerJSExportedDartFunctionToDart(node);
     } else if (target.isExternal && !JsInteropChecks.isPatchedMember(target)) {
@@ -684,27 +699,47 @@ class JsUtilOptimizer extends Transformer {
       ..parent = nodeParent;
   }
 
-  /// For the given `dart:js_interop` `Function.toJS` invocation [node], returns
-  /// an invocation of `_functionToJSX` with the given `Function` argument,
-  /// where X is the number of the positional arguments.
+  /// For the given `dart:js_interop` `Function.toJS` or
+  /// `Function.toJSCaptureThis` invocation [node], returns an invocation of the
+  /// corresponding private stub in `js_util` with the invocation's [Function]
+  /// argument and the number of positional parameters of that [Function].
   ///
-  /// If the number of the positional arguments is larger than 5, returns an
-  /// invocation of `_functionToJSN` instead.
-  StaticInvocation _lowerFunctionToJS(StaticInvocation node) {
+  /// If [captureThis] is false, the node target is assumed to be
+  /// `Function.toJS` and otherwise `Function.toJSCaptureThis`.
+  ///
+  /// There are specialized stubs up to a certain positional parameter length,
+  /// and after that, either an invocation of `_functionToJSN` or
+  /// `_functionToJSCaptureThisN` is returned.
+  StaticInvocation _lowerFunctionToJS(StaticInvocation node,
+      {bool captureThis = false}) {
     // JS interop checks assert that the static type is available, and that
     // there are no named arguments or type arguments.
     final function = node.arguments.positional.single;
     final functionType =
         function.getStaticType(_staticTypeContext) as FunctionType;
-    final argumentsLength = functionType.positionalParameters.length;
+    final parametersLength = functionType.positionalParameters.length;
+    List<Procedure>? specializedStubs;
+    int stubIndex;
+    Procedure genericStub;
+    if (captureThis) {
+      specializedStubs = _functionToJSCaptureThisTargets;
+      stubIndex = parametersLength - 1; // Account for `this`.
+      genericStub = _functionToJSCaptureThisNTarget;
+    } else {
+      specializedStubs = _functionToJSTargets;
+      stubIndex = parametersLength;
+      genericStub = _functionToJSNTarget;
+    }
     Procedure target;
     Arguments arguments;
-    if (argumentsLength < _functionToJSTargets.length) {
-      target = _functionToJSTargets[argumentsLength];
+    if (specializedStubs != null &&
+        stubIndex >= 0 &&
+        stubIndex < specializedStubs.length) {
+      target = specializedStubs[stubIndex];
       arguments = Arguments([function]);
     } else {
-      target = _functionToJSNTarget;
-      arguments = Arguments([function, IntLiteral(argumentsLength)]);
+      target = genericStub;
+      arguments = Arguments([function, IntLiteral(parametersLength)]);
     }
     return StaticInvocation(
         target, arguments..fileOffset = node.arguments.fileOffset)

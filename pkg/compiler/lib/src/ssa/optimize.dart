@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_runtime/synced/array_flags.dart' show ArrayFlags;
+
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common/elements.dart' show JCommonElements;
@@ -29,6 +31,7 @@ import '../js_model/type_recipe.dart'
 import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
+import '../universe/call_structure.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show StaticUse;
@@ -255,6 +258,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   void visitGraph(HGraph visitee) {
     _graph = visitee;
     visitDominatorTree(visitee);
+    finalizeArrayFlagEffects();
   }
 
   @override
@@ -987,7 +991,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = node.inputs.last; // Drop interceptor.
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInstruction result = HInvokeExternal(
+    final result = HInvokeExternal(
         method, [receiver], returnType, nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
@@ -1003,25 +1007,36 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   }
 
   HInstruction maybeAddNativeReturnNullCheck(
-      HInstruction node, HInstruction replacement, FunctionEntity method) {
+      HInstruction node, HInvokeExternal invocation, FunctionEntity method) {
+    HInstruction replacement = invocation;
     if (_options.nativeNullAssertions && memberEntityIsInWebLibrary(method)) {
       FunctionType type =
           _closedWorld.elementEnvironment.getFunctionType(method);
       if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
-        node.block!.addBefore(node, replacement);
-        replacement = HNullCheck(replacement,
-            _abstractValueDomain.excludeNull(replacement.instructionType),
+        node.block!.addBefore(node, invocation);
+        replacement = HNullCheck(invocation,
+            _abstractValueDomain.excludeNull(invocation.instructionType),
             sticky: true);
       }
-    } else if (_options.interopNullAssertions &&
-        _nativeData.interopNullChecks.containsKey(Selector.getter(PublicName(
-            _nativeData.computeUnescapedJSInteropName(method.name!))))) {
-      node.block!.addBefore(node, replacement);
-      final replacementType = _options.experimentNullSafetyChecks
-          ? replacement.instructionType
-          : _abstractValueDomain.excludeNull(replacement.instructionType);
-      replacement = HInvokeStatic(commonElements.interopNullAssertion,
-          [replacement], replacementType, const <DartType>[]);
+    } else if (_options.interopNullAssertions) {
+      final name =
+          PublicName(_nativeData.computeUnescapedJSInteropName(method.name!));
+      final selector = method.isGetter
+          ? Selector.getter(name)
+          : Selector.call(
+              name, CallStructure.unnamed(invocation.inputs.length));
+      if (_nativeData.interopNullChecks.containsKey(selector)) {
+        FunctionType type =
+            _closedWorld.elementEnvironment.getFunctionType(method);
+        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+          node.block!.addBefore(node, invocation);
+          final replacementType = _options.experimentNullSafetyChecks
+              ? invocation.instructionType
+              : _abstractValueDomain.excludeNull(invocation.instructionType);
+          replacement = HInvokeStatic(commonElements.interopNullAssertion,
+              [invocation], replacementType, const <DartType>[]);
+        }
+      }
     }
     return replacement;
   }
@@ -1129,7 +1144,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = inputs[1];
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInstruction result = HInvokeExternal(
+    final result = HInvokeExternal(
         method,
         [receiver, ...inputs.skip(2)], // '2': Drop interceptor and receiver.
         returnType,
@@ -1618,11 +1633,21 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     // Can we find the length as an input to an allocation?
     HInstruction potentialAllocation = receiver;
-    if (receiver is HInvokeStatic &&
-        receiver.element == commonElements.setArrayType) {
-      // Look through `setArrayType(new Array(), ...)`
-      potentialAllocation = receiver.inputs.first;
+
+    SCAN:
+    while (!_graph.allocatedFixedLists.contains(potentialAllocation)) {
+      switch (potentialAllocation) {
+        case HInvokeStatic(:final element)
+            when element == commonElements.setArrayType:
+          // Look through `setArrayType(new Array(), ...)`
+          potentialAllocation = potentialAllocation.inputs.first;
+        case HArrayFlagsCheck(:final array) || HArrayFlagsSet(:final array):
+          potentialAllocation = array;
+        default:
+          break SCAN;
+      }
     }
+
     if (_graph.allocatedFixedLists.contains(potentialAllocation)) {
       // TODO(sra): How do we keep this working if we lower/inline the receiver
       // in an optimization?
@@ -2350,7 +2375,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitInstanceEnvironment(HInstanceEnvironment node) {
-    HInstruction instance = node.inputs.single;
+    HInstruction instance = node.inputs.single.nonCheck();
 
     // Store-forward instance types of created instances and constant instances.
     //
@@ -2625,6 +2650,156 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       }
     }
     return node;
+  }
+
+  @override
+  HInstruction visitArrayFlagsCheck(HArrayFlagsCheck node) {
+    // TODO(sra): Implement removal on basis of type, an 'isRedundant' check.
+
+    final array = node.array;
+    final arrayFlags = node.arrayFlags;
+    final checkFlags = node.checkFlags;
+
+    if (arrayFlags is HConstant && arrayFlags.constant.isZero) return array;
+
+    if (array is HArrayFlagsCheck) {
+      // Dependent check. Checks become dependent during types_propagation.
+      if (arrayFlags == array.arrayFlags && checkFlags == array.checkFlags) {
+        // Check is redundant, even if the `node.operation` is different
+        // (different operations are not picked up by GVN).
+        //
+        // TODO(sra): If a stronger check dominates a weaker check (e.g. check
+        // for immutable before check for fixed length), we can match that with
+        // different flags.
+        return array;
+      }
+    }
+
+    // The 'operation' and 'verb' strings can be replaced with an index into a
+    // small table to known operations or verbs. This makes the call-sites
+    // smaller, so is worthwhile for calls to HArrayFlagsCheck that are inlined
+    // into multiple places.
+    //
+    // A trailing zero index (verb, or verb and operation) can be omitted from
+    // the instruction.
+    //
+    // When both indexes are replaced by indexes, the indexes are combined into
+    // a single value.
+    //
+    //     finalIndex = verbIndex * numberOfOperationIndexes + operationIndex
+
+    int? verbIndex; // Verb index if nonzero.
+
+    if (node.hasVerb) {
+      if (node.verb
+          case HConstant(constant: StringConstantValue(:final stringValue))) {
+        final index = ArrayFlags.verbToIndex[stringValue];
+        if (index != null) {
+          if (index == 0) {
+            node.removeInput(4);
+          } else {
+            final replacement = _graph.addConstantInt(index, _closedWorld);
+            node.replaceInput(4, replacement);
+            verbIndex = index;
+          }
+        }
+      }
+    }
+
+    if (node.hasOperation) {
+      if (node.operation
+          case HConstant(constant: StringConstantValue(:final stringValue))) {
+        var index = ArrayFlags.operationNameToIndex[stringValue];
+        if (index != null) {
+          if (index == 0 && !node.hasVerb) {
+            node.removeInput(3);
+          } else {
+            if (verbIndex != null) {
+              // Encode combined indexes and remove 'verb' input.
+              index += verbIndex * ArrayFlags.operationNameToIndex.length;
+              node.removeInput(4);
+            }
+            final replacement = _graph.addConstantInt(index, _closedWorld);
+            node.replaceInput(3, replacement);
+          }
+        }
+      }
+    }
+
+    return node;
+  }
+
+  /// All HArrayFlagsGet instructions that depend on something. Used to promote
+  /// `HArrayFlagsGet` instructions to side-effect insensitive.  See
+  /// [finalizeArrayFlagEffects] for details.
+  List<HArrayFlagsGet>? _arrayFlagsGets;
+  bool _arrayFlagsEffect = false;
+
+  @override
+  HInstruction visitArrayFlagsSet(HArrayFlagsSet node) {
+    _arrayFlagsEffect = true;
+    return node;
+  }
+
+  @override
+  HInstruction visitArrayFlagsGet(HArrayFlagsGet node) {
+    if (node.sideEffects.dependsOnSomething()) {
+      (_arrayFlagsGets ??= []).add(node);
+    } else {
+      // If the HArrayFlagsGet is pure and the source is visible, then there is
+      // no HArrayFlagsSet instruction that changes the flags, so the flags are
+      // `0`. This can remove checks on allocations in the same method. To do
+      // this for typed arrays, we need to recognize the allocation.
+
+      final array = node.inputs.single;
+
+      if (array is HForeignCode) {
+        final behavior = array.nativeBehavior;
+        if (behavior != null && behavior.isAllocation) {
+          return _graph.addConstantInt(ArrayFlags.none, _closedWorld);
+        }
+      }
+    }
+
+    // The following store-forwarding of the flags is valid only because all
+    // code in the SDK has a 'linear' pattern where the original value is never
+    // accessed after it is 'tagged' with the flags.
+    HInstruction array = node.inputs.single;
+    while (array is HArrayFlagsCheck) {
+      array = array.array;
+    }
+    if (array case HArrayFlagsSet(:final flags)) return flags;
+
+    return node;
+  }
+
+  void finalizeArrayFlagEffects() {
+    // HArrayFlagsGet operations must not be moved past HArrayFlagsSet
+    // operations on the same Array or typed data view. Initially we prevent
+    // this by making HArrayFlagsSet have a changes-property side effect, and
+    // making HArrayFlagsGet depend on that effect.
+    //
+    // This turns out to be rather restrictive and a general 'depends on
+    // property' dependency inhibits important optimizations like hoisting
+    // HArrayFlagsGet out of loops. We could try an add a new effect, but since
+    // the effect analysis is not aware of (non)aliasing, the new effect would
+    // largely have the same problem.
+    //
+    // Instead we notice that HArrayFlagsSet is rare: it is used to implement
+    // constructors that initialize the data, and then mark it as unmodifiable
+    // or fixed-length. If we invoke a callee that does a HArrayFlagsSet
+    // operation, the target of that operation is not visible to the caller.
+    //
+    // Therefore we assume that if we can't see any HArrayFlagsSet operations in
+    // the current method, they cannot change the value observed by
+    // HArrayFlagsGet, and we can pretent the HArrayFlagsGets are pure.
+
+    if (_arrayFlagsGets == null || _arrayFlagsEffect) return;
+
+    for (final instruction in _arrayFlagsGets!) {
+      // Instruction may have been removed from the CFG, but that is harmless.
+      instruction.sideEffects.clearAllDependencies();
+    }
   }
 }
 

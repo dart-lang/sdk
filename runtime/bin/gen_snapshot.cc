@@ -316,8 +316,11 @@ PRINTF_ATTRIBUTE(1, 2) static void PrintErrAndExit(const char* format, ...) {
   Syslog::VPrintErr(format, args);
   va_end(args);
 
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
+  // ExitScope and ShutdownIsolate will abort() if there is no current isolate.
+  if (Dart_CurrentIsolate() != nullptr) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+  }
   exit(kErrorExitCode);
 }
 

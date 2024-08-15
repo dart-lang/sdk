@@ -155,7 +155,7 @@ ConstExpression expr(String typeStr) =>
 
 /// Creates a conventional `for` statement.  Optional boolean [forCollection]
 /// indicates that this `for` statement is actually a collection element, so
-/// `null` should be passed to [for_bodyBegin].
+/// `null` should be passed to [FlowAnalysis.for_bodyBegin].
 Statement for_(ProtoStatement? initializer, ProtoExpression? condition,
     ProtoExpression? updater, List<ProtoStatement> body,
     {bool forCollection = false}) {
@@ -428,7 +428,7 @@ Pattern relationalPattern(String operator, ProtoExpression operand,
   return result;
 }
 
-/// Creates a "rest" pattern with optional [subPatern], for use in a list
+/// Creates a "rest" pattern with optional [subPattern], for use in a list
 /// pattern.
 ///
 /// Although using a rest pattern inside a map pattern is an error, it's allowed
@@ -834,7 +834,7 @@ class CastPattern extends Pattern {
 }
 
 /// Representation of a single catch clause in a try/catch statement.  Use
-/// [catch_] to create instances of this class.
+/// [TryBuilder.catch_] to create instances of this class.
 class CatchClause {
   final Statement body;
   final Var? exception;
@@ -1386,7 +1386,8 @@ abstract class Expression extends Node
 }
 
 /// Representation of a single case clause in a switch expression.  Use
-/// [caseExpr] to create instances of this class.
+/// [PossiblyGuardedPattern.thenExpr] or [SwitchHead.thenExpr] to create
+/// instances of this class.
 class ExpressionCase extends Node {
   final GuardedPattern? guardedPattern;
   final Expression expression;
@@ -1680,7 +1681,8 @@ class Harness {
     _thisType = Type(type);
   }
 
-  /// Updates the harness with a new result for [downwardInfer].
+  /// Updates the harness with a new result for
+  /// [MiniAstOperations.downwardInfer].
   void addDownwardInfer({
     required String name,
     required String context,
@@ -1693,8 +1695,9 @@ class Harness {
     );
   }
 
-  /// Updates the harness so that when an [isAlwaysExhaustiveType] query is
-  /// invoked on type [type], [isExhaustive] will be returned.
+  /// Updates the harness so that when an
+  /// [TypeAnalyzerOperations.isAlwaysExhaustiveType] query is invoked on type
+  /// [type], [isExhaustive] will be returned.
   void addExhaustiveness(String type, bool isExhaustive) {
     operations.addExhaustiveness(type, isExhaustive);
   }
@@ -2757,8 +2760,8 @@ class MiniAstOperations
     _downwardInferenceResults[query] = Type(result);
   }
 
-  /// Updates the harness so that when an [isExhaustiveType] query is invoked on
-  /// type [type], [isExhaustive] will be returned.
+  /// Updates the harness so that when an [isAlwaysExhaustiveType] query is
+  /// invoked on type [type], [isExhaustive] will be returned.
   void addExhaustiveness(String type, bool isExhaustive) {
     _exhaustiveness[type] = isExhaustive;
   }
@@ -2938,9 +2941,6 @@ class MiniAstOperations
       property.isPromotable;
 
   @override
-  bool isRecordType(Type type) => type is RecordType;
-
-  @override
   bool isSubtypeOf(Type leftType, Type rightType) {
     return _typeSystem.isSubtype(leftType, rightType);
   }
@@ -3029,6 +3029,15 @@ class MiniAstOperations
   Type? matchFutureOr(Type type) {
     if (type is FutureOrType) {
       return type.typeArgument;
+    }
+    return null;
+  }
+
+  @override
+  TypeSchema? matchTypeSchemaFutureOr(TypeSchema typeSchema) {
+    Type type = typeSchema.toType();
+    if (type is FutureOrType) {
+      return TypeSchema.fromType(type.typeArgument);
     }
     return null;
   }
@@ -3182,12 +3191,6 @@ class MiniAstOperations
       TypeSchema.fromType(glb(typeSchema1.toType(), typeSchema2.toType()));
 
   @override
-  bool typeSchemaIsDynamic(TypeSchema typeSchema) {
-    var type = typeSchema.toType();
-    return type is DynamicType;
-  }
-
-  @override
   bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {
     return isSubtypeOf(leftSchema.toType(), rightType);
   }
@@ -3218,6 +3221,17 @@ class MiniAstOperations
   @override
   Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) =>
       type.withNullability(modifier);
+
+  @override
+  NullabilitySuffix typeSchemaNullabilitySuffix(TypeSchema typeSchema) {
+    return typeSchema.toType().nullabilitySuffix;
+  }
+
+  @override
+  TypeSchema futureTypeSchema(TypeSchema argumentTypeSchema) {
+    return TypeSchema.fromType(
+        PrimaryType('Future', args: [argumentTypeSchema.toType()]));
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -4119,7 +4133,7 @@ mixin ProtoStatement<Self extends ProtoStatement<dynamic>> {
   /// expression statement.
   ///
   /// In general, tests shouldn't need to call this method directly; instead
-  /// they should simply be able to use either a [Statement] or an [Expressions]
+  /// they should simply be able to use either a [Statement] or an [Expression]
   /// in a context where a statement is expected, and the test infrastructure
   /// will call this getter as needed.
   Statement asStatement({required String location});
@@ -4492,8 +4506,9 @@ class SwitchStatement extends Statement {
   }
 }
 
-/// Representation of a single case clause in a switch statement.  Use [case_]
-/// to create instances of this class.
+/// Representation of a single case clause in a switch statement.  Use
+/// [PossiblyGuardedPattern.then] or [SwitchHead.then] to create instances of
+/// this class.
 class SwitchStatementMember extends Node {
   final bool hasLabels;
   final List<SwitchHead> elements;

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../rules/control_flow_in_finally.dart';
 
 const _desc = r'Avoid `throw` in `finally` block.';
@@ -49,20 +50,15 @@ class Ok {
 ''';
 
 class ThrowInFinally extends LintRule {
-  static const LintCode code = LintCode(
-      'throw_in_finally', "Use of '{0}' in 'finally' block.",
-      correctionMessage: "Try moving the '{0}' outside the 'finally' block.",
-      hasPublishedDocs: true);
-
   ThrowInFinally()
       : super(
             name: 'throw_in_finally',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {LintRuleCategory.errorProne});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.throw_in_finally;
 
   @override
   void registerNodeProcessors(

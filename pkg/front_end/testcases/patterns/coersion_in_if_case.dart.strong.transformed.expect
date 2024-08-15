@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x, dynamic list) → dynamic {
+  return block {
+    final core::Map<dynamic, dynamic> #t1 = <dynamic, dynamic>{};
+    #t1.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
+    {
+      final synthesized dynamic #0#0 = list;
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is core::int)
+        #t1.{core::Map::addAll}{Invariant}(x as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
+      else
+        #t1.{core::Map::addAll}{Invariant}(x as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
+    }
+  } =>#t1;
+}
+static method main() → dynamic {
+  self::test(<core::int, core::int>{0: 0}, core::_GrowableList::_literal1<core::int>(0));
+  self::expectThrows<core::TypeError>(() → void {
+    self::test(null, core::_GrowableList::_literal1<core::int>(0));
+  });
+}
+static method expectThrows<Exception extends core::Object? = dynamic>(() → void f) → dynamic {
+  core::String? message;
+  try {
+    f(){() → void};
+    message = "Expected the function to throw an exception, but it didn't.";
+  }
+  on self::expectThrows::Exception% catch(final self::expectThrows::Exception% _) {
+  }
+  on dynamic catch(final dynamic e) {
+    message = "Expected the function to throw an exception of type '${self::expectThrows::Exception%}', but got '${e.{core::Object::runtimeType}{<object>}.{core::Type}}'.";
+  }
+  if(!(message == null)) {
+    throw message{core::String};
+  }
+}
+
+constants  {
+  #C1 = 1
+}

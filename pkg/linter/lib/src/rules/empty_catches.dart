@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid empty catch blocks.';
@@ -49,21 +50,15 @@ try {
 ''';
 
 class EmptyCatches extends LintRule {
-  static const LintCode code = LintCode('empty_catches', 'Empty catch block.',
-      correctionMessage:
-          'Try adding statements to the block, adding a comment to the block, '
-          "or removing the 'catch' clause.",
-      hasPublishedDocs: true);
-
   EmptyCatches()
       : super(
             name: 'empty_catches',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.empty_catches;
 
   @override
   void registerNodeProcessors(

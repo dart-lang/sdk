@@ -147,10 +147,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   final Map<ir.Instruction, StackTrace>? _stackTraces;
 
   /// Create a new instruction sequence.
-  InstructionsBuilder(this.module, List<ir.ValueType> outputs)
+  InstructionsBuilder(
+      this.module, List<ir.ValueType> inputs, List<ir.ValueType> outputs)
       : _stackTraces = module.watchPoints.isNotEmpty ? {} : null,
         _sourceMappings = module.sourceMapUrl == null ? null : [] {
     _labelStack.add(Expression(const [], outputs));
+    for (ir.ValueType paramType in inputs) {
+      _addParameter(paramType);
+    }
   }
 
   /// Whether the instruction sequence has been completed by the final `end`.
@@ -160,6 +164,20 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   String get trace => _traceLines.join();
 
   bool get recordSourceMaps => _sourceMappings != null;
+
+  void collectUsedTypes(Set<ir.DefType> usedTypes) {
+    for (final local in locals) {
+      final localDefType = local.type.containedDefType;
+      if (localDefType != null) usedTypes.add(localDefType);
+    }
+    for (final instruction in _instructions) {
+      usedTypes.addAll(instruction.usedDefTypes);
+      for (final valueType in instruction.usedValueTypes) {
+        final type = valueType.containedDefType;
+        if (type != null) usedTypes.add(type);
+      }
+    }
+  }
 
   @override
   ir.Instructions forceBuild() => ir.Instructions(
@@ -173,10 +191,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     }
   }
 
-  ir.Local addLocal(ir.ValueType type, {required bool isParameter}) {
+  ir.Local _addParameter(ir.ValueType type) {
     final local = ir.Local(locals.length, type);
     locals.add(local);
-    _localInitialized.add(isParameter || type.defaultable);
+    _localInitialized.add(true);
+    return local;
+  }
+
+  ir.Local addLocal(ir.ValueType type) {
+    final local = ir.Local(locals.length, type);
+    locals.add(local);
+    _localInitialized.add(type.defaultable);
     return local;
   }
 

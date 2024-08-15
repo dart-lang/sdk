@@ -6,7 +6,6 @@
 #if defined(DART_HOST_OS_MACOS) && !defined(DART_USE_ABSL)
 
 #include "bin/thread.h"
-#include "bin/thread_macos.h"
 
 #include <mach/mach_host.h>    // NOLINT
 #include <mach/mach_init.h>    // NOLINT
@@ -24,31 +23,6 @@
 
 namespace dart {
 namespace bin {
-
-#define VALIDATE_PTHREAD_RESULT(result)                                        \
-  if (result != 0) {                                                           \
-    const int kBufferSize = 1024;                                              \
-    char error_message[kBufferSize];                                           \
-    Utils::StrError(result, error_message, kBufferSize);                       \
-    FATAL("pthread error: %d (%s)", result, error_message);                    \
-  }
-
-#ifdef DEBUG
-#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
-  if (result != 0) {                                                           \
-    const int kBufferSize = 1024;                                              \
-    char error_message[kBufferSize];                                           \
-    Utils::StrError(result, error_message, kBufferSize);                       \
-    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", __FILE__, __LINE__,     \
-            result, error_message);                                            \
-    return result;                                                             \
-  }
-#else
-#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
-  if (result != 0) {                                                           \
-    return result;                                                             \
-  }
-#endif
 
 class ThreadStartData {
  public:
@@ -118,154 +92,9 @@ int Thread::Start(const char* name,
   return 0;
 }
 
-const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(nullptr);
-
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
-}
-
-ThreadId Thread::GetCurrentThreadId() {
-  return pthread_self();
-}
-
-bool Thread::Compare(ThreadId a, ThreadId b) {
-  return (pthread_equal(a, b) != 0);
-}
-
-Mutex::Mutex() {
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-#if defined(DEBUG)
-  result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
-#endif  // defined(DEBUG)
-
-  result = pthread_mutex_init(data_.mutex(), &attr);
-  // Verify that creating a pthread_mutex succeeded.
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_mutexattr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-Mutex::~Mutex() {
-  int result = pthread_mutex_destroy(data_.mutex());
-  // Verify that the pthread_mutex was destroyed.
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-void Mutex::Lock() {
-  int result = pthread_mutex_lock(data_.mutex());
-  // Specifically check for dead lock to help debugging.
-  ASSERT(result != EDEADLK);
-  ASSERT(result == 0);  // Verify no other errors.
-  // TODO(iposva): Do we need to track lock owners?
-}
-
-bool Mutex::TryLock() {
-  int result = pthread_mutex_trylock(data_.mutex());
-  // Return false if the lock is busy and locking failed.
-  if ((result == EBUSY) || (result == EDEADLK)) {
-    return false;
-  }
-  ASSERT(result == 0);  // Verify no other errors.
-  // TODO(iposva): Do we need to track lock owners?
-  return true;
-}
-
-void Mutex::Unlock() {
-  // TODO(iposva): Do we need to track lock owners?
-  int result = pthread_mutex_unlock(data_.mutex());
-  // Specifically check for wrong thread unlocking to aid debugging.
-  ASSERT(result != EPERM);
-  ASSERT(result == 0);  // Verify no other errors.
-}
-
-Monitor::Monitor() {
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-#if defined(DEBUG)
-  result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
-#endif  // defined(DEBUG)
-
-  result = pthread_mutex_init(data_.mutex(), &attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_mutexattr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_init(data_.cond(), nullptr);
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-Monitor::~Monitor() {
-  int result = pthread_mutex_destroy(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-
-  result = pthread_cond_destroy(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-void Monitor::Enter() {
-  int result = pthread_mutex_lock(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-  // TODO(iposva): Do we need to track lock owners?
-}
-
-void Monitor::Exit() {
-  // TODO(iposva): Do we need to track lock owners?
-  int result = pthread_mutex_unlock(data_.mutex());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-Monitor::WaitResult Monitor::Wait(int64_t millis) {
-  return WaitMicros(millis * kMicrosecondsPerMillisecond);
-}
-
-Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
-  // TODO(iposva): Do we need to track lock owners?
-  Monitor::WaitResult retval = kNotified;
-  if (micros == kNoTimeout) {
-    // Wait forever.
-    int result = pthread_cond_wait(data_.cond(), data_.mutex());
-    VALIDATE_PTHREAD_RESULT(result);
-  } else {
-    struct timespec ts;
-    int64_t secs = micros / kMicrosecondsPerSecond;
-    if (secs > kMaxInt32) {
-      // Avoid truncation of overly large timeout values.
-      secs = kMaxInt32;
-    }
-    int64_t nanos =
-        (micros - (secs * kMicrosecondsPerSecond)) * kNanosecondsPerMicrosecond;
-    ts.tv_sec = static_cast<int32_t>(secs);
-    ts.tv_nsec = static_cast<long>(nanos);  // NOLINT (long used in timespec).
-    int result =
-        pthread_cond_timedwait_relative_np(data_.cond(), data_.mutex(), &ts);
-    ASSERT((result == 0) || (result == ETIMEDOUT));
-    if (result == ETIMEDOUT) {
-      retval = kTimedOut;
-    }
-  }
-  return retval;
-}
-
-void Monitor::Notify() {
-  // TODO(iposva): Do we need to track lock owners?
-  int result = pthread_cond_signal(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
-}
-
-void Monitor::NotifyAll() {
-  // TODO(iposva): Do we need to track lock owners?
-  int result = pthread_cond_broadcast(data_.cond());
-  VALIDATE_PTHREAD_RESULT(result);
 }
 
 }  // namespace bin

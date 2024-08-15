@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using private types in public APIs.';
 
@@ -42,22 +43,15 @@ f(String s) { ... }
 ''';
 
 class LibraryPrivateTypesInPublicApi extends LintRule {
-  static const LintCode code = LintCode('library_private_types_in_public_api',
-      'Invalid use of a private type in a public API.',
-      correctionMessage:
-          'Try making the private type public, or making the API that uses the '
-          'private type also be private.',
-      hasPublishedDocs: true);
-
   LibraryPrivateTypesInPublicApi()
       : super(
             name: 'library_private_types_in_public_api',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.publicInterface});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.library_private_types_in_public_api;
 
   @override
   void registerNodeProcessors(

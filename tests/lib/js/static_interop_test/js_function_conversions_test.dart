@@ -10,8 +10,11 @@
 import 'dart:js_interop';
 import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/variations.dart';
 
-const isJSBackend = const bool.fromEnvironment('dart.library.html');
+const isJSBackend = 0 is JSNumber;
+
+const soundNullSafety = !unsoundNullSafety;
 
 @JS()
 external void eval(String code);
@@ -32,16 +35,21 @@ external JSBoolean boolF(JSBoolean b);
 external void voidF(JSString s);
 
 @JS('jsFunction')
-external JSAny? anyF([JSAny? n]);
+external JSAny? anyF([JSAny? a, JSAny? b, JSAny? c, JSAny? d, JSAny? e]);
 
 @JS('jsFunction')
-external ExternalDartReference externalDartReferenceF(ExternalDartReference b);
+external ExternalDartReference? externalDartReferenceF(
+    ExternalDartReference? e);
 
 @JS()
 external JSAny? callFunctionWithUndefined();
 
 @JS()
 external JSAny? callFunctionWithJSNull();
+
+extension type IntE(int _) {}
+
+extension type NullableIntE(int? _) {}
 
 void main() {
   // Test primitive conversions.
@@ -76,17 +84,35 @@ void main() {
   jsFunction = ((String arg) => arg).toJS;
   voidF('voidF'.toJS);
 
+  // Extension type on primitives.
+  jsFunction = ((IntE i) => i).toJS;
+  expect(numF(0.toJS).toDartInt, 0);
+  Expect.throwsWhen(soundNullSafety, () => anyF(null));
+  jsFunction = ((IntE? i) => i).toJS;
+  expect(numF(0.toJS).toDartInt, 0);
+  expect(anyF(null), null);
+  jsFunction = ((NullableIntE i) => i).toJS;
+  expect(numF(0.toJS).toDartInt, 0);
+  expect(anyF(null), null);
+
   // Test ExternalDartReference.
-  final set = {};
-  jsFunction = ((ExternalDartReference arg) => arg).toJS;
-  expect(externalDartReferenceF(set.toExternalReference).toDartObject, set);
-  // This doesn't fail for the same reason JS types don't fail - the value gets
-  // boxed.
-  anyF(''.toJS);
+  Set set = {};
+  jsFunction = ((ExternalDartReference<Set> arg) => arg).toJS;
+  expect(externalDartReferenceF(set.toExternalReference)!.toDartObject, set);
+
   // However, if we try to internalize it to the wrong value, that should fail.
-  jsFunction = ((ExternalDartReference arg) {
-    arg.toDartObject as Set;
+  // In the JS backends, it fails in the cast. In dart2wasm, it fails in the
+  // internalization.
+  Expect.throwsWhen(
+      isJSBackend && soundNullSafety, () => externalDartReferenceF(null));
+  Expect.throwsWhen(
+      isJSBackend, () => externalDartReferenceF([].toExternalReference));
+  Expect.throwsWhen(isJSBackend, () => anyF(''.toJS));
+  jsFunction = ((ExternalDartReference<Set> arg) {
+    arg.toDartObject;
   }).toJS;
+  Expect.throwsWhen(soundNullSafety, () => externalDartReferenceF(null));
+  Expect.throws(() => externalDartReferenceF([].toExternalReference));
   // TODO(srujzs): On dart2wasm, this is a `RuntimeError: illegal cast` because
   // of the call to `internalize`. Is there any way to first check that the
   // value can be internalized and throw if not? Would that slow down the
@@ -96,10 +122,10 @@ void main() {
   // Test nullability with JS null and JS undefined.
   eval('''
     globalThis.callFunctionWithUndefined = function() {
-      return globalThis.jsFunction(undefined);
+      return globalThis.jsFunction(undefined, undefined, undefined, undefined, undefined);
     }
     globalThis.callFunctionWithJSNull = function() {
-      return globalThis.jsFunction(null);
+      return globalThis.jsFunction(null, null, null, null, null);
     }
   ''');
 
@@ -111,7 +137,7 @@ void main() {
   }
 
   void expectNullFail(JSFunction f) {
-    if (hasSoundNullSafety) {
+    if (soundNullSafety) {
       jsFunction = f;
       Expect.throws(() => anyF(null));
       Expect.throws(() => callFunctionWithUndefined());
@@ -145,14 +171,10 @@ void main() {
   expect(anyF(null), null);
   expect(anyF(zero), zero);
   setBoundAnyFunction<JSAny>();
-  // TODO(srujzs): The commented out null checks do not throw. There should be a
-  // check within the body of the callback that the parameter is the right
-  // generic type, but there isn't.
-  // Expect.throws(() => anyF());
-  // Expect.throws(() => anyF(null));
+  Expect.throwsWhen(soundNullSafety, () => anyF(null));
   expect(anyF(zero), zero);
   setBoundAnyFunction<JSNumber>();
-  // Expect.throws(() => anyF(null));
+  Expect.throwsWhen(soundNullSafety, () => anyF(null));
   Expect.throws(() {
     final any = anyF(empty);
     // TODO(54179): Better way of writing this is to cast to JSNumber and
@@ -166,11 +188,10 @@ void main() {
   }
 
   setBoundNonNullAnyFunction();
-  Expect.throws(() => anyF());
-  if (hasSoundNullSafety) Expect.throws(() => anyF(null));
+  Expect.throwsWhen(soundNullSafety, () => anyF(null));
   expect(anyF(zero), zero);
   setBoundNonNullAnyFunction<JSNumber>();
-  if (hasSoundNullSafety) Expect.throws(() => anyF(null));
+  Expect.throwsWhen(soundNullSafety, () => anyF(null));
   Expect.throws(() {
     final any = anyF(empty);
     // TODO(54179): Better way of writing this is to cast to JSNumber and
@@ -184,8 +205,7 @@ void main() {
   }
 
   setBoundJSNumberFunction();
-  Expect.throws(() => anyF());
-  if (hasSoundNullSafety) Expect.throws(() => anyF(null));
+  Expect.throwsWhen(soundNullSafety, () => anyF(null));
   Expect.throws(() {
     final any = anyF(empty);
     // TODO(54179): Better way of writing this is to cast to JSNumber and
@@ -193,4 +213,73 @@ void main() {
     if (!any.isA<JSNumber>()) throw TypeError();
   });
   expect(anyF(zero), zero);
+
+  void setBoundNonNullAnyMultipleParametersFunction<T extends JSAny,
+      U extends JSAny, V extends JSAny>({bool captureThis = false}) {
+    if (captureThis) {
+      jsFunction = ((T this_, U u, [V? v]) => this_).toJSCaptureThis;
+    } else {
+      jsFunction = ((T t, U u, [V? v]) => t).toJS;
+    }
+  }
+
+  setBoundNonNullAnyMultipleParametersFunction();
+  Expect.throwsWhen(soundNullSafety, () => anyF(null, zero, zero));
+  Expect.throwsWhen(soundNullSafety, () => anyF(zero, null, zero));
+  anyF(zero, zero, null);
+  anyF(zero, zero, zero);
+
+  setBoundNonNullAnyMultipleParametersFunction(captureThis: true);
+  Expect.throwsWhen(soundNullSafety, () => anyF(null, zero));
+  anyF(zero, null);
+  anyF(zero, zero);
+  // TODO(srujzs): It'd be nice if we can test that passing a null value for
+  // `this` throws. However, unless we're in strict mode, that isn't possible
+  // on all backends. While we can define local functions in strict mode, the
+  // wrapping of the function when converting a Dart function to JS may not be
+  // in a strict mode context, and therefore `this` will still be non-nullable.
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call#thisarg
+
+  void setBoundExternalDartReference<T extends ExternalDartReference<U>?, U>() {
+    jsFunction = ((T t) => t?.toDartObject.toExternalReference).toJS;
+  }
+
+  setBoundExternalDartReference<ExternalDartReference<Object?>, Object?>();
+  expect(externalDartReferenceF(null), null);
+  expect(externalDartReferenceF(0.toExternalReference)!.toDartObject, 0);
+  setBoundExternalDartReference<ExternalDartReference<Object>?, Object>();
+  expect(externalDartReferenceF(null), null);
+  expect(externalDartReferenceF(0.toExternalReference)!.toDartObject, 0);
+
+  void setBoundNonNullExternalDartReference<T extends ExternalDartReference<U>,
+      U>() {
+    jsFunction = ((T t) => t.toDartObject.toExternalReference).toJS;
+  }
+
+  setBoundNonNullExternalDartReference<ExternalDartReference<Object>, Object>();
+  Expect.throwsWhen(soundNullSafety, () => externalDartReferenceF(null));
+  expect(externalDartReferenceF(0.toExternalReference)!.toDartObject, 0);
+
+  // Test that type parameters local to the expression can still be casted to.
+  T Function(T) getF<T extends JSAny?>() {
+    return (T t) => t;
+  }
+
+  jsFunction = (getF<JSAny>()).toJS;
+  Expect.throwsWhen(soundNullSafety, () => anyF(null));
+  anyF(zero);
+  jsFunction = ((<T extends JSAny?>() => (T t) => t)<JSAny>()).toJS;
+  Expect.throwsWhen(soundNullSafety, () => anyF(null));
+  anyF(zero);
+
+  // Make sure function expression is only evaluated once in lowerings.
+  var evalCount = 0;
+  jsFunction = (() {
+    evalCount++;
+    return () {};
+  }())
+      .toJS;
+  anyF();
+  anyF();
+  expect(evalCount, 1);
 }

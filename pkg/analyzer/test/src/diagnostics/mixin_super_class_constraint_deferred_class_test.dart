@@ -34,9 +34,9 @@ MixinOnClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element: self::@prefix::math
+        element: <testLibraryFragment>::@prefix::math
       name: Random
-      element: dart:math::@class::Random
+      element: dart:math::<fragment>::@class::Random
       type: Random
 ''');
   }

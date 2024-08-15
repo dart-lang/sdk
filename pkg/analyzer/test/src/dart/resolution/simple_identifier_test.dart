@@ -36,7 +36,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@functionAugmentation::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
   staticType: void Function()
 ''');
   }
@@ -62,7 +62,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@getterAugmentation::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
   staticType: int
 ''');
   }
@@ -94,11 +94,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@setterAugmentation::foo::@parameter::_
+    parameter: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@setterAugmentation::foo
+  writeElement: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -126,7 +126,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@getterAugmentation::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
   staticType: int
 ''');
   }
@@ -152,7 +152,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@getter::foo
+  staticElement: <testLibraryFragment>::@getter::foo
   staticType: int
 ''');
   }
@@ -243,7 +243,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@getter::a
+  staticElement: <testLibraryFragment>::@getter::a
   staticType: int
 ''');
   }
@@ -265,7 +265,7 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@getter::a
+  staticElement: <testLibraryFragment>::@getter::a
   staticType: int
 ''');
   }
@@ -287,7 +287,7 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@getter::a
+  staticElement: <testLibraryFragment>::@getter::a
   staticType: int
 ''');
   }
@@ -307,8 +307,8 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  parameter: self::@function::foo::@parameter::a
-  staticElement: self::@getter::a
+  parameter: <testLibraryFragment>::@function::foo::@parameter::a
+  staticElement: <testLibraryFragment>::@getter::a
   staticType: int
 ''');
   }
@@ -365,7 +365,7 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@class::A::@getter::foo
+  staticElement: <testLibraryFragment>::@class::A::@getter::foo
   staticType: int
 ''');
   }
@@ -394,7 +394,7 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -506,7 +506,7 @@ extension E on ({int foo}) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: bar
-  staticElement: self::@extension::E::@getter::bar
+  staticElement: <testLibraryFragment>::@extension::E::@getter::bar
   staticType: bool
 ''');
   }
@@ -582,7 +582,7 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $3
-  staticElement: self::@extension::E::@getter::$3
+  staticElement: <testLibraryFragment>::@extension::E::@getter::$3
   staticType: bool
 ''');
   }
@@ -622,7 +622,7 @@ extension type A(int it) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@extensionType::A::@getter::foo
+  staticElement: <testLibraryFragment>::@extensionType::A::@getter::foo
   staticType: int
 ''');
   }
@@ -646,7 +646,7 @@ extension type X(B it) implements A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@class::A::@getter::foo
+  staticElement: <testLibraryFragment>::@class::A::@getter::foo
   staticType: int
 ''');
   }
@@ -675,7 +675,7 @@ mixin A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+  staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo
   staticType: int
 ''');
   }

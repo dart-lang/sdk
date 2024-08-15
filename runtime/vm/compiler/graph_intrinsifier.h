@@ -30,14 +30,14 @@ class GraphIntrinsifier : public AllStatic {
                               FlowGraphCompiler* compiler);
 
  private:
-#define DECLARE_FUNCTION(class_name, function_name, enum_name, fp)             \
+#define DECLARE_FUNCTION(library, class, function, enum_name, fp)              \
   static void enum_name(Assembler* assembler, Label* normal_ir_body);
 
   GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)
 
 #undef DECLARE_FUNCTION
 
-#define DECLARE_FUNCTION(class_name, function_name, enum_name, fp)             \
+#define DECLARE_FUNCTION(library, class, function, enum_name, fp)              \
   static bool Build_##enum_name(FlowGraph* flow_graph);
 
   GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)

@@ -8,22 +8,20 @@ import 'dart:async';
 
 import 'package:compiler/compiler_api.dart' as api
     show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
-import 'package:compiler/src/compiler.dart' show Compiler;
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common.dart';
+import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/options.dart' show CompilerOptions;
-
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
 
 import 'memory_source_file_helper.dart';
 
-export 'output_collector.dart';
 export 'package:compiler/compiler_api.dart' show CompilationResult;
+
 export 'diagnostic_helper.dart';
+export 'output_collector.dart';
 
 String sdkPath = 'sdk/lib';
 
@@ -32,16 +30,17 @@ String sdkLibrariesSpecificationPath = '$sdkPath/libraries.json';
 Uri sdkLibrariesSpecificationUri =
     Uri.base.resolve(sdkLibrariesSpecificationPath);
 
-Uri sdkPlatformBinariesUri = computePlatformBinariesLocation()
+Uri sdkPlatformBinariesUri = fe
+    .computePlatformBinariesLocation()
     .resolve("dart2js_platform.dill")
     .resolve('.');
 
 String sdkPlatformBinariesPath = sdkPlatformBinariesUri.toString();
 
-Uri buildPlatformBinariesUri =
-    computePlatformBinariesLocation(forceBuildDir: true)
-        .resolve("dart2js_platform.dill")
-        .resolve('.');
+Uri buildPlatformBinariesUri = fe
+    .computePlatformBinariesLocation(forceBuildDir: true)
+    .resolve("dart2js_platform.dill")
+    .resolve('.');
 
 String buildPlatformBinariesPath = buildPlatformBinariesUri.toString();
 

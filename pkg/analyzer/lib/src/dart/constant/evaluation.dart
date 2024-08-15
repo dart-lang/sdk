@@ -116,9 +116,9 @@ class ConstantEvaluationEngine {
             constantVisitor.evaluateConstant(constantInitializer);
         if (dartConstant is DartObjectImpl) {
           // Only check the type for truly const declarations (don't check final
-          // fields with initializers, since their types may be generic.  The type
-          // of the final field will be checked later, when the constructor is
-          // invoked).
+          // fields with initializers, since their types may be generic.  The
+          // type of the final field will be checked later, when the constructor
+          // is invoked).
           if (constant.isConst) {
             if (!library.typeSystem
                 .runtimeTypeMatch(dartConstant, constant.type)) {
@@ -202,8 +202,8 @@ class ConstantEvaluationEngine {
         constant.evaluationResult = null;
       }
     } else if (constant is VariableElement) {
-      // constant is a VariableElement but not a VariableElementImpl.  This can
-      // happen sometimes in the case of invalid user code (for example, a
+      // `constant` is a VariableElement but not a VariableElementImpl.  This
+      // can happen sometimes in the case of invalid user code (for example, a
       // constant expression that refers to a non-static field inside a generic
       // class will wind up referring to a FieldMember).  The error is detected
       // elsewhere, so just silently ignore it here.
@@ -317,8 +317,8 @@ class ConstantEvaluationEngine {
         constNode.arguments!.accept(referenceFinder);
       }
     } else if (constant is VariableElement) {
-      // constant is a VariableElement but not a VariableElementImpl.  This can
-      // happen sometimes in the case of invalid user code (for example, a
+      // `constant` is a VariableElement but not a VariableElementImpl.  This
+      // can happen sometimes in the case of invalid user code (for example, a
       // constant expression that refers to a non-static field inside a generic
       // class will wind up referring to a FieldMember).  So just don't bother
       // computing any dependencies.
@@ -525,7 +525,7 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
 class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// The evaluation engine used to access the feature set, type system, and
   /// type provider.
-  final ConstantEvaluationEngine evaluationEngine;
+  final ConstantEvaluationEngine _evaluationEngine;
 
   /// The library that contains the constant expression being evaluated.
   final LibraryElementImpl _library;
@@ -554,7 +554,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   ///
   /// The [substitution] is specified for instance creations.
   ConstantVisitor(
-    this.evaluationEngine,
+    this._evaluationEngine,
     this._library,
     this._errorReporter, {
     Map<String, DartObjectImpl>? lexicalEnvironment,
@@ -663,8 +663,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           return constant;
         case InvalidConstant():
           throw EvaluationException(constant.errorCode);
-        default:
-          throw EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
       }
     }
 
@@ -938,7 +936,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
 
-    return evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
+    return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
       _library,
       node,
       constructor.returnType.typeArguments,
@@ -1074,9 +1072,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
     } else if (node.isDeferred) {
-      return _getDeferredLibraryError(node, node.name2) ??
-          InvalidConstant.forEntity(
-              node, CompileTimeErrorCode.INVALID_CONSTANT);
+      return _getDeferredLibraryError(node, node.name2);
     }
 
     if (_substitution != null) {
@@ -1113,12 +1109,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var prefixNode = node.prefix;
     var prefixElement = prefixNode.staticElement;
 
-    // importPrefix.CONST
+    // A top-level constant, imported with a prefix.
     if (prefixElement is PrefixElement) {
       if (node.isDeferred) {
-        return _getDeferredLibraryError(node, node.identifier) ??
-            InvalidConstant.forEntity(
-                node, CompileTimeErrorCode.INVALID_CONSTANT);
+        return _getDeferredLibraryError(node, node.identifier);
       }
     } else if (prefixElement is! ExtensionElement) {
       var prefixResult = evaluateConstant(prefixNode);
@@ -1126,7 +1120,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         return prefixResult;
       }
 
-      // String.length
+      // For example, `String.length`.
       if (prefixElement is! InterfaceElement) {
         var propertyAccessResult =
             _evaluatePropertyAccess(prefixResult, node.identifier, node);
@@ -1183,6 +1177,22 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant visitPropertyAccess(PropertyAccess node) {
     var target = node.target;
     if (target != null) {
+      if (target is PrefixedIdentifier &&
+          (target.staticElement is ExtensionElement ||
+              target.staticElement is ExtensionTypeElement)) {
+        var prefix = target.prefix;
+        if (prefix.staticElement is PrefixElement && target.isDeferred) {
+          return _getDeferredLibraryError(node, target.identifier);
+        }
+
+        // For example, `async.FutureExtensions.wait`.
+        return _getConstantValue(
+          errorNode: node,
+          expression: node,
+          identifier: node.propertyName,
+          element: node.propertyName.staticElement,
+        );
+      }
       var prefixResult = evaluateConstant(target);
       if (prefixResult is! DartObjectImpl) {
         return prefixResult;
@@ -1428,6 +1438,24 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               }
               list.addAll(listValue);
           }
+        case NullAwareElement():
+          var value = evaluateConstant(element.value);
+          switch (value) {
+            case InvalidConstant():
+              return value;
+            case DartObjectImpl():
+              if (value.isNull) {
+                continue;
+              }
+              var result = _buildListConstant(
+                list,
+                [element.value],
+                typeSystem,
+                listType,
+                elementType,
+              );
+              return result;
+          }
       }
     }
 
@@ -1518,6 +1546,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               }
               map.addAll(mapValue);
           }
+        case NullAwareElement():
+          // TODO(cstefantsova): Should it rather be its own code, for example,
+          // `CompileTimeErrorCode.NULL_AWARE_ELEMENT_IN_MAP`?
+          return InvalidConstant.forEntity(
+              element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
       }
     }
 
@@ -1594,6 +1627,19 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
                     CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
               }
               set.addAll(setValue);
+          }
+        case NullAwareElement():
+          var value = evaluateConstant(element.value);
+          switch (value) {
+            case InvalidConstant():
+              return value;
+            case DartObjectImpl():
+              if (value.isNull) {
+                continue;
+              }
+              var result =
+                  _buildSetConstant(set, [element.value], typeSystem, setType);
+              return result;
           }
       }
     }
@@ -1695,7 +1741,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     required Element? element,
     DartType? givenType,
   }) {
-    var errorNode2 = evaluationEngine.configuration.errorNode(errorNode);
+    var errorNode2 = _evaluationEngine.configuration.errorNode(errorNode);
     element = element?.declaration;
 
     var variableElement =
@@ -1732,8 +1778,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             return _instantiateFunctionTypeForSimpleIdentifier(
                 identifier, evaluationResult);
           case InvalidConstant():
-            // TODO(kallentu): Investigate and fix the test failures that occur if
-            // we remove `avoidReporting`
+            // TODO(kallentu): Investigate and fix the test failures that occur
+            // if we remove `avoidReporting`.
             return InvalidConstant.forEntity(
                 errorNode, CompileTimeErrorCode.INVALID_CONSTANT,
                 isUnresolved: true, avoidReporting: true);
@@ -1825,7 +1871,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     return InvalidConstant.genericError(errorNode2);
   }
 
-  InvalidConstant? _getDeferredLibraryError(
+  /// Returns the appropriate error for accessing an element in a deferred
+  /// library.
+  ///
+  /// If no specific error can be chosen, an [InvalidConstant] error using
+  /// [CompileTimeErrorCode.INVALID_CONSTANT] is returned.
+  InvalidConstant _getDeferredLibraryError(
       AstNode node, SyntacticEntity errorTarget) {
     var errorCode = () {
       AstNode? previous;
@@ -1879,7 +1930,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (errorCode != null) {
       return InvalidConstant.forEntity(errorTarget, errorCode);
     }
-    return null;
+    return InvalidConstant.forEntity(
+        node, CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /// If the type of [value] is a generic [FunctionType], and [node] has type

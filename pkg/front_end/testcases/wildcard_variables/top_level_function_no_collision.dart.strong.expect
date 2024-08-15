@@ -13,12 +13,12 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method fn(wildcard dynamic _, wildcard dynamic _) → void {
+static method fn(wildcard dynamic _#wc0#formal, wildcard dynamic _#wc1#formal) → void {
   core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/top_level_function_no_collision.dart:6:9: Error: Undefined name '_'.
   print(_);
         ^");
 }
-static method fn2(wildcard dynamic _, wildcard dynamic _, wildcard dynamic _) → void {
+static method fn2(wildcard dynamic _#wc2#formal, wildcard dynamic _#wc3#formal, wildcard dynamic _#wc4#formal) → void {
   core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/top_level_function_no_collision.dart:10:9: Error: Undefined name '_'.
   print(_);
         ^");

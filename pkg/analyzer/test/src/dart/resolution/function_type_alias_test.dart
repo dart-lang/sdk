@@ -30,12 +30,12 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<fragment>::@class::int
         type: int
     rightBracket: >
-  element: self::@typeAlias::G
+  element: <testLibraryFragment>::@typeAlias::G
   type: int Function()
-    alias: self::@typeAlias::G
+    alias: <testLibraryFragment>::@typeAlias::G
       typeArguments
         int
 ''');

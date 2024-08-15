@@ -75,6 +75,31 @@ class A<T> {
     ]);
   }
 
+  test_method_wildcard() async {
+    await assertErrorsInCode(r'''
+class A<_> {
+  _() {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 15, 1),
+    ]);
+  }
+
+  test_method_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A<_> {
+  _() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 52,
+          1),
+      error(WarningCode.UNUSED_ELEMENT, 59, 1),
+    ]);
+  }
+
   test_setter() async {
     await assertErrorsInCode(r'''
 class A<T> {

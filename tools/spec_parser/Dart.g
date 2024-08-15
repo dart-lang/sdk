@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.45 Update rule about augmenting extension type declaration to omit
+// the primary constructor.
+//
 // v0.44 Support null-aware elements.
 //
 // v0.43 Change rule structure such that the association of metadata
@@ -453,8 +456,10 @@ mixinMemberDeclaration
     ;
 
 extensionTypeDeclaration
-    :    AUGMENT? EXTENSION TYPE CONST? typeWithParameters
+    :    EXTENSION TYPE CONST? typeWithParameters
          representationDeclaration interfaces?
+         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
          LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
     ;
 
@@ -607,7 +612,7 @@ mixinApplication
     ;
 
 enumType
-    :    AUGMENT? ENUM typeWithParameters? mixins? interfaces? LBRACE
+    :    AUGMENT? ENUM typeWithParameters mixins? interfaces? LBRACE
          enumEntry (',' enumEntry)* (',')?
          (';' (metadata classMemberDeclaration)*)?
          RBRACE
@@ -1532,7 +1537,7 @@ typeNotVoidNotFunctionList
     ;
 
 typeAlias
-    :    AUGMENT? TYPEDEF typeIdentifier typeParameters? '=' type ';'
+    :    AUGMENT? TYPEDEF typeWithParameters '=' type ';'
     |    AUGMENT? TYPEDEF functionTypeAlias
     ;
 

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use adjacent strings to concatenate string literals.';
 
@@ -29,20 +30,15 @@ raiseAlarm(
 ''';
 
 class PreferAdjacentStringConcatenation extends LintRule {
-  static const LintCode code = LintCode('prefer_adjacent_string_concatenation',
-      "String literals shouldn't be concatenated by the '+' operator.",
-      correctionMessage: 'Try removing the operator to use adjacent strings.',
-      hasPublishedDocs: true);
-
   PreferAdjacentStringConcatenation()
       : super(
             name: 'prefer_adjacent_string_concatenation',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_adjacent_string_concatenation;
 
   @override
   void registerNodeProcessors(

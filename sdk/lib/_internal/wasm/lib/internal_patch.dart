@@ -9,6 +9,7 @@ import 'dart:js_interop'
     show JSArray, JSString, JSArrayToList, JSStringToString;
 import 'dart:_js_helper' show JSValue;
 import 'dart:_wasm';
+import 'dart:typed_data' show Uint8List;
 
 part "class_id.dart";
 part "deferred.dart";
@@ -171,7 +172,7 @@ external bool get _checkBounds;
 /// Assumes that [length] is positive.
 @pragma("wasm:prefer-inline")
 void indexCheck(int index, int length) {
-  if (_checkBounds && index.geU(length)) {
+  if (_checkBounds && length.leU(index)) {
     throw IndexError.withLength(index, length);
   }
 }
@@ -179,7 +180,11 @@ void indexCheck(int index, int length) {
 /// Same as [indexCheck], but passes [name] to [IndexError].
 @pragma("wasm:prefer-inline")
 void indexCheckWithName(int index, int length, String name) {
-  if (_checkBounds && index.geU(length)) {
+  if (_checkBounds && length.leU(index)) {
     throw IndexError.withLength(index, length, name: name);
   }
 }
+
+@patch
+Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
+    throw 'Unsupported operation';

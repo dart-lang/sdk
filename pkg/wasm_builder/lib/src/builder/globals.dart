@@ -18,6 +18,18 @@ class GlobalsBuilder with Builder<ir.Globals> {
 
   GlobalsBuilder(this._module);
 
+  void collectUsedTypes(Set<ir.DefType> usedTypes) {
+    for (final global in _globalBuilders) {
+      final defType = global.type.type.containedDefType;
+      if (defType != null) usedTypes.add(defType);
+      global.initializer.collectUsedTypes(usedTypes);
+    }
+    for (final global in _importedGlobals) {
+      final defType = global.type.type.containedDefType;
+      if (defType != null) usedTypes.add(defType);
+    }
+  }
+
   /// Defines a new global variable in this module.
   GlobalBuilder define(ir.GlobalType type, [String? name]) {
     final global = GlobalBuilder(_module, ir.FinalizableIndex(), type, name);

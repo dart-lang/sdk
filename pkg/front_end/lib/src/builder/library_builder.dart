@@ -6,11 +6,11 @@ library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart' show Class, Library, Version;
+import 'package:kernel/reference_from_index.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
-import '../base/identifiers.dart';
 import '../base/loader.dart' show Loader;
 import '../base/messages.dart'
     show
@@ -22,20 +22,17 @@ import '../base/messages.dart'
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
+import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
-import '../kernel/hierarchy/members_builder.dart';
-import '../source/name_scheme.dart';
+import '../base/uri_offset.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
-import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import 'builder.dart';
-import 'constructor_reference_builder.dart';
 import 'declaration_builders.dart';
-import 'inferable_type_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -79,7 +76,9 @@ sealed class CompilationUnit {
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri);
 
-  void addExporter(LibraryBuilder exporter,
+  List<Export> get exporters;
+
+  void addExporter(CompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
 
   /// Returns an iterator of all members (typedefs, classes and members)
@@ -107,6 +106,8 @@ abstract class DillCompilationUnit implements CompilationUnit {}
 abstract class SourceCompilationUnit implements CompilationUnit {
   OutlineBuilder createOutlineBuilder();
 
+  /// Creates a [SourceLibraryBuilder] for with this [SourceCompilationUnit] as
+  /// the main compilation unit.
   SourceLibraryBuilder createLibrary();
 
   @override
@@ -152,42 +153,19 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// Returns `true` if the compilation unit is part of a `dart:` library.
   bool get isDartLibrary;
 
-  String? computeAndValidateConstructorName(Identifier identifier,
-      {isFactory = false});
-
-  List<ConstructorReferenceBuilder> get constructorReferences;
-
-  List<Export> get exporters;
-
   LanguageVersion get languageVersion;
 
-  // TODO(johnniwinther): Remove this.
-  Library get library;
-
-  abstract String? name;
-
-  // TODO(johnniwinther): Remove this?
-  LibraryName get libraryName;
+  String? get name;
 
   List<NamedTypeBuilder> get unresolvedNamedTypes;
 
-  List<SourceFunctionBuilder> get nativeMethods;
-
-  void set partOfLibrary(LibraryBuilder? value);
+  int finishNativeMethods();
 
   String? get partOfName;
 
   Uri? get partOfUri;
 
-  Scope get scope;
-
-  abstract List<MetadataBuilder>? metadata;
-
-  List<NominalVariableBuilder> get unboundNominalVariables;
-
-  List<StructuralVariableBuilder> get unboundStructuralVariables;
-
-  void collectInferableTypes(List<InferableType> inferableTypes);
+  List<MetadataBuilder>? get metadata;
 
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);
@@ -197,7 +175,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   void includeParts(SourceLibraryBuilder libraryBuilder,
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
 
-  void validatePart(SourceLibraryBuilder? library, Set<Uri>? usedParts);
+  void validatePart(SourceLibraryBuilder library, Set<Uri>? usedParts);
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
@@ -216,9 +194,20 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// an error reading its source.
   abstract Message? accessProblem;
 
+  /// Add a problem that might not be reported immediately.
+  ///
+  /// Problems will be issued after source information has been added.
+  /// Once the problems has been issued, adding a new "postponed" problem will
+  /// be issued immediately.
+  void addPostponedProblem(
+      Message message, int charOffset, int length, Uri fileUri);
+
   void issuePostponedProblems();
 
   void markLanguageVersionFinal();
+
+  /// Index of the library we use references for.
+  IndexedLibrary? get indexedLibrary;
 
   void addSyntheticImport(
       {required String uri,
@@ -226,9 +215,13 @@ abstract class SourceCompilationUnit implements CompilationUnit {
       required List<CombinatorBuilder>? combinators,
       required bool deferred});
 
+  void addToScope(String name, Builder member, int charOffset, bool isImport);
+
   void addImportsToScope();
 
-  int finishDeferredLoadTearoffs();
+  void buildOutlineNode(Library library);
+
+  int finishDeferredLoadTearOffs(Library library);
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f);
 
@@ -247,16 +240,27 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// use of the parameters in the right-hand side of the typedef definition.
   int computeVariances();
 
-  void computeShowHideElements(ClassMembersBuilder membersBuilder);
+  /// Adds all unbound nominal variables to [nominalVariables] and unbound
+  /// structural variables to [structuralVariables], mapping them to
+  /// [libraryBuilder].
+  ///
+  /// This is used to compute the bounds of type variable while taking the
+  /// bound dependencies, which might span multiple libraries, into account.
+  void collectUnboundTypeVariables(
+      SourceLibraryBuilder libraryBuilder,
+      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
+      Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
 
   // TODO(johnniwinther): Remove this.
   Builder addBuilder(String name, Builder declaration, int charOffset);
 }
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {
-  Scope get scope;
+  LookupScope get scope;
 
-  Scope get exportScope;
+  NameSpace get nameSpace;
+
+  NameSpace get exportNameSpace;
 
   List<Export> get exporters;
 
@@ -287,6 +291,9 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
   Uri get importUri;
+
+  /// Returns the language [Version] used for this library.
+  Version get languageVersion;
 
   /// If true, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
@@ -322,11 +329,8 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   NameIterator<T> fullMemberNameIterator<T extends Builder>();
 
   /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Builder member, [int charOffset = -1]);
-
-  Builder computeAmbiguousDeclaration(
-      String name, Builder declaration, Builder other, int charOffset,
-      {bool isExport = false, bool isImport = false});
+  bool addToExportScope(String name, Builder member,
+      {required UriOffset uriOffset});
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -383,22 +387,12 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
 abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     implements LibraryBuilder {
   @override
-  final Scope scope;
-
-  @override
-  final Scope exportScope;
-
-  @override
-  final List<Export> exporters = <Export>[];
-
-  @override
   final Uri fileUri;
 
   @override
   bool mayImplementRestrictedTypes = false;
 
-  LibraryBuilderImpl(this.fileUri, this.scope, this.exportScope)
-      : super(null, -1);
+  LibraryBuilderImpl(this.fileUri) : super(null, -1);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -426,19 +420,19 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   Iterator<Builder> get localMembersIterator {
-    return scope.filteredIterator(
+    return nameSpace.filteredIterator(
         parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
   @override
   Iterator<T> localMembersIteratorOfType<T extends Builder>() {
-    return scope.filteredIterator<T>(
+    return nameSpace.filteredIterator<T>(
         parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
   @override
   NameIterator<Builder> get localMembersNameIterator {
-    return scope.filteredNameIterator(
+    return nameSpace.filteredNameIterator(
         parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
@@ -459,22 +453,23 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  bool addToExportScope(String name, Builder member, [int charOffset = -1]) {
+  bool addToExportScope(String name, Builder member,
+      {required UriOffset uriOffset}) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     Builder? existing =
-        exportScope.lookupLocalMember(name, setter: member.isSetter);
+        exportNameSpace.lookupLocalMember(name, setter: member.isSetter);
     if (existing == member) {
       return false;
     } else {
       if (existing != null) {
-        Builder result = computeAmbiguousDeclaration(
-            name, existing, member, charOffset,
-            isExport: true);
-        exportScope.addLocalMember(name, result, setter: member.isSetter);
+        Builder result = computeAmbiguousDeclarationForScope(
+            this, nameSpace, name, existing, member,
+            uriOffset: uriOffset, isExport: true);
+        exportNameSpace.addLocalMember(name, result, setter: member.isSetter);
         return result != existing;
       } else {
-        exportScope.addLocalMember(name, member, setter: member.isSetter);
+        exportNameSpace.addLocalMember(name, member, setter: member.isSetter);
         return true;
       }
     }
@@ -491,8 +486,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
           -1,
           null);
     }
-    Builder? cls = (bypassLibraryPrivacy ? scope : exportScope)
-        .lookup(className, -1, fileUri);
+    Builder? cls = (bypassLibraryPrivacy ? nameSpace : exportNameSpace)
+        .lookupLocalMember(className, setter: false);
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.
       TypeAliasBuilder aliasBuilder = cls;
@@ -528,7 +523,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   Builder? lookupLocalMember(String name, {bool required = false}) {
-    Builder? builder = scope.lookupLocalMember(name, setter: false);
+    Builder? builder = nameSpace.lookupLocalMember(name, setter: false);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

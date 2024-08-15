@@ -47,7 +47,7 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: E
-    element: self::@enum::E
+    element: <testLibraryFragment>::@enum::E
     type: E
 ''');
   }
@@ -66,7 +66,7 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: A
-    element: self::@extensionType::A
+    element: <testLibraryFragment>::@extensionType::A
     type: A
 ''');
   }
@@ -85,7 +85,7 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: M
-    element: self::@mixin::M
+    element: <testLibraryFragment>::@mixin::M
     type: M
 ''');
   }
@@ -104,7 +104,7 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: v
-    element: self::@getter::v
+    element: <testLibraryFragment>::@getter::v
     type: InvalidType
 ''');
   }
@@ -128,10 +128,10 @@ ExtendsClause
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@getter::v
+    element: <testLibraryFragment>::@getter::v
     type: InvalidType
 ''');
   }
@@ -189,7 +189,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: self::@prefix::p
+      element: <testLibraryFragment>::@prefix::p
     name: A
     element: <null>
     type: InvalidType
@@ -291,7 +291,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: self::@prefix::p
+      element: <testLibraryFragment>::@prefix::p
     name: A
     element: <null>
     type: InvalidType

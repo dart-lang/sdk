@@ -4224,7 +4224,6 @@ suggestions
 
   Future<void> test_partFile_TypeName2() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B0;
 int T0 = 0;
 F0() {}
 class X {
@@ -4236,11 +4235,10 @@ class X {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-part of libA;
+part of 'test.dart';
 class B0 {}
 ''');
     await computeSuggestions('''
-library libA;
 import "b.dart";
 part "a.dart";
 class A0 {

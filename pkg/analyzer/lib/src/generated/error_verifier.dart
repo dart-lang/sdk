@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:analyzer/dart/analysis/features.dart';
@@ -17,9 +18,9 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/analysis/unit_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -270,9 +271,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _constArgumentsVerifier = ConstArgumentsVerifier(errorReporter),
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
-          _inheritanceManager,
           _currentLibrary,
-          _currentUnit,
           errorReporter,
           libraryContext.duplicationDefinitionContext,
         ) {
@@ -484,7 +483,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
-      _duplicateDefinitionVerifier.checkClass(node);
       if (!declarationElement.isDartCoreFunctionImpl) {
         _checkForBuiltInIdentifierAsName(
             node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
@@ -691,8 +689,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
-      _duplicateDefinitionVerifier.checkEnum(node);
-
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForConflictingEnumTypeVariableErrorCodes(element);
@@ -775,7 +771,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     _enclosingExtension = element;
-    _duplicateDefinitionVerifier.checkExtension(node);
     _checkForConflictingExtensionTypeVariableErrorCodes();
     _checkForFinalNotInitializedInClass(element, node.members);
 
@@ -822,7 +817,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(element);
 
       var members = node.members;
-      _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForRepeatedType(
         libraryContext.setOfImplements(declarationElement),
         node.implementsClause?.interfaces,
@@ -1129,7 +1123,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitIntegerLiteral(IntegerLiteral node) {
+  void visitIntegerLiteral(covariant IntegerLiteralImpl node) {
     _checkForOutOfRange(node);
     super.visitIntegerLiteral(node);
   }
@@ -1245,7 +1239,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
-      _duplicateDefinitionVerifier.checkMixin(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForConflictingClassTypeVariableErrorCodes();
@@ -2541,6 +2534,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForConflictingClassTypeVariableErrorCodes() {
     var enclosingClass = _enclosingClass!;
     for (TypeParameterElement typeParameter in enclosingClass.typeParameters) {
+      if (typeParameter.isWildcardVariable) continue;
+
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (enclosingClass.name == name) {
@@ -4986,32 +4981,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///   is the result of calling the unary minus operator on a double instance
   ///   representing the numerical value of n.
   ///   - Otherwise (the current behavior of -n)
-  void _checkForOutOfRange(IntegerLiteral node) {
-    String lexeme = node.literal.lexeme;
-    bool isNegated = (node as IntegerLiteralImpl).immediatelyNegated;
-    List<Object> extraErrorArgs = [];
+  void _checkForOutOfRange(IntegerLiteralImpl node) {
+    var source = node.literal.lexeme;
+    if (node.beginToken.type == TokenType.INT_WITH_SEPARATORS ||
+        node.beginToken.type == TokenType.HEXADECIMAL_WITH_SEPARATORS) {
+      source = shared.stripSeparators(source);
+    }
+    bool isNegated = node.immediatelyNegated;
 
     bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
     bool valid = treatedAsDouble
-        ? IntegerLiteralImpl.isValidAsDouble(lexeme)
-        : IntegerLiteralImpl.isValidAsInteger(lexeme, isNegated);
+        ? IntegerLiteralImpl.isValidAsDouble(source)
+        : IntegerLiteralImpl.isValidAsInteger(source, isNegated);
 
     if (!valid) {
-      extraErrorArgs.add(isNegated ? '-$lexeme' : lexeme);
-
-      if (treatedAsDouble) {
-        // Suggest the nearest valid double (as a BigInt for printing reasons).
-        extraErrorArgs.add(
-            BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme))
-                .toString());
-      }
+      var lexeme = node.literal.lexeme;
+      var messageArguments = [
+        isNegated ? '-$lexeme' : lexeme,
+        if (treatedAsDouble)
+          // Suggest the nearest valid double (as a BigInt, for printing).
+          // TODO(srawlins): Insert digit separators at the same positions as
+          // the input. This should be tested code, and a shared impl when we
+          // have an assist that adds digit separators to a number literal.
+          BigInt.from(IntegerLiteralImpl.nearestValidDouble(source)).toString(),
+      ];
 
       errorReporter.atNode(
         node,
         treatedAsDouble
             ? CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE
             : CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
-        arguments: extraErrorArgs,
+        arguments: messageArguments,
       );
     }
   }
@@ -6549,7 +6549,7 @@ class LibraryVerificationContext {
   final duplicationDefinitionContext = DuplicationDefinitionContext();
   final LibraryFileKind libraryKind;
   final ConstructorFieldsVerifier constructorFieldsVerifier;
-  final Map<FileState, UnitAnalysis> units;
+  final Map<FileState, FileAnalysis> files;
 
   /// Elements referenced in `implements` clauses.
   /// Key: the declaration element.
@@ -6563,7 +6563,7 @@ class LibraryVerificationContext {
   LibraryVerificationContext({
     required this.libraryKind,
     required this.constructorFieldsVerifier,
-    required this.units,
+    required this.files,
   });
 
   _MacroSyntacticTypeAnnotationLocation? declarationByElement(Element element) {
@@ -6573,15 +6573,15 @@ class LibraryVerificationContext {
     }
 
     var uri = unitElement.source.uri;
-    var unitAnalysis = units.entries.firstWhereOrNull((entry) {
+    var fileAnalysis = files.entries.firstWhereOrNull((entry) {
       return entry.key.uri == uri;
     })?.value;
-    if (unitAnalysis == null) {
+    if (fileAnalysis == null) {
       return null;
     }
 
     var locator = DeclarationByElementLocator(element);
-    unitAnalysis.unit.accept(locator);
+    fileAnalysis.unit.accept(locator);
 
     var node = locator.result;
     if (node == null) {
@@ -6589,7 +6589,7 @@ class LibraryVerificationContext {
     }
 
     return _MacroSyntacticTypeAnnotationLocation(
-      unitAnalysis: unitAnalysis,
+      fileAnalysis: fileAnalysis,
       entity: node,
     );
   }
@@ -6746,7 +6746,7 @@ class _MacroDiagnosticsReporter {
           return;
         }
         var node = target.element.annotationAst(target.annotationIndex);
-        location.unitAnalysis.errorReporter.reportError(
+        location.fileAnalysis.errorReporter.reportError(
           AnalysisError.forValues(
             source: target.element.source!,
             offset: node.offset,
@@ -6761,12 +6761,12 @@ class _MacroDiagnosticsReporter {
         var nodeLocation = _MacroTypeAnnotationLocationConverter(
           libraryVerificationContext: libraryContext,
         ).convert(target.location);
-        var unitAnalysis = nodeLocation?.unitAnalysis;
+        var fileAnalysis = nodeLocation?.fileAnalysis;
         var errorEntity = nodeLocation?.entity;
-        if (unitAnalysis != null && errorEntity != null) {
-          unitAnalysis.errorReporter.reportError(
+        if (fileAnalysis != null && errorEntity != null) {
+          fileAnalysis.errorReporter.reportError(
             AnalysisError.forValues(
-              source: unitAnalysis.element.source,
+              source: fileAnalysis.element.source,
               offset: errorEntity.offset,
               length: errorEntity.length,
               errorCode: errorCode,
@@ -6873,19 +6873,19 @@ class _MacroDiagnosticsReporter {
 }
 
 class _MacroSyntacticTypeAnnotationLocation {
-  final UnitAnalysis unitAnalysis;
+  final FileAnalysis fileAnalysis;
 
   /// Usually a [AstNode], sometimes [Token] if the type is omitted.
   final SyntacticEntity entity;
 
   _MacroSyntacticTypeAnnotationLocation({
-    required this.unitAnalysis,
+    required this.fileAnalysis,
     required this.entity,
   });
 
   _MacroSyntacticTypeAnnotationLocation next(SyntacticEntity entity) {
     return _MacroSyntacticTypeAnnotationLocation(
-      unitAnalysis: unitAnalysis,
+      fileAnalysis: fileAnalysis,
       entity: entity,
     );
   }

@@ -104,6 +104,18 @@ class InformativeDataApplier {
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
     unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
 
+    _applyToImports(unitElement.libraryImports_unresolved, unitInfo);
+    _applyToExports(unitElement.libraryExports_unresolved, unitInfo);
+
+    var applyOffsets = ApplyConstantOffsets(
+      unitInfo.libraryConstantOffsets,
+      (applier) {
+        applier.applyToMetadata(unitElement);
+        applier.applyToImports(unitElement.libraryImports);
+        applier.applyToExports(unitElement.libraryExports);
+      },
+    );
+
     _applyToAccessors(unitElement.accessors, unitInfo.accessors);
 
     forCorrespondingPairs(
@@ -157,6 +169,13 @@ class InformativeDataApplier {
       unitInfo.genericTypeAliases,
       _applyToGenericTypeAlias,
     );
+
+    var linkedData = unitElement.linkedData;
+    if (linkedData is CompilationUnitElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToAccessors(
@@ -202,9 +221,6 @@ class InformativeDataApplier {
     if (info.docComment.isNotEmpty) {
       element.documentationComment = info.docComment;
     }
-
-    _applyToImports(element, info);
-    _applyToExports(element, info);
 
     var applyOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
@@ -385,11 +401,11 @@ class InformativeDataApplier {
   }
 
   void _applyToExports(
-    LibraryOrAugmentationElementImpl element,
+    List<LibraryExportElementImpl> exports,
     _InfoUnit info,
   ) {
     forCorrespondingPairs<LibraryExportElement, _InfoExport>(
-      element.exports_unresolved,
+      exports,
       info.exports,
       (element, info) {
         element as LibraryExportElementImpl;
@@ -637,11 +653,11 @@ class InformativeDataApplier {
   }
 
   void _applyToImports(
-    LibraryOrAugmentationElementImpl element,
+    List<LibraryImportElementImpl> imports,
     _InfoUnit info,
   ) {
     forCorrespondingPairs<LibraryImportElement, _InfoImport>(
-      element.imports_unresolved,
+      imports,
       info.imports,
       (element, info) {
         element as LibraryImportElementImpl;
@@ -664,9 +680,6 @@ class InformativeDataApplier {
     if (info.docComment.isNotEmpty) {
       element.documentationComment = info.docComment;
     }
-
-    _applyToImports(element, info);
-    _applyToExports(element, info);
 
     forCorrespondingPairs<PartElement, _InfoPart>(
       element.parts,

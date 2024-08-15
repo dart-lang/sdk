@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../api_prototype/lowering_predicates.dart';
+import '../base/local_scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -33,7 +34,6 @@ import '../base/scope.dart';
 import 'source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
-import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_builder_mixins.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_member_builder.dart';
@@ -74,14 +74,14 @@ abstract class SourceFunctionBuilder
 
   /// This is the formal parameter scope as specified in the Dart Programming
   /// Language Specification, 4th ed, section 9.2.
-  Scope computeFormalParameterScope(Scope parent);
+  LocalScope computeFormalParameterScope(LookupScope parent);
 
-  Scope computeFormalParameterInitializerScope(Scope parent);
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent);
 
   /// This scope doesn't correspond to any scope specified in the Dart
   /// Programming Language Specification, 4th ed. It's an unspecified extension
   /// to support generic methods.
-  Scope computeTypeParameterScope(Scope parent);
+  LookupScope computeTypeParameterScope(LookupScope parent);
 
   FormalParameterBuilder? getFormal(Identifier identifier);
 
@@ -205,8 +205,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   bool get isAugmented;
 
   @override
-  Scope computeFormalParameterScope(Scope parent) {
-    if (formals == null) return parent;
+  LocalScope computeFormalParameterScope(LookupScope parent) {
+    if (formals == null) return new FormalParameterScope(parent: parent);
     Map<String, Builder> local = <String, Builder>{};
     for (FormalParameterBuilder formal in formals!) {
       if (formal.isWildcard) {
@@ -217,16 +217,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         local[formal.name] = formal;
       }
     }
-    return new Scope(
-        kind: ScopeKind.formals,
-        local: local,
-        parent: parent,
-        debugName: "formal parameter",
-        isModifiable: false);
+    return new FormalParameterScope(local: local, parent: parent);
   }
 
   @override
-  Scope computeFormalParameterInitializerScope(Scope parent) {
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
     // From
     // [dartLangSpec.tex](../../../../../../docs/language/dartLangSpec.tex) at
     // revision 94b23d3b125e9d246e07a2b43b61740759a0dace:
@@ -251,34 +246,32 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
-    return new Scope(
-        kind: ScopeKind.initializers,
-        local: local,
-        parent: parent,
+    return parent.createNestedFixedScope(
         debugName: "formal parameter initializer",
-        isModifiable: false);
+        kind: ScopeKind.initializers,
+        local: local);
   }
 
   @override
-  Scope computeTypeParameterScope(Scope parent) {
+  LookupScope computeTypeParameterScope(LookupScope parent) {
     if (typeVariables == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (NominalVariableBuilder variable in typeVariables!) {
       if (variable.isWildcard) continue;
       local[variable.name] = variable;
     }
-    return new Scope(
-        kind: ScopeKind.typeParameters,
-        local: local,
-        parent: parent,
-        debugName: "type parameter",
-        isModifiable: false);
+    return new TypeParameterScope(parent, local);
   }
 
   @override
   FormalParameterBuilder? getFormal(Identifier identifier) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
+        if (formal.isWildcard &&
+            identifier.name == '_' &&
+            formal.charOffset == identifier.nameOffset) {
+          return formal;
+        }
         if (formal.name == identifier.name &&
             formal.charOffset == identifier.nameOffset) {
           return formal;
@@ -321,7 +314,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
 
   void buildFunction() {
@@ -488,16 +480,14 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
           isClassMember || isExtensionMember || isExtensionTypeMember
               ? parent as DeclarationBuilder
               : null;
-      Scope parentScope =
+      LookupScope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
         MetadataBuilder.buildAnnotations(
@@ -521,7 +511,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
                   inMetadata: true,
                   inConstFields: false),
               classHierarchy,
-              delayedActionPerformers,
               computeTypeParameterScope(parentScope));
         }
       }
@@ -532,8 +521,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals!) {
-          formal.buildOutlineExpressions(
-              libraryBuilder, delayedActionPerformers);
+          formal.buildOutlineExpressions(libraryBuilder);
         }
       }
       hasBuiltOutlineExpressions = true;

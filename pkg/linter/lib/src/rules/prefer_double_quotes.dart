@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../rules/prefer_single_quotes.dart';
 
 const _desc =
@@ -42,23 +43,18 @@ useStrings(
 ''';
 
 class PreferDoubleQuotes extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_double_quotes', 'Unnecessary use of single quotes.',
-      correctionMessage:
-          'Try using double quotes unless the string contains double quotes.');
-
   PreferDoubleQuotes()
       : super(
             name: 'prefer_double_quotes',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   List<String> get incompatibleRules => const ['prefer_single_quotes'];
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_double_quotes;
 
   @override
   void registerNodeProcessors(

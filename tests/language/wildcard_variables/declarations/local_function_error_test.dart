@@ -8,8 +8,6 @@
 
 void main() {
   void _() {}
-  //   ^
-  // [analyzer] unspecified
 
   /*indent*/ _();
   //         ^

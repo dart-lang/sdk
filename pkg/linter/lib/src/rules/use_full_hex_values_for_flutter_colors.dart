@@ -7,14 +7,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc =
-    r'Prefer an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color.';
+    r'Prefer an 8-digit hexadecimal integer (for example, 0xFFFFFFFF) to '
+    'instantiate a Color.';
 
 const _details = r'''
-**PREFER** an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color. Colors
-have four 8-bit channels, which adds up to 32 bits, so Colors are described
-using a 32 bit integer.
+**PREFER** an 8-digit hexadecimal integer (for example, 0xFFFFFFFF) to
+instantiate a Color. Colors have four 8-bit channels, which adds up to 32 bits,
+so Colors are described using a 32-bit integer.
 
 **BAD:**
 ```dart
@@ -30,23 +32,16 @@ Color(0x00000001);
 ''';
 
 class UseFullHexValuesForFlutterColors extends LintRule {
-  static const LintCode code = LintCode(
-      'use_full_hex_values_for_flutter_colors',
-      "Instances of 'Color' should be created using an 8-digit hexadecimal "
-          "integer (such as '0xFFFFFFFF').",
-      correctionMessage:
-          "Try using an 8-digit hexadecimal integer to create the 'Color'.",
-      hasPublishedDocs: true);
-
   UseFullHexValuesForFlutterColors()
       : super(
             name: 'use_full_hex_values_for_flutter_colors',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode =>
+      LinterLintCode.use_full_hex_values_for_flutter_colors;
 
   @override
   void registerNodeProcessors(
@@ -57,6 +52,8 @@ class UseFullHexValuesForFlutterColors extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor {
+  static final _underscoresPattern = RegExp('_+');
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -72,6 +69,7 @@ class _Visitor extends SimpleAstVisitor {
         var argument = arguments.first;
         if (argument is IntegerLiteral) {
           var value = argument.literal.lexeme.toLowerCase();
+          value = value.replaceAll(_underscoresPattern, '');
           if (!value.startsWith('0x') || value.length != 10) {
             rule.reportLint(argument);
           }

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer putting asserts in initializer lists.';
 
@@ -33,19 +34,15 @@ class A {
 ''';
 
 class PreferAssertsInInitializerLists extends LintRule {
-  static const LintCode code = LintCode('prefer_asserts_in_initializer_lists',
-      'Assert should be in the initializer list.',
-      correctionMessage: 'Try moving the assert to the initializer list.');
-
   PreferAssertsInInitializerLists()
       : super(
             name: 'prefer_asserts_in_initializer_lists',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_asserts_in_initializer_lists;
 
   @override
   void registerNodeProcessors(

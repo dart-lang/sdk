@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use `forEach` to only apply a function to all the elements.';
 
@@ -44,19 +45,15 @@ myList.forEach(foo().f); // But this one invokes foo() just once.
 ''';
 
 class PreferForeach extends LintRule {
-  static const LintCode code = LintCode('prefer_foreach',
-      "Use 'forEach' rather than a 'for' loop to apply a function to every element.",
-      correctionMessage: "Try using 'forEach' rather than a 'for' loop.");
-
   PreferForeach()
       : super(
             name: 'prefer_foreach',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_foreach;
 
   @override
   void registerNodeProcessors(

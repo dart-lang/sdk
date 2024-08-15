@@ -1,0 +1,71 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:8:9: Error: Can't use 'as' as a name here.
+// class C<as> // Error
+//         ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:11:9: Error: Can't use 'as' as a name here.
+// mixin M<as> // Error
+//         ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:14:8: Error: Can't use 'as' as a name here.
+// enum E<as> // Error
+//        ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:19:10: Error: Can't use 'as' as a name here.
+// void foo<as>() // Error
+//          ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:22:15: Error: Can't use 'as' as a name here.
+// extension Ext<as> on List // Error
+//               ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:25:16: Error: Can't use 'as' as a name here.
+// typedef int F1<as>(); // Error
+//                ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:27:12: Error: Can't use 'as' as a name here.
+// typedef F2<as extends Comparable<as>> // Error
+//            ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:27:34: Error: The built-in identifier 'as' can't be used as a type.
+// typedef F2<as extends Comparable<as>> // Error
+//                                  ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/built_in_identifier_A02_t02.dart:30:21: Error: Can't use 'as' as a name here.
+// const void Function<as>()? // Error
+//                     ^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F1<unrelated as extends core::Object? = dynamic> = () → core::int;
+typedef F2<unrelated as extends core::Comparable<as> = core::Comparable<dynamic>> = () → core::int;
+class C<as extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::as%>
+    ;
+}
+abstract class M<as extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+}
+class E<as extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E<dynamic>> values = const <self::E<dynamic>>[self::E::e1];
+  enum-element static const field self::E<dynamic> e1 = const self::E::•<dynamic>(0, "e1");
+  const synthetic constructor •(core::int #index, core::String #name) → self::E<self::E::as%>
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+extension Ext<as extends core::Object? = dynamic> on core::List<dynamic> {
+}
+static const field <as extends core::Object? = dynamic>() →? void c = null;
+static method foo<as extends core::Object? = dynamic>() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///built_in_identifier_A02_t02.dart:14:6 -> ListConstant(const <E<dynamic>>[const E<dynamic>{_Enum.index: 0, _Enum._name: "e1"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///built_in_identifier_A02_t02.dart:16:3 -> InstanceConstant(const E<dynamic>{_Enum.index: 0, _Enum._name: "e1"})
+Extra constant evaluation: evaluated: 7, effectively constant: 2

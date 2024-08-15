@@ -107,8 +107,13 @@ Object getInterceptorForRti(obj) {
       default:
         // The interceptors for native JavaScript types like bool, string, etc.
         // (excluding number and function, see above) are stored as a symbolized
-        // property and can be accessed from the native value itself.
-        classRef = JS('', '#[#]', obj, _extensionType);
+        // property and can be accessed from the prototype of native value.
+        // Avoid reading this field when `obj` has the property itself which
+        // means that `obj` must be a native prototype and should be treated as
+        // an interop object.
+        if (!JS('', '#.call(#, #)', hOP, obj, _extensionType)) {
+          classRef = JS('', '#[#]', obj, _extensionType);
+        }
         // If there is no extension type then this object must not be from Dart.
         if (classRef == null) classRef = JS_CLASS_REF(LegacyJavaScriptObject);
     }
@@ -128,7 +133,11 @@ getReifiedType(obj) {
       if (obj == null) return TYPE_REF<Null>();
       if (_jsInstanceOf(obj, RecordImpl)) return getRtiForRecord(obj);
       if (_jsInstanceOf(obj, Object) ||
-          JS('', '#[#]', obj, _extensionType) != null) {
+          // Avoid reading this field when `obj` has the property itself which
+          // means that `obj` must be a native prototype and should be treated
+          // as an interop object.
+          (JS('', '#[#]', obj, _extensionType) != null &&
+              !JS('', '#.call(#, #)', hOP, obj, _extensionType))) {
         // The rti library can correctly extract the representation.
         return rti.instanceType(obj);
       }
@@ -184,7 +193,22 @@ getModuleLibraries(String name) {
 /// Return the part map for a specific module.
 getModulePartMap(String name) => JS('', '#.get(#)', _loadedPartMaps, name);
 
-/// Track all libraries
+/// Provide information about the contents of a module.
+///
+/// This information is used for multiple purposes:
+/// * To implement eval-in-library: the debugger will look up
+///   library objects via [getLibrary].
+/// * To display the library structure in the debugger inspector: the debugger
+///   will request the necessary data via [getLibraryMetadata].
+/// * To convert JS stack traces to Dart: the
+///   stack trace mapper companion program will request source maps via
+///   [getSourceMap].
+///
+/// Note: calls to [getLibrary], [getLibraryMetadata], [getSourceMap], among
+/// others don't originate from code in the SDK repo. For example, the
+/// debugger calls are initiated by DWDS, whereas the [getSourceMap] call is
+/// done from bootstapping scripts that set up the stack trace mapper.
+// TODO(39630): move these public facing APIs to a dedicated public interface.
 void trackLibraries(
     String moduleName, Object libraries, Object parts, String? sourceMap) {
   if (parts is String) {

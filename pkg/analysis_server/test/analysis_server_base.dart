@@ -11,13 +11,14 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -84,6 +85,14 @@ class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
 }
 
 abstract class ContextResolutionTest with ResourceProviderMixin {
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
+  MemoryByteStore _byteStore = _sharedByteStore;
+
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
   late final LegacyAnalysisServer server;
@@ -184,6 +193,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
       dartFixPromptManager: dartFixPromptManager,
+      providedByteStore: _byteStore,
     );
 
     server.pluginManager = pluginManager;
@@ -214,12 +224,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   // TODO(scheglov): Consider turning it back into a getter.
   late String testFilePath = '$testPackageLibPath/test.dart';
 
-  // If experiments are needed,
-  // add `import 'package:analyzer/dart/analysis/features.dart';`
-  // and list the necessary experiments here.
-  List<String> get experiments => [
-        Feature.macros.enableString,
-      ];
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, an empty list if there are no experiments that should be enabled.
+  List<String> get experiments => experimentsForTests;
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
@@ -302,6 +309,12 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     var offset = content.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
+  }
+
+  /// Call this method if the test needs to use the empty byte store, without
+  /// any information cached.
+  void useEmptyByteStore() {
+    _byteStore = MemoryByteStore();
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't import implementation files from another package.";
 
@@ -59,22 +60,15 @@ bool samePackage(Uri? uri1, Uri? uri2) {
 }
 
 class ImplementationImports extends LintRule {
-  static const LintCode code = LintCode('implementation_imports',
-      "Import of a library in the 'lib/src' directory of another package.",
-      correctionMessage:
-          'Try importing a public library that exports this library, or '
-          'removing the import.',
-      hasPublishedDocs: true);
-
   ImplementationImports()
       : super(
             name: 'implementation_imports',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.implementation_imports;
 
   @override
   void registerNodeProcessors(

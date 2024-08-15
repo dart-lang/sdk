@@ -127,7 +127,6 @@ class BundleWriter {
     // Write the library units.
     // This will write also resolution data, e.g. for classes.
     _writeUnitElement(libraryElement.definingCompilationUnit);
-    _writeList(libraryElement.parts, _writePartElement);
 
     // Write resolution data for the library.
     _sink.writeUInt30(_resolutionSink.offset);
@@ -514,8 +513,6 @@ class BundleWriter {
     LibraryOrAugmentationElementImpl container,
   ) {
     _resolutionSink._writeAnnotationList(container.metadata);
-    _writeList(container.libraryImports, _writeImportElement);
-    _writeList(container.libraryExports, _writeExportElement);
     _writeList(
       container.augmentationImports,
       _writeAugmentationImportElement,
@@ -587,18 +584,17 @@ class BundleWriter {
   }
 
   void _writeNamespaceCombinator(NamespaceCombinator combinator) {
-    if (combinator is HideElementCombinator) {
-      _sink.writeByte(Tag.HideCombinator);
-      _sink.writeList<String>(combinator.hiddenNames, (name) {
-        _sink._writeStringReference(name);
-      });
-    } else if (combinator is ShowElementCombinator) {
-      _sink.writeByte(Tag.ShowCombinator);
-      _sink.writeList<String>(combinator.shownNames, (name) {
-        _sink._writeStringReference(name);
-      });
-    } else {
-      throw UnimplementedError('${combinator.runtimeType}');
+    switch (combinator) {
+      case HideElementCombinator():
+        _sink.writeByte(Tag.HideCombinator);
+        _sink.writeList<String>(combinator.hiddenNames, (name) {
+          _sink._writeStringReference(name);
+        });
+      case ShowElementCombinator():
+        _sink.writeByte(Tag.ShowCombinator);
+        _sink.writeList<String>(combinator.shownNames, (name) {
+          _sink._writeStringReference(name);
+        });
     }
   }
 
@@ -736,6 +732,11 @@ class BundleWriter {
 
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
+
+    _writeList(unitElement.libraryImports, _writeImportElement);
+    _writeList(unitElement.libraryExports, _writeExportElement);
+    _writeList(unitElement.parts, _writePartElement);
+
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);

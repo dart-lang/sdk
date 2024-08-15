@@ -18,6 +18,7 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/analyzer.dart';
@@ -177,7 +178,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get dumpAstOnFailures => true;
 
-  List<String> get experiments => ['macros', 'wildcard-variables'];
+  List<String> get experiments => experimentsForTests;
 
   List<String> get lintRules => _lintRules;
 

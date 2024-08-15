@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Declare method return types.';
 
@@ -46,30 +47,23 @@ typedef predicate = bool Function(Object o);
 ''';
 
 class AlwaysDeclareReturnTypes extends LintRule {
-  static const LintCode functionCode = LintCode('always_declare_return_types',
-      "The function '{0}' should have a return type but doesn't.",
-      correctionMessage: 'Try adding a return type to the function.',
-      hasPublishedDocs: true);
-
-  static const LintCode methodCode = LintCode('always_declare_return_types',
-      "The method '{0}' should have a return type but doesn't.",
-      correctionMessage: 'Try adding a return type to the method.',
-      hasPublishedDocs: true);
-
   AlwaysDeclareReturnTypes()
       : super(
             name: 'always_declare_return_types',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  List<LintCode> get lintCodes => [functionCode, methodCode];
+  List<LintCode> get lintCodes => [
+        LinterLintCode.always_declare_return_types_of_functions,
+        LinterLintCode.always_declare_return_types_of_methods
+      ];
 
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -78,15 +72,16 @@ class AlwaysDeclareReturnTypes extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!node.isSetter && node.returnType == null && !node.isAugmentation) {
       rule.reportLintForToken(node.name,
           arguments: [node.name.lexeme],
-          errorCode: AlwaysDeclareReturnTypes.functionCode);
+          errorCode: LinterLintCode.always_declare_return_types_of_functions);
     }
   }
 
@@ -95,19 +90,28 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.returnType == null) {
       rule.reportLintForToken(node.name,
           arguments: [node.name.lexeme],
-          errorCode: AlwaysDeclareReturnTypes.functionCode);
+          errorCode: LinterLintCode.always_declare_return_types_of_functions);
     }
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!node.isSetter &&
-        node.returnType == null &&
-        node.name.type != TokenType.INDEX_EQ &&
-        !node.isAugmentation) {
-      rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme],
-          errorCode: AlwaysDeclareReturnTypes.methodCode);
+    if (node.returnType != null) return;
+    if (node.isAugmentation) return;
+    if (node.isSetter) return;
+    if (node.name.type == TokenType.INDEX_EQ) return;
+
+    if (context.isInTestDirectory) {
+      if (node.name.lexeme.startsWith('test_') ||
+          node.name.lexeme.startsWith('solo_test_')) {
+        return;
+      }
     }
+
+    rule.reportLintForToken(
+      node.name,
+      arguments: [node.name.lexeme],
+      errorCode: LinterLintCode.always_declare_return_types_of_methods,
+    );
   }
 }

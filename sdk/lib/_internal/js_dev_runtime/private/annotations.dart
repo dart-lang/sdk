@@ -43,14 +43,6 @@ class _NullCheck {
   const _NullCheck();
 }
 
-/// Annotation indicating the parameter should default to the JavaScript
-/// undefined constant.
-const undefined = _Undefined();
-
-class _Undefined {
-  const _Undefined();
-}
-
 /// Tells the development compiler to check a variable for null at its
 /// declaration point, and then to assume that the variable is non-null
 /// from that point forward.

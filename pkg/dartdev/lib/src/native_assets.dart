@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartdev/src/sdk.dart';
+import 'package:dartdev/src/utils.dart';
 import 'package:logging/logging.dart';
 import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/native_assets_cli.dart';
@@ -34,10 +35,13 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
     dartExecutable: Uri.file(sdk.dart),
     logger: logger(verbose),
   );
+  final target = Target.current;
+  final targetMacOSVersion =
+      target.os == OS.macOS ? minimumSupportedMacOSVersion : null;
   final buildResult = await nativeAssetsBuildRunner.build(
     workingDirectory: workingDirectory,
     // When running in JIT mode, only the host OS needs to be build.
-    target: Target.current,
+    target: target,
     // When running in JIT mode, only dynamic libraries are supported.
     linkModePreference: LinkModePreferenceImpl.dynamic,
     // Dart has no concept of release vs debug, default to release.
@@ -46,25 +50,14 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
     runPackageName: runPackageName,
     supportedAssetTypes: [
       NativeCodeAsset.type,
-      DataAsset.type,
     ],
-  );
-
-  final linkResult = await nativeAssetsBuildRunner.link(
-    workingDirectory: workingDirectory,
-    // When running in JIT mode, only the host OS needs to be build.
-    target: Target.current,
-    // When running in JIT mode, only dynamic libraries are supported.
-    linkModePreference: LinkModePreferenceImpl.dynamic,
-    // Dart has no concept of release vs debug, default to release.
-    buildMode: BuildModeImpl.release,
-    includeParentEnvironment: true,
-    buildResult: buildResult,
+    targetMacOSVersion: targetMacOSVersion,
+    linkingEnabled: false,
   );
 
   return (
-    buildResult.success && linkResult.success,
-    [...buildResult.assets, ...linkResult.assets],
+    buildResult.success,
+    buildResult.assets,
   );
 }
 

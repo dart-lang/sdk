@@ -11,30 +11,30 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int _;
-  constructor •(wildcard core::int _) → self::A
+  constructor •(wildcard dynamic _#wc0#formal) → self::A
     ;
 }
 class InitializerListError extends core::Object {
   final field core::int _;
   final field core::int x;
-  constructor •(wildcard core::int _) → self::InitializerListError
+  constructor •(wildcard dynamic _#wc1#formal) → self::InitializerListError
     ;
 }
 class MultipleThisError extends core::Object {
   final field core::int _;
-  constructor •(wildcard core::int _, wildcard core::int _) → self::MultipleThisError
+  constructor •(wildcard dynamic _#wc2#formal, wildcard dynamic _#wc3#formal) → self::MultipleThisError
     ;
 }
 class B extends core::Object {
   final field core::int _;
   final field core::int v;
   final field core::int w;
-  constructor •(wildcard core::int _, core::int v, core::int w) → self::B
+  constructor •(wildcard dynamic _#wc4#formal, core::int v, core::int w) → self::B
     ;
 }
 class C extends self::B {
   final field core::int z;
-  constructor •(core::int x, wildcard core::int _, wildcard core::int _, core::int z) → self::C
+  constructor •(dynamic x, wildcard core::int _#wc5#formal, wildcard core::int _#wc6#formal, core::int z) → self::C
     : self::C::z = z
     ;
 }

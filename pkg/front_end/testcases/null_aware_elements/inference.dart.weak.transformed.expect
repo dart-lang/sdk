@@ -1,0 +1,83 @@
+//
+// Problems in component:
+//
+// sdk/lib/core/core.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/async/async.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/collection/collection.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/concurrent/concurrent.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/convert/convert.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/developer/developer.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/ffi/ffi.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/internal/internal.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/isolate/isolate.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/math/math.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/mirrors/mirrors.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/typed_data/typed_data.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/vmservice_io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/vmservice/vmservice.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/builtin.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/html/dartium/nativewrappers.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/io/io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/cli/cli.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1(core::int? x) → dynamic {
+  core::List<core::int> y1 = block {
+    final core::List<core::int> #t1 = core::_GrowableList::•<core::int>(0);
+    final core::int? #t2 = x;
+    if(!(#t2 == null))
+      #t1.{core::List::add}{Invariant}(#t2{core::int}){(core::int) → void};
+  } =>#t1;
+  core::List<core::int> y2 = block {
+    final core::List<core::int> #t3 = core::_GrowableList::_literal1<core::int>(1);
+    final core::int? #t4 = x;
+    if(!(#t4 == null))
+      #t3.{core::List::add}{Invariant}(#t4{core::int}){(core::int) → void};
+  } =>#t3;
+  core::List<core::num> y3 = block {
+    final core::List<core::num> #t5 = core::_GrowableList::_literal1<core::num>(1.0);
+    final core::num? #t6 = x;
+    if(!(#t6 == null))
+      #t5.{core::List::add}{Invariant}(#t6{core::num}){(core::num) → void};
+  } =>#t5;
+}
+static method test2(dynamic x) → dynamic {
+  core::List<core::String> y1 = block {
+    final core::List<core::String> #t7 = core::_GrowableList::•<core::String>(0);
+    final core::String? #t8 = x as{TypeError,ForDynamic} core::String?;
+    if(!(#t8 == null))
+      #t7.{core::List::add}{Invariant}(#t8{core::String}){(core::String) → void};
+  } =>#t7;
+  core::List<core::String> y2 = block {
+    final core::List<core::String> #t9 = core::_GrowableList::_literal1<core::String>("");
+    final core::String? #t10 = x as{TypeError,ForDynamic} core::String?;
+    if(!(#t10 == null))
+      #t9.{core::List::add}{Invariant}(#t10{core::String}){(core::String) → void};
+  } =>#t9;
+  core::List<dynamic> y3 = block {
+    final core::List<dynamic> #t11 = core::_GrowableList::_literal1<dynamic>("");
+    final dynamic #t12 = x;
+    if(!(#t12 == null))
+      #t11.{core::List::add}{Invariant}(#t12){(dynamic) → void};
+  } =>#t11;
+}

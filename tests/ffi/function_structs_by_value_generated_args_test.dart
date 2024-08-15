@@ -92,6 +92,9 @@ void main() {
     testPassUint8Struct1ByteBool();
     testPassWCharStructInlineArrayIntUintPtrx2LongUnsigned();
     testPassInt64x7Struct12BytesHomogeneousInt32();
+    testPassPointerStruct12BytesHomogeneousInt32();
+    testPassPointerStructInlineArrayVariable();
+    testPassPointerStructInlineArrayVariableAlign();
   }
 }
 
@@ -5419,4 +5422,92 @@ void testPassInt64x7Struct12BytesHomogeneousInt32() {
   Expect.equals(5, result);
 
   calloc.free(a7Pointer);
+}
+
+final passPointerStruct12BytesHomogeneousInt32 =
+    ffiTestFunctions.lookupFunction<
+            Int64 Function(Pointer<Struct12BytesHomogeneousInt32>),
+            int Function(Pointer<Struct12BytesHomogeneousInt32>)>(
+        "PassPointerStruct12BytesHomogeneousInt32");
+
+/// Passing a pointer to a struct
+void testPassPointerStruct12BytesHomogeneousInt32() {
+  final a0 = calloc.allocate<Struct12BytesHomogeneousInt32>(
+      sizeOf<Struct12BytesHomogeneousInt32>());
+
+  a0.ref.a0 = -1;
+  a0.ref.a1 = 2;
+  a0.ref.a2 = -3;
+
+  final result = passPointerStruct12BytesHomogeneousInt32(a0);
+
+  print("result = $result");
+
+  Expect.equals(-2, result);
+
+  calloc.free(a0);
+}
+
+final passPointerStructInlineArrayVariable = ffiTestFunctions.lookupFunction<
+        Int64 Function(Pointer<StructInlineArrayVariable>),
+        int Function(Pointer<StructInlineArrayVariable>)>(
+    "PassPointerStructInlineArrayVariable");
+
+/// Variable length array
+void testPassPointerStructInlineArrayVariable() {
+  final a0 = calloc.allocate<StructInlineArrayVariable>(
+      sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>());
+
+  a0.ref.a0 = 1;
+  a0.ref.a1[0] = 2;
+  a0.ref.a1[1] = 3;
+  a0.ref.a1[2] = 4;
+  a0.ref.a1[3] = 5;
+  a0.ref.a1[4] = 6;
+  a0.ref.a1[5] = 7;
+  a0.ref.a1[6] = 8;
+  a0.ref.a1[7] = 9;
+  a0.ref.a1[8] = 10;
+  a0.ref.a1[9] = 11;
+
+  final result = passPointerStructInlineArrayVariable(a0);
+
+  print("result = $result");
+
+  Expect.equals(66, result);
+
+  calloc.free(a0);
+}
+
+final passPointerStructInlineArrayVariableAlign =
+    ffiTestFunctions.lookupFunction<
+            Int64 Function(Pointer<StructInlineArrayVariableAlign>),
+            int Function(Pointer<StructInlineArrayVariableAlign>)>(
+        "PassPointerStructInlineArrayVariableAlign");
+
+/// Variable length array with variable length element having more alignment than
+/// the rest of the struct.
+void testPassPointerStructInlineArrayVariableAlign() {
+  final a0 = calloc.allocate<StructInlineArrayVariableAlign>(
+      sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>());
+
+  a0.ref.a0 = 1;
+  a0.ref.a1[0] = 2;
+  a0.ref.a1[1] = 3;
+  a0.ref.a1[2] = 4;
+  a0.ref.a1[3] = 5;
+  a0.ref.a1[4] = 6;
+  a0.ref.a1[5] = 7;
+  a0.ref.a1[6] = 8;
+  a0.ref.a1[7] = 9;
+  a0.ref.a1[8] = 10;
+  a0.ref.a1[9] = 11;
+
+  final result = passPointerStructInlineArrayVariableAlign(a0);
+
+  print("result = $result");
+
+  Expect.equals(66, result);
+
+  calloc.free(a0);
 }

@@ -3651,6 +3651,9 @@ void g() {
 
 _Dead code._
 
+_Dead code: The assigned-to wildcard variable is marked late and can never be
+referenced so this initializer will never be evaluated._
+
 #### Description
 
 The analyzer produces this diagnostic when code is found that won't be
@@ -15723,6 +15726,17 @@ final class MyStruct extends Struct {
 }
 ```
 
+If this is a variable length inline array, change the annotation to `Array.variable()`:
+
+```dart
+import 'dart:ffi';
+
+final class MyStruct extends Struct {
+  @Array.variable()
+  external Array<Uint8> a0;
+}
+```
+
 ### non_sized_type_argument
 
 _The type '{1}' isn't a valid type argument for '{0}'. The type argument must be
@@ -23169,8 +23183,6 @@ void f() {
 
 ### unused_element
 
-_A value for optional parameter '{0}' isn't ever given._
-
 _The declaration '{0}' isn't referenced._
 
 #### Description
@@ -23180,8 +23192,6 @@ referenced in the library that contains the declaration. The following
 kinds of declarations are analyzed:
 - Private top-level declarations and all of their members
 - Private members of public declarations
-- Optional parameters of private functions for which a value is never
-  passed
 
 Not all references to an element will mark it as "used":
 - Assigning a value to a top-level variable (with a standard `=`
@@ -23200,6 +23210,23 @@ produces this diagnostic:
 ```dart
 class [!_C!] {}
 ```
+
+#### Common fixes
+
+If the declaration isn't needed, then remove it.
+
+If the declaration is intended to be used, then add the code to use it.
+
+### unused_element_parameter
+
+_A value for optional parameter '{0}' isn't ever given._
+
+#### Description
+
+The analyzer produces this diagnostic when a value is never passed for an
+optional parameter declared within a private declaration.
+
+#### Example
 
 Assuming that no code in the library passes a value for `y` in any
 invocation of `_m`, the following code produces this diagnostic:
@@ -23484,6 +23511,23 @@ diagnostic:
 import [!'lib.dart'!];
 ```
 
+#### Common fixes
+
+If the URI was mistyped or invalid, then correct the URI.
+
+If the URI is correct, then create the file.
+
+### uri_does_not_exist_in_doc_import
+
+_Target of URI doesn't exist: '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a doc-import is found where
+the URI refers to a file that doesn't exist.
+
+#### Examples
+
 If the file `lib.dart` doesn't exist, the following code produces this
 diagnostic:
 
@@ -23651,6 +23695,65 @@ Change the name of the conflicting member:
 enum E {
   v;
   void getValues() {}
+}
+```
+
+### variable_length_array_not_last
+
+_Variable length 'Array's must only occur as the last field of Structs._
+
+#### Description
+
+The analyzer produces this diagnostic when a variable length inline `Array`
+is not the last member of a `Struct`.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the field `a0` has a
+type with three nested arrays, but only two dimensions are given in the
+`Array` annotation:
+
+```dart
+import 'dart:ffi';
+
+final class C extends Struct {
+  [!@Array.variable()!]
+  external Array<Uint8> a0;
+
+  @Uint8()
+  external int a1;
+}
+```
+
+#### Common fixes
+
+Move the variable length inline `Array` to be the last field in the struct.
+
+```dart
+import 'dart:ffi';
+
+final class C extends Struct {
+  @Uint8()
+  external int a1;
+
+  @Array.variable()
+  external Array<Uint8> a0;
+}
+```
+
+If the inline array has a fixed size, annotate it with the size:
+
+```dart
+import 'dart:ffi';
+
+final class C extends Struct {
+  @Array(10)
+  external Array<Uint8> a0;
+
+  @Uint8()
+  external int a1;
 }
 ```
 
@@ -24956,7 +25059,7 @@ Widget buildRow() {
 
 ### avoid_web_libraries_in_flutter
 
-_Don't use web-only libraries outside Flutter web plugin packages._
+_Don't use web-only libraries outside Flutter web plugins._
 
 #### Description
 
@@ -26755,9 +26858,9 @@ C c = C(const [1]);
 
 ### prefer_contains
 
-_Always false because indexOf is always greater or equal -1._
+_Always 'false' because 'indexOf' is always greater than or equal to -1._
 
-_Always true because indexOf is always greater or equal -1._
+_Always 'true' because 'indexOf' is always greater than or equal to -1._
 
 _Unnecessary use of 'indexOf' to test for containment._
 
@@ -26789,6 +26892,37 @@ void f(List<String> l, String s) {
   if (l.contains(s)) {
     // ...
   }
+}
+```
+
+### prefer_double_quotes
+
+_Unnecessary use of single quotes._
+
+#### Description
+
+The analyzer produces this diagnostic when a string literal uses single
+quotes (`'`) when it could use double quotes (`"`) without needing extra
+escapes and without hurting readability.
+
+#### Example
+
+The following code produces this diagnostic because the string literal
+uses single quotes but doesn't need to:
+
+```dart
+void f(String name) {
+  print([!'Hello $name'!]);
+}
+```
+
+#### Common fixes
+
+Use double quotes in place of single quotes:
+
+```dart
+void f(String name) {
+  print("Hello $name");
 }
 ```
 
@@ -27257,9 +27391,42 @@ Use a relative URI to import the library:
 import 'bar.dart';
 ```
 
+### prefer_single_quotes
+
+_Unnecessary use of double quotes._
+
+#### Description
+
+The analyzer produces this diagnostic when a string literal uses double
+quotes (`"`) when it could use single quotes (`'`) without needing extra
+escapes and without hurting readability.
+
+#### Example
+
+The following code produces this diagnostic because the string literal
+uses double quotes but doesn't need to:
+
+```dart
+void f(String name) {
+  print([!"Hello $name"!]);
+}
+```
+
+#### Common fixes
+
+Use single quotes in place of double quotes:
+
+```dart
+void f(String name) {
+  print('Hello $name');
+}
+```
+
 ### prefer_typing_uninitialized_variables
 
-_Prefer typing uninitialized variables and fields._
+_An uninitialized field should have an explicit type annotation._
+
+_An uninitialized variable should have an explicit type annotation._
 
 #### Description
 
@@ -27479,6 +27646,74 @@ Widget buildRow() {
 }
 ```
 
+### sized_box_shrink_expand
+
+_Use 'SizedBox.{0}' to avoid needing to specify the 'height' and 'width'._
+
+#### Description
+
+The analyzer produces this diagnostic when a `SizedBox` constructor
+invocation specifies the values of both `height` and `width` as either
+`0.0` or `double.infinity`.
+
+#### Examples
+
+The following code produces this diagnostic because both the `height` and
+`width` are `0.0`:
+
+```dart
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return [!SizedBox!](
+    height: 0.0,
+    width: 0.0,
+    child: const Text(''),
+  );
+}
+```
+
+The following code produces this diagnostic because both the `height` and
+`width` are `double.infinity`:
+
+```dart
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return [!SizedBox!](
+    height: double.infinity,
+    width: double.infinity,
+    child: const Text(''),
+  );
+}
+```
+
+#### Common fixes
+
+If both are `0.0`, then use `SizedBox.shrink`:
+
+```dart
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return SizedBox.shrink(
+    child: const Text(''),
+  );
+}
+```
+
+If both are `double.infinity`, then use `SizedBox.expand`:
+
+```dart
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return SizedBox.expand(
+    child: const Text(''),
+  );
+}
+```
+
 ### slash_for_doc_comments
 
 _Use the end-of-line form ('///') for doc comments._
@@ -27551,6 +27786,40 @@ Widget createWidget() {
 }
 ```
 
+### sort_constructors_first
+
+_Constructor declarations should be before non-constructor declarations._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor declaration is
+preceded by one or more non-constructor declarations.
+
+#### Example
+
+The following code produces this diagnostic because the constructor for
+`C` appears after the method `m`:
+
+```dart
+class C {
+  void m() {}
+
+  [!C!]();
+}
+```
+
+#### Common fixes
+
+Move all of the constructor declarations before any other declarations:
+
+```dart
+class C {
+  C();
+
+  void m() {}
+}
+```
+
 ### sort_pub_dependencies
 
 _Dependencies not sorted alphabetically._
@@ -27581,6 +27850,40 @@ Sort the entries:
 dependencies:
   collection: any
   path: any
+```
+
+### sort_unnamed_constructors_first
+
+_Invalid location for the unnamed constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when an unnamed constructor appears
+after a named constructor.
+
+#### Example
+
+The following code produces this diagnostic because the unnamed
+constructor is after the named constructor:
+
+```dart
+class C {
+  C.named();
+
+  [!C!]();
+}
+```
+
+#### Common fixes
+
+Move the unnamed constructor before any other constructors:
+
+```dart
+class C {
+  C();
+
+  C.named();
+}
 ```
 
 ### test_types_in_equals
@@ -27780,6 +28083,57 @@ void f(Object? x) {
 }
 ```
 
+### unawaited_futures
+
+_Missing an 'await' for the 'Future' computed by this expression._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance of `Future` is
+returned from an invocation within an `async` (or `async*`) method or
+function and the future is neither awaited nor passed to the `unawaited`
+function.
+
+#### Example
+
+The following code produces this diagnostic because the function `g`
+returns a future, but the future isn't awaited:
+
+```dart
+Future<void> f() async {
+  [!g();!]
+}
+
+Future<int> g() => Future.value(0);
+```
+
+#### Common fixes
+
+If the future needs to complete before the following code is executed,
+then add an `await` before the invocation:
+
+```dart
+Future<void> f() async {
+  await g();
+}
+
+Future<int> g() => Future.value(0);
+```
+
+If the future doesn't need to complete before the following code is
+executed, then wrap the `Future`-returning invocation in an invocation of
+the `unawaited` function:
+
+```dart
+import 'dart:async';
+
+Future<void> f() async {
+  unawaited(g());
+}
+
+Future<int> g() => Future.value(0);
+```
+
 ### unnecessary_brace_in_string_interps
 
 _Unnecessary braces in a string interpolation._
@@ -27867,6 +28221,49 @@ Remove the unnecessary `.new`:
 var o = Object();
 ```
 
+### unnecessary_final
+
+_Local variables should not be marked as 'final'._
+
+#### Description
+
+The analyzer produces this diagnostic when a local variable is marked as
+being `final`.
+
+#### Example
+
+The following code produces this diagnostic because the local variable `c`
+is marked as being `final`:
+
+```dart
+void f(int a, int b) {
+  [!final!] c = a + b;
+  print(c);
+}
+```
+
+#### Common fixes
+
+If the variable doesn't have a type annotation, then replace the `final`
+with `var`:
+
+```dart
+void f(int a, int b) {
+  var c = a + b;
+  print(c);
+}
+```
+
+If the variable has a type annotation, then remove the `final`
+modifier:
+
+```dart
+void f(int a, int b) {
+  int c = a + b;
+  print(c);
+}
+```
+
 ### unnecessary_getters_setters
 
 _Unnecessary use of getter and setter to wrap a field._
@@ -27898,6 +28295,40 @@ Make the field public and remove the getter and setter:
 ```dart
 class C {
   int? c;
+}
+```
+
+### unnecessary_lambdas
+
+_Closure should be a tearoff._
+
+#### Description
+
+The analyzer produces this diagnostic when a closure (lambda) could be
+replaced by a tear-off.
+
+#### Example
+
+The following code produces this diagnostic because the closure passed to
+`forEach` contains only an invocation of the function `print` with the
+parameter of the closure:
+
+```dart
+void f(List<String> strings) {
+  strings.forEach([!(string) {
+    print(string);
+  }!]);
+}
+```
+
+#### Common fixes
+
+Replace the closure with a tear-off of the function or method being
+invoked with the closure:
+
+```dart
+void f(List<String> strings) {
+  strings.forEach(print);
 }
 ```
 
@@ -28128,6 +28559,59 @@ class C {
 }
 
 class D extends C {}
+```
+
+### unnecessary_parenthesis
+
+_Unnecessary use of parentheses._
+
+#### Description
+
+The analyzer produces this diagnostic when parentheses are used where they
+do not affect the semantics of the code.
+
+#### Example
+
+The following code produces this diagnostic because the parentheses around
+the binary expression are not necessary:
+
+```dart
+int f(int a, int b) => [!(a + b)!];
+```
+
+#### Common fixes
+
+Remove the unnecessary parentheses:
+
+```dart
+int f(int a, int b) => a + b;
+```
+
+### unnecessary_raw_strings
+
+_Unnecessary use of a raw string._
+
+#### Description
+
+The analyzer produces this diagnostic when a string literal is marked as
+being raw (is prefixed with an `r`), but making the string raw doesn't
+change the value of the string.
+
+#### Example
+
+The following code produces this diagnostic because the string literal
+will have the same value without the `r` as it does with the `r`:
+
+```dart
+var s = [!r'abc'!];
+```
+
+#### Common fixes
+
+Remove the `r` in front of the string literal:
+
+```dart
+var s = 'abc';
 ```
 
 ### unnecessary_statements
@@ -28415,6 +28899,96 @@ class MyWidget extends Widget {
 }
 ```
 
+### use_colored_box
+
+_Use a 'ColoredBox' rather than a 'Container' with only a 'Color'._
+
+#### Description
+
+The analyzer produces this diagnostic when a `Container` is created that
+only sets the color.
+
+#### Example
+
+The following code produces this diagnostic because the only attribute of
+the container that is set is the `color`:
+
+```dart
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return [!Container!](
+    color: Colors.red,
+    child: const Text('hello'),
+  );
+}
+```
+
+#### Common fixes
+
+Replace the `Container` with a `ColoredBox`:
+
+```dart
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return ColoredBox(
+    color: Colors.red,
+    child: const Text('hello'),
+  );
+}
+```
+
+### use_decorated_box
+
+_Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'._
+
+#### Description
+
+The analyzer produces this diagnostic when a `Container` is created that
+only sets the decoration.
+
+#### Example
+
+The following code produces this diagnostic because the only attribute of
+the container that is set is the `decoration`:
+
+```dart
+import 'package:flutter/material.dart';
+
+Widget buildArea() {
+  return [!Container!](
+    decoration: const BoxDecoration(
+      color: Colors.red,
+      borderRadius: BorderRadius.all(
+        Radius.circular(5),
+      ),
+    ),
+    child: const Text('...'),
+  );
+}
+```
+
+#### Common fixes
+
+Replace the `Container` with a `DecoratedBox`:
+
+```dart
+import 'package:flutter/material.dart';
+
+Widget buildArea() {
+  return DecoratedBox(
+    decoration: const BoxDecoration(
+      color: Colors.red,
+      borderRadius: BorderRadius.all(
+        Radius.circular(5),
+      ),
+    ),
+    child: const Text('...'),
+  );
+}
+```
+
 ### use_full_hex_values_for_flutter_colors
 
 _Instances of 'Color' should be created using an 8-digit hexadecimal integer
@@ -28473,6 +29047,40 @@ Use the generic function type syntax to declare the parameter:
 void g(bool Function(String) f) {}
 ```
 
+### use_if_null_to_convert_nulls_to_bools
+
+_Use an if-null operator to convert a 'null' to a 'bool'._
+
+#### Description
+
+The analyzer produces this diagnostic when a nullable `bool`-valued
+expression is compared (using `==` or `!=`) to a boolean literal.
+
+#### Example
+
+The following code produces this diagnostic because the nullable boolean
+variable `b` is compared to `true`:
+
+```dart
+void f(bool? b) {
+  if ([!b == true!]) {
+    // Treats `null` as `false`.
+  }
+}
+```
+
+#### Common fixes
+
+Rewrite the condition to use `??` instead:
+
+```dart
+void f(bool? b) {
+  if (b ?? false) {
+    // Treats `null` as `false`.
+  }
+}
+```
+
 ### use_key_in_widget_constructors
 
 _Constructors for public widgets should have a named 'key' parameter._
@@ -28518,6 +29126,99 @@ class MyWidget extends StatelessWidget {
 }
 ```
 
+### use_late_for_private_fields_and_variables
+
+_Use 'late' for private members with a non-nullable type._
+
+#### Description
+
+The analyzer produces this diagnostic when a private field or variable is
+marked as being nullable, but every reference assumes that the variable is
+never `null`.
+
+#### Example
+
+The following code produces this diagnostic because the private top-level
+variable `_i` is nullable, but every reference assumes that it will not be
+`null`:
+
+```dart
+void f() {
+  _i!.abs();
+}
+
+int? [!_i!];
+```
+
+#### Common fixes
+
+Mark the variable or field as being both non-nullable and `late` to
+indicate that it will always be assigned a non-null:
+
+```dart
+void f() {
+  _i.abs();
+}
+
+late int _i;
+```
+
+### use_named_constants
+
+_Use the constant '{0}' rather than a constructor returning the same object._
+
+#### Description
+
+The analyzer produces this diagnostic when a constant is created with the
+same value as a known `const` variable.
+
+#### Example
+
+The following code produces this diagnostic because there is a known
+`const` field (`Duration.zero`) whose value is the same as what the
+constructor invocation will evaluate to:
+
+```dart
+Duration d = [!const Duration(seconds: 0)!];
+```
+
+#### Common fixes
+
+Replace the constructor invocation with a reference to the known `const`
+variable:
+
+```dart
+Duration d = Duration.zero;
+```
+
+### use_raw_strings
+
+_Use a raw string to avoid using escapes._
+
+#### Description
+
+The analyzer produces this diagnostic when a string literal containing
+escapes, and no interpolations, could be marked as being raw in order to
+avoid the need for the escapes.
+
+#### Example
+
+The following code produces this diagnostic because the string contains
+escaped characters that wouldn't need to be escaped if the string is
+made a raw string:
+
+```dart
+var s = [!'A string with only \\ and \$'!];
+```
+
+#### Common fixes
+
+Mark the string as being raw and remove the unnecessary backslashes:
+
+```dart
+var s = r'A string with only \ and $';
+```
+
 ### use_rethrow_when_possible
 
 _Use 'rethrow' to rethrow a caught exception._
@@ -28553,6 +29254,80 @@ void f() {
   } catch (e) {
     rethrow;
   }
+}
+```
+
+### use_setters_to_change_properties
+
+_The method is used to change a property._
+
+#### Description
+
+The analyzer produces this diagnostic when a method is used to set the
+value of a field, or a function is used to set the value of a top-level
+variable, and nothing else.
+
+#### Example
+
+The following code produces this diagnostic because the method `setF` is
+used to set the value of the field `_f` and does no other work:
+
+```dart
+class C {
+  int _f = 0;
+
+  void [!setF!](int value) => _f = value;
+}
+```
+
+#### Common fixes
+
+Convert the method to a setter:
+
+```dart
+class C {
+  int _f = 0;
+
+  set f(int value) => _f = value;
+}
+```
+
+### use_string_buffers
+
+_Use a string buffer rather than '+' to compose strings._
+
+#### Description
+
+The analyzer produces this diagnostic when values are concatenated to a
+string inside a loop without using a `StringBuffer` to do the
+concatenation.
+
+#### Example
+
+The following code produces this diagnostic because the string `result` is
+computed by repeated concatenation within the `for` loop:
+
+```dart
+String f() {
+  var result = '';
+  for (int i = 0; i < 10; i++) {
+    [!result += 'a'!];
+  }
+  return result;
+}
+```
+
+#### Common fixes
+
+Use a `StringBuffer` to compute the result:
+
+```dart
+String f() {
+  var buffer = StringBuffer();
+  for (int i = 0; i < 10; i++) {
+    buffer.write('a');
+  }
+  return buffer.toString();
 }
 ```
 
@@ -28593,7 +29368,9 @@ part of 'lib.dart';
 
 ### use_super_parameters
 
-_Use super-initializer parameters where possible._
+_Parameter '{0}' could be a super parameter._
+
+_Parameters '{0}' could be super parameters._
 
 #### Description
 

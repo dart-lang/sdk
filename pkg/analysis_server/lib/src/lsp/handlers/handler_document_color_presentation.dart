@@ -32,6 +32,9 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
       ColorPresentationParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<List<ColorPresentation>>> handle(
     ColorPresentationParams params,
     MessageInfo message,

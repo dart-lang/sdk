@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -30,91 +30,109 @@ List<Test> tests = [
   Test<Base1>(1, createData1, {
     dynamicDispatchStrategy: incByDynamicDispatch1,
     ifThenElseStrategy: incByIfThenElseDispatch1,
-    visitorStrategy: incByVisitorDispatch1
+    visitorStrategy: incByVisitorDispatch1,
+    patternStrategy: incByPatternDispatch1
   }),
   Test<Base2>(2, createData2, {
     dynamicDispatchStrategy: incByDynamicDispatch2,
     ifThenElseStrategy: incByIfThenElseDispatch2,
-    visitorStrategy: incByVisitorDispatch2
+    visitorStrategy: incByVisitorDispatch2,
+    patternStrategy: incByPatternDispatch2
   }),
   Test<Base3>(3, createData3, {
     dynamicDispatchStrategy: incByDynamicDispatch3,
     ifThenElseStrategy: incByIfThenElseDispatch3,
-    visitorStrategy: incByVisitorDispatch3
+    visitorStrategy: incByVisitorDispatch3,
+    patternStrategy: incByPatternDispatch3
   }),
   Test<Base4>(4, createData4, {
     dynamicDispatchStrategy: incByDynamicDispatch4,
     ifThenElseStrategy: incByIfThenElseDispatch4,
-    visitorStrategy: incByVisitorDispatch4
+    visitorStrategy: incByVisitorDispatch4,
+    patternStrategy: incByPatternDispatch4
   }),
   Test<Base5>(5, createData5, {
     dynamicDispatchStrategy: incByDynamicDispatch5,
     ifThenElseStrategy: incByIfThenElseDispatch5,
-    visitorStrategy: incByVisitorDispatch5
+    visitorStrategy: incByVisitorDispatch5,
+    patternStrategy: incByPatternDispatch5
   }),
   Test<Base6>(6, createData6, {
     dynamicDispatchStrategy: incByDynamicDispatch6,
     ifThenElseStrategy: incByIfThenElseDispatch6,
-    visitorStrategy: incByVisitorDispatch6
+    visitorStrategy: incByVisitorDispatch6,
+    patternStrategy: incByPatternDispatch6
   }),
   Test<Base7>(7, createData7, {
     dynamicDispatchStrategy: incByDynamicDispatch7,
     ifThenElseStrategy: incByIfThenElseDispatch7,
-    visitorStrategy: incByVisitorDispatch7
+    visitorStrategy: incByVisitorDispatch7,
+    patternStrategy: incByPatternDispatch7
   }),
   Test<Base8>(8, createData8, {
     dynamicDispatchStrategy: incByDynamicDispatch8,
     ifThenElseStrategy: incByIfThenElseDispatch8,
-    visitorStrategy: incByVisitorDispatch8
+    visitorStrategy: incByVisitorDispatch8,
+    patternStrategy: incByPatternDispatch8
   }),
   Test<Base12>(12, createData12, {
     dynamicDispatchStrategy: incByDynamicDispatch12,
     ifThenElseStrategy: incByIfThenElseDispatch12,
-    visitorStrategy: incByVisitorDispatch12
+    visitorStrategy: incByVisitorDispatch12,
+    patternStrategy: incByPatternDispatch12
   }),
   Test<Base16>(16, createData16, {
     dynamicDispatchStrategy: incByDynamicDispatch16,
     ifThenElseStrategy: incByIfThenElseDispatch16,
-    visitorStrategy: incByVisitorDispatch16
+    visitorStrategy: incByVisitorDispatch16,
+    patternStrategy: incByPatternDispatch16
   }),
   Test<Base24>(24, createData24, {
     dynamicDispatchStrategy: incByDynamicDispatch24,
     ifThenElseStrategy: incByIfThenElseDispatch24,
-    visitorStrategy: incByVisitorDispatch24
+    visitorStrategy: incByVisitorDispatch24,
+    patternStrategy: incByPatternDispatch24
   }),
   Test<Base32>(32, createData32, {
     dynamicDispatchStrategy: incByDynamicDispatch32,
     ifThenElseStrategy: incByIfThenElseDispatch32,
-    visitorStrategy: incByVisitorDispatch32
+    visitorStrategy: incByVisitorDispatch32,
+    patternStrategy: incByPatternDispatch32
   }),
   Test<Base48>(48, createData48, {
     dynamicDispatchStrategy: incByDynamicDispatch48,
     ifThenElseStrategy: incByIfThenElseDispatch48,
-    visitorStrategy: incByVisitorDispatch48
+    visitorStrategy: incByVisitorDispatch48,
+    patternStrategy: incByPatternDispatch48
   }),
   Test<Base64>(64, createData64, {
     dynamicDispatchStrategy: incByDynamicDispatch64,
     ifThenElseStrategy: incByIfThenElseDispatch64,
-    visitorStrategy: incByVisitorDispatch64
+    visitorStrategy: incByVisitorDispatch64,
+    patternStrategy: incByPatternDispatch64
   }),
   Test<Base96>(96, createData96, {
     dynamicDispatchStrategy: incByDynamicDispatch96,
     ifThenElseStrategy: incByIfThenElseDispatch96,
-    visitorStrategy: incByVisitorDispatch96
+    visitorStrategy: incByVisitorDispatch96,
+    patternStrategy: incByPatternDispatch96
   }),
   Test<Base128>(128, createData128, {
     dynamicDispatchStrategy: incByDynamicDispatch128,
     ifThenElseStrategy: incByIfThenElseDispatch128,
-    visitorStrategy: incByVisitorDispatch128
+    visitorStrategy: incByVisitorDispatch128,
+    patternStrategy: incByPatternDispatch128
   }),
   Test<Base192>(192, createData192, {
     dynamicDispatchStrategy: incByDynamicDispatch192,
     ifThenElseStrategy: incByIfThenElseDispatch192,
-    visitorStrategy: incByVisitorDispatch192
+    visitorStrategy: incByVisitorDispatch192,
+    patternStrategy: incByPatternDispatch192
   }),
   Test<Base256>(256, createData256, {
     dynamicDispatchStrategy: incByDynamicDispatch256,
     ifThenElseStrategy: incByIfThenElseDispatch256,
-    visitorStrategy: incByVisitorDispatch256
+    visitorStrategy: incByVisitorDispatch256,
+    patternStrategy: incByPatternDispatch256
   }),
 ];

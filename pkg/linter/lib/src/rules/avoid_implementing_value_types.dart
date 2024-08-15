@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r"Don't implement classes that override `==`.";
 
@@ -74,7 +75,7 @@ class ExtendedSize extends Size {
 }
 ```
 
-**GOOD:**:
+**GOOD:**
 ```dart
 import 'package:test/test.dart';
 import 'size.dart';
@@ -89,20 +90,15 @@ void main() {
 ''';
 
 class AvoidImplementingValueTypes extends LintRule {
-  static const LintCode code = LintCode('avoid_implementing_value_types',
-      "Classes that override '==' should not be implemented.",
-      correctionMessage:
-          "Try removing the class from the 'implements' clause.");
-
   AvoidImplementingValueTypes()
       : super(
             name: 'avoid_implementing_value_types',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.avoid_implementing_value_types;
 
   @override
   void registerNodeProcessors(

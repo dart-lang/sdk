@@ -1755,6 +1755,22 @@ UnexpectedDollarInString:
     - "'''$'''"
     - '"""$"""'
 
+UnexpectedSeparatorInNumber:
+  problemMessage: "Digit separators ('_') in a number literal can only be placed between two digits."
+  correctionMessage: "Try removing the '_'."
+  analyzerCode: UNEXPECTED_SEPARATOR_IN_NUMBER
+  experiments: digit-separators
+  expression:
+    - '123_'
+    - '1.23_'
+    - '1_.23'
+    - '0x_123'
+    - '0x123_'
+    - '1_e23'
+    - '1e_23'
+    - '1.2_e3'
+    - '1.2e_3'
+
 UnexpectedToken:
   problemMessage: "Unexpected token '#lexeme'."
   analyzerCode: UNEXPECTED_TOKEN
@@ -4998,6 +5014,12 @@ FfiSizeAnnotationDimensions:
   problemMessage: "Field '#name' must have an 'Array' annotation that matches the dimensions."
   external: test/ffi_test.dart
 
+FfiVariableLengthArrayNotLast:
+  # Used by dart:ffi
+  problemMessage: "Variable length 'Array's must only occur as the last field of Structs."
+  correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
+  external: test/ffi_test.dart
+
 FfiStructGeneric:
   # Used by dart:ffi
   problemMessage: "#string '#name' should not be generic."
@@ -7357,3 +7379,9 @@ ExperimentExpiredDisabled:
 
 DartFfiLibraryInDart2Wasm:
   problemMessage: "'dart:ffi' can't be imported when compiling to Wasm."
+
+UnexpectedSuperParametersInGenerativeConstructors:
+  problemMessage: "Super parameters can only be used in non-redirecting generative constructors."
+  analyzerCode: INVALID_SUPER_FORMAL_PARAMETER_LOCATION
+  script: |
+    class A { A(); A.named(super.x) : this(); }

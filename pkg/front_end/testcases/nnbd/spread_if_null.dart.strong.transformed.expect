@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method main() → dynamic {
   has-declared-initializer core::List<core::int>? list = null;
@@ -47,7 +47,7 @@ static method main() → dynamic {
   } =>#t11;
   has-declared-initializer core::Set<core::int>? set = null;
   core::print( block {
-    final core::Set<core::int> #t13 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t13 = new _co::_Set::•<core::int>();
     #t13.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t13.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     final core::Iterable<core::int>? #t14 = set;
@@ -56,7 +56,7 @@ static method main() → dynamic {
     #t13.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
   } =>#t13);
   core::print( block {
-    final core::Set<core::int> #t15 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t15 = new _co::_Set::•<core::int>();
     #t15.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t15.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     final has-declared-initializer core::Iterable<core::int>? #t16 = null;
@@ -65,13 +65,13 @@ static method main() → dynamic {
     #t15.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
   } =>#t15);
   core::Set<core::int> set1 = block {
-    final core::Set<core::int> #t17 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t17 = new _co::_Set::•<core::int>();
     final core::Iterable<core::int>? #t18 = set;
     if(!(#t18 == null))
       #t17.{core::Set::addAll}{Invariant}(#t18{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t17;
   core::Set<core::int> set3 = block {
-    final core::Set<core::int> #t19 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t19 = new _co::_Set::•<core::int>();
     #t19.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t19.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     final core::Iterable<core::int>? #t20 = set;
@@ -80,7 +80,7 @@ static method main() → dynamic {
     #t19.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
   } =>#t19;
   core::Set<core::int> set4 = block {
-    final core::Set<core::int> #t21 = new col::_Set::•<core::int>();
+    final core::Set<core::int> #t21 = new _co::_Set::•<core::int>();
     #t21.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t21.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     final has-declared-initializer core::Iterable<core::int>? #t22 = null;

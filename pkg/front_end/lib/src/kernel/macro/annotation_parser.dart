@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
+import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:macros/src/executor.dart' as macro;
@@ -17,6 +18,7 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/prefix_builder.dart';
+import '../../macros/macro_injected_impl.dart' as injected;
 import '../../source/diet_parser.dart';
 import '../../source/source_library_builder.dart';
 import 'macro.dart';
@@ -26,7 +28,7 @@ List<MacroApplication>? prebuildAnnotations(
     {required SourceLibraryBuilder enclosingLibrary,
     required List<MetadataBuilder>? metadataBuilders,
     required Uri fileUri,
-    required Scope scope,
+    required LookupScope scope,
     required Set<ClassBuilder> currentMacroDeclarations}) {
   if (metadataBuilders == null) return null;
   List<MacroApplication>? result;
@@ -152,7 +154,7 @@ class _MacroListener implements Listener {
   @override
   final Uri uri;
 
-  final Scope scope;
+  final LookupScope scope;
 
   final List<_Node> _stack = [];
 
@@ -250,12 +252,22 @@ class _MacroListener implements Listener {
     pushUnsupported();
   }
 
+  /// A class is a macro if it uses the `macro` keyword or if a macro
+  /// implementation has been injected and it decides the class is a macro.
+  bool _isMacroOrMacroAnnotation(ClassBuilder builder) {
+    return builder.isMacro ||
+        (injected.macroImplementation?.packageConfigs
+                .isMacro(builder.fileUri, builder.name) ??
+            false);
+  }
+
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     switch (context) {
       case IdentifierContext.metadataReference:
-        Builder? builder = scope.lookup(token.lexeme, token.charOffset, uri);
-        if (builder is ClassBuilder && builder.isMacro) {
+        Builder? builder =
+            scope.lookupGetable(token.lexeme, token.charOffset, uri);
+        if (builder is ClassBuilder && _isMacroOrMacroAnnotation(builder)) {
           _macroClassBuilder ??= builder;
           push(new _MacroClassNode(token, builder));
         } else if (builder is PrefixBuilder) {
@@ -269,7 +281,7 @@ class _MacroListener implements Listener {
         if (node is _PrefixNode) {
           Builder? builder =
               node.prefixBuilder.lookup(token.lexeme, token.charOffset, uri);
-          if (builder is ClassBuilder && builder.isMacro) {
+          if (builder is ClassBuilder && _isMacroOrMacroAnnotation(builder)) {
             _macroClassBuilder ??= builder;
             push(new _MacroClassNode(token, builder));
           } else {
@@ -405,9 +417,22 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    String source = stripSeparators(token.lexeme);
+    push(
+        new _MacroArgumentNode(new macro.DoubleArgument(double.parse(source))));
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     push(
         new _MacroArgumentNode(new macro.IntArgument(int.parse(token.lexeme))));
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    String source = stripSeparators(token.lexeme);
+    push(new _MacroArgumentNode(new macro.IntArgument(int.parse(source))));
   }
 
   @override

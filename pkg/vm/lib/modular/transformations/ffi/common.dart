@@ -7,10 +7,13 @@
 
 library vm.transformations.ffi;
 
+// This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
+// avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
         messageFfiLeafCallMustNotReturnHandle,
         messageFfiLeafCallMustNotTakeHandle,
+        messageFfiVariableLengthArrayNotLast,
         messageNonPositiveArrayDimensions,
         templateFfiSizeAnnotation,
         templateFfiSizeAnnotationDimensions,
@@ -221,6 +224,7 @@ class FfiTransformer extends Transformer {
   final Field arraySizeDimension4Field;
   final Field arraySizeDimension5Field;
   final Field arraySizeDimensionsField;
+  final Field arraySizeVariableLengthField;
   final Class pointerClass;
   final Class compoundClass;
   final Class structClass;
@@ -411,6 +415,8 @@ class FfiTransformer extends Transformer {
             index.getField('dart:ffi', '_ArraySize', 'dimension5'),
         arraySizeDimensionsField =
             index.getField('dart:ffi', '_ArraySize', 'dimensions'),
+        arraySizeVariableLengthField =
+            index.getField('dart:ffi', '_ArraySize', 'variableLength'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         compoundClass = index.getClass('dart:ffi', '_Compound'),
         structClass = index.getClass('dart:ffi', 'Struct'),
@@ -983,9 +989,14 @@ class FfiTransformer extends Transformer {
   /// matching its [type].
   ///
   /// Throws an [FfiStaticTypeError] otherwise.
-  List<int> ensureArraySizeAnnotation(Member node, DartType type) {
+  List<int> ensureArraySizeAnnotation(
+    Member node,
+    DartType type,
+    bool allowVariableLength,
+  ) {
     final sizeAnnotations = getArraySizeAnnotations(node);
     List<int> dimensions;
+    bool variableLength;
     var success = true;
 
     if (sizeAnnotations.length == 1) {
@@ -994,13 +1005,25 @@ class FfiTransformer extends Transformer {
         assert(singleElementType is InvalidType);
         throw FfiStaticTypeError();
       } else {
-        dimensions = sizeAnnotations.single;
+        dimensions = sizeAnnotations.single.$1;
+        variableLength = sizeAnnotations.single.$2;
         if (arrayDimensions(type) != dimensions.length) {
           diagnosticReporter.report(
               templateFfiSizeAnnotationDimensions.withArguments(node.name.text),
               node.fileOffset,
               node.name.text.length,
               node.fileUri);
+        }
+        if (variableLength) {
+          if (!allowVariableLength) {
+            diagnosticReporter.report(
+              messageFfiVariableLengthArrayNotLast,
+              node.fileOffset,
+              node.name.text.length,
+              node.fileUri,
+            );
+          }
+          return dimensions; // Variable length single dimension.
         }
         for (var dimension in dimensions) {
           if (dimension <= 0) {
@@ -1026,7 +1049,7 @@ class FfiTransformer extends Transformer {
     return dimensions;
   }
 
-  Iterable<List<int>> getArraySizeAnnotations(Member node) {
+  Iterable<(List<int>, bool)> getArraySizeAnnotations(Member node) {
     return node.annotations
         .whereType<ConstantExpression>()
         .map((e) => e.constant)
@@ -1036,16 +1059,18 @@ class FfiTransformer extends Transformer {
   }
 
   /// Reads the dimensions from a constant instance of `_ArraySize`.
-  List<int> _arraySize(InstanceConstant constant) {
+  (List<int>, bool) _arraySize(InstanceConstant constant) {
+    final variableLength =
+        (constant.fieldValues[arraySizeVariableLengthField.fieldReference]
+                as BoolConstant)
+            .value;
     final dimensions =
         constant.fieldValues[arraySizeDimensionsField.fieldReference];
     if (dimensions != null) {
       if (dimensions is ListConstant) {
-        final result = dimensions.entries
-            .whereType<IntConstant>()
-            .map((e) => e.value)
-            .toList();
-        return result;
+        final result =
+            dimensions.entries.whereType<IntConstant>().map((e) => e.value);
+        return ([if (variableLength) 0, ...result], variableLength);
       }
     }
     final dimensionFields = [
@@ -1060,7 +1085,7 @@ class FfiTransformer extends Transformer {
         .whereType<IntConstant>()
         .map((c) => c.value)
         .toList();
-    return result;
+    return (result, variableLength);
   }
 
   /// Returns the number of dimensions of `Array`.

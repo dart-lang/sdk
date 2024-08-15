@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
 
 static method test1() → dynamic {
   {
@@ -54,7 +54,7 @@ static method test2() → dynamic {
 }
 static method test3() → core::Iterable<core::bool> {
   return block {
-    final core::Set<core::bool> #t18 = new col::_Set::•<core::bool>();
+    final core::Set<core::bool> #t18 = new _co::_Set::•<core::bool>();
     {
       synthesized core::Iterator<core::List<core::int>> :sync-for-iterator = core::_GrowableList::_literal1<core::List<core::int>>(core::_GrowableList::_literal4<core::int>(3, 4, 5, 6)).{core::Iterable::iterator}{core::Iterator<core::List<core::int>>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

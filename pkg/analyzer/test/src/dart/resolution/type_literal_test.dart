@@ -34,10 +34,10 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@class::C
+    element: <testLibraryFragment>::@class::C
     type: C<int>
   staticType: Type
 ''');
@@ -59,17 +59,17 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: self::@prefix::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@class::C
+    element: package:test/a.dart::<fragment>::@class::C
     type: C<int>
   staticType: Type
 ''');
@@ -93,10 +93,10 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@class::C
+    element: <testLibraryFragment>::@class::C
     type: C<dynamic, dynamic>
   staticType: Type
 ''');
@@ -120,14 +120,14 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@class::C
+    element: <testLibraryFragment>::@class::C
     type: C<dynamic>
   staticType: Type
 ''');
@@ -152,10 +152,10 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
-    element: self::@class::C
+    element: <testLibraryFragment>::@class::C
     type: C<String>
   staticType: Type
 ''');
@@ -178,12 +178,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::CA
+    element: <testLibraryFragment>::@typeAlias::CA
     type: C<int>
-      alias: self::@typeAlias::CA
+      alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
           int
   staticType: Type
@@ -207,12 +207,12 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
-    element: self::@typeAlias::CA
+    element: <testLibraryFragment>::@typeAlias::CA
     type: C<String, int>
-      alias: self::@typeAlias::CA
+      alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
           String
   staticType: Type
@@ -249,9 +249,9 @@ TypeLiteral
             type: void Function()
           type: void Function()
       rightBracket: >
-    element: self::@typeAlias::CA
+    element: <testLibraryFragment>::@typeAlias::CA
     type: C<void Function()>
-      alias: self::@typeAlias::CA
+      alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
           void Function()
   staticType: Type
@@ -275,19 +275,19 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: self::@prefix::a
+      element: <testLibraryFragment>::@prefix::a
     name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@typeAlias::CA
+    element: package:test/a.dart::<fragment>::@typeAlias::CA
     type: C<int>
-      alias: package:test/a.dart::@typeAlias::CA
+      alias: package:test/a.dart::<fragment>::@typeAlias::CA
         typeArguments
           int
   staticType: Type
@@ -314,12 +314,12 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
-    element: self::@typeAlias::CA
+    element: <testLibraryFragment>::@typeAlias::CA
     type: C<String>
-      alias: self::@typeAlias::CA
+      alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
           String
   staticType: Type
@@ -342,10 +342,10 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@extensionType::A
+    element: <testLibraryFragment>::@extensionType::A
     type: A<int>
   staticType: Type
 ''');
@@ -368,17 +368,17 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: self::@prefix::a
+      element: <testLibraryFragment>::@prefix::a
     name: A
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@extensionType::A
+    element: package:test/a.dart::<fragment>::@extensionType::A
     type: A<int>
   staticType: Type
 ''');
@@ -400,12 +400,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -428,19 +428,19 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: self::@prefix::a
+      element: <testLibraryFragment>::@prefix::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@typeAlias::Fn
+    element: package:test/a.dart::<fragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: package:test/a.dart::@typeAlias::Fn
+      alias: package:test/a.dart::<fragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -472,12 +472,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -509,19 +509,19 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: self::@prefix::a
+      element: <testLibraryFragment>::@prefix::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::@typeAlias::Fn
+    element: package:test/a.dart::<fragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: package:test/a.dart::@typeAlias::Fn
+      alias: package:test/a.dart::<fragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -551,12 +551,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -588,12 +588,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -623,12 +623,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -660,12 +660,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -695,12 +695,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(int)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -725,12 +725,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(dynamic, dynamic)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           dynamic
           dynamic
@@ -756,16 +756,16 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
         NamedType
           name: String
-          element: dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(dynamic)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           dynamic
   staticType: Type
@@ -791,12 +791,12 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::@class::String
+          element: dart:core::<fragment>::@class::String
           type: String
       rightBracket: >
-    element: self::@typeAlias::Fn
+    element: <testLibraryFragment>::@typeAlias::Fn
     type: void Function(String)
-      alias: self::@typeAlias::Fn
+      alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
           String
   staticType: Type
@@ -819,10 +819,10 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@mixin::M
+    element: <testLibraryFragment>::@mixin::M
     type: M<int>
   staticType: Type
 ''');
@@ -844,12 +844,12 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<fragment>::@class::int
           type: int
       rightBracket: >
-    element: self::@typeAlias::T
+    element: <testLibraryFragment>::@typeAlias::T
     type: int
-      alias: self::@typeAlias::T
+      alias: <testLibraryFragment>::@typeAlias::T
         typeArguments
           int
   staticType: Type
@@ -885,9 +885,9 @@ TypeLiteral
             type: void Function()
           type: void Function()
       rightBracket: >
-    element: self::@typeAlias::T
+    element: <testLibraryFragment>::@typeAlias::T
     type: void Function()
-      alias: self::@typeAlias::T
+      alias: <testLibraryFragment>::@typeAlias::T
         typeArguments
           void Function()
   staticType: Type

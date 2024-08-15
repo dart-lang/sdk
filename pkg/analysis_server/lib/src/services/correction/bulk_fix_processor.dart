@@ -11,13 +11,14 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -51,7 +52,14 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:linter/src/rules/directives_ordering.dart';
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
+
+typedef PubspecFixRequestResult = ({
+  List<SourceFileEdit> edits,
+  List<BulkFix> details,
+});
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -65,7 +73,7 @@ import 'package:yaml/yaml.dart';
 class BulkFixProcessor {
   /// A list of lint codes that can be run on parsed code. These lints will all
   /// be run when the `--syntactic-fixes` flag is specified.
-  static const List<String> syntacticLintCodes = [
+  static const List<String> _syntacticLintCodes = [
     LintNames.prefer_generic_function_type_aliases,
     LintNames.slash_for_doc_comments,
     LintNames.unnecessary_const,
@@ -192,6 +200,9 @@ class BulkFixProcessor {
     ],
   };
 
+  /// Cached results of [_canBulkFix].
+  static final Map<ErrorCode, bool> _bulkFixableErrorCodes = {};
+
   static final Set<String> _errorCodes =
       errorCodeValues.map((ErrorCode code) => code.name.toLowerCase()).toSet();
 
@@ -199,38 +210,41 @@ class BulkFixProcessor {
       Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();
 
   /// The service used to report errors when building fixes.
-  final InstrumentationService instrumentationService;
+  final InstrumentationService _instrumentationService;
 
   /// Information about the workspace containing the libraries in which changes
   /// will be produced.
-  final DartChangeWorkspace workspace;
+  final DartChangeWorkspace _workspace;
 
   /// A list of diagnostic codes to fix.
   ///
   /// If `null`, fixes are computed for all codes.
-  final List<String>? codes;
+  final List<String>? _codes;
 
-  /// The change builder used to build the changes required to fix the
+  /// The [ChangeBuilder] used to build the changes required to fix the
   /// diagnostics.
+  @visibleForTesting
   ChangeBuilder builder;
 
   /// A map associating libraries to fixes with change counts.
+  @visibleForTesting
   final ChangeMap changeMap = ChangeMap();
 
   /// A token used to signal that the caller is no longer interested in the
   /// results and processing can end early (in which case any results may be
   /// invalid).
-  final CancellationToken? cancellationToken;
+  final CancellationToken? _cancellationToken;
 
   /// Initialize a newly created processor to create fixes for diagnostics in
-  /// libraries in the [workspace].
+  /// libraries in the [_workspace].
   BulkFixProcessor(
-    this.instrumentationService,
-    this.workspace, {
+    this._instrumentationService,
+    this._workspace, {
     List<String>? codes,
-    this.cancellationToken,
-  })  : builder = ChangeBuilder(workspace: workspace),
-        codes = codes?.map((e) => e.toLowerCase()).toList();
+    CancellationToken? cancellationToken,
+  })  : builder = ChangeBuilder(workspace: _workspace),
+        _codes = codes?.map((e) => e.toLowerCase()).toList(),
+        _cancellationToken = cancellationToken;
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -244,16 +258,16 @@ class BulkFixProcessor {
     return details;
   }
 
-  bool get isCancelled => cancellationToken?.isCancellationRequested ?? false;
+  bool get isCancelled => _cancellationToken?.isCancellationRequested ?? false;
 
-  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// Returns a [BulkFixRequestResult] that includes a change builder that has
   /// been used to create fixes for the diagnostics in the libraries in the
   /// given [contexts].
   Future<BulkFixRequestResult> fixErrors(List<AnalysisContext> contexts) =>
       _computeFixes(contexts);
 
-  /// Return a change builder that has been used to create fixes for the
-  /// diagnostics in [file] in the given [context].
+  /// Returns a change builder that has been used to create fixes for the
+  /// diagnostics in [path] in the given [context].
   Future<ChangeBuilder> fixErrorsForFile(OperationPerformanceImpl performance,
       AnalysisContext context, String path,
       {required bool autoTriggered}) async {
@@ -276,19 +290,67 @@ class BulkFixProcessor {
     return builder;
   }
 
-  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// Returns a [BulkFixRequestResult] that includes a change builder that has
   /// been used to create fixes for the diagnostics in the libraries in the
   /// given [contexts].
   Future<BulkFixRequestResult> fixErrorsUsingParsedResult(
-          List<AnalysisContext> contexts) =>
-      _computeFixesUsingParsedResult(contexts);
+      List<AnalysisContext> contexts) async {
+    for (var context in contexts) {
+      var pathContext = context.contextRoot.resourceProvider.pathContext;
+      for (var path in context.contextRoot.analyzedFiles()) {
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path) ||
+            file_paths.isMacroGenerated(path)) {
+          continue;
+        }
 
-  /// Return a [PubspecFixRequestResult] that includes edits to the pubspec
+        if (!await _hasFixableErrors(context, path)) {
+          continue;
+        }
+
+        var result = context.currentSession.getParsedLibrary(path);
+
+        if (isCancelled) {
+          break;
+        }
+        if (result is ParsedLibraryResult) {
+          var errorListener = RecordingErrorListener();
+          var unitContexts = <LintRuleUnitContext>[];
+
+          for (var parsedUnit in result.units) {
+            var errorReporter = ErrorReporter(
+              errorListener,
+              StringSource(parsedUnit.content, null),
+            );
+            unitContexts.add(
+              LintRuleUnitContext(
+                file: parsedUnit.file,
+                content: parsedUnit.content,
+                errorReporter: errorReporter,
+                unit: parsedUnit.unit,
+              ),
+            );
+          }
+          for (var unitContext in unitContexts) {
+            _computeParsedResultLint(unitContext, unitContexts);
+          }
+          await _fixErrorsInParsedLibrary(result, errorListener.errors,
+              stopAfterFirst: false);
+          if (isCancelled) {
+            break;
+          }
+        }
+      }
+    }
+    return BulkFixRequestResult(builder);
+  }
+
+  /// Returns a [PubspecFixRequestResult] that includes edits to the pubspec
   /// files in the given [contexts].
   Future<PubspecFixRequestResult> fixPubspec(List<AnalysisContext> contexts) =>
       _computeChangesToPubspec(contexts);
 
-  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// Returns a [BulkFixRequestResult] that includes a change builder that has
   /// been used to format the dart files in the given [contexts].
   Future<BulkFixRequestResult> formatCode(List<AnalysisContext> contexts) =>
       _formatCode(contexts);
@@ -303,7 +365,7 @@ class BulkFixProcessor {
     return changeMap.hasFixes;
   }
 
-  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// Returns a [BulkFixRequestResult] that includes a change builder that has
   /// been used to organize the directives in the dart files in the given
   /// [contexts].
   Future<BulkFixRequestResult> organizeDirectives(
@@ -397,7 +459,7 @@ class BulkFixProcessor {
         // Get the list of imports used in the files.
         var result = context.currentSession.getParsedLibrary(path);
         if (result is! ParsedLibraryResult) {
-          return PubspecFixRequestResult(fixes, details);
+          return (edits: fixes, details: details);
         }
 
         for (var unit in result.units) {
@@ -437,12 +499,12 @@ class BulkFixProcessor {
         }
       }
     }
-    return PubspecFixRequestResult(fixes, details);
+    return (edits: fixes, details: details);
   }
 
   /// Implementation for [fixErrors] and [hasFixes].
   ///
-  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// Returns a [BulkFixRequestResult] that includes a change builder that has
   /// been used to create fixes for the diagnostics in the libraries in the
   /// given [contexts].
   ///
@@ -454,10 +516,9 @@ class BulkFixProcessor {
     bool stopAfterFirst = false,
   }) async {
     // Ensure specified codes are defined.
-    var codes = this.codes;
-    if (codes != null) {
+    if (_codes != null) {
       var undefinedCodes = <String>[];
-      for (var code in codes) {
+      for (var code in _codes) {
         if (!_errorCodes.contains(code) && !_lintCodes.contains(code)) {
           undefinedCodes.add(code);
         }
@@ -485,8 +546,16 @@ class BulkFixProcessor {
         }
 
         var library = await context.currentSession.getResolvedLibrary(path);
+
         if (isCancelled) {
           break;
+        }
+        if (library is NotLibraryButPartResult) {
+          var unit = await context.currentSession.getResolvedUnit(path);
+          if (unit is ResolvedUnitResult) {
+            library = await context.currentSession
+                .getResolvedLibraryByElement(unit.libraryElement);
+          }
         }
         if (library is ResolvedLibraryResult) {
           await _fixErrorsInLibrary(library, stopAfterFirst: stopAfterFirst);
@@ -499,62 +568,13 @@ class BulkFixProcessor {
     return BulkFixRequestResult(builder);
   }
 
-  Future<BulkFixRequestResult> _computeFixesUsingParsedResult(
-    List<AnalysisContext> contexts, {
-    bool stopAfterFirst = false,
-  }) async {
-    for (var context in contexts) {
-      var pathContext = context.contextRoot.resourceProvider.pathContext;
-      for (var path in context.contextRoot.analyzedFiles()) {
-        if (!file_paths.isDart(pathContext, path) ||
-            file_paths.isGenerated(path) ||
-            file_paths.isMacroGenerated(path)) {
-          continue;
-        }
-
-        if (!await _hasFixableErrors(context, path)) {
-          continue;
-        }
-
-        var result = context.currentSession.getParsedLibrary(path);
-
-        if (isCancelled) {
-          break;
-        }
-        if (result is ParsedLibraryResult) {
-          var errorListener = RecordingErrorListener();
-          var allUnits = <LinterContextUnit>[];
-
-          for (var parsedUnit in result.units) {
-            var errorReporter = ErrorReporter(
-              errorListener,
-              StringSource(parsedUnit.content, null),
-            );
-            allUnits.add(LinterContextUnit(
-                parsedUnit.content, parsedUnit.unit, errorReporter));
-          }
-          for (var linterUnit in allUnits) {
-            _computeParsedResultLint(linterUnit, allUnits);
-          }
-          await _fixErrorsInParsedLibrary(result, errorListener.errors,
-              stopAfterFirst: stopAfterFirst);
-          if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
-            break;
-          }
-        }
-      }
-    }
-    return BulkFixRequestResult(builder);
-  }
-
-  /// Computes lint for lint rules with names [syntacticLintCodes] (rules that
+  /// Computes lint for lint rules with names [_syntacticLintCodes] (rules that
   /// do not require [ResolvedUnitResult]s).
   void _computeParsedResultLint(
-      LinterContextUnit currentUnit, List<LinterContextUnit> allUnits) {
-    var unit = currentUnit.unit;
+      LintRuleUnitContext currentUnit, List<LintRuleUnitContext> allUnits) {
     var nodeRegistry = NodeLintRegistry(false);
-    var context = LinterContextParsedImpl(allUnits, currentUnit);
-    var lintRules = syntacticLintCodes
+    var context = LinterContextWithParsedResults(allUnits, currentUnit);
+    var lintRules = _syntacticLintCodes
         .map((name) => Registry.ruleRegistry.getRule(name))
         .nonNulls;
     for (var lintRule in lintRules) {
@@ -563,7 +583,7 @@ class BulkFixProcessor {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(
+    currentUnit.unit.accept(
       LinterVisitor(
         nodeRegistry,
         LinterExceptionHandler(
@@ -573,16 +593,15 @@ class BulkFixProcessor {
     );
   }
 
-  /// Filters errors to only those that are in [codes] and are not filtered out
+  /// Filters errors to only those that are in [_codes] and are not filtered out
   /// in analysis_options.
   Iterable<AnalysisError> _filterErrors(AnalysisOptions analysisOptions,
       List<AnalysisError> originalErrors) sync* {
     var errors = originalErrors.toList();
     errors.sort((a, b) => a.offset.compareTo(b.offset));
-    var codes = this.codes;
     for (var error in errors) {
-      if (codes != null &&
-          !codes.contains(error.errorCode.name.toLowerCase())) {
+      if (_codes != null &&
+          !_codes.contains(error.errorCode.name.toLowerCase())) {
         continue;
       }
       var processor = ErrorProcessor.getProcessor(analysisOptions, error);
@@ -592,7 +611,7 @@ class BulkFixProcessor {
     }
   }
 
-  /// Use the change [builder] to create fixes for the diagnostics in the
+  /// Uses the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result,
       {bool stopAfterFirst = false, bool autoTriggered = false}) async {
@@ -602,7 +621,7 @@ class BulkFixProcessor {
     }
   }
 
-  /// Use the change [builder] to create fixes for the diagnostics in
+  /// Uses the change [builder] to create fixes for the diagnostics in
   /// [unit].
   Future<void> _fixErrorsInLibraryUnit(
       ResolvedUnitResult unit, ResolvedLibraryResult library,
@@ -610,13 +629,10 @@ class BulkFixProcessor {
     var analysisOptions =
         unit.session.analysisContext.getAnalysisOptionsForFile(unit.file);
 
-    DartFixContext fixContext(
-      AnalysisError diagnostic, {
-      required bool autoTriggered,
-    }) {
+    DartFixContext fixContext(AnalysisError diagnostic) {
       return DartFixContext(
-        instrumentationService: instrumentationService,
-        workspace: workspace,
+        instrumentationService: _instrumentationService,
+        workspace: _workspace,
         resolvedResult: unit,
         error: diagnostic,
         autoTriggered: autoTriggered,
@@ -624,10 +640,9 @@ class BulkFixProcessor {
     }
 
     CorrectionProducerContext correctionContext(AnalysisError diagnostic) {
-      var context = fixContext(diagnostic, autoTriggered: autoTriggered);
       return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
-        dartFixContext: context,
+        dartFixContext: fixContext(diagnostic),
         diagnostic: diagnostic,
         resolvedResult: unit,
         selectionOffset: diagnostic.offset,
@@ -639,7 +654,7 @@ class BulkFixProcessor {
     // Attempt to apply the fixes that aren't related to directives.
     //
     for (var error in _filterErrors(analysisOptions, unit.errors)) {
-      var context = fixContext(error, autoTriggered: autoTriggered);
+      var context = fixContext(error);
       await _fixSingleError(context, unit, error);
       if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
         return;
@@ -659,8 +674,7 @@ class BulkFixProcessor {
     for (var error in _filterErrors(analysisOptions, unit.errors)) {
       var errorCode = error.errorCode;
       if (errorCode is LintCode) {
-        var lintName = errorCode.name;
-        if (lintName == LintNames.directives_ordering) {
+        if (DirectivesOrdering.allCodes.contains(errorCode)) {
           directivesOrderingError = error;
           break;
         }
@@ -727,12 +741,13 @@ class BulkFixProcessor {
     var codeName = errorCode.name;
     try {
       if (errorCode is LintCode) {
-        var generators = FixProcessor.lintProducerMap[codeName] ?? [];
+        var generators = registeredFixGenerators.lintProducers[errorCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
         }
-        var multiGenerators = FixProcessor.lintMultiProducerMap[codeName];
+        var multiGenerators =
+            registeredFixGenerators.lintMultiProducers[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator(context: context);
@@ -742,7 +757,8 @@ class BulkFixProcessor {
           }
         }
       } else {
-        var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
+        var generators =
+            registeredFixGenerators.nonLintProducers[errorCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
@@ -784,7 +800,8 @@ class BulkFixProcessor {
     var codeName = errorCode.name;
     try {
       if (errorCode is LintCode) {
-        var generators = FixProcessor.parseLintProducerMap[codeName] ?? [];
+        var generators =
+            registeredFixGenerators.parseLintProducers[errorCode] ?? [];
         await _bulkApply(generators, codeName, context, parsedOnly: true);
         if (isCancelled) {
           return;
@@ -840,14 +857,14 @@ class BulkFixProcessor {
   }
 
   Future<void> _generateFix(CorrectionProducerContext context,
-      CorrectionProducer producer, String code) async {
+      CorrectionProducer producer, String codeName) async {
     int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     var oldHash = computeChangeHash();
     await _applyProducer(producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
-      changeMap.add(context.path, code.toLowerCase());
+      changeMap.add(context.path, codeName.toLowerCase());
     }
   }
 
@@ -864,23 +881,6 @@ class BulkFixProcessor {
     return filteredErrors.any(_isFixableError);
   }
 
-  /// Returns whether [error] is something that might be fixable.
-  bool _isFixableError(AnalysisError error) {
-    var errorCode = error.errorCode;
-
-    // Special cases that can be bulk fixed by this class but not by
-    // FixProcessor.
-    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
-        errorCode == HintCode.UNNECESSARY_IMPORT ||
-        errorCode == WarningCode.UNUSED_IMPORT ||
-        (errorCode is LintCode &&
-            errorCode.name == LintNames.directives_ordering)) {
-      return true;
-    }
-
-    return FixProcessor.canBulkFix(errorCode);
-  }
-
   Future<BulkFixRequestResult> _organizeDirectives(
       List<AnalysisContext> contexts) async {
     for (var context in contexts) {
@@ -895,15 +895,14 @@ class BulkFixProcessor {
             context.currentSession.getParsedUnit(path) as ParsedUnitResult;
         var code = result.content;
         var errors = result.errors;
-        // check if there are scan/parse errors in the file
+        // Check if there are scan/parse errors in the file.
         var hasParseErrors = errors.any((error) =>
             error.errorCode is ScannerErrorCode ||
             error.errorCode is ParserErrorCode);
         if (hasParseErrors) {
-          // cannot process files with parse errors
+          // Cannot process files with parse errors.
           continue;
         }
-        // do organize
         var sorter = ImportOrganizer(code, result.unit, errors);
         var edits = sorter.organize();
         await builder.addDartFileEdit(path, (builder) {
@@ -938,6 +937,56 @@ class BulkFixProcessor {
     }
     return [];
   }
+
+  /// Returns whether [errorCode] is an error that can be fixed in bulk.
+  static bool _canBulkFix(ErrorCode errorCode) {
+    bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
+      return generators != null &&
+          generators.any((generator) =>
+              generator(context: StubCorrectionProducerContext.instance)
+                  .canBeAppliedAcrossFiles);
+    }
+
+    return _bulkFixableErrorCodes.putIfAbsent(errorCode, () {
+      if (errorCode is LintCode) {
+        var producers = registeredFixGenerators.lintProducers[errorCode];
+        if (hasBulkFixProducers(producers)) {
+          return true;
+        }
+
+        return registeredFixGenerators.lintMultiProducers
+            .containsKey(errorCode);
+      }
+
+      var producers = registeredFixGenerators.nonLintProducers[errorCode];
+      if (hasBulkFixProducers(producers)) {
+        return true;
+      }
+
+      // We can't do detailed checks on multi-producers because the set of
+      // producers may vary depending on the resolved unit (we must configure
+      // them before we can determine the producers).
+      return registeredFixGenerators.nonLintMultiProducers
+              .containsKey(errorCode) ||
+          BulkFixProcessor.nonLintMultiProducerMap.containsKey(errorCode);
+    });
+  }
+
+  /// Returns whether [error] is something that might be fixable.
+  static bool _isFixableError(AnalysisError error) {
+    var errorCode = error.errorCode;
+
+    // Special cases that can be bulk fixed by this class but not by
+    // FixProcessor.
+    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
+        errorCode == HintCode.UNNECESSARY_IMPORT ||
+        errorCode == WarningCode.UNUSED_IMPORT ||
+        (DirectivesOrdering.allCodes.contains(errorCode))) {
+      return true;
+    }
+
+    return _canBulkFix(errorCode);
+  }
 }
 
 class BulkFixRequestResult {
@@ -966,40 +1015,44 @@ class ChangeMap {
 
 /// Calls [BulkFixProcessor] iteratively to apply multiple rounds of changes.
 ///
-/// Temporarily modifies overlays in [resourceProvider] while computing fixes
-/// so the caller must ensure that no other requests are modifying them.
+/// Temporarily modifies overlays in the [ResourceProvider] while computing
+/// fixes so the caller must ensure that no other requests are modifying them.
 class IterativeBulkFixProcessor {
   /// The maximum number of passes to make.
   ///
   /// This should match what "dart fix" does (`FixCommand.maxPasses` in
   /// `pkg/dartdev/lib/src/commands/fix.dart`).
-  static const maxPasses = 4;
+  static const _maxPassCount = 4;
 
-  final InstrumentationService instrumentationService;
-  final AnalysisContext context;
+  final InstrumentationService _instrumentationService;
+  final AnalysisContext _context;
 
-  final void Function(SourceFileEdit) applyTemporaryOverlayEdits;
-  final Future<void> Function() applyOverlays;
+  final void Function(SourceFileEdit) _applyTemporaryOverlayEdits;
+  final Future<void> Function() _applyOverlays;
 
   int _passesWithEdits = 0;
 
   /// A token used to signal that the caller is no longer interested in the
   /// results and processing can end early (in which case any results may be
   /// invalid).
-  final CancellationToken? cancellationToken;
+  final CancellationToken? _cancellationToken;
 
   IterativeBulkFixProcessor({
-    required this.instrumentationService,
-    required this.context,
-    required this.applyTemporaryOverlayEdits,
-    required this.applyOverlays,
-    this.cancellationToken,
-  });
-
-  bool get isCancelled => cancellationToken?.isCancellationRequested ?? false;
+    required InstrumentationService instrumentationService,
+    required AnalysisContext context,
+    required void Function(SourceFileEdit) applyTemporaryOverlayEdits,
+    required Future<void> Function() applyOverlays,
+    CancellationToken? cancellationToken,
+  })  : _instrumentationService = instrumentationService,
+        _context = context,
+        _applyTemporaryOverlayEdits = applyTemporaryOverlayEdits,
+        _applyOverlays = applyOverlays,
+        _cancellationToken = cancellationToken;
 
   /// The number of passes that produced edits.
   int get passesWithEdits => _passesWithEdits;
+
+  bool get _isCancelled => _cancellationToken?.isCancellationRequested ?? false;
 
   Future<List<SourceFileEdit>> fixErrorsForFile(
     OperationPerformanceImpl performance,
@@ -1008,22 +1061,22 @@ class IterativeBulkFixProcessor {
   }) async {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile',
         (performance) async {
-      var changes = <SourceFileEdit>[];
+      var edits = <SourceFileEdit>[];
       _passesWithEdits = 0;
 
-      for (var i = 0; i < maxPasses; i++) {
-        var workspace = DartChangeWorkspace([context.currentSession]);
-        var processor = BulkFixProcessor(instrumentationService, workspace,
-            cancellationToken: cancellationToken);
+      for (var i = 0; i < _maxPassCount; i++) {
+        var workspace = DartChangeWorkspace([_context.currentSession]);
+        var processor = BulkFixProcessor(_instrumentationService, workspace,
+            cancellationToken: _cancellationToken);
 
         var builder = await performance.runAsync(
           'BulkFixProcessor.fixErrorsForFile pass $i',
           (performance) => processor.fixErrorsForFile(
-              performance, context, path,
+              performance, _context, path,
               autoTriggered: autoTriggered),
         );
 
-        if (isCancelled) {
+        if (_isCancelled) {
           return [];
         }
 
@@ -1034,33 +1087,26 @@ class IterativeBulkFixProcessor {
         }
 
         // Record these changes in the results.
-        changes.addAll(change.edits);
+        edits.addAll(change.edits);
         _passesWithEdits++;
 
         // Also apply them to the overlay provider so the next iteration can
         // use them.
         await performance.runAsync('Apply edits from pass $i', (_) async {
           for (var fileEdit in change.edits) {
-            applyTemporaryOverlayEdits(fileEdit);
+            _applyTemporaryOverlayEdits(fileEdit);
           }
-          await applyOverlays();
+          await _applyOverlays();
         });
 
-        if (isCancelled) {
+        if (_isCancelled) {
           return [];
         }
       }
 
-      return changes;
+      return edits;
     });
   }
-}
-
-class PubspecFixRequestResult {
-  final List<SourceFileEdit> edits;
-  final List<BulkFix> details;
-
-  PubspecFixRequestResult(this.edits, this.details);
 }
 
 class _PubspecDeps {

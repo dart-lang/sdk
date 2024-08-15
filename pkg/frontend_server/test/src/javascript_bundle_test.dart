@@ -14,72 +14,97 @@ import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 
 /// Additional indexed types required by the dev_compiler's NativeTypeSet.
-final Map<String, List<String>> additionalRequiredClasses = {
-  'dart:core': ['Comparable'],
-  'dart:async': [
-    'StreamIterator',
-    '_AsyncStarImpl',
-  ],
-  'dart:_interceptors': [
-    'JSBool',
-    'JSNumber',
-    'JSArray',
-    'JSString',
-    'LegacyJavaScriptObject',
-  ],
-  'dart:_native_typed_data': [],
-  'dart:collection': [
-    'ListBase',
-    'MapBase',
-    'LinkedHashSet',
-    '_HashSet',
-    '_IdentityHashSet',
-  ],
-  'dart:math': ['Rectangle'],
-  'dart:html': [],
-  'dart:_rti': ['Rti', '_Universe'],
-  'dart:indexed_db': [],
-  'dart:svg': [],
-  'dart:web_audio': [],
-  'dart:web_gl': [],
-  'dart:_js_helper': [
-    'PrivateSymbol',
-    'LinkedMap',
-    'IdentityMap',
-    'SyncIterable',
-  ],
+final Map<String, Map<String, List<String>>> additionalRequiredClasses = {
+  'dart:core': {'Comparable': []},
+  'dart:async': {
+    'StreamIterator': ['get:current', 'moveNext', 'cancel', ''],
+    '_SyncStarIterator': ['_current', '_datum', '_yieldStar'],
+    '_IterationMarker': ['yieldSingle', 'yieldStar'],
+  },
+  'dart:_interceptors': {
+    'JSBool': [],
+    'JSNumber': [],
+    'JSArray': [],
+    'JSString': [],
+    'LegacyJavaScriptObject': [],
+  },
+  'dart:_native_typed_data': {},
+  'dart:collection': {
+    'ListBase': [],
+    'MapBase': [],
+    'LinkedHashSet': [],
+    '_HashSet': [],
+    '_IdentityHashSet': [],
+  },
+  'dart:math': {'Rectangle': []},
+  'dart:html': {},
+  'dart:_rti': {'Rti': [], '_Universe': []},
+  'dart:indexed_db': {},
+  'dart:svg': {},
+  'dart:web_audio': {},
+  'dart:web_gl': {},
+  'dart:_js_helper': {
+    'PrivateSymbol': [],
+    'LinkedMap': [],
+    'IdentityMap': [],
+    'LinkedSet': [],
+    'IdentitySet': [],
+    'SyncIterable': [],
+  },
 };
 
 /// Additional indexed top level methods required by the dev_compiler.
-final Map<String, List<String>> requiredMethods = {
+final Map<String, List<String>> requiredTopLevels = {
   'dart:_runtime': ['assertInterop'],
+  'dart:async': [
+    '_asyncAwait',
+    '_asyncReturn',
+    '_asyncRethrow',
+    '_asyncStarHelper',
+    '_asyncStartSync',
+    '_makeAsyncAwaitCompleter',
+    '_makeSyncStarIterable',
+    '_makeAsyncStarStreamController',
+    '_makeSyncStarIterable',
+    '_streamOfController',
+    '_wrapJsFunctionForAsync',
+  ],
 };
 
 void main() {
-  final Map<String, List<String>> allRequiredTypes =
-      _combineMaps(CoreTypes.requiredClasses, additionalRequiredClasses);
-  final Set<String> allRequiredLibraries = {
+  Map<String, List<String>> allRequiredTypes = _combineMaps(
+      CoreTypes.requiredClasses,
+      additionalRequiredClasses
+          .map((k, v) => new MapEntry(k, v.keys.toList())));
+  List<String> allRequiredLibraries = [
     ...allRequiredTypes.keys,
-    ...requiredMethods.keys
-  };
-  final List<Library> testCoreLibraries = [
-    for (String requiredLibrary in allRequiredLibraries)
-      new Library(Uri.parse(requiredLibrary),
-          fileUri: Uri.parse(requiredLibrary),
-          classes: [
-            for (String requiredClass
-                in allRequiredTypes[requiredLibrary] ?? [])
-              new Class(
-                  name: requiredClass, fileUri: Uri.parse(requiredLibrary)),
-          ],
-          procedures: [
-            for (String requiredMethod
-                in requiredMethods[requiredLibrary] ?? [])
-              new Procedure(new Name(requiredMethod), ProcedureKind.Method,
-                  new FunctionNode(new EmptyStatement()),
-                  fileUri: Uri.parse(requiredLibrary)),
-          ]),
+    ...requiredTopLevels.keys,
   ];
+  List<Library> testCoreLibraries = [];
+  for (String requiredLibrary in allRequiredLibraries) {
+    Library library = new Library(Uri.parse(requiredLibrary),
+        fileUri: Uri.parse(requiredLibrary));
+    for (String requiredClass in allRequiredTypes[requiredLibrary] ?? []) {
+      library.addClass(new Class(
+          name: requiredClass,
+          fileUri: Uri.parse(requiredLibrary),
+          procedures: [
+            for (String requiredMember
+                in (additionalRequiredClasses[requiredLibrary]
+                        ?[requiredClass] ??
+                    []))
+              new Procedure(new Name(requiredMember, library),
+                  ProcedureKind.Method, new FunctionNode(new EmptyStatement()),
+                  fileUri: Uri.parse(requiredLibrary))
+          ]));
+    }
+    for (String requiredMember in requiredTopLevels[requiredLibrary] ?? []) {
+      library.addProcedure(new Procedure(new Name(requiredMember, library),
+          ProcedureKind.Method, new FunctionNode(new EmptyStatement()),
+          fileUri: Uri.parse(requiredLibrary)));
+    }
+    testCoreLibraries.add(library);
+  }
 
   final PackageConfig packageConfig = PackageConfig.parseJson({
     'configVersion': 2,

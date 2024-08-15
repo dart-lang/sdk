@@ -76,6 +76,7 @@ import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -256,6 +257,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// be sent.
   final ServerCommunicationChannel channel;
 
+  @override
+  late final FutureOr<InitializedStateMessageHandler> lspInitialized =
+      InitializedStateMessageHandler(this);
+
   /// A flag indicating the value of the 'analyzing' parameter sent in the last
   /// status message to the client.
   bool statusAnalyzing = false;
@@ -389,6 +394,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
+    super.providedByteStore,
   })  : lspClientConfiguration =
             lsp.LspClientConfiguration(baseResourceProvider.pathContext),
         super(
@@ -444,7 +450,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       // change notifications for) custom-scheme files.
       uriConverter = ClientUriConverter.withVirtualFileSupport(
           resourceProvider.pathContext);
-      initializeLsp();
+      initializeLspOverLegacy();
     } else {
       uriConverter = ClientUriConverter.noop(resourceProvider.pathContext);
     }
@@ -628,13 +634,16 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
   }
 
-  /// Initializes LSP support for the legacy server.
+  /// Initializes LSP support over the legacy server.
   ///
   /// This method is called when the client sends an LSP request, or indicates
   /// that it will use LSP-overy-Legacy via client capabilities.
-  void initializeLsp() {
+  ///
+  /// This only applies to LSP over the legacy protocol and not DTD, since we
+  /// do not want a DTD-LSP client to trigger LSP notifications going to the
+  /// legacy protocol client, only the legacy protocol client should do that.
+  void initializeLspOverLegacy() {
     sendLspNotifications = true;
-    completeLspInitialization();
   }
 
   /// Return `true` if the [path] is both absolute and normalized.

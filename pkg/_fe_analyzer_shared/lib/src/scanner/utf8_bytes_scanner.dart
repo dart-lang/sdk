@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:compiler/src/io/source_file.dart';
 library _fe_analyzer_shared.scanner.utf8_bytes_scanner;
 
 import 'dart:typed_data' show Uint8List;

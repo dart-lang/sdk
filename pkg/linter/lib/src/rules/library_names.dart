@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import '../utils.dart';
 
 const _desc = r'Name libraries using `lowercase_with_underscores`.';
@@ -35,22 +36,15 @@ file.
 ''';
 
 class LibraryNames extends LintRule {
-  static const LintCode code = LintCode('library_names',
-      "The library name '{0}' isn't a lower_case_with_underscores identifier.",
-      correctionMessage:
-          'Try changing the name to follow the lower_case_with_underscores '
-          'style.',
-      hasPublishedDocs: true);
-
   LibraryNames()
       : super(
             name: 'library_names',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.library_names;
 
   @override
   void registerNodeProcessors(

@@ -188,16 +188,38 @@ class DirectoryTest {
           buffer.write("/../${subDirName}");
         }
         var long = new Directory("${buffer.toString()}");
-        var errors = 0;
-        onError(error) {
+        Future<void>.value(long.delete()).catchError((error) {
           Expect.isTrue(error is FileSystemException);
-          if (++errors == 2) {
-            d.delete(recursive: true).then((_) => asyncEnd());
-          }
-        }
+          asyncEnd();
+        });
+      });
+    });
+  }
 
-        Future<void>.value(long.delete()).catchError(onError);
-        Future<void>.value(long.delete(recursive: true)).catchError(onError);
+  static void testDeleteTooLongNameRecursive() {
+    asyncStart();
+    Directory.systemTemp.createTemp('dart_directory').then((d) {
+      var subDirName = 'subdir';
+      var subDir = new Directory("${d.path}/$subDirName");
+      subDir.create().then((ignore) {
+        // Construct a long string of the form
+        // 'tempdir/subdir/../subdir/../subdir'.
+        var buffer = new StringBuffer();
+        buffer.write(subDir.path);
+        for (var i = 0; i < 1000; i++) {
+          buffer.write("/../${subDirName}");
+        }
+        var long = new Directory("${buffer.toString()}");
+        // Works only on Windows.
+        long.delete(recursive: true).then((_) {
+          if (Platform.isWindows) {
+            asyncEnd();
+          }
+        }, onError: ((_) {
+          if (!Platform.isWindows) {
+            asyncEnd();
+          }
+        }));
       });
     });
   }
@@ -209,8 +231,7 @@ class DirectoryTest {
     Expect.throws(() => d.deleteSync(recursive: true));
   }
 
-  static void testDeleteTooLongNameSync() {
-    Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
+  static StringBuffer createLongDirName(Directory d) {
     var subDirName = 'subdir';
     var subDir = new Directory("${d.path}/$subDirName");
     subDir.createSync();
@@ -221,10 +242,29 @@ class DirectoryTest {
     for (var i = 0; i < 1000; i++) {
       buffer.write("/../${subDirName}");
     }
-    var long = new Directory("${buffer.toString()}");
-    Expect.throws(long.deleteSync);
-    Expect.throws(() => long.deleteSync(recursive: true));
-    d.deleteSync(recursive: true);
+    return buffer;
+  }
+
+  static void testDeleteTooLongNameSync() {
+    {
+      Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
+      StringBuffer buffer = createLongDirName(d);
+      var long = new Directory("${buffer.toString()}");
+      Expect.throws(long.deleteSync);
+      d.deleteSync(recursive: true);
+    }
+    {
+      Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
+      StringBuffer buffer = createLongDirName(d);
+      var long = new Directory("${buffer.toString()}");
+      // Works only on Windows
+      if (Platform.isWindows) {
+        long.deleteSync(recursive: true);
+      } else {
+        Expect.throws(() => long.deleteSync(recursive: true));
+        d.deleteSync(recursive: true);
+      }
+    }
   }
 
   static void testExistsCreateDelete() {
@@ -465,6 +505,7 @@ class DirectoryTest {
     testListTooLongName();
     testDeleteNonExistent();
     testDeleteTooLongName();
+    testDeleteTooLongNameRecursive();
     testDeleteNonExistentSync();
     testDeleteTooLongNameSync();
     testExistsCreateDelete();

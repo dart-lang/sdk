@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'parser_impl.dart';
 library _fe_analyzer_shared.parser.listener;
 
 import '../experiments/errors.dart';
@@ -315,7 +316,7 @@ class Listener implements UnescapeErrorListener {
   /// This method exists for analyzer compatibility only
   /// and will be removed once analyzer/fasta integration is complete.
   ///
-  /// This is called when [parseDirectives] has parsed all directives
+  /// This is called when [Parser.parseDirectives] has parsed all directives
   /// and is skipping the remainder of the file.  Substructures:
   /// - metadata
   void handleDirectivesOnly() {}
@@ -1964,18 +1965,28 @@ class Listener implements UnescapeErrorListener {
     logEvent("Assert");
   }
 
-  /** Called with either the token containing a double literal, or
-    * an immediately preceding "unary plus" token.
-    */
+  /// Called with either the token containing a double literal, or an
+  /// immediately preceding "unary minus" token.
   void handleLiteralDouble(Token token) {
     logEvent("LiteralDouble");
   }
 
-  /** Called with either the token containing an integer literal,
-    * or an immediately preceding "unary plus" token.
-    */
+  /// Called with either the token containing a double literal with separators,
+  /// or an immediately preceding "unary minus" token.
+  void handleLiteralDoubleWithSeparators(Token token) {
+    logEvent("LiteralDoubleWithSeparators");
+  }
+
+  /// Called with either the token containing an integer literal, or an
+  /// immediately preceding "unary minus" token.
   void handleLiteralInt(Token token) {
     logEvent("LiteralInt");
+  }
+
+  /// Called with either the token containing an integer literal with
+  /// separators, or an immediately preceding "unary minus" token.
+  void handleLiteralIntWithSeparators(Token token) {
+    logEvent("LiteralIntWithSeparators");
   }
 
   void handleLiteralList(

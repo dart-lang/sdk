@@ -95,6 +95,9 @@ void main() {
     testPassUint8Struct1ByteBoolNativeLeaf();
     testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNativeLeaf();
     testPassInt64x7Struct12BytesHomogeneousInt32NativeLeaf();
+    testPassPointerStruct12BytesHomogeneousInt32NativeLeaf();
+    testPassPointerStructInlineArrayVariableNativeLeaf();
+    testPassPointerStructInlineArrayVariableAlignNativeLeaf();
   }
 }
 
@@ -5461,4 +5464,90 @@ void testPassInt64x7Struct12BytesHomogeneousInt32NativeLeaf() {
   Expect.equals(5, result);
 
   calloc.free(a7Pointer);
+}
+
+@Native<Int64 Function(Pointer<Struct12BytesHomogeneousInt32>)>(
+    symbol: 'PassPointerStruct12BytesHomogeneousInt32', isLeaf: true)
+external int passPointerStruct12BytesHomogeneousInt32NativeLeaf(
+    Pointer<Struct12BytesHomogeneousInt32> a0);
+
+/// Passing a pointer to a struct
+void testPassPointerStruct12BytesHomogeneousInt32NativeLeaf() {
+  final a0 = calloc.allocate<Struct12BytesHomogeneousInt32>(
+      sizeOf<Struct12BytesHomogeneousInt32>());
+
+  a0.ref.a0 = -1;
+  a0.ref.a1 = 2;
+  a0.ref.a2 = -3;
+
+  final result = passPointerStruct12BytesHomogeneousInt32NativeLeaf(a0);
+
+  print("result = $result");
+
+  Expect.equals(-2, result);
+
+  calloc.free(a0);
+}
+
+@Native<Int64 Function(Pointer<StructInlineArrayVariable>)>(
+    symbol: 'PassPointerStructInlineArrayVariable', isLeaf: true)
+external int passPointerStructInlineArrayVariableNativeLeaf(
+    Pointer<StructInlineArrayVariable> a0);
+
+/// Variable length array
+void testPassPointerStructInlineArrayVariableNativeLeaf() {
+  final a0 = calloc.allocate<StructInlineArrayVariable>(
+      sizeOf<StructInlineArrayVariable>() + 10 * sizeOf<Uint8>());
+
+  a0.ref.a0 = 1;
+  a0.ref.a1[0] = 2;
+  a0.ref.a1[1] = 3;
+  a0.ref.a1[2] = 4;
+  a0.ref.a1[3] = 5;
+  a0.ref.a1[4] = 6;
+  a0.ref.a1[5] = 7;
+  a0.ref.a1[6] = 8;
+  a0.ref.a1[7] = 9;
+  a0.ref.a1[8] = 10;
+  a0.ref.a1[9] = 11;
+
+  final result = passPointerStructInlineArrayVariableNativeLeaf(a0);
+
+  print("result = $result");
+
+  Expect.equals(66, result);
+
+  calloc.free(a0);
+}
+
+@Native<Int64 Function(Pointer<StructInlineArrayVariableAlign>)>(
+    symbol: 'PassPointerStructInlineArrayVariableAlign', isLeaf: true)
+external int passPointerStructInlineArrayVariableAlignNativeLeaf(
+    Pointer<StructInlineArrayVariableAlign> a0);
+
+/// Variable length array with variable length element having more alignment than
+/// the rest of the struct.
+void testPassPointerStructInlineArrayVariableAlignNativeLeaf() {
+  final a0 = calloc.allocate<StructInlineArrayVariableAlign>(
+      sizeOf<StructInlineArrayVariableAlign>() + 10 * sizeOf<Uint32>());
+
+  a0.ref.a0 = 1;
+  a0.ref.a1[0] = 2;
+  a0.ref.a1[1] = 3;
+  a0.ref.a1[2] = 4;
+  a0.ref.a1[3] = 5;
+  a0.ref.a1[4] = 6;
+  a0.ref.a1[5] = 7;
+  a0.ref.a1[6] = 8;
+  a0.ref.a1[7] = 9;
+  a0.ref.a1[8] = 10;
+  a0.ref.a1[9] = 11;
+
+  final result = passPointerStructInlineArrayVariableAlignNativeLeaf(a0);
+
+  print("result = $result");
+
+  Expect.equals(66, result);
+
+  calloc.free(a0);
 }

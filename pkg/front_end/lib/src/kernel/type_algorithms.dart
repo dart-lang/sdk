@@ -31,6 +31,7 @@ import '../kernel/utils.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
+import '../source/source_loader.dart';
 import '../source/source_type_alias_builder.dart';
 
 // Computes the variance of a variable in a type.  The function can be run
@@ -39,7 +40,8 @@ import '../source/source_type_alias_builder.dart';
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
 VarianceCalculationValue computeTypeVariableBuilderVariance(
-    NominalVariableBuilder variable, TypeBuilder? type) {
+    NominalVariableBuilder variable, TypeBuilder? type,
+    {required SourceLoader sourceLoader}) {
   switch (type) {
     case NamedTypeBuilder(
         :TypeDeclarationBuilder? declaration,
@@ -52,9 +54,10 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
           if (arguments != null) {
             for (int i = 0; i < arguments.length; ++i) {
               result = result.meet(declaration.cls.typeParameters[i].variance
-                  .combine(
-                      computeTypeVariableBuilderVariance(variable, arguments[i])
-                          .variance!));
+                  .combine(computeTypeVariableBuilderVariance(
+                          variable, arguments[i],
+                          sourceLoader: sourceLoader)
+                      .variance!));
             }
           }
           return new VarianceCalculationValue.fromVariance(result);
@@ -74,7 +77,8 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
                 declarationTypeVariable.varianceCalculationValue =
                     VarianceCalculationValue.inProgress;
                 Variance computedVariance = computeTypeVariableBuilderVariance(
-                        declarationTypeVariable, declaration.type)
+                        declarationTypeVariable, declaration.type,
+                        sourceLoader: sourceLoader)
                     .variance!;
 
                 declarationTypeVariable.varianceCalculationValue =
@@ -86,7 +90,11 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
                 assert(!declaration.fromDill);
                 NominalVariableBuilder declarationTypeVariable =
                     declaration.typeVariables![i];
-                // Cyclic type alias. The error is reported elsewhere.
+                // Cyclic type alias.
+                assert(sourceLoader.assertProblemReportedElsewhere(
+                    "computeTypeVariableBuilderVariance: Cyclic type alias.",
+                    expectedPhase:
+                        CompilationPhaseForProblemReporting.outline));
 
                 // Use [Variance.unrelated] for recovery.  The type with the
                 // cyclic dependency will be replaced with an [InvalidType]
@@ -99,7 +107,8 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
               }
 
               result = result.meet(computeTypeVariableBuilderVariance(
-                      variable, type.typeArguments![i])
+                      variable, type.typeArguments![i],
+                      sourceLoader: sourceLoader)
                   .variance!
                   .combine(declarationTypeVariableVariance.variance!));
             }
@@ -111,9 +120,10 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
             for (int i = 0; i < arguments.length; ++i) {
               result = result.meet(declaration
                   .extensionTypeDeclaration.typeParameters[i].variance
-                  .combine(
-                      computeTypeVariableBuilderVariance(variable, arguments[i])
-                          .variance!));
+                  .combine(computeTypeVariableBuilderVariance(
+                          variable, arguments[i],
+                          sourceLoader: sourceLoader)
+                      .variance!));
             }
           }
           return new VarianceCalculationValue.fromVariance(result);
@@ -140,8 +150,10 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
       ):
       Variance result = Variance.unrelated;
       if (returnType is! OmittedTypeBuilder) {
-        result = result.meet(
-            computeTypeVariableBuilderVariance(variable, returnType).variance!);
+        result = result.meet(computeTypeVariableBuilderVariance(
+                variable, returnType,
+                sourceLoader: sourceLoader)
+            .variance!);
       }
       if (typeVariables != null) {
         for (StructuralVariableBuilder typeVariable in typeVariables) {
@@ -150,8 +162,8 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
           // invocation of [computeVariance] below is made to simply figure out
           // if [variable] occurs in the bound.
           if (typeVariable.bound != null &&
-              computeTypeVariableBuilderVariance(
-                      variable, typeVariable.bound!) !=
+              computeTypeVariableBuilderVariance(variable, typeVariable.bound!,
+                      sourceLoader: sourceLoader) !=
                   VarianceCalculationValue.calculatedUnrelated) {
             result = Variance.invariant;
           }
@@ -160,7 +172,8 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
       if (formals != null) {
         for (ParameterBuilder formal in formals) {
           result = result.meet(Variance.contravariant.combine(
-              computeTypeVariableBuilderVariance(variable, formal.type)
+              computeTypeVariableBuilderVariance(variable, formal.type,
+                      sourceLoader: sourceLoader)
                   .variance!));
         }
       }
@@ -172,16 +185,18 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
       Variance result = Variance.unrelated;
       if (positionalFields != null) {
         for (RecordTypeFieldBuilder field in positionalFields) {
-          result = result.meet(
-              computeTypeVariableBuilderVariance(variable, field.type)
-                  .variance!);
+          result = result.meet(computeTypeVariableBuilderVariance(
+                  variable, field.type,
+                  sourceLoader: sourceLoader)
+              .variance!);
         }
       }
       if (namedFields != null) {
         for (RecordTypeFieldBuilder field in namedFields) {
-          result = result.meet(
-              computeTypeVariableBuilderVariance(variable, field.type)
-                  .variance!);
+          result = result.meet(computeTypeVariableBuilderVariance(
+                  variable, field.type,
+                  sourceLoader: sourceLoader)
+              .variance!);
         }
       }
       return new VarianceCalculationValue.fromVariance(result);
@@ -592,7 +607,7 @@ TypeBuilder substitute(
 /// See the [description]
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
-List<TypeBuilder> calculateBounds(List<TypeVariableBuilderBase> variables,
+List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     TypeBuilder dynamicType, TypeBuilder bottomType,
     {required List<TypeBuilder> unboundTypes,
     required List<StructuralVariableBuilder> unboundTypeVariables}) {
@@ -603,16 +618,16 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilderBase> variables,
   TypeVariablesGraph graph = new TypeVariablesGraph(variables, bounds);
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   for (List<int> component in stronglyConnected) {
-    Map<TypeVariableBuilderBase, TypeBuilder> dynamicSubstitution =
-        <TypeVariableBuilderBase, TypeBuilder>{};
-    Map<TypeVariableBuilderBase, TypeBuilder> nullSubstitution =
-        <TypeVariableBuilderBase, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> dynamicSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> nullSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
     for (int variableIndex in component) {
       dynamicSubstitution[variables[variableIndex]] = dynamicType;
       nullSubstitution[variables[variableIndex]] = bottomType;
     }
     for (int variableIndex in component) {
-      TypeVariableBuilderBase variable = variables[variableIndex];
+      TypeVariableBuilder variable = variables[variableIndex];
       bounds[variableIndex] = substituteRange(
           bounds[variableIndex],
           dynamicSubstitution,
@@ -624,14 +639,14 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilderBase> variables,
   }
 
   for (int i = 0; i < variables.length; i++) {
-    Map<TypeVariableBuilderBase, TypeBuilder> substitution =
-        <TypeVariableBuilderBase, TypeBuilder>{};
-    Map<TypeVariableBuilderBase, TypeBuilder> nullSubstitution =
-        <TypeVariableBuilderBase, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> substitution =
+        <TypeVariableBuilder, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> nullSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
     substitution[variables[i]] = bounds[i];
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
-      TypeVariableBuilderBase variable = variables[j];
+      TypeVariableBuilder variable = variables[j];
       bounds[j] = substituteRange(bounds[j], substitution, nullSubstitution,
           unboundTypes, unboundTypeVariables,
           variance: variable.variance);
@@ -647,7 +662,7 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilderBase> variables,
 class TypeVariablesGraph implements Graph<int> {
   @override
   late List<int> vertices;
-  List<TypeVariableBuilderBase> variables;
+  List<TypeVariableBuilder> variables;
   List<TypeBuilder> bounds;
 
   // `edges[i]` is the list of indices of type variables that reference the type
@@ -659,8 +674,8 @@ class TypeVariablesGraph implements Graph<int> {
 
     vertices =
         new List<int>.generate(variables.length, (int i) => i, growable: false);
-    Map<TypeVariableBuilderBase, int> variableIndices =
-        <TypeVariableBuilderBase, int>{};
+    Map<TypeVariableBuilder, int> variableIndices =
+        <TypeVariableBuilder, int>{};
     edges = new List<List<int>>.generate(variables.length, (int i) {
       variableIndices[variables[i]] = i;
       return <int>[];
@@ -735,7 +750,7 @@ class TypeVariablesGraph implements Graph<int> {
 ///
 /// Returns list of the found type builders.
 List<NamedTypeBuilder> findVariableUsesInType(
-    TypeVariableBuilderBase variable, TypeBuilder? type) {
+    TypeVariableBuilder variable, TypeBuilder? type) {
   List<NamedTypeBuilder> uses = <NamedTypeBuilder>[];
   switch (type) {
     case NamedTypeBuilder(
@@ -810,12 +825,12 @@ List<NamedTypeBuilder> findVariableUsesInType(
 /// variable builder from [variables] that references other [variables] in its
 /// bound.  The second element in the pair is the list of found references
 /// represented as type builders.
-List<Object> findInboundReferences(List<TypeVariableBuilderBase> variables) {
+List<Object> findInboundReferences(List<TypeVariableBuilder> variables) {
   List<Object> variablesAndDependencies = <Object>[];
-  for (TypeVariableBuilderBase dependent in variables) {
+  for (TypeVariableBuilder dependent in variables) {
     TypeBuilder? dependentBound = dependent.bound;
     List<NamedTypeBuilder> dependencies = <NamedTypeBuilder>[];
-    for (TypeVariableBuilderBase dependence in variables) {
+    for (TypeVariableBuilder dependence in variables) {
       List<NamedTypeBuilder> uses =
           findVariableUsesInType(dependence, dependentBound);
       if (uses.length != 0) {
@@ -990,11 +1005,11 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
 List<NonSimplicityIssue> getInboundReferenceIssues(
-    List<TypeVariableBuilderBase>? variables) {
+    List<TypeVariableBuilder>? variables) {
   if (variables == null) return <NonSimplicityIssue>[];
 
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
-  for (TypeVariableBuilderBase variable in variables) {
+  for (TypeVariableBuilder variable in variables) {
     TypeBuilder? variableBound = variable.bound;
     if (variableBound != null) {
       List<Object> rawTypesAndMutualDependencies =
@@ -1077,10 +1092,10 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
         :TypeDeclarationBuilder? declaration,
         typeArguments: List<TypeBuilder>? arguments
       ):
-      void visitTypeVariables(List<TypeVariableBuilderBase>? typeVariables) {
+      void visitTypeVariables(List<TypeVariableBuilder>? typeVariables) {
         if (typeVariables == null) return;
 
-        for (TypeVariableBuilderBase variable in typeVariables) {
+        for (TypeVariableBuilder variable in typeVariables) {
           TypeBuilder? variableBound = variable.bound;
           if (variableBound != null) {
             for (List<RawTypeCycleElement> path
@@ -1191,13 +1206,13 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
 
 List<List<RawTypeCycleElement>> _findRawTypeCyclesFromTypeVariables(
     TypeDeclarationBuilder declaration,
-    List<TypeVariableBuilderBase>? typeVariables) {
+    List<TypeVariableBuilder>? typeVariables) {
   if (typeVariables == null) {
     return const [];
   }
 
   List<List<RawTypeCycleElement>> cycles = <List<RawTypeCycleElement>>[];
-  for (TypeVariableBuilderBase variable in typeVariables) {
+  for (TypeVariableBuilder variable in typeVariables) {
     TypeBuilder? variableBound = variable.bound;
     if (variableBound != null) {
       for (List<RawTypeCycleElement> dependencyPath
@@ -1508,7 +1523,7 @@ class RawTypeCycleElement {
 
   /// The type variable that connects [type] to the next element in the
   /// non-simple raw type cycle.
-  TypeVariableBuilderBase? typeVariable;
+  TypeVariableBuilder? typeVariable;
 
   RawTypeCycleElement(this.type, this.typeVariable)
       : assert(typeVariable is NominalVariableBuilder? ||

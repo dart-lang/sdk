@@ -191,7 +191,7 @@ Iterable<Package> makeFrontendServerPackageConfigs(List<String> packageDirs) =>
 Iterable<Package> makePkgVmPackageConfigs(List<String> packageDirs) =>
     makeSpecialPackageConfigs('pkg_vm', packageDirs);
 
-/// Finds the paths of the subdirectories of [dirPath] that contain pubspecs.
+/// Finds the paths of the subdirectories of [parentPath] that contain pubspecs.
 ///
 /// This method recurses until it finds a pubspec.yaml file.
 Iterable<String> listSubdirectories(String parentPath) sync* {
@@ -203,7 +203,10 @@ Iterable<String> listSubdirectories(String parentPath) sync* {
     // Don't recurse into dot directories.
     if (name.startsWith('.')) continue;
 
-    if (File(join(child.path, 'pubspec.yaml')).existsSync()) {
+    final pubspecFile = File(join(child.path, 'pubspec.yaml'));
+    if (pubspecFile.existsSync() && !isWorkspacePubspec(pubspecFile)) {
+      // Stop recursing when we find a pubspec file (and that pubspec does not
+      // define a pub workspace).
       yield join(parentPath, name);
     } else {
       yield* listSubdirectories(join(parentPath, name));
@@ -213,23 +216,34 @@ Iterable<String> listSubdirectories(String parentPath) sync* {
 
 final versionRE = RegExp(r"(?:\^|>=)(\d+\.\d+)");
 
-/// Parses the package name in the pubspec for [packageDir]
+/// Parses the package name in the pubspec for [packageDir].
 String pubspecName(String packageDir) {
   var pubspecFile = File(join(repoRoot, packageDir, 'pubspec.yaml'));
 
   if (!pubspecFile.existsSync()) {
-    print("Error: Missing pubspec for $packageDir.");
+    print('Error: Missing pubspec for $packageDir');
     exit(1);
   }
 
   var contents = pubspecFile.readAsLinesSync();
   if (!contents.any((line) => line.contains('name: '))) {
-    print("Error: Pubspec for $packageDir has no name.");
+    print('Error: Pubspec for $packageDir has no name.');
     exit(1);
   }
 
   var name = contents.firstWhere((line) => line.contains('name: '));
   return name.trim().substring('name:'.length).trim();
+}
+
+/// Returns whether the given pubspec defines a workspace.
+bool isWorkspacePubspec(File pubspecFile) {
+  if (!pubspecFile.existsSync()) {
+    print('Error: Missing pubspec for ${pubspecFile.path}');
+    exit(1);
+  }
+
+  var contents = pubspecFile.readAsLinesSync();
+  return contents.any((line) => line.startsWith('workspace:'));
 }
 
 /// Infers the language version from the SDK constraint in the pubspec for
@@ -240,13 +254,13 @@ String pubspecLanguageVersion(String packageDir) {
   var pubspecFile = File(join(repoRoot, packageDir, 'pubspec.yaml'));
 
   if (!pubspecFile.existsSync()) {
-    print("Error: Missing pubspec for $packageDir.");
+    print('Error: Missing pubspec for $packageDir');
     exit(1);
   }
 
   var contents = pubspecFile.readAsLinesSync();
   if (!contents.any((line) => line.contains('sdk: '))) {
-    print("Error: Pubspec for $packageDir has no SDK constraint.");
+    print('Error: Pubspec for $packageDir has no SDK constraint.');
     exit(1);
   }
 

@@ -43,9 +43,6 @@ config("export_api_symbols") {
       "-Wl,-exported_symbol",
       "-Wl,_Dart_*",
     ]
-  } else if (!is_clang) {
-    # TODO(rmacnak): Remove once bots are updated to a newer gcc.
-    ldflags = [ "-rdynamic" ]
   } else {
     ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
   }
@@ -585,7 +582,7 @@ template("bin_to_assembly") {
   action(target_name) {
     deps = invoker.deps
     script = "../tools/bin_to_assembly.py"
-    output = invoker.input + ".S"
+    output = "$target_gen_dir/$target_name.S"
     args = [
       "--input",
       rebase_path(invoker.input, root_build_dir),
@@ -626,7 +623,7 @@ template("bin_to_coff") {
   action(target_name) {
     deps = invoker.deps
     script = "../tools/bin_to_coff.py"
-    output = invoker.input + ".o"
+    output = "$target_gen_dir/$target_name.obj"
     args = [
       "--input",
       rebase_path(invoker.input, root_build_dir),
@@ -711,6 +708,19 @@ bin_to_linkable("platform_strong_dill_linkable") {
   executable = false
 }
 
+bin_to_linkable("icudtl_linkable") {
+  deps = []
+  if (exec_script("../tools/exists.py",
+                  [ rebase_path("//third_party/icu/flutter/icudtl.dat") ],
+                  "value")) {
+    input = "//third_party/icu/flutter/icudtl.dat"
+  } else {
+    input = "//flutter/third_party/icu/flutter/icudtl.dat"
+  }
+  symbol = "kIcuData"
+  executable = false
+}
+
 source_set("dart_snapshot_cc") {
   visibility = [ ":*" ]
   deps = [
@@ -733,6 +743,12 @@ source_set("dart_kernel_platform_cc") {
   ]
   sources = get_target_outputs(":kernel_service_dill_linkable") +
             get_target_outputs(":platform_strong_dill_linkable")
+}
+
+source_set("icudtl_cc") {
+  visibility = [ ":*" ]
+  deps = [ ":icudtl_linkable" ]
+  sources = get_target_outputs(":icudtl_linkable")
 }
 
 template("dart_executable") {
@@ -779,13 +795,16 @@ template("dart_executable") {
     }
     deps = [
       ":crashpad",
+      ":icudtl_cc",
       "//third_party/boringssl",
+      "//third_party/icu:icui18n",
+      "//third_party/icu:icuuc",
       "//third_party/zlib",
     ]
     if (is_fuchsia) {
       deps += [ "$fuchsia_sdk/pkg/fdio" ]
     }
-    defines = extra_defines
+    defines = [ "DART_EMBED_ICU_DATA" ] + extra_defines
     if (exclude_kernel_service) {
       defines += [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
     }
@@ -797,6 +816,7 @@ template("dart_executable") {
                 "dart_embedder_api_impl.cc",
                 "error_exit.cc",
                 "error_exit.h",
+                "icu.cc",
                 "main_options.cc",
                 "main_options.h",
                 "options.cc",
@@ -888,6 +908,7 @@ dart_executable("dart_precompiled_runtime") {
     "..:add_empty_macho_section_config",
   ]
   extra_deps = [
+    ":icudtl_cc",
     "..:libdart_precompiled_runtime",
     "../platform:libdart_platform_precompiled_runtime",
   ]

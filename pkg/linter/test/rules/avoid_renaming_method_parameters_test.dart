@@ -156,6 +156,94 @@ class B extends A {
 ''');
   }
 
+  test_wildcard_allowed() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_) {}
+}
+''');
+  }
+
+  test_wildcard_featureDisabledFails() async {
+    await assertDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_) {}
+}
+''', [
+      lint(104, 1),
+    ]);
+  }
+
+  test_wildcard_mixed() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int a, int b, int c) {}
+}
+class B extends A {
+  void m(_, b, _) {}
+}
+''');
+  }
+
+  test_wildcard_mixedFails() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int a, int b, int c) {}
+}
+class B extends A {
+  void m(_, c, _) {}
+}
+''', [
+      lint(77, 1),
+    ]);
+  }
+
+  test_wildcard_multipleWildcards() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int a, int b) {}
+}
+class B extends A {
+  void m(_, _) {}
+}
+''');
+  }
+
+  test_wildcard_nonWildcardButUnderscoreBefore() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int a, int b) {}
+}
+class B extends A {
+  void m(_, _b) {}
+}
+''', [
+      lint(70, 2),
+    ]);
+  }
+
+  test_wildcard_nonWildcardButUnderscoresAround() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_p_) {}
+}
+''', [
+      lint(60, 3),
+    ]);
+  }
+
   test_zeroParameters() async {
     await assertNoDiagnostics(r'''
 class A {

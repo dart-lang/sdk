@@ -148,7 +148,10 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
         logger: logger,
         expectExitCodeZero: false,
       );
-      expect(result.exitCode, 0);
+      expect(
+        result.exitCode,
+        isNot(0), // Linking is not enabled. The build hook will throw.
+      );
     });
   });
 }

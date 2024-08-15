@@ -88,6 +88,59 @@ var a = new A();
     expect(await computeHasFixes(), isTrue);
   }
 
+  Future<void> test_hasFixes_in_part() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: [
+      LintNames.unnecessary_new,
+    ]);
+
+    newFile('$testPackageLibPath/a.dart', '''
+part of 'test.dart';
+
+class A { }
+
+var a = new A();
+''');
+
+    await resolveTestCode('''
+part 'a.dart';
+''');
+
+    expect(await computeHasFixes(), isTrue);
+  }
+
+  Future<void> test_hasFixes_in_part_and_library() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: [
+      LintNames.unnecessary_new,
+    ]);
+
+    newFile('$testPackageLibPath/a.dart', '''
+part of 'test.dart';
+
+class A { }
+
+var a = new A();
+''');
+
+    newFile('$testPackageLibPath/b.dart', '''
+part of 'test.dart';
+
+class B { }
+
+var b = new B();
+''');
+
+    await resolveTestCode('''
+part 'a.dart';
+part 'b.dart';
+
+class C{}
+var c = new C();
+''');
+
+    expect(await computeHasFixes(), isTrue);
+    expect(processor.changeMap.libraryMap.length, 3);
+  }
+
   Future<void> test_hasFixes_stoppedAfterFirst() async {
     createAnalysisOptionsFile(experiments: experiments, lints: [
       LintNames.annotate_overrides,

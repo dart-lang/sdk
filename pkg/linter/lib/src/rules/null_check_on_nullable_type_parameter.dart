@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 import 'unnecessary_null_checks.dart';
 
 const _desc =
@@ -44,23 +45,16 @@ T run<T>(T callback()) {
 ''';
 
 class NullCheckOnNullableTypeParameter extends LintRule {
-  static const LintCode code = LintCode(
-      'null_check_on_nullable_type_parameter',
-      "The null check operator shouldn't be used on a variable whose type is a "
-          'potentially nullable type parameter.',
-      correctionMessage: "Try explicitly testing for 'null'.",
-      hasPublishedDocs: true);
-
   NullCheckOnNullableTypeParameter()
       : super(
           name: 'null_check_on_nullable_type_parameter',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
         );
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.null_check_on_nullable_type_parameter;
 
   @override
   void registerNodeProcessors(

@@ -9,6 +9,7 @@ import 'dart:_internal' show patch;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 import 'dart:_runtime' as dart;
+import 'dart:typed_data' show Uint8List;
 
 @patch
 bool typeAcceptsNull<T>() => !JS_GET_FLAG('SOUND_NULL_SAFETY') || null is T;
@@ -64,3 +65,7 @@ bool isSentinel(dynamic value) => throw UnsupportedError('isSentinel');
 
 @patch
 T unsafeCast<T>(dynamic v) => v;
+
+@patch
+Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
+    throw 'Unsupported operation';

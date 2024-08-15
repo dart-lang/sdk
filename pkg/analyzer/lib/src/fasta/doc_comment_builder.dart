@@ -48,25 +48,35 @@ int _findCommentReferenceEnd(String comment, int index, int end) {
 
 bool _isEqualSign(int character) => character == 0x3D /* '=' */;
 
-/// Given that we have just found bracketed text within the given [comment],
-/// looks to see whether that text is (a) followed by a parenthesized link
-/// address, (b) followed by a colon, or (c) followed by optional whitespace
-/// and another square bracket.
+/// Returns whether bracketed text, ending at [rightIndex], appears to be a
+/// Markdown link
 ///
-/// [rightIndex] is the index of the right bracket. Return `true` if the
-/// bracketed text is followed by a link address.
+/// Given that we have just found bracketed text (surrounded with '[' and ']')
+/// within the given [comment], looks to see whether that text is (a) followed
+/// by a parenthesized link address (maybe an [inline link][]), (b) followed by
+/// a colon (maybe a [link reference definition][]), or (c) followed by optional
+/// whitespace and another left square bracket (maybe a [reference link][]).
+///
+/// [rightIndex] is the index of the right bracket.
 ///
 /// This method uses the syntax described by the
 /// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
 /// project.
-bool _isLinkText(String comment, int rightIndex) {
+/// [inline link]: https://spec.commonmark.org/0.31.2/#inline-link
+/// [link reference definition]: https://spec.commonmark.org/0.31.2/#link-reference-definitions
+/// [reference link]: https://spec.commonmark.org/0.31.2/#reference-link
+bool _isLinkText(String comment, int rightIndex,
+    {required bool canBeLinkReference}) {
   var length = comment.length;
   var index = rightIndex + 1;
   if (index >= length) {
     return false;
   }
   var ch = comment.codeUnitAt(index);
-  if (ch == 0x28 || ch == 0x3A) {
+  if (ch == 0x28 /* `(` */) {
+    return true;
+  }
+  if (canBeLinkReference && ch == 0x3A /* `:` */) {
     return true;
   }
   while (isWhitespace(ch)) {
@@ -76,10 +86,10 @@ bool _isLinkText(String comment, int rightIndex) {
     }
     ch = comment.codeUnitAt(index);
   }
-  return ch == 0x5B;
+  return ch == 0x5B /* `[` */;
 }
 
-bool _isRightCurlyBrace(int character) => character == 0x7D /* '}' */;
+bool _isRightCurlyBrace(int character) => character == 0x7D /* `}` */;
 
 /// Reads past any opening whitespace in [content], returning the index after
 /// the last whitespace character.
@@ -95,8 +105,8 @@ int _readWhitespace(String content, [int index = 0]) {
   return index;
 }
 
-/// A class which temporarily stores data for a [CommentType.DOCUMENTATION]-type
-/// [Comment], which is ultimately built with [build].
+/// A class which temporarily stores data for a documentation [Comment], which
+/// is ultimately built with [build].
 final class DocCommentBuilder {
   final Parser _parser;
   final ErrorReporter? _errorReporter;
@@ -268,7 +278,7 @@ final class DocCommentBuilder {
       } else if (_parseNodoc(index: whitespaceEndIndex, content: content)) {
         isPreviousLineEmpty = false;
       } else {
-        _parseDocCommentLine(offset, content);
+        _parseReferences(offset, content);
         isPreviousLineEmpty = content.isEmpty;
       }
       lineInfo = _characterSequence.next();
@@ -297,53 +307,6 @@ final class DocCommentBuilder {
     var blockDocDirectiveBuilder = _blockDocDirectiveBuilderStack.first;
     assert(blockDocDirectiveBuilder.openingTag == null);
     _docDirectives.addAll(blockDocDirectiveBuilder.innerDocDirectives);
-  }
-
-  /// Parses the comment references in [content] which starts at [offset].
-  void _parseDocCommentLine(int offset, String content) {
-    var index = 0;
-    var end = content.length;
-    while (index < end) {
-      var ch = content.codeUnitAt(index);
-      if (ch == 0x5B /* `[` */) {
-        ++index;
-        if (index < end && content.codeUnitAt(index) == 0x3A /* `:` */) {
-          // Skip old-style code block.
-          index = content.indexOf(':]', index + 1) + 1;
-          if (index == 0 || index > end) {
-            break;
-          }
-        } else {
-          var referenceStart = index;
-          index = content.indexOf(']', index);
-          if (index == -1 || index >= end) {
-            // Recovery: terminating ']' is not typed yet.
-            index = _findCommentReferenceEnd(content, referenceStart, end);
-          }
-          if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
-            if (_isLinkText(content, index)) {
-              // TODO(brianwilkerson): Handle the case where there's a library
-              // URI in the link text.
-            } else {
-              var reference = _parseOneCommentReference(
-                content.substring(referenceStart, index),
-                offset + referenceStart,
-              );
-              if (reference != null) {
-                _references.add(reference);
-              }
-            }
-          }
-        }
-      } else if (ch == 0x60 /* '`' */) {
-        // Skip inline code block if there is both starting '`' and ending '`'.
-        var endCodeBlock = content.indexOf('`', index + 1);
-        if (endCodeBlock != -1 && endCodeBlock < end) {
-          index = endCodeBlock;
-        }
-      }
-      ++index;
-    }
   }
 
   bool _parseDocDirectiveTag({required int index, required String content}) {
@@ -616,7 +579,8 @@ final class DocCommentBuilder {
   /// Parses the [source] text, found at [offset] in a single comment reference.
   ///
   /// Returns `null` if the text could not be parsed as a comment reference.
-  CommentReferenceImpl? _parseOneCommentReference(String source, int offset) {
+  CommentReferenceImpl? _parseOneCommentReference(String source, int offset,
+      {required bool isSynthetic}) {
     var result = scanString(source);
     if (result.hasErrors) {
       return null;
@@ -652,9 +616,10 @@ final class DocCommentBuilder {
       token = secondPeriod.next!;
     }
     if (token.isEof) {
-      // Recovery: Insert a synthetic identifier for code completion
+      // Recovery: Insert a synthetic identifier for code completion.
       token = _parser.rewriter.insertSyntheticIdentifier(
           secondPeriod ?? newKeyword ?? _parser.syntheticPreviousToken(token));
+      isSynthetic = true;
       if (begin == token.next!) {
         begin = token;
       }
@@ -675,6 +640,7 @@ final class DocCommentBuilder {
           secondToken,
           secondPeriod,
           token,
+          isSynthetic: isSynthetic,
         );
       }
     } else {
@@ -690,6 +656,7 @@ final class DocCommentBuilder {
             secondToken,
             secondPeriod,
             token,
+            isSynthetic: isSynthetic,
           );
         }
         var keyword = token.keyword;
@@ -713,10 +680,10 @@ final class DocCommentBuilder {
   /// Parses the parameters into a [CommentReferenceImpl].
   ///
   /// If the reference begins with `new `, then pass the Token associated with
-  /// that text as [newToken].
+  /// that text as [newKeyword].
   ///
   /// If the reference contains a single identifier or operator (aside from the
-  /// optional [newToken]), then pass the associated Token as
+  /// optional [newKeyword]), then pass the associated Token as
   /// [identifierOrOperator].
   ///
   /// If the reference contains two identifiers separated by a period, then pass
@@ -737,8 +704,9 @@ final class DocCommentBuilder {
     Token? firstPeriod,
     Token? secondToken,
     Token? secondPeriod,
-    Token identifierOrOperator,
-  ) {
+    Token identifierOrOperator, {
+    required bool isSynthetic,
+  }) {
     // Adjust the token offsets to match the enclosing comment token.
     var token = begin;
     do {
@@ -761,6 +729,7 @@ final class DocCommentBuilder {
       return CommentReferenceImpl(
         newKeyword: newKeyword,
         expression: expression,
+        isSynthetic: isSynthetic,
       );
     } else if (secondToken != null) {
       var expression = PrefixedIdentifierImpl(
@@ -771,12 +740,69 @@ final class DocCommentBuilder {
       return CommentReferenceImpl(
         newKeyword: newKeyword,
         expression: expression,
+        isSynthetic: isSynthetic,
       );
     } else {
       return CommentReferenceImpl(
         newKeyword: newKeyword,
         expression: identifier,
+        isSynthetic: isSynthetic,
       );
+    }
+  }
+
+  /// Parses the comment references in [content] which starts at [offset].
+  void _parseReferences(int offset, String content) {
+    var index = 0;
+    var end = content.length;
+    var seenOnlyWhitespace = true;
+    while (index < end) {
+      var ch = content.codeUnitAt(index);
+      if (ch == 0x5B /* `[` */) {
+        //var canBeLinkReference = !seenNonWhitespace;
+        ++index;
+        if (index < end && content.codeUnitAt(index) == 0x3A /* `:` */) {
+          // Skip old-style code block, e.g. `/// Text [:int:]`.
+          index = content.indexOf(':]', index + 1) + 1;
+          if (index == 0 || index > end) {
+            break;
+          }
+        } else {
+          var referenceStart = index;
+          index = content.indexOf(']', index);
+          var isSynthetic = false;
+          if (index == -1 || index >= end) {
+            // Recovery: terminating ']' is not typed yet.
+            index = _findCommentReferenceEnd(content, referenceStart, end);
+            isSynthetic = true;
+          }
+          if (_isLinkText(content, index,
+              canBeLinkReference: seenOnlyWhitespace)) {
+            // TODO(brianwilkerson): Handle the case where there's a library
+            // URI in the link text.
+          } else {
+            var reference = _parseOneCommentReference(
+              content.substring(referenceStart, index),
+              offset + referenceStart,
+              isSynthetic: isSynthetic,
+            );
+            if (reference != null) {
+              _references.add(reference);
+            }
+          }
+        }
+        seenOnlyWhitespace = false;
+      } else if (ch == 0x60 /* '`' */) {
+        // Skip inline code block if there is both starting '`' and ending '`'.
+        var endCodeBlock = content.indexOf('`', index + 1);
+        if (endCodeBlock != -1 && endCodeBlock < end) {
+          index = endCodeBlock;
+        }
+        seenOnlyWhitespace = false;
+      } else if (!isWhitespace(ch)) {
+        seenOnlyWhitespace = false;
+      }
+      ++index;
     }
   }
 

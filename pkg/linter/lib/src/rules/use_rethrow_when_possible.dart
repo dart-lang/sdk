@@ -7,10 +7,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = r'Use rethrow to rethrow a caught exception.';
 
 const _details = r'''
+From [Effective Dart](https://dart.dev/effective-dart/usage#do-use-rethrow-to-rethrow-a-caught-exception):
+
 **DO** use rethrow to rethrow a caught exception.
 
 As Dart provides rethrow as a feature, it should be used to improve terseness
@@ -39,20 +42,18 @@ try {
 ''';
 
 class UseRethrowWhenPossible extends LintRule {
-  static const LintCode code = LintCode('use_rethrow_when_possible',
-      "Use 'rethrow' to rethrow a caught exception.",
-      correctionMessage: "Try replacing the 'throw' with a 'rethrow'.",
-      hasPublishedDocs: true);
-
   UseRethrowWhenPossible()
       : super(
             name: 'use_rethrow_when_possible',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {
+              LintRuleCategory.brevity,
+              LintRuleCategory.effectiveDart
+            });
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.use_rethrow_when_possible;
 
   @override
   void registerNodeProcessors(

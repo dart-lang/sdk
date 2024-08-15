@@ -2969,6 +2969,8 @@ static LiveRange* FindCover(LiveRange* parent, intptr_t pos) {
       return range;
     }
   }
+  TRACE_ALLOC(THR_Print("Range v%" Pd " is not covered at pos %" Pd "\n",
+                        parent->vreg(), pos));
   UNREACHABLE();
   return nullptr;
 }

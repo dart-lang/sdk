@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::C> values = const <self::C>[self::C::a, self::C::b, self::C::c, self::C::d, self::C::e, self::C::f];
   final field core::String log;
+  static const field core::List<self::C> values = const <self::C>[self::C::a, self::C::b, self::C::c, self::C::d, self::C::e, self::C::f];
   enum-element static const field self::C a = const self::C::•(0, "a", 1, 2, z: 3);
   enum-element static const field self::C b = const self::C::•(1, "b", 1, 2, z: 3);
   enum-element static const field self::C c = const self::C::•(2, "c", 1, 2, z: 3);

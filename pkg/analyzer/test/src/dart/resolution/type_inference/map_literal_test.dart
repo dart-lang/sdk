@@ -122,7 +122,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <testLibraryFragment>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -130,7 +130,7 @@ MethodInvocation
       NullLiteral
         literal: null
         parameter: ParameterMember
-          base: self::@function::f::@parameter::t
+          base: <testLibraryFragment>::@function::f::@parameter::t
           substitution: {T: Map<int, double>?}
         staticType: Null
     rightParenthesis: )

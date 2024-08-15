@@ -178,7 +178,17 @@ void f(Object x) {
 
 @reflectiveTest
 class DeadCodeTest_Language219 extends PubPackageResolutionTest
-    with WithLanguage219Mixin, DeadCodeTestCases_Language212 {}
+    with WithLanguage219Mixin, DeadCodeTestCases_Language212 {
+  @override
+  test_lateWildCardVariable_initializer() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  // Not a wildcard variable.
+  late var _ = 0;
+}
+''');
+  }
+}
 
 mixin DeadCodeTestCases_Language212 on PubPackageResolutionTest {
   @override
@@ -703,7 +713,7 @@ f() {
   bool b = DEBUG || true;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1),
     ]);
   }
 
@@ -1190,6 +1200,24 @@ void g(Never f) {
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
       error(WarningCode.DEAD_CODE, 21, 16),
     ]);
+  }
+
+  test_lateWildCardVariable_initializer() async {
+    await assertErrorsInCode(r'''
+f() {
+  late var _ = 0;
+}
+''', [
+      error(WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER, 21, 1),
+    ]);
+  }
+
+  test_lateWildCardVariable_noInitializer() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  late var _;
+}
+''');
   }
 
   test_notUnassigned_propertyAccess() async {

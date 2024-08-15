@@ -275,6 +275,19 @@ extension X on Object {
     ]);
   }
 
+  /// https://github.com/dart-lang/linter/issues/5030
+  test_internalFunction() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@internal
+void f() {}
+''', [
+      // Technically not in the private API but we can ignore that for testing.
+      error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
+    ]);
+  }
+
   /// https://github.com/dart-lang/linter/issues/4521
   test_internalMixin() async {
     await assertDiagnostics(r'''

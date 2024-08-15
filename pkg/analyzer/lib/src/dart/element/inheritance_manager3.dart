@@ -85,13 +85,6 @@ class InheritanceManager3 {
       return candidates[0];
     }
 
-    // Check for a getter/method conflict.
-    var conflict = _checkForGetterMethodConflict(name, candidates);
-    if (conflict != null) {
-      conflicts?.add(conflict);
-      return null;
-    }
-
     var targetLibrary = targetClass.library as LibraryElementImpl;
     var typeSystem = targetLibrary.typeSystem;
 
@@ -445,11 +438,20 @@ class InheritanceManager3 {
 
     for (var entry in namedCandidates.entries) {
       var name = entry.key;
+      var candidates = entry.value;
+
+      // There is no way to resolve the getter / method conflict.
+      if (candidates.length > 1) {
+        var conflict = _checkForGetterMethodConflict(name, candidates);
+        if (conflict != null) {
+          conflicts.add(conflict);
+          continue;
+        }
+      }
+
       if (map.containsKey(name)) {
         continue;
       }
-
-      var candidates = entry.value;
 
       var combinedSignature = combineSignatures(
         targetClass: targetClass,

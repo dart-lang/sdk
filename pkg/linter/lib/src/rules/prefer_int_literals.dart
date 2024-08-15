@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../linter_lint_codes.dart';
 
 const _desc = 'Prefer int literals over double literals.';
 
@@ -34,19 +35,15 @@ main() {
 ''';
 
 class PreferIntLiterals extends LintRule {
-  static const LintCode code = LintCode(
-      'prefer_int_literals', "Unnecessary use of a 'double' literal.",
-      correctionMessage: "Try using an 'int' literal.");
-
   PreferIntLiterals()
       : super(
             name: 'prefer_int_literals',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
-  LintCode get lintCode => code;
+  LintCode get lintCode => LinterLintCode.prefer_int_literals;
 
   @override
   void registerNodeProcessors(

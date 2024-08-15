@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/null_aware_elements/constant_null_aware_map_entry_shorting.dart:6:59: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+// const Map<String, int> mapLiteral = <String, int>{?key: 1 / 0}; // Ok: due to shorting, the value is never evaluated.
+//                                                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::String? key = #C1;
+static const field core::Map<core::String, core::int> mapLiteral = #C2;
+
+constants  {
+  #C1 = null
+  #C2 = <core::String, core::int>{}
+}

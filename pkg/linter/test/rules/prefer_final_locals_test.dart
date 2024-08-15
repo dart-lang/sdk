@@ -44,6 +44,42 @@ f() {
 ''');
   }
 
+  test_destructured_listPattern_wildcard() async {
+    await assertDiagnostics(r'''
+f() {
+  var [_, b] = ['a', 'b'];
+}
+''', [
+      lint(8, 3),
+    ]);
+  }
+
+  test_destructured_listPattern_wildcard_parenthesized() async {
+    await assertDiagnostics(r'''
+f() {
+  var [(_), b] = ['a', 'b'];
+}
+''', [
+      lint(8, 3),
+    ]);
+  }
+
+  test_destructured_listPattern_wildcard_single() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var [_] = ['a'];
+}
+''');
+  }
+
+  test_destructured_listPattern_wildcard_single_parenthesized() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var [(_)] = ['a'];
+}
+''');
+  }
+
   test_destructured_listPatternWithRest() async {
     await assertDiagnostics(r'''
 f() {
@@ -90,6 +126,24 @@ f() {
 ''');
   }
 
+  test_destructured_mapPattern_wildcard() async {
+    await assertDiagnostics(r'''
+f() {
+  var {'first': a, 'second': _} = {'first': 1, 'second': 2};
+}
+''', [
+      lint(8, 3),
+    ]);
+  }
+
+  test_destructured_mapPattern_wildcard_single() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var {'first': _} = {'first': 1};
+}
+''');
+  }
+
   test_destructured_objectPattern() async {
     await assertDiagnostics(r'''
 class A {
@@ -125,6 +179,40 @@ class A {
 f() {
   var A(a: b) = A(1);
   ++b;
+}
+''');
+  }
+
+  test_destructured_objectPattern_wildcard() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  var A(a: _) = A(1);
+}
+''');
+  }
+
+  test_destructured_objectPattern_wildcard_multipleFields() async {
+    await assertDiagnostics(r'''
+class A {
+  int a, b;
+  A(this.a, this.b);
+}
+f() {
+  var A(a: x, b: _) = A(1, 2);
+}
+''', [
+      lint(53, 3),
+    ]);
+  }
+
+  test_destructured_parenthesizedPattern_wildcard() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var (_) = ('a');
 }
 ''');
   }
@@ -178,11 +266,39 @@ f() {
 ''');
   }
 
+  test_destructured_recordPattern_forLoop_wildcard() async {
+    await assertDiagnostics(r'''
+f() {
+  for (var (_, b) in [(1, 2)]) { }
+}
+''', [
+      lint(21, 1),
+    ]);
+  }
+
   test_destructured_recordPattern_mutated() async {
     await assertNoDiagnostics(r'''
 f() {
   var (a, b) = (1, 'b');
   ++a;
+}
+''');
+  }
+
+  test_destructured_recordPattern_wildcard() async {
+    await assertDiagnostics(r'''
+f() {
+  var (_, b) = ('a', 'b');
+}
+''', [
+      lint(8, 3),
+    ]);
+  }
+
+  test_destructured_recordPattern_wildcard_multipleWildcards() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var (_, _) = ('a', 'b');
 }
 ''');
   }
@@ -223,6 +339,16 @@ f(Object o) {
 ''');
   }
 
+  test_ifPatternList_wildcard() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case [int x, int _]) x;
+}
+''', [
+      lint(28, 5),
+    ]);
+  }
+
   test_ifPatternMap() async {
     await assertDiagnostics(r'''
 f(Object o) {
@@ -237,6 +363,14 @@ f(Object o) {
     await assertNoDiagnostics(r'''
 f(Object o) {
   if (o case {'x': final x}) x;
+}
+''');
+  }
+
+  test_ifPatternMap_wildcard() async {
+    await assertNoDiagnostics(r'''
+f(Object o) {
+  if (o case {'x': var _});
 }
 ''');
   }
@@ -269,6 +403,19 @@ f(Object o) {
 ''');
   }
 
+  test_ifPatternObject_wildcard() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int c;
+  C(this.c);
+}
+
+f(Object o) {
+  if (o case C(c: var _));
+}
+''');
+  }
+
   test_ifPatternRecord() async {
     await assertDiagnostics(r'''
 f(Object o) {
@@ -286,6 +433,16 @@ f(Object o) {
   if (o case (final int x, final int y)) x;
 }
 ''');
+  }
+
+  test_ifPatternRecord_wildcard() async {
+    await assertDiagnostics(r'''
+f(Object o) {
+  if (o case (int x, int _)) x;
+}
+''', [
+      lint(28, 5),
+    ]);
   }
 
   test_nonDeclaration_destructured_recordPattern() async {
@@ -338,6 +495,14 @@ void f() {
 ''', [
       lint(13, 3),
     ]);
+  }
+
+  test_notReassigned_withVar_wildcard() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var _ = '';
+}
+''');
   }
 
   test_reassigned() async {
@@ -405,6 +570,24 @@ f() {
 ''');
   }
 
+  test_switch_objectPattern_wildcard() async {
+    await assertDiagnostics(r'''
+class A {
+  int a;
+  A(this.a);
+}
+
+f() {
+  switch (A(1)) {
+    case A(a: >0 && var _): print('');
+  }
+}
+''', [
+      // No lint.
+      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 83, 1),
+    ]);
+  }
+
   test_switch_recordPattern() async {
     await assertDiagnostics(r'''
 f() {
@@ -434,6 +617,26 @@ f() {
   switch ((1, 2)) {
     case (var a, final int b): ++a;
   }
+}
+''');
+  }
+
+  test_switch_recordPattern_wildcard() async {
+    await assertDiagnostics(r'''
+f() {
+  switch ((1, 2)) {
+    case (var a, int _): a;
+  }
+}
+''', [
+      lint(36, 5),
+    ]);
+  }
+
+  test_wildcardLocal() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var _ = 0;
 }
 ''');
   }

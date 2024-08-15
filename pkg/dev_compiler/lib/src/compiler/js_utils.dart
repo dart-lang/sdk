@@ -72,3 +72,72 @@ Expression createRtiUniverse() {
 
   return ObjectInitializer(universeFields);
 }
+
+/// Whether a variable with [name] is referenced in the [node].
+bool variableIsReferenced(String name, Node node) {
+  var finder = _IdentifierFinder.instance(name);
+  node.accept(finder);
+  return finder.found;
+}
+
+class _IdentifierFinder extends BaseVisitorVoid {
+  String nameToFind;
+  bool found = false;
+
+  _IdentifierFinder(this.nameToFind);
+
+  static final _instance = _IdentifierFinder('');
+
+  factory _IdentifierFinder.instance(String nameToFind) => _instance
+    ..nameToFind = nameToFind
+    ..found = false;
+
+  @override
+  void visitIdentifier(node) {
+    if (node.name == nameToFind) found = true;
+  }
+
+  @override
+  void visitNode(node) {
+    if (!found) super.visitNode(node);
+  }
+}
+
+/// Given the function [fn], returns a function declaration statement, binding
+/// `this` and `super` if necessary (using an arrow function).
+Statement toBoundFunctionStatement(Fun fn, Identifier name) {
+  if (usesThisOrSuper(fn)) {
+    return js.statement('const # = (#) => {#}', [name, fn.params, fn.body]);
+  } else {
+    return FunctionDeclaration(name, fn);
+  }
+}
+
+/// Returns whether [node] uses `this` or `super`.
+bool usesThisOrSuper(Expression node) {
+  var finder = _ThisOrSuperFinder.instance;
+  finder.found = false;
+  node.accept(finder);
+  return finder.found;
+}
+
+class _ThisOrSuperFinder extends BaseVisitorVoid {
+  bool found = false;
+
+  static final instance = _ThisOrSuperFinder();
+
+  @override
+  void visitThis(This node) {
+    found = true;
+  }
+
+  @override
+  void visitSuper(Super node) {
+    found = true;
+  }
+
+  @override
+  void visitNode(Node node) {
+    if (!found) super.visitNode(node);
+  }
+}

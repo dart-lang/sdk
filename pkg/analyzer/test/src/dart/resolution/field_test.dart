@@ -33,7 +33,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element: dart:core::@class::Object
+      element: dart:core::<fragment>::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -42,7 +42,7 @@ FieldDeclaration
         initializer: SuperExpression
           superKeyword: super
           staticType: A
-        declaredElement: self::@class::A::@field::f
+        declaredElement: <testLibraryFragment>::@class::A::@field::f
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -62,7 +62,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element: dart:core::@class::Object
+      element: dart:core::<fragment>::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -71,7 +71,7 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: self::@class::A::@field::f
+        declaredElement: <testLibraryFragment>::@class::A::@field::f
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -94,7 +94,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     variables
       VariableDeclaration
@@ -102,9 +102,9 @@ FieldDeclaration
         equals: =
         initializer: SimpleIdentifier
           token: a
-          staticElement: self::@class::A::@getter::a
+          staticElement: <testLibraryFragment>::@class::A::@getter::a
           staticType: int
-        declaredElement: self::@class::A::@field::b
+        declaredElement: <testLibraryFragment>::@class::A::@field::b
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -127,7 +127,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     variables
       VariableDeclaration
@@ -135,9 +135,9 @@ FieldDeclaration
         equals: =
         initializer: SimpleIdentifier
           token: a
-          staticElement: self::@class::A::@getter::a
+          staticElement: <testLibraryFragment>::@class::A::@getter::a
           staticType: int
-        declaredElement: self::@class::A::@field::b
+        declaredElement: <testLibraryFragment>::@class::A::@field::b
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -160,7 +160,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<fragment>::@class::int
       type: int
     variables
       VariableDeclaration
@@ -169,14 +169,14 @@ FieldDeclaration
         initializer: MethodInvocation
           methodName: SimpleIdentifier
             token: a
-            staticElement: self::@class::A::@method::a
+            staticElement: <testLibraryFragment>::@class::A::@method::a
             staticType: int Function()
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
           staticInvokeType: int Function()
           staticType: int
-        declaredElement: self::@class::A::@field::b
+        declaredElement: <testLibraryFragment>::@class::A::@field::b
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -203,7 +203,7 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: self::@class::A::@field::a
+        declaredElement: <testLibraryFragment>::@class::A::@field::a
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -286,7 +286,7 @@ FieldDeclaration
           leftBracket: [
           rightBracket: ]
           staticType: List<T>
-        declaredElement: self::@class::A::@field::f
+        declaredElement: <testLibraryFragment>::@class::A::@field::f
   semicolon: ;
   declaredElement: <null>
 ''');

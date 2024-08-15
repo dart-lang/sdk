@@ -6,7 +6,7 @@ import "dart:io";
 
 import "package:expect/expect.dart";
 import "package:expect/minitest.dart"; // ignore: deprecated_member_use
-import 'package:front_end/src/compute_platform_binaries_location.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart';
 import "package:kernel/kernel.dart";
 import "package:path/path.dart" as path;
 
