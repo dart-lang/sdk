@@ -478,6 +478,8 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       _checkNoNamedParameters(node.function);
     }
+
+    super.visitConstructor(node);
   }
 
   @override
