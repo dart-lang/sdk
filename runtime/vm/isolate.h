@@ -31,6 +31,7 @@
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
 #include "vm/random.h"
+#include "vm/service.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/thread_pool.h"
@@ -706,7 +707,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
+  void VisitPointersInDefaultServiceIdZone(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.
@@ -1247,8 +1248,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
 #if !defined(PRODUCT)
-  ObjectIdRing* object_id_ring() const { return object_id_ring_; }
-  ObjectIdRing* EnsureObjectIdRing();
+  RingServiceIdZone& GetDefaultServiceIdZone() const;
 #endif  // !defined(PRODUCT)
 
   bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
@@ -1648,8 +1648,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-  // Ring buffer of objects assigned an id.
-  ObjectIdRing* object_id_ring_ = nullptr;
+  MallocGrowableArray<RingServiceIdZone*> service_id_zones_;
 #endif  // !defined(PRODUCT)
 
   // All other fields go here.

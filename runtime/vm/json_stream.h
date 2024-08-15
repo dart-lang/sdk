@@ -99,9 +99,6 @@ class JSONStream : ValueObject {
 
   void PostReply();
 
-  void set_id_zone(ServiceIdZone* id_zone) { id_zone_ = id_zone; }
-  ServiceIdZone* id_zone() { return id_zone_; }
-
   TextBuffer* buffer() { return writer_.buffer(); }
   const char* ToCString() { return writer_.ToCString(); }
 
@@ -351,9 +348,9 @@ class JSONStream : ValueObject {
   }
 
   JSONWriter writer_;
-  // Default service id zone.
-  RingServiceIdZone default_id_zone_;
-  ServiceIdZone* id_zone_;
+  // The default Service ID zone of the isolate where the RPC associated with
+  // this |JSONStream| is being handled.
+  RingServiceIdZone* default_id_zone_;
   Dart_Port reply_port_;
   Instance* seq_;
   Array* parameter_keys_;
