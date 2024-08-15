@@ -1797,15 +1797,43 @@ part of my.lib.name;
   }
 
   Future<void> test_LITERAL_DOUBLE() async {
-    addTestFile('var V = 4.2;');
+    addTestFile('''
+var V1 = 4.2;
+var V2 = 1_2.3_4;
+var V3 = 33e44;
+var V4 = 3_3e4_4;
+var V5 = 33.44e55;
+var V6 = 3_3.4_4e5_5;
+''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.LITERAL_DOUBLE, '4.2;', '4.2'.length);
+    assertHasRegion(
+        HighlightRegionType.LITERAL_DOUBLE, '1_2.3_4;', '1_2.3_4'.length);
+    assertHasRegion(
+        HighlightRegionType.LITERAL_DOUBLE, '33e44;', '33e44'.length);
+    assertHasRegion(
+        HighlightRegionType.LITERAL_DOUBLE, '3_3e4_4;', '3_3e4_4'.length);
+    assertHasRegion(
+        HighlightRegionType.LITERAL_DOUBLE, '33.44e55;', '33.44e55'.length);
+    assertHasRegion(HighlightRegionType.LITERAL_DOUBLE, '3_3.4_4e5_5;',
+        '3_3.4_4e5_5'.length);
   }
 
   Future<void> test_LITERAL_INTEGER() async {
-    addTestFile('var V = 42;');
+    addTestFile('''
+var V1 = 42;
+var V2 = 1_000_000;
+var V3 = 0x123;
+var V4 = 0x12_34;
+''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.LITERAL_INTEGER, '42;');
+    assertHasRegion(
+        HighlightRegionType.LITERAL_INTEGER, '1_000_000;', '1_000_000'.length);
+    assertHasRegion(
+        HighlightRegionType.LITERAL_INTEGER, '0x123;', '0x123'.length);
+    assertHasRegion(
+        HighlightRegionType.LITERAL_INTEGER, '0x12_34;', '0x12_34'.length);
   }
 
   Future<void> test_LITERAL_LIST() async {
