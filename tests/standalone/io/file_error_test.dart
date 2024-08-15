@@ -23,7 +23,7 @@ bool checkCannotOpenFileException(e) {
   } else if (Platform.operatingSystem == "macos") {
     Expect.equals(2, e.osError.errorCode);
   } else if (Platform.operatingSystem == "windows") {
-    Expect.equals(3, e.osError.errorCode);
+    Expect.equals(123, e.osError.errorCode);
   }
   return true;
 }

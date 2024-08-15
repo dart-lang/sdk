@@ -188,10 +188,20 @@ class DirectoryTest {
           buffer.write("/../${subDirName}");
         }
         var long = new Directory("${buffer.toString()}");
-        Future<void>.value(long.delete()).catchError((error) {
-          Expect.isTrue(error is FileSystemException);
-          asyncEnd();
-        });
+        // Passes on Windows, fails everywhere else.
+        // Windows can handle path names up to 32k in length(provided that
+        // they are '\\?\'-prefixed, which they are internally in dart io),
+        // which is more than Linux or Mac can handle.
+        if (Platform.isWindows) {
+          long.delete().then((_) {
+            asyncEnd();
+          });
+        } else {
+          Future<void>.value(long.delete()).catchError((error) {
+            Expect.isTrue(error is FileSystemException);
+            asyncEnd();
+          });
+        }
       });
     });
   }
@@ -250,7 +260,12 @@ class DirectoryTest {
       Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
       StringBuffer buffer = createLongDirName(d);
       var long = new Directory("${buffer.toString()}");
-      Expect.throws(long.deleteSync);
+      if (!Platform.isWindows) {
+        // Windows can handle path names up to 32k in length(provided that
+        // they are '\\?\'-prefixed, which they are internally in dart io),
+        // which is more than Linux or Mac can handle.
+        Expect.throws(long.deleteSync);
+      }
       d.deleteSync(recursive: true);
     }
     {

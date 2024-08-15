@@ -379,115 +379,33 @@ static bool IsDeviceNamespacePrefixed(const std::unique_ptr<wchar_t[]>& path) {
                  kDeviceNamespacePrefixLength) == 0;
 }
 
-// Converts the given UTF8 path to wide char. If resulting path does not
-// fit into MAX_PATH / MAX_DIRECTORY_PATH (or if |force_long_prefix| is true)
-// then converts the path to the absolute `\\?\`-prefixed form.
+// Converts the given UTF8 path to wide char '\\?\'-prefix absolute path.
 //
-// This function does not change paths which are already prefixed with `\\.\`
-// prefix.
-//
-// UNC paths (`\\server\share\...`) are converted to `\\?\UNC\server\share\...`
-// if necessary.
-//
-// Note:
-// 1. Some WinAPI functions (like SetCurrentDirectoryW) are always limited
-//    to MAX_PATH long paths and converting to `\\?\`-prefixed form does not
-//    remove this limitation. Always check Win API documentation.
-// 2. This function might change relative path to an absolute path.
-static std::unique_ptr<wchar_t[]> ToWinAPIPath(const char* utf8_path,
-                                               bool is_file,
-                                               bool force_long_prefix) {
+// Note that some WinAPI functions (like SetCurrentDirectoryW) are always
+// limited to MAX_PATH long paths and converting to `\\?\`-prefixed form does
+// not remove this limitation. Always check Win API documentation.
+std::unique_ptr<wchar_t[]> ToWinAPIPath(const char* utf8_path) {
   auto path = Utf8ToWideChar(utf8_path);
-
-  // File name and Directory name have different size limit.
-  // Reference: https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
-  const int path_short_limit = is_file ? MAX_PATH : MAX_DIRECTORY_PATH;
-
-  std::unique_ptr<wchar_t[]> absolute_path;
-  // Need to convert to absolute path if we want to use long prefix
-  // to normalize the path - this is to get rid of .., . that can't be
-  // interpreted in the long-prefixed mode).
-  if (force_long_prefix || !IsAbsolutePath(path.get())) {
-    absolute_path = ConvertToAbsolutePath(path);
-    if (absolute_path == nullptr) {
-      return path;
-    }
-  } else {
-    absolute_path = std::move(path);
+  // Among other things ConvertToAbsolutePath replaces '/' with '\',
+  // which PathAllocCanonicalize won't do.
+  auto abs_path = ConvertToAbsolutePath(path);
+  if (abs_path.get() == nullptr) {
+    return std::unique_ptr<wchar_t[]>(nullptr);
   }
 
-  int path_length = wcslen(absolute_path.get());
-
-  if (!force_long_prefix && path_length < path_short_limit) {
-    if (path == nullptr) {
-      return absolute_path;
-    } else {
-      return path;
-    }
+  PWSTR canonical_path;
+  if (PathAllocCanonicalize(abs_path.get(),
+                            PATHCCH_ENSURE_IS_EXTENDED_LENGTH_PATH,
+                            &canonical_path) != S_OK) {
+    return std::unique_ptr<wchar_t[]>(nullptr);
   }
-
-  if (IsLongPathPrefixed(absolute_path) ||
-      IsDeviceNamespacePrefixed(absolute_path)) {
-    return absolute_path;
-  }
-
-  // If the path already starts with `\\` but not with `\\?\` or `\\.\`
-  // then we need to replace `\\` with `\\?\UNC\`.
-  const bool is_unc = (wcsncmp(absolute_path.get(), L"\\\\", 2) == 0);
-  const wchar_t* kUNCLongPathPrefix = L"\\\\?\\UNC\\";
-  const int kUNCLongPathPrefixLength = 8;
-
-  // Add prefix and replace forward slashes with backward slashes.
-  //
-  // If the path is UNC we skip the first two characters of the path `\\`
-  // hence -2.
-  const intptr_t result_length =
-      (is_unc ? kUNCLongPathPrefixLength : kLongPathPrefixLength) +
-      path_length + (is_unc ? -2 : 0) + 1;
-  auto result = std::make_unique<wchar_t[]>(result_length);
-  intptr_t result_pos;
-  intptr_t path_pos;
-  if (is_unc) {
-    wcsncpy(result.get(), kUNCLongPathPrefix, kUNCLongPathPrefixLength);
-    result_pos = kUNCLongPathPrefixLength;
-    path_pos = 2;
-  } else {
-    wcsncpy(result.get(), kLongPathPrefix, kLongPathPrefixLength);
-    result_pos = kLongPathPrefixLength;
-    path_pos = 0;
-  }
-  while (path_pos < path_length) {
-    wchar_t ch = absolute_path[path_pos++];
-    result.get()[result_pos++] = ch == L'/' ? L'\\' : ch;
-  }
-  result.get()[result_pos++] = L'\0';
-  ASSERT(result_pos == result_length);
+  auto result = std::unique_ptr<wchar_t[]>(wcsdup(canonical_path));
+  LocalFree(canonical_path);
   return result;
 }
 
-// Converts the given UTF8 path to wide char. If resulting path does not
-// fit into MAX_DIRECTORY_PATH (or if |force_long_prefix| is true) then
-// converts the path to the absolute `\\?\`-prefixed form.
-//
-// Note:
-// 1. Some WinAPI functions (like SetCurrentDirectoryW) are always limited
-//    to MAX_PATH long paths and converting to `\\?\`-prefixed form does not
-//    remove this limitation. Always check Win API documentation.
-// 2. This function might change relative path to an absolute path.
-static std::unique_ptr<wchar_t[]> ToWinAPIFilePath(
-    const char* path,
-    bool force_long_prefix = false) {
-  return ToWinAPIPath(path, /*is_file=*/true, force_long_prefix);
-}
-
-std::unique_ptr<wchar_t[]> ToWinAPIDirectoryPath(
-    const char* path,
-    bool force_long_prefix /* = false */) {
-  return ToWinAPIPath(path, /*is_file=*/false, force_long_prefix);
-}
-
 File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   File* file = FileOpenW(path.get(), mode);
   return file;
 }
@@ -557,7 +475,7 @@ static bool FileExists(const wchar_t* path) {
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   return FileExists(path.get());
 }
 
@@ -571,7 +489,7 @@ bool File::ExistsUri(Namespace* namespc, const char* uri) {
 }
 
 bool File::Create(Namespace* namespc, const char* name, bool exclusive) {
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   int flags = O_RDONLY | O_CREAT;
   if (exclusive) {
     flags |= O_EXCL;
@@ -616,12 +534,12 @@ typedef struct _REPARSE_DATA_BUFFER {
 bool File::CreateLink(Namespace* namespc,
                       const char* utf8_name,
                       const char* utf8_target) {
-  const auto name = ToWinAPIFilePath(utf8_name);
+  const auto name = ToWinAPIPath(utf8_name);
 
   std::unique_ptr<wchar_t[]> target;
   bool target_is_directory;
   if (File::IsAbsolutePath(utf8_target)) {
-    target = ToWinAPIFilePath(utf8_target);
+    target = ToWinAPIPath(utf8_target);
     target_is_directory =
         File::GetType(target.get(), /*follow_links=*/true) == kIsDirectory;
   } else {
@@ -706,7 +624,7 @@ bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
 }
 
 bool File::Delete(Namespace* namespc, const char* name) {
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   int status = _wremove(path.get());
   return status != -1;
 }
@@ -731,20 +649,20 @@ static bool DeleteLinkHelper(const wchar_t* path) {
 }
 
 bool File::DeleteLink(Namespace* namespc, const char* name) {
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   return DeleteLinkHelper(path.get());
 }
 
 static bool RenameHelper(File::Type expected,
                          const char* old_name,
                          const char* new_name) {
-  const auto old_path = ToWinAPIFilePath(old_name);
+  const auto old_path = ToWinAPIPath(old_name);
   File::Type type = File::GetType(old_path.get(), /*follow_links=*/false);
   if (type != expected) {
     SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
-  const auto new_path = ToWinAPIFilePath(new_name);
+  const auto new_path = ToWinAPIPath(new_name);
   DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
 
   // Symbolic links (e.g. produced by Link.create) to directories on Windows
@@ -860,8 +778,8 @@ bool File::Copy(Namespace* namespc,
                 const char* new_name) {
   // We are going to concatenate new path with temporary file names in
   // CopyIntoTempFile so we force long prefix no matter what.
-  const auto old_path = ToWinAPIFilePath(old_name);
-  const auto new_path = ToWinAPIFilePath(new_name, /*force_long_prefix=*/true);
+  const auto old_path = ToWinAPIPath(old_name);
+  const auto new_path = ToWinAPIPath(new_name);
 
   File::Type type = GetType(old_path.get(), /*follow_links=*/false);
   if (type != kIsFile) {
@@ -893,7 +811,7 @@ bool File::Copy(Namespace* namespc,
 
 int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
   struct __stat64 st;
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   if (!StatHelper(path.get(), &st)) {
     return -1;
   }
@@ -904,7 +822,7 @@ const char* File::LinkTarget(Namespace* namespc,
                              const char* pathname,
                              char* dest,
                              int dest_size) {
-  const auto path = ToWinAPIFilePath(pathname);
+  const auto path = ToWinAPIPath(pathname);
   HANDLE dir_handle = CreateFileW(
       path.get(), GENERIC_READ,
       FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
@@ -991,7 +909,7 @@ const char* File::LinkTarget(Namespace* namespc,
 }
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   File::Type type = GetType(path.get(), /*follow_links=*/true);
   data[kType] = type;
   if (type != kDoesNotExist) {
@@ -1011,7 +929,7 @@ void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
 
 time_t File::LastAccessed(Namespace* namespc, const char* name) {
   struct __stat64 st;
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   if (!StatHelper(path.get(), &st)) {
     return -1;
   }
@@ -1020,7 +938,7 @@ time_t File::LastAccessed(Namespace* namespc, const char* name) {
 
 time_t File::LastModified(Namespace* namespc, const char* name) {
   struct __stat64 st;
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   if (!StatHelper(path.get(), &st)) {
     return -1;
   }
@@ -1031,7 +949,7 @@ bool File::SetLastAccessed(Namespace* namespc,
                            const char* name,
                            int64_t millis) {
   struct __stat64 st;
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   if (!StatHelper(path.get(), &st)) {  // Checks that it is a file.
     return false;
   }
@@ -1060,7 +978,7 @@ bool File::SetLastModified(Namespace* namespc,
                            int64_t millis) {
   // First get the current times.
   struct __stat64 st;
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   if (!StatHelper(path.get(), &st)) {
     return false;
   }
@@ -1089,7 +1007,7 @@ const char* File::GetCanonicalPath(Namespace* namespc,
                                    const char* pathname,
                                    char* dest,
                                    int dest_size) {
-  const auto path = ToWinAPIFilePath(pathname);
+  const auto path = ToWinAPIPath(pathname);
   HANDLE file_handle =
       CreateFileW(path.get(), 0, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
                   FILE_FLAG_BACKUP_SEMANTICS, nullptr);
@@ -1191,7 +1109,7 @@ File::Type File::GetType(const wchar_t* path, bool follow_links) {
 File::Type File::GetType(Namespace* namespc,
                          const char* name,
                          bool follow_links) {
-  const auto path = ToWinAPIFilePath(name);
+  const auto path = ToWinAPIPath(name);
   return GetType(path.get(), follow_links);
 }
 
@@ -1202,8 +1120,8 @@ File::Identical File::AreIdentical(Namespace* namespc_1,
   USE(namespc_1);
   USE(namespc_2);
   BY_HANDLE_FILE_INFORMATION file_info[2];
-  const std::unique_ptr<wchar_t[]> file_names[2] = {ToWinAPIFilePath(file_1),
-                                                    ToWinAPIFilePath(file_2)};
+  const std::unique_ptr<wchar_t[]> file_names[2] = {ToWinAPIPath(file_1),
+                                                    ToWinAPIPath(file_2)};
   for (int i = 0; i < 2; ++i) {
     HANDLE file_handle = CreateFileW(
         file_names[i].get(), 0,
