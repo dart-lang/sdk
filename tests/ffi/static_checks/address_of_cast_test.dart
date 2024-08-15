@@ -19,12 +19,13 @@ void testTypedData() {
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   myNative(buffer.address);
-  //              ^^^^^^^
+  //       ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //              ^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 
-  // The second error is not expected actually,
+  // The second[cfe] error is not expected actually,
   // its a bug. Reported here https://github.com/dart-lang/sdk/issues/56462
   // once it fixed the second error can be removed.
   // This is same across remaining test cases (testStructField, testUnionField),
@@ -38,8 +39,9 @@ void testStructField() {
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   myNative(myStruct.arr.address);
-  //                    ^^^^^^^
+  //       ^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                    ^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 }
@@ -52,8 +54,9 @@ void testUnionField() {
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 
   myNative(myUnion.arr.address);
-  //                   ^^^^^^^
+  //       ^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                   ^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 }
