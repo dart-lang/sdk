@@ -904,6 +904,9 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   /// The fragments of the extension types declared in this fragment.
   List<ExtensionTypeFragment> get extensionTypes2;
 
+  /// The `part` directives within this fragment.
+  List<LibraryFragmentInclude> get fragmentIncludes;
+
   /// The fragments of the top-level functions declared in this fragment.
   List<TopLevelFunctionFragment> get functions2;
 
@@ -925,10 +928,7 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
   @override
   LibraryFragment? get nextFragment;
 
-  /// The parts included by this unit.
-  List<PartInclude> get partIncludes;
-
-  /// The prefixes used by [libraryImports].
+  /// The prefixes used by [libraryImports2].
   ///
   /// Each prefix can be used in more than one `import` directive.
   List<PrefixElement2> get prefixes;
@@ -950,6 +950,14 @@ abstract class LibraryFragment implements Fragment, _Annotatable {
 
   /// The fragments of the type aliases declared in this fragment.
   List<TypeAliasFragment> get typeAliases2;
+}
+
+/// A 'part' directive within a library fragment.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class LibraryFragmentInclude {
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
 }
 
 /// An import directive within a library.
@@ -1040,14 +1048,6 @@ abstract class MultiplyDefinedElement2 implements Element2 {
 abstract class MultiplyInheritedExecutableElement2
     implements ExecutableElement2 {
   List<ExecutableElement2> get inheritedElements2;
-}
-
-/// A 'part' directive within a library fragment.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PartInclude {
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
 }
 
 abstract class PatternVariableElement2 implements LocalVariableElement2 {
