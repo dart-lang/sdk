@@ -6434,13 +6434,9 @@ class BodyBuilder extends StackListenerImpl
                   buildProblem(message.messageObject, nameToken.charOffset,
                       nameToken.lexeme.length));
             case TypeAliasBuilder():
-            // Coverage-ignore(suite): Not run.
             case NominalVariableBuilder():
-            // Coverage-ignore(suite): Not run.
             case StructuralVariableBuilder():
-            // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
-            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
