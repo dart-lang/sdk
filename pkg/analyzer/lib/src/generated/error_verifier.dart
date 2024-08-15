@@ -2595,6 +2595,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeElementImpl element,
   ) {
     for (var typeParameter in element.typeParameters) {
+      if (typeParameter.isWildcardVariable) continue;
+
       var name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (element.name == name) {

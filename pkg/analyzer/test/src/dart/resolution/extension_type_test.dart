@@ -334,4 +334,49 @@ ExtensionTypeDeclaration
   declaredElement: <testLibraryFragment>::@extensionType::A
 ''');
   }
+
+  test_typeParameters_wildcards() async {
+    await assertNoErrorsInCode(r'''
+extension type ET<_, _, _ extends num>(int _) {}
+''');
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: ET
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: _
+        declaredElement: _@18
+      TypeParameter
+        name: _
+        declaredElement: _@21
+      TypeParameter
+        name: _
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::<fragment>::@class::num
+          type: num
+        declaredElement: _@24
+    rightBracket: >
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+      element: dart:core::<fragment>::@class::int
+      type: int
+    fieldName: _
+    rightParenthesis: )
+    fieldElement: <testLibraryFragment>::@extensionType::ET::@field::_
+    constructorElement: <testLibraryFragment>::@extensionType::ET::@constructor::new
+  leftBracket: {
+  rightBracket: }
+  declaredElement: <testLibraryFragment>::@extensionType::ET
+''');
+  }
 }
