@@ -9,7 +9,6 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/identifiers.dart';
 import '../base/local_scope.dart';
 import '../base/messages.dart'
     show
@@ -394,7 +393,7 @@ class DeclaredSourceConstructorBuilder
 
   @override
   String get fullNameForErrors {
-    return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
+    return "${declarationBuilder.name}"
         "${name.isEmpty ? '' : '.$name'}";
   }
 

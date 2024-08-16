@@ -17,7 +17,7 @@ import '../api_prototype/lowering_predicates.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
 import '../base/export.dart' show Export;
-import '../base/identifiers.dart' show Identifier, QualifiedName;
+import '../base/identifiers.dart' show Identifier, QualifiedNameIdentifier;
 import '../base/import.dart' show Import;
 import '../base/messages.dart';
 import '../base/modifier.dart'
@@ -1576,8 +1576,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     String prefix;
     String? suffix;
     int charOffset;
-    if (identifier is QualifiedName) {
-      Identifier qualifier = identifier.qualifier as Identifier;
+    if (identifier is QualifiedNameIdentifier) {
+      Identifier qualifier = identifier.qualifier;
       prefix = qualifier.name;
       suffix = identifier.name;
       charOffset = qualifier.nameOffset;

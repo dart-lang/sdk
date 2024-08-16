@@ -7,7 +7,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/identifiers.dart';
 import '../base/messages.dart'
     show
         messageConstFactoryRedirectionToNonConst,
@@ -333,7 +332,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   String get fullNameForErrors {
-    return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
+    return "${declarationBuilder.name}"
         "${name.isEmpty ? '' : '.$name'}";
   }
 

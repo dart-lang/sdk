@@ -963,14 +963,14 @@ class OutlineBuilder extends StackListenerImpl {
       assert(prefix is ParserRecovery,
           "Unexpected prefix $prefix (${prefix.runtimeType})");
       push(prefix);
-    } else if (suffix is! Identifier) {
+    } else if (suffix is! SimpleIdentifier) {
       assert(
           suffix is ParserRecovery,
           // Coverage-ignore(suite): Not run.
           "Unexpected suffix $suffix (${suffix.runtimeType})");
       push(suffix);
     } else {
-      push(suffix.withQualifier(prefix));
+      push(suffix.withIdentifierQualifier(prefix));
     }
   }
 
@@ -988,7 +988,8 @@ class OutlineBuilder extends StackListenerImpl {
     String? libraryName;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (name != null && name is! ParserRecovery) {
-      libraryName = flattenName(name, offsetForToken(libraryKeyword), uri);
+      libraryName =
+          flattenName(name as Identifier, offsetForToken(libraryKeyword), uri);
     } else {
       reportIfNotEnabled(
           libraryFeatures.unnamedLibraries, semicolon.charOffset, noLength);
