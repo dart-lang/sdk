@@ -345,10 +345,14 @@ abstract final class StringBase extends WasmStringBase
 
   String operator [](int index) => String.fromCharCode(codeUnitAt(index));
 
+  @pragma('wasm:prefer-inline')
+  @pragma('wasm:static-dispatch')
   bool get isEmpty {
     return this.length == 0;
   }
 
+  @pragma('wasm:prefer-inline')
+  @pragma('wasm:static-dispatch')
   bool get isNotEmpty => !isEmpty;
 
   String operator +(String other) {
@@ -1185,15 +1189,20 @@ final class OneByteString extends StringBase {
 
   @override
   @pragma('wasm:prefer-inline')
+  @pragma('wasm:static-dispatch')
   int _codeUnitAtUnchecked(int index) => _array.readUnsigned(index);
 
   @override
+  @pragma('wasm:prefer-inline')
+  @pragma('wasm:static-dispatch')
   int codeUnitAt(int index) {
     indexCheck(index, length);
     return _codeUnitAtUnchecked(index);
   }
 
   @override
+  @pragma('wasm:prefer-inline')
+  @pragma('wasm:static-dispatch')
   int get length => _array.length;
 
   @override
