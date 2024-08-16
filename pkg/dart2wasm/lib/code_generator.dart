@@ -2211,30 +2211,19 @@ abstract class AstCodeGenerator
   w.ValueType _directSet(Member target, Expression receiver, Expression value,
       {required bool preserved}) {
     w.Local? temp;
-    if (target is Field) {
-      ClassInfo info = translator.classInfo[target.enclosingClass]!;
-      int fieldIndex = translator.fieldIndex[target]!;
-      w.ValueType receiverType = info.nonNullableType;
-      w.ValueType fieldType = info.struct.fields[fieldIndex].type.unpacked;
-      wrap(receiver, receiverType);
-      wrap(value, fieldType);
-      if (preserved) {
-        temp = addLocal(fieldType);
-        b.local_tee(temp);
-      }
-      b.struct_set(info.struct, fieldIndex);
-    } else {
-      w.FunctionType targetFunctionType =
-          translator.signatureForDirectCall(target.reference);
-      w.ValueType paramType = targetFunctionType.inputs.last;
-      wrap(receiver, targetFunctionType.inputs.first);
-      wrap(value, paramType);
-      if (preserved) {
-        temp = addLocal(paramType);
-        b.local_tee(temp);
-      }
-      call(target.reference);
+    final Reference reference = (target is Field)
+        ? target.setterReference!
+        : (target as Procedure).reference;
+    final w.FunctionType targetFunctionType =
+        translator.signatureForDirectCall(reference);
+    final w.ValueType paramType = targetFunctionType.inputs.last;
+    wrap(receiver, targetFunctionType.inputs.first);
+    wrap(value, paramType);
+    if (preserved) {
+      temp = addLocal(paramType);
+      b.local_tee(temp);
     }
+    call(reference);
     if (preserved) {
       b.local_get(temp!);
       return temp.type;
@@ -3806,6 +3795,14 @@ class ImplicitFieldAccessorCodeGenerator extends AstCodeGenerator {
 
   @override
   void generateInternal() {
+    thisLocal = preciseThisLocal = paramLocals[0];
+
+    // Conceptually not needed for implicit accessors, but currently the code
+    // that instantiates types uses closure information to see whether a type
+    // parameter was captured (and loads it from context chain) or not (and
+    // loads it directly from `this`).
+    closures = Closures(translator, field);
+
     final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
     setSourceMapSourceAndFileOffset(source, field.fileOffset);
 
@@ -3830,9 +3827,33 @@ class ImplicitFieldAccessorCodeGenerator extends AstCodeGenerator {
       // Implicit setter
       w.Local valueLocal = paramLocals[1];
       getThis();
+
+      if (!translator.options.omitImplicitTypeChecks) {
+        if (field.isCovariantByClass || field.isCovariantByDeclaration) {
+          final boxedType = field.type.isPotentiallyNullable
+              ? translator.topInfo.nullableType
+              : translator.topInfo.nonNullableType;
+          w.Local operand = valueLocal;
+          if (!operand.type.isSubtypeOf(boxedType)) {
+            final boxedOperand = addLocal(boxedType);
+            b.local_get(operand);
+            translator.convertType(b, operand.type, boxedOperand.type);
+            b.local_set(boxedOperand);
+            operand = boxedOperand;
+          }
+          b.local_get(operand);
+          _generateArgumentTypeCheck(
+            field.name.text,
+            operand.type as w.RefType,
+            field.type,
+          );
+        }
+      }
+
       b.local_get(valueLocal);
       translator.convertType(b, valueLocal.type, fieldType);
       b.struct_set(struct, fieldIndex);
+      assert(functionType.outputs.isEmpty);
     }
     b.end();
   }

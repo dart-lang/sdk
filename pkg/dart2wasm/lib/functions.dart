@@ -471,9 +471,9 @@ w.FunctionType _makeFunctionType(
   final List<w.ValueType> inputs = _getInputTypes(
       translator, target, receiverType, isImportOrExport, translateType);
 
-  // Mutable fields have initializer setters with a non-empty output list,
-  // so check that the member is a Procedure
-  final bool emptyOutputList = member is Procedure && member.isSetter;
+  final bool emptyOutputList =
+      (member is Field && member.setterReference == target) ||
+          (member is Procedure && member.isSetter);
 
   bool isVoidType(DartType t) =>
       (isImportOrExport && t is VoidType) ||
