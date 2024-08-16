@@ -498,6 +498,11 @@ class I8ByteData extends ByteDataBase {
   }
 }
 
+extension WasmI8ByteDataExt on I8ByteData {
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmI8> get data => _data;
+}
+
 class _I16ByteData extends ByteDataBase {
   final WasmArray<WasmI16> _data;
 
@@ -2332,6 +2337,46 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
   ByteBuffer get buffer => _F64ByteBuffer(_data);
 }
 
+extension WasmI8ArrayBaseExt on _WasmI8ArrayBase {
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmI8> get data => _data;
+
+  @pragma('wasm:prefer-inline')
+  int get offsetInElements => _offsetInElements;
+}
+
+extension WasmI16ArrayBaseExt on _WasmI16ArrayBase {
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmI16> get data => _data;
+
+  @pragma('wasm:prefer-inline')
+  int get offsetInElements => _offsetInElements;
+}
+
+extension WasmI32ArrayBaseExt on _WasmI32ArrayBase {
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmI32> get data => _data;
+
+  @pragma('wasm:prefer-inline')
+  int get offsetInElements => _offsetInElements;
+}
+
+extension WasmF32ArrayBaseExt on _WasmF32ArrayBase {
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmF32> get data => _data;
+
+  @pragma('wasm:prefer-inline')
+  int get offsetInElements => _offsetInElements;
+}
+
+extension WasmF64ArrayBaseExt on _WasmF64ArrayBase {
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmF64> get data => _data;
+
+  @pragma('wasm:prefer-inline')
+  int get offsetInElements => _offsetInElements;
+}
+
 class I8List extends _WasmI8ArrayBase
     with
         _IntListMixin,
@@ -2380,8 +2425,6 @@ class U8List extends _WasmI8ArrayBase
 
   U8List._(WasmArray<WasmI8> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
-
-  WasmArray<WasmI8> get data => _data;
 
   factory U8List._withMutability(WasmArray<WasmI8> buffer, int offsetInBytes,
           int length, bool mutable) =>

@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show patch, unsafeCast;
+import 'dart:_internal' show patch, unsafeCast, unsafeCastOpaque;
 import 'dart:_js_helper' show JS;
+import 'dart:_js_types' show JSArrayBase, JSDataViewImpl;
+import 'dart:js_interop';
 import 'dart:_string';
 import 'dart:_typed_data';
 import 'dart:_wasm';
@@ -129,17 +131,249 @@ String jsStringToDartString(JSStringImpl s) {
     ''', s.toExternRef);
 }
 
+@pragma('wasm:prefer-inline')
+void _copyFromWasmI8Array(WasmExternRef jsArray, int jsArrayOffset,
+    WasmArray<WasmI8> wasmArray, int wasmOffset, int length) {
+  JS<WasmExternRef?>(
+      """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
+          const getByte = dartInstance.exports.\$wasmI8ArrayGet;
+          for (let i = 0; i < length; i++) {
+            jsArray[jsArrayOffset + i] = getByte(wasmArray, wasmArrayOffset + i);
+          }
+        }""",
+      jsArray,
+      jsArrayOffset.toWasmI32(),
+      wasmArray,
+      wasmOffset.toWasmI32(),
+      length.toWasmI32());
+}
+
+@pragma('wasm:prefer-inline')
+void _copyFromWasmI16Array(WasmExternRef jsArray, int jsArrayOffset,
+    WasmArray<WasmI16> wasmArray, int wasmOffset, int length) {
+  JS<WasmExternRef?>(
+      """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
+          const getByte = dartInstance.exports.\$wasmI16ArrayGet;
+          for (let i = 0; i < length; i++) {
+            jsArray[jsArrayOffset + i] = getByte(wasmArray, wasmArrayOffset + i);
+          }
+        }""",
+      jsArray,
+      jsArrayOffset.toWasmI32(),
+      wasmArray,
+      wasmOffset.toWasmI32(),
+      length.toWasmI32());
+}
+
+@pragma('wasm:prefer-inline')
+void _copyFromWasmI32Array(WasmExternRef jsArray, int jsArrayOffset,
+    WasmArray<WasmI32> wasmArray, int wasmOffset, int length) {
+  JS<WasmExternRef?>(
+      """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
+          const getByte = dartInstance.exports.\$wasmI32ArrayGet;
+          for (let i = 0; i < length; i++) {
+            jsArray[jsArrayOffset + i] = getByte(wasmArray, wasmArrayOffset + i);
+          }
+        }""",
+      jsArray,
+      jsArrayOffset.toWasmI32(),
+      wasmArray,
+      wasmOffset.toWasmI32(),
+      length.toWasmI32());
+}
+
+@pragma('wasm:prefer-inline')
+void _copyFromWasmF32Array(WasmExternRef jsArray, int jsArrayOffset,
+    WasmArray<WasmF32> wasmArray, int wasmOffset, int length) {
+  JS<WasmExternRef?>(
+      """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
+          const getByte = dartInstance.exports.\$wasmF32ArrayGet;
+          for (let i = 0; i < length; i++) {
+            jsArray[jsArrayOffset + i] = getByte(wasmArray, wasmArrayOffset + i);
+          }
+        }""",
+      jsArray,
+      jsArrayOffset.toWasmI32(),
+      wasmArray,
+      wasmOffset.toWasmI32(),
+      length.toWasmI32());
+}
+
+@pragma('wasm:prefer-inline')
+void _copyFromWasmF64Array(WasmExternRef jsArray, int jsArrayOffset,
+    WasmArray<WasmF64> wasmArray, int wasmOffset, int length) {
+  JS<WasmExternRef?>(
+      """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
+          const getByte = dartInstance.exports.\$wasmF64ArrayGet;
+          for (let i = 0; i < length; i++) {
+            jsArray[jsArrayOffset + i] = getByte(wasmArray, wasmArrayOffset + i);
+          }
+        }""",
+      jsArray,
+      jsArrayOffset.toWasmI32(),
+      wasmArray,
+      wasmOffset.toWasmI32(),
+      length.toWasmI32());
+}
+
 @patch
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsUint8ArrayFromDartUint8List(Uint8List l) =>
-    JS<WasmExternRef?>("""(data, length) => {
-          const jsBytes = new Uint8Array(length);
-          const getByte = dartInstance.exports.\$uint8ListGet;
+WasmExternRef jsInt8ArrayFromDartInt8List(Int8List l) {
+  assert(l is! JSArrayBase);
+
+  if (l is I8List) {
+    final length = l.length;
+    final jsArray = (JSInt8Array.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmI8Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Int8Array, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsUint8ArrayFromDartUint8List(Uint8List l) {
+  assert(l is! JSArrayBase);
+
+  if (l is U8List) {
+    final length = l.length;
+    final jsArray = (JSUint8Array.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmI8Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Uint8Array, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsUint8ClampedArrayFromDartUint8ClampedList(Uint8ClampedList l) {
+  assert(l is! JSArrayBase);
+
+  if (l is U8ClampedList) {
+    final length = l.length;
+    final jsArray =
+        (JSUint8ClampedArray.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmI8Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Uint8ClampedArray, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsInt16ArrayFromDartInt16List(Int16List l) {
+  assert(l is! JSArrayBase);
+
+  if (l is I16List) {
+    final length = l.length;
+    final jsArray = (JSInt16Array.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmI16Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Int16Array, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsUint16ArrayFromDartUint16List(Uint16List l) {
+  assert(l is! JSArrayBase);
+
+  if (l is U16List) {
+    final length = l.length;
+    final jsArray = (JSUint16Array.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmI16Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Uint16Array, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsInt32ArrayFromDartInt32List(Int32List l) {
+  assert(l is! JSArrayBase);
+
+  if (l is I32List) {
+    final length = l.length;
+    final jsArray = (JSInt32Array.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmI32Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Int32Array, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsUint32ArrayFromDartUint32List(Uint32List l) {
+  assert(l is! JSArrayBase);
+
+  if (l is U32List) {
+    final length = l.length;
+    final jsArray = (JSUint32Array.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmI32Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Uint32Array, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsFloat32ArrayFromDartFloat32List(Float32List l) {
+  assert(l is! JSArrayBase);
+
+  if (l is F32List) {
+    final length = l.length;
+    final jsArray = (JSFloat32Array.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmF32Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Float32Array, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsFloat64ArrayFromDartFloat64List(Float64List l) {
+  assert(l is! JSArrayBase);
+
+  if (l is F64List) {
+    final length = l.length;
+    final jsArray = (JSFloat64Array.withLength(length) as JSValue).toExternRef!;
+    _copyFromWasmF64Array(jsArray, 0, l.data, l.offsetInElements, length);
+    return jsArray;
+  }
+
+  return JS<WasmExternRef>('l => arrayFromDartList(Float64Array, l)', l);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+WasmExternRef jsDataViewFromDartByteData(ByteData l, int length) {
+  assert(l is! JSDataViewImpl);
+
+  if (l is I8ByteData) {
+    final jsArrayBuffer = JSArrayBuffer(length);
+    final jsArray = JSUint8Array(jsArrayBuffer, 0, length);
+    _copyFromWasmI8Array(
+        (jsArray as JSValue).toExternRef!, 0, l.data, l.offsetInBytes, length);
+    return (JSDataView(jsArrayBuffer, 0, length) as JSValue).toExternRef!;
+  }
+
+  return JS<WasmExternRef>("""(data, length) => {
+          const getByte = dartInstance.exports.\$byteDataGetUint8;
+          const view = new DataView(new ArrayBuffer(length));
           for (let i = 0; i < length; i++) {
-            jsBytes[i] = getByte(data, i);
+            view.setUint8(i, getByte(data, i));
           }
-          return jsBytes;
-        }""", l, l.length.toWasmI32());
+          return view;
+        }""", l, length.toWasmI32());
+}
 
 @pragma("wasm:export", "\$stringAllocate1")
 OneByteString _stringAllocate1(WasmI32 length) {
@@ -278,12 +512,14 @@ OneByteString _stringAllocate1_10(
 }
 
 @pragma("wasm:export", "\$stringRead1")
-WasmI32 _stringRead1(OneByteString string, WasmI32 index) {
+WasmI32 _stringRead1(WasmExternRef ref, WasmI32 index) {
+  final string = unsafeCastOpaque<OneByteString>(ref.internalize());
   return string.codeUnitAtUnchecked(index.toIntSigned()).toWasmI32();
 }
 
 @pragma("wasm:export", "\$stringWrite1")
-void _stringWrite1(OneByteString string, WasmI32 index, WasmI32 codePoint) {
+void _stringWrite1(WasmExternRef ref, WasmI32 index, WasmI32 codePoint) {
+  final string = unsafeCastOpaque<OneByteString>(ref.internalize());
   string.setUnchecked(index.toIntSigned(), codePoint.toIntSigned());
 }
 
@@ -293,19 +529,49 @@ TwoByteString _stringAllocate2(WasmI32 length) {
 }
 
 @pragma("wasm:export", "\$stringRead2")
-WasmI32 _stringRead2(TwoByteString string, WasmI32 index) {
+WasmI32 _stringRead2(WasmExternRef ref, WasmI32 index) {
+  final string = unsafeCastOpaque<TwoByteString>(ref.internalize());
   return string.codeUnitAtUnchecked(index.toIntSigned()).toWasmI32();
 }
 
 @pragma("wasm:export", "\$stringWrite2")
-void _stringWrite2(TwoByteString string, WasmI32 index, WasmI32 codePoint) {
+void _stringWrite2(WasmExternRef ref, WasmI32 index, WasmI32 codePoint) {
+  final string = unsafeCastOpaque<TwoByteString>(ref.internalize());
   string.setUnchecked(index.toIntSigned(), codePoint.toIntSigned());
 }
 
-@pragma("wasm:export", "\$uint8ListGet")
-WasmI32 _uint8ListGet(Uint8List bytes, WasmI32 index) {
-  if (bytes is U8List) {
-    return bytes[index.toIntSigned()].toWasmI32();
-  }
-  return bytes[index.toIntSigned()].toWasmI32();
+@pragma("wasm:export", "\$wasmI8ArrayGet")
+WasmI32 _wasmI8ArrayGet(WasmExternRef ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmI8>>(ref.internalize());
+  return array.readUnsigned(index.toIntUnsigned()).toWasmI32();
+}
+
+@pragma("wasm:export", "\$wasmI16ArrayGet")
+WasmI32 _wasmI16ArrayGet(WasmExternRef ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmI16>>(ref.internalize());
+  return array.readUnsigned(index.toIntUnsigned()).toWasmI32();
+}
+
+@pragma("wasm:export", "\$wasmI32ArrayGet")
+WasmI32 _wasmI32ArrayGet(WasmExternRef ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmI32>>(ref.internalize());
+  return array.readUnsigned(index.toIntUnsigned()).toWasmI32();
+}
+
+@pragma("wasm:export", "\$wasmF32ArrayGet")
+WasmF32 _wasmF32ArrayGet(WasmExternRef ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmF32>>(ref.internalize());
+  return array[index.toIntUnsigned()];
+}
+
+@pragma("wasm:export", "\$wasmF64ArrayGet")
+WasmF64 _wasmF64ArrayGet(WasmExternRef ref, WasmI32 index) {
+  final array = unsafeCastOpaque<WasmArray<WasmF64>>(ref.internalize());
+  return array[index.toIntUnsigned()];
+}
+
+@pragma("wasm:export", "\$byteDataGetUint8")
+WasmI32 _byteDataGetUint8(WasmExternRef ref, WasmI32 index) {
+  final byteData = unsafeCastOpaque<ByteData>(ref.internalize());
+  return byteData.getUint8(index.toIntSigned()).toWasmI32();
 }

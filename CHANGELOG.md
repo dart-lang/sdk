@@ -41,7 +41,12 @@ number, like `.`, `x`, or the `e` in scientific notation.
 - **Breaking Change** [#52444][]: Removed the `Platform()` constructor, which
   has been deprecated since Dart 3.1.
 
+- **Breaking Change** [#53618][]: `HttpClient` now responds to a redirect
+  that is missing a "Location" header by throwing `RedirectException`, instead
+  of `StateError`.
+
 [#52444]: https://github.com/dart-lang/sdk/issues/52444
+[#53618]: https://github.com/dart-lang/sdk/issues/53618
 
 #### `dart:js_interop`
 

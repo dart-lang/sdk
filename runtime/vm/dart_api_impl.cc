@@ -562,9 +562,6 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
                               void** peer) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (!raw_obj->IsHeapObject()) {
-    return false;
-  }
   intptr_t cid = raw_obj->GetClassId();
   if (cid == kOneByteStringCid || cid == kTwoByteStringCid) {
     auto isolate_group = arguments->thread()->isolate_group();
@@ -577,21 +574,19 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
 bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArg0();
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid >= kNumPredefinedCids) {
-      ASSERT(Instance::Cast(Object::Handle(raw_obj)).IsValidNativeIndex(0));
-      TypedDataPtr native_fields =
-          reinterpret_cast<CompressedTypedDataPtr*>(
-              UntaggedObject::ToAddr(raw_obj) + sizeof(UntaggedObject))
-              ->Decompress(raw_obj->heap_base());
-      if (native_fields == TypedData::null()) {
-        *value = 0;
-      } else {
-        *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->untag()->data());
-      }
-      return true;
+  intptr_t cid = raw_obj->GetClassId();
+  if (cid >= kNumPredefinedCids) {
+    ASSERT(Instance::Cast(Object::Handle(raw_obj)).IsValidNativeIndex(0));
+    TypedDataPtr native_fields =
+        reinterpret_cast<CompressedTypedDataPtr*>(
+            UntaggedObject::ToAddr(raw_obj) + sizeof(UntaggedObject))
+            ->Decompress(raw_obj->heap_base());
+    if (native_fields == TypedData::null()) {
+      *value = 0;
+    } else {
+      *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->untag()->data());
     }
+    return true;
   }
   return false;
 }
@@ -601,16 +596,14 @@ bool Api::GetNativeBooleanArgument(NativeArguments* arguments,
                                    bool* value) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid == kBoolCid) {
-      *value = (raw_obj == Object::bool_true().ptr());
-      return true;
-    }
-    if (cid == kNullCid) {
-      *value = false;
-      return true;
-    }
+  intptr_t cid = raw_obj->GetClassId();
+  if (cid == kBoolCid) {
+    *value = (raw_obj == Object::bool_true().ptr());
+    return true;
+  }
+  if (cid == kNullCid) {
+    *value = false;
+    return true;
   }
   return false;
 }
@@ -620,16 +613,16 @@ bool Api::GetNativeIntegerArgument(NativeArguments* arguments,
                                    int64_t* value) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid == kMintCid) {
-      *value = static_cast<MintPtr>(raw_obj)->untag()->value_;
-      return true;
-    }
-    return false;
+  intptr_t cid = raw_obj->GetClassId();
+  if (cid == kSmiCid) {
+    *value = Smi::Value(static_cast<SmiPtr>(raw_obj));
+    return true;
   }
-  *value = Smi::Value(static_cast<SmiPtr>(raw_obj));
-  return true;
+  if (cid == kMintCid) {
+    *value = static_cast<MintPtr>(raw_obj)->untag()->value_;
+    return true;
+  }
+  return false;
 }
 
 bool Api::GetNativeDoubleArgument(NativeArguments* arguments,
@@ -637,21 +630,21 @@ bool Api::GetNativeDoubleArgument(NativeArguments* arguments,
                                   double* value) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid == kDoubleCid) {
-      *value = static_cast<DoublePtr>(raw_obj)->untag()->value_;
-      return true;
-    }
-    if (cid == kMintCid) {
-      *value =
-          static_cast<double>(static_cast<MintPtr>(raw_obj)->untag()->value_);
-      return true;
-    }
-    return false;
+  intptr_t cid = raw_obj->GetClassId();
+  if (cid == kDoubleCid) {
+    *value = static_cast<DoublePtr>(raw_obj)->untag()->value_;
+    return true;
   }
-  *value = static_cast<double>(Smi::Value(static_cast<SmiPtr>(raw_obj)));
-  return true;
+  if (cid == kSmiCid) {
+    *value = static_cast<double>(Smi::Value(static_cast<SmiPtr>(raw_obj)));
+    return true;
+  }
+  if (cid == kMintCid) {
+    *value =
+        static_cast<double>(static_cast<MintPtr>(raw_obj)->untag()->value_);
+    return true;
+  }
+  return false;
 }
 
 bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
@@ -660,7 +653,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
                                     intptr_t* field_values) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  intptr_t cid = raw_obj->GetClassIdMayBeSmi();
+  intptr_t cid = raw_obj->GetClassId();
   int class_num_fields = arguments->thread()
                              ->isolate_group()
                              ->class_table()

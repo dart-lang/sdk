@@ -369,11 +369,14 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   Object& smi_object = Object::Handle(smi.ptr());
   EXPECT(smi.IsSmi());
   EXPECT(smi_object.IsSmi());
+  EXPECT(smi_object.ptr()->IsSmi());
   EXPECT_EQ(5, smi.Value());
   const Object& object = Object::Handle();
   EXPECT(!object.IsSmi());
+  EXPECT(!object.ptr()->IsSmi());
   smi_object = Object::null();
   EXPECT(!smi_object.IsSmi());
+  EXPECT(!smi_object.ptr()->IsSmi());
 
   EXPECT(smi.Equals(Smi::Handle(Smi::New(5))));
   EXPECT(!smi.Equals(Smi::Handle(Smi::New(6))));
@@ -397,6 +400,7 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
 
   EXPECT_EQ(5, smi.AsInt64Value());
   EXPECT_EQ(5.0, smi.AsDoubleValue());
+  EXPECT_EQ(5, Integer::GetInt64Value(smi.ptr()));
 
   Smi& a = Smi::Handle(Smi::New(5));
   Smi& b = Smi::Handle(Smi::New(3));
@@ -535,6 +539,9 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   }
   Integer& i = Integer::Handle(Integer::New(DART_2PART_UINT64_C(1, 0)));
   EXPECT(i.IsMint());
+  EXPECT(i.ptr()->IsMint());
+  EXPECT(!i.IsSmi());
+  EXPECT(!i.ptr()->IsSmi());
   EXPECT(!i.IsZero());
   EXPECT(!i.IsNegative());
   Integer& i1 = Integer::Handle(Integer::New(DART_2PART_UINT64_C(1010, 0)));
@@ -544,6 +551,7 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   EXPECT(!i.Equals(i1));
   int64_t test = DART_2PART_UINT64_C(1010, 0);
   EXPECT_EQ(test, i2.value());
+  EXPECT_EQ(test, Integer::GetInt64Value(i2.ptr()));
 
   Mint& a = Mint::Handle();
   a ^= Integer::New(DART_2PART_UINT64_C(5, 0));
@@ -8140,8 +8148,7 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
     const intptr_t entry_start = i * SubtypeTestCache::kTestEntryLength;
     {
       const intptr_t cid =
-          array.At(entry_start + SubtypeTestCache::kTestResult)
-              ->GetClassIdMayBeSmi();
+          array.At(entry_start + SubtypeTestCache::kTestResult)->GetClassId();
       EXPECT(cid == kNullCid || cid == kBoolCid);
     }
 
@@ -8152,8 +8159,7 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
 #define USED_INPUT_CASE(Input, ExpectedCids)                                   \
   case (Input) + 1: {                                                          \
     RELEASE_ASSERT((Input) + 1 == check_ordering);                             \
-    const intptr_t cid =                                                       \
-        array.At(entry_start + (Input))->GetClassIdMayBeSmi();                 \
+    const intptr_t cid = array.At(entry_start + (Input))->GetClassId();        \
     if (!(ExpectedCids)) {                                                     \
       FAIL("expected: " #ExpectedCids ", got: cid %" Pd "", cid);              \
     }                                                                          \
@@ -8195,7 +8201,7 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
       // STCs and never set unused inputs, the only thing we know is that the
       // entry is GC-safe. Since we don't expect valid values for unused inputs,
       // we just check if it's either a Smi or null.
-      const intptr_t cid = array.At(entry_start + i)->GetClassIdMayBeSmi();
+      const intptr_t cid = array.At(entry_start + i)->GetClassId();
       EXPECT(cid == kSmiCid || cid == kNullCid);
     }
   }

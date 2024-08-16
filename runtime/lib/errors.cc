@@ -31,21 +31,25 @@ static ScriptPtr FindScript(DartFrameIterator* iterator) {
   ASSERT(!assert_error_class.IsNull());
   bool hit_assertion_error = false;
   for (; stack_frame != nullptr; stack_frame = iterator->NextFrame()) {
-    code = stack_frame->LookupDartCode();
-    if (code.is_optimized()) {
-      InlinedFunctionsIterator inlined_iterator(code, stack_frame->pc());
-      while (!inlined_iterator.Done()) {
-        func = inlined_iterator.function();
-        if (hit_assertion_error) {
-          return func.script();
-        }
-        ASSERT(!hit_assertion_error);
-        hit_assertion_error = (func.Owner() == assert_error_class.ptr());
-        inlined_iterator.Advance();
-      }
-      continue;
+    if (stack_frame->is_interpreted()) {
+      func = stack_frame->LookupDartFunction();
     } else {
-      func = code.function();
+      code = stack_frame->LookupDartCode();
+      if (code.is_optimized()) {
+        InlinedFunctionsIterator inlined_iterator(code, stack_frame->pc());
+        while (!inlined_iterator.Done()) {
+          func = inlined_iterator.function();
+          if (hit_assertion_error) {
+            return func.script();
+          }
+          ASSERT(!hit_assertion_error);
+          hit_assertion_error = (func.Owner() == assert_error_class.ptr());
+          inlined_iterator.Advance();
+        }
+        continue;
+      } else {
+        func = code.function();
+      }
     }
     ASSERT(!func.IsNull());
     if (hit_assertion_error) {

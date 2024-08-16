@@ -84,6 +84,7 @@ group("run_ffi_unit_tests") {
 }
 
 group("runtime_precompiled") {
+  import("runtime/runtime_args.gni")
   deps = [
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:gen_snapshot",
@@ -93,6 +94,10 @@ group("runtime_precompiled") {
   ]
   if (is_linux || is_android) {
     deps += [ "runtime/bin:abstract_socket_test" ]
+  }
+  if (dart_dynamic_modules) {
+    deps += [ "utils/dart2bytecode:dart2bytecode_snapshot" ]
+    deps += [ "utils/dynamic_module_runner:dynamic_module_runner_snapshot" ]
   }
 }
 

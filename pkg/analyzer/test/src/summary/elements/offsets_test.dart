@@ -979,6 +979,19 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+      extensions
+        extension Raw @22
+          reference: <testLibraryFragment>::@extension::Raw
+        extension HasDocComment @75
+          reference: <testLibraryFragment>::@extension::HasDocComment
+        extension HasAnnotation @118
+          reference: <testLibraryFragment>::@extension::HasAnnotation
+        extension AnnotationThenComment @191
+          reference: <testLibraryFragment>::@extension::AnnotationThenComment
+        extension CommentThenAnnotation @272
+          reference: <testLibraryFragment>::@extension::CommentThenAnnotation
+        extension CommentAroundAnnotation @353
+          reference: <testLibraryFragment>::@extension::CommentAroundAnnotation
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -2670,6 +2683,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 

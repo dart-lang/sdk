@@ -590,7 +590,6 @@ class SourceLoader extends Loader {
     _checkForDartCore(uri, libraryBuilder, compilationUnit);
 
     if (target.backendTarget.mayDefineRestrictedType(originImportUri)) {
-      // Coverage-ignore-block(suite): Not run.
       libraryBuilder.mayImplementRestrictedTypes = true;
     }
     if (uri.isScheme("dart") && originImportUri.isScheme("dart")) {

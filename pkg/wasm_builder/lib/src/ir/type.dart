@@ -755,6 +755,21 @@ class StructType extends DataType {
     return true;
   }
 
+  /// Whether this is structurally equivalent to [other].
+  ///
+  /// The result should be the same as:
+  /// `isStructuralSubtypeOf(other) && other.isStructuralSubtypeOf(this)`.
+  bool isStructurallyEqualTo(StructType other) {
+    if (fields.length != other.fields.length) return false;
+    for (int i = 0; i < other.fields.length; i++) {
+      var f1 = fields[i];
+      var f2 = other.fields[i];
+      if (f1.mutable != f2.mutable) return false;
+      if (f1.type != f2.type) return false;
+    }
+    return true;
+  }
+
   @override
   void serializeDefinitionInner(Serializer s) {
     s.writeByte(0x5F); // -0x21

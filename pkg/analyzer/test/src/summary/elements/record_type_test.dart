@@ -258,6 +258,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension IntStringExtension @10
+          reference: <testLibraryFragment>::@extension::IntStringExtension
 ''');
   }
 

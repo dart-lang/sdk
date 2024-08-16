@@ -195,7 +195,7 @@ class WorkSet {
   uint32_t GetHeaderHash(ObjectPtr object) {
     uint32_t hash = Object::GetCachedHash(object);
     if (hash == 0) {
-      switch (object->GetClassId()) {
+      switch (object->GetClassIdOfHeapObject()) {
         case kMintCid:
           hash = Mint::Value(static_cast<MintPtr>(object));
           // Don't write back: doesn't agree with dart:core's identityHash.

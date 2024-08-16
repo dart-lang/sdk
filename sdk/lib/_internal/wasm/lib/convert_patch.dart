@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
 import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
 import "dart:_js_string_convert";
 import "dart:_js_types";
+import "dart:_js_helper" show jsStringToDartString;
+import "dart:_list" show GrowableList;
 import "dart:_string";
 import "dart:_typed_data";
 import "dart:_wasm";
-import "dart:typed_data" show Uint8List, Uint16List;
+import "dart:typed_data" show Uint8List;
 
 /// This patch library has no additional parts.
 
@@ -19,7 +22,8 @@ dynamic _parseJson(
     String source, Object? Function(Object? key, Object? value)? reviver) {
   _JsonListener listener = new _JsonListener(reviver);
   var parser = new _JsonStringParser(listener);
-  parser.chunk = source;
+  parser.chunk = unsafeCast<StringBase>(
+      source is JSStringImpl ? jsStringToDartString(source) : source);
   parser.chunkEnd = source.length;
   parser.parse(0);
   parser.close();
@@ -77,33 +81,30 @@ class _JsonListener {
    * Stack used to handle nested containers.
    *
    * The current container is pushed on the stack when a new one is
-   * started. If the container is a [Map], there is also a current [key]
-   * which is also stored on the stack.
+   * started.
    */
   final List<Object?> stack = [];
 
-  /** The current [Map] or [List] being built, or null if not building a
+  /** Contents of the current container being built, or null if not building a
   * container.
+  *
+  * When building [Map] this will contain array of key-value pairs.
   */
-  Object? currentContainer;
-
-  /** The most recently read property key. */
-  String key = '';
+  GrowableList<dynamic>? currentContainer;
 
   /** The most recently read value. */
   Object? value;
 
-  /** Pushes the currently active container (and key, if a [Map]). */
-  void pushContainer() {
-    if (currentContainer is Map) stack.add(key);
+  /** Pushes the currently active container. */
+  void beginContainer() {
     stack.add(currentContainer);
+    currentContainer = GrowableList.empty();
   }
 
-  /** Pops the top container from the [stack], including a key if applicable. */
+  /** Pops the top container from the [stack]. */
   void popContainer() {
     value = currentContainer;
-    currentContainer = stack.removeLast();
-    if (currentContainer is Map) key = unsafeCast<String>(stack.removeLast());
+    currentContainer = unsafeCast<GrowableList?>(stack.removeLast());
   }
 
   void handleString(String value) {
@@ -123,33 +124,33 @@ class _JsonListener {
   }
 
   void beginObject() {
-    pushContainer();
-    currentContainer = <String, dynamic>{};
+    beginContainer();
   }
 
   void propertyName() {
-    key = unsafeCast<String>(value);
+    unsafeCast<GrowableList>(currentContainer).add(value);
     value = null;
   }
 
   void propertyValue() {
-    var map = unsafeCast<Map>(currentContainer);
-    var reviver = this.reviver;
-    if (reviver != null) {
-      value = reviver(key, value);
+    final keyValuePairs = unsafeCast<GrowableList>(currentContainer);
+    if (reviver case final reviver?) {
+      final key = keyValuePairs.last;
+      keyValuePairs.add(reviver(key, value));
+    } else {
+      keyValuePairs.add(value);
     }
-    map[key] = value;
-    key = '';
     value = null;
   }
 
   void endObject() {
     popContainer();
+    value = createMapFromKeyValueListUnsafe<String, dynamic>(
+        unsafeCast<GrowableList>(value));
   }
 
   void beginArray() {
-    pushContainer();
-    currentContainer = <dynamic>[];
+    beginContainer();
   }
 
   void arrayElement() {
@@ -1460,8 +1461,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
  * Chunked JSON parser that parses [String] chunks.
  */
 class _JsonStringParser extends _JsonParserWithListener
-    with _ChunkedJsonParser<String> {
-  String chunk = '';
+    with _ChunkedJsonParser<StringBase> {
+  StringBase chunk = unsafeCast<StringBase>('');
   int chunkEnd = 0;
 
   _JsonStringParser(_JsonListener listener) : super(listener);
@@ -1536,7 +1537,8 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
-    _parser.chunk = chunk;
+    _parser.chunk = unsafeCast<StringBase>(
+        chunk is JSStringImpl ? jsStringToDartString(chunk) : chunk);
     _parser.chunkEnd = end;
     _parser.parse(start);
     if (isLast) _parser.close();

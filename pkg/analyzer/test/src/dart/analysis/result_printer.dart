@@ -287,7 +287,7 @@ class DriverEventsPrinter {
 
     elementPrinter.writeNamedElement(
       'enclosing',
-      unitElement.enclosingElement,
+      unitElement.enclosingElement3,
     );
 
     var elementsToWrite =

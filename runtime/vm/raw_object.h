@@ -836,6 +836,8 @@ class UntaggedObject {
   friend class Instance;                // StorePointer
   friend class StackFrame;              // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class ObjectLocator;
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
@@ -882,8 +884,11 @@ DART_FORCE_INLINE uword UntaggedObject::to_offset(intptr_t length) {
   }
 }
 
-inline intptr_t ObjectPtr::GetClassId() const {
+inline intptr_t ObjectPtr::GetClassIdOfHeapObject() const {
   return untag()->GetClassId();
+}
+inline intptr_t ObjectPtr::GetClassId() const {
+  return IsHeapObject() ? GetClassIdOfHeapObject() : kSmiCid;
 }
 
 #define POINTER_FIELD(type, name)                                              \
@@ -1176,6 +1181,8 @@ class UntaggedClass : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Instance;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class IsolateGroup;
   friend class Object;
   friend class UntaggedInstance;
@@ -1384,6 +1391,8 @@ class UntaggedFunction : public UntaggedObject {
 
  private:
   friend class Class;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class UnitDeserializationRoots;
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
@@ -1413,8 +1422,8 @@ class UntaggedFunction : public UntaggedObject {
     UNREACHABLE();
     return nullptr;
   }
-  // ICData of unoptimized code.
-  COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
+  // ICData of unoptimized code or Bytecode.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, ic_data_array_or_bytecode);
   // Currently active code. Accessed from generated code.
   COMPRESSED_POINTER_FIELD(CodePtr, code);
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1604,6 +1613,8 @@ class UntaggedField : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class GuardFieldClassInstr;  // For sizeof(guarded_cid_/...)
   friend class LoadFieldInstr;        // For sizeof(guarded_cid_/...)
   friend class StoreFieldInstr;       // For sizeof(guarded_cid_/...)
@@ -1961,6 +1972,36 @@ class UntaggedCode : public UntaggedObject {
   friend class CallSiteResetter;
 };
 
+class UntaggedBytecode : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Bytecode);
+
+  uword instructions_;
+  intptr_t instructions_size_;
+
+  COMPRESSED_POINTER_FIELD(ObjectPoolPtr, object_pool);
+  VISIT_FROM(object_pool);
+  COMPRESSED_POINTER_FIELD(FunctionPtr, function);
+  COMPRESSED_POINTER_FIELD(ArrayPtr, closures);
+  COMPRESSED_POINTER_FIELD(TypedDataBasePtr, binary);
+  COMPRESSED_POINTER_FIELD(ExceptionHandlersPtr, exception_handlers);
+  COMPRESSED_POINTER_FIELD(PcDescriptorsPtr, pc_descriptors);
+  VISIT_TO(pc_descriptors);
+
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<ObjectPtr*>(&pc_descriptors_);
+  }
+
+  int32_t instructions_binary_offset_;
+  int32_t code_offset_;
+  int32_t source_positions_binary_offset_;
+
+  static bool ContainsPC(ObjectPtr raw_obj, uword pc);
+
+  friend class Function;
+  friend class Interpreter;
+  friend class StackFrame;
+};
+
 class UntaggedObjectPool : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ObjectPool);
 
@@ -1985,6 +2026,7 @@ class UntaggedObjectPool : public UntaggedObject {
 
   friend class Object;
   friend class CodeSerializationCluster;
+  friend class Interpreter;
   friend class UnitSerializationRoots;
   friend class UnitDeserializationRoots;
 };
@@ -2013,6 +2055,7 @@ class UntaggedInstructions : public UntaggedObject {
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
+  friend class Interpreter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
 };
@@ -2431,6 +2474,7 @@ class UntaggedContext : public UntaggedObject {
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class Object;
+  friend class Interpreter;
   friend void UpdateLengthField(intptr_t,
                                 ObjectPtr,
                                 ObjectPtr);  // num_variables_
@@ -2610,6 +2654,8 @@ class UntaggedSubtypeTestCache : public UntaggedObject {
   VISIT_TO(cache)
   uint32_t num_inputs_;
   uint32_t num_occupied_;
+
+  friend class Interpreter;
 };
 
 class UntaggedLoadingUnit : public UntaggedObject {
@@ -2738,6 +2784,7 @@ class UntaggedTypeArguments : public UntaggedInstance {
   COMPRESSED_VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
 
   friend class Object;
+  friend class Interpreter;
 };
 
 class UntaggedTypeParameters : public UntaggedObject {
@@ -2794,6 +2841,7 @@ class UntaggedAbstractType : public UntaggedInstance {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
 
+  friend class Interpreter;
   friend class ObjectStore;
   friend class StubCode;
 };
@@ -2958,6 +3006,7 @@ class UntaggedClosure : public UntaggedInstance {
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
+  friend class Interpreter;
   friend class UnitDeserializationRoots;
 };
 
@@ -2982,6 +3031,7 @@ class UntaggedMint : public UntaggedInteger {
   friend class Api;
   friend class Class;
   friend class Integer;
+  friend class Interpreter;
 };
 COMPILE_ASSERT(sizeof(UntaggedMint) == 16);
 
@@ -2993,6 +3043,7 @@ class UntaggedDouble : public UntaggedNumber {
 
   friend class Api;
   friend class Class;
+  friend class Interpreter;
 };
 COMPILE_ASSERT(sizeof(UntaggedDouble) == 16);
 
@@ -3231,6 +3282,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
+  friend class Interpreter;
   friend class UntaggedCode;
   friend class UntaggedImmutableArray;
   friend class GrowableObjectArray;
@@ -3312,6 +3364,7 @@ class UntaggedFloat32x4 : public UntaggedInstance {
   ALIGN8 float value_[4];
 
   friend class Class;
+  friend class Interpreter;
 
  public:
   float x() const { return value_[0]; }
@@ -3347,6 +3400,7 @@ class UntaggedFloat64x2 : public UntaggedInstance {
   ALIGN8 double value_[2];
 
   friend class Class;
+  friend class Interpreter;
 
  public:
   double x() const { return value_[0]; }

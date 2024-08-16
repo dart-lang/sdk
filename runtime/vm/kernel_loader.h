@@ -420,10 +420,6 @@ class KernelLoader : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(KernelLoader);
 };
 
-FunctionPtr CreateFieldInitializerFunction(Thread* thread,
-                                           Zone* zone,
-                                           const Field& field);
-
 }  // namespace kernel
 }  // namespace dart
 

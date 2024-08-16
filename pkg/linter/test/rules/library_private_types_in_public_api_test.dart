@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -11,11 +12,19 @@ main() {
     defineReflectiveTests(LibraryPrivateTypesInPublicApiEnumTest);
     defineReflectiveTests(LibraryPrivateTypesInPublicApiExtensionTypeTest);
     defineReflectiveTests(LibraryPrivateTypesInPublicApiSuperParamTest);
+    defineReflectiveTests(LibraryPrivateTypesInPublicApiTest);
   });
 }
 
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiEnumTest extends LintRuleTest {
+  @override
+  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+        WarningCode.UNUSED_LOCAL_VARIABLE,
+        WarningCode.UNUSED_ELEMENT,
+        WarningCode.UNUSED_FIELD,
+      ];
+
   @override
   String get lintRule => 'library_private_types_in_public_api';
 
@@ -87,6 +96,13 @@ sealed class E {
 
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiExtensionTypeTest extends LintRuleTest {
+  @override
+  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+        WarningCode.UNUSED_LOCAL_VARIABLE,
+        WarningCode.UNUSED_ELEMENT,
+        WarningCode.UNUSED_FIELD,
+      ];
+
   @override
   String get lintRule => 'library_private_types_in_public_api';
 
@@ -161,14 +177,12 @@ extension type E(Object o) {
   }
 
   test_method_instance_private_param() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 class _C {}
 extension type E(Object o) {
   _m(_C c){}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 43, 2),
-    ]);
+''');
   }
 
   test_method_instance_returnType() async {
@@ -194,14 +208,12 @@ extension type E(Object o) {
   }
 
   test_method_static_private_returnType() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 class _C {}
 extension type E(Object o) {
   static _C? _m() => null;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 54, 2),
-    ]);
+''');
   }
 
   test_method_static_returnType() async {
@@ -218,6 +230,13 @@ extension type E(Object o) {
 
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiSuperParamTest extends LintRuleTest {
+  @override
+  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+        WarningCode.UNUSED_LOCAL_VARIABLE,
+        WarningCode.UNUSED_ELEMENT,
+        WarningCode.UNUSED_FIELD,
+      ];
+
   @override
   String get lintRule => 'library_private_types_in_public_api';
 
@@ -264,5 +283,395 @@ class B extends A {
 ''', [
       lint(89, 2),
     ]);
+  }
+}
+
+@reflectiveTest
+class LibraryPrivateTypesInPublicApiTest extends LintRuleTest {
+  @override
+  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+        WarningCode.UNUSED_LOCAL_VARIABLE,
+        WarningCode.UNUSED_ELEMENT,
+        WarningCode.UNUSED_FIELD,
+      ];
+
+  @override
+  String get lintRule => 'library_private_types_in_public_api';
+
+  test_class_extendsClassWithPrivateTypeArguments() async {
+    await assertNoDiagnostics(r'''
+class C extends D<_P> {}
+class D<T> {}
+class _P {}
+''');
+  }
+
+  test_class_implementsPrivateClass() async {
+    await assertNoDiagnostics(r'''
+class C implements _P {}
+class _P {}
+''');
+  }
+
+  test_class_mixesInPrivateMixin() async {
+    await assertNoDiagnostics(r'''
+class C with _P {}
+mixin _P {}
+''');
+  }
+
+  test_constructor_private_privateParameterType() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C._named(_P p);
+}
+class _P {}
+''');
+  }
+
+  test_constructor_privateParameterType() async {
+    await assertDiagnostics(r'''
+class C {
+  C.named(_P p);
+}
+class _P {}
+''', [
+      lint(20, 2),
+    ]);
+  }
+
+  test_constructor_unnamed_privateParameterType() async {
+    await assertDiagnostics(r'''
+class C {
+  C(_P p);
+}
+class _P {}
+''', [
+      lint(14, 2),
+    ]);
+  }
+
+  test_extension_onPrivateType() async {
+    await assertDiagnostics(r'''
+extension E on _P {}
+class _P {}
+''', [
+      lint(15, 2),
+    ]);
+  }
+
+  test_function_private_privateTypes() async {
+    await assertNoDiagnostics(r'''
+_P _f(_P p) => _P();
+class _P {}
+''');
+  }
+
+  test_function_privateParameterType() async {
+    await assertDiagnostics(r'''
+String f(_P p) => '';
+class _P {}
+''', [
+      lint(9, 2),
+    ]);
+  }
+
+  test_function_privateReturnType() async {
+    await assertDiagnostics(r'''
+_P f2(int i) => _P();
+class _P {}
+''', [
+      lint(0, 2),
+    ]);
+  }
+
+  test_function_publicTypes() async {
+    await assertNoDiagnostics(r'''
+String f(int i) => '';
+''');
+  }
+
+  test_instanceField_private_privateReturnType() async {
+    await assertNoDiagnostics(r'''
+class C {
+  _P _f = _P();
+}
+class _P {}
+''');
+  }
+
+  test_instanceField_privateClass_privateType() async {
+    await assertNoDiagnostics(r'''
+class _C {
+  _P f = _P();
+}
+class _P {}
+''');
+  }
+
+  test_instanceField_privateType() async {
+    await assertDiagnostics(r'''
+class C {
+  _P f = _P();
+}
+class _P {}
+''', [
+      lint(12, 2),
+    ]);
+  }
+
+  test_instanceField_privateTypeTypeArgument() async {
+    await assertDiagnostics(r'''
+class C {
+  List<_P> f = [];
+}
+class _P {}
+''', [
+      lint(17, 2),
+    ]);
+  }
+
+  test_instanceGetter_private_privateReturnType() async {
+    await assertNoDiagnostics(r'''
+class C {
+  _P get _g => _P();
+}
+class _P {}
+''');
+  }
+
+  test_instanceGetter_privateReturnType() async {
+    await assertDiagnostics(r'''
+class C {
+  _P get g2 => _P();
+}
+class _P {}
+''', [
+      lint(12, 2),
+    ]);
+  }
+
+  test_instanceMethod_private_privateReturnType() async {
+    await assertNoDiagnostics(r'''
+class C {
+  _P _m() => _P();
+}
+class _P {}
+''');
+  }
+
+  test_instanceMethod_privateClass_privateTypes() async {
+    await assertNoDiagnostics(r'''
+class _C {
+  _P m(_P p) => _P();
+}
+class _P {}
+''');
+  }
+
+  test_instanceMethod_privateParameterType() async {
+    await assertDiagnostics(r'''
+class C {
+  String m(_P p) => '';
+}
+class _P {}
+''', [
+      lint(21, 2),
+    ]);
+  }
+
+  test_instanceMethod_privateReturnType() async {
+    await assertDiagnostics(r'''
+class C {
+  _P m(int i) => _P();
+}
+class _P {}
+''', [
+      lint(12, 2),
+    ]);
+  }
+
+  test_instanceMethod_pulicTypes() async {
+    await assertNoDiagnostics(r'''
+class C {
+  String m(int i) => '';
+}
+''');
+  }
+
+  test_instanceSetter_private_privateParameterType() async {
+    await assertNoDiagnostics(r'''
+class C {
+  set _s(_P p) {}
+}
+class _P {}
+''');
+  }
+
+  test_instanceSetter_privateParameterType() async {
+    await assertDiagnostics(r'''
+class C {
+  set s(_P i) {}
+}
+class _P {}
+''', [
+      lint(18, 2),
+    ]);
+  }
+
+  test_mixin_implementsPrivateType() async {
+    await assertNoDiagnostics(r'''
+mixin M implements _P {}
+class _P {}
+''');
+  }
+
+  test_mixin_onPrivateType() async {
+    await assertDiagnostics(r'''
+mixin M on _P {}
+class _P {}
+''', [
+      lint(11, 2),
+    ]);
+  }
+
+  test_mixin_private_onPrivateType() async {
+    await assertNoDiagnostics(r'''
+mixin _M on _P {}
+class _P {}
+''');
+  }
+
+  test_operator_privateParameterType() async {
+    await assertDiagnostics(r'''
+class C {
+  int operator+(_P p) => 0;
+}
+class _P {}
+''', [
+      lint(26, 2),
+    ]);
+  }
+
+  test_operator_privateReturnType() async {
+    await assertDiagnostics(r'''
+class C {
+  _P operator-(int i) => _P();
+}
+class _P {}
+''', [
+      lint(12, 2),
+    ]);
+  }
+
+  test_topLevelGetter_private_privateReturnType() async {
+    await assertNoDiagnostics(r'''
+_P get _g => _P();
+class _P {}
+''');
+  }
+
+  test_topLevelGetter_privateReturnType() async {
+    await assertDiagnostics(r'''
+_P get g => _P();
+class _P {}
+''', [
+      lint(0, 2),
+    ]);
+  }
+
+  test_topLevelSetter_private_privateParameterType() async {
+    await assertNoDiagnostics(r'''
+set _s(_P i) {}
+class _P {}
+''');
+  }
+
+  test_topLevelSetter_privateParameterType() async {
+    await assertDiagnostics(r'''
+set s(_P i) {}
+class _P {}
+''', [
+      lint(6, 2),
+    ]);
+  }
+
+  test_topLevelVariable_private_privateType() async {
+    await assertNoDiagnostics(r'''
+_P _v5 = _P();
+class _P {}
+''');
+  }
+
+  test_topLevelVariable_privateType() async {
+    await assertDiagnostics(r'''
+_P? v;
+class _P {}
+''', [
+      lint(0, 2),
+    ]);
+  }
+
+  test_topLevelVariable_privateTypeTypeArgument() async {
+    await assertDiagnostics(r'''
+List<_P> v = [];
+class _P {}
+''', [
+      lint(5, 2),
+    ]);
+  }
+
+  test_topLevelVariable_publicType() async {
+    await assertNoDiagnostics(r'''
+String v = '';
+''');
+  }
+
+  test_typedef_legacy_privateParameterType() async {
+    await assertDiagnostics(r'''
+typedef void F(_P p);
+class _P {}
+''', [
+      lint(15, 2),
+    ]);
+  }
+
+  test_typedef_legacy_privateReturnType() async {
+    await assertDiagnostics(r'''
+typedef _P F();
+class _P {}
+''', [
+      lint(8, 2),
+    ]);
+  }
+
+  test_typedef_privateParameterType() async {
+    await assertDiagnostics(r'''
+typedef F = void Function(_P);
+class _P {}
+''', [
+      lint(26, 2),
+    ]);
+  }
+
+  test_typedef_privateReturnType() async {
+    await assertDiagnostics(r'''
+typedef F = _P Function();
+class _P {}
+''', [
+      lint(12, 2),
+    ]);
+  }
+
+  test_typedef_publicParameterType() async {
+    await assertNoDiagnostics(r'''
+typedef F = void Function(int);
+''');
+  }
+
+  test_typedef_publicReturnType() async {
+    await assertNoDiagnostics(r'''
+typedef String F();
+''');
   }
 }

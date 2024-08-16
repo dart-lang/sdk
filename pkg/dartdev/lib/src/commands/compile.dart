@@ -749,7 +749,16 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       usageException('Missing Dart entry point.');
     }
     final String sourcePath = args.rest[0];
-    if (!checkFile(sourcePath)) {
+    final extraCompilerOptions = args.multiOption('extra-compiler-option');
+    final isMultiRoot =
+        extraCompilerOptions.any((e) => e.contains('multi-root'));
+
+    // If we know the source file doesn't exist, we want to abort early with an
+    // obvious error message. We can't resolve the actual path here if the input
+    // is an URI, so we skip that check in that case.
+    final sourceIsPath =
+        !isMultiRoot || Uri.tryParse(sourcePath)?.hasScheme == false;
+    if (sourceIsPath && !checkFile(sourcePath)) {
       return genericErrorExitCode;
     }
 
@@ -772,7 +781,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     final packages = args.option(packagesOption.flag);
     final defines = args.multiOption(defineOption.flag);
-    final extraCompilerOptions = args.multiOption('extra-compiler-option');
 
     int? maxPages;
     if (args.option('shared-memory') != null) {
@@ -809,13 +817,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     handleOverride(optimizationFlags, 'minify',
         args.wasParsed('minify') ? args.flag('minify') : null);
 
-    bool generateSourceMap = args.flag('source-maps');
-    // TODO(kustermann): Remive this temporary change when flutter no longer
-    // uses --extra-compiler-option=--no-source-maps
-    if (extraCompilerOptions.any((o) => o == '--no-source-maps')) {
-      generateSourceMap = false;
-    }
-
+    final generateSourceMap = args.flag('source-maps');
     final enabledExperiments = args.enabledExperiments;
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
@@ -840,7 +842,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       // Then we pass any extra compiler flags through.
       ...extraCompilerOptions,
 
-      path.absolute(sourcePath),
+      sourcePath,
       outputFile,
     ];
     try {

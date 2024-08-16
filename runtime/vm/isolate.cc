@@ -1776,8 +1776,6 @@ Isolate::~Isolate() {
 #if !defined(PRODUCT)
   delete debugger_;
   debugger_ = nullptr;
-  delete object_id_ring_;
-  object_id_ring_ = nullptr;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = nullptr;
 #endif  // !defined(PRODUCT)
@@ -1871,7 +1869,10 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 
 #if !defined(PRODUCT)
   result->debugger_ = new Debugger(result);
-#endif
+  // Create the default Service ID zone for this isolate.
+  result->service_id_zones_.Add(
+      new RingServiceIdZone(ObjectIdRing::IdPolicy::kAllocateId));
+#endif  // !defined(PRODUCT)
 
   // Now we register the isolate in the group. From this point on any GC would
   // traverse the isolate roots (before this point, the roots are only pointing
@@ -2974,13 +2975,11 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   visitor->clear_gc_root_type();
 }
 
-void IsolateGroup::VisitObjectIdRingPointers(ObjectPointerVisitor* visitor) {
+void IsolateGroup::VisitPointersInDefaultServiceIdZone(
+    ObjectPointerVisitor& visitor) {
 #if !defined(PRODUCT)
   for (Isolate* isolate : isolates_) {
-    ObjectIdRing* ring = isolate->object_id_ring();
-    if (ring != nullptr) {
-      ring->VisitPointers(visitor);
-    }
+    isolate->GetDefaultServiceIdZone().VisitPointers(visitor);
   }
 #endif  // !defined(PRODUCT)
 }
@@ -3001,15 +3000,11 @@ void IsolateGroup::RememberLiveTemporaries() {
 }
 
 #if !defined(PRODUCT)
-ObjectIdRing* Isolate::EnsureObjectIdRing() {
-  if (object_id_ring_ == nullptr) {
-    object_id_ring_ = new ObjectIdRing();
-  }
-  return object_id_ring_;
+RingServiceIdZone& Isolate::GetDefaultServiceIdZone() const {
+  ASSERT(service_id_zones_.length() == 1);
+  return *service_id_zones_.Last();
 }
-#endif  // !defined(PRODUCT)
 
-#ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   switch (pi) {
     case kPauseOnAllExceptions:
@@ -3203,7 +3198,7 @@ void Isolate::PrintPauseEventJSON(JSONStream* stream) {
   IsolatePauseEvent(this).PrintJSON(stream);
 }
 
-#endif
+#endif  // !defined(PRODUCT)
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
   tag_table_ = value.ptr();
@@ -3237,9 +3232,7 @@ void Isolate::set_registered_service_extension_handlers(
     const GrowableObjectArray& value) {
   registered_service_extension_handlers_ = value.ptr();
 }
-#endif  // !defined(PRODUCT)
 
-#ifndef PRODUCT
 ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
@@ -3516,7 +3509,7 @@ void Isolate::PauseEventHandler() {
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
 }
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
 void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   if (visitor == nullptr) {

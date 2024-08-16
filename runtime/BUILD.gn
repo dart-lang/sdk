@@ -172,6 +172,10 @@ config("dart_config") {
     defines += [ "SUPPORT_PERFETTO" ]
   }
 
+  if (dart_dynamic_modules) {
+    defines += [ "DART_DYNAMIC_MODULES" ]
+  }
+
   if (is_fuchsia) {
     lib_dirs = [ "${fuchsia_arch_root}/lib" ]
 

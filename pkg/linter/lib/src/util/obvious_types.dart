@@ -127,8 +127,9 @@ extension ExpressionExtensions on Expression {
         return true;
       case Literal():
         // An atomic literal: `Literal` and not `TypedLiteral`.
-        if (self is IntegerLiteral &&
-            (self.staticType?.isDartCoreDouble ?? false)) {
+        if (self is IntegerLiteral) {
+          // An integer literal with type `double` is clearly not trivial,
+          // but even an `int` integer literal may be considered ambiguous.
           return false;
         }
         return true;
@@ -178,6 +179,25 @@ extension ExpressionExtensions on Expression {
         return true;
       case TypeLiteral():
         return true;
+      case PropertyAccess():
+        if (self.propertyName.name == 'hashCode') {
+          return true;
+        }
+      case PrefixedIdentifier():
+        if (self.identifier.name == 'hashCode') {
+          return true;
+        }
+        return false;
+      case MethodInvocation():
+        if (self.methodName.name == 'toString') {
+          return true;
+        }
+        return false;
+      case BinaryExpression():
+        var operatorName = self.operator.lexeme;
+        if (operatorName == '==' || operatorName == '!=') {
+          return true;
+        }
     }
     return false;
   }

@@ -16,6 +16,7 @@
 #include "platform/unicode.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/bytecode_reader.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
@@ -24,6 +25,7 @@
 #include "vm/code_descriptors.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
@@ -173,6 +175,7 @@ ClassPtr Object::var_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::exception_handlers_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::context_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::context_scope_class_ = static_cast<ClassPtr>(RAW_NULL);
+ClassPtr Object::bytecode_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::sentinel_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::singletargetcache_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::unlinkedcall_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -551,6 +554,23 @@ static type SpecialCharacter(type value) {
   return '\0';
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+static BytecodePtr CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
+  const KBCInstr* instructions = nullptr;
+  intptr_t instructions_size = 0;
+
+  KernelBytecode::GetVMInternalBytecodeInstructions(opcode, &instructions,
+                                                    &instructions_size);
+
+  const auto& bytecode = Bytecode::Handle(
+      Bytecode::New(reinterpret_cast<uword>(instructions), instructions_size,
+                    -1, TypedDataBase::Handle(), Object::empty_object_pool()));
+  bytecode.set_pc_descriptors(Object::empty_descriptors());
+  bytecode.set_exception_handlers(Object::empty_exception_handlers());
+  return bytecode.ptr();
+}
+#endif  // defined(DART_DYNAMIC_MODULES)
+
 void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
   ASSERT(isolate_group == Dart::vm_isolate_group());
@@ -912,6 +932,9 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls = Class::New<ContextScope, RTN::ContextScope>(isolate_group);
   context_scope_class_ = cls.ptr();
 
+  cls = Class::New<Bytecode, RTN::Bytecode>(isolate_group);
+  bytecode_class_ = cls.ptr();
+
   cls = Class::New<SingleTargetCache, RTN::SingleTargetCache>(isolate_group);
   singletargetcache_class_ = cls.ptr();
 
@@ -1270,6 +1293,41 @@ void Object::Init(IsolateGroup* isolate_group) {
   // synthetic_getter_parameter_names_ object needs to be created earlier as
   // VM isolate snapshot reader references it before Object::FinalizeVMIsolate.
 
+#if defined(DART_DYNAMIC_MODULES)
+  *implicit_getter_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitGetter);
+
+  *implicit_setter_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitSetter);
+
+  *implicit_static_getter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticGetter);
+
+  *method_extractor_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor);
+
+  *invoke_closure_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure);
+
+  *invoke_field_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeField);
+
+  *nsm_dispatcher_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_NoSuchMethodDispatcher);
+
+  *dynamic_invocation_forwarder_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ForwardDynamicInvocation);
+
+  *implicit_static_closure_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticClosure);
+
+  *implicit_instance_closure_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitInstanceClosure);
+
+  *implicit_constructor_closure_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitConstructorClosure);
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   thread->ClearStickyError();
@@ -1347,6 +1405,28 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(synthetic_getter_parameter_types_->IsArray());
   ASSERT(!synthetic_getter_parameter_names_->IsSmi());
   ASSERT(synthetic_getter_parameter_names_->IsArray());
+  ASSERT(!implicit_getter_bytecode_->IsSmi());
+  ASSERT(implicit_getter_bytecode_->IsBytecode());
+  ASSERT(!implicit_setter_bytecode_->IsSmi());
+  ASSERT(implicit_setter_bytecode_->IsBytecode());
+  ASSERT(!implicit_static_getter_bytecode_->IsSmi());
+  ASSERT(implicit_static_getter_bytecode_->IsBytecode());
+  ASSERT(!method_extractor_bytecode_->IsSmi());
+  ASSERT(method_extractor_bytecode_->IsBytecode());
+  ASSERT(!invoke_closure_bytecode_->IsSmi());
+  ASSERT(invoke_closure_bytecode_->IsBytecode());
+  ASSERT(!invoke_field_bytecode_->IsSmi());
+  ASSERT(invoke_field_bytecode_->IsBytecode());
+  ASSERT(!nsm_dispatcher_bytecode_->IsSmi());
+  ASSERT(nsm_dispatcher_bytecode_->IsBytecode());
+  ASSERT(!dynamic_invocation_forwarder_bytecode_->IsSmi());
+  ASSERT(dynamic_invocation_forwarder_bytecode_->IsBytecode());
+  ASSERT(!implicit_static_closure_bytecode_->IsSmi());
+  ASSERT(implicit_static_closure_bytecode_->IsBytecode());
+  ASSERT(!implicit_instance_closure_bytecode_->IsSmi());
+  ASSERT(implicit_instance_closure_bytecode_->IsBytecode());
+  ASSERT(!implicit_constructor_closure_bytecode_->IsSmi());
+  ASSERT(implicit_constructor_closure_bytecode_->IsBytecode());
 }
 
 void Object::FinishInit(IsolateGroup* isolate_group) {
@@ -1392,6 +1472,7 @@ void Object::Cleanup() {
   exception_handlers_class_ = static_cast<ClassPtr>(RAW_NULL);
   context_class_ = static_cast<ClassPtr>(RAW_NULL);
   context_scope_class_ = static_cast<ClassPtr>(RAW_NULL);
+  bytecode_class_ = static_cast<ClassPtr>(RAW_NULL);
   singletargetcache_class_ = static_cast<ClassPtr>(RAW_NULL);
   unlinkedcall_class_ = static_cast<ClassPtr>(RAW_NULL);
   monomorphicsmiablecall_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -1509,6 +1590,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
+  SET_CLASS_NAME(bytecode, Bytecode);
   SET_CLASS_NAME(sentinel, Sentinel);
   SET_CLASS_NAME(singletargetcache, SingleTargetCache);
   SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
@@ -1558,7 +1640,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
 
 void Object::FinalizeReadOnlyObject(ObjectPtr object) {
   NoSafepointScope no_safepoint;
-  intptr_t cid = object->GetClassId();
+  intptr_t cid = object->GetClassIdOfHeapObject();
   if (cid == kOneByteStringCid) {
     OneByteStringPtr str = static_cast<OneByteStringPtr>(object);
     if (String::GetCachedHash(str) == 0) {
@@ -2756,7 +2838,7 @@ void Object::InitializeObject(uword address,
 void Object::CheckHandle() const {
 #if defined(DEBUG)
   if (ptr_ != Object::null()) {
-    intptr_t cid = ptr_->GetClassIdMayBeSmi();
+    intptr_t cid = ptr_->GetClassId();
     if (cid >= kNumPredefinedCids) {
       cid = kInstanceCid;
     }
@@ -2908,6 +2990,7 @@ bool Object::IsNotTemporaryScopedHandle() const {
 ObjectPtr Object::Clone(const Object& orig,
                         Heap::Space space,
                         bool load_with_relaxed_atomics) {
+  ASSERT(orig.ptr()->IsHeapObject());
   // Generic function types should be cloned with FunctionType::Clone.
   ASSERT(!orig.IsFunctionType() || !FunctionType::Cast(orig).IsGeneric());
   const Class& cls = Class::Handle(orig.clazz());
@@ -2937,7 +3020,7 @@ ObjectPtr Object::Clone(const Object& orig,
             size - kHeaderSizeInBytes);
   }
 
-  if (IsTypedDataClassId(raw_clone->GetClassId())) {
+  if (IsTypedDataClassId(raw_clone->GetClassIdOfHeapObject())) {
     auto raw_typed_data = TypedData::RawCast(raw_clone);
     raw_typed_data.untag()->RecomputeDataField();
   }
@@ -3104,7 +3187,7 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
   return result.ptr();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 static void ReportTooManyTypeArguments(const Class& cls) {
   Report::MessageF(Report::kError, Script::Handle(cls.script()),
                    cls.token_pos(), Report::AtLocation,
@@ -3113,10 +3196,10 @@ static void ReportTooManyTypeArguments(const Class& cls) {
                    String::Handle(cls.Name()).ToCString());
   UNREACHABLE();
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
 void Class::set_num_type_arguments(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   if (!Utils::IsInt(16, value)) {
@@ -3128,7 +3211,7 @@ void Class::set_num_type_arguments(intptr_t value) const {
   DEBUG_ASSERT(old_value == kUnknownNumTypeArguments || old_value == value);
   StoreNonPointer<int16_t, int16_t, std::memory_order_relaxed>(
       &untag()->num_type_arguments_, value);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 void Class::set_num_type_arguments_unsafe(intptr_t value) const {
@@ -3450,7 +3533,7 @@ void Class::set_library(const Library& value) const {
 
 void Class::set_type_parameters(const TypeParameters& value) const {
   ASSERT((num_type_arguments() == kUnknownNumTypeArguments) ||
-         is_prefinalized());
+         is_declared_in_bytecode() || is_prefinalized());
   untag()->set_type_parameters(value.ptr());
 }
 
@@ -3965,6 +4048,26 @@ FunctionPtr Class::CreateInvocationDispatcher(
   signature ^= ClassFinalizer::FinalizeType(signature);
   invocation.SetSignature(signature);
 
+#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool attach_bytecode = true;
+#else
+  const bool attach_bytecode = is_declared_in_bytecode();
+#endif
+  if (attach_bytecode) {
+    switch (kind) {
+      case UntaggedFunction::kNoSuchMethodDispatcher:
+        invocation.AttachBytecode(Object::nsm_dispatcher_bytecode());
+        break;
+      case UntaggedFunction::kInvokeFieldDispatcher:
+        invocation.AttachBytecode(Object::invoke_field_bytecode());
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   return invocation.ptr();
 }
 
@@ -4013,6 +4116,17 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
 
   signature ^= ClassFinalizer::FinalizeType(signature);
   extractor.SetSignature(signature);
+
+#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool attach_bytecode = true;
+#else
+  const bool attach_bytecode = is_declared_in_bytecode();
+#endif
+  if (attach_bytecode) {
+    extractor.AttachBytecode(Object::method_extractor_bytecode());
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
 
   owner.AddFunction(extractor);
 
@@ -4215,7 +4329,7 @@ StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
   return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 FunctionPtr Function::CreateDynamicInvocationForwarder(
     const String& mangled_name) const {
   Thread* thread = Thread::Current();
@@ -4251,6 +4365,17 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   forwarder.InheritKernelOffsetFrom(*this);
   forwarder.SetForwardingTarget(*this);
 
+#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool attach_bytecode = true;
+#else
+  const bool attach_bytecode = is_declared_in_bytecode();
+#endif
+  if (attach_bytecode) {
+    forwarder.AttachBytecode(Object::dynamic_invocation_forwarder_bytecode());
+  }
+#endif
+
   return forwarder.ptr();
 }
 
@@ -4270,7 +4395,12 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
   if (!result.IsNull()) return result.ptr();
 
   const bool needs_dyn_forwarder =
+#if defined(DART_DYNAMIC_MODULES) && defined(DART_PRECOMPILED_RUNTIME)
+      // TODO(alexmarkov)
+      false;
+#else
       kernel::NeedsDynamicInvocationForwarder(*this);
+#endif
   if (!needs_dyn_forwarder) {
     return ptr();
   }
@@ -4289,6 +4419,22 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
   result = CreateDynamicInvocationForwarder(mangled_name);
   owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
   return result.ptr();
+}
+
+void Function::ReadParameterCovariance(
+    BitVector* is_covariant,
+    BitVector* is_generic_covariant_impl) const {
+#if defined(DART_DYNAMIC_MODULES)
+  if (is_declared_in_bytecode()) {
+    bytecode::BytecodeReader::ReadParameterCovariance(
+        *this, is_covariant, is_generic_covariant_impl);
+    return;
+  }
+#endif
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  kernel::ReadParameterCovariance(*this, is_covariant,
+                                  is_generic_covariant_impl);
+#endif
 }
 
 #endif
@@ -4921,11 +5067,21 @@ ObjectPtr Instance::EvaluateCompiledExpression(
 
 void Class::EnsureDeclarationLoaded() const {
   if (!is_declaration_loaded()) {
+#if defined(DART_DYNAMIC_MODULES)
+    // Loading of class declaration can be postponed until needed
+    // if class comes from bytecode.
+    if (is_declared_in_bytecode()) {
+      bytecode::BytecodeReader::LoadClassDeclaration(*this);
+      ASSERT(is_declaration_loaded());
+      ASSERT(is_type_finalized());
+      return;
+    }
+#endif  // defined(DART_DYNAMIC_MODULES)
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
     FATAL("Unable to use class %s which is not loaded yet.", ToCString());
-#endif
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
 }
 
@@ -4935,7 +5091,7 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
   if (is_finalized()) {
     return Error::null();
   }
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
   return Error::null();
 #else
@@ -4955,7 +5111,7 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
     }
   }
   return error.ptr();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 // Ensure that code outdated by finalized class is cleaned up, new instance of
@@ -5496,6 +5652,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::WeakArray().ToCString();
     case kCodeCid:
       return Symbols::Code().ToCString();
+    case kBytecodeCid:
+      return Symbols::Bytecode().ToCString();
     case kInstructionsCid:
       return Symbols::Instructions().ToCString();
     case kInstructionsSectionCid:
@@ -5620,6 +5778,9 @@ uint32_t Class::Hash(ClassPtr obj) {
 
 int32_t Class::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateClassFingerprint(
       *this);
 #else
@@ -5727,6 +5888,13 @@ void Class::set_is_loaded(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(IsLoadedBit::update(value, state_bits()));
 }
+
+#if defined(DART_DYNAMIC_MODULES)
+void Class::set_is_declared_in_bytecode(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(IsDeclaredInBytecodeBit::update(value, state_bits()));
+}
+#endif  // defined(DART_DYNAMIC_MODULES)
 
 void Class::set_is_finalized() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -7956,6 +8124,24 @@ bool Function::HasCode() const {
   return untag()->code() != StubCode::LazyCompile().ptr();
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+
+void Function::AttachBytecode(const Bytecode& value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(!value.IsNull());
+  // Finish setting up code before activating it.
+  if (!value.InVMIsolateHeap()) {
+    value.set_function(*this);
+  }
+  ASSERT(untag()->ic_data_array_or_bytecode() == Object::null());
+  untag()->set_ic_data_array_or_bytecode(value.ptr());
+
+  // Set the code entry_point to InterpretCall stub.
+  SetInstructions(StubCode::InterpretCall());
+}
+
+#endif  // defined(DART_DYNAMIC_MODULES)
+
 bool Function::HasCode(FunctionPtr function) {
   NoSafepointScope no_safepoint;
   ASSERT(function->untag()->code() != Code::null());
@@ -8680,7 +8866,7 @@ StringPtr FunctionType::ParameterNameAt(intptr_t index) const {
 
 void FunctionType::SetParameterNameAt(intptr_t index,
                                       const String& value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   ASSERT(!value.IsNull() && value.IsSymbol());
@@ -8715,7 +8901,7 @@ void Function::CreateNameArray(Heap::Space space) const {
 }
 
 void FunctionType::CreateNameArrayIncludingFlags(Heap::Space space) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   const intptr_t num_named_parameters = NumOptionalNamedParameters();
@@ -10280,7 +10466,7 @@ FunctionPtr Function::New(const FunctionType& signature,
   ASSERT(!signature.IsNull());
   const Function& result = Function::Handle(Function::New(space));
   result.set_kind_tag(0);
-  result.set_packed_fields(0);
+  NOT_IN_PRECOMPILED(result.set_packed_fields(0));
   result.set_name(name);
   result.set_kind_tag(0);  // Ensure determinism of uninitialized bits.
   result.set_kind(kind);
@@ -10308,7 +10494,7 @@ FunctionPtr Function::New(const FunctionType& signature,
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
   NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
-  result.set_is_optimizable(is_native ? false : true);
+  NOT_IN_PRECOMPILED(result.set_is_optimizable(is_native ? false : true));
   result.set_is_inlinable(true);
   result.reset_unboxed_parameters_and_return();
   result.SetInstructionsSafe(StubCode::LazyCompile());
@@ -10413,7 +10599,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
     return implicit_closure_function();
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   // In AOT mode all implicit closures are pre-created.
   FATAL("Cannot create implicit closure in AOT!");
   return Function::null();
@@ -10433,6 +10619,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       zone, NewImplicitClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() || IsConstructor()) {
     closure_function.set_context_scope(Object::empty_context_scope());
   } else {
@@ -10440,6 +10627,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
         zone, LocalScope::CreateImplicitClosureScope(*this));
     closure_function.set_context_scope(context_scope);
   }
+#endif
 
   FunctionType& closure_signature =
       FunctionType::Handle(zone, closure_function.signature());
@@ -10547,7 +10735,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_signature.set_result_type(result_type);
 
   // Set closure function's end token to this end token.
-  closure_function.set_end_token_pos(end_token_pos());
+  NOT_IN_PRECOMPILED(closure_function.set_end_token_pos(end_token_pos()));
 
   // The closurized method stub just calls into the original method and should
   // therefore be skipped by the debugger and in stack traces.
@@ -10570,21 +10758,22 @@ FunctionPtr Function::ImplicitClosureFunction() const {
                                              has_opt_pos_params);
   closure_signature.set_parameter_types(
       Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-  closure_function.CreateNameArray();
+  NOT_IN_PRECOMPILED(closure_function.CreateNameArray());
   closure_signature.CreateNameArrayIncludingFlags();
   AbstractType& param_type = AbstractType::Handle(zone);
   String& param_name = String::Handle(zone);
   // Add implicit closure object parameter.
   param_type = Type::DynamicType();
   closure_signature.SetParameterTypeAt(0, param_type);
-  closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
+  NOT_IN_PRECOMPILED(
+      closure_function.SetParameterNameAt(0, Symbols::ClosureParameter()));
   for (int i = kClosure; i < num_pos_params; i++) {
     param_type = ParameterTypeAt(num_implicit_params - kClosure + i);
     transform_type(param_type);
     closure_signature.SetParameterTypeAt(i, param_type);
     param_name = ParameterNameAt(num_implicit_params - kClosure + i);
     // Set the name in the function for positional parameters.
-    closure_function.SetParameterNameAt(i, param_name);
+    NOT_IN_PRECOMPILED(closure_function.SetParameterNameAt(i, param_name));
   }
   for (int i = num_pos_params; i < num_params; i++) {
     param_type = ParameterTypeAt(num_implicit_params - kClosure + i);
@@ -10604,8 +10793,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
     // Change covariant parameter types to Object?.
     BitVector is_covariant(zone, NumParameters());
     BitVector is_generic_covariant_impl(zone, NumParameters());
-    kernel::ReadParameterCovariance(*this, &is_covariant,
-                                    &is_generic_covariant_impl);
+    ReadParameterCovariance(&is_covariant, &is_generic_covariant_impl);
 
     ObjectStore* object_store = IsolateGroup::Current()->object_store();
     const auto& object_type =
@@ -10619,6 +10807,27 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       }
     }
   }
+
+#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool attach_bytecode = true;
+#else
+  const bool attach_bytecode = is_declared_in_bytecode();
+#endif
+  if (attach_bytecode) {
+    if (is_static()) {
+      closure_function.AttachBytecode(
+          Object::implicit_static_closure_bytecode());
+    } else if (IsConstructor()) {
+      closure_function.AttachBytecode(
+          Object::implicit_constructor_closure_bytecode());
+    } else {
+      closure_function.AttachBytecode(
+          Object::implicit_instance_closure_bytecode());
+    }
+  }
+#endif
+
   ASSERT(!closure_signature.IsFinalized());
   closure_signature ^= ClassFinalizer::FinalizeType(closure_signature);
   closure_function.SetSignature(closure_signature);
@@ -10873,9 +11082,17 @@ ClassPtr Function::Owner() const {
   return PatchClass::Cast(obj).wrapped_class();
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+bool Function::is_declared_in_bytecode() const {
+  return Class::Handle(Owner()).is_declared_in_bytecode();
+}
+#endif
+
 void Function::InheritKernelOffsetFrom(const Function& src) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
+#endif
 #else
   StoreNonPointer(&untag()->kernel_offset_, src.untag()->kernel_offset_);
 #endif
@@ -10883,7 +11100,9 @@ void Function::InheritKernelOffsetFrom(const Function& src) const {
 
 void Function::InheritKernelOffsetFrom(const Field& src) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
+#endif
 #else
   set_kernel_offset(src.kernel_offset());
 #endif
@@ -10971,6 +11190,7 @@ intptr_t Function::KernelLibraryOffset() const {
 }
 
 intptr_t Function::KernelLibraryIndex() const {
+  ASSERT(!is_declared_in_bytecode());
   if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher() ||
       IsFfiCallbackTrampoline()) {
     return -1;
@@ -11193,6 +11413,9 @@ StringPtr Function::GetSource() const {
 // arguments.
 int32_t Function::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
       *this);
 #else
@@ -11291,11 +11514,22 @@ ArrayPtr Function::GetCoverageArray() const {
 }
 
 void Function::set_ic_data_array(const Array& value) const {
-  untag()->set_ic_data_array<std::memory_order_release>(value.ptr());
+#if defined(DART_DYNAMIC_MODULES)
+  ASSERT(!HasBytecode());
+#endif
+  untag()->set_ic_data_array_or_bytecode<std::memory_order_release>(
+      value.ptr());
 }
 
 ArrayPtr Function::ic_data_array() const {
-  return untag()->ic_data_array<std::memory_order_acquire>();
+  ObjectPtr value =
+      untag()->ic_data_array_or_bytecode<std::memory_order_acquire>();
+#if defined(DART_DYNAMIC_MODULES)
+  if (value->IsBytecode()) {
+    return Array::null();
+  }
+#endif
+  return Array::RawCast(value);
 }
 
 void Function::ClearICDataArray() const {
@@ -11348,6 +11582,8 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
       (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
     return true;  // The kernel structure has been altered, skip checking.
   }
+
+  ASSERT(!is_declared_in_bytecode());
 
   if (SourceFingerprint() != fp) {
     // This output can be copied into a file, then used with sed
@@ -11482,6 +11718,12 @@ bool Function::PrologueNeedsArgumentsDescriptor() const {
   if (HasSavedArgumentsDescriptor()) {
     return false;
   }
+#if defined(DART_DYNAMIC_MODULES)
+  // Entering interpreter needs arguments descriptor.
+  if (is_declared_in_bytecode()) {
+    return true;
+  }
+#endif
   // The prologue of those functions need to examine the arg descriptor for
   // various purposes.
   return IsGeneric() || HasOptionalParameters();
@@ -11937,6 +12179,12 @@ uint32_t Field::Hash() const {
   return String::HashRawSymbol(name());
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+bool Field::is_declared_in_bytecode() const {
+  return Class::Handle(Owner()).is_declared_in_bytecode();
+}
+#endif
+
 void Field::InheritKernelOffsetFrom(const Field& src) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
@@ -12109,6 +12357,9 @@ FieldPtr Field::Clone(const Field& original) const {
 
 int32_t Field::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateFieldFingerprint(
       *this);
 #else
@@ -12342,7 +12593,7 @@ FunctionPtr Field::EnsureInitializerFunction() const {
   Zone* zone = thread->zone();
   Function& initializer = Function::Handle(zone, InitializerFunction());
   if (initializer.IsNull()) {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
     UNREACHABLE();
 #else
     SafepointMutexLocker ml(
@@ -12350,17 +12601,82 @@ FunctionPtr Field::EnsureInitializerFunction() const {
     // Double check after grabbing the lock.
     initializer = InitializerFunction();
     if (initializer.IsNull()) {
-      initializer = kernel::CreateFieldInitializerFunction(thread, zone, *this);
+      initializer = CreateFieldInitializerFunction(thread);
     }
 #endif
   }
   return initializer.ptr();
 }
 
-void Field::SetInitializerFunction(const Function& initializer) const {
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
+
+FunctionPtr Field::CreateFieldInitializerFunction(Thread* thread) const {
+  Zone* zone = thread->zone();
+  ASSERT(InitializerFunction() == Function::null());
+
+  String& init_name = String::Handle(zone, name());
+  init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
+
+  const auto& field_owner = Class::Handle(zone, Owner());
+
 #if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
+  const auto& initializer_owner = Class::Handle(zone, field_owner.ptr());
 #else
+  // Static field initializers are not added as members of their owning class,
+  // so they must be preemptively given a patch class to avoid the meaning of
+  // their kernel/token position changing during a reload. Compare
+  // Class::PatchFieldsAndFunctions().
+  // This might also be necessary for lazy computation of local var descriptors.
+  // Compare https://codereview.chromium.org//1317753004
+  const auto& script = Script::Handle(zone, Script());
+  const auto& kernel_program_info =
+      KernelProgramInfo::Handle(zone, KernelProgramInfo());
+  const auto& initializer_owner = PatchClass::Handle(
+      zone, PatchClass::New(field_owner, kernel_program_info, script));
+  if (!is_declared_in_bytecode()) {
+    const Library& lib = Library::Handle(zone, field_owner.library());
+    initializer_owner.set_kernel_library_index(lib.kernel_library_index());
+  }
+#endif
+
+  // Create a static initializer.
+  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
+  const Function& initializer_fun = Function::Handle(
+      zone,
+      Function::New(signature, init_name, UntaggedFunction::kFieldInitializer,
+                    is_static(),  // is_static
+                    false,        // is_const
+                    false,        // is_abstract
+                    false,        // is_external
+                    false,        // is_native
+                    initializer_owner, TokenPosition::kNoSource));
+  if (!is_static()) {
+    signature.set_num_fixed_parameters(1);
+    signature.set_parameter_types(
+        Array::Handle(zone, Array::New(1, Heap::kOld)));
+    signature.SetParameterTypeAt(
+        0, AbstractType::Handle(zone, field_owner.DeclarationType()));
+    NOT_IN_PRECOMPILED(initializer_fun.CreateNameArray());
+    NOT_IN_PRECOMPILED(initializer_fun.SetParameterNameAt(0, Symbols::This()));
+  }
+  signature.set_result_type(AbstractType::Handle(zone, type()));
+  initializer_fun.set_is_reflectable(false);
+  initializer_fun.set_is_inlinable(false);
+  NOT_IN_PRECOMPILED(initializer_fun.set_token_pos(token_pos()));
+  NOT_IN_PRECOMPILED(initializer_fun.set_end_token_pos(end_token_pos()));
+  initializer_fun.set_accessor_field(*this);
+  initializer_fun.InheritKernelOffsetFrom(*this);
+  initializer_fun.set_is_extension_member(is_extension_member());
+  initializer_fun.set_is_extension_type_member(is_extension_type_member());
+
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  initializer_fun.SetSignature(signature);
+
+  SetInitializerFunction(initializer_fun);
+  return initializer_fun.ptr();
+}
+
+void Field::SetInitializerFunction(const Function& initializer) const {
   ASSERT(IsOriginal());
   ASSERT(IsolateGroup::Current()
              ->initializer_functions_mutex()
@@ -12370,8 +12686,9 @@ void Field::SetInitializerFunction(const Function& initializer) const {
   // accessed without grabbing the lock.
   untag()->set_initializer_function<std::memory_order_release>(
       initializer.ptr());
-#endif
 }
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
 bool Field::HasInitializerFunction() const {
   return untag()->initializer_function() != Function::null();
@@ -18512,6 +18829,196 @@ void Code::DumpSourcePositions(bool relative_addresses) const {
   reader.DumpSourcePositions(relative_addresses ? 0 : PayloadStart());
 }
 
+void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(DART_DYNAMIC_MODULES)
+  if (!FLAG_support_disassembler) {
+    return;
+  }
+  uword start = PayloadStart();
+  intptr_t size = Size();
+  if (formatter == NULL) {
+    KernelBytecodeDisassembler::Disassemble(start, start + size, *this);
+  } else {
+    KernelBytecodeDisassembler::Disassemble(start, start + size, formatter,
+                                            *this);
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+}
+
+BytecodePtr Bytecode::New(uword instructions,
+                          intptr_t instructions_size,
+                          intptr_t instructions_offset,
+                          const TypedDataBase& binary,
+                          const ObjectPool& object_pool) {
+  ASSERT(Object::bytecode_class() != Class::null());
+  Bytecode& result = Bytecode::Handle();
+  {
+    auto raw = Object::Allocate<Bytecode>(Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result = raw;
+    result.set_instructions(instructions);
+    result.set_instructions_size(instructions_size);
+    result.set_object_pool(object_pool);
+    result.set_pc_descriptors(Object::empty_descriptors());
+    result.set_binary(binary);
+    result.set_instructions_binary_offset(instructions_offset);
+    result.set_code_offset(0);
+    result.set_source_positions_binary_offset(0);
+  }
+  return result.ptr();
+}
+
+TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address) const {
+#if defined(DART_DYNAMIC_MODULES)
+  if (!HasSourcePositions()) {
+    return TokenPosition::kNoSource;
+  }
+  Zone* zone = Thread::Current()->zone();
+  uword pc_offset = return_address - PayloadStart();
+  // pc_offset could equal to bytecode size if the last instruction is Throw.
+  ASSERT(pc_offset <= static_cast<uword>(Size()));
+  bytecode::BytecodeSourcePositionsIterator iter(zone, *this);
+  TokenPosition token_pos = TokenPosition::kNoSource;
+  while (iter.MoveNext()) {
+    if (pc_offset <= iter.PcOffset()) {
+      break;
+    }
+    token_pos = iter.TokenPos();
+  }
+  return token_pos;
+#else
+  UNREACHABLE();
+#endif
+}
+
+intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
+#if defined(DART_DYNAMIC_MODULES)
+  intptr_t try_index = -1;
+  const uword pc_offset = return_address - PayloadStart();
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    // PC descriptors for try blocks in bytecode are generated in pairs,
+    // marking start and end of a try block.
+    // See BytecodeReaderHelper::ReadExceptionsTable for details.
+    const intptr_t current_try_index = iter.TryIndex();
+    const uword start_pc = iter.PcOffset();
+    if (pc_offset < start_pc) {
+      break;
+    }
+    const bool has_next = iter.MoveNext();
+    ASSERT(has_next);
+    const uword end_pc = iter.PcOffset();
+    if (start_pc <= pc_offset && pc_offset < end_pc) {
+      ASSERT(try_index < current_try_index);
+      try_index = current_try_index;
+    }
+  }
+  return try_index;
+#else
+  UNREACHABLE();
+#endif
+}
+
+uword Bytecode::GetFirstDebugCheckOpcodePc() const {
+#if defined(DART_DYNAMIC_MODULES)
+  uword pc = PayloadStart();
+  const uword end_pc = pc + Size();
+  while (pc < end_pc) {
+    if (KernelBytecode::IsDebugCheckOpcode(
+            reinterpret_cast<const KBCInstr*>(pc))) {
+      return pc;
+    }
+    pc = KernelBytecode::Next(pc);
+  }
+  return 0;
+#else
+  UNREACHABLE();
+#endif
+}
+
+uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
+                                                   uword to_offset) const {
+#if defined(DART_DYNAMIC_MODULES)
+  uword pc = PayloadStart() + from_offset;
+  const uword end_pc = pc + (to_offset - from_offset);
+  while (pc < end_pc) {
+    uword next_pc = KernelBytecode::Next(pc);
+    if (KernelBytecode::IsDebugCheckedOpcode(
+            reinterpret_cast<const KBCInstr*>(pc))) {
+      // Return the pc after the opcode, i.e. its 'return address'.
+      return next_pc;
+    }
+    pc = next_pc;
+  }
+  return 0;
+#else
+  UNREACHABLE();
+#endif
+}
+
+const char* Bytecode::ToCString() const {
+  return Thread::Current()->zone()->PrintToString("Bytecode(%s)",
+                                                  QualifiedName());
+}
+
+static const char* BytecodeStubName(const Bytecode& bytecode) {
+  if (bytecode.ptr() == Object::implicit_getter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitGetter";
+  } else if (bytecode.ptr() == Object::implicit_setter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitSetter";
+  } else if (bytecode.ptr() ==
+             Object::implicit_static_getter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
+  } else if (bytecode.ptr() == Object::method_extractor_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_MethodExtractor";
+  } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_InvokeClosure";
+  } else if (bytecode.ptr() == Object::invoke_field_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_InvokeField";
+  }
+  return "[unknown stub]";
+}
+
+const char* Bytecode::Name() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
+  const char* function_name =
+      String::Handle(zone, fun.UserVisibleName()).ToCString();
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+const char* Bytecode::QualifiedName() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
+  const char* function_name =
+      String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+const char* Bytecode::FullyQualifiedName() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
+  const char* function_name = fun.ToFullyQualifiedCString();
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+void Bytecode::set_binary(const TypedDataBase& binary) const {
+  ASSERT(binary.IsNull() || binary.IsExternalOrExternalView());
+  untag()->set_binary(binary.ptr());
+}
+
 intptr_t Context::GetLevel() const {
   intptr_t level = 0;
   Context& parent_ctx = Context::Handle(parent());
@@ -23532,7 +24039,7 @@ uword String::Hash(const uint16_t* characters, intptr_t len) {
 }
 
 intptr_t String::CharSize() const {
-  intptr_t class_id = ptr()->GetClassId();
+  intptr_t class_id = ptr()->GetClassIdOfHeapObject();
   if (class_id == kOneByteStringCid) {
     return kOneByteChar;
   }
@@ -24313,8 +24820,8 @@ bool String::EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
     return true;  // Both handles point to the same raw instance.
   }
   NoSafepointScope no_safepoint;
-  intptr_t str1_class_id = str1.ptr()->GetClassId();
-  intptr_t str2_class_id = str2.ptr()->GetClassId();
+  intptr_t str1_class_id = str1.ptr()->GetClassIdOfHeapObject();
+  intptr_t str2_class_id = str2.ptr()->GetClassIdOfHeapObject();
   switch (str1_class_id) {
     case kOneByteStringCid:
       EQUALS_IGNORING_PRIVATE_KEY(str2_class_id, OneByteString, str1, str2);
@@ -26388,6 +26895,26 @@ const char* StackTrace::ToCString() const {
       }
 
       const uword pc_offset = stack_trace.PcOffsetAtFrame(i);
+
+      // A visible frame ends any gap we might be in.
+      in_gap = false;
+
+#if defined(DART_DYNAMIC_MODULES)
+      if (code_object.IsBytecode()) {
+        const auto& bytecode = Bytecode::Cast(code_object);
+        function = bytecode.function();
+
+        if (!function.IsNull() &&
+            (FLAG_show_invisible_frames || function.is_visible())) {
+          auto const pos =
+              bytecode.GetTokenIndexOfPC(bytecode.PayloadStart() + pc_offset);
+          PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
+          frame_index++;
+        }
+        continue;
+      }
+#endif  // defined(DART_DYNAMIC_MODULES)
+
       ASSERT(code_object.IsCode());
       code ^= code_object.ptr();
       ASSERT(code.IsFunctionCode());
@@ -26401,9 +26928,6 @@ const char* StackTrace::ToCString() const {
 
       const bool is_future_listener =
           pc_offset == StackTraceUtils::kFutureListenerPcOffset;
-
-      // A visible frame ends any gap we might be in.
-      in_gap = false;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
       // When printing non-symbolic frames, we normally print call

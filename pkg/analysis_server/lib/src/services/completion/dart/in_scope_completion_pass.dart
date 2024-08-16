@@ -3122,15 +3122,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Adds a suggestion for a closure.
   void _addClosureSuggestion(
       FunctionType parameterType, bool includeTrailingComma) {
-    // TODO(keertip): compute the completion string to find the score.
-    var matcherScore = 0.0;
-    if (matcherScore != -1) {
-      collector.addSuggestion(ClosureSuggestion(
-        functionType: parameterType,
-        includeTrailingComma: includeTrailingComma,
-        matcherScore: matcherScore,
-      ));
-    }
+    var includeTypes = state.includeTypes;
+    collector.addSuggestion(ClosureSuggestion(
+      functionType: parameterType,
+      includeTrailingComma: includeTrailingComma,
+      matcherScore: 0.0,
+      includeTypes: includeTypes,
+      indent: state.indent,
+    ));
+    collector.addSuggestion(ClosureSuggestion(
+      functionType: parameterType,
+      includeTrailingComma: includeTrailingComma,
+      matcherScore: 0.0,
+      useBlockStatement: false,
+      includeTypes: includeTypes,
+      indent: state.indent,
+    ));
   }
 
   /// Returns the context type in which [node] is analyzed.

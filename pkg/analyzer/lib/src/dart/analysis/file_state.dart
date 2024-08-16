@@ -579,7 +579,7 @@ abstract class FileKind {
   void disposeLibraryCycle() {
     // Macro generated files never add new dependencies.
     // So, there is no reason to dispose.
-    if (file.isMacroAugmentation) {
+    if (file.isMacroPart) {
       return;
     }
 
@@ -720,7 +720,7 @@ class FileState {
 
   FileKind? _kind;
 
-  bool isMacroAugmentation = false;
+  bool isMacroPart = false;
 
   /// Files that reference this file.
   final Set<FileState> referencingFiles = {};
@@ -904,7 +904,7 @@ class FileState {
     if (_fsState._macroFileContent case var macroFileContent?) {
       _fsState._macroFileContent = null;
       rawFileState = macroFileContent;
-      isMacroAugmentation = true;
+      isMacroPart = true;
     } else {
       rawFileState = _fsState.fileContentStrategy.get(path);
     }
@@ -2123,10 +2123,10 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// The [FileKind] that created this object in [FileKind.asLibrary].
   final FileKind? recoveredFrom;
 
-  /// The synthetic augmentation imports added to [augmentationImports] for
-  /// the macro application results of this library. It is filled only if the
-  /// library uses any macros.
-  List<AugmentationImportWithFile> _macroImports = const [];
+  /// The synthetic part includes added to [partIncludes] for the macro
+  /// application results of this library. It is filled only if the library
+  /// uses any macros.
+  List<PartIncludeWithFile> _macroPartIncludes = const [];
 
   /// The cache for [apiSignature].
   Uint8List? _apiSignature;
@@ -2231,7 +2231,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// results in separate augmentation libraries with names `foo.macroX.dart`.
   /// For the merged augmentation we pass `null` here, so a single
   /// `foo.macro.dart` is created.
-  AugmentationImportWithFile addMacroAugmentation(
+  PartIncludeWithFile addMacroPart(
     String code, {
     required int? partialIndex,
     required OperationPerformanceImpl performance,
@@ -2282,25 +2282,31 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     // We are done with the file, stop forcing its content.
     file._fsState._macroFileContent = null;
 
-    var import = AugmentationImportWithFile(
+    var partUri = DirectiveUriWithFile(
+      relativeUriStr: macroFileName,
+      relativeUri: macroRelativeUri,
+      file: macroFile,
+    );
+
+    var partInclude = PartIncludeWithFile(
       container: this,
-      unlinked: UnlinkedAugmentationImportDirective(
-        importKeywordOffset: -1,
-        augmentKeywordOffset: -1,
+      unlinked: UnlinkedPartDirective(
+        configurations: [],
         uri: macroFileName,
       ),
-      uri: DirectiveUriWithFile(
-        relativeUriStr: macroFileName,
-        relativeUri: macroRelativeUri,
-        file: macroFile,
+      selectedUri: partUri,
+      uris: DirectiveUris(
+        primary: partUri,
+        configurations: [],
+        selected: partUri,
       ),
     );
-    _macroImports = [..._macroImports, import].toFixedList();
+    _macroPartIncludes = [..._macroPartIncludes, partInclude].toFixedList();
 
     // We cannot add, because the list is not growable.
-    _augmentationImports = [...augmentationImports, import].toFixedList();
+    _partIncludes = [...partIncludes, partInclude].toFixedList();
 
-    return import;
+    return partInclude;
   }
 
   @override
@@ -2322,13 +2328,13 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   void disposeMacroAugmentations({
     required bool disposeFiles,
   }) {
-    for (var macroImport in _macroImports) {
-      _augmentationImports = augmentationImports.withoutLast.toFixedList();
+    for (var macroInclude in _macroPartIncludes) {
+      _partIncludes = partIncludes.withoutLast.toFixedList();
       if (disposeFiles) {
-        _disposeMacroFile(macroImport.importedFile);
+        _disposeMacroFile(macroInclude.includedFile);
       }
     }
-    _macroImports = const [];
+    _macroPartIncludes = const [];
   }
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
@@ -2337,9 +2343,9 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     disposeMacroAugmentations(disposeFiles: false);
   }
 
-  void removeLastMacroAugmentation() {
-    _macroImports = _macroImports.withoutLast.toFixedList();
-    _augmentationImports = augmentationImports.withoutLast.toFixedList();
+  void removeLastMacroPartInclude() {
+    _macroPartIncludes = _macroPartIncludes.withoutLast.toFixedList();
+    _partIncludes = partIncludes.withoutLast.toFixedList();
   }
 
   @override

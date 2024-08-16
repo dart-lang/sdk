@@ -9,6 +9,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
+#include "vm/interpreter.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
@@ -129,8 +130,22 @@ void StubCode::Cleanup() {
   }
 }
 
-bool StubCode::InInvocationStub(uword pc) {
+bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
   ASSERT(HasBeenInitialized());
+#if defined(DART_DYNAMIC_MODULES)
+  if (is_interpreted_frame) {
+    // Recognize special marker set up by interpreter in entry frame.
+    return Interpreter::IsEntryFrameMarker(
+        reinterpret_cast<const KBCInstr*>(pc));
+  }
+  {
+    uword entry = StubCode::InvokeDartCodeFromBytecode().EntryPoint();
+    uword size = StubCode::InvokeDartCodeFromBytecodeSize();
+    if ((pc >= entry) && (pc < (entry + size))) {
+      return true;
+    }
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
   uword entry = StubCode::InvokeDartCode().EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));

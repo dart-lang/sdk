@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -40,6 +41,13 @@ class CompletionState {
   ClassMember? get enclosingMember {
     return selection.coveringNode.thisOrAncestorOfType<ClassMember>();
   }
+
+  /// Indicates if types should be specified whenever possible.
+  bool get includeTypes =>
+      request.fileState.analysisOptions.codeStyleOptions.specifyTypes;
+
+  /// The indentation for the completion text.
+  String get indent => getRequestLineIndent(request);
 
   /// Whether the completion location is inside an instance member, and hence
   /// whether there is a binding for `this`.

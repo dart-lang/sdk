@@ -33,14 +33,6 @@
   "code": "B.JSInt_methods = J.JSInt.prototype;\n"
 },
   {
-  "id": "constant/B.JSString_methods = J.JSString.prototype;\n",
-  "kind": "constant",
-  "name": "",
-  "size": 43,
-  "outputUnit": "outputUnit/main",
-  "code": "B.JSString_methods = J.JSString.prototype;\n"
-},
-  {
   "id": "constant/B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n",
   "kind": "constant",
   "name": "",

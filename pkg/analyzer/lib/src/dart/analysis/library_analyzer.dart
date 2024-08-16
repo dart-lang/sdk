@@ -395,7 +395,7 @@ class LibraryAnalyzer {
         in analysesToContextUnits.entries) {
       // Skip computing lints on macro generated augmentations.
       // See: https://github.com/dart-lang/sdk/issues/54875
-      if (fileAnalysis.file.isMacroAugmentation) return;
+      if (fileAnalysis.file.isMacroPart) return;
 
       var unit = currentUnit.unit;
       var errorReporter = currentUnit.errorReporter;
@@ -819,19 +819,18 @@ class LibraryAnalyzer {
       }
     }
 
-    // The macro augmentation does not have an explicit `import` directive.
-    // So, we look into the file augmentation imports.
-    var macroImport = fileKind.augmentationImports.lastOrNull;
-    if (macroImport is AugmentationImportWithFile) {
-      var importedFile = macroImport.importedFile;
-      if (importedFile.isMacroAugmentation) {
-        _resolveAugmentationImportDirective(
+    // The macro part does not have an explicit `part` directive.
+    // So, we look into the file part includes.
+    var macroInclude = fileKind.partIncludes.lastOrNull;
+    if (macroInclude is PartIncludeWithFile) {
+      var includedFile = macroInclude.includedFile;
+      if (includedFile.isMacroPart) {
+        _resolvePartDirective(
           enclosingFile: fileAnalysis,
           directive: null,
-          element: _libraryElement.augmentationImports.last,
-          state: macroImport,
+          partState: macroInclude,
+          partElement: fileElement.parts.last,
           errorReporter: containerErrorReporter,
-          seenAugmentations: seenAugmentations,
         );
       }
     }
@@ -865,7 +864,7 @@ class LibraryAnalyzer {
       ResolutionVisitor(
         unitElement: unitElement,
         errorListener: errorListener,
-        nameScope: unitElement.enclosingElement.scope,
+        nameScope: unitElement.scope,
         strictInference: _analysisOptions.strictInference,
         strictCasts: _analysisOptions.strictCasts,
         elementWalker: ElementWalker.forCompilationUnit(
@@ -890,7 +889,7 @@ class LibraryAnalyzer {
       source,
       _typeProvider,
       errorListener,
-      nameScope: unitElement.enclosingElement.scope,
+      nameScope: unitElement.scope,
       docImportLibraries: docImportLibraries,
     ));
 
@@ -1055,26 +1054,35 @@ class LibraryAnalyzer {
 
   void _resolvePartDirective({
     required FileAnalysis enclosingFile,
-    required PartDirectiveImpl directive,
+    required PartDirectiveImpl? directive,
     required PartIncludeState partState,
     required PartElementImpl partElement,
     required ErrorReporter errorReporter,
   }) {
-    StringLiteral partUri = directive.uri;
+    directive?.element = partElement;
 
-    directive.element = partElement;
+    void reportOnDirectiveUri(
+      ErrorCode errorCode, {
+      List<Object>? arguments = const [],
+    }) {
+      if (directive != null) {
+        errorReporter.atNode(
+          directive.uri,
+          errorCode,
+          arguments: arguments,
+        );
+      }
+    }
 
     if (partState is! PartIncludeWithUriStr) {
-      errorReporter.atNode(
-        directive.uri,
+      reportOnDirectiveUri(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
       );
       return;
     }
 
     if (partState is! PartIncludeWithUri) {
-      errorReporter.atNode(
-        directive.uri,
+      reportOnDirectiveUri(
         CompileTimeErrorCode.INVALID_URI,
         arguments: [partState.selectedUri.relativeUriStr],
       );
@@ -1082,8 +1090,7 @@ class LibraryAnalyzer {
     }
 
     if (partState is! PartIncludeWithFile) {
-      errorReporter.atNode(
-        directive.uri,
+      reportOnDirectiveUri(
         CompileTimeErrorCode.URI_DOES_NOT_EXIST,
         arguments: [partState.selectedUri.relativeUriStr],
       );
@@ -1102,8 +1109,7 @@ class LibraryAnalyzer {
       } else {
         errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
       }
-      errorReporter.atNode(
-        partUri,
+      reportOnDirectiveUri(
         errorCode,
         arguments: [includedFile.uriStr],
       );
@@ -1114,8 +1120,7 @@ class LibraryAnalyzer {
     // Validate that the part source is unique in the library.
     //
     if (_libraryFiles.containsKey(includedFile)) {
-      errorReporter.atNode(
-        partUri,
+      reportOnDirectiveUri(
         CompileTimeErrorCode.DUPLICATE_PART,
         arguments: [includedFile.uri],
       );
@@ -1130,22 +1135,19 @@ class LibraryAnalyzer {
             var name = includedKind.unlinked.name;
             var libraryName = _libraryElement.name;
             if (libraryName.isEmpty) {
-              errorReporter.atNode(
-                partUri,
+              reportOnDirectiveUri(
                 CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
                 arguments: [name],
               );
             } else {
-              errorReporter.atNode(
-                partUri,
+              reportOnDirectiveUri(
                 CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                 arguments: [libraryName, name],
               );
             }
           }
         case PartOfUriFileKind():
-          errorReporter.atNode(
-            partUri,
+          reportOnDirectiveUri(
             CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
             arguments: [
               enclosingFile.file.uriStr,
@@ -1156,10 +1158,12 @@ class LibraryAnalyzer {
       return;
     }
 
-    _resolveUriConfigurations(
-      configurationNodes: directive.configurations,
-      configurationUris: partState.uris.configurations,
-    );
+    if (directive != null) {
+      _resolveUriConfigurations(
+        configurationNodes: directive.configurations,
+        configurationUris: partState.uris.configurations,
+      );
+    }
 
     _resolveDirectives(
       enclosingFile: enclosingFile,

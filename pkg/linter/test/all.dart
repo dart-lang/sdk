@@ -25,6 +25,7 @@ import 'validate_rule_description_format_test.dart'
     as validate_rule_description_format;
 import 'validate_sdk_version_map.dart' as validate_sdk_version_map;
 import 'verify_checks_test.dart' as verify_checks;
+import 'verify_generated_codes_test.dart' as verify_generated_codes;
 import 'verify_machine_json_test.dart' as verify_machine_json;
 import 'verify_reflective_test_suites.dart' as verify_reflective_test_suites;
 
@@ -50,6 +51,7 @@ void main() {
   validate_rule_description_format.main();
   validate_sdk_version_map.main();
   verify_checks.main();
+  verify_generated_codes.main();
   verify_machine_json.main();
   verify_reflective_test_suites.main();
 }

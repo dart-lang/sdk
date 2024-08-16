@@ -235,7 +235,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
             gn_args['arm_float_abi'] = floatabi
             gn_args['arm_use_neon'] = True
     if gn_args['target_os'] == 'fuchsia':
-        gn_args['fuchsia_target_api_level'] = 21
+        gn_args['fuchsia_target_api_level'] = 22
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -256,6 +256,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
 
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
+
+    gn_args['dart_dynamic_modules'] = args.dart_dynamic_modules
 
     gn_args['is_asan'] = sanitizer == 'asan'
     gn_args['is_lsan'] = sanitizer == 'lsan'
@@ -495,6 +497,11 @@ def AddCommonGnOptionArgs(parser):
                         help='Enable code coverage for the standalone VM',
                         default=False,
                         dest="code_coverage",
+                        action='store_true')
+    parser.add_argument('--dart-dynamic-modules',
+                        help='Enable Dart dynamic modules.',
+                        default=False,
+                        dest='dart_dynamic_modules',
                         action='store_true')
     parser.add_argument('--debug-opt-level',
                         '-d',

@@ -4754,6 +4754,9 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @31
+          reference: <testLibraryFragment>::@extension::E
 ''');
   }
 
@@ -6705,6 +6708,9 @@ library
       classes
         class C @56
           reference: <testLibraryFragment>::@class::C
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
   classes
     class C
       reference: <testLibraryFragment>::@class::C

@@ -877,6 +877,12 @@ class KernelProgramInfo : public AllStatic {
   FINAL_CLASS();
 };
 
+class Bytecode : public AllStatic {
+ public:
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
 class PcDescriptors : public AllStatic {
  public:
   static word HeaderSize();
@@ -1215,6 +1221,8 @@ class Thread : public AllStatic {
   static word slow_type_test_stub_offset();
   static word call_to_runtime_stub_offset();
   static word invoke_dart_code_stub_offset();
+  static word interpret_call_entry_point_offset();
+  static word invoke_dart_code_from_bytecode_stub_offset();
   static word late_initialization_error_shared_without_fpu_regs_stub_offset();
   static word late_initialization_error_shared_with_fpu_regs_stub_offset();
   static word null_error_shared_without_fpu_regs_stub_offset();

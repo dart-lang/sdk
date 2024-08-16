@@ -41,6 +41,10 @@ Thread::~Thread() {
   ASSERT(old_marking_stack_block_ == nullptr);
   ASSERT(new_marking_stack_block_ == nullptr);
   ASSERT(deferred_marking_stack_block_ == nullptr);
+#if defined(DART_DYNAMIC_MODULES)
+  delete interpreter_;
+  interpreter_ = nullptr;
+#endif
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == nullptr);
   // Delete the reusable api scope if there is one.
@@ -981,6 +985,12 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
 
+#if defined(DART_DYNAMIC_MODULES)
+  if (interpreter() != nullptr) {
+    interpreter()->VisitObjectPointers(visitor);
+  }
+#endif
+
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
   while (scope != nullptr) {
@@ -1037,7 +1047,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
       // To avoid adding too much work into the remembered set, skip large
       // arrays. Write barrier elimination will not remove the barrier
       // if we can trigger GC between array allocation and store.
-      if (obj->GetClassId() == kArrayCid) {
+      if (obj->GetClassIdOfHeapObject() == kArrayCid) {
         const auto length = Smi::Value(Array::RawCast(obj)->untag()->length());
         if (length > Array::kMaxLengthForWriteBarrierElimination) {
           continue;
@@ -1246,6 +1256,11 @@ bool Thread::TopErrorHandlerIsSetJump() const {
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
+#if defined(DART_DYNAMIC_MODULES)
+  // False positives: interpreter stack and native stack are unordered.
+  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
+    return true;
+#endif
   return reinterpret_cast<uword>(long_jump_base()) < top_exit_frame_info_;
 #endif
 }
@@ -1257,6 +1272,11 @@ bool Thread::TopErrorHandlerIsExitFrame() const {
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
+#if defined(DART_DYNAMIC_MODULES)
+  // False positives: interpreter stack and native stack are unordered.
+  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
+    return true;
+#endif
   return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base());
 #endif
 }

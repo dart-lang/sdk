@@ -2017,7 +2017,7 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
 #else
   Label true_label;
   // Load TimelineStream*.
-  __ lx(A0, Address(THR, target::Thread::dart_stream_offset()));
+  __ LoadFromOffset(A0, THR, target::Thread::dart_stream_offset());
   // Load uintptr_t from TimelineStream*.
   __ lx(A0, Address(A0, target::TimelineStream::enabled_offset()));
   __ bnez(A0, &true_label, Assembler::kNearJump);

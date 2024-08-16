@@ -780,13 +780,6 @@ class LibraryReader {
     required LibraryOrAugmentationElementImpl augmentationTarget,
     required Source unitSource,
   }) {
-    var macroGenerated = _reader.readOptionalObject((reader) {
-      return MacroGeneratedAugmentationLibrary(
-        code: _reader.readStringUtf8(),
-        informativeBytes: _reader.readUint8List(),
-      );
-    });
-
     var augmentation = LibraryAugmentationElementImpl(
       augmentationTarget: augmentationTarget,
       nameOffset: -1, // TODO(scheglov): implement, test
@@ -801,7 +794,6 @@ class LibraryReader {
     augmentation.definingCompilationUnit = definingUnit;
     augmentation.reference =
         _reference.getChild('@augmentation').getChild('${unitSource.uri}');
-    augmentation.macroGenerated = macroGenerated;
 
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     _readLibraryOrAugmentationElement(
@@ -1888,6 +1880,14 @@ class LibraryReader {
         variables, '@topLevelVariable');
     unitElement.accessors = accessors.toFixedList();
     unitElement.topLevelVariables = variables.toFixedList();
+
+    unitElement.macroGenerated = _reader.readOptionalObject((reader) {
+      return MacroGeneratedLibraryFragment(
+        code: _reader.readStringUtf8(),
+        informativeBytes: _reader.readUint8List(),
+      );
+    });
+
     return unitElement;
   }
 

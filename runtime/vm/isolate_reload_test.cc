@@ -5478,7 +5478,7 @@ class CidCountingVisitor : public ObjectVisitor {
   virtual ~CidCountingVisitor() {}
 
   virtual void VisitObject(ObjectPtr obj) {
-    if (obj->GetClassId() == cid_) {
+    if (obj->GetClassIdOfHeapObject() == cid_) {
       count_++;
     }
   }

@@ -31,6 +31,7 @@
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
 #include "vm/random.h"
+#include "vm/service.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/thread_pool.h"
@@ -530,9 +531,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex* unlinked_call_map_mutex() { return &unlinked_call_map_mutex_; }
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
   SafepointRwLock* program_lock() { return program_lock_.get(); }
 
@@ -706,7 +707,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
+  void VisitPointersInDefaultServiceIdZone(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.
@@ -907,9 +908,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex unlinked_call_map_mutex_;
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   Mutex initializer_functions_mutex_;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
   // Protect access to boxed_field_list_.
   Mutex field_list_mutex_;
@@ -1247,8 +1248,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
 #if !defined(PRODUCT)
-  ObjectIdRing* object_id_ring() const { return object_id_ring_; }
-  ObjectIdRing* EnsureObjectIdRing();
+  RingServiceIdZone& GetDefaultServiceIdZone() const;
 #endif  // !defined(PRODUCT)
 
   bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
@@ -1648,8 +1648,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-  // Ring buffer of objects assigned an id.
-  ObjectIdRing* object_id_ring_ = nullptr;
+  MallocGrowableArray<RingServiceIdZone*> service_id_zones_;
 #endif  // !defined(PRODUCT)
 
   // All other fields go here.

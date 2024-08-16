@@ -56,7 +56,8 @@ class DartUnitHoverComputer {
         node is VariableDeclaration ||
         node is VariablePattern ||
         node is PatternFieldName ||
-        node is DartPattern) {
+        node is DartPattern ||
+        (node is LibraryDirective && node.name2 == null)) {
       var range = _hoverRange(node, locationEntity);
       var hover = HoverInformation(range.offset, range.length);
       // element
@@ -196,6 +197,7 @@ class DartUnitHoverComputer {
       VariablePattern() => node.name,
       PatternFieldName() => node.name,
       WildcardPattern() => node.name,
+      LibraryDirective() => node.libraryKeyword,
       _ => null,
     };
   }

@@ -117,7 +117,8 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
 }
 
 class _PatternVisitor extends GeneralizingAstVisitor<void> {
-  LintRule rule;
+  final LintRule rule;
+
   _PatternVisitor(this.rule);
 
   @override

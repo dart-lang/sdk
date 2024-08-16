@@ -46,10 +46,10 @@ class A {
   test_forEach_inferredList() async {
     await assertDiagnostics(r'''
 f() {
-  for (int i in [1, 2, 3]) { }
+  for (String s in ['a', 'b', 'c']) { }
 }
 ''', [
-      lint(13, 3),
+      lint(13, 6),
     ]);
   }
 
@@ -159,10 +159,10 @@ class A {}
   test_list() async {
     await assertDiagnostics(r'''
 f() {
-  List<int> a = [1, 2, (3 as dynamic) as int];
+  List<String> a = ['a', 'b', ('c' as dynamic) as String];
 }
 ''', [
-      lint(8, 9),
+      lint(8, 12),
     ]);
   }
 
@@ -215,13 +215,11 @@ f() {
   }
 
   test_literal_int() async {
-    await assertDiagnostics(r'''
+    await assertNoDiagnostics(r'''
 f() {
   int i = 1;
 }
-''', [
-      lint(8, 3),
-    ]);
+''');
   }
 
   // `Null` is not obvious, the inferred type is `dynamic`.
@@ -274,10 +272,10 @@ f() {
   test_map() async {
     await assertDiagnostics(r'''
 f() {
-  Map<int, String> a = {1: 'a'};
+  Map<double, String> a = {1.5: 'a'};
 }
 ''', [
-      lint(8, 16),
+      lint(8, 19),
     ]);
   }
 

@@ -46,6 +46,32 @@ ConstructorName
 ''');
   }
 
+  test_fieldShadowingWildcardParameter() async {
+    await assertErrorsInCode(r'''
+class A {
+  var v;
+  var _;
+  A(var _) : v = _;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 45, 1),
+    ]);
+
+    var node = findNode.constructorFieldInitializer('v = _');
+    assertResolvedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName: SimpleIdentifier
+    token: v
+    staticElement: <testLibraryFragment>::@class::A::@field::v
+    staticType: null
+  equals: =
+  expression: SimpleIdentifier
+    token: _
+    staticElement: <testLibraryFragment>::@class::A::@getter::_
+    staticType: dynamic
+''');
+  }
+
   test_formalParameterScope() async {
     await assertNoErrorsInCode('''
 class a {}

@@ -39,6 +39,7 @@ class CompilerState;
 class CompilerTimings;
 class Class;
 class Code;
+class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
@@ -49,6 +50,7 @@ class HandleScope;
 class Heap;
 class HierarchyInfo;
 class Instance;
+class Interpreter;
 class Isolate;
 class IsolateGroup;
 class Library;
@@ -69,6 +71,10 @@ class TypeParameter;
 class TypeUsageInfo;
 class Zone;
 
+namespace bytecode {
+class BytecodeLoader;
+}
+
 namespace compiler {
 namespace target {
 class Thread;
@@ -80,6 +86,7 @@ class Thread;
   V(Array)                                                                     \
   V(Class)                                                                     \
   V(Code)                                                                      \
+  V(Bytecode)                                                                  \
   V(Error)                                                                     \
   V(ExceptionHandlers)                                                         \
   V(Field)                                                                     \
@@ -104,6 +111,8 @@ class Thread;
     StubCode::FixAllocationStubTarget().ptr(), nullptr)                        \
   V(CodePtr, invoke_dart_code_stub_, StubCode::InvokeDartCode().ptr(),         \
     nullptr)                                                                   \
+  V(CodePtr, invoke_dart_code_from_bytecode_stub_,                             \
+    StubCode::InvokeDartCodeFromBytecode().ptr(), nullptr)                     \
   V(CodePtr, call_to_runtime_stub_, StubCode::CallToRuntime().ptr(), nullptr)  \
   V(CodePtr, late_initialization_error_shared_without_fpu_regs_stub_,          \
     StubCode::LateInitializationErrorSharedWithoutFPURegs().ptr(), nullptr)    \
@@ -247,6 +256,7 @@ class Thread;
     NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
   V(uword, auto_scope_native_wrapper_entry_point_,                             \
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
+  V(uword, interpret_call_entry_point_, RuntimeEntry::InterpretCallEntry(), 0) \
   V(StringPtr*, predefined_symbols_address_, Symbols::PredefinedAddress(),     \
     nullptr)                                                                   \
   V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
@@ -1154,6 +1164,16 @@ class Thread : public ThreadState {
     return SafepointLevel::kGCAndDeoptAndReload;
   }
 
+#if defined(DART_DYNAMIC_MODULES)
+  Interpreter* interpreter() const { return interpreter_; }
+  void set_interpreter(Interpreter* value) { interpreter_ = value; }
+
+  bytecode::BytecodeLoader* bytecode_loader() const { return bytecode_loader_; }
+  void set_bytecode_loader(bytecode::BytecodeLoader* value) {
+    bytecode_loader_ = value;
+  }
+#endif
+
  private:
   template <class T>
   T* AllocateReusableHandle();
@@ -1407,6 +1427,11 @@ class Thread : public ThreadState {
   HeapProfileSampler heap_sampler_;
 #endif
 
+#if defined(DART_DYNAMIC_MODULES)
+  Interpreter* interpreter_ = nullptr;
+  bytecode::BytecodeLoader* bytecode_loader_ = nullptr;
+#endif
+
   explicit Thread(bool is_vm_isolate);
 
   void StoreBufferRelease(
@@ -1472,6 +1497,7 @@ class Thread : public ThreadState {
 
   friend class ApiZone;
   friend class ActiveIsolateScope;
+  friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateGroup;

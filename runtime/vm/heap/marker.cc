@@ -138,7 +138,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           }
         }
 
-        const intptr_t class_id = obj->GetClassId();
+        const intptr_t class_id = obj->GetClassIdOfHeapObject();
         ASSERT(class_id != kIllegalCid);
         ASSERT(class_id != kFreeListElement);
         ASSERT(class_id != kForwardingCorpse);
@@ -239,7 +239,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       while (MarkerWorkList::Pop(&old_work_list_, &new_work_list_, &obj)) {
         ASSERT(!has_evacuation_candidate_);
 
-        const intptr_t class_id = obj->GetClassId();
+        const intptr_t class_id = obj->GetClassIdOfHeapObject();
         ASSERT(class_id != kIllegalCid);
         ASSERT(class_id != kFreeListElement);
         ASSERT(class_id != kForwardingCorpse);
@@ -301,7 +301,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       while (old_work_list_.Pop(&obj)) {
         ASSERT(!has_evacuation_candidate_);
 
-        const intptr_t class_id = obj->GetClassId();
+        const intptr_t class_id = obj->GetClassIdOfHeapObject();
         ASSERT(class_id != kIllegalCid);
         ASSERT(class_id != kFreeListElement);
         ASSERT(class_id != kForwardingCorpse);
@@ -726,6 +726,20 @@ class MarkingWeakVisitor : public HandleVisitor {
 void GCMarker::Prologue() {
   isolate_group_->ReleaseStoreBuffers();
   new_marking_stack_.PushAll(tlab_deferred_marking_stack_.PopAll());
+
+#if defined(DART_DYNAMIC_MODULES)
+  isolate_group_->ForEachIsolate(
+      [&](Isolate* isolate) {
+        Thread* mutator_thread = isolate->mutator_thread();
+        if (mutator_thread != nullptr) {
+          Interpreter* interpreter = mutator_thread->interpreter();
+          if (interpreter != nullptr) {
+            interpreter->ClearLookupCache();
+          }
+        }
+      },
+      /*at_safepoint=*/true);
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 void GCMarker::Epilogue() {}
@@ -764,7 +778,7 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
       case kObjectIdRing: {
         TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                       "ProcessObjectIdTable");
-        isolate_group_->VisitObjectIdRingPointers(visitor);
+        isolate_group_->VisitPointersInDefaultServiceIdZone(*visitor);
         break;
       }
     }

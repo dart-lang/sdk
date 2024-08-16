@@ -11236,6 +11236,9 @@ library
           reference: <testLibraryFragment>::@class::C
         class D @56
           reference: <testLibraryFragment>::@class::D
+      extensionTypes
+        extension type B @26
+          reference: <testLibraryFragment>::@extensionType::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -12418,6 +12421,9 @@ library
       classes
         class D @56
           reference: <testLibraryFragment>::@class::D
+      extensionTypes
+        extension type B @26
+          reference: <testLibraryFragment>::@extensionType::B
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A
@@ -15411,6 +15417,9 @@ library
       classes
         class B @34
           reference: <testLibraryFragment>::@class::B
+      extensionTypes
+        extension type A @15
+          reference: <testLibraryFragment>::@extensionType::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B

@@ -807,6 +807,22 @@ This is a string.''';
     await assertStringContents(content, equals(expected));
   }
 
+  Future<void> test_unnamed_library_directive() async {
+    var content = '''
+/// This is a string.
+[!lib^rary!];
+''';
+    var expected = '''
+```dart
+library package:test/main.dart
+```
+*package:test/main.dart*
+
+---
+This is a string.''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_unopenFile() async {
     var content = '''
 /// This is a string.

@@ -1702,7 +1702,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     } else if (kind == Snapshot::kFullJIT) {
       NOT_IN_PRECOMPILED(s->Push(func->untag()->unoptimized_code()));
       s->Push(func->untag()->code());
-      s->Push(func->untag()->ic_data_array());
+      s->Push(func->untag()->ic_data_array_or_bytecode());
     }
     if (kind != Snapshot::kFullAOT) {
       NOT_IN_PRECOMPILED(s->Push(func->untag()->positional_parameter_names()));
@@ -1737,7 +1737,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       } else if (s->kind() == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(WriteCompressedField(func, unoptimized_code));
         WriteCompressedField(func, code);
-        WriteCompressedField(func, ic_data_array);
+        WriteCompressedField(func, ic_data_array_or_bytecode);
       }
 
       if (kind != Snapshot::kFullAOT) {
@@ -1917,7 +1917,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       if (kind == Snapshot::kFullJIT) {
         func->untag()->unoptimized_code_ = static_cast<CodePtr>(d.ReadRef());
         func->untag()->code_ = static_cast<CodePtr>(d.ReadRef());
-        func->untag()->ic_data_array_ = static_cast<ArrayPtr>(d.ReadRef());
+        func->untag()->ic_data_array_or_bytecode_ = d.ReadRef();
       }
 #endif
 
@@ -2709,7 +2709,7 @@ class CodeSerializationCluster : public SerializationCluster {
         // indirectly by passing the field to the runtime. A const closure
         // is a call target because its function may be called indirectly
         // via a closure call.
-        intptr_t cid = target->GetClassIdMayBeSmi();
+        intptr_t cid = target->GetClassId();
         if (!only_call_targets || (cid == kCodeCid) || (cid == kFunctionCid) ||
             (cid == kFieldCid) || (cid == kClosureCid)) {
           s->Push(target);
@@ -5918,7 +5918,7 @@ class DeltaEncodedTypedDataSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       const TypedDataPtr data = objects_[i];
       const intptr_t element_size =
-          TypedData::ElementSizeInBytes(data->GetClassId());
+          TypedData::ElementSizeInBytes(data->GetClassIdOfHeapObject());
       s->AssignRef(data);
       AutoTraceObject(data);
       const intptr_t length_in_bytes =
@@ -5935,7 +5935,7 @@ class DeltaEncodedTypedDataSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       const TypedDataPtr data = objects_[i];
       AutoTraceObject(data);
-      const intptr_t cid = data->GetClassId();
+      const intptr_t cid = data->GetClassIdOfHeapObject();
       // Only Uint16 and Uint32 typed data is supported at the moment. So encode
       // which this is in the low bit of the length. Uint16 is 0, Uint32 is 1.
       ASSERT(cid == kTypedDataUint16ArrayCid ||
@@ -6417,7 +6417,7 @@ class ArraySerializationCluster : public SerializationCluster {
         const intptr_t length = Smi::Value(array->untag()->length());
         for (intptr_t i = 0; i < length; i++) {
           ObjectPtr element = array->untag()->element(i);
-          intptr_t cid = element->GetClassIdMayBeSmi();
+          intptr_t cid = element->GetClassId();
           if (!IsReadOnlyCid(cid)) allro = false;
           if (cid != kSmiCid) allsmi = false;
         }
@@ -6643,7 +6643,7 @@ class StringSerializationCluster
       StringPtr str = objects_[i];
       s->AssignRef(str);
       AutoTraceObject(str);
-      const intptr_t cid = str->GetClassId();
+      const intptr_t cid = str->GetClassIdOfHeapObject();
       const intptr_t length = Smi::Value(str->untag()->length());
       const intptr_t encoded = EncodeLengthAndCid(length, cid);
       s->WriteUnsigned(encoded);
@@ -6660,7 +6660,7 @@ class StringSerializationCluster
     for (intptr_t i = 0; i < count; i++) {
       StringPtr str = objects_[i];
       AutoTraceObject(str);
-      const intptr_t cid = str->GetClassId();
+      const intptr_t cid = str->GetClassIdOfHeapObject();
       const intptr_t length = Smi::Value(str->untag()->length());
       const intptr_t encoded = EncodeLengthAndCid(length, cid);
       s->WriteUnsigned(encoded);
@@ -7582,7 +7582,7 @@ Serializer::WritingObjectScope::WritingObjectScope(
   serializer_->object_currently_writing_.object_ = object;
   serializer_->object_currently_writing_.id_ = id;
   serializer_->object_currently_writing_.cid_ =
-      object == nullptr ? -1 : object->GetClassIdMayBeSmi();
+      object == nullptr ? -1 : object->GetClassId();
 }
 
 Serializer::WritingObjectScope::~WritingObjectScope() {
@@ -7603,7 +7603,7 @@ V8SnapshotProfileWriter::ObjectId Serializer::WritingObjectScope::ReserveId(
   }
   if (name == nullptr) {
     // Handle some cases where there are obvious names to assign.
-    switch (obj->GetClassIdMayBeSmi()) {
+    switch (obj->GetClassId()) {
       case kSmiCid: {
         name = OS::SCreate(s->zone(), "%" Pd "", Smi::Value(Smi::RawCast(obj)));
         break;
@@ -7649,7 +7649,7 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
   const char* type = nullptr;
   const char* name = nullptr;
   GrowableArray<std::pair<ObjectPtr, V8SnapshotProfileWriter::Reference>> links;
-  const classid_t cid = obj->GetClassIdMayBeSmi();
+  const classid_t cid = obj->GetClassId();
   switch (cid) {
     // For profiling static call target tables in AOT mode.
     case kSmiCid: {
@@ -7775,8 +7775,7 @@ intptr_t Serializer::UnsafeRefId(ObjectPtr object) const {
   // The object id weak table holds image offsets for Instructions instead
   // of ref indices.
   ASSERT(!object->IsHeapObject() || !object->IsInstructions());
-  if (!Snapshot::IncludesCode(kind_) &&
-      object->GetClassIdMayBeSmi() == kCodeCid) {
+  if (!Snapshot::IncludesCode(kind_) && object->GetClassId() == kCodeCid) {
     return RefId(Object::null());
   }
   auto id = heap_->GetObjectId(object);
@@ -8440,7 +8439,7 @@ void Serializer::Trace(ObjectPtr object, intptr_t cid_override) {
     cid = kMintCid;
     is_canonical = true;
   } else {
-    cid = object->GetClassId();
+    cid = object->GetClassIdOfHeapObject();
     is_canonical = object->untag()->IsCanonical();
   }
   if (cid_override != kIllegalCid) {

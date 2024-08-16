@@ -32,11 +32,6 @@ class _RecGroupBuilder {
 
   _RecGroupBuilder();
 
-  static bool _areStructurallyEqual(ir.DefType type1, ir.DefType type2) {
-    return type1.isStructuralSubtypeOf(type2) &&
-        type2.isStructuralSubtypeOf(type1);
-  }
-
   /// Get the out-edges for [type] in the wasm type graph.
   Set<ir.DefType> _edgesforType(ir.DefType type) {
     final edges = <ir.DefType>{};
@@ -52,10 +47,6 @@ class _RecGroupBuilder {
     if (superType != null) {
       edges.add(superType);
     }
-
-    bool isStructurallyEqual(ir.DefType t) => _areStructurallyEqual(type, t);
-
-    edges.addAll(_allDefinedTypes.where(isStructurallyEqual));
     return edges;
   }
 
@@ -68,6 +59,32 @@ class _RecGroupBuilder {
     for (ir.DefType type in _allDefinedTypes) {
       typeGraph[type] = _edgesforType(type);
     }
+
+    // Ensure different, but structucally equivalent types, are placed together.
+    // Note: only `StructType`s need to be considered and it is sufficient to
+    // only compare pairs of same struct size.
+    var structTypes = _allDefinedTypes.whereType<ir.StructType>().toList();
+    structTypes.sort((a, b) => a.fields.length.compareTo(b.fields.length));
+
+    // All structs prior to `sizeStart` have a size smaller than `currentSize`.
+    int sizeStart = 0;
+    int currentSize = 0;
+    for (int i = 0; i < structTypes.length; i++) {
+      var type1 = structTypes[i];
+      var type1Size = type1.fields.length;
+      if (currentSize != type1Size) {
+        currentSize = type1Size;
+        sizeStart = i;
+      }
+      for (int j = sizeStart; j < i; j++) {
+        var type2 = structTypes[j];
+        if (type1.isStructurallyEqualTo(type2)) {
+          typeGraph[type1]!.add(type2);
+          typeGraph[type2]!.add(type1);
+        }
+      }
+    }
+
     final components = stronglyConnectedComponents(typeGraph);
     final groups = <List<ir.DefType>>[];
     // Make sure to reverse the list since the components are returned with the

@@ -481,8 +481,7 @@ class IncrementalForwardingVisitor : public ObjectPointerVisitor,
     const intptr_t length = typed_data_views_.length();
     for (intptr_t i = 0; i < length; ++i) {
       auto raw_view = typed_data_views_[i];
-      const classid_t cid =
-          raw_view->untag()->typed_data()->GetClassIdMayBeSmi();
+      const classid_t cid = raw_view->untag()->typed_data()->GetClassId();
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
       // the inner pointer.
@@ -682,10 +681,7 @@ class EpilogueTask : public ThreadPool::Task {
       TIMELINE_FUNCTION_GC_DURATION(thread, "IdRing");
       isolate_group_->ForEachIsolate(
           [&](Isolate* isolate) {
-            ObjectIdRing* ring = isolate->object_id_ring();
-            if (ring != nullptr) {
-              ring->VisitPointers(&visitor);
-            }
+            isolate->GetDefaultServiceIdZone().VisitPointers(visitor);
           },
           /*at_safepoint=*/true);
     }
@@ -755,7 +751,7 @@ class EpilogueTask : public ThreadPool::Task {
             ObjectPtr copied_obj = UntaggedObject::FromAddr(copied);
 
             copied_obj->untag()->ClearIsEvacuationCandidateUnsynchronized();
-            if (IsTypedDataClassId(copied_obj->GetClassId())) {
+            if (IsTypedDataClassId(copied_obj->GetClassIdOfHeapObject())) {
               static_cast<TypedDataPtr>(copied_obj)
                   ->untag()
                   ->RecomputeDataField();

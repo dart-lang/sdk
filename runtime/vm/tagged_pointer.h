@@ -135,22 +135,24 @@ class ObjectPtr {
   bool IsStringInstance() const { return IsStringClassId(GetClassId()); }
   bool IsRawNull() const { return GetClassId() == kNullCid; }
   bool IsDartInstance() const {
-    return (!IsHeapObject() || !IsInternalOnlyClassId(GetClassId()));
+    return (!IsHeapObject() ||
+            !IsInternalOnlyClassId(GetClassIdOfHeapObject()));
   }
+  // Only works with heap objects.
   bool IsFreeListElement() const {
-    return ((GetClassId() == kFreeListElement));
+    return ((GetClassIdOfHeapObject() == kFreeListElement));
   }
+  // Only works with heap objects.
   bool IsForwardingCorpse() const {
-    return ((GetClassId() == kForwardingCorpse));
+    return ((GetClassIdOfHeapObject() == kForwardingCorpse));
   }
+  // Only works with heap objects.
   bool IsPseudoObject() const {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
   intptr_t GetClassId() const;
-  intptr_t GetClassIdMayBeSmi() const {
-    return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
-  }
+  intptr_t GetClassIdOfHeapObject() const;
 
   void Validate(IsolateGroup* isolate_group) const;
 
@@ -375,6 +377,7 @@ DEFINE_TAGGED_POINTER(KernelProgramInfo, Object)
 DEFINE_TAGGED_POINTER(WeakSerializationReference, Object)
 DEFINE_TAGGED_POINTER(WeakArray, Object)
 DEFINE_TAGGED_POINTER(Code, Object)
+DEFINE_TAGGED_POINTER(Bytecode, Object)
 DEFINE_TAGGED_POINTER(ObjectPool, Object)
 DEFINE_TAGGED_POINTER(Instructions, Object)
 DEFINE_TAGGED_POINTER(InstructionsSection, Object)

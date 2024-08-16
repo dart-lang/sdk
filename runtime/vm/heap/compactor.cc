@@ -327,8 +327,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
     const intptr_t length = typed_data_views_.length();
     for (intptr_t i = 0; i < length; ++i) {
       auto raw_view = typed_data_views_[i];
-      const classid_t cid =
-          raw_view->untag()->typed_data()->GetClassIdMayBeSmi();
+      const classid_t cid = raw_view->untag()->typed_data()->GetClassId();
 
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
@@ -510,10 +509,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
           isolate_group_->ForEachIsolate(
               [&](Isolate* isolate) {
-                ObjectIdRing* ring = isolate->object_id_ring();
-                if (ring != nullptr) {
-                  ring->VisitPointers(compactor_);
-                }
+                isolate->GetDefaultServiceIdZone().VisitPointers(*compactor_);
               },
               /*at_safepoint=*/true);
           break;
@@ -622,7 +618,7 @@ uword CompactorTask::SlideBlock(uword first_object,
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
 
-        if (IsTypedDataClassId(new_obj->GetClassId())) {
+        if (IsTypedDataClassId(new_obj->GetClassIdOfHeapObject())) {
           static_cast<TypedDataPtr>(new_obj)->untag()->RecomputeDataField();
         }
       }

@@ -4,6 +4,7 @@
 
 import "dart:_internal"
     show IterableElementError, ClassID, TypeTest, unsafeCast;
+import "dart:_list" show GrowableList;
 import "dart:_wasm";
 
 import "dart:collection";
@@ -427,12 +428,41 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     _deletedKeys = 0;
     if (oldData != null) {
       for (int i = 0; i < oldUsed; i += 2) {
-        var key = oldData[i];
-        if (!_HashBase._isDeleted(key)) {
+        final keyObject = oldData[i];
+        if (!_HashBase._isDeleted(keyObject)) {
           // TODO(koda): While there are enough hash bits, avoid hashCode calls.
-          this[unsafeCast<K>(key)] = unsafeCast<V>(oldData[i + 1]);
+          final key = unsafeCast<K>(keyObject);
+          final value = unsafeCast<V>(oldData[i + 1]);
+          _set(key, value, _hashCode(key));
         }
       }
+    }
+  }
+
+  /// Populate this hash table from the given list of key-value pairs.
+  ///
+  /// This function is unsafe: it does not perform any type checking on
+  /// keys and values assuming that caller has ensured that types are
+  /// correct.
+  void _populateUnsafe(GrowableList<Object?> keyValuePairs) {
+    assert(keyValuePairs.length.isEven);
+    int size = _roundUpToPowerOfTwo(keyValuePairs.length);
+    if (size < _HashBase._INITIAL_INDEX_SIZE) {
+      size = _HashBase._INITIAL_INDEX_SIZE;
+    }
+    final hashMask = _HashBase._indexSizeToHashMask(size);
+
+    assert(size & (size - 1) == 0);
+    assert(_HashBase._UNUSED_PAIR == 0);
+    _index = WasmArray<WasmI32>.filled(size, const WasmI32(0));
+    _hashMask = hashMask;
+    _data = WasmArray<Object?>.filled(size, null);
+    _usedData = 0;
+    _deletedKeys = 0;
+    for (int i = 0; i < keyValuePairs.length; i += 2) {
+      final key = unsafeCast<K>(keyValuePairs[i]);
+      final value = unsafeCast<V>(keyValuePairs[i + 1]);
+      _set(key, value, _hashCode(key));
     }
   }
 
@@ -1099,3 +1129,8 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
   Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
     ..addAll(this);
 }
+
+@pragma('wasm:prefer-inline')
+Map<K, V> createMapFromKeyValueListUnsafe<K, V>(
+        GrowableList<Object?> keyValuePairs) =>
+    DefaultMap<K, V>().._populateUnsafe(keyValuePairs);

@@ -1282,6 +1282,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
+      extensionTypes
+        extension type B @26
+          reference: <testLibraryFragment>::@extensionType::B
       mixins
         mixin M @56
           reference: <testLibraryFragment>::@mixin::M
@@ -1567,6 +1570,9 @@ library
           reference: <testLibraryFragment>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
+      extensionTypes
+        extension type B @26
+          reference: <testLibraryFragment>::@extensionType::B
       mixins
         mixin M @56
           reference: <testLibraryFragment>::@mixin::M

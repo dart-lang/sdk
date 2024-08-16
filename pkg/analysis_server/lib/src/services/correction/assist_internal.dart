@@ -5,6 +5,7 @@
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/add_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
@@ -61,6 +62,7 @@ import 'package:analysis_server/src/services/correction/dart/invert_if_statement
 import 'package:analysis_server/src/services/correction/dart/join_if_with_inner.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_outer.dart';
 import 'package:analysis_server/src/services/correction/dart/join_variable_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_conditional_with_if_else.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_if_else_with_conditional.dart';
@@ -87,6 +89,8 @@ class AssistProcessor {
   /// A list of the generators used to produce assists.
   static const List<ProducerGenerator> _generators = [
     AddDiagnosticPropertyReference.new,
+    AddDigitSeparatorEveryThreeDigits.new,
+    AddDigitSeparatorEveryTwoDigits.new,
     AddReturnType.new,
     AddTypeAnnotation.bulkFixable,
     AssignToLocalVariable.new,
@@ -144,6 +148,7 @@ class AssistProcessor {
     JoinIfWithInner.new,
     JoinIfWithOuter.new,
     JoinVariableDeclaration.new,
+    RemoveDigitSeparators.new,
     RemoveTypeAnnotation.other,
     ReplaceConditionalWithIfElse.new,
     ReplaceIfElseWithConditional.new,

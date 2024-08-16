@@ -7,6 +7,7 @@
 
 #include "vm/class_finalizer.h"
 
+#include "vm/bytecode_reader.h"
 #include "vm/canonical_tables.h"
 #include "vm/closure_functions_cache.h"
 #include "vm/compiler/jit/compiler.h"
@@ -436,7 +437,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
   }
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
 #if defined(TARGET_ARCH_X64)
 static bool IsPotentialExactGeneric(const AbstractType& type) {
@@ -521,7 +522,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     }
   }
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   Thread* thread = Thread::Current();
@@ -531,9 +532,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     return;
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   Zone* zone = thread->zone();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (cls.is_type_finalized()) {
@@ -585,6 +584,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   cls.set_is_type_finalized();
   cls.set_is_isolate_unsendable_due_to_pragma(has_isolate_unsendable_pragma);
   cls.set_is_future_subtype(is_future_subtype);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_future_subtype && !cls.is_abstract()) {
     MarkClassCanBeFuture(zone, cls);
   }
@@ -593,7 +594,11 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
 
   ClassHiearchyUpdater(zone).Register(cls);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#else
+  UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -709,7 +714,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     return;
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   Thread* thread = Thread::Current();
@@ -729,9 +734,22 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 #endif  // defined(SUPPORT_TIMELINE)
 
   // If loading from a kernel, make sure that the class is fully loaded.
-  ASSERT(cls.IsTopLevel() || (cls.kernel_offset() > 0));
+  ASSERT(cls.IsTopLevel() || cls.is_declared_in_bytecode() ||
+         (cls.kernel_offset() > 0));
   if (!cls.is_loaded()) {
-    kernel::KernelLoader::FinishLoading(cls);
+    if (cls.is_declared_in_bytecode()) {
+#if defined(DART_DYNAMIC_MODULES)
+      bytecode::BytecodeReader::FinishClassLoading(cls);
+#else
+      UNREACHABLE();
+#endif
+    } else {
+#if defined(DART_PRECOMPILED_RUNTIME)
+      UNREACHABLE();
+#else
+      kernel::KernelLoader::FinishLoading(cls);
+#endif
+    }
     if (cls.is_finalized()) {
       return;
     }
@@ -747,9 +765,11 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as loaded and finalized.
   cls.Finalize();
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_print_classes) {
     PrintClassInformation(cls);
   }
+#endif
   FinalizeMemberTypes(cls);
 
   // The rest of finalization for non-top-level class has to be done with
@@ -758,7 +778,15 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.IsTopLevel()) {
     cls.set_is_allocate_finalized();
   }
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // Allocate-finalization is a no-op in AOT, so
+  // mark finalized classed as allocate-finalized eagerly.
+  if (!cls.is_allocate_finalized()) {
+    cls.set_is_allocate_finalized();
+  }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -814,15 +842,16 @@ ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
   return Error::null();
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!cls.is_finalized());
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
     cls.EnsureDeclarationLoaded();
-#endif
     ASSERT(cls.is_type_finalized());
     ClassFinalizer::FinalizeClass(cls);
     return Error::null();
@@ -830,6 +859,9 @@ ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
     return Thread::Current()->StealStickyError();
   }
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::PrintClassInformation(const Class& cls) {
   Thread* thread = Thread::Current();
@@ -1056,7 +1088,7 @@ class CidRewriteVisitor : public ObjectVisitor {
       TypePtr type = Type::RawCast(obj);
       type->untag()->set_type_class_id(Map(type->untag()->type_class_id()));
     } else {
-      intptr_t old_cid = obj->GetClassId();
+      intptr_t old_cid = obj->GetClassIdOfHeapObject();
       intptr_t new_cid = Map(old_cid);
       if (old_cid != new_cid) {
         // Don't touch objects that are unchanged. In particular, Instructions,

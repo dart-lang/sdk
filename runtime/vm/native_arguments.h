@@ -85,7 +85,8 @@ class NativeArguments {
 
   ObjectPtr ArgAt(int index) const {
     ASSERT((index >= 0) && (index < ArgCount()));
-    ObjectPtr* arg_ptr = &(argv_[-index]);
+    ObjectPtr* arg_ptr =
+        &(argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index]);
     // Tell MemorySanitizer the ObjectPtr was initialized (by generated code).
     MSAN_UNPOISON(arg_ptr, kWordSize);
     return *arg_ptr;
@@ -94,7 +95,7 @@ class NativeArguments {
   void SetArgAt(int index, const Object& value) const {
     ASSERT(thread_->execution_state() == Thread::kThreadInVM);
     ASSERT((index >= 0) && (index < ArgCount()));
-    argv_[-index] = value.ptr();
+    argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index] = value.ptr();
   }
 
   // Does not include hidden type arguments vector.
@@ -198,13 +199,29 @@ class NativeArguments {
     kArgcSize = 24,
     kFunctionBit = kArgcBit + kArgcSize,
     kFunctionSize = 1,
+    kReverseArgOrderBit = kFunctionBit + kFunctionSize,
+    kReverseArgOrderSize = 1,
   };
   class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
   class FunctionBits
       : public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
+  class ReverseArgOrderBit
+      : public BitField<intptr_t, bool, kReverseArgOrderBit, 1> {};
   friend class Api;
+  friend class Interpreter;
   friend class NativeEntry;
   friend class Simulator;
+
+#if defined(DART_DYNAMIC_MODULES)
+  NativeArguments(Thread* thread,
+                  int argc_tag,
+                  ObjectPtr* argv,
+                  ObjectPtr* retval)
+      : thread_(thread),
+        argc_tag_(ReverseArgOrderBit::update(true, argc_tag)),
+        argv_(argv),
+        retval_(retval) {}
+#endif  // defined(DART_DYNAMIC_MODULES)
 
   // Since this function is passed an ObjectPtr directly, we need to be
   // exceedingly careful when we use it.  If there are any other side

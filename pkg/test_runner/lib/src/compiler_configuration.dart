@@ -112,6 +112,9 @@ abstract class CompilerConfiguration {
 
       case Compiler.fasta:
         return FastaCompilerConfiguration(configuration);
+
+      case Compiler.dart2bytecode:
+        return BytecodeCompilerConfiguration(configuration);
     }
 
     throw "unreachable";
@@ -1579,5 +1582,112 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
     }
 
     return [];
+  }
+}
+
+class BytecodeCompilerConfiguration extends CompilerConfiguration {
+  BytecodeCompilerConfiguration(super.configuration) : super._subclass();
+
+  @override
+  String computeCompilerPath() => dartAotRuntime();
+
+  @override
+  bool get runRuntimeDespiteMissingCompileTimeError => true;
+
+  String dartAotRuntime() => _useSdk
+      ? '${_configuration.buildDirectory}/dart-sdk/bin/dartaotruntime'
+      : '${_configuration.buildDirectory}/dart_precompiled_runtime';
+
+  String dart2bytecodeSnapshot() => _useSdk
+      ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dart2bytecode.dart.snapshot'
+      : '${_configuration.buildDirectory}/gen/dart2bytecode.dart.snapshot';
+
+  String platformKernelFile() => _useSdk
+      ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform_strong.dill'
+      : '${_configuration.buildDirectory}/vm_platform_strong.dill';
+
+  String tempBytecodeFile(String tempDir) =>
+      Path('$tempDir/out.bytecode').toNativePath();
+
+  Command computeCompilationCommand(String tempDir, List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    final bytecodeFile = tempBytecodeFile(tempDir);
+    final isProductMode = _configuration.configuration.mode == Mode.product;
+
+    final args = [
+      dart2bytecodeSnapshot(),
+      '--platform=${platformKernelFile()}',
+      '-o',
+      bytecodeFile,
+      arguments.where((name) => name.endsWith('.dart')).single,
+      ...arguments.where((name) =>
+          name.startsWith('-D') ||
+          name.startsWith('--define') ||
+          name.startsWith('--packages=') ||
+          name.startsWith('--enable-experiment=')),
+      '-Ddart.vm.product=$isProductMode',
+      if (_enableAsserts ||
+          arguments.contains('--enable-asserts') ||
+          arguments.contains('--enable_asserts'))
+        '--enable-asserts',
+    ];
+
+    return CompilationCommand(
+        'dart2bytecode',
+        bytecodeFile,
+        bootstrapDependencies(),
+        computeCompilerPath(),
+        args,
+        environmentOverrides,
+        alwaysCompile: !_useSdk);
+  }
+
+  @override
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    final commands = <Command>[
+      computeCompilationCommand(tempDir, arguments, environmentOverrides),
+    ];
+    return CommandArtifact(
+        commands, tempBytecodeFile(tempDir), 'application/dart-bytecode');
+  }
+
+  @override
+  List<String> computeCompilerArguments(
+      TestFile testFile, List<String> vmOptions, List<String> args) {
+    return [
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
+      ...args
+    ];
+  }
+
+  @override
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestFile testFile,
+      List<String> vmOptions,
+      List<String> originalArguments,
+      CommandArtifact? artifact) {
+    var filename = artifact!.filename;
+
+    return [
+      if (_enableAsserts) '--enable_asserts',
+      ...vmOptions,
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
+      ..._replaceDartFiles(
+          originalArguments,
+          (_configuration.runtime == Runtime.dartPrecompiled)
+              ? '${_configuration.buildDirectory}/dynamic_module_runner.snapshot'
+              : Platform.script
+                  .resolve(
+                      '../../../pkg/dynamic_modules/bin/dynamic_module_runner.dart')
+                  .toFilePath()),
+      filename,
+      ...testFile.dartOptions
+    ];
   }
 }

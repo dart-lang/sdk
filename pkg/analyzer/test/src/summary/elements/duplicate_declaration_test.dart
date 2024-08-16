@@ -757,6 +757,13 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E::@def::0
+        extension E @32
+          reference: <testLibraryFragment>::@extension::E::@def::1
+        extension E @71
+          reference: <testLibraryFragment>::@extension::E::@def::2
 ''');
   }
 
@@ -827,6 +834,11 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      extensionTypes
+        extension type E @15
+          reference: <testLibraryFragment>::@extensionType::E::@def::0
+        extension type E @43
+          reference: <testLibraryFragment>::@extensionType::E::@def::1
 ''');
   }
 

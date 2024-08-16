@@ -2397,7 +2397,7 @@ LintCode:
     correctionMessage: "Try removing the type annotation."
     hasPublishedDocs: false
   omit_obvious_local_variable_types:
-    problemMessage: "Unnecessary and obvious type annotation on a local variable."
+    problemMessage: "Omit the type annotation on a local variable when the type is obvious."
     correctionMessage: "Try removing the type annotation."
     hasPublishedDocs: false
   one_member_abstracts:
@@ -3998,6 +3998,9 @@ LintCode:
         C.named();
       }
       ```
+  specify_nonobvious_local_variable_types:
+    problemMessage: "Specify the type of a local variable when the type is non-obvious."
+    correctionMessage: "Try adding a type annotation."
   super_goes_last:
     removedIn: "3.0"
   test_types_in_equals:

@@ -96,7 +96,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 380;
+  static const int DATA_VERSION = 381;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1573,7 +1573,7 @@ class AnalysisDriver {
       uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
-      isMacroAugmentation: file.isMacroAugmentation,
+      isMacroAugmentation: file.isMacroPart,
       isPart: file.kind is PartFileKind,
       errors: errors,
       analysisOptions: file.analysisOptions,
@@ -1931,7 +1931,7 @@ class AnalysisDriver {
       uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
-      isMacroAugmentation: file.isMacroAugmentation,
+      isMacroAugmentation: file.isMacroPart,
       isPart: file.kind is PartFileKind,
       errors: [
         AnalysisError.tmp(

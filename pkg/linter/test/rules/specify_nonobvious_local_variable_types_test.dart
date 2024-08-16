@@ -55,7 +55,7 @@ f() {
   test_forEach_noDeclaredType() async {
     await assertNoDiagnostics(r'''
 f() {
-  for (var i in [1, 2, 3]) { }
+  for (var i in <int>[1, 2, 3]) { }
 }
 ''');
   }
@@ -63,9 +63,9 @@ f() {
   test_forEach_nonObviousIterable() async {
     await assertNoDiagnostics(r'''
 f() {
-  var list = [1, 2, 3];
   for (int i in list) { }
 }
+var list = <int>[1, 2, 3];
 ''');
   }
 
@@ -254,11 +254,11 @@ f() {
   test_local_multiple() async {
     await assertDiagnostics(r'''
 f() {
-  var a = 'a' + 'a', b = 'b'.toString();
+  var a = 'a' + 'a', b = 'b' * 2;
 }
 ''', [
       lint(12, 13),
-      lint(27, 18),
+      lint(27, 11),
     ]);
   }
 
