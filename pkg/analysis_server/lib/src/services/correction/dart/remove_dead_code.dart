@@ -102,9 +102,19 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
       if (forStatement is! ForStatement) return;
 
       await _computeForStatementParts(builder, forStatement, coveringNode);
-    } else if (coveringNode is SwitchPatternCase) {
+    } else if (coveringNode is SwitchMember) {
+      var parent = coveringNode.parent as SwitchStatement;
+      var memberIndex = parent.members.indexOf(coveringNode);
+      Token? overrideEnd;
+      if (memberIndex > 0 &&
+          parent.members[memberIndex - 1].statements.isEmpty) {
+        // Previous member "falls through" to the one being removed, so don't
+        // remove the statements.
+        overrideEnd = coveringNode.colon;
+      }
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.deletionRange(coveringNode));
+        builder.addDeletion(
+            range.deletionRange(coveringNode, overrideEnd: overrideEnd));
       });
     }
   }
