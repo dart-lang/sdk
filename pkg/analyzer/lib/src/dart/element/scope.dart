@@ -302,72 +302,6 @@ class LibraryFragmentScope implements Scope {
   }
 }
 
-class LibraryOrAugmentationScope extends EnclosedScope {
-  final LibraryOrAugmentationElementImpl _container;
-  List<ExtensionElement> extensions = [];
-
-  factory LibraryOrAugmentationScope(
-    LibraryOrAugmentationElementImpl container,
-  ) {
-    var importScope = _LibraryOrAugmentationImportScope(container);
-    return LibraryOrAugmentationScope._(container, importScope);
-  }
-
-  LibraryOrAugmentationScope._(
-    this._container,
-    _LibraryOrAugmentationImportScope importScope,
-  ) : super(importScope) {
-    extensions.addAll(importScope.extensions);
-
-    for (var prefix in _container.prefixes) {
-      if (!prefix.isWildcardVariable) {
-        _addGetter(prefix);
-      }
-    }
-    _container.library.units.forEach(_addUnitElements);
-
-    // Add implicit 'dart:core' declarations.
-    if ('${_container.source.uri}' == 'dart:core') {
-      _addGetter(DynamicElementImpl.instance);
-      _addGetter(NeverElementImpl.instance);
-    }
-
-    extensions = extensions.toFixedList();
-  }
-
-  void _addExtension(ExtensionElement element) {
-    if (element.isAugmentation) {
-      return;
-    }
-
-    _addGetter(element);
-    if (!extensions.contains(element)) {
-      extensions.add(element);
-    }
-  }
-
-  void _addUnitElements(CompilationUnitElement compilationUnit) {
-    for (var element in compilationUnit.accessors) {
-      if (element.augmentation == null) {
-        _addPropertyAccessor(element);
-      }
-    }
-
-    for (var element in compilationUnit.functions) {
-      if (element.augmentation == null) {
-        _addGetter(element);
-      }
-    }
-
-    compilationUnit.enums.forEach(_addGetter);
-    compilationUnit.extensions.forEach(_addExtension);
-    compilationUnit.extensionTypes.forEach(_addGetter);
-    compilationUnit.typeAliases.forEach(_addGetter);
-    compilationUnit.mixins.forEach(_addGetter);
-    compilationUnit.classes.forEach(_addGetter);
-  }
-}
-
 class LocalScope extends EnclosedScope {
   LocalScope(super.parent);
 
@@ -644,33 +578,5 @@ mixin _GettersAndSetters {
       var id = considerCanonicalizeString(name.substring(0, name.length - 1));
       _setters[id] ??= element;
     }
-  }
-}
-
-class _LibraryOrAugmentationImportScope implements Scope {
-  final LibraryOrAugmentationElementImpl _container;
-  final PrefixScope _nullPrefixScope;
-  List<ExtensionElement>? _extensions;
-
-  _LibraryOrAugmentationImportScope(LibraryOrAugmentationElementImpl container)
-      : _container = container,
-        _nullPrefixScope = PrefixScope(
-          libraryElement: container.library,
-          parent: null,
-          libraryImports: container.libraryImports,
-          prefix: null,
-        );
-
-  List<ExtensionElement> get extensions {
-    return _extensions ??= {
-      ..._nullPrefixScope._extensions,
-      for (var prefix in _container.prefixes)
-        ...(prefix.scope as PrefixScope)._extensions,
-    }.toFixedList();
-  }
-
-  @override
-  ScopeLookupResult lookup(String id) {
-    return _nullPrefixScope.lookup(id);
   }
 }
