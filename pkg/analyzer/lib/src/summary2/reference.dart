@@ -99,8 +99,6 @@ class Reference {
 
   /// Return the child with the given name, or `null` if does not exist.
   Reference? operator [](String name) {
-    name = _rewriteDartUi(name);
-
     var childrenUnion = _childrenUnion;
     if (childrenUnion == null) return null;
     if (childrenUnion is Reference) {
@@ -155,8 +153,6 @@ class Reference {
 
   /// Return the child with the given name, create if does not exist yet.
   Reference getChild(String name) {
-    name = _rewriteDartUi(name);
-
     var childrenUnion = _childrenUnion;
     if (childrenUnion == null) {
       // 0 -> 1 children.
@@ -175,8 +171,6 @@ class Reference {
   }
 
   Reference? removeChild(String name) {
-    name = _rewriteDartUi(name);
-
     var childrenUnion = _childrenUnion;
     if (childrenUnion == null) return null;
     if (childrenUnion is Reference) {
@@ -214,15 +208,5 @@ class Reference {
       return;
     }
     (childrenUnion as Map<String, Reference>)[name] ??= child;
-  }
-
-  // TODO(scheglov): Remove it, once when the actual issue is fixed.
-  // https://buganizer.corp.google.com/issues/203423390
-  static String _rewriteDartUi(String name) {
-    const srcPrefix = 'dart:ui/src/ui/';
-    if (name.startsWith(srcPrefix)) {
-      return 'dart:ui/${name.substring(srcPrefix.length)}';
-    }
-    return name;
   }
 }
