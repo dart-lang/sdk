@@ -744,41 +744,6 @@ class SuggestionBuilder {
       inheritanceDistance: inheritanceDistance,
     );
 
-    var enclosingElement = method.enclosingElement;
-    if (method.name == 'setState' &&
-        enclosingElement is ClassElement &&
-        enclosingElement.isExactState) {
-      // TODO(brianwilkerson): Make this more efficient by creating the correct
-      //  suggestion in the first place.
-      // Find the line indentation.
-      var indent = getRequestLineIndent(request);
-
-      // Build the completion and the selection offset.
-      var buffer = StringBuffer();
-      buffer.writeln('setState(() {');
-      buffer.write('$indent  ');
-      var selectionOffset = buffer.length;
-      buffer.writeln();
-      buffer.write('$indent});');
-
-      _addSuggestion(
-        DartCompletionSuggestion(
-          kind,
-          relevance,
-          buffer.toString(),
-          selectionOffset,
-          0,
-          false,
-          false,
-          // Let the user know that we are going to insert a complete statement.
-          displayText: 'setState(() {});',
-          elementLocation: method.location,
-        ),
-        textToMatchOverride: 'setState',
-      );
-      return;
-    }
-
     _addBuilder(
       _createCompletionSuggestionBuilder(
         method,
@@ -1035,6 +1000,31 @@ class SuggestionBuilder {
         false,
         returnType: returnType,
       ),
+    );
+  }
+
+  /// Add a suggestion for the Flutter's `setState` method.
+  void suggestSetStateMethod(MethodElement method,
+      {required CompletionSuggestionKind kind,
+      required String completion,
+      required String displayText,
+      required int selectionOffset,
+      required double inheritanceDistance,
+      required int relevance}) {
+    _addSuggestion(
+      DartCompletionSuggestion(
+        kind,
+        relevance,
+        completion,
+        selectionOffset,
+        0,
+        false,
+        false,
+        // Let the user know that we are going to insert a complete statement.
+        displayText: displayText,
+        elementLocation: method.location,
+      ),
+      textToMatchOverride: 'setState',
     );
   }
 

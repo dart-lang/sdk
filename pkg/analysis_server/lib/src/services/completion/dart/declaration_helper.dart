@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_state.da
 import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -1662,6 +1663,19 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(method.displayName);
       if (matcherScore != -1) {
+        var enclosingElement = method.enclosingElement;
+        if (method.name == 'setState' &&
+            enclosingElement is ClassElement &&
+            enclosingElement.isExactState) {
+          var suggestion = SetStateMethodSuggestion(
+              element: method,
+              importData: importData,
+              referencingInterface: referencingInterface,
+              matcherScore: matcherScore,
+              indent: state.indent);
+          collector.addSuggestion(suggestion);
+          return;
+        }
         var suggestion = MethodSuggestion(
             kind: _executableSuggestionKind,
             element: method,

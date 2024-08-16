@@ -763,6 +763,75 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
   String get completion => field.name;
 }
 
+/// The information about a candidate suggestion for Flutter's `setState` method.
+final class SetStateMethodSuggestion extends ExecutableSuggestion
+    with MemberSuggestion {
+  @override
+  final MethodElement element;
+
+  late String _completion;
+
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  @override
+  final InterfaceElement? referencingInterface;
+
+  /// The identation to be used for a multi-line completion.
+  final String indent;
+
+  // Indicates whether _completion, _displayText, and _selectionOffset have been initialized.
+  bool _initialized = false;
+
+  late int _selectionOffset;
+
+  late String _displayText;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element].
+  SetStateMethodSuggestion(
+      {required this.element,
+      required super.importData,
+      required this.referencingInterface,
+      required super.matcherScore,
+      required this.indent,
+      super.kind = CompletionSuggestionKind.INVOCATION});
+
+  @override
+  String get completion {
+    _init();
+    return _completion;
+  }
+
+  /// Text to be displayed in a completion pop-up.
+  String get displayText {
+    _init();
+    return _displayText;
+  }
+
+  /// The offset, from the beginning of the inserted text, where the cursor
+  /// should be positioned.
+  int get selectionOffset {
+    _init();
+    return _selectionOffset;
+  }
+
+  void _init() {
+    if (_initialized) {
+      return;
+    }
+    // Build the completion and the selection offset.
+    var buffer = StringBuffer();
+    buffer.writeln('setState(() {');
+    buffer.write('$indent  ');
+    _selectionOffset = buffer.length;
+    buffer.writeln();
+    buffer.write('$indent});');
+    _completion = buffer.toString();
+    _displayText = 'setState(() {});';
+
+    _initialized = true;
+  }
+}
+
 /// The information about a candidate suggestion based on a static field in a
 /// location where the name of the field must be qualified by the name of the
 /// enclosing element.
@@ -1065,6 +1134,18 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.field,
           appendColon: suggestion.appendColon,
           appendComma: suggestion.appendComma,
+        );
+      case SetStateMethodSuggestion():
+        var inheritanceDistance =
+            suggestion.inheritanceDistance(request.featureComputer);
+        suggestSetStateMethod(
+          suggestion.element,
+          kind: suggestion.kind,
+          completion: suggestion.completion,
+          displayText: suggestion.displayText,
+          selectionOffset: suggestion.selectionOffset,
+          inheritanceDistance: inheritanceDistance,
+          relevance: relevance,
         );
       case StaticFieldSuggestion():
         suggestStaticField(suggestion.element,
