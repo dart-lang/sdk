@@ -6230,15 +6230,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
                 );
               } else {
-                errorReporter.atEntity(
-                  errorTarget,
-                  parameterElement.isPositional
-                      ? CompileTimeErrorCode
-                          .MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL
-                      : CompileTimeErrorCode
-                          .MISSING_DEFAULT_VALUE_FOR_PARAMETER,
-                  arguments: [parameterName?.lexeme ?? '?'],
-                );
+                if (!_isWildcardSuperFormalPositionalParameter(parameter)) {
+                  errorReporter.atEntity(
+                    errorTarget,
+                    parameterElement.isPositional
+                        ? CompileTimeErrorCode
+                            .MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL
+                        : CompileTimeErrorCode
+                            .MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+                    arguments: [parameterName?.lexeme ?? '?'],
+                  );
+                }
               }
             }
           }
@@ -6380,6 +6382,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     return false;
   }
+
+  bool _isWildcardSuperFormalPositionalParameter(
+          DefaultFormalParameter parameter) =>
+      parameter.parameter is SuperFormalParameter &&
+      parameter.isPositional &&
+      parameter.name?.lexeme == '_' &&
+      _currentLibrary.featureSet.isEnabled(Feature.wildcard_variables);
 
   /// Checks whether a `final`, `base` or `interface` modifier can be ignored.
   ///
