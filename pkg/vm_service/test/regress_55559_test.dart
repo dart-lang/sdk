@@ -57,11 +57,15 @@ void main() {
       final vm = await service.getVM();
       final isolate = vm.isolates!.first;
       final errorCompleter = Completer<RPCError>();
+      final stackTraceCompleter = Completer<StackTrace>();
       unawaited(
         service.getIsolate(isolate.id!).then(
-              (_) => fail('Future should throw'),
-              onError: (e) => errorCompleter.complete(e),
-            ),
+          (_) => fail('Future should throw'),
+          onError: (e, st) {
+            errorCompleter.complete(e);
+            stackTraceCompleter.complete(st);
+          },
+        ),
       );
       killProcess();
 
@@ -72,6 +76,19 @@ void main() {
       final error = await errorCompleter.future;
       expect(error.code, RPCErrorKind.kServerError.code);
       expect(error.message, 'Service connection disposed');
+
+      // Confirm that a stack trace was included and that it contains the actual
+      // invocation path.
+      final stackTrace = await stackTraceCompleter.future;
+      final stack = stackTrace.toString().split('\n');
+      expect(
+        stack.where((e) => e.contains('VmService.getIsolate')).length,
+        1,
+      );
+      expect(
+        stack.where((e) => e.contains('test/regress_55559_test.dart')).length,
+        1,
+      );
     },
   );
 }
