@@ -156,7 +156,6 @@ class WasmTarget extends Target {
         'dart:developer',
         'dart:ffi',
         'dart:io',
-        'dart:js',
         'dart:js_interop',
         'dart:js_interop_unsafe',
         'dart:js_util',
@@ -202,7 +201,7 @@ class WasmTarget extends Target {
     // Flutter's dart:ui is also package:ui (in test mode)
     if (importerString.startsWith('package:ui/')) return true;
 
-    // package:js can import dart:js* & dart:_js_*
+    // package:js can import dart:js_util & dart:_js_*
     if (importerString.startsWith('package:js/')) return true;
 
     return false;

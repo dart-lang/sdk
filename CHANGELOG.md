@@ -56,6 +56,16 @@ number, like `.`, `x`, or the `e` in scientific notation.
 - Added `toJSCaptureThis` so `this` is passed in from JavaScript to the
   callback as the first parameter.
 
+### Tools
+
+#### Wasm compiler (dart2wasm)
+
+- The condition `dart.library.js` is now false on conditional imports in
+  dart2wasm. Note that it was already a static error to import `dart:js`
+  directly (see [#55266][]).
+
+[#55266]: https://github.com/dart-lang/sdk/issues/55266
+
 ## 3.5.0
 
 ### Language

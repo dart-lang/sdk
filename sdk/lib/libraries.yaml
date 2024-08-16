@@ -271,9 +271,6 @@ wasm_common:
       uri: isolate/isolate.dart
       patches:
         - "_internal/wasm/lib/isolate_patch.dart"
-    js:
-      uri: js/js.dart
-      patches: _internal/wasm/lib/js_patch.dart
     js_interop:
       uri: js_interop/js_interop.dart
       patches: _internal/wasm/lib/js_interop_patch.dart
