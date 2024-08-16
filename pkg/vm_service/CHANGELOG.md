@@ -1,3 +1,7 @@
+## 14.2.5
+- Include a stack trace in the RPCError that is thrown when an attempt is made
+  to invoke an RPC using a `VmService` instance that has been disposed.
+
 ## 14.2.4
 - Improved deserialization performance by utilizing a combination of `Utf8Decoder` and
   `JsonDecoder` to avoid extra type conversions.

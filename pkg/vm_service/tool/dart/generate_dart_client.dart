@@ -72,7 +72,7 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
     _disposed = true;
     await _streamSub.cancel();
     _outstandingRequests.forEach((id, request) {
-      request._completer.completeError(RPCError(
+      request.completeError(RPCError(
         request.method,
         RPCErrorKind.kServerError.code,
         'Service connection disposed',

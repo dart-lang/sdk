@@ -136,7 +136,6 @@ class JsInteropChecks extends RecursiveVisitor {
     'package:js/js.dart',
     'package:js/js_util.dart',
     'dart:js_util',
-    'dart:js',
     'dart:ffi',
   ];
 

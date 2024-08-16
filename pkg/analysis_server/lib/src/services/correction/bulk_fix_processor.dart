@@ -922,10 +922,17 @@ class BulkFixProcessor {
       Set<String> usedDevDeps,
       ResourceProvider resourceProvider) async {
     String contents = pubspec.contents.data;
-    YamlNode node = loadYamlNode(contents);
+    YamlNode? node;
+    try {
+      node = loadYamlNode(contents);
+    } catch (_) {
+      // Could not parse the pubspec file.
+      return [];
+    }
+
     if (node is! YamlMap) {
       // The file is empty.
-      node = YamlMap();
+      return [];
     }
 
     var errors = MissingDependencyValidator(node, pubspec, resourceProvider)

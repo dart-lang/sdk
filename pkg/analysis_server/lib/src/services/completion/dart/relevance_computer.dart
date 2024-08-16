@@ -191,6 +191,12 @@ class RelevanceComputer {
         );
       case RecordLiteralNamedFieldSuggestion():
         return Relevance.requiredNamedArgument;
+      case SetStateMethodSuggestion():
+        return _computeMethodRelevance(
+          suggestion.element,
+          suggestion.inheritanceDistance(featureComputer),
+          suggestion.isNotImported,
+        );
       case StaticFieldSuggestion():
         return _computeStaticFieldRelevance(
           suggestion.element,

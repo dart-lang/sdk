@@ -173,7 +173,10 @@ DEFINE_NATIVE_ENTRY(Developer_getObjectId, 0, 1) {
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
-  return String::New(isolate->GetDefaultServiceIdZone().GetServiceId(instance));
+  JSONStream js;
+  RingServiceIdZone& ring_service_id_zone =
+      *reinterpret_cast<RingServiceIdZone*>(js.id_zone());
+  return String::New(ring_service_id_zone.GetServiceId(instance));
 #endif
 }
 

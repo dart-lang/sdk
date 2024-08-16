@@ -493,6 +493,30 @@ void f() {
 ''');
   }
 
+  Future<void> test_switchCase_sharedStatements_last() async {
+    await resolveTestCode('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5:
+    case 3:
+    case 5:
+      break;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  var m = 5;
+  switch(m) {
+    case 5:
+    case 3:
+    break;
+  }
+}
+''');
+  }
+
   Future<void> test_switchCase_uniqueStatements() async {
     await resolveTestCode('''
 void f() {

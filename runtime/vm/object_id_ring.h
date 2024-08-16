@@ -49,7 +49,7 @@ class ObjectIdRing {
   // Returns Object::null() when the result is not kValid.
   ObjectPtr GetObjectForId(int32_t id, LookupResult* kind);
 
-  void VisitPointers(ObjectPointerVisitor* visitor) const;
+  void VisitPointers(ObjectPointerVisitor* visitor);
 
   void PrintJSON(JSONStream* js);
 
@@ -72,7 +72,7 @@ class ObjectIdRing {
   int32_t AllocateNewId(ObjectPtr object);
   int32_t IndexOfId(int32_t id);
   int32_t IdOfIndex(int32_t index);
-  bool IsValidContiguous(int32_t id) const;
+  bool IsValidContiguous(int32_t id);
   bool IsValidId(int32_t id);
 
   DISALLOW_COPY_AND_ASSIGN(ObjectIdRing);
