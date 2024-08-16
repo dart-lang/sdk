@@ -62,6 +62,7 @@ import 'package:analysis_server/src/services/correction/dart/invert_if_statement
 import 'package:analysis_server/src/services/correction/dart/join_if_with_inner.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_outer.dart';
 import 'package:analysis_server/src/services/correction/dart/join_variable_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_conditional_with_if_else.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_if_else_with_conditional.dart';
@@ -147,6 +148,7 @@ class AssistProcessor {
     JoinIfWithInner.new,
     JoinIfWithOuter.new,
     JoinVariableDeclaration.new,
+    RemoveDigitSeparators.new,
     RemoveTypeAnnotation.other,
     ReplaceConditionalWithIfElse.new,
     ReplaceIfElseWithConditional.new,
