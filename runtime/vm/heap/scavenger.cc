@@ -1244,7 +1244,7 @@ void Scavenger::IterateRememberedCards(
 void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
 #ifndef PRODUCT
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateObjectIdTable");
-  heap_->isolate_group()->VisitPointersInDefaultServiceIdZone(*visitor);
+  heap_->isolate_group()->VisitObjectIdRingPointers(visitor);
 #endif  // !PRODUCT
 }
 
