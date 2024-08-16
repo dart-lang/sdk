@@ -7,6 +7,7 @@ import "dart:_internal"
         CodeUnits,
         ClassID,
         EfficientLengthIterable,
+        indexCheck,
         makeListFixedLength,
         unsafeCast,
         WasmStringBase;
@@ -1188,9 +1189,7 @@ final class OneByteString extends StringBase {
 
   @override
   int codeUnitAt(int index) {
-    if (length.leU(index)) {
-      throw IndexError.withLength(index, length);
-    }
+    indexCheck(index, length);
     return _codeUnitAtUnchecked(index);
   }
 
@@ -1619,9 +1618,7 @@ final class TwoByteString extends StringBase {
 
   @override
   int codeUnitAt(int index) {
-    if (length.leU(index)) {
-      throw IndexError.withLength(index, length);
-    }
+    indexCheck(index, length);
     return _codeUnitAtUnchecked(index);
   }
 
