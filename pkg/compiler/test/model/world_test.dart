@@ -587,7 +587,6 @@ testCommonSubclasses() async {
       case SimpleSubclassResult.subtype2:
         return ClassQuery.SUBTYPE;
       case SetSubclassResult():
-      default:
         return null;
     }
   }
@@ -610,7 +609,6 @@ testCommonSubclasses() async {
       case SimpleSubclassResult.subtype2:
         return cls2;
       case SetSubclassResult():
-      default:
         return null;
     }
   }
