@@ -4221,7 +4221,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
   ObjectPtr result =
       interpreter->Call(function, argdesc, argc, argv, Array::null(), thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  if (IsErrorClassId(result->GetClassIdMayBeSmi())) {
+  if (IsErrorClassId(result->GetClassId())) {
     // Must not leak handles in the caller's zone.
     HANDLESCOPE(thread);
     // Protect the result in a handle before transitioning, which may trigger

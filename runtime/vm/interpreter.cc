@@ -34,7 +34,7 @@ DEFINE_FLAG(uint64_t,
             "Trace interpreter execution after instruction count reached.");
 DEFINE_FLAG(charp,
             interpreter_trace_file,
-            NULL,
+            nullptr,
             "File to write a dynamic instruction trace to.");
 DEFINE_FLAG(uint64_t,
             interpreter_trace_file_max_bytes,
@@ -93,31 +93,8 @@ DART_FORCE_INLINE static ObjectPtr* FrameArguments(ObjectPtr* FP,
   return FP - (kKBCDartFrameFixedSize + argc);
 }
 
-#define RAW_CAST(Type, val) (InterpreterHelpers::CastTo##Type(val))
-
 class InterpreterHelpers {
  public:
-#define DEFINE_CASTS(Type)                                                     \
-  DART_FORCE_INLINE static Type##Ptr CastTo##Type(ObjectPtr obj) {             \
-    ASSERT((k##Type##Cid == kSmiCid) ? !obj->IsHeapObject()                    \
-           : (k##Type##Cid == kIntegerCid)                                     \
-               ? (!obj->IsHeapObject() || obj->IsMint())                       \
-               : obj->Is##Type());                                             \
-    return static_cast<Type##Ptr>(obj);                                        \
-  }
-  CLASS_LIST(DEFINE_CASTS)
-#undef DEFINE_CASTS
-
-  DART_FORCE_INLINE static SmiPtr GetClassIdAsSmi(ObjectPtr obj) {
-    return Smi::New(obj->IsHeapObject() ? obj->GetClassId()
-                                        : static_cast<intptr_t>(kSmiCid));
-  }
-
-  DART_FORCE_INLINE static intptr_t GetClassId(ObjectPtr obj) {
-    return obj->IsHeapObject() ? obj->GetClassId()
-                               : static_cast<intptr_t>(kSmiCid);
-  }
-
   template <typename type, typename compressed_type>
   DART_FORCE_INLINE static type GetField(ObjectPtr obj,
                                          intptr_t offset_in_words) {
@@ -146,7 +123,7 @@ class InterpreterHelpers {
       Thread* thread,
       InstancePtr instance) {
     ClassPtr instance_class =
-        thread->isolate_group()->class_table()->At(GetClassId(instance));
+        thread->isolate_group()->class_table()->At(instance->GetClassId());
     return instance_class->untag()->num_type_arguments_ > 0
                ? GET_FIELD_T(TypeArgumentsPtr, instance,
                              instance_class->untag()
@@ -161,16 +138,6 @@ class InterpreterHelpers {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     f->untag()->usage_counter_++;
 #endif
-  }
-
-  DART_FORCE_INLINE static void IncrementICUsageCount(ObjectPtr* entries,
-                                                      intptr_t offset,
-                                                      intptr_t args_tested) {
-    const intptr_t count_offset = ICData::CountIndexFor(args_tested);
-    const intptr_t raw_smi_old =
-        static_cast<intptr_t>(entries[offset + count_offset]);
-    const intptr_t raw_smi_new = raw_smi_old + Smi::RawValue(1);
-    *reinterpret_cast<intptr_t*>(&entries[offset + count_offset]) = raw_smi_new;
   }
 
   DART_FORCE_INLINE static bool CheckIndex(SmiPtr index, SmiPtr length) {
@@ -188,18 +155,13 @@ class InterpreterHelpers {
         argdesc->untag()->element(ArgumentsDescriptor::kCountIndex)));
   }
 
-  DART_FORCE_INLINE static intptr_t ArgDescArgSize(ArrayPtr argdesc) {
-    return Smi::Value(Smi::RawCast(
-        argdesc->untag()->element(ArgumentsDescriptor::kSizeIndex)));
-  }
-
   DART_FORCE_INLINE static intptr_t ArgDescPosCount(ArrayPtr argdesc) {
     return Smi::Value(Smi::RawCast(
         argdesc->untag()->element(ArgumentsDescriptor::kPositionalCountIndex)));
   }
 
   DART_FORCE_INLINE static BytecodePtr FrameBytecode(ObjectPtr* FP) {
-    ASSERT(GetClassId(FP[kKBCPcMarkerSlotFromFp]) == kBytecodeCid);
+    ASSERT(FP[kKBCPcMarkerSlotFromFp]->GetClassId() == kBytecodeCid);
     return static_cast<BytecodePtr>(FP[kKBCPcMarkerSlotFromFp]);
   }
 
@@ -221,7 +183,7 @@ class InterpreterHelpers {
     }
 
     const classid_t nullability_cid = field->untag()->is_nullable_;
-    const classid_t value_cid = InterpreterHelpers::GetClassId(value);
+    const classid_t value_cid = value->GetClassId();
 
     if (nullability_cid == value_cid) {
       // Storing null into a nullable field.
@@ -265,10 +227,7 @@ DART_FORCE_INLINE static const KBCInstr* SavedCallerPC(ObjectPtr* FP) {
 }
 
 DART_FORCE_INLINE static FunctionPtr FrameFunction(ObjectPtr* FP) {
-  FunctionPtr function = static_cast<FunctionPtr>(FP[kKBCFunctionSlotFromFp]);
-  ASSERT(InterpreterHelpers::GetClassId(function) == kFunctionCid ||
-         InterpreterHelpers::GetClassId(function) == kNullCid);
-  return function;
+  return Function::RawCast(FP[kKBCFunctionSlotFromFp]);
 }
 
 DART_FORCE_INLINE static ObjectPtr InitializeHeader(uword addr,
@@ -379,8 +338,8 @@ void LookupCache::Insert(intptr_t receiver_cid,
 }
 
 Interpreter::Interpreter()
-    : stack_(NULL),
-      fp_(NULL),
+    : stack_(nullptr),
+      fp_(nullptr),
       pp_(nullptr),
       argdesc_(nullptr),
       lookup_cache_() {
@@ -402,16 +361,16 @@ Interpreter::Interpreter()
   // High address.
   stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBufferMax;
 
-  last_setjmp_buffer_ = NULL;
+  last_setjmp_buffer_ = nullptr;
 
   DEBUG_ONLY(icount_ = 1);  // So that tracing after 0 traces first bytecode.
 
 #if defined(DEBUG)
   trace_file_bytes_written_ = 0;
-  trace_file_ = NULL;
-  if (FLAG_interpreter_trace_file != NULL) {
+  trace_file_ = nullptr;
+  if (FLAG_interpreter_trace_file != nullptr) {
     Dart_FileOpenCallback file_open = Dart::file_open_callback();
-    if (file_open != NULL) {
+    if (file_open != nullptr) {
       trace_file_ = file_open(FLAG_interpreter_trace_file, /* write */ true);
       trace_buffer_ = new KBCInstr[kTraceBufferInstrs];
       trace_buffer_idx_ = 0;
@@ -422,18 +381,18 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter() {
   delete[] stack_;
-  pp_ = NULL;
-  argdesc_ = NULL;
+  pp_ = nullptr;
+  argdesc_ = nullptr;
 #if defined(DEBUG)
-  if (trace_file_ != NULL) {
+  if (trace_file_ != nullptr) {
     FlushTraceBuffer();
     // Close the file.
     Dart_FileCloseCallback file_close = Dart::file_close_callback();
-    if (file_close != NULL) {
+    if (file_close != nullptr) {
       file_close(trace_file_);
-      trace_file_ = NULL;
+      trace_file_ = nullptr;
       delete[] trace_buffer_;
-      trace_buffer_ = NULL;
+      trace_buffer_ = nullptr;
     }
   }
 #endif
@@ -471,13 +430,13 @@ DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc) const {
 }
 
 DART_FORCE_INLINE bool Interpreter::IsWritingTraceFile() const {
-  return (trace_file_ != NULL) &&
+  return (trace_file_ != nullptr) &&
          (trace_file_bytes_written_ < FLAG_interpreter_trace_file_max_bytes);
 }
 
 void Interpreter::FlushTraceBuffer() {
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
-  if (file_write == NULL) {
+  if (file_write == nullptr) {
     return;
   }
   if (trace_file_bytes_written_ >= FLAG_interpreter_trace_file_max_bytes) {
@@ -496,7 +455,7 @@ void Interpreter::FlushTraceBuffer() {
 
 DART_NOINLINE void Interpreter::WriteInstructionToTrace(const KBCInstr* pc) {
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
-  if (file_write == NULL) {
+  if (file_write == nullptr) {
     return;
   }
   const KBCInstr* next = KernelBytecode::Next(pc);
@@ -660,33 +619,31 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // If the result is an error (not a Dart instance), it must either be rethrown
   // (in the case of an unhandled exception) or it must be returned to the
   // caller of the interpreter to be propagated.
-  if (result->IsHeapObject()) {
-    const intptr_t result_cid = result->GetClassId();
-    if (result_cid == kUnhandledExceptionCid) {
-      (*SP)[0] = UnhandledException::RawCast(result)->untag()->exception();
-      (*SP)[1] = UnhandledException::RawCast(result)->untag()->stacktrace();
-      (*SP)[2] = 0;  // Do not bypass debugger.
-      (*SP)[3] = 0;  // Space for result.
-      Exit(thread, *FP, *SP + 4, *pc);
-      NativeArguments args(thread, 3, *SP, *SP + 3);
-      if (!InvokeRuntime(thread, this, DRT_ReThrow, args)) {
-        return false;
-      }
-      UNREACHABLE();
-    }
-    if (IsErrorClassId(result_cid)) {
-      // Unwind to entry frame.
-      fp_ = *FP;
-      pc_ = SavedCallerPC(fp_);
-      while (!IsEntryFrameMarker(pc_)) {
-        fp_ = SavedCallerFP(fp_);
-        pc_ = SavedCallerPC(fp_);
-      }
-      // Pop entry frame.
-      fp_ = SavedCallerFP(fp_);
-      special_[KernelBytecode::kExceptionSpecialIndex] = result;
+  const intptr_t result_cid = result->GetClassId();
+  if (result_cid == kUnhandledExceptionCid) {
+    (*SP)[0] = UnhandledException::RawCast(result)->untag()->exception();
+    (*SP)[1] = UnhandledException::RawCast(result)->untag()->stacktrace();
+    (*SP)[2] = 0;  // Do not bypass debugger.
+    (*SP)[3] = 0;  // Space for result.
+    Exit(thread, *FP, *SP + 4, *pc);
+    NativeArguments args(thread, 3, *SP, *SP + 3);
+    if (!InvokeRuntime(thread, this, DRT_ReThrow, args)) {
       return false;
     }
+    UNREACHABLE();
+  }
+  if (IsErrorClassId(result_cid)) {
+    // Unwind to entry frame.
+    fp_ = *FP;
+    pc_ = SavedCallerPC(fp_);
+    while (!IsEntryFrameMarker(pc_)) {
+      fp_ = SavedCallerFP(fp_);
+      pc_ = SavedCallerPC(fp_);
+    }
+    // Pop entry frame.
+    fp_ = SavedCallerFP(fp_);
+    special_[KernelBytecode::kExceptionSpecialIndex] = result;
+    return false;
   }
   return true;
 }
@@ -766,8 +723,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
       InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
   const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
 
-  intptr_t receiver_cid =
-      InterpreterHelpers::GetClassId(call_base[receiver_idx]);
+  intptr_t receiver_cid = call_base[receiver_idx]->GetClassId();
 
   FunctionPtr target;
   if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_,
@@ -1212,7 +1168,7 @@ bool Interpreter::AssertAssignable(Thread* thread,
     TypeArgumentsPtr function_type_arguments =
         static_cast<TypeArgumentsPtr>(args[3]);
 
-    const intptr_t cid = InterpreterHelpers::GetClassId(instance);
+    const intptr_t cid = instance->GetClassId();
 
     TypeArgumentsPtr instance_type_arguments =
         static_cast<TypeArgumentsPtr>(null_value);
@@ -1524,7 +1480,7 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
 
   uint32_t op;  // Currently executing op.
 
-  bool reentering = fp_ != NULL;
+  bool reentering = fp_ != nullptr;
   if (!reentering) {
     fp_ = reinterpret_cast<ObjectPtr*>(stack_base_);
   }
@@ -1611,7 +1567,7 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
 
   // Save current top stack resource and reset the list.
   StackResource* top_resource = thread->top_resource();
-  thread->set_top_resource(NULL);
+  thread->set_top_resource(nullptr);
 
   // Cache some frequently used values in the frame.
   BoolPtr true_value = Bool::True().ptr();
@@ -2062,8 +2018,7 @@ SwitchDispatch:
       }
       ASSERT(HasFrame(reinterpret_cast<uword>(fp_)));
       // Exception propagation should have been done.
-      ASSERT(!result->IsHeapObject() ||
-             result->GetClassId() != kUnhandledExceptionCid);
+      ASSERT(result->GetClassId() != kUnhandledExceptionCid);
 #endif
       return result;
     }
@@ -2149,7 +2104,7 @@ SwitchDispatch:
 
   {
     BYTECODE(InitLateField, D);
-    FieldPtr field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD + 1));
     InstancePtr instance = Instance::RawCast(SP[0]);
     intptr_t offset_in_words =
         Smi::Value(field->untag()->host_offset_or_field_id());
@@ -2197,7 +2152,7 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreFieldTOS, D);
-    FieldPtr field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD + 1));
     InstancePtr instance = Instance::RawCast(SP[-1]);
     ObjectPtr value = static_cast<ObjectPtr>(SP[0]);
     intptr_t offset_in_words =
@@ -2215,7 +2170,7 @@ SwitchDispatch:
       }
 
       // Reload objects after the call which may trigger GC.
-      field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+      field = Field::RawCast(LOAD_CONSTANT(rD + 1));
       instance = Instance::RawCast(SP[-1]);
       value = SP[0];
     }
@@ -2289,11 +2244,11 @@ SwitchDispatch:
 #if defined(DEBUG)
     // Currently only used to load closure fields, which are not unboxed.
     // If used for general field, boxing of the unboxed fields must be added.
-    FieldPtr field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD + 1));
     ASSERT(!Field::UnboxedBit::decode(field->untag()->kind_bits_));
 #endif
     const uword offset_in_words =
-        static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
+        static_cast<uword>(Smi::Value(Smi::RawCast(LOAD_CONSTANT(rD))));
     InstancePtr instance = Instance::RawCast(SP[0]);
     SP[0] = GET_FIELD(instance, offset_in_words);
     DISPATCH();
@@ -2302,7 +2257,7 @@ SwitchDispatch:
   {
     BYTECODE(LoadTypeArgumentsField, D);
     const uword offset_in_words =
-        static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
+        static_cast<uword>(Smi::Value(Smi::RawCast(LOAD_CONSTANT(rD))));
     InstancePtr instance = Instance::RawCast(SP[0]);
     SP[0] = GET_FIELD(instance, offset_in_words);
     DISPATCH();
@@ -2599,8 +2554,8 @@ SwitchDispatch:
   {
     BYTECODE(StoreIndexedTOS, 0);
     SP -= 3;
-    ArrayPtr array = RAW_CAST(Array, SP[1]);
-    SmiPtr index = RAW_CAST(Smi, SP[2]);
+    ArrayPtr array = Array::RawCast(SP[1]);
+    SmiPtr index = Smi::RawCast(SP[2]);
     ObjectPtr value = SP[3];
     ASSERT(InterpreterHelpers::CheckIndex(index, array->untag()->length()));
     array->untag()->set_element(Smi::Value(index), value, thread);
@@ -2787,8 +2742,8 @@ SwitchDispatch:
                (SP[0] == null_value) || (SP[1] == null_value)) {
       SP[0] = false_value;
     } else {
-      int64_t a = Integer::GetInt64Value(RAW_CAST(Integer, SP[0]));
-      int64_t b = Integer::GetInt64Value(RAW_CAST(Integer, SP[1]));
+      int64_t a = Integer::GetInt64Value(Integer::RawCast(SP[0]));
+      int64_t b = Integer::GetInt64Value(Integer::RawCast(SP[1]));
       SP[0] = (a == b) ? true_value : false_value;
     }
     DISPATCH();
@@ -3238,7 +3193,7 @@ SwitchDispatch:
     FrameArguments(FP, argc)[receiver_idx] = receiver = SP[2];
 
     // If the field value is a closure, no need to resolve 'call' function.
-    if (InterpreterHelpers::GetClassId(receiver) == kClosureCid) {
+    if (receiver->GetClassId() == kClosureCid) {
       SP[1] = Closure::RawCast(receiver)->untag()->function();
 
       if (is_dynamic_call) {
@@ -3603,10 +3558,10 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
   // and try to find the setjmp associated with the simulated frame pointer.
   InterpreterSetjmpBuffer* buf = last_setjmp_buffer();
-  while ((buf->link() != NULL) && (buf->link()->fp() > fp)) {
+  while ((buf->link() != nullptr) && (buf->link()->fp() > fp)) {
     buf = buf->link();
   }
-  ASSERT(buf != NULL);
+  ASSERT(buf != nullptr);
   ASSERT(last_setjmp_buffer() == buf);
 
   // The C++ caller has not cleaned up the stack memory of C++ frames.
