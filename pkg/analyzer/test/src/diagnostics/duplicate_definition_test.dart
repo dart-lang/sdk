@@ -2715,6 +2715,23 @@ class B extends A {
     ]);
   }
 
+  test_parameters_constructor_this_super_wildcard() async {
+    await assertErrorsInCode(r'''
+class A {
+  final int x, y;
+  A(this.x, [this.y = 0]);
+}
+
+class C extends A {
+  final int _;
+
+  C(this._, super._, [super._]);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 90, 1),
+    ]);
+  }
+
   test_parameters_functionTypeAlias() async {
     await assertErrorsInCode(r'''
 typedef void F(int a, double a);

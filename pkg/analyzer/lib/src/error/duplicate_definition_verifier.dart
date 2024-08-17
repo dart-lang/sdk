@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -71,14 +72,10 @@ class DuplicateDefinitionVerifier {
         // function type.
 
         // Skip wildcard `super._`.
-        if (parameter is SuperFormalParameter &&
-            identifier.lexeme == '_' &&
-            _currentLibrary.hasWildcardVariablesFeatureEnabled) {
-          continue;
+        if (!_isSuperFormalWildcard(parameter, identifier)) {
+          _checkDuplicateIdentifier(definedNames, identifier,
+              element: parameter.declaredElement!);
         }
-
-        _checkDuplicateIdentifier(definedNames, identifier,
-            element: parameter.declaredElement!);
       }
     }
   }
@@ -264,6 +261,15 @@ class DuplicateDefinitionVerifier {
         }
       }
     }
+  }
+
+  bool _isSuperFormalWildcard(FormalParameter parameter, Token identifier) {
+    if (parameter is DefaultFormalParameter) {
+      parameter = parameter.parameter;
+    }
+    return parameter is SuperFormalParameter &&
+        identifier.lexeme == '_' &&
+        _currentLibrary.featureSet.isEnabled(Feature.wildcard_variables);
   }
 
   bool _isWildCardFunction(FunctionDeclarationStatement statement) =>
