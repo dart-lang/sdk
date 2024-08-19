@@ -2881,7 +2881,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // errors because these can always occur during shutdown if we were
         // just starting to send (or had just sent) a request.
         if (e.message.contains("The client is closed") ||
-            e.message.contains("The client closed with pending request")) {
+            e.message.contains("The client closed with pending request") ||
+            e.message.contains("Service connection disposed")) {
           return null;
         }
       }
