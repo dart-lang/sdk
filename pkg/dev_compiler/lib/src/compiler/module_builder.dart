@@ -88,7 +88,6 @@ Program transformModuleFormat(ModuleFormat format, Program module) {
     case ModuleFormat.amd:
       return AmdModuleBuilder().build(module);
     case ModuleFormat.es6:
-    default:
       return module;
   }
 }
