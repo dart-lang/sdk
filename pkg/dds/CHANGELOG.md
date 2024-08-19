@@ -1,3 +1,7 @@
+# 4.2.4+2
+- [DAP] Fixed an issue where "Service connection disposed" errors may go unhandled during termination/shutdown.Uint8List` from `dart:typed_data`.
+- Added `package:dds/dds_launcher.dart`, a library which can be used to launch DDS instances using `dart development-service`.
+
 # 4.2.4+1
 - Added missing type to `Event` in `postEvent`.
 - [DAP] Instaces with both fields and getters of the same name will no longer show duplicates in `variables` responses.
@@ -310,8 +314,8 @@ Hot-fix release of changes in 3.1.2 without the changes in 3.1.1
 # 1.7.0
 - Added `package:dds/vm_service_extensions.dart`, which adds DDS functionality to
   `package:vm_service` when imported.
-  - Added `onEventWithHistory` method and `onLoggingEventWithHistory`, 
-    `onStdoutEventWithHistory`, `onStderrEventWithHistory`, and 
+  - Added `onEventWithHistory` method and `onLoggingEventWithHistory`,
+    `onStdoutEventWithHistory`, `onStderrEventWithHistory`, and
     `onExtensionEventWithHistory` getters.
 - Added `getStreamHistory` RPC.
 
