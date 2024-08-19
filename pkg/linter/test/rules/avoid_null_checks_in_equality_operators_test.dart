@@ -55,7 +55,7 @@ class C {
   }
 }
 ''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 88, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 88, 7),
     ]);
   }
 

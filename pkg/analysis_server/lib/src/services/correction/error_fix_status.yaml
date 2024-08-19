@@ -3731,9 +3731,13 @@ WarningCode.UNNECESSARY_NO_SUCH_METHOD:
   status: needsFix
   notes: |-
     Remove the noSuchMethod implementation.
-WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE:
+WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE:
   status: hasFix
-WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE:
+WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE:
+  status: hasFix
+WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE:
+  status: hasFix
+WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE:
   status: hasFix
 WarningCode.UNNECESSARY_QUESTION_MARK:
   status: hasFix

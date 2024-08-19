@@ -121,8 +121,8 @@ class BinaryExpressionResolver {
 
     void reportNullComparison(SyntacticEntity start, SyntacticEntity end) {
       var errorCode = notEqual
-          ? WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE
-          : WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE;
+          ? WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE
+          : WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE;
       var offset = start.offset;
       _errorReporter.atOffset(
         offset: offset,

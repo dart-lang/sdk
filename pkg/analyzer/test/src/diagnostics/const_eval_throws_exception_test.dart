@@ -386,7 +386,7 @@ main() {
     ]);
     var otherFileResult = await resolveFile(other);
     assertErrorsInList(otherFileResult.errors, [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 97, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 97, 7),
     ]);
   }
 

@@ -22803,6 +22803,10 @@ _The operand can't be null, so the condition is always 'false'._
 
 _The operand can't be null, so the condition is always 'true'._
 
+_The operand must be null, so the condition is always 'false'._
+
+_The operand must be null, so the condition is always 'true'._
+
 #### Description
 
 The analyzer produces this diagnostic when it finds an equality comparison

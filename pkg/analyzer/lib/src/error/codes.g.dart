@@ -7487,23 +7487,45 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const WarningCode UNNECESSARY_NULL_COMPARISON_FALSE = WarningCode(
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE =
+      WarningCode(
+    'UNNECESSARY_NULL_COMPARISON',
+    "The operand must be null, so the condition is always 'false'.",
+    correctionMessage: "Remove the condition.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
+  );
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE =
+      WarningCode(
+    'UNNECESSARY_NULL_COMPARISON',
+    "The operand must be null, so the condition is always 'true'.",
+    correctionMessage: "Remove the condition.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
+  );
+
+  ///  No parameters.
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE =
+      WarningCode(
     'UNNECESSARY_NULL_COMPARISON',
     "The operand can't be null, so the condition is always 'false'.",
     correctionMessage:
         "Try removing the condition, an enclosing condition, or the whole "
         "conditional statement.",
     hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_NULL_COMPARISON_FALSE',
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
   );
 
   ///  No parameters.
-  static const WarningCode UNNECESSARY_NULL_COMPARISON_TRUE = WarningCode(
+  static const WarningCode UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE =
+      WarningCode(
     'UNNECESSARY_NULL_COMPARISON',
     "The operand can't be null, so the condition is always 'true'.",
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
-    uniqueName: 'UNNECESSARY_NULL_COMPARISON_TRUE',
+    uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
   );
 
   ///  Parameters:

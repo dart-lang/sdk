@@ -275,7 +275,7 @@ void f(Object waldo) {
   assert(waldo != null, "Where's Waldo?");
 }
 ''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 38, 7),
     ]);
   }
 

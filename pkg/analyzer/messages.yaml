@@ -26982,7 +26982,19 @@ WarningCode:
       }
       class B extends A {}
       ```
-  UNNECESSARY_NULL_COMPARISON_FALSE:
+  UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE:
+    sharedName: UNNECESSARY_NULL_COMPARISON
+    problemMessage: "The operand must be null, so the condition is always 'false'."
+    correctionMessage: Remove the condition.
+    hasPublishedDocs: true
+    comment: No parameters.
+  UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE:
+    sharedName: UNNECESSARY_NULL_COMPARISON
+    problemMessage: "The operand must be null, so the condition is always 'true'."
+    correctionMessage: Remove the condition.
+    hasPublishedDocs: true
+    comment: No parameters.
+  UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE:
     sharedName: UNNECESSARY_NULL_COMPARISON
     problemMessage: "The operand can't be null, so the condition is always 'false'."
     correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
@@ -27040,7 +27052,7 @@ WarningCode:
         print(x);
       }
       ```
-  UNNECESSARY_NULL_COMPARISON_TRUE:
+  UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE:
     sharedName: UNNECESSARY_NULL_COMPARISON
     problemMessage: "The operand can't be null, so the condition is always 'true'."
     correctionMessage: Remove the condition.

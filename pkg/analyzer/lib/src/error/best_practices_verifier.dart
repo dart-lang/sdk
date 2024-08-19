@@ -1058,39 +1058,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvariantNullComparison(BinaryExpression node) {
-    void reportStartEnd(
-      ErrorCode errorCode,
-      SyntacticEntity startEntity,
-      SyntacticEntity endEntity,
-    ) {
-      var offset = startEntity.offset;
-      _errorReporter.atOffset(
-        offset: offset,
-        length: endEntity.end - offset,
-        errorCode: errorCode,
-      );
-    }
-
-    void checkLeftRight(ErrorCode errorCode) {
-      if (node.leftOperand is NullLiteral) {
-        var rightType = node.rightOperand.typeOrThrow;
-        if (_typeSystem.isStrictlyNonNullable(rightType)) {
-          reportStartEnd(errorCode, node.leftOperand, node.operator);
-        }
-      }
-
-      if (node.rightOperand is NullLiteral) {
-        var leftType = node.leftOperand.typeOrThrow;
-        if (_typeSystem.isStrictlyNonNullable(leftType)) {
-          reportStartEnd(errorCode, node.operator, node.rightOperand);
-        }
-      }
-    }
-
+    WarningCode errorCode;
     if (node.operator.type == TokenType.BANG_EQ) {
-      checkLeftRight(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+      errorCode = WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE;
     } else if (node.operator.type == TokenType.EQ_EQ) {
-      checkLeftRight(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE);
+      errorCode = WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE;
+    } else {
+      return;
+    }
+
+    if (node.leftOperand is NullLiteral) {
+      var rightType = node.rightOperand.typeOrThrow;
+      if (_typeSystem.isStrictlyNonNullable(rightType)) {
+        var offset = node.leftOperand.offset;
+        _errorReporter.atOffset(
+          offset: offset,
+          length: node.operator.end - offset,
+          errorCode: errorCode,
+        );
+      }
+    }
+
+    if (node.rightOperand is NullLiteral) {
+      var leftType = node.leftOperand.typeOrThrow;
+      if (_typeSystem.isStrictlyNonNullable(leftType)) {
+        var offset = node.operator.offset;
+        _errorReporter.atOffset(
+          offset: offset,
+          length: node.rightOperand.end - offset,
+          errorCode: errorCode,
+        );
+      }
     }
   }
 
