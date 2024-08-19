@@ -58,9 +58,9 @@ DEFINE_NATIVE_ENTRY(Developer_log, 0, 8) {
   GET_NATIVE_ARGUMENT(Instance, dart_zone, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(Instance, error, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(Instance, stack_trace, arguments->NativeArgAt(7));
-  Service::SendLogEvent(isolate, sequence.AsInt64Value(),
-                        timestamp.AsInt64Value(), level.Value(), name, message,
-                        dart_zone, error, stack_trace);
+  Service::SendLogEvent(isolate, sequence.Value(), timestamp.Value(),
+                        level.Value(), name, message, dart_zone, error,
+                        stack_trace);
   return Object::null();
 #endif  // PRODUCT
 }

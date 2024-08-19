@@ -70,7 +70,7 @@ void TestNonNullSmiSum(Dart_NativeArguments args) {
                    "to be non-null.");
     } else {
       EXPECT_VALID(Dart_IntegerToInt64(arg, &arg_value));
-      EXPECT_EQ(arg_value, argument.AsInt64Value());
+      EXPECT_EQ(arg_value, argument.Value());
       // Ignoring overflow in the addition below.
       result += arg_value;
     }

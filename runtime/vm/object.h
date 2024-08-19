@@ -10121,24 +10121,16 @@ class Integer : public Number {
 
   virtual ObjectPtr HashCode() const { return ptr(); }
 
-  virtual bool IsZero() const;
-  virtual bool IsNegative() const;
+  int64_t Value() const { return Value(ptr()); }
+  static int64_t Value(IntegerPtr obj);
 
-  virtual double AsDoubleValue() const;
-  virtual int64_t AsInt64Value() const;
-  virtual int64_t AsTruncatedInt64Value() const { return AsInt64Value(); }
-  virtual uint32_t AsTruncatedUint32Value() const;
-
-  virtual bool FitsIntoSmi() const;
+  double ToDouble() const { return static_cast<double>(Value()); }
 
   // Returns 0, -1 or 1.
-  virtual int CompareWith(const Integer& other) const;
+  int CompareWith(const Integer& other) const;
 
   // Converts integer to hex string.
   const char* ToHexCString(Zone* zone) const;
-
-  // Return the most compact presentation of an integer.
-  IntegerPtr AsValidInteger() const;
 
   // Returns null to indicate that a bigint operation is required.
   IntegerPtr ArithmeticOp(Token::Kind operation,
@@ -10150,15 +10142,6 @@ class Integer : public Number {
   IntegerPtr ShiftOp(Token::Kind operation,
                      const Integer& other,
                      Heap::Space space = Heap::kNew) const;
-
-  static int64_t GetInt64Value(const IntegerPtr obj) {
-    if (obj->IsSmi()) {
-      return RawSmiValue(static_cast<const SmiPtr>(obj));
-    } else {
-      ASSERT(obj->IsMint());
-      return static_cast<const MintPtr>(obj)->untag()->value_;
-    }
-  }
 
  private:
   OBJECT_IMPLEMENTATION(Integer, Number);
@@ -10174,16 +10157,6 @@ class Smi : public Integer {
   intptr_t Value() const { return RawSmiValue(ptr()); }
 
   virtual bool Equals(const Instance& other) const;
-  virtual bool IsZero() const { return Value() == 0; }
-  virtual bool IsNegative() const { return Value() < 0; }
-
-  virtual double AsDoubleValue() const;
-  virtual int64_t AsInt64Value() const;
-  virtual uint32_t AsTruncatedUint32Value() const;
-
-  virtual bool FitsIntoSmi() const { return true; }
-
-  virtual int CompareWith(const Integer& other) const;
 
   static intptr_t InstanceSize() { return 0; }
 
@@ -10254,22 +10227,12 @@ class Mint : public Integer {
   static constexpr int64_t kMinValue =
       static_cast<int64_t>(DART_2PART_UINT64_C(0x80000000, 00000000));
 
-  int64_t value() const { return untag()->value_; }
   static intptr_t value_offset() { return OFFSET_OF(UntaggedMint, value_); }
+
+  int64_t Value() const { return untag()->value_; }
   static int64_t Value(MintPtr mint) { return mint->untag()->value_; }
 
-  virtual bool IsZero() const { return value() == 0; }
-  virtual bool IsNegative() const { return value() < 0; }
-
   virtual bool Equals(const Instance& other) const;
-
-  virtual double AsDoubleValue() const;
-  virtual int64_t AsInt64Value() const;
-  virtual uint32_t AsTruncatedUint32Value() const;
-
-  virtual bool FitsIntoSmi() const;
-
-  virtual int CompareWith(const Integer& other) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedMint));
@@ -10291,6 +10254,14 @@ class Mint : public Integer {
   friend class Class;
   friend class Number;
 };
+
+inline int64_t Integer::Value(IntegerPtr obj) {
+  if (obj->IsSmi()) {
+    return Smi::Value(Smi::RawCast(obj));
+  } else {
+    return Mint::Value(Mint::RawCast(obj));
+  }
+}
 
 // Class Double represents class Double in corelib_impl, which implements
 // abstract class double in corelib.

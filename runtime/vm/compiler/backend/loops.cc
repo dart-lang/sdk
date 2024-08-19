@@ -124,7 +124,7 @@ static bool IsConstant(Definition* def, int64_t* val) {
   if (def->IsConstant()) {
     const Object& value = def->AsConstant()->value();
     if (value.IsInteger()) {
-      *val = Integer::Cast(value).AsInt64Value();  // smi and mint
+      *val = Integer::Cast(value).Value();  // smi and mint
       return true;
     }
   }

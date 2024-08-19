@@ -163,7 +163,7 @@ Dart_Handle Dart_RemoveBreakpoint(Dart_Handle breakpoint_id_in) {
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
   UNWRAP_AND_CHECK_PARAM(Integer, breakpoint_id, breakpoint_id_in);
-  I->debugger()->RemoveBreakpoint(breakpoint_id.AsInt64Value());
+  I->debugger()->RemoveBreakpoint(breakpoint_id.Value());
   return Api::Success();
 }
 

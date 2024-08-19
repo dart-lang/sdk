@@ -480,7 +480,7 @@ void FlowGraphChecker::VisitConstant(ConstantInstr* constant) {
   // Range check on smi.
   const Object& value = constant->value();
   if (value.IsSmi()) {
-    const int64_t smi_value = Integer::Cast(value).AsInt64Value();
+    const int64_t smi_value = Integer::Cast(value).Value();
     ASSERT(compiler::target::kSmiMin <= smi_value);
     ASSERT(smi_value <= compiler::target::kSmiMax);
   }

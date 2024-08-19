@@ -1007,7 +1007,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
         SP[0] = selector.ptr();                                                \
         goto ThrowNullError;                                                   \
       }                                                                        \
-      value = Integer::GetInt64Value(Integer::RawCast(obj));                   \
+      value = Integer::Value(Integer::RawCast(obj));                           \
     }                                                                          \
   }
 
@@ -1017,7 +1017,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   } else if (!AllocateMint(thread, result, pc, FP, SP)) {                      \
     HANDLE_EXCEPTION;                                                          \
   }                                                                            \
-  ASSERT(Integer::GetInt64Value(Integer::RawCast(SP[0])) == result);
+  ASSERT(Integer::Value(Integer::RawCast(SP[0])) == result);
 
 #define UNBOX_DOUBLE(value, obj, selector)                                     \
   double value;                                                                \
@@ -2204,7 +2204,7 @@ SwitchDispatch:
           break;
         }
         default: {
-          int64_t raw_value = Integer::GetInt64Value(Integer::RawCast(value));
+          int64_t raw_value = Integer::Value(Integer::RawCast(value));
           *reinterpret_cast<int64_t*>(
               reinterpret_cast<CompressedObjectPtr*>(instance->untag()) +
               offset_in_words) = raw_value;
@@ -2742,8 +2742,8 @@ SwitchDispatch:
                (SP[0] == null_value) || (SP[1] == null_value)) {
       SP[0] = false_value;
     } else {
-      int64_t a = Integer::GetInt64Value(Integer::RawCast(SP[0]));
-      int64_t b = Integer::GetInt64Value(Integer::RawCast(SP[1]));
+      int64_t a = Integer::Value(Integer::RawCast(SP[0]));
+      int64_t b = Integer::Value(Integer::RawCast(SP[1]));
       SP[0] = (a == b) ? true_value : false_value;
     }
     DISPATCH();

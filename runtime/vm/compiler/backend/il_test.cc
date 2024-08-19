@@ -757,7 +757,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
 
   // Ensure we can successfully invoke the function.
   invoke_result ^= Invoke(root_library, "myFunction");
-  intptr_t result_int = Integer::Cast(invoke_result).AsInt64Value();
+  intptr_t result_int = Integer::Cast(invoke_result).Value();
   EXPECT_EQ(reinterpret_cast<intptr_t>(thread), result_int);
 }
 

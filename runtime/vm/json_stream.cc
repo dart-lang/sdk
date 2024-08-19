@@ -206,7 +206,7 @@ void JSONStream::PostReply() {
     PrintProperty("id", str.ToCString());
   } else if (seq_->IsInteger()) {
     const Integer& integer = Integer::Cast(*seq_);
-    PrintProperty64("id", integer.AsInt64Value());
+    PrintProperty64("id", integer.Value());
   } else if (seq_->IsDouble()) {
     const Double& dbl = Double::Cast(*seq_);
     PrintProperty("id", dbl.value());

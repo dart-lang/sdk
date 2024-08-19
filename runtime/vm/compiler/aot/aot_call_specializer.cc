@@ -419,7 +419,7 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
   }
 
   const Object& rhs = right_value->BoundConstant();
-  const int64_t value = Integer::Cast(rhs).AsInt64Value();  // smi and mint
+  const int64_t value = Integer::Cast(rhs).Value();  // smi and mint
 
   if (value == kMinInt64) {
     return nullptr;  // The absolute value can't be held in an int64_t.

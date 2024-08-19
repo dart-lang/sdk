@@ -5862,8 +5862,8 @@ SwitchHelper::SwitchHelper(Zone* zone,
 }
 
 int64_t SwitchHelper::ExpressionRange() const {
-  const int64_t min = expression_min().AsInt64Value();
-  const int64_t max = expression_max().AsInt64Value();
+  const int64_t min = expression_min().Value();
+  const int64_t max = expression_max().Value();
   ASSERT(min <= max);
   const uint64_t diff = static_cast<uint64_t>(max) - static_cast<uint64_t>(min);
   // Saturate to avoid overflow.
@@ -5875,7 +5875,7 @@ int64_t SwitchHelper::ExpressionRange() const {
 
 bool SwitchHelper::RequiresLowerBoundCheck() const {
   if (is_enum_switch()) {
-    if (expression_min().IsZero()) {
+    if (expression_min().Value() == 0) {
       // Enum indexes are always positive.
       return false;
     }
@@ -5972,14 +5972,14 @@ SwitchDispatch SwitchHelper::SelectDispatchStrategy() {
   // If the range starts at zero it directly maps to the jump table
   // and we don't need to adjust the switch variable before the
   // jump table.
-  if (expression_min().AsInt64Value() > 0) {
+  if (expression_min().Value() > 0) {
     const intptr_t holes_budget = Utils::Minimum(
         // Holes still available.
         max_holes - holes,
         // Entries left in the jump table.
         kJumpTableMaxSize - range);
 
-    const int64_t required_holes = expression_min().AsInt64Value();
+    const int64_t required_holes = expression_min().Value();
     if (required_holes <= holes_budget) {
       expression_min_ = &Object::smi_zero();
     }
