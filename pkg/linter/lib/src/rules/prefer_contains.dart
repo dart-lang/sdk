@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     // This lint rule is only concerned with these operators.
-    if (!node.operator.matchesAny([
+    if (!node.operator.matchesAny(const [
       TokenType.EQ_EQ,
       TokenType.BANG_EQ,
       TokenType.GT,
