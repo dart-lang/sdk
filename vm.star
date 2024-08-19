@@ -292,6 +292,11 @@ _nightly_builder(
     "vm-aot-dwarf-linux-product-x64",
     category = "vm|aot|dw",
 )
+_nightly_builder(
+    "vm-aot-dyn-linux-debug-x64",
+    category = "vm|aot|dm",
+    channels = ["try"],
+)
 
 # vm|misc
 _nightly_builder(
