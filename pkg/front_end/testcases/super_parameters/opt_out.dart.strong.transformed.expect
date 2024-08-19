@@ -10,7 +10,8 @@ library;
 // // @dart=2.15
 // ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/super_parameters/opt_out.dart:14:3: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+// pkg/front_end/testcases/super_parameters/opt_out.dart:14:3: Error: The implicitly called unnamed constructor from 'A' has required parameters.
+// Try adding an explicit super initializer with the required arguments.
 //   B(super.field);
 //   ^
 //
@@ -25,7 +26,8 @@ class A extends core::Object {
 }
 class B extends self::A {
   constructor •(core::int field) → self::B
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/super_parameters/opt_out.dart:14:3: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/super_parameters/opt_out.dart:14:3: Error: The implicitly called unnamed constructor from 'A' has required parameters.
+Try adding an explicit super initializer with the required arguments.
   B(super.field);
   ^"
     ;

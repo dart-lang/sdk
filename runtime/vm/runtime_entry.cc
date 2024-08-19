@@ -824,7 +824,13 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateSuspendState, 2) {
       // Reset _AsyncStarStreamController.asyncStarBody to null in order
       // to create a new callback closure during next yield.
       // The new callback closure will capture the reallocated SuspendState.
-      function_data.SetField(
+      //
+      // Caveat: can't use [SetField] here because it will try to take program
+      // lock (to update the state of guarded cid) and that requires us to
+      // be at safepoint which permits lazy deopt. Instead bypass
+      // field guard by making sure that guarded_cid allows our store here.
+      // (See ObjectStore::InitKnownObjects which initializes it).
+      function_data.SetFieldWithoutFieldGuard(
           Field::Handle(
               zone,
               object_store->async_star_stream_controller_async_star_body()),
@@ -835,7 +841,13 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateSuspendState, 2) {
     if (function_data.GetClassId() ==
         Class::Handle(zone, object_store->sync_star_iterator_class()).id()) {
       // Refresh _SyncStarIterator._state with the new SuspendState object.
-      function_data.SetField(
+      //
+      // Caveat: can't use [SetField] here because it will try to take program
+      // lock (to update the state of guarded cid) and that requires us to
+      // be at safepoint which permits lazy deopt. Instead bypass
+      // field guard by making sure that guarded_cid allows our store here.
+      // (See ObjectStore::InitKnownObjects which initializes it).
+      function_data.SetFieldWithoutFieldGuard(
           Field::Handle(zone, object_store->sync_star_iterator_state()),
           result);
     }

@@ -8047,6 +8047,42 @@ const MessageCode messageImplicitSuperCallOfNonMethod = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateImplicitSuperInitializerMissingArguments =
+    const Template<Message Function(String name)>(
+  "ImplicitSuperInitializerMissingArguments",
+  problemMessageTemplate:
+      r"""The implicitly called unnamed constructor from '#name' has required parameters.""",
+  correctionMessageTemplate:
+      r"""Try adding an explicit super initializer with the required arguments.""",
+  withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeImplicitSuperInitializerMissingArguments =
+    const Code<Message Function(String name)>(
+  "ImplicitSuperInitializerMissingArguments",
+  analyzerCodes: <String>["IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS"],
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplicitSuperInitializerMissingArguments(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeImplicitSuperInitializerMissingArguments,
+    problemMessage:
+        """The implicitly called unnamed constructor from '${name}' has required parameters.""",
+    correctionMessage:
+        """Try adding an explicit super initializer with the required arguments.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12095,6 +12131,19 @@ const MessageCode messageMissingMethodParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingNamedSuperConstructorParameter =
+    messageMissingNamedSuperConstructorParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingNamedSuperConstructorParameter =
+    const MessageCode(
+  "MissingNamedSuperConstructorParameter",
+  analyzerCodes: <String>["SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED"],
+  problemMessage:
+      r"""The super constructor has no corresponding named parameter.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingOperatorKeyword = messageMissingOperatorKeyword;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12134,6 +12183,21 @@ Message _withArgumentsMissingPartOf(Uri uri_) {
     },
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingPositionalSuperConstructorParameter =
+    messageMissingPositionalSuperConstructorParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingPositionalSuperConstructorParameter =
+    const MessageCode(
+  "MissingPositionalSuperConstructorParameter",
+  analyzerCodes: <String>[
+    "SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL"
+  ],
+  problemMessage:
+      r"""The super constructor has no corresponding positional parameter.""",
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingPrefixInDeferredImport =

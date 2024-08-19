@@ -10,18 +10,18 @@ library;
 // abstract class A extends B {
 //                          ^
 //
-// pkg/front_end/testcases/general/issue49357a.dart:6:3: Error: The superclass, 'B', has no unnamed constructor that takes no arguments.
-//   A({
-//   ^
+// pkg/front_end/testcases/general/issue49357a.dart:7:20: Error: The super constructor has no corresponding named parameter.
+//     required super.field,
+//                    ^
 //
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
   constructor •({required invalid-type field}) → self::A
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue49357a.dart:6:3: Error: The superclass, 'B', has no unnamed constructor that takes no arguments.
-  A({
-  ^"
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue49357a.dart:7:20: Error: The super constructor has no corresponding named parameter.
+    required super.field,
+                   ^"
     ;
 }
 class C extends core::Object {

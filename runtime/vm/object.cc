@@ -21036,6 +21036,37 @@ void Instance::SetField(const Field& field, const Object& value) const {
   }
 }
 
+void Instance::SetFieldWithoutFieldGuard(const Field& field,
+                                         const Object& value) const {
+  if (field.is_unboxed()) {
+    switch (field.guarded_cid()) {
+      case kDoubleCid:
+        StoreNonPointer(reinterpret_cast<double_t*>(FieldAddr(field)),
+                        Double::Cast(value).value());
+        break;
+      case kFloat32x4Cid:
+        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+                        Float32x4::Cast(value).value());
+        break;
+      case kFloat64x2Cid:
+        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+                        Float64x2::Cast(value).value());
+        break;
+      default:
+        StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
+                        Integer::Cast(value).AsInt64Value());
+        break;
+    }
+  } else {
+    // Some basic validation that we are not violating guarded cid.
+    RELEASE_ASSERT(!Thread::Current()->isolate_group()->use_field_guards() ||
+                   field.guarded_cid() == kDynamicCid ||
+                   field.guarded_cid() == value.GetClassId() ||
+                   (field.is_nullable() && value.IsNull()));
+    StoreCompressedPointer(FieldAddr(field), value.ptr());
+  }
+}
+
 AbstractTypePtr Instance::GetType(Heap::Space space) const {
   if (IsNull()) {
     return Type::NullType();
