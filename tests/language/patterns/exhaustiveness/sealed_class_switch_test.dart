@@ -150,7 +150,7 @@ void unreachableCase1(A a) {
       break;
     case A a: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('A');
       break;
   }
@@ -178,7 +178,7 @@ void unreachableCase3(A? a) {
       break;
     case null: // Unreachable
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null #2');
       break;
   }

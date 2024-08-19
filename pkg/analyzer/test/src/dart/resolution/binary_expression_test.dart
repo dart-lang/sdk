@@ -653,7 +653,7 @@ f(Never a, int b) {
 }
 ''', [
       error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
-      error(WarningCode.DEAD_CODE, 26, 2),
+      error(WarningCode.DEAD_CODE, 24, 3),
     ]);
 
     assertResolvedNodeText(findNode.binary('a + b'), r'''

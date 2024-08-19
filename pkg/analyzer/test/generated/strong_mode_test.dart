@@ -3266,7 +3266,7 @@ main() {
                                      (x.then((x) => x) == null);
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 139, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 139, 7),
     ]);
   }
 
@@ -3290,7 +3290,7 @@ main() {
                                                   (x.then((x) => x) == null);
    ''';
     await assertErrorsInCode(code, [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 163, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 163, 7),
     ]);
   }
 

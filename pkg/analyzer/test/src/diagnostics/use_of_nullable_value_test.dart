@@ -54,7 +54,7 @@ m() {
   x == null;
 }
 ''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 18, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4),
     ]);
   }
 
@@ -104,7 +104,7 @@ m() {
   x != null;
 }
 ''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 18, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4),
     ]);
   }
 
@@ -878,7 +878,7 @@ m() {
   x == null;
 }
 ''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 18, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4),
     ]);
   }
 
@@ -1293,7 +1293,7 @@ m() {
   x != null;
 }
 ''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE, 18, 4),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4),
     ]);
   }
 

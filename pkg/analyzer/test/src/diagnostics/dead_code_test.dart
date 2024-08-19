@@ -17,6 +17,16 @@ main() {
 @reflectiveTest
 class DeadCodeTest extends PubPackageResolutionTest
     with DeadCodeTestCases_Language212 {
+  test_deadOperandLHS_or_recordPropertyAccess() async {
+    await assertErrorsInCode(r'''
+void f(({bool b, }) r) {
+  if (true || r.b) {}
+}
+''', [
+      error(WarningCode.DEAD_CODE, 36, 6),
+    ]);
+  }
+
   test_deadPattern_ifCase_logicalOrPattern_leftAlwaysMatches() async {
     await assertErrorsInCode(r'''
 void f(int x) {
@@ -265,7 +275,7 @@ void f(Object waldo) {
   assert(waldo != null, "Where's Waldo?");
 }
 ''', [
-      error(WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
+      error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 38, 7),
     ]);
   }
 

@@ -115,17 +115,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  @Deprecated("Use 'WarningCode.UNREACHABLE_SWITCH_CASE' instead.")
-  static const HintCode UNREACHABLE_SWITCH_CASE = HintCode(
-    'UNREACHABLE_SWITCH_CASE',
-    "This case is covered by the previous cases.",
-    correctionMessage:
-        "Try removing the case clause, or restructuring the preceding "
-        "patterns.",
-    hasPublishedDocs: true,
-  );
-
   /// Initialize a newly created error code to have the given [name].
   const HintCode(
     String name,

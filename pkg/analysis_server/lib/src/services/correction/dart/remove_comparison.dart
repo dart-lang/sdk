@@ -39,7 +39,9 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   bool get _conditionIsFalse {
     var errorCode = (diagnostic as AnalysisError).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
-        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_FALSE ||
+        errorCode ==
+            WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE ||
+        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE ||
         errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_FALSE;
   }
 
@@ -47,7 +49,8 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   bool get _conditionIsTrue {
     var errorCode = (diagnostic as AnalysisError).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
-        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
+        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE ||
+        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE ||
         errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_TRUE ||
         errorCode == LinterLintCode.avoid_null_checks_in_equality_operators;
   }

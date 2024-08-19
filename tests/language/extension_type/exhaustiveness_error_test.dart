@@ -40,7 +40,7 @@ nonExhaustiveMapExtensionType1(ExtensionTypeMap<int, A> map) {
     {0: C c, 1: _} => 5,
     {0: _, 1: _} => 3,
     //           ^^
-    // [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+    // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     {0: B b} => 1,
     {0: C c} => 2,
   };
