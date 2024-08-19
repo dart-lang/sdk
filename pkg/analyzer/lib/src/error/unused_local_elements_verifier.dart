@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -154,6 +155,21 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     usedElements.addElement(node.staticElement);
     super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (!Identifier.isPrivateName(node.name.lexeme)) {
+      var type = node.type.type;
+      if (type is InterfaceType) {
+        for (var constructor in type.constructors) {
+          if (!Identifier.isPrivateName(constructor.name)) {
+            usedElements.addElement(constructor);
+          }
+        }
+      }
+    }
+    super.visitGenericTypeAlias(node);
   }
 
   @override
