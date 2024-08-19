@@ -61,6 +61,26 @@ void f(Stream<String> args) { }
 ''');
   }
 
+  Future<void> test_organizeImports_wildcards() async {
+    await resolveTestCode('''
+//ignore_for_file: unused_import
+import 'dart:io' as _;
+import 'dart:math' as math;
+
+import 'dart:async';
+
+void f(Stream<String> args) { }
+''');
+    await assertHasFix('''
+//ignore_for_file: unused_import
+import 'dart:async';
+import 'dart:io' as _;
+import 'dart:math' as math;
+
+void f(Stream<String> args) { }
+''');
+  }
+
   Future<void> test_organizePathImports() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
