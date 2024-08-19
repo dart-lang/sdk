@@ -384,10 +384,14 @@ bool AsyncAwareStackUnwinder::HandleSynchronousFrame() {
   if (function_.HasAwaiterLink()) {
     object_ = GetReceiver();
     if (object_.IsClosure() &&
-        StackTraceUtils::GetSuspendState(Closure::Cast(object_),
-                                         &awaiter_frame_.next)) {
-      awaiter_frame_.closure ^= object_.ptr();
-      return true;  // Hide this frame from the stack trace.
+        TryGetAwaiterLink(Closure::Cast(object_), &awaiter_frame_.next)) {
+      if (awaiter_frame_.next.IsSuspendState()) {
+        awaiter_frame_.closure ^= object_.ptr();
+        return true;  // Hide this frame from the stack trace.
+      } else if (awaiter_frame_.next.GetClassId() == _Future().id()) {
+        UnwindFrameToFutureListener();
+        return false;  // Do not hide this from the stack trace.
+      }
     }
   }
 
