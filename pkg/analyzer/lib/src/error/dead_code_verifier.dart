@@ -212,6 +212,10 @@ class NullSafetyDeadCodeVerifier {
   /// not `null`, and is covered by the [node], then we reached the end of
   /// the current dead code interval.
   void flowEnd(AstNode node) {
+    // Note that `firstDeadNode` could be a node that will later be replaced
+    // in the syntax tree. It's not safe to query whether it is _equal_ to, for
+    // example, another node's child.
+    // TODO(srawlins): Change this code to avoid this issue.
     var firstDeadNode = _firstDeadNode;
     if (firstDeadNode == null) {
       return;
@@ -268,7 +272,7 @@ class NullSafetyDeadCodeVerifier {
         if (node is SwitchMember && node.statements.isNotEmpty) {
           node = node.statements.last;
         }
-      } else if (parent is BinaryExpression && node == parent.rightOperand) {
+      } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
       }
       if (parent is ConstructorInitializer) {
@@ -311,7 +315,11 @@ class NullSafetyDeadCodeVerifier {
         if (grandParent is ForStatement) {
           _reportForUpdaters(grandParent);
         }
-      } else if (parent is LogicalOrPattern && node == parent.rightOperand) {
+      } else if (parent is BinaryExpression) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
+      } else if (parent is LogicalOrPattern &&
+          firstDeadNode == parent.rightOperand) {
         offset = parent.operator.offset;
       }
 
