@@ -3818,8 +3818,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Constant values from a deferred library can't be used as a default "
         "parameter value.",
     correctionMessage:
-        "Try leaving the default as null and initializing the parameter inside "
-        "the function body.",
+        "Try leaving the default as 'null' and initializing the parameter "
+        "inside the function body.",
     hasPublishedDocs: true,
   );
 
@@ -4230,7 +4230,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NOT_NULL_AWARE_NULL_SPREAD =
       CompileTimeErrorCode(
     'NOT_NULL_AWARE_NULL_SPREAD',
-    "The Null typed expression can't be used with a non-null-aware spread.",
+    "The Null-typed expression can't be used with a non-null-aware spread.",
   );
 
   ///  No parameters.
@@ -6109,8 +6109,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode
       INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT = StaticWarningCode(
     'INVALID_NULL_AWARE_OPERATOR',
-    "The receiver can't be null because of short-circuiting, so the null-aware "
-        "operator '{0}' can't be used.",
+    "The receiver can't be 'null' because of short-circuiting, so the "
+        "null-aware operator '{0}' can't be used.",
     correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
@@ -7120,8 +7120,8 @@ class WarningCode extends AnalyzerErrorCode {
   ///  1: the type argument associated with the method
   static const WarningCode NULL_ARGUMENT_TO_NON_NULL_TYPE = WarningCode(
     'NULL_ARGUMENT_TO_NON_NULL_TYPE',
-    "'{0}' shouldn't be called with a null argument for the non-nullable type "
-        "argument '{1}'.",
+    "'{0}' shouldn't be called with a 'null' argument for the non-nullable "
+        "type argument '{1}'.",
     correctionMessage: "Try adding a non-null argument.",
     hasPublishedDocs: true,
   );
@@ -7490,7 +7490,7 @@ class WarningCode extends AnalyzerErrorCode {
   static const WarningCode UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE =
       WarningCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand must be null, so the condition is always 'false'.",
+    "The operand must be 'null', so the condition is always 'false'.",
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
@@ -7500,7 +7500,7 @@ class WarningCode extends AnalyzerErrorCode {
   static const WarningCode UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE =
       WarningCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand must be null, so the condition is always 'true'.",
+    "The operand must be 'null', so the condition is always 'true'.",
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
@@ -7510,7 +7510,7 @@ class WarningCode extends AnalyzerErrorCode {
   static const WarningCode UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE =
       WarningCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always 'false'.",
+    "The operand can't be 'null', so the condition is always 'false'.",
     correctionMessage:
         "Try removing the condition, an enclosing condition, or the whole "
         "conditional statement.",
@@ -7522,7 +7522,7 @@ class WarningCode extends AnalyzerErrorCode {
   static const WarningCode UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE =
       WarningCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always 'true'.",
+    "The operand can't be 'null', so the condition is always 'true'.",
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',

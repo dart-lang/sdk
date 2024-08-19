@@ -11447,7 +11447,7 @@ CompileTimeErrorCode:
       ```
   NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY:
     problemMessage: "Constant values from a deferred library can't be used as a default parameter value."
-    correctionMessage: Try leaving the default as null and initializing the parameter inside the function body.
+    correctionMessage: Try leaving the default as 'null' and initializing the parameter inside the function body.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
@@ -12733,7 +12733,7 @@ CompileTimeErrorCode:
       var m = <int, String>{...l.asMap()};
       ```
   NOT_NULL_AWARE_NULL_SPREAD:
-    problemMessage: "The Null typed expression can't be used with a non-null-aware spread."
+    problemMessage: "The Null-typed expression can't be used with a non-null-aware spread."
     hasPublishedDocs: false
     comment: No parameters.
   NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
@@ -22695,7 +22695,7 @@ StaticWarningCode:
       not be appropriate in some cases.)
   INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
     sharedName: INVALID_NULL_AWARE_OPERATOR
-    problemMessage: "The receiver can't be null because of short-circuiting, so the null-aware operator '{0}' can't be used."
+    problemMessage: "The receiver can't be 'null' because of short-circuiting, so the null-aware operator '{0}' can't be used."
     correctionMessage: "Try replacing the operator '{0}' with '{1}'."
     hasPublishedDocs: true
     comment: |-
@@ -25498,7 +25498,7 @@ WarningCode:
       }
       ```
   NULL_ARGUMENT_TO_NON_NULL_TYPE:
-    problemMessage: "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'."
+    problemMessage: "'{0}' shouldn't be called with a 'null' argument for the non-nullable type argument '{1}'."
     correctionMessage: Try adding a non-null argument.
     hasPublishedDocs: true
     comment: |-
@@ -26984,19 +26984,19 @@ WarningCode:
       ```
   UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand must be null, so the condition is always 'false'."
+    problemMessage: "The operand must be 'null', so the condition is always 'false'."
     correctionMessage: Remove the condition.
     hasPublishedDocs: true
     comment: No parameters.
   UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand must be null, so the condition is always 'true'."
+    problemMessage: "The operand must be 'null', so the condition is always 'true'."
     correctionMessage: Remove the condition.
     hasPublishedDocs: true
     comment: No parameters.
   UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always 'false'."
+    problemMessage: "The operand can't be 'null', so the condition is always 'false'."
     correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
     hasPublishedDocs: true
     comment: No parameters.
@@ -27054,7 +27054,7 @@ WarningCode:
       ```
   UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE:
     sharedName: UNNECESSARY_NULL_COMPARISON
-    problemMessage: "The operand can't be null, so the condition is always 'true'."
+    problemMessage: "The operand can't be 'null', so the condition is always 'true'."
     correctionMessage: Remove the condition.
     hasPublishedDocs: true
     comment: No parameters.
