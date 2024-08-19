@@ -3640,7 +3640,6 @@ InvalidThisInInitializer:
 
 ThisAccessInFieldInitializer:
   problemMessage: "Can't access 'this' in a field initializer to read '#name'."
-  analyzerCode: THIS_ACCESS_FROM_FIELD_INITIALIZER
 
 ThisOrSuperAccessInFieldInitializer:
   problemMessage: "Can't access '#string' in a field initializer."

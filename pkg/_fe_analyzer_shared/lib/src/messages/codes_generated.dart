@@ -16256,7 +16256,6 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeThisAccessInFieldInitializer =
     const Code<Message Function(String name)>(
   "ThisAccessInFieldInitializer",
-  analyzerCodes: <String>["THIS_ACCESS_FROM_FIELD_INITIALIZER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
