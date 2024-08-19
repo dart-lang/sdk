@@ -945,7 +945,7 @@ class _Future<T> implements Future<T> {
       timer = new Timer(timeLimit, () {
         _future._completeError(
             new TimeoutException("Future not completed", timeLimit),
-            StackTrace.empty);
+            StackTrace.current);
       });
     } else {
       Zone zone = Zone.current;
