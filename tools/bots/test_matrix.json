@@ -1282,6 +1282,35 @@
     },
     {
       "builders": [
+        "vm-aot-dyn-linux-debug-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the dynamic modules VM AOT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-dyn-${system}-${mode}-${arch}",
+            "corelib",
+            "language"
+          ],
+          "fileset": "vm",
+          "shards": 5
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-asan-linux-release-x64",
         "vm-msan-linux-release-x64",
         "vm-tsan-linux-release-x64",
