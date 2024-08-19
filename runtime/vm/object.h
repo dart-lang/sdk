@@ -8414,6 +8414,7 @@ class Instance : public Object {
   ObjectPtr GetField(const Field& field) const;
 
   void SetField(const Field& field, const Object& value) const;
+  void SetFieldWithoutFieldGuard(const Field& field, const Object& value) const;
 
   AbstractTypePtr GetType(Heap::Space space) const;
 

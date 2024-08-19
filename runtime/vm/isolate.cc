@@ -370,7 +370,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       kernel_constants_mutex_(),
       field_list_mutex_(),
       boxed_field_list_(GrowableObjectArray::null()),
-      program_lock_(new SafepointRwLock()),
+      program_lock_(new SafepointRwLock(SafepointLevel::kGCAndDeopt)),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount())
 #if !defined(PRODUCT)
