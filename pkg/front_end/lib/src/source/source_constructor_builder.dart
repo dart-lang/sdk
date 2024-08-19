@@ -777,7 +777,6 @@ class DeclaredSourceConstructorBuilder
               (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
-            // Coverage-ignore-block(suite): Not run.
             assert(libraryBuilder.loader.assertProblemReportedElsewhere(
                 "DeclaredSourceConstructorBuilder"
                 ".finalizeSuperInitializingFormals: "

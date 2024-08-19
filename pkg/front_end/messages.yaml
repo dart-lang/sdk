@@ -7384,3 +7384,22 @@ UnexpectedSuperParametersInGenerativeConstructors:
   analyzerCode: INVALID_SUPER_FORMAL_PARAMETER_LOCATION
   script: |
     class A { A(); A.named(super.x) : this(); }
+
+MissingPositionalSuperConstructorParameter:
+  problemMessage: "The super constructor has no corresponding positional parameter."
+  analyzerCode: SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL
+  script: |
+    class A { A(); } class B { B(super.foo); }
+
+MissingNamedSuperConstructorParameter:
+  problemMessage: "The super constructor has no corresponding named parameter."
+  analyzerCode: SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED
+  script: |
+    class A { A(); } class B { B({super.foo}); }
+
+ImplicitSuperInitializerMissingArguments:
+  problemMessage: "The implicitly called unnamed constructor from '#name' has required parameters."
+  correctionMessage: "Try adding an explicit super initializer with the required arguments."
+  analyzerCode: IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
+  script: |
+    class A { A(int foo); } class B extends A { B(); }

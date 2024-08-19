@@ -1953,22 +1953,46 @@ class BodyBuilder extends StackListenerImpl
         ]);
       }
 
+      int argumentsOffset = -1;
+      if (superParametersAsArguments != null) {
+        for (Object argument in superParametersAsArguments) {
+          assert(argument is Expression || argument is NamedExpression);
+          int currentArgumentOffset;
+          if (argument is Expression) {
+            currentArgumentOffset = argument.fileOffset;
+          } else {
+            currentArgumentOffset = (argument as NamedExpression).fileOffset;
+          }
+          argumentsOffset = argumentsOffset <= currentArgumentOffset
+              ? argumentsOffset
+              : currentArgumentOffset;
+        }
+      }
+      SuperInitializer? explicitSuperInitializer;
+      if (_initializers case [..., SuperInitializer superInitializer]
+          when argumentsOffset == // Coverage-ignore(suite): Not run.
+              -1) {
+        // Coverage-ignore-block(suite): Not run.
+        argumentsOffset = superInitializer.fileOffset;
+        explicitSuperInitializer = superInitializer;
+      }
+      if (argumentsOffset == -1) {
+        argumentsOffset = _context.memberCharOffset;
+      }
+
       if (positionalArguments != null || namedArguments != null) {
         arguments = forest.createArguments(
-            noLocation, positionalArguments ?? <Expression>[],
+            argumentsOffset, positionalArguments ?? <Expression>[],
             named: namedArguments);
       } else {
-        arguments = forest.createArgumentsEmpty(noLocation);
+        arguments = forest.createArgumentsEmpty(argumentsOffset);
       }
 
       arguments.positionalAreSuperParameters =
           positionalSuperParametersAsArguments != null;
       arguments.namedSuperParameterNames = namedSuperParameterNames;
 
-      if (superTarget == null ||
-          checkArgumentsForFunction(superTarget.function, arguments,
-                  _context.memberCharOffset, const <TypeParameter>[]) !=
-              null) {
+      if (superTarget == null) {
         String superclass = _context.superClassName;
         int length = _context.memberName.length;
         if (length == 0) {
@@ -1981,6 +2005,78 @@ class BodyBuilder extends StackListenerImpl
                 _context.memberCharOffset,
                 length),
             _context.memberCharOffset);
+      } else if (checkArgumentsForFunction(superTarget.function, arguments,
+              _context.memberCharOffset, const <TypeParameter>[])
+          case LocatedMessage argumentIssue) {
+        List<int>? positionalSuperParametersIssueOffsets;
+        if (positionalSuperParametersAsArguments != null) {
+          for (int positionalSuperParameterIndex =
+                  superTarget.function.positionalParameters.length;
+              positionalSuperParameterIndex <
+                  positionalSuperParametersAsArguments.length;
+              positionalSuperParameterIndex++) {
+            (positionalSuperParametersIssueOffsets ??= []).add(
+                positionalSuperParametersAsArguments[
+                        positionalSuperParameterIndex]
+                    .fileOffset);
+          }
+        }
+
+        List<int>? namedSuperParametersIssueOffsets;
+        if (namedSuperParametersAsArguments != null) {
+          Set<String> superTargetNamedParameterNames = {
+            for (VariableDeclaration namedParameter
+                in superTarget.function.namedParameters)
+              if (namedParameter // Coverage-ignore(suite): Not run.
+                      .name !=
+                  null)
+                // Coverage-ignore(suite): Not run.
+                namedParameter.name!
+          };
+          for (NamedExpression namedSuperParameter
+              in namedSuperParametersAsArguments) {
+            if (!superTargetNamedParameterNames
+                .contains(namedSuperParameter.name)) {
+              (namedSuperParametersIssueOffsets ??= [])
+                  .add(namedSuperParameter.fileOffset);
+            }
+          }
+        }
+
+        Initializer? errorMessageInitializer;
+        if (positionalSuperParametersIssueOffsets != null) {
+          for (int issueOffset in positionalSuperParametersIssueOffsets) {
+            Expression errorMessageExpression = buildProblem(
+                fasta.messageMissingPositionalSuperConstructorParameter,
+                issueOffset,
+                noLength);
+            errorMessageInitializer ??=
+                buildInvalidInitializer(errorMessageExpression);
+          }
+        }
+        if (namedSuperParametersIssueOffsets != null) {
+          for (int issueOffset in namedSuperParametersIssueOffsets) {
+            Expression errorMessageExpression = buildProblem(
+                fasta.messageMissingNamedSuperConstructorParameter,
+                issueOffset,
+                noLength);
+            errorMessageInitializer ??=
+                buildInvalidInitializer(errorMessageExpression);
+          }
+        }
+        if (explicitSuperInitializer == null) {
+          errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
+              fasta.templateImplicitSuperInitializerMissingArguments
+                  .withArguments(superTarget.enclosingClass.name),
+              argumentIssue.charOffset,
+              argumentIssue.length));
+        }
+        // Coverage-ignore-block(suite): Not run.
+        errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
+            argumentIssue.messageObject,
+            argumentIssue.charOffset,
+            argumentIssue.length));
+        initializer = errorMessageInitializer;
       } else {
         initializer = buildSuperInitializer(
             true, superTarget, arguments, _context.memberCharOffset);
