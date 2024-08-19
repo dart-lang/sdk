@@ -19,7 +19,6 @@
 // ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
-import "package:analyzer/src/dart/error/hint_codes.g.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
 class CompileTimeErrorCode extends AnalyzerErrorCode {
@@ -7550,9 +7549,15 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Try removing the wildcard pattern.",
   );
 
-  ///  This is the new replacement for [HintCode.UNREACHABLE_SWITCH_CASE].
-  static const HintCode UNREACHABLE_SWITCH_CASE =
-      HintCode.UNREACHABLE_SWITCH_CASE;
+  ///  No parameters.
+  static const WarningCode UNREACHABLE_SWITCH_CASE = WarningCode(
+    'UNREACHABLE_SWITCH_CASE',
+    "This case is covered by the previous cases.",
+    correctionMessage:
+        "Try removing the case clause, or restructuring the preceding "
+        "patterns.",
+    hasPublishedDocs: true,
+  );
 
   ///  Parameters:
   ///  0: the name of the exception variable

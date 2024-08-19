@@ -1844,8 +1844,6 @@ HintCode.MACRO_INFO:
   status: noFix
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
-HintCode.UNREACHABLE_SWITCH_CASE:
-  status: hasFix
 LintCode.always_declare_return_types_of_functions:
   status: hasFix
 LintCode.always_declare_return_types_of_methods:
@@ -3746,6 +3744,8 @@ WarningCode.UNNECESSARY_TYPE_CHECK_FALSE:
 WarningCode.UNNECESSARY_TYPE_CHECK_TRUE:
   status: hasFix
 WarningCode.UNNECESSARY_WILDCARD_PATTERN:
+  status: hasFix
+WarningCode.UNREACHABLE_SWITCH_CASE:
   status: hasFix
 WarningCode.UNUSED_CATCH_CLAUSE:
   status: hasFix

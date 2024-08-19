@@ -475,14 +475,13 @@ class AnalyzerError implements Comparable<AnalyzerError> {
     'unnecessary_non_null_assertion',
     'unnecessary_null_assert_pattern',
     'unnecessary_null_check_pattern',
+    'unreachable_switch_case',
   };
 
   /// The set of hints which must be expected in a test. Any hint not specified
   /// here which is reported by the analyzer does not need to be expected, and
   /// never causes a test to fail.
-  static const Set<String> _specifiedHints = {
-    'unreachable_switch_case',
-  };
+  static const Set<String> _specifiedHints = {};
 
   /// Parses all errors from analyzer [stdout] output.
   static List<AnalyzerError> parseStdout(String stdout) {

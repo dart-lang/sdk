@@ -38,7 +38,7 @@ main() {
       print('b');
     case {'a': _, 'b': _}:
 //  ^^^^
-// [analyzer] HINT.UNREACHABLE_SWITCH_CASE
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('a b');
   }
 }

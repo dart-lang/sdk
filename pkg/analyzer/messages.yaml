@@ -21253,49 +21253,6 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
-  UNREACHABLE_SWITCH_CASE:
-    problemMessage: "This case is covered by the previous cases."
-    correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
-    deprecatedMessage: Use 'WarningCode.UNREACHABLE_SWITCH_CASE' instead.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a `case` clause in a `switch`
-      statement doesn't match anything because all of the matchable values are
-      matched by an earlier `case` clause.
-
-      #### Example
-
-      The following code produces this diagnostic because the value `1` was
-      matched in the preceding case:
-
-      ```dart
-      void f(int x) {
-        switch (x) {
-          case 1:
-            print('one');
-          [!case!] 1:
-            print('two');
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Change one or both of the conflicting cases to match different values:
-
-      ```dart
-      void f(int x) {
-        switch (x) {
-          case 1:
-            print('one');
-          case 2:
-            print('two');
-        }
-      }
-      ```
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
@@ -27208,8 +27165,47 @@ WarningCode:
     hasPublishedDocs: false
     comment: No parameters.
   UNREACHABLE_SWITCH_CASE:
-    aliasFor: HintCode.UNREACHABLE_SWITCH_CASE
-    comment: This is the new replacement for [HintCode.UNREACHABLE_SWITCH_CASE].
+    problemMessage: "This case is covered by the previous cases."
+    correctionMessage: Try removing the case clause, or restructuring the preceding patterns.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `case` clause in a `switch`
+      statement doesn't match anything because all of the matchable values are
+      matched by an earlier `case` clause.
+
+      #### Example
+
+      The following code produces this diagnostic because the value `1` was
+      matched in the preceding case:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+          [!case!] 1:
+            print('two');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Change one or both of the conflicting cases to match different values:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+          case 2:
+            print('two');
+        }
+      }
+      ```
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.
