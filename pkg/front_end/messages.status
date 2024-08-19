@@ -1018,6 +1018,7 @@ SwitchExpressionNotSubtype/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
+ThisAccessInFieldInitializer/analyzerCode: Fail
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisInNullAwareReceiver/analyzerCode: Fail
