@@ -344,6 +344,7 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
     num_required_params = kImplicitClosureParam + reader_.ReadUInt();
   }
 
+  signature.set_num_implicit_parameters(kImplicitClosureParam);
   signature.set_num_fixed_parameters(num_required_params);
   signature.SetNumOptionalParameters(num_params - num_required_params,
                                      !has_optional_named_params);
@@ -2091,7 +2092,6 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
   auto& field = Field::Handle(Z);
   for (intptr_t i = 0, n = pending_classes.Length(); i < n; ++i) {
     cls ^= pending_classes.At(i);
-    OS::PrintErr("Pending class %s\n", cls.ToCString());
     error = cls.EnsureIsFinalized(thread_);
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
@@ -2101,7 +2101,6 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
     for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
       function ^= members.At(j);
       if (!function.is_abstract() && !function.HasBytecode()) {
-        OS::PrintErr("ReadCode %s\n", function.ToFullyQualifiedCString());
         ReadCode(function, thread_->bytecode_loader()->GetOffset(function));
       }
     }
@@ -2112,7 +2111,6 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
           field.has_nontrivial_initializer()) {
         function = field.EnsureInitializerFunction();
         if (!function.HasBytecode()) {
-          OS::PrintErr("ReadCode %s\n", function.ToFullyQualifiedCString());
           ReadCode(function, thread_->bytecode_loader()->GetOffset(field));
         }
       }

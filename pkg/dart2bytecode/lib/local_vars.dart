@@ -509,6 +509,12 @@ class _ScopeBuilder extends RecursiveVisitor {
   }
 
   @override
+  void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    _useVariable(node.variable);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _declareVariable(node);
     node.visitChildren(this);
