@@ -3,8 +3,18 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/wildcard_variables/local_var.dart:8:3: Error: Setter not found: '_'.
-//   _ = 3;
+//   _ = 3; // Compile-time error.
 //   ^
+//
+// pkg/front_end/testcases/wildcard_variables/local_var.dart:23:15: Error: Constant evaluation error:
+//   const _ = 2 + d; // This should result in a compile-time error.
+//               ^
+// pkg/front_end/testcases/wildcard_variables/local_var.dart:23:17: Context: Expected constant '"string"' to be of type 'num', but was of type 'String'.
+//   const _ = 2 + d; // This should result in a compile-time error.
+//                 ^
+// pkg/front_end/testcases/wildcard_variables/local_var.dart:23:9: Context: While analyzing:
+//   const _ = 2 + d; // This should result in a compile-time error.
+//         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -13,7 +23,7 @@ static method test() → dynamic {
   1;
   2;
   invalid-expression "pkg/front_end/testcases/wildcard_variables/local_var.dart:8:3: Error: Setter not found: '_'.
-  _ = 3;
+  _ = 3; // Compile-time error.
   ^";
   2;
   2;
@@ -26,4 +36,5 @@ static method test() → dynamic {
   late core::int x = 2;
   3;
   3;
+  const wildcard core::num _#wc13#var = invalid-expression "Expected constant '\"string\"' to be of type 'num', but was of type 'String'.";
 }

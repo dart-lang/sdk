@@ -3864,26 +3864,13 @@ class BodyBuilder extends StackListenerImpl
         return;
       }
       VariableDeclaration variable = node as VariableDeclaration;
-      if (variable.isWildcard && _localScope.kind != ScopeKind.forStatement) {
-        // Wildcard variable declarations can be removed, except for the ones in
-        // for loops. This logic turns them into `ExpressionStatement`s or
-        // `EmptyStatement`s so the backends don't need to allocate space for
-        // them.
-        if (variable.initializer case var initializer?) {
-          push(forest.createExpressionStatement(
-              offsetForToken(endToken), initializer));
-        } else {
-          push(forest.createEmptyStatement(offsetForToken(endToken)));
+      if (annotations != null) {
+        for (int i = 0; i < annotations.length; i++) {
+          variable.addAnnotation(annotations[i]);
         }
-      } else {
-        if (annotations != null) {
-          for (int i = 0; i < annotations.length; i++) {
-            variable.addAnnotation(annotations[i]);
-          }
-          (variablesWithMetadata ??= <VariableDeclaration>[]).add(variable);
-        }
-        push(variable);
+        (variablesWithMetadata ??= <VariableDeclaration>[]).add(variable);
       }
+      push(variable);
     } else {
       List<VariableDeclaration>? variables =
           const FixedNullableList<VariableDeclaration>()
@@ -3896,50 +3883,17 @@ class BodyBuilder extends StackListenerImpl
         push(new ParserRecovery(offsetForToken(endToken)));
         return;
       }
-      if (_localScope.kind != ScopeKind.forStatement) {
-        // Wildcard variable declarations can be removed, except for the ones in
-        // for loops. This logic turns them into `ExpressionStatement`s or
-        // `EmptyStatement`s so the backends don't need to allocate space for
-        // them.
-        List<Statement> declarationStatements = [];
-        for (VariableDeclaration variable in variables) {
-          if (variable.isWildcard) {
-            if (variable.initializer case var initializer?) {
-              declarationStatements.add(forest.createExpressionStatement(
-                  offsetForToken(endToken), initializer));
-            } else {
-              declarationStatements
-                  .add(forest.createEmptyStatement(offsetForToken(endToken)));
-            }
-          } else {
-            declarationStatements.add(variable);
-          }
+      if (annotations != null) {
+        VariableDeclaration first = variables.first;
+        for (int i = 0; i < annotations.length; i++) {
+          first.addAnnotation(annotations[i]);
         }
-        Object variablesDeclaration =
-            forest.variablesDeclaration(declarationStatements, uri);
-        addVariableAnnotations(
-            forest
-                .variablesDeclarationExtractDeclarations(variablesDeclaration),
-            annotations);
-        push(variablesDeclaration);
-      } else {
-        addVariableAnnotations(variables, annotations);
-        push(forest.variablesDeclaration(variables, uri));
+        (multiVariablesWithMetadata ??= <List<VariableDeclaration>>[])
+            .add(variables);
       }
+      push(forest.variablesDeclaration(variables, uri));
     }
     _exitLocalState();
-  }
-
-  void addVariableAnnotations(List<VariableDeclaration> annotationVariables,
-      List<Expression>? annotations) {
-    if (annotations != null && annotationVariables.isNotEmpty) {
-      VariableDeclaration first = annotationVariables.first;
-      for (int i = 0; i < annotations.length; i++) {
-        first.addAnnotation(annotations[i]);
-      }
-      (multiVariablesWithMetadata ??= <List<VariableDeclaration>>[])
-          .add(annotationVariables);
-    }
   }
 
   /// Stack containing assigned variables info for try statements.
