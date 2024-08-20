@@ -241,6 +241,10 @@ class GrowableList<E> extends _ModifiableList<E> {
       : super._withData(data.length, data);
 
   @pragma("wasm:prefer-inline")
+  GrowableList.withDataAndLength(WasmArray<Object?> data, int length)
+      : super._withData(length, data);
+
+  @pragma("wasm:prefer-inline")
   factory GrowableList(int length) => GrowableList<E>._(length, length);
 
   @pragma("wasm:prefer-inline")
@@ -544,4 +548,9 @@ class _GrowableListIterator<E> implements Iterator<E> {
     _index++;
     return true;
   }
+}
+
+extension GrowableListUnsafeExtensions on GrowableList {
+  @pragma('wasm:prefer-inline')
+  WasmArray<Object?> get data => _data;
 }
