@@ -11,6 +11,6 @@ void main() {
 
   /*indent*/ _();
   //         ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [cfe] Method not found: '_'.
 }
