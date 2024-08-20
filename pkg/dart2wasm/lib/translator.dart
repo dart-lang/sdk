@@ -800,9 +800,9 @@ class Translator with KernelNodes {
     return dispatchTable.selectorForTarget(target).paramInfo;
   }
 
-  AstCallTarget directCallTarget(Reference target) {
+  AstCallTarget directCallTarget(Reference target, bool useUncheckedEntry) {
     final signature = signatureForDirectCall(target);
-    return AstCallTarget(signature, this, target);
+    return AstCallTarget(signature, this, target, useUncheckedEntry);
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
@@ -874,6 +874,15 @@ class Translator with KernelNodes {
 
   Member? singleTarget(TreeNode node) {
     return directCallMetadata[node]?.targetMember;
+  }
+
+  bool canSkipImplicitCheck(VariableDeclaration node) {
+    return inferredArgTypeMetadata[node]?.skipCheck ?? false;
+  }
+
+  bool canUseUncheckedEntry(InstanceInvocationExpression node) {
+    if (node is ThisExpression) return true;
+    return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
   DartType typeOfParameterVariable(VariableDeclaration node, bool isRequired) {

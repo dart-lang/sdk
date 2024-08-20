@@ -595,7 +595,10 @@ abstract class ProcedureStateMachineEntryCodeGenerator
     closures = Closures(translator, member);
     setSourceMapSource(source);
     setSourceMapFileOffset(member.fileOffset);
-    setupParametersAndContexts(member);
+
+    // We don't support inlining state machine functions atm. Only when we
+    // inline and have call-site guarantees we would use the unchecked entry.
+    setupParametersAndContexts(member, useUncheckedEntry: false);
 
     Context? context = closures.contexts[member.function];
     if (context != null && context.isEmpty) context = context.parent;
