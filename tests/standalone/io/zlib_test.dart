@@ -261,37 +261,54 @@ void testZlibWithDictionary() {
   });
 }
 
-void testConcatenatedBlocks() {
-  for (var gzip in [true, false]) {
-    for (var strategy in [
-      ZLibOption.strategyFiltered,
-      ZLibOption.strategyHuffmanOnly,
-      ZLibOption.strategyRle,
-      ZLibOption.strategyFixed,
-      ZLibOption.strategyDefault,
-    ]) {
-      final compressedData = [
-        ...ZLibEncoder(gzip: gzip, strategy: strategy).convert([1, 2, 3]),
-        ...ZLibEncoder(gzip: gzip, strategy: strategy).convert([4, 5, 6])
-      ];
-      final decodedData = new ZLibDecoder().convert(compressedData);
-      Expect.listEquals([1, 2, 3, 4, 5, 6], decodedData);
-    }
-  }
+void testConcatenatedBlocksGZip() {
+  /// gzip files consist of concatenated compressed data sets.
+  /// See RFC-1952.
+  final compressedData = [
+    ...ZLibEncoder().convert([1, 2, 3]),
+    ...ZLibEncoder().convert([4, 5, 6])
+  ];
+  final decodedData = new ZLibDecoder(gzip: true).convert(compressedData);
+  Expect.listEquals([1, 2, 3, 4, 5, 6], decodedData);
 }
 
-void testInvalidDataAfterBlock() {
-  for (var gzip in [true, false]) {
-    final compressedData = [
-      ...ZLibEncoder(gzip: gzip).convert([1, 2, 3]),
-      1,
-      2,
-      3
-    ];
+void testConcatenatedBlocksZLib() {
+  // RFC-1950 says: Any data which may appear after ADLER32 are not part of
+  // the zlib stream.
+  final compressedData = [
+    ...ZLibEncoder().convert([1, 2, 3]),
+    ...ZLibEncoder().convert([4, 5, 6])
+  ];
+  final decodedData = new ZLibDecoder(gzip: false).convert(compressedData);
+  Expect.listEquals([1, 2, 3], decodedData);
+}
 
-    Expect.throwsFormatException(
-        () => new ZLibDecoder().convert(compressedData));
-  }
+void testInvalidDataAfterBlockGZip() {
+  /// gzip files consist of concatenated compressed data sets.
+  /// See RFC-1952.
+  final compressedData = [
+    ...ZLibEncoder().convert([1, 2, 3]),
+    1,
+    2,
+    3
+  ];
+
+  Expect.throwsFormatException(
+      () => new ZLibDecoder(gzip: true).convert(compressedData));
+}
+
+void testInvalidDataAfterBlockZLib() {
+  // RFC-1950 says: Any data which may appear after ADLER32 are not part of
+  // the zlib stream.
+  final compressedData = [
+    ...ZLibEncoder().convert([1, 2, 3]),
+    1,
+    2,
+    3
+  ];
+
+  final decodedData = new ZLibDecoder(gzip: false).convert(compressedData);
+  Expect.listEquals([1, 2, 3], decodedData);
 }
 
 var generateListTypes = [
@@ -337,7 +354,9 @@ void main() {
   testZlibInflateWithLargerWindow();
   testRoundTripLarge();
   testZlibWithDictionary();
-  testConcatenatedBlocks();
-  testInvalidDataAfterBlock();
+  testConcatenatedBlocksGZip();
+  testConcatenatedBlocksZLib();
+  testInvalidDataAfterBlockGZip();
+  testInvalidDataAfterBlockZLib();
   asyncEnd();
 }
