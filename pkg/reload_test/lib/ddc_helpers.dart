@@ -6,6 +6,15 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
+/// Maps a generation to its modified libraries' ID and JS URL.
+///
+/// Example:
+/// {
+///   0: [['main', '/some/path/main.0.js']],
+///   1: [['main', '/some/path/main.1.js'], ['lib', '/some/path/lib.1.js']]
+/// }
+typedef FileDataPerGeneration = Map<String, List<List<String>>>;
+
 final _encoder = JsonEncoder.withIndent('  ');
 
 class D8Configuration {
@@ -40,7 +49,8 @@ class D8Configuration {
   }
 }
 
-/// Generates the JS bootstrapper for DDC with the DDC module system.
+/// Generates the JS bootstrapper for DDC with the DDC module system
+/// (executed on D8).
 ///
 /// `scriptDescriptors` maps module IDs to their JS script paths.
 /// It has the form:
@@ -68,7 +78,7 @@ String generateD8Bootstrapper({
   String uuid = '00000000-0000-0000-0000-000000000000',
   required String entrypointLibraryExportName,
   required List<Map<String, String?>> scriptDescriptors,
-  required Map<String, List<String>> modifiedFilesPerGeneration,
+  required FileDataPerGeneration modifiedFilesPerGeneration,
 }) {
   final d8BootstrapJS = '''
 load("$ddcModuleLoaderJsPath");
@@ -142,7 +152,8 @@ self.\$dartReloadModifiedModules = function(subAppName, callback) {
 
   // Load all modified files.
   for (let i = 0; i < modifiedFilePaths.length; i++) {
-    self.\$dartLoader.forceLoadScript(modifiedFilePaths[i]);
+    let modifiedFilePath = modifiedFilePaths[i][1];
+    self.\$dartLoader.forceLoadScript(modifiedFilePath);
   }
 
   // Run main.
@@ -193,4 +204,320 @@ self.dartMainRunner(function () {
 });
 ''';
   return d8BootstrapJS;
+}
+
+/// Generates the two files required to bootstrap a chrome app: a main
+/// entrypoint file and an app bootstrapper - respectively.
+(String, String) generateChromeBootstrapperFiles({
+  required String ddcModuleLoaderJsPath,
+  required String dartSdkJsPath,
+  required String entrypointModuleName,
+  required String mainModuleEntrypointJsPath,
+  String jsFileRoot = '',
+  String uuid = '00000000-0000-0000-0000-000000000000',
+  required String entrypointLibraryExportName,
+  required List<Map<String, String?>> scriptDescriptors,
+  required FileDataPerGeneration modifiedFilesPerGeneration,
+}) {
+  var mainModuleText = generateChromeMainEntrypoint(
+    entrypointModuleName: entrypointModuleName,
+    entrypointLibraryExportName: entrypointLibraryExportName,
+  );
+  var chromeBootstrapper = generateChromeBootstrapper(
+    ddcModuleLoaderJsPath: ddcModuleLoaderJsPath,
+    dartSdkJsPath: dartSdkJsPath,
+    entrypointModuleName: entrypointModuleName,
+    mainModuleEntrypointJsPath: mainModuleEntrypointJsPath,
+    jsFileRoot: jsFileRoot,
+    uuid: uuid,
+    scriptDescriptors: scriptDescriptors,
+    modifiedFilesPerGeneration: modifiedFilesPerGeneration,
+  );
+  return (mainModuleText, chromeBootstrapper);
+}
+
+/// Generates a bootstrap entrypoint script for calling 'main'.
+///
+/// Only used for the DDC module system when run in Chrome.
+String generateChromeMainEntrypoint({
+  required String entrypointModuleName,
+  bool nullAssertions = true,
+  bool nativeNullAssertions = true,
+  String uuid = '00000000-0000-0000-0000-000000000000',
+  required String entrypointLibraryExportName,
+}) {
+  return '''
+(function() {
+  // Flutter Web uses a generated main entrypoint, which shares app and module names.
+  // We adopt their convention in this framework to make comparisons more direct.
+  let appName = "$entrypointModuleName";
+  let moduleName = "$entrypointModuleName";
+
+  // Multi-apps are not supported in this framework, so uuids are irrelevant.
+  let uuid = "$uuid";
+
+  let child = {};
+  child.main = function() {
+    let dart = self.dart_library.import('dart_sdk', appName).dart;
+    dart.nonNullAsserts($nullAssertions);
+    dart.nativeNonNullAsserts($nativeNullAssertions);
+    dart_library.start(
+      appName,
+      "$uuid",
+      moduleName,
+      "$entrypointLibraryExportName",
+      false
+    );
+  }
+
+  child.main();
+})();
+''';
+}
+
+/// Generates the JS bootstrapper for DDC with the DDC module system
+/// (executed on Chrome).
+///
+/// `scriptDescriptors` maps module IDs to their JS script paths.
+/// It has the form:
+/// [
+///   {
+///     "id": "some__module__id.dart"
+///     "src": "/path/to/file.js"
+///   },
+///   ...
+/// ]
+///
+/// `modifiedFilesPerGeneration` maps generation ids to JS files modified in
+/// that generation. It has the form:
+/// {
+///   "0": ["/path/to/file.js", "/path/to/file2.js", ...],
+///   "1": ...
+/// }
+///
+/// Note: All JS paths above are relative to `jsFileRoot`.
+String generateChromeBootstrapper({
+  required String ddcModuleLoaderJsPath,
+  required String dartSdkJsPath,
+  required String entrypointModuleName,
+  required String mainModuleEntrypointJsPath,
+  String jsFileRoot = '',
+  String uuid = '00000000-0000-0000-0000-000000000000',
+  required List<Map<String, String?>> scriptDescriptors,
+  required FileDataPerGeneration modifiedFilesPerGeneration,
+}) {
+  final bootstrapJS = '''
+var _currentDirectory = "$jsFileRoot";
+
+window.\$dartCreateScript = (function() {
+  // Find the nonce value. (Note, this is only computed once.)
+  var scripts = Array.from(document.getElementsByTagName("script"));
+  var nonce;
+  scripts.some(
+      script => (nonce = script.nonce || script.getAttribute("nonce")));
+  // If present, return a closure that automatically appends the nonce.
+  if (nonce) {
+    return function() {
+      var script = document.createElement("script");
+      script.nonce = nonce;
+      return script;
+    };
+  } else {
+    return function() {
+      return document.createElement("script");
+    };
+  }
+})();
+
+// Creates and loads a script during hot restart.
+var loadHotRestartScript = function(id, src, callback) {
+  var script = self.\$dartCreateScript();
+  let policy = {
+    createScriptURL: function(src) {return src;}
+  };
+  if (self.trustedTypes && self.trustedTypes.createPolicy) {
+    policy = self.trustedTypes.createPolicy('dartDdcModuleUrl', policy);
+  }
+  script.src = policy.createScriptURL(src);
+  script.async = false
+  script.defer = true;
+  script.id = id;
+  script.onload = callback;
+  document.head.appendChild(script);
+}
+
+// Loads a module [relativeUrl] relative to [root].
+//
+// If not specified, [root] defaults to the directory serving the main app.
+//
+// Used for appending pre-requisite modules to the page.
+var forceLoadModule = function (relativeUrl, root) {
+  var actualRoot = root ?? _currentDirectory;
+  return new Promise(function(resolve, reject) {
+    var script = self.\$dartCreateScript();
+    let policy = {
+      createScriptURL: function(src) {return src;}
+    };
+    if (self.trustedTypes && self.trustedTypes.createPolicy) {
+      policy = self.trustedTypes.createPolicy('dartDdcModuleUrl', policy);
+    }
+    script.onload = resolve;
+    script.onerror = reject;
+    script.src = policy.createScriptURL(actualRoot + relativeUrl);
+    document.head.appendChild(script);
+  });
+};
+
+// A map containing the URLs for the bootstrap scripts in debug.
+let _scriptUrls = {
+  "moduleLoader": "$ddcModuleLoaderJsPath"
+};
+
+(function() {
+  let appName = "$entrypointModuleName";
+
+  // A uuid that identifies a subapp. Unused for this framework.
+  let uuid = $uuid;
+
+  // Load pre-requisite DDC scripts.
+  // We intentionally use invalid names to avoid namespace clashes.
+  let prerequisiteScripts = [
+    {
+      "src": "$ddcModuleLoaderJsPath",
+      "id": "ddc_module_loader \x00"
+    }
+  ];
+
+  // Load ddc_module_loader.js to access DDC's module loader API.
+  let prerequisiteLoads = [];
+  for (let i = 0; i < prerequisiteScripts.length; i++) {
+    prerequisiteLoads.push(forceLoadModule(prerequisiteScripts[i].src));
+  }
+  Promise.all(prerequisiteLoads).then((_) => afterPrerequisiteLogic());
+
+  // Save the current script so we can access it in a closure.
+  var _currentScript = document.currentScript;
+
+  var afterPrerequisiteLogic = function() {
+    window.\$dartLoader.rootDirectories.push(_currentDirectory);
+    let scripts = [
+      {
+        "src": "$dartSdkJsPath",
+        "id": "dart_sdk \\0"
+      },
+    ].concat(${_encoder.convert(scriptDescriptors)});
+
+    let loadConfig = new window.\$dartLoader.LoadConfiguration();
+    loadConfig.isWindows = ${Platform.isWindows};
+    loadConfig.root = '$jsFileRoot';
+    loadConfig.bootstrapScript = {
+      "src": "$mainModuleEntrypointJsPath",
+      "id": "data-main"
+    };
+    scripts.push(loadConfig.bootstrapScript);
+
+    loadConfig.loadScriptFn = function(loader) {
+      loader.addScriptsToQueue(scripts, null);
+      loader.loadEnqueuedModules();
+    }
+    loadConfig.ddcEventForLoadStart = /* LOAD_ALL_MODULES_START */ 1;
+    loadConfig.ddcEventForLoadedOk = /* LOAD_ALL_MODULES_END_OK */ 2;
+    loadConfig.ddcEventForLoadedError = /* LOAD_ALL_MODULES_END_ERROR */ 3;
+
+    let loader = new window.\$dartLoader.DDCLoader(loadConfig);
+
+    // Record prerequisite scripts' fully resolved URLs.
+    prerequisiteScripts.forEach(script => loader.registerScript(script));
+
+    // Note: these variables should only be used in non-multi-app scenarios since
+    // they can be arbitrarily overridden based on multi-app load order.
+    window.\$dartLoader.loadConfig = loadConfig;
+    window.\$dartLoader.loader = loader;
+
+    // Append hot reload runner-specific logic.
+    let modifiedFilesPerGeneration = ${_encoder.convert(modifiedFilesPerGeneration)};
+    let previousGenerations = new Set();
+    self.\$dartReloadModifiedModules = function(subAppName, callback) {
+      let expectedName = "$entrypointModuleName";
+      if (subAppName !== expectedName) {
+        throw Error("Unexpected app name " + subAppName
+            + " (expected: " + expectedName + "). "
+            + "Hot Reload Runner does not support multiple subapps, so only "
+            + "one app name should be provided across reloads/restarts.");
+      }
+
+      // Resolve the next generation's directory and load all modified files.
+      let nextGeneration = self.\$dartLoader.loader.intendedHotRestartGeneration;
+      if (previousGenerations.has(nextGeneration)) {
+        throw Error('Fatal error: Previous generations are being re-run.');
+      }
+      previousGenerations.add(nextGeneration);
+
+      // Increment the hot restart generation before loading files or running main
+      // This lets us treat the value in `hotRestartGeneration` as the 'current'
+      // generation until local state is updated.
+      self.\$dartLoader.loader.hotRestartGeneration += 1;
+
+      let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
+      // Stop if the next generation does not exist.
+      if (modifiedFilePaths == void 0) {
+        return;
+      }
+
+      // Load all modified files.
+      var numToLoad = 0;
+      var numLoaded = 0;
+      for (let i = 0; i < modifiedFilePaths.length; i++) {
+        numToLoad++
+        let modifiedFileId =  modifiedFilePaths[i][0];
+        let modifiedFilePath = modifiedFilePaths[i][1];
+
+        // Invalidate DDC state for hot restart.
+        self.\$dartLoader.moduleIdToUrl.set(modifiedFileId, modifiedFilePath);
+        self.\$dartLoader.urlToModuleId.set(modifiedFilePath, modifiedFileId);
+
+        // Remove the old script.
+        var el = document.getElementById(modifiedFileId);
+        if (el) el.remove();
+
+        loadHotRestartScript(modifiedFileId, modifiedFilePath, function() {
+          numLoaded++;
+          if (numToLoad == numLoaded) callback();
+        });
+      }
+
+      // Call the callback immediately if we found no updated scripts.
+      if (numToLoad == 0) callback();
+    }
+
+    // Begin loading libraries
+    loader.nextAttempt();
+  }
+})();
+''';
+  return bootstrapJS;
+}
+
+class ChromeConfiguration {
+  final Uri sdkRoot;
+  final Uri binary;
+
+  ChromeConfiguration._(this.sdkRoot, this.binary);
+
+  factory ChromeConfiguration(Uri sdkRoot) {
+    String chromeBinary;
+    if (Platform.isWindows) {
+      chromeBinary =
+          'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
+    } else if (Platform.isMacOS) {
+      chromeBinary =
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+    } else {
+      // Assume Linux
+      chromeBinary = 'google-chrome';
+    }
+
+    final binary = Uri.file(chromeBinary);
+    return ChromeConfiguration._(sdkRoot, binary);
+  }
 }
