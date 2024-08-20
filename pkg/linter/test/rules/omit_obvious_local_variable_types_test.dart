@@ -29,6 +29,18 @@ num n = 1;
     ]);
   }
 
+  test_as_dynamic() async {
+    await assertDiagnostics(r'''
+f() {
+  dynamic i = n as dynamic;
+}
+
+num n = 1;
+''', [
+      lint(8, 7),
+    ]);
+  }
+
   test_cascade() async {
     await assertDiagnostics(r'''
 f() {
