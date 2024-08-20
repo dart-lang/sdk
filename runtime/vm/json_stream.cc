@@ -25,8 +25,7 @@ DECLARE_FLAG(bool, trace_service);
 
 JSONStream::JSONStream(intptr_t buf_size)
     : writer_(buf_size),
-      default_id_zone_(),
-      id_zone_(&default_id_zone_),
+      default_id_zone_(nullptr),
       reply_port_(ILLEGAL_PORT),
       seq_(nullptr),
       parameter_keys_(nullptr),
@@ -39,12 +38,10 @@ JSONStream::JSONStream(intptr_t buf_size)
       count_(-1),
       include_private_members_(true),
       ignore_object_depth_(0) {
-  ObjectIdRing* ring = nullptr;
   Isolate* isolate = Isolate::Current();
   if (isolate != nullptr) {
-    ring = isolate->EnsureObjectIdRing();
+    default_id_zone_ = &isolate->EnsureDefaultServiceIdZone();
   }
-  default_id_zone_.Init(ring, ObjectIdRing::kAllocateId);
 }
 
 void JSONStream::Setup(Zone* zone,
@@ -353,8 +350,8 @@ void JSONStream::PrintValueVM(bool ref) {
 }
 
 void JSONStream::PrintServiceId(const Object& o) {
-  ASSERT(id_zone_ != nullptr);
-  PrintProperty("id", id_zone_->GetServiceId(o));
+  ASSERT(default_id_zone_ != nullptr);
+  PrintProperty("id", default_id_zone_->GetServiceId(o));
 }
 
 #define PRIVATE_NAME_CHECK()                                                   \

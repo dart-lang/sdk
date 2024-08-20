@@ -52,6 +52,7 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/version.h"
+#include "vm/visitor.h"
 
 #if defined(SUPPORT_PERFETTO)
 #include "vm/perfetto_utils.h"
@@ -363,28 +364,34 @@ static const char* GetVMName() {
   return vm_name;
 }
 
-ServiceIdZone::ServiceIdZone() {}
+ServiceIdZone::ServiceIdZone(ObjectIdRing::IdPolicy policy) : policy_(policy) {}
 
 ServiceIdZone::~ServiceIdZone() {}
 
-RingServiceIdZone::RingServiceIdZone()
-    : ring_(nullptr), policy_(ObjectIdRing::kAllocateId) {}
+RingServiceIdZone::RingServiceIdZone(ObjectIdRing::IdPolicy policy)
+    : ServiceIdZone(policy), ring_() {}
 
 RingServiceIdZone::~RingServiceIdZone() {}
 
-void RingServiceIdZone::Init(ObjectIdRing* ring,
-                             ObjectIdRing::IdPolicy policy) {
-  ring_ = ring;
-  policy_ = policy;
+int32_t RingServiceIdZone::GetIdForObject(const ObjectPtr obj) {
+  return ring_.GetIdForObject(obj, policy());
+}
+
+ObjectPtr RingServiceIdZone::GetObjectForId(int32_t id,
+                                            ObjectIdRing::LookupResult* kind) {
+  return ring_.GetObjectForId(id, kind);
 }
 
 char* RingServiceIdZone::GetServiceId(const Object& obj) {
-  ASSERT(ring_ != nullptr);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != nullptr);
-  const intptr_t id = ring_->GetIdForObject(obj.ptr(), policy_);
+  const intptr_t id = GetIdForObject(obj.ptr());
   return zone->PrintToString("objects/%" Pd "", id);
+}
+
+void RingServiceIdZone::VisitPointers(ObjectPointerVisitor& visitor) const {
+  ring_.VisitPointers(&visitor);
 }
 
 // TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
@@ -998,24 +1005,11 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     const char* id_zone_param = js.LookupParam("_idZone");
 
     if (id_zone_param != nullptr) {
-      // Override id zone.
-      if (strcmp("default", id_zone_param) == 0) {
-        // Ring with eager id allocation. This is the default ring and default
-        // policy.
-        // Nothing to do.
-      } else if (strcmp("default.reuse", id_zone_param) == 0) {
-        // Change the default ring's policy.
-        RingServiceIdZone* zone =
-            reinterpret_cast<RingServiceIdZone*>(js.id_zone());
-        zone->set_policy(ObjectIdRing::kReuseId);
-      } else {
-        // TODO(johnmccutchan): Support creating, deleting, and selecting
-        // custom service id zones.
-        // For now, always return an error.
-        PrintInvalidParamError(&js, "_idZone");
-        js.PostReply();
-        return T->StealStickyError();
-      }
+      // TODO(derekxu16): Support creating, deleting, and selecting custom
+      // Service ID zones. For now, always return an error.
+      PrintInvalidParamError(&js, "_idZone");
+      js.PostReply();
+      return T->StealStickyError();
     }
     const char* c_method_name = method_name.ToCString();
 
@@ -1836,13 +1830,13 @@ static ObjectPtr LookupObjectId(Thread* thread,
     return Object::null();
   }
 
-  ObjectIdRing* ring = thread->isolate()->EnsureObjectIdRing();
   intptr_t id = -1;
   if (!GetIntegerId(arg, &id)) {
     *kind = ObjectIdRing::kInvalid;
     return Object::null();
   }
-  return ring->GetObjectForId(id, kind);
+  return thread->isolate()->EnsureDefaultServiceIdZone().GetObjectForId(id,
+                                                                        kind);
 }
 
 static ObjectPtr LookupClassMembers(Thread* thread,

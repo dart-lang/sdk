@@ -6,6 +6,7 @@
 #define RUNTIME_VM_SERVICE_H_
 
 #include <atomic>
+#include <memory>
 
 #include "include/dart_tools_api.h"
 
@@ -36,13 +37,22 @@ class String;
 
 class ServiceIdZone {
  public:
-  ServiceIdZone();
+  explicit ServiceIdZone(ObjectIdRing::IdPolicy policy);
   virtual ~ServiceIdZone();
 
+  ObjectIdRing::IdPolicy policy() const { return policy_; }
+
+  virtual int32_t GetIdForObject(const ObjectPtr obj) = 0;
+  virtual ObjectPtr GetObjectForId(int32_t id,
+                                   ObjectIdRing::LookupResult* kind) = 0;
   // Returned string will be zone allocated.
   virtual char* GetServiceId(const Object& obj) = 0;
+  virtual void VisitPointers(ObjectPointerVisitor& visitor) const = 0;
 
  private:
+  ObjectIdRing::IdPolicy policy_;
+
+  friend class ServiceIdZonePolicyOverrideScope;
 };
 
 #define ISOLATE_SERVICE_ID_FORMAT_STRING "isolates/%" Pd64 ""
@@ -50,23 +60,19 @@ class ServiceIdZone {
 #define ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING                                 \
   ISOLATE_GROUP_SERVICE_ID_PREFIX "%" Pu64 ""
 
-class RingServiceIdZone : public ServiceIdZone {
+class RingServiceIdZone final : public ServiceIdZone {
  public:
-  RingServiceIdZone();
-  virtual ~RingServiceIdZone();
+  explicit RingServiceIdZone(ObjectIdRing::IdPolicy policy);
+  ~RingServiceIdZone() final;
 
-  void Init(ObjectIdRing* ring, ObjectIdRing::IdPolicy policy);
-
+  int32_t GetIdForObject(const ObjectPtr obj) final;
+  ObjectPtr GetObjectForId(int32_t id, ObjectIdRing::LookupResult* kind) final;
   // Returned string will be zone allocated.
-  virtual char* GetServiceId(const Object& obj);
-
-  void set_policy(ObjectIdRing::IdPolicy policy) { policy_ = policy; }
-
-  ObjectIdRing::IdPolicy policy() const { return policy_; }
+  char* GetServiceId(const Object& obj) final;
+  void VisitPointers(ObjectPointerVisitor& visitor) const final;
 
  private:
-  ObjectIdRing* ring_;
-  ObjectIdRing::IdPolicy policy_;
+  ObjectIdRing ring_;
 };
 
 class StreamInfo {

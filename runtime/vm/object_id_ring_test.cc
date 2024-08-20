@@ -5,8 +5,7 @@
 #include "vm/object_id_ring.h"
 #include "platform/assert.h"
 #include "vm/dart_api_impl.h"
-#include "vm/dart_api_state.h"
-#include "vm/globals.h"
+#include "vm/service.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
@@ -16,26 +15,26 @@ namespace dart {
 
 class ObjectIdRingTestHelper {
  public:
-  static void SetCapacityAndMaxSerial(ObjectIdRing* ring,
+  static void SetCapacityAndMaxSerial(ObjectIdRing& ring,
                                       int32_t capacity,
                                       int32_t max_serial) {
-    ring->SetCapacityAndMaxSerial(capacity, max_serial);
+    ring.SetCapacityAndMaxSerial(capacity, max_serial);
   }
 
-  static void ExpectIdIsValid(ObjectIdRing* ring, intptr_t id) {
-    EXPECT(ring->IsValidId(id));
+  static void ExpectIdIsValid(ObjectIdRing& ring, intptr_t id) {
+    EXPECT(ring.IsValidId(id));
   }
 
-  static void ExpectIdIsInvalid(ObjectIdRing* ring, intptr_t id) {
-    EXPECT(!ring->IsValidId(id));
+  static void ExpectIdIsInvalid(ObjectIdRing& ring, intptr_t id) {
+    EXPECT(!ring.IsValidId(id));
   }
 
-  static void ExpectIndexId(ObjectIdRing* ring, intptr_t index, intptr_t id) {
-    EXPECT_EQ(id, ring->IdOfIndex(index));
+  static void ExpectIndexId(ObjectIdRing& ring, intptr_t index, intptr_t id) {
+    EXPECT_EQ(id, ring.IdOfIndex(index));
   }
 
-  static void ExpectInvalidIndex(ObjectIdRing* ring, intptr_t index) {
-    EXPECT_EQ(-1, ring->IdOfIndex(index));
+  static void ExpectInvalidIndex(ObjectIdRing& ring, intptr_t index) {
+    EXPECT_EQ(-1, ring.IdOfIndex(index));
   }
 
   static ObjectPtr MakeString(const char* s) {
@@ -51,21 +50,20 @@ class ObjectIdRingTestHelper {
 
 // Test that serial number wrapping works.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
-  Isolate* isolate = Isolate::Current();
-  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
+  ObjectIdRing ring;
   ObjectIdRingTestHelper::SetCapacityAndMaxSerial(ring, 2, 4);
   intptr_t id;
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
-  id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("0"));
+  id = ring.GetIdForObject(ObjectIdRingTestHelper::MakeString("0"));
   EXPECT_EQ(0, id);
   ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
   ObjectIdRingTestHelper::ExpectInvalidIndex(ring, 1);
-  id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("1"));
+  id = ring.GetIdForObject(ObjectIdRingTestHelper::MakeString("1"));
   EXPECT_EQ(1, id);
   ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
   ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 1);
   // Test that id 1 gives us the "1" string.
-  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "1");
+  ObjectIdRingTestHelper::ExpectString(ring.GetObjectForId(id, &kind), "1");
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
   ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
@@ -74,7 +72,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 2);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 3);
   // We have wrapped, index 0 is being reused.
-  id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("2"));
+  id = ring.GetIdForObject(ObjectIdRingTestHelper::MakeString("2"));
   EXPECT_EQ(2, id);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 0);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 1);
@@ -84,7 +82,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
   // Index 1 has id 1.
   ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 1);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 3);
-  id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("3"));
+  id = ring.GetIdForObject(ObjectIdRingTestHelper::MakeString("3"));
   EXPECT_EQ(3, id);
   // Index 0 has id 2.
   ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 2);
@@ -94,31 +92,46 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 1);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 2);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 3);
-  id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("4"));
+  id = ring.GetIdForObject(ObjectIdRingTestHelper::MakeString("4"));
   EXPECT_EQ(0, id);
   // Index 0 has id 0.
   ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
   // Index 1 has id 3.
   ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 3);
-  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "4");
+  ObjectIdRingTestHelper::ExpectString(ring.GetObjectForId(id, &kind), "4");
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 1);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 2);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 3);
-  id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("5"));
+  id = ring.GetIdForObject(ObjectIdRingTestHelper::MakeString("5"));
   EXPECT_EQ(1, id);
   // Index 0 has id 0.
   ObjectIdRingTestHelper::ExpectIndexId(ring, 0, 0);
   // Index 1 has id 1.
   ObjectIdRingTestHelper::ExpectIndexId(ring, 1, 1);
-  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "5");
+  ObjectIdRingTestHelper::ExpectString(ring.GetObjectForId(id, &kind), "5");
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 1);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 2);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 3);
 }
+
+class ServiceIdZonePolicyOverrideScope : public ValueObject {
+ public:
+  explicit ServiceIdZonePolicyOverrideScope(ServiceIdZone& id_zone,
+                                            ObjectIdRing::IdPolicy new_policy)
+      : id_zone_(id_zone), original_policy_(id_zone.policy()) {
+    id_zone_.policy_ = new_policy;
+  }
+
+  ~ServiceIdZonePolicyOverrideScope() { id_zone_.policy_ = original_policy_; }
+
+ private:
+  ServiceIdZone& id_zone_;
+  ObjectIdRing::IdPolicy original_policy_;
+};
 
 // Test that the ring table is updated when the scavenger moves an object.
 TEST_CASE(ObjectIdRingScavengeMoveTest) {
@@ -136,30 +149,38 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_VALID(Dart_ListLength(result, &list_length));
   EXPECT_EQ(3, list_length);
 
-  Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
+  ServiceIdZone& id_zone = thread->isolate()->EnsureDefaultServiceIdZone();
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
 
   {
     TransitionNativeToVM to_vm(thread);
-    ObjectPtr raw_obj = Api::UnwrapHandle(result);
+    const ObjectPtr raw_obj = Api::UnwrapHandle(result);
     // Located in new heap.
     EXPECT(raw_obj->IsNewObject());
     EXPECT_NE(Object::null(), raw_obj);
-    intptr_t raw_obj_id1 = ring->GetIdForObject(raw_obj);
+
+    intptr_t raw_obj_id1 = id_zone.GetIdForObject(raw_obj);
     EXPECT_EQ(0, raw_obj_id1);
-    // Get id 0 again.
-    EXPECT_EQ(raw_obj_id1,
-              ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
+    {
+      ServiceIdZonePolicyOverrideScope override(
+          id_zone, ObjectIdRing::IdPolicy::kReuseId);
+      // Get id 0 again.
+      EXPECT_EQ(raw_obj_id1, id_zone.GetIdForObject(raw_obj));
+    }
+
     // Add to ring a second time.
-    intptr_t raw_obj_id2 = ring->GetIdForObject(raw_obj);
+    intptr_t raw_obj_id2 = id_zone.GetIdForObject(raw_obj);
     EXPECT_EQ(1, raw_obj_id2);
-    // Get id 0 again.
-    EXPECT_EQ(raw_obj_id1,
-              ring->GetIdForObject(raw_obj, ObjectIdRing::kReuseId));
-    ObjectPtr raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
+    {
+      ServiceIdZonePolicyOverrideScope override(
+          id_zone, ObjectIdRing::IdPolicy::kReuseId);
+      // Get id 0 again.
+      EXPECT_EQ(raw_obj_id1, id_zone.GetIdForObject(raw_obj));
+    }
+
+    const ObjectPtr raw_obj1 = id_zone.GetObjectForId(raw_obj_id1, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
-    ObjectPtr raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    const ObjectPtr raw_obj2 = id_zone.GetObjectForId(raw_obj_id2, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_obj1);
     EXPECT_NE(Object::null(), raw_obj2);
@@ -167,11 +188,14 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
               UntaggedObject::ToAddr(raw_obj1));
     EXPECT_EQ(UntaggedObject::ToAddr(raw_obj),
               UntaggedObject::ToAddr(raw_obj2));
+
     // Force a scavenge.
     GCTestHelper::CollectNewSpace();
-    ObjectPtr raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
+    const ObjectPtr raw_object_moved1 =
+        id_zone.GetObjectForId(raw_obj_id1, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
-    ObjectPtr raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    const ObjectPtr raw_object_moved2 =
+        id_zone.GetObjectForId(raw_obj_id2, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_object_moved1);
     EXPECT_NE(Object::null(), raw_object_moved2);
@@ -185,8 +209,12 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
     // Test that we still point at the same list.
     moved_handle = Api::NewHandle(thread, raw_object_moved1);
     // Test id reuse.
-    EXPECT_EQ(raw_obj_id1,
-              ring->GetIdForObject(raw_object_moved1, ObjectIdRing::kReuseId));
+
+    {
+      ServiceIdZonePolicyOverrideScope override(
+          id_zone, ObjectIdRing::IdPolicy::kReuseId);
+      EXPECT_EQ(raw_obj_id1, id_zone.GetIdForObject(raw_object_moved1));
+    }
   }
   EXPECT_VALID(moved_handle);
   EXPECT(!Dart_IsNull(moved_handle));
@@ -197,8 +225,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
 
 // Test that the ring table is updated when major GC runs.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
-  Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
+  ServiceIdZone& id_zone = thread->isolate()->EnsureDefaultServiceIdZone();
 
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   intptr_t raw_obj_id1 = -1;
@@ -209,17 +236,19 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT(!str.IsNull());
     EXPECT_EQ(3, str.Length());
 
-    ObjectPtr raw_obj = Object::RawCast(str.ptr());
+    const ObjectPtr raw_obj = Object::RawCast(str.ptr());
     // Verify that it is located in old heap.
     EXPECT(raw_obj->IsOldObject());
     EXPECT_NE(Object::null(), raw_obj);
-    raw_obj_id1 = ring->GetIdForObject(raw_obj);
+
+    raw_obj_id1 = id_zone.GetIdForObject(raw_obj);
     EXPECT_EQ(0, raw_obj_id1);
-    raw_obj_id2 = ring->GetIdForObject(raw_obj);
+    raw_obj_id2 = id_zone.GetIdForObject(raw_obj);
     EXPECT_EQ(1, raw_obj_id2);
-    ObjectPtr raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
+
+    const ObjectPtr raw_obj1 = id_zone.GetObjectForId(raw_obj_id1, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
-    ObjectPtr raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    const ObjectPtr raw_obj2 = id_zone.GetObjectForId(raw_obj_id2, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_obj1);
     EXPECT_NE(Object::null(), raw_obj2);
@@ -232,10 +261,12 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   // Force a GC. No other reference to the old string exists, but the service id
   // should keep it alive.
   GCTestHelper::CollectOldSpace();
-  ObjectPtr raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
+  const ObjectPtr raw_object_moved1 =
+      id_zone.GetObjectForId(raw_obj_id1, &kind);
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   EXPECT(raw_object_moved1->IsOneByteString());
-  ObjectPtr raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
+  const ObjectPtr raw_object_moved2 =
+      id_zone.GetObjectForId(raw_obj_id2, &kind);
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   EXPECT(raw_object_moved2->IsOneByteString());
   EXPECT_EQ(raw_object_moved1, raw_object_moved2);
@@ -244,14 +275,13 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
 // Test that the ring table correctly reports an entry as expired when it is
 // overridden by new entries.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
-  Isolate* isolate = Isolate::Current();
-  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
+  ObjectIdRing ring;
 
   // Insert an object and check we can look it up.
   String& obj = String::Handle(String::New("I will expire"));
-  intptr_t obj_id = ring->GetIdForObject(obj.ptr());
+  intptr_t obj_id = ring.GetIdForObject(obj.ptr());
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
-  ObjectPtr obj_lookup = ring->GetObjectForId(obj_id, &kind);
+  ObjectPtr obj_lookup = ring.GetObjectForId(obj_id, &kind);
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   EXPECT_EQ(obj.ptr(), obj_lookup);
 
@@ -259,15 +289,15 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
   Object& new_obj = Object::Handle();
   for (intptr_t i = 0; i < ObjectIdRing::kDefaultCapacity; i++) {
     new_obj = String::New("Bump");
-    intptr_t new_obj_id = ring->GetIdForObject(new_obj.ptr());
+    intptr_t new_obj_id = ring.GetIdForObject(new_obj.ptr());
     ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
-    ObjectPtr new_obj_lookup = ring->GetObjectForId(new_obj_id, &kind);
+    ObjectPtr new_obj_lookup = ring.GetObjectForId(new_obj_id, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_EQ(new_obj.ptr(), new_obj_lookup);
   }
 
   // Check our first entry reports it has expired.
-  obj_lookup = ring->GetObjectForId(obj_id, &kind);
+  obj_lookup = ring.GetObjectForId(obj_id, &kind);
   EXPECT_EQ(ObjectIdRing::kExpired, kind);
   EXPECT_NE(obj.ptr(), obj_lookup);
   EXPECT_EQ(Object::null(), obj_lookup);
