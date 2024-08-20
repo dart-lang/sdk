@@ -432,7 +432,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   if (start_loc.IsConstant()) {
     const auto& constant = start_loc.constant();
     ASSERT(constant.IsInteger());
-    const int64_t start_value = Integer::Cast(constant).AsInt64Value();
+    const int64_t start_value = Integer::Cast(constant).Value();
     const intptr_t add_value = Utils::AddWithWrapAround(
         Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
     __ AddImmediate(payload_reg, array_reg, add_value);
@@ -1281,12 +1281,12 @@ static Condition EmitWordComparisonOp(FlowGraphCompiler* compiler,
   if (left.IsConstant()) {
     __ CompareImmediate(
         right.reg(),
-        static_cast<uword>(Integer::Cast(left.constant()).AsInt64Value()));
+        static_cast<uword>(Integer::Cast(left.constant()).Value()));
     true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareImmediate(
         left.reg(),
-        static_cast<uword>(Integer::Cast(right.constant()).AsInt64Value()));
+        static_cast<uword>(Integer::Cast(right.constant()).Value()));
   } else {
     __ cmp(left.reg(), compiler::Operand(right.reg()));
   }
@@ -6507,7 +6507,7 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
                                      Register left_lo,
                                      Register left_hi,
                                      const Object& right) {
-  const int64_t shift = Integer::Cast(right).AsInt64Value();
+  const int64_t shift = Integer::Cast(right).Value();
   ASSERT(shift >= 0);
 
   switch (op_kind) {
@@ -6610,7 +6610,7 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
                                       Register out,
                                       Register left,
                                       const Object& right) {
-  const int64_t shift = Integer::Cast(right).AsInt64Value();
+  const int64_t shift = Integer::Cast(right).Value();
   ASSERT(shift >= 0);
   if (shift >= 32) {
     __ LoadImmediate(out, 0);

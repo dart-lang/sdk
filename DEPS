@@ -73,7 +73,7 @@ vars = {
   "checkout_javascript_engines": False,
   "d8_tag": "version:12.9.98",
   "jsshell_tag": "version:127.0.2",
-  "jsc_tag": "version:280364",
+  "jsc_tag": "version:282418",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:3809e20afc68d7d03821f0ec59b928dcf9befbf4",
@@ -102,7 +102,7 @@ vars = {
   "boringssl_rev": "2db0eb3f96a5756298dcd7f9319e56a98585bd10",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "14084d20946268f2d22c5ed55bd53e0176748368",
+  "devtools_rev": "6390e5ddf69c836c530256891405e0cb3319b604",
   "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -131,7 +131,7 @@ vars = {
   "clock_rev": "6e43768a0b135a0d36fc886907b70c4bf27117e6",
   "collection_rev": "0c1f829c29da1d63488be774f430b2035a565d6f",
   "convert_rev": "9035cafefc1da4315f26058734d0c2a19d5ab56a",
-  "crypto_rev": "1216790ba704a0ab194f9cd0da2d65e1767f3342",
+  "crypto_rev": "eede7d6918c51159c1422b7449f40dbac660ee57",
   "csslib_rev": "192d720f121792ab05ca157ea280edc7e0410e9c",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -144,14 +144,14 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "f7bd4c42ad6015143f08931540631448048f692d", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "ce098154b16255bbc9ddfa89e3f6141262645513",
-  "ecosystem_rev": "2719d0c077d76da6fb996820393f3cd96bec6591",
+  "dartdoc_rev": "b4449742c0f7d7fa0179897cac163388e03236c2",
+  "ecosystem_rev": "8626bffad30d08792f0acbc813391800838e8207",
   "file_rev": "855831c242a17c2dee163828d52710d9043c7c8d",
   "fixnum_rev": "6c19e60366ce3d5edfaed51a7c12c98e7977977e",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "8b05be87f84f74d90dc0c15956f3ff95805322e5",
   "html_rev": "0da420ca1e196cda54ede476d0d8d3ecf55375ef",
-  "http_rev": "76512c4cbf987361421030349fd1946e63e33359",
+  "http_rev": "b97b8dc22ea808c4fbd63f73abd7af8ecf694323",
   "http_multi_server_rev": "8348be1bf8fd17881e2643086e68c9d2b28dd9ce",
   "http_parser_rev": "ce528cf82f3d26ac761e29b2494a9e0c270d4939",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -182,11 +182,11 @@ vars = {
   "sync_http_rev": "91c0dd5ef9a008f0277aadcfd83036f82e572d09",
   "tar_rev": "32ceb55e673141abff4e84b99483fe5eb881c291",
   "term_glyph_rev": "38a158f55006cf30942c928171ea601ee5e0308f",
-  "test_rev": "8be3c948950c2c30e8f9c49d15ef6c04beb47238",
+  "test_rev": "cd3dbd51fe765f7243ea51783318d82b4031fa7a",
   "test_descriptor_rev": "90743bc16bc00526a1b9a64f813614be9b2479d9",
   "test_process_rev": "6223572ca16d7585d5f08d9281de6a5734e45150",
   "test_reflective_loader_rev": "6e648863b39aab8d0204e769d25805eea9db0ac4",
-  "tools_rev": "d563c38c7cfb03bbf5d1f9360b49c36ba45b97ef",
+  "tools_rev": "5b15f8b60bf950a2f06dad3258dee61c153fdb44",
   "typed_data_rev": "365468a74251c930a463daf5b8f13227e269111a",
   "vector_math_rev": "2cfbe2c115a57b368ccbc3c89ebd38a06764d3d1",
   "watcher_rev": "0484625589d8512b36a7ad898a6cc6351d24c556",
@@ -207,7 +207,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "128.0.6613.5",
+  "chrome_tag": "128.0.6613.36",
   "download_firefox": False,
   "firefox_tag": "129.0",
 

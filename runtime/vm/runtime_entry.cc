@@ -395,7 +395,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     args.SetAt(2, String::Handle(zone, String::New("is not an integer")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
-  const int64_t len = Integer::Cast(length).AsInt64Value();
+  const int64_t len = Integer::Cast(length).Value();
   if (len < 0) {
     // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
     Exceptions::ThrowRangeError("length", Integer::Cast(length), 0,
@@ -498,7 +498,7 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
     args.SetAt(0, length);
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
-  const int64_t len = Integer::Cast(length).AsInt64Value();
+  const int64_t len = Integer::Cast(length).Value();
   const intptr_t max = TypedData::MaxElements(cid);
   if (len < 0) {
     Exceptions::ThrowRangeError("length", Integer::Cast(length), 0, max);

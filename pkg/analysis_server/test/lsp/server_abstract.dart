@@ -310,6 +310,7 @@ abstract class AbstractLspAnalysisServerTest
 analyzer:
   enable-experiment:
     - macros
+    - wildcard-variables
 ''');
 
     analysisOptionsUri = pathContext.toUri(analysisOptionsPath);

@@ -2628,7 +2628,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
   ASSERT(int_obj.IsMint());
-  *fits = !int_obj.IsNegative();
+  *fits = (int_obj.Value() >= 0);
   return Api::Success();
 }
 
@@ -2684,7 +2684,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
   ASSERT(int_obj.IsMint());
-  *value = int_obj.AsInt64Value();
+  *value = int_obj.Value();
   return Api::Success();
 }
 
@@ -2708,11 +2708,12 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
   if (int_obj.IsSmi()) {
-    ASSERT(int_obj.IsNegative());
+    ASSERT(int_obj.Value() < 0);
   } else {
     ASSERT(int_obj.IsMint());
-    if (!int_obj.IsNegative()) {
-      *value = int_obj.AsInt64Value();
+    const int64_t v = int_obj.Value();
+    if (v >= 0) {
+      *value = v;
       return Api::Success();
     }
   }
@@ -3171,7 +3172,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     *len = Smi::Cast(retval).Value();
     return Api::Success();
   } else if (retval.IsMint()) {
-    int64_t mint_value = Mint::Cast(retval).value();
+    int64_t mint_value = Mint::Cast(retval).Value();
     if (mint_value >= kIntptrMin && mint_value <= kIntptrMax) {
       *len = static_cast<intptr_t>(mint_value);
       return Api::Success();
@@ -3391,8 +3392,8 @@ static ObjectPtr ThrowArgumentError(const char* exception_message) {
             T, ThrowArgumentError("List contains non-int elements"));          \
       }                                                                        \
       const Integer& integer = Integer::Cast(element);                         \
-      native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);   \
-      ASSERT(integer.AsInt64Value() <= 0xff);                                  \
+      native_array[i] = static_cast<uint8_t>(integer.Value() & 0xff);          \
+      ASSERT(integer.Value() <= 0xff);                                         \
     }                                                                          \
     return Api::Success();                                                     \
   }                                                                            \
@@ -3453,11 +3454,10 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
             CURRENT_FUNC);
       }
       const Integer& integer_result = Integer::Cast(result);
-      ASSERT(integer_result.AsInt64Value() <= 0xff);
+      ASSERT(integer_result.Value() <= 0xff);
       // TODO(hpayer): value should always be smaller then 0xff. Add error
       // handling.
-      native_array[i] =
-          static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
+      native_array[i] = static_cast<uint8_t>(integer_result.Value() & 0xff);
     }
     return Api::Success();
   }

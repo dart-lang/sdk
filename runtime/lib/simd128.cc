@@ -265,7 +265,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_getSignMask, 0, 1) {
 DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
-  int64_t m = mask.AsInt64Value();
+  int64_t m = mask.Value();
   ThrowMaskRangeException(m);
   float data[4] = {self.x(), self.y(), self.z(), self.w()};
   float _x = data[m & 0x3];
@@ -279,7 +279,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffleMix, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
-  int64_t m = mask.AsInt64Value();
+  int64_t m = mask.Value();
   ThrowMaskRangeException(m);
   float data[4] = {self.x(), self.y(), self.z(), self.w()};
   float other_data[4] = {other.x(), other.y(), other.z(), other.w()};
@@ -382,10 +382,10 @@ DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 0, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, y, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, z, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, w, arguments->NativeArgAt(3));
-  int32_t _x = static_cast<int32_t>(x.AsTruncatedUint32Value());
-  int32_t _y = static_cast<int32_t>(y.AsTruncatedUint32Value());
-  int32_t _z = static_cast<int32_t>(z.AsTruncatedUint32Value());
-  int32_t _w = static_cast<int32_t>(w.AsTruncatedUint32Value());
+  int32_t _x = static_cast<int32_t>(x.Value() & 0xFFFFFFFF);
+  int32_t _y = static_cast<int32_t>(y.Value() & 0xFFFFFFFF);
+  int32_t _z = static_cast<int32_t>(z.Value() & 0xFFFFFFFF);
+  int32_t _w = static_cast<int32_t>(w.Value() & 0xFFFFFFFF);
   return Int32x4::New(_x, _y, _z, _w);
 }
 
@@ -483,7 +483,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_getW, 0, 1) {
 DEFINE_NATIVE_ENTRY(Int32x4_shuffle, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
-  int64_t m = mask.AsInt64Value();
+  int64_t m = mask.Value();
   ThrowMaskRangeException(m);
   int32_t data[4] = {self.x(), self.y(), self.z(), self.w()};
   int32_t _x = data[m & 0x3];
@@ -497,7 +497,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_shuffleMix, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, zw, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
-  int64_t m = mask.AsInt64Value();
+  int64_t m = mask.Value();
   ThrowMaskRangeException(m);
   int32_t data[4] = {self.x(), self.y(), self.z(), self.w()};
   int32_t zw_data[4] = {zw.x(), zw.y(), zw.z(), zw.w()};
@@ -511,7 +511,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_shuffleMix, 0, 3) {
 DEFINE_NATIVE_ENTRY(Int32x4_setX, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, x, arguments->NativeArgAt(1));
-  int32_t _x = static_cast<int32_t>(x.AsInt64Value() & 0xFFFFFFFF);
+  int32_t _x = static_cast<int32_t>(x.Value() & 0xFFFFFFFF);
   int32_t _y = self.y();
   int32_t _z = self.z();
   int32_t _w = self.w();
@@ -522,7 +522,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_setY, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, y, arguments->NativeArgAt(1));
   int32_t _x = self.x();
-  int32_t _y = static_cast<int32_t>(y.AsInt64Value() & 0xFFFFFFFF);
+  int32_t _y = static_cast<int32_t>(y.Value() & 0xFFFFFFFF);
   int32_t _z = self.z();
   int32_t _w = self.w();
   return Int32x4::New(_x, _y, _z, _w);
@@ -533,7 +533,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_setZ, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, z, arguments->NativeArgAt(1));
   int32_t _x = self.x();
   int32_t _y = self.y();
-  int32_t _z = static_cast<int32_t>(z.AsInt64Value() & 0xFFFFFFFF);
+  int32_t _z = static_cast<int32_t>(z.Value() & 0xFFFFFFFF);
   int32_t _w = self.w();
   return Int32x4::New(_x, _y, _z, _w);
 }
@@ -544,7 +544,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_setW, 0, 2) {
   int32_t _x = self.x();
   int32_t _y = self.y();
   int32_t _z = self.z();
-  int32_t _w = static_cast<int32_t>(w.AsInt64Value() & 0xFFFFFFFF);
+  int32_t _w = static_cast<int32_t>(w.Value() & 0xFFFFFFFF);
   return Int32x4::New(_x, _y, _z, _w);
 }
 

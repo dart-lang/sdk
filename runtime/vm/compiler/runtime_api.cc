@@ -238,7 +238,7 @@ const String& AllocateString(const char* buffer) {
 
 bool HasIntegerValue(const dart::Object& object, int64_t* value) {
   if (object.IsInteger()) {
-    *value = Integer::Cast(object).AsInt64Value();
+    *value = Integer::Cast(object).Value();
     return true;
   }
   return false;

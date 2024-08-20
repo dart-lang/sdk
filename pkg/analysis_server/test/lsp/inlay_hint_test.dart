@@ -79,6 +79,20 @@ void f([int? a, int? b]) {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_optionalPositional_wildcards() async {
+    var content = '''
+void f([int? _, int? _]) {
+  f(1);
+}
+''';
+    var expected = '''
+void f([int? _, int? _]) {
+  f((Parameter:_:) 1);
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_requiredPositional() async {
     var content = '''
 void f(int a, int b) {
@@ -88,6 +102,20 @@ void f(int a, int b) {
     var expected = '''
 void f(int a, int b) {
   f((Parameter:a:) a, (Parameter:b:) b);
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_requiredPositional_wildcards() async {
+    var content = '''
+void f(int _, int _) {
+  f(1, 2);
+}
+''';
+    var expected = '''
+void f(int _, int _) {
+  f((Parameter:_:) 1, (Parameter:_:) 2);
 }
 ''';
     await _expectHints(content, expected);
@@ -130,6 +158,20 @@ class A {
     var expected = '''
 class A {
   final (Type:int) i1 = 1;
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_class_field_wildcards() async {
+    var content = '''
+class A {
+  final _ = 1;
+}
+''';
+    var expected = '''
+class A {
+  final (Type:int) _ = 1;
 }
 ''';
     await _expectHints(content, expected);
@@ -197,6 +239,20 @@ void f() {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_forElement_wildcards() async {
+    var content = '''
+void f() {
+  [for (var _ in [1, 2]) 0];
+}
+''';
+    var expected = '''
+void f() {
+  (Type:<int>)[for (var (Type:int) _ in (Type:<int>)[1, 2]) 0];
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_forInLoop() async {
     var content = '''
 void f() {
@@ -211,6 +267,20 @@ void f() {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_forInLoop_wildcards() async {
+    var content = '''
+void f() {
+  for (var _ in [1, 2]) {}
+}
+''';
+    var expected = '''
+void f() {
+  for (var (Type:int) _ in (Type:<int>)[1, 2]) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_forLoop() async {
     var content = '''
 void f() {
@@ -220,6 +290,20 @@ void f() {
     var expected = '''
 void f() {
   for (var (Type:int) i = 0; i < 1; i++) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_forLoop_wildcards() async {
+    var content = '''
+void f() {
+  for (var _ = 0; ; ) {}
+}
+''';
+    var expected = '''
+void f() {
+  for (var (Type:int) _ = 0; ; ) {}
 }
 ''';
     await _expectHints(content, expected);
@@ -243,12 +327,40 @@ void f() {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_function_typeArguments_wildcards() async {
+    var content = '''
+void f1<_, _>(Object _, Object _) {}
+
+void f() {
+  f1('', 1);
+}
+''';
+    var expected = '''
+void f1<_, _>(Object _, Object _) {}
+
+void f() {
+  f1(Type:<dynamic, dynamic>)((Parameter:_:) '', (Parameter:_:) 1);
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_getter() async {
     var content = '''
 get f => 1;
 ''';
     var expected = '''
 (Type:dynamic) get f => 1;
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_getter_wildcard() async {
+    var content = '''
+get _ => 1;
+''';
+    var expected = '''
+(Type:dynamic) get _ => 1;
 ''';
     await _expectHints(content, expected);
   }
@@ -459,6 +571,28 @@ class B extends A {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_method_parameters_wildcards() async {
+    var content = '''
+class A {
+  void m1(int _, [String? _]) {}
+}
+class B extends A {
+  @override
+  void m1(_, [_]) {}
+}
+''';
+    var expected = '''
+class A {
+  void m1(int _, [String? _]) {}
+}
+class B extends A {
+  @override
+  void m1((Type:int) _, [(Type:String?) _]) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_method_returnType() async {
     var content = '''
 class A {
@@ -493,6 +627,30 @@ class A {
 void f() {
   final (Type:A) a = A();
   a.m1(Type:<String, int>)((Parameter:a:) '', (Parameter:b:) 1);
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_method_typeArguments_wildcards() async {
+    var content = '''
+class A {
+  void m1<_, _>(String  _, int _) {}
+}
+
+void f() {
+  final a = A();
+  a.m1('', 1);
+}
+''';
+    var expected = '''
+class A {
+  void m1<_, _>(String  _, int _) {}
+}
+
+void f() {
+  final (Type:A) a = A();
+  a.m1(Type:<dynamic, dynamic>)((Parameter:_:) '', (Parameter:_:) 1);
 }
 ''';
     await _expectHints(content, expected);

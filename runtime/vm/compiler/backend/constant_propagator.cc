@@ -1285,7 +1285,7 @@ static bool IsIntegerOrDouble(const Object& value) {
 }
 
 static double ToDouble(const Object& value) {
-  return value.IsInteger() ? Integer::Cast(value).AsDoubleValue()
+  return value.IsInteger() ? Integer::Cast(value).ToDouble()
                            : Double::Cast(value).value();
 }
 
@@ -1311,8 +1311,8 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
   }
   if (value.IsInteger()) {
     SetValue(instr,
-             Double::Handle(Z, Double::New(Integer::Cast(value).AsDoubleValue(),
-                                           Heap::kOld)));
+             Double::Handle(
+                 Z, Double::New(Integer::Cast(value).ToDouble(), Heap::kOld)));
   } else {
     SetValue(instr, non_constant_);
   }
@@ -1325,8 +1325,8 @@ void ConstantPropagator::VisitInt64ToDouble(Int64ToDoubleInstr* instr) {
   }
   if (value.IsInteger()) {
     SetValue(instr,
-             Double::Handle(Z, Double::New(Integer::Cast(value).AsDoubleValue(),
-                                           Heap::kOld)));
+             Double::Handle(
+                 Z, Double::New(Integer::Cast(value).ToDouble(), Heap::kOld)));
   } else {
     SetValue(instr, non_constant_);
   }
@@ -1339,8 +1339,8 @@ void ConstantPropagator::VisitInt32ToDouble(Int32ToDoubleInstr* instr) {
   }
   if (value.IsInteger()) {
     SetValue(instr,
-             Double::Handle(Z, Double::New(Integer::Cast(value).AsDoubleValue(),
-                                           Heap::kOld)));
+             Double::Handle(
+                 Z, Double::New(Integer::Cast(value).ToDouble(), Heap::kOld)));
   } else {
     SetValue(instr, non_constant_);
   }
@@ -1464,7 +1464,7 @@ void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
         result = false;
         break;
       case MethodRecognizer::kDouble_getIsNegative: {
-        result = Integer::Cast(value).IsNegative();
+        result = Integer::Cast(value).Value() < 0;
         break;
       }
       default:

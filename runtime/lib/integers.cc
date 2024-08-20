@@ -24,7 +24,7 @@ namespace dart {
 static bool CheckInteger(const Integer& i) {
   if (i.IsMint()) {
     const Mint& mint = Mint::Cast(i);
-    return !Smi::IsValid(mint.value());
+    return !Smi::IsValid(mint.Value());
   }
   return true;
 }
@@ -113,7 +113,7 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
-  ASSERT(!right_int.IsZero());
+  ASSERT(right_int.Value() != 0);
   return left_int.ArithmeticOp(Token::kTRUNCDIV, right_int);
 }
 
@@ -127,7 +127,7 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 0, 2) {
     OS::PrintErr("Integer_moduloFromInteger %s mod %s\n", left_int.ToCString(),
                  right_int.ToCString());
   }
-  if (right_int.IsZero()) {
+  if (right_int.Value() == 0) {
     // Should have been caught before calling into runtime.
     UNIMPLEMENTED();
   }
@@ -206,7 +206,7 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 0, 3) {
 static IntegerPtr ShiftOperationHelper(Token::Kind kind,
                                        const Integer& value,
                                        const Integer& amount) {
-  if (amount.AsInt64Value() < 0) {
+  if (amount.Value() < 0) {
     Exceptions::ThrowArgumentError(amount);
   }
   return value.ShiftOp(kind, amount, Heap::kNew);
@@ -266,7 +266,7 @@ DEFINE_NATIVE_ENTRY(Smi_bitLength, 0, 1) {
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Smi_bitLength: %s\n", operand.ToCString());
   }
-  int64_t value = operand.AsInt64Value();
+  int64_t value = operand.Value();
   intptr_t result = Utils::BitLength(value);
   ASSERT(Smi::IsValid(result));
   return Smi::New(result);
@@ -309,7 +309,7 @@ DEFINE_NATIVE_ENTRY(Mint_bitNegate, 0, 1) {
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Mint_bitNegate: %s\n", operand.ToCString());
   }
-  int64_t result = ~operand.value();
+  int64_t result = ~operand.Value();
   return Integer::New(result);
 }
 
@@ -319,7 +319,7 @@ DEFINE_NATIVE_ENTRY(Mint_bitLength, 0, 1) {
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Mint_bitLength: %s\n", operand.ToCString());
   }
-  int64_t value = operand.AsInt64Value();
+  int64_t value = operand.Value();
   intptr_t result = Utils::BitLength(value);
   ASSERT(Smi::IsValid(result));
   return Smi::New(result);

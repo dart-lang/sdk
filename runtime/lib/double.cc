@@ -26,7 +26,7 @@ DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 0, 2) {
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Double_doubleFromInteger %s\n", value.ToCString());
   }
-  return Double::New(value.AsDoubleValue());
+  return Double::New(value.ToDouble());
 }
 
 DEFINE_NATIVE_ENTRY(Double_add, 0, 2) {
@@ -83,7 +83,7 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 0, 2) {
 DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 0, 2) {
   const Double& right = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
-  return Bool::Get(left.AsDoubleValue() > right.value()).ptr();
+  return Bool::Get(left.ToDouble() > right.value()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Double_equal, 0, 2) {
@@ -100,7 +100,7 @@ DEFINE_NATIVE_ENTRY(Double_equal, 0, 2) {
 DEFINE_NATIVE_ENTRY(Double_equalToInteger, 0, 2) {
   const Double& left = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
-  return Bool::Get(left.value() == right.AsDoubleValue()).ptr();
+  return Bool::Get(left.value() == right.ToDouble()).ptr();
 }
 
 #if defined(DART_HOST_OS_MACOS)
@@ -110,11 +110,11 @@ DEFINE_NATIVE_ENTRY(Double_equalToInteger, 0, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_parse, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, startValue, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, endValue, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, startValue, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, endValue, arguments->NativeArgAt(2));
 
-  const intptr_t start = startValue.AsTruncatedUint32Value();
-  const intptr_t end = endValue.AsTruncatedUint32Value();
+  const intptr_t start = startValue.Value();
+  const intptr_t end = endValue.Value();
   const intptr_t len = value.Length();
 
   // Indices should be inside the string, and 0 <= start < end <= len.

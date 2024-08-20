@@ -14,7 +14,7 @@ static IntegerPtr BinaryIntegerEvaluateRaw(const Integer& left,
       FALL_THROUGH;
     case Token::kMOD:
       // Check right value for zero.
-      if (right.AsInt64Value() == 0) {
+      if (right.Value() == 0) {
         break;  // Will throw.
       }
       FALL_THROUGH;
@@ -29,7 +29,7 @@ static IntegerPtr BinaryIntegerEvaluateRaw(const Integer& left,
     case Token::kSHR:
       FALL_THROUGH;
     case Token::kUSHR:
-      if (right.AsInt64Value() >= 0) {
+      if (right.Value() >= 0) {
         return left.ShiftOp(token_kind, right, Heap::kOld);
       }
       break;
@@ -56,10 +56,8 @@ static IntegerPtr UnaryIntegerEvaluateRaw(const Integer& value,
       return value.ArithmeticOp(Token::kMUL, Smi::Handle(zone, Smi::New(-1)),
                                 Heap::kOld);
     case Token::kBIT_NOT:
-      if (value.IsSmi()) {
-        return Integer::New(~Smi::Cast(value).Value(), Heap::kOld);
-      } else if (value.IsMint()) {
-        return Integer::New(~Mint::Cast(value).value(), Heap::kOld);
+      if (value.IsInteger()) {
+        return Integer::New(~value.Value(), Heap::kOld);
       }
       break;
     default:
@@ -69,11 +67,8 @@ static IntegerPtr UnaryIntegerEvaluateRaw(const Integer& value,
 }
 
 static IntegerPtr BitLengthEvaluateRaw(const Integer& value, Zone* zone) {
-  if (value.IsSmi()) {
-    return Integer::New(Utils::BitLength(Smi::Cast(value).Value()), Heap::kOld);
-  } else if (value.IsMint()) {
-    return Integer::New(Utils::BitLength(Mint::Cast(value).value()),
-                        Heap::kOld);
+  if (value.IsInteger()) {
+    return Integer::New(Utils::BitLength(value.Value()), Heap::kOld);
   }
   return Integer::null();
 }
@@ -113,8 +108,7 @@ IntegerPtr Evaluator::BinaryIntegerEvaluate(const Object& left,
 
   if (!result.IsNull()) {
     if (is_truncating) {
-      const int64_t truncated =
-          TruncateTo(result.AsTruncatedInt64Value(), representation);
+      const int64_t truncated = TruncateTo(result.Value(), representation);
       result = Integer::New(truncated, Heap::kOld);
       ASSERT(FlowGraph::IsConstantRepresentable(
           result, representation, /*tagged_value_must_be_smi=*/true));
@@ -306,11 +300,8 @@ bool Evaluator::ToIntegerConstant(Value* value, int64_t* result) {
     const Double& double_constant = Double::Cast(constant);
     *result = Utils::SafeDoubleToInt<int64_t>(double_constant.value());
     return (static_cast<double>(*result) == double_constant.value());
-  } else if (constant.IsSmi()) {
-    *result = Smi::Cast(constant).Value();
-    return true;
-  } else if (constant.IsMint()) {
-    *result = Mint::Cast(constant).value();
+  } else if (constant.IsInteger()) {
+    *result = Integer::Cast(constant).Value();
     return true;
   }
   return false;

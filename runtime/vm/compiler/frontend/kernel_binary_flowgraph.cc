@@ -5255,8 +5255,8 @@ Fragment StreamingFlowGraphBuilder::BuildBinarySearchSwitch(
       Fragment lower_branch_instructions(then_entry);
       Fragment upper_branch_instructions(otherwise_entry);
 
-      if (next_expression.integer().AsInt64Value() >
-          middle_expression.integer().AsInt64Value() + 1) {
+      if (next_expression.integer().Value() >
+          middle_expression.integer().Value() + 1) {
         // The upper branch is not contiguous with the lower branch.
         // Before continuing in the upper branch we add a bound check.
 
@@ -5347,7 +5347,7 @@ Fragment StreamingFlowGraphBuilder::BuildJumpTableSwitch(SwitchHelper* helper) {
 
   current_instructions += LoadLocal(scopes()->switch_variable);
 
-  if (!expression_min.IsZero()) {
+  if (expression_min.Value() != 0) {
     // Adjust for the range of the jump table, which starts at 0.
     current_instructions += Constant(expression_min);
     current_instructions +=
@@ -5374,7 +5374,7 @@ Fragment StreamingFlowGraphBuilder::BuildJumpTableSwitch(SwitchHelper* helper) {
         const SwitchExpression& expression =
             helper->expressions().At(expression_index++);
         const intptr_t table_offset =
-            expression.integer().AsInt64Value() - expression_min.AsInt64Value();
+            expression.integer().Value() - expression_min.Value();
 
         IndirectEntryInstr* indirect_entry =
             B->BuildIndirectEntry(table_offset, CurrentTryIndex());

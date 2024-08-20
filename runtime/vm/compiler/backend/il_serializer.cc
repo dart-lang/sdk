@@ -1653,7 +1653,7 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     }
     case kMintCid:
       ASSERT(x.IsCanonical());
-      Write<int64_t>(Integer::Cast(x).AsInt64Value());
+      Write<int64_t>(Integer::Cast(x).Value());
       break;
     case kNullCid:
       break;

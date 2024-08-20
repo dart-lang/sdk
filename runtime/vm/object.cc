@@ -21027,7 +21027,7 @@ void Instance::SetField(const Field& field, const Object& value) const {
         break;
       default:
         StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
-                        Integer::Cast(value).AsInt64Value());
+                        Integer::Cast(value).Value());
         break;
     }
   } else {
@@ -21054,7 +21054,7 @@ void Instance::SetFieldWithoutFieldGuard(const Field& field,
         break;
       default:
         StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
-                        Integer::Cast(value).AsInt64Value());
+                        Integer::Cast(value).Value());
         break;
     }
   } else {
@@ -23587,69 +23587,25 @@ bool Integer::Equals(const Instance& other) const {
   return false;
 }
 
-bool Integer::IsZero() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
-bool Integer::IsNegative() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
-double Integer::AsDoubleValue() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return 0.0;
-}
-
-int64_t Integer::AsInt64Value() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return 0;
-}
-
-uint32_t Integer::AsTruncatedUint32Value() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return 0;
-}
-
-bool Integer::FitsIntoSmi() const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
 int Integer::CompareWith(const Integer& other) const {
-  // Integer is an abstract class.
-  UNREACHABLE();
-  return 0;
+  int64_t a = Value();
+  int64_t b = other.Value();
+  if (a < b) {
+    return -1;
+  } else if (a > b) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 uint32_t Integer::CanonicalizeHash() const {
-  return Multiply64Hash(AsInt64Value());
-}
-
-IntegerPtr Integer::AsValidInteger() const {
-  if (IsSmi()) return ptr();
-  if (IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint ^= ptr();
-    if (Smi::IsValid(mint.value())) {
-      return Smi::New(static_cast<intptr_t>(mint.value()));
-    } else {
-      return ptr();
-    }
-  }
-  return ptr();
+  return Multiply64Hash(Value());
 }
 
 const char* Integer::ToHexCString(Zone* zone) const {
   ASSERT(IsSmi() || IsMint());
-  int64_t value = AsInt64Value();
+  int64_t value = Value();
   if (value < 0) {
     return OS::SCreate(zone, "-0x%" PX64, -static_cast<uint64_t>(value));
   } else {
@@ -23694,8 +23650,8 @@ IntegerPtr Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  const int64_t left_value = AsInt64Value();
-  const int64_t right_value = other.AsInt64Value();
+  const int64_t left_value = Value();
+  const int64_t right_value = other.Value();
   switch (operation) {
     case Token::kADD:
       return Integer::New(Utils::AddWithWrapAround(left_value, right_value),
@@ -23762,8 +23718,8 @@ IntegerPtr Integer::BitOp(Token::Kind kind,
     ASSERT(Smi::IsValid(result));
     return Smi::New(result);
   } else {
-    int64_t a = AsInt64Value();
-    int64_t b = other.AsInt64Value();
+    int64_t a = Value();
+    int64_t b = other.Value();
     switch (kind) {
       case Token::kBIT_AND:
         return Integer::New(a & b, space);
@@ -23781,8 +23737,8 @@ IntegerPtr Integer::BitOp(Token::Kind kind,
 IntegerPtr Integer::ShiftOp(Token::Kind kind,
                             const Integer& other,
                             Heap::Space space) const {
-  int64_t a = AsInt64Value();
-  int64_t b = other.AsInt64Value();
+  int64_t a = Value();
+  int64_t b = other.Value();
   ASSERT(b >= 0);
   switch (kind) {
     case Token::kSHL:
@@ -23803,40 +23759,6 @@ bool Smi::Equals(const Instance& other) const {
     return false;
   }
   return (this->Value() == Smi::Cast(other).Value());
-}
-
-double Smi::AsDoubleValue() const {
-  return static_cast<double>(this->Value());
-}
-
-int64_t Smi::AsInt64Value() const {
-  return this->Value();
-}
-
-uint32_t Smi::AsTruncatedUint32Value() const {
-  return this->Value() & 0xFFFFFFFF;
-}
-
-int Smi::CompareWith(const Integer& other) const {
-  if (other.IsSmi()) {
-    const Smi& other_smi = Smi::Cast(other);
-    if (this->Value() < other_smi.Value()) {
-      return -1;
-    } else if (this->Value() > other_smi.Value()) {
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-  ASSERT(!other.FitsIntoSmi());
-  if (other.IsMint()) {
-    if (this->IsNegative() == other.IsNegative()) {
-      return this->IsNegative() ? 1 : -1;
-    }
-    return this->IsNegative() ? -1 : 1;
-  }
-  UNREACHABLE();
-  return 0;
 }
 
 const char* Smi::ToCString() const {
@@ -23876,41 +23798,11 @@ bool Mint::Equals(const Instance& other) const {
   if (!other.IsMint() || other.IsNull()) {
     return false;
   }
-  return value() == Mint::Cast(other).value();
-}
-
-double Mint::AsDoubleValue() const {
-  return static_cast<double>(this->value());
-}
-
-int64_t Mint::AsInt64Value() const {
-  return this->value();
-}
-
-uint32_t Mint::AsTruncatedUint32Value() const {
-  return this->value() & 0xFFFFFFFF;
-}
-
-bool Mint::FitsIntoSmi() const {
-  return Smi::IsValid(AsInt64Value());
-}
-
-int Mint::CompareWith(const Integer& other) const {
-  ASSERT(!FitsIntoSmi());
-  ASSERT(other.IsMint() || other.IsSmi());
-  int64_t a = AsInt64Value();
-  int64_t b = other.AsInt64Value();
-  if (a < b) {
-    return -1;
-  } else if (a > b) {
-    return 1;
-  } else {
-    return 0;
-  }
+  return Value() == Mint::Cast(other).Value();
 }
 
 const char* Mint::ToCString() const {
-  return OS::SCreate(Thread::Current()->zone(), "%" Pd64 "", value());
+  return OS::SCreate(Thread::Current()->zone(), "%" Pd64 "", Value());
 }
 
 void Double::set_value(double value) const {
@@ -25619,18 +25511,12 @@ class DefaultHashTraits {
     if (obj.IsNull()) {
       return 0;
     }
-    // TODO(koda): Ensure VM classes only produce Smi hash codes, and remove
-    // non-Smi cases once Dart-side implementation is complete.
     Thread* thread = Thread::Current();
     REUSABLE_INSTANCE_HANDLESCOPE(thread);
     Instance& hash_code = thread->InstanceHandle();
     hash_code ^= Instance::Cast(obj).HashCode();
-    if (hash_code.IsSmi()) {
-      // May waste some bits on 64-bit, to ensure consistency with non-Smi case.
-      return static_cast<uword>(Smi::Cast(hash_code).AsTruncatedUint32Value());
-    } else if (hash_code.IsInteger()) {
-      return static_cast<uword>(
-          Integer::Cast(hash_code).AsTruncatedUint32Value());
+    if (hash_code.IsInteger()) {
+      return static_cast<uword>(Integer::Cast(hash_code).Value() & 0xFFFFFFFF);
     } else {
       return 0;
     }
@@ -26477,14 +26363,15 @@ uword Closure::ComputeHash() const {
           Instance::Handle(zone, GetImplicitClosureReceiver());
       const Integer& receiverHash =
           Integer::Handle(zone, receiver.IdentityHashCode(thread));
-      result = CombineHashes(result, receiverHash.AsTruncatedUint32Value());
+      result =
+          CombineHashes(result, static_cast<uint32_t>(receiverHash.Value()));
     }
   } else {
     // Non-implicit closures of non-generic functions are unique,
     // so identityHashCode of closure object is good enough.
     const Integer& identityHash =
         Integer::Handle(zone, this->IdentityHashCode(thread));
-    result = identityHash.AsTruncatedUint32Value();
+    result = static_cast<uint32_t>(identityHash.Value());
   }
   return FinalizeHash(result, String::kHashBits);
 }

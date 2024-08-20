@@ -201,6 +201,14 @@ f() {
 ''');
   }
 
+  test_rightSideIsInt_typedWithDouble() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  double x = 0;
+}
+''');
+  }
+
   test_rightSideIsInt_typedWithDynamic() async {
     await assertNoDiagnostics(r'''
 void f() {
