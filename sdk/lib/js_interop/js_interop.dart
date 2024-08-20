@@ -160,18 +160,22 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
   external JSArray.withLength(int length);
 
   /// The length in elements of this `Array`.
+  @Since('3.6')
   external int get length;
 
   /// Sets the length in elements of this `Array`.
   ///
   /// Setting it smaller than the current length truncates this `Array`, and
   /// setting it larger adds empty slots, which requires [T] to be nullable.
+  @Since('3.6')
   external set length(int newLength);
 
   /// The value at [position] in this `Array`.
+  @Since('3.6')
   external T operator [](int position);
 
   /// Sets the [value] at [position] in this `Array`.
+  @Since('3.6')
   external void operator []=(int position, T value);
 }
 
@@ -211,6 +215,7 @@ extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
     implements JSObject {
   /// Creates a JavaScript `ArrayBuffer` of size [length] using an optional
   /// [options] JavaScript object that sets the `maxByteLength`.
+  @Since('3.6')
   external JSArrayBuffer(int length, [JSObject options]);
 }
 
@@ -219,6 +224,7 @@ extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
 extension type JSDataView._(JSDataViewRepType _jsDataView) implements JSObject {
   /// Creates a JavaScript `DataView` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [byteLength].
+  @Since('3.6')
   external JSDataView(JSArrayBuffer buffer, [int byteOffset, int byteLength]);
 }
 
@@ -234,10 +240,12 @@ extension type JSInt8Array._(JSInt8ArrayRepType _jsInt8Array)
   /// offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Int8Array`.
+  @Since('3.6')
   external JSInt8Array([JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Int8Array` of size [length] whose elements are
   /// initialized to 0.
+  @Since('3.6')
   external JSInt8Array.withLength(int length);
 }
 
@@ -249,10 +257,12 @@ extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
   /// offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Uint8Array`.
+  @Since('3.6')
   external JSUint8Array([JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Uint8Array` of size [length] whose elements are
   /// initialized to 0.
+  @Since('3.6')
   external JSUint8Array.withLength(int length);
 }
 
@@ -264,11 +274,13 @@ extension type JSUint8ClampedArray._(
   /// storage, offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Uint8ClampedArray`.
+  @Since('3.6')
   external JSUint8ClampedArray(
       [JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Uint8ClampedArray` of size [length] whose elements
   /// are initialized to 0.
+  @Since('3.6')
   external JSUint8ClampedArray.withLength(int length);
 }
 
@@ -280,10 +292,12 @@ extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
   /// offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Int16Array`.
+  @Since('3.6')
   external JSInt16Array([JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Int16Array` of size [length] whose elements are
   /// initialized to 0.
+  @Since('3.6')
   external JSInt16Array.withLength(int length);
 }
 
@@ -295,10 +309,12 @@ extension type JSUint16Array._(JSUint16ArrayRepType _jsUint16Array)
   /// offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Uint16Array`.
+  @Since('3.6')
   external JSUint16Array([JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Uint16Array` of size [length] whose elements are
   /// initialized to 0.
+  @Since('3.6')
   external JSUint16Array.withLength(int length);
 }
 
@@ -310,10 +326,12 @@ extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
   /// offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Int32Array`.
+  @Since('3.6')
   external JSInt32Array([JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Int32Array` of size [length] whose elements are
   /// initialized to 0.
+  @Since('3.6')
   external JSInt32Array.withLength(int length);
 }
 
@@ -325,10 +343,12 @@ extension type JSUint32Array._(JSUint32ArrayRepType _jsUint32Array)
   /// offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Uint32Array`.
+  @Since('3.6')
   external JSUint32Array([JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Uint32Array` of size [length] whose elements are
   /// initialized to 0.
+  @Since('3.6')
   external JSUint32Array.withLength(int length);
 }
 
@@ -340,10 +360,12 @@ extension type JSFloat32Array._(JSFloat32ArrayRepType _jsFloat32Array)
   /// offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Float32Array`.
+  @Since('3.6')
   external JSFloat32Array([JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Float32Array` of size [length] whose elements are
   /// initialized to 0.
+  @Since('3.6')
   external JSFloat32Array.withLength(int length);
 }
 
@@ -355,10 +377,12 @@ extension type JSFloat64Array._(JSFloat64ArrayRepType _jsFloat64Array)
   /// offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Float64Array`.
+  @Since('3.6')
   external JSFloat64Array([JSArrayBuffer buffer, int byteOffset, int length]);
 
   /// Creates a JavaScript `Float64Array` of size [length] whose elements are
   /// initialized to 0.
+  @Since('3.6')
   external JSFloat64Array.withLength(int length);
 }
 
@@ -625,6 +649,7 @@ extension FunctionToJSExportedDartFunction on Function {
   /// [Function]. Any [Function] that is converted with this member should take
   /// in an extra parameter at the beginning of the parameter list to handle
   /// this.
+  @Since('3.6')
   external JSExportedDartFunction get toJSCaptureThis;
 }
 
