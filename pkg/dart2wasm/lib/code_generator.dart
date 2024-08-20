@@ -228,17 +228,39 @@ abstract class AstCodeGenerator
 
   void _setupLocalParameters(Member member, ParameterInfo paramInfo,
       int parameterOffset, int implicitParams,
-      {bool isForwarder = false}) {
-    List<TypeParameter> typeParameters = member is Constructor
+      {bool isForwarder = false, bool canSafelyOmitImplicitChecks = false}) {
+    final memberFunction = member.function!;
+    final List<TypeParameter> typeParameters = member is Constructor
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
+    final List<VariableDeclaration> positional =
+        memberFunction.positionalParameters;
+    final List<VariableDeclaration> named = memberFunction.namedParameters;
+
+    // If this is a CFE-inserted `forwarding-stub` then the types we have to
+    // check against are those from the forwarding target.
+    //
+    // This mirrors what the VM does in
+    //    - FlowGraphBuilder::BuildTypeArgumentTypeChecks
+    //    - FlowGraphBuilder::BuildArgumentTypeChecks
+    Procedure? forwardingTarget;
+    if (member is Procedure && member.isForwardingStub) {
+      forwardingTarget = member.concreteForwardingStubTarget as Procedure?;
+    }
+    final List<TypeParameter> typeParametersToTypeCheck =
+        forwardingTarget?.typeParameters ?? typeParameters;
+    final List<VariableDeclaration> positionalToTypeCheck =
+        forwardingTarget?.function.positionalParameters ?? positional;
+    final List<VariableDeclaration> namedToTypeCheck =
+        forwardingTarget?.function.namedParameters ?? named;
+
     for (int i = 0; i < typeParameters.length; i++) {
       final typeParameter = typeParameters[i];
       typeLocals[typeParameter] = paramLocals[parameterOffset + i];
     }
     if (!translator.options.omitImplicitTypeChecks) {
-      for (int i = 0; i < typeParameters.length; i++) {
-        final typeParameter = typeParameters[i];
+      for (int i = 0; i < typeParametersToTypeCheck.length; i++) {
+        final typeParameter = typeParametersToTypeCheck[i];
         if (typeParameter.isCovariantByClass &&
             typeParameter.bound != translator.coreTypes.objectNullableRawType) {
           _generateTypeArgumentBoundCheck(typeParameter.name!,
@@ -247,8 +269,12 @@ abstract class AstCodeGenerator
       }
     }
 
-    void setupParamLocal(VariableDeclaration variable, int index,
-        Constant? defaultValue, bool isRequired) {
+    void setupParamLocal(
+        DartType variableTypeToCheck,
+        VariableDeclaration variable,
+        int index,
+        Constant? defaultValue,
+        bool isRequired) {
       w.Local local = paramLocals[implicitParams + index];
       if (defaultValue == ParameterInfo.defaultValueSentinel) {
         // The default value for this parameter differs between implementations
@@ -288,7 +314,10 @@ abstract class AstCodeGenerator
         }
       }
       if (!translator.options.omitImplicitTypeChecks) {
-        if (variable.isCovariantByClass || variable.isCovariantByDeclaration) {
+        if (!translator.canSkipImplicitCheck(variable) &&
+            (variable.isCovariantByDeclaration ||
+                (variable.isCovariantByClass &&
+                    !canSafelyOmitImplicitChecks))) {
           final boxedType = variable.type.isPotentiallyNullable
               ? translator.topInfo.nullableType
               : translator.topInfo.nonNullableType;
@@ -304,7 +333,7 @@ abstract class AstCodeGenerator
           _generateArgumentTypeCheck(
             variable.name!,
             operand.type as w.RefType,
-            variable.type,
+            variableTypeToCheck,
           );
         }
       }
@@ -326,15 +355,17 @@ abstract class AstCodeGenerator
       locals[variable] = local;
     }
 
-    final memberFunction = member.function!;
-    List<VariableDeclaration> positional = memberFunction.positionalParameters;
     for (int i = 0; i < positional.length; i++) {
       final bool isRequired = i < memberFunction.requiredParameterCount;
-      setupParamLocal(positional[i], i, paramInfo.positional[i], isRequired);
+      final typeToCheck = positionalToTypeCheck[i].type;
+      setupParamLocal(
+          typeToCheck, positional[i], i, paramInfo.positional[i], isRequired);
     }
-    List<VariableDeclaration> named = memberFunction.namedParameters;
     for (var param in named) {
-      setupParamLocal(param, paramInfo.nameIndex[param.name]!,
+      final typeToCheck = identical(named, namedToTypeCheck)
+          ? param.type
+          : namedToTypeCheck.singleWhere((n) => n.name == param.name).type;
+      setupParamLocal(typeToCheck, param, paramInfo.nameIndex[param.name]!,
           paramInfo.named[param.name], param.isRequired);
     }
 
@@ -355,7 +386,8 @@ abstract class AstCodeGenerator
     });
   }
 
-  void setupParameters(Reference reference, {bool isForwarder = false}) {
+  void setupParameters(Reference reference,
+      {bool isForwarder = false, bool canSafelyOmitImplicitChecks = false}) {
     Member member = reference.asMember;
     ParameterInfo paramInfo = translator.paramInfoForDirectCall(reference);
 
@@ -363,11 +395,21 @@ abstract class AstCodeGenerator
     int implicitParams = parameterOffset + paramInfo.typeParamCount;
 
     _setupLocalParameters(member, paramInfo, parameterOffset, implicitParams,
-        isForwarder: isForwarder);
+        isForwarder: isForwarder,
+        canSafelyOmitImplicitChecks: canSafelyOmitImplicitChecks);
   }
 
   void setupParametersAndContexts(Member member) {
-    setupParameters(member.reference);
+    bool canSafelyOmitImplicitChecks = false;
+    if (member.isInstanceMember) {
+      final selectorInfo =
+          translator.dispatchTable.selectorForTarget(member.reference);
+      canSafelyOmitImplicitChecks =
+          !selectorInfo.hasTearOffUses && !selectorInfo.hasNonThisUses;
+    }
+
+    setupParameters(member.reference,
+        canSafelyOmitImplicitChecks: canSafelyOmitImplicitChecks);
 
     closures.findCaptures(member);
     closures.collectContexts(member);

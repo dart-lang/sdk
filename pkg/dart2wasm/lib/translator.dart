@@ -876,6 +876,10 @@ class Translator with KernelNodes {
     return directCallMetadata[node]?.targetMember;
   }
 
+  bool canSkipImplicitCheck(VariableDeclaration node) {
+    return inferredArgTypeMetadata[node]?.skipCheck ?? false;
+  }
+
   DartType typeOfParameterVariable(VariableDeclaration node, bool isRequired) {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
