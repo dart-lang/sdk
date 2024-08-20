@@ -15,12 +15,13 @@ void main() {
     defineReflectiveTests(WildcardLocalVariableTest);
     defineReflectiveTests(WildcardParameterTest);
     defineReflectiveTests(WildcardTopLevelVariableTest);
+    defineReflectiveTests(WildcardTypeParameterTest);
   });
 }
 
 class AbstractWildCardTest extends AbstractCompletionDriverTest {
   @override
-  Set<String> allowedIdentifiers = {'_', '__', '___'};
+  Set<String> allowedIdentifiers = {'_', '__', '___', 'T'};
 
   @override
   bool get includeKeywords => false;
@@ -350,6 +351,83 @@ void f() {
 suggestions
   _
     kind: topLevelVariable
+''');
+  }
+}
+
+@reflectiveTest
+class WildcardTypeParameterTest extends AbstractWildCardTest {
+  Future<void> test_constructor_formalParameterList() async {
+    await computeSuggestions('''
+class C<T, _> {
+  C(^);
+}
+''');
+    assertResponse('''
+suggestions
+  T
+    kind: typeParameter
+''');
+  }
+
+  Future<void> test_extensionMethod_formalParameterList() async {
+    await computeSuggestions('''
+extension E<_, T> on List {
+  void f(^) {}
+}
+''');
+    assertResponse('''
+suggestions
+  T
+    kind: typeParameter
+''');
+  }
+
+  Future<void> test_extensionType__representationDeclaration() async {
+    await computeSuggestions('''
+extension type ET<_, T, _ extends num>(^) {}
+''');
+    assertResponse('''
+suggestions
+  T
+    kind: typeParameter
+''');
+  }
+
+  Future<void> test_extensionType_method_formalParameterList() async {
+    await computeSuggestions('''
+extension type ET<_, T, _ extends num>(num n) {
+  f(^) {}
+}
+''');
+    assertResponse('''
+suggestions
+  T
+    kind: typeParameter
+''');
+  }
+
+  Future<void> test_function_formalParameterList() async {
+    await computeSuggestions('''
+f<T,_>(^) {}
+''');
+    assertResponse('''
+suggestions
+  T
+    kind: typeParameter
+''');
+  }
+
+  Future<void> test_method_formalParameterList() async {
+    await computeSuggestions('''
+class C<T, _> {
+  void m(^);
+}
+''');
+    assertResponse('''
+suggestions
+  T
+    kind: typeParameter
 ''');
   }
 }
