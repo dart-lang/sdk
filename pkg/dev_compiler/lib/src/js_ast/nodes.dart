@@ -359,7 +359,36 @@ abstract class Node {
   }
 }
 
-// TODO(jmesserly): rename to Module.
+class LibraryBundle extends Program {
+  final List<Program> libraries;
+
+  LibraryBundle(
+    this.libraries, {
+    super.scriptTag,
+    super.header,
+  }) : super(
+          const [],
+          // TODO(nshahan): Remove and adjust module metadata to not require it.
+          name: 'unused',
+        );
+
+  @override
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitProgram(this);
+
+  @override
+  void visitChildren(NodeVisitor visitor) {
+    for (var library in libraries) {
+      library.accept(visitor);
+    }
+  }
+
+  @override
+  LibraryBundle _clone() =>
+      LibraryBundle(libraries, scriptTag: scriptTag, header: header);
+}
+
+// TODO(nshahan): Rename to convey that this is a single Dart library after
+// support for multiple module formats is removed.
 class Program extends Node {
   /// Script tag hash-bang, e.g. `#!/usr/bin/env node`.
   final String? scriptTag;
@@ -375,7 +404,16 @@ class Program extends Node {
   /// This is not used in ES6, but is provided to allow module lowering.
   final String? name;
 
-  Program(this.body, {this.scriptTag, this.name, this.header = const []});
+  /// The self reference for the library that is used within it's own scope.
+  ///
+  /// This manifests as the name of the argument for the library initialization
+  /// function to which all library members are assigned.
+  // TODO(nshahan): Remove nullability after support for multiple module formats
+  // is removed.
+  final Identifier? librarySelfVar;
+
+  Program(this.body,
+      {this.scriptTag, this.name, this.header = const [], this.librarySelfVar});
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProgram(this);
