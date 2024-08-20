@@ -114,10 +114,9 @@ class _JsonListener {
   void currentContainerPush(Object? value) {
     WasmArray<Object?> currentContainerNonNull =
         unsafeCast<WasmArray<Object?>>(this.currentContainer);
-    // Same as above, this copies `GrowableList._nextCapacity` as the next
-    // capacity.
+    // Per `_HashBase` invariant capacity needs to be a power of two.
     pushWasmArray<Object?>(currentContainerNonNull, this.currentContainerLength,
-        value, (currentContainerLength * 2) | 3);
+        value, currentContainerLength == 0 ? 8 : (currentContainerLength * 2));
     currentContainer = currentContainerNonNull;
   }
 
@@ -190,8 +189,9 @@ class _JsonListener {
 
   void endObject() {
     popContainer();
+    final list = unsafeCast<GrowableList>(value);
     value = createMapFromKeyValueListUnsafe<String, dynamic>(
-        unsafeCast<GrowableList>(value));
+        list.data, list.length);
   }
 
   void beginArray() {
