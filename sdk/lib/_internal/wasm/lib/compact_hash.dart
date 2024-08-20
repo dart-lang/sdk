@@ -444,24 +444,33 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   /// This function is unsafe: it does not perform any type checking on
   /// keys and values assuming that caller has ensured that types are
   /// correct.
-  void _populateUnsafe(GrowableList<Object?> keyValuePairs) {
-    assert(keyValuePairs.length.isEven);
-    int size = _roundUpToPowerOfTwo(keyValuePairs.length);
-    if (size < _HashBase._INITIAL_INDEX_SIZE) {
-      size = _HashBase._INITIAL_INDEX_SIZE;
+  void _populateUnsafe(WasmArray<Object?> data, int usedData) {
+    assert(usedData.isEven);
+    int size = data.length;
+    if (size == 0) {
+      // Initial state setup by constructor.
+      assert(_index == _uninitializedHashBaseIndex);
+      assert(_hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
+      assert(_data == _uninitializedHashBaseData);
+      assert(_usedData == 0);
+      assert(_deletedKeys == 0);
+      return;
     }
+    assert(size >= _HashBase._INITIAL_INDEX_SIZE);
+    assert(size == _roundUpToPowerOfTwo(size));
     final hashMask = _HashBase._indexSizeToHashMask(size);
 
     assert(size & (size - 1) == 0);
     assert(_HashBase._UNUSED_PAIR == 0);
     _index = WasmArray<WasmI32>.filled(size, const WasmI32(0));
     _hashMask = hashMask;
-    _data = WasmArray<Object?>.filled(size, null);
+    _data = data;
     _usedData = 0;
     _deletedKeys = 0;
-    for (int i = 0; i < keyValuePairs.length; i += 2) {
-      final key = unsafeCast<K>(keyValuePairs[i]);
-      final value = unsafeCast<V>(keyValuePairs[i + 1]);
+
+    for (int i = 0; i < usedData; i += 2) {
+      final key = unsafeCast<K>(data[i]);
+      final value = unsafeCast<V>(data[i + 1]);
       _set(key, value, _hashCode(key));
     }
   }
@@ -1132,5 +1141,5 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
 
 @pragma('wasm:prefer-inline')
 Map<K, V> createMapFromKeyValueListUnsafe<K, V>(
-        GrowableList<Object?> keyValuePairs) =>
-    DefaultMap<K, V>().._populateUnsafe(keyValuePairs);
+        WasmArray<Object?> keyValuePairData, int usedData) =>
+    DefaultMap<K, V>().._populateUnsafe(keyValuePairData, usedData);

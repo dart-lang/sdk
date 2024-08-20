@@ -1931,7 +1931,9 @@ class DeclarationHelper {
   /// Adds a suggestion for each of the [typeParameters].
   void _suggestTypeParameters(List<TypeParameterElement> typeParameters) {
     for (var parameter in typeParameters) {
-      _suggestTypeParameter(parameter);
+      if (!_isWildcard(parameter.name)) {
+        _suggestTypeParameter(parameter);
+      }
     }
   }
 
@@ -2180,7 +2182,9 @@ class DeclarationHelper {
     for (var typeParameter in typeParameters.typeParameters) {
       var element = typeParameter.declaredElement;
       if (element != null) {
-        _suggestTypeParameter(element);
+        if (!_isWildcard(element.name)) {
+          _suggestTypeParameter(element);
+        }
       }
     }
   }

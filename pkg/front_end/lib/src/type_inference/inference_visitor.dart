@@ -9369,6 +9369,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.isImplicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
     ExpressionInferenceResult? initializerResult;
+
+    // Wildcard variable declarations can be removed, except for the ones in
+    // for loops. This logic turns them into `ExpressionStatement`s or
+    // `EmptyStatement`s so the backends don't need to allocate space for
+    // them.
+    if (node.isWildcard && !node.isConst && node.parent is! ForStatement) {
+      if (node.initializer case var initializer?) {
+        return new StatementInferenceResult.single(createExpressionStatement(
+            inferExpression(initializer, declaredType, isVoidAllowed: true)
+                .expression));
+      } else {
+        return new StatementInferenceResult.single(new EmptyStatement());
+      }
+    }
     if (node.initializer != null) {
       if (node.isLate && node.hasDeclaredInitializer) {
         flowAnalysis.lateInitializer_begin(node);
