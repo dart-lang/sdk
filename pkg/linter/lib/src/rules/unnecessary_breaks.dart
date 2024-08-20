@@ -90,7 +90,7 @@ class _Visitor extends SimpleAstVisitor {
   visitBreakStatement(BreakStatement node) {
     if (node.label != null) return;
     var parent = node.parent;
-    if (parent is SwitchPatternCase) {
+    if (parent is SwitchMember) {
       var statements = parent.statements;
       if (statements.length == 1) return;
       if (node == statements.last) {
