@@ -395,6 +395,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
     super.providedByteStore,
+    super.pluginManager,
   })  : lspClientConfiguration =
             lsp.LspClientConfiguration(baseResourceProvider.pathContext),
         super(

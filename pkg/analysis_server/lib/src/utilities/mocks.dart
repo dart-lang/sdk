@@ -150,6 +150,7 @@ class TestPluginManager implements PluginManager {
   Map<PluginInfo, Future<plugin.Response>>? broadcastResults;
   Map<PluginInfo, Future<plugin.Response>>? Function(plugin.RequestParams)?
       handleRequest;
+  Map<analyzer.ContextRoot, List<String>> contextRootPlugins = {};
 
   @override
   List<PluginInfo> plugins = [];
@@ -188,7 +189,7 @@ class TestPluginManager implements PluginManager {
   @override
   Future<void> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
-    fail('Unexpected invocation of addPluginToContextRoot');
+    contextRootPlugins.putIfAbsent(contextRoot, () => []).add(path);
   }
 
   @override
@@ -219,7 +220,7 @@ class TestPluginManager implements PluginManager {
 
   @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
-    fail('Unexpected invocation of removedContextRoot');
+    contextRootPlugins.remove(contextRoot);
   }
 
   @override
