@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
-import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
+import "dart:_internal"
+    show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
 import "dart:_js_string_convert";
 import "dart:_js_types";
 import "dart:_js_helper" show jsStringToDartString;
-import "dart:_list" show GrowableList;
+import "dart:_list" show GrowableList, GrowableListUnsafeExtensions;
 import "dart:_string";
 import "dart:_typed_data";
 import "dart:_wasm";
@@ -80,31 +81,74 @@ class _JsonListener {
   /**
    * Stack used to handle nested containers.
    *
-   * The current container is pushed on the stack when a new one is
-   * started.
+   * The current container is pushed on the stack when a new one is started.
    */
-  final List<Object?> stack = [];
+  WasmArray<GrowableList?> stack = WasmArray<GrowableList?>(0);
+  int stackLength = 0;
+
+  void stackPush(WasmArray<Object?>? value, int valueLength) {
+    final GrowableList<Object?>? valueAsList = value == null
+        ? null
+        : GrowableList.withDataAndLength(value, valueLength);
+
+    // `GrowableList._nextCapacity` is copied here as the next capacity. We
+    // can't use `GrowableList._nextCapacity` as tear-off as it's difficult to
+    // inline tear-offs manually in the `pushWasmArray` compiler.
+    pushWasmArray<GrowableList<Object?>?>(
+        this.stack, this.stackLength, valueAsList, (stackLength * 2) | 3);
+  }
+
+  GrowableList<dynamic>? stackPop() {
+    assert(stackLength != 0);
+    return popWasmArray<GrowableList<dynamic>>(stack, stackLength);
+  }
 
   /** Contents of the current container being built, or null if not building a
-  * container.
-  *
-  * When building [Map] this will contain array of key-value pairs.
-  */
-  GrowableList<dynamic>? currentContainer;
+   * container.
+   *
+   * When building a [Map] this will contain array of key-value pairs.
+   */
+  WasmArray<Object?>? currentContainer = null;
+  int currentContainerLength = 0;
+
+  void currentContainerPush(Object? value) {
+    WasmArray<Object?> currentContainerNonNull =
+        unsafeCast<WasmArray<Object?>>(this.currentContainer);
+    // Same as above, this copies `GrowableList._nextCapacity` as the next
+    // capacity.
+    pushWasmArray<Object?>(currentContainerNonNull, this.currentContainerLength,
+        value, (currentContainerLength * 2) | 3);
+    currentContainer = currentContainerNonNull;
+  }
 
   /** The most recently read value. */
   Object? value;
 
   /** Pushes the currently active container. */
   void beginContainer() {
-    stack.add(currentContainer);
-    currentContainer = GrowableList.empty();
+    stackPush(currentContainer, currentContainerLength);
+    currentContainer = const WasmArray<Object?>.literal([]);
+    currentContainerLength = 0;
   }
 
   /** Pops the top container from the [stack]. */
   void popContainer() {
-    value = currentContainer;
-    currentContainer = unsafeCast<GrowableList?>(stack.removeLast());
+    final currentContainerLocal = currentContainer;
+    if (currentContainerLocal == null) {
+      value = null;
+    } else {
+      value = GrowableList.withDataAndLength(
+          currentContainerLocal, currentContainerLength);
+    }
+
+    final GrowableList<dynamic>? currentContainerList = stackPop();
+    if (currentContainerList == null) {
+      currentContainer = null;
+      currentContainerLength = 0;
+    } else {
+      currentContainer = currentContainerList.data;
+      currentContainerLength = currentContainerList.length;
+    }
   }
 
   void handleString(String value) {
@@ -128,17 +172,18 @@ class _JsonListener {
   }
 
   void propertyName() {
-    unsafeCast<GrowableList>(currentContainer).add(value);
+    currentContainerPush(value);
     value = null;
   }
 
   void propertyValue() {
-    final keyValuePairs = unsafeCast<GrowableList>(currentContainer);
     if (reviver case final reviver?) {
-      final key = keyValuePairs.last;
-      keyValuePairs.add(reviver(key, value));
+      final keyValuePairs =
+          unsafeCast<WasmArray<Object?>>(currentContainer); // null deref
+      final key = keyValuePairs[currentContainerLength - 1];
+      currentContainerPush(reviver(key, value));
     } else {
-      keyValuePairs.add(value);
+      currentContainerPush(value);
     }
     value = null;
   }
@@ -154,12 +199,11 @@ class _JsonListener {
   }
 
   void arrayElement() {
-    var list = unsafeCast<List>(currentContainer);
     var reviver = this.reviver;
     if (reviver != null) {
-      value = reviver(list.length, value);
+      value = reviver(currentContainerLength, value);
     }
-    list.add(value);
+    currentContainerPush(value);
     value = null;
   }
 
