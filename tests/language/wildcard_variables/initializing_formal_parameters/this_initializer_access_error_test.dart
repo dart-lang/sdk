@@ -11,9 +11,9 @@ class C {
   var other;
 
   C(this._) : other = _;
-//^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                    ^
+// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+// [cfe] Can't access 'this' in a field initializer to read '_'.
 }
 
 class CWithTypeParameter<_> {
@@ -21,7 +21,7 @@ class CWithTypeParameter<_> {
   var other;
 
   CWithTypeParameter(this._) : other = _;
-//^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                                     ^
+// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+// [cfe] Can't access 'this' in a field initializer to read '_'.
 }

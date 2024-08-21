@@ -68,11 +68,10 @@ static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
 
 void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
-  Dart_Handle window_bits_obj = Dart_GetNativeArgument(args, 1);
-  int64_t window_bits = DartUtils::GetIntegerValue(window_bits_obj);
-  Dart_Handle dict_obj = Dart_GetNativeArgument(args, 2);
-  Dart_Handle raw_obj = Dart_GetNativeArgument(args, 3);
-  bool raw = DartUtils::GetBooleanValue(raw_obj);
+  bool gzip = DartUtils::GetNativeBooleanArgument(args, 1);
+  int64_t window_bits = DartUtils::GetNativeIntegerArgument(args, 2);
+  Dart_Handle dict_obj = Dart_GetNativeArgument(args, 3);
+  bool raw = DartUtils::GetNativeBooleanArgument(args, 4);
 
   Dart_Handle err;
   uint8_t* dictionary = nullptr;
@@ -91,8 +90,9 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
     }
   }
 
-  ZLibInflateFilter* filter = new ZLibInflateFilter(
-      static_cast<int32_t>(window_bits), dictionary, dictionary_length, raw);
+  ZLibInflateFilter* filter =
+      new ZLibInflateFilter(gzip, static_cast<int32_t>(window_bits), dictionary,
+                            dictionary_length, raw);
   if (filter == nullptr) {
     delete[] dictionary;
     Dart_PropagateError(
@@ -113,20 +113,15 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
-  Dart_Handle gzip_obj = Dart_GetNativeArgument(args, 1);
-  bool gzip = DartUtils::GetBooleanValue(gzip_obj);
+  bool gzip = DartUtils::GetNativeBooleanArgument(args, 1);
   Dart_Handle level_obj = Dart_GetNativeArgument(args, 2);
   int64_t level =
       DartUtils::GetInt64ValueCheckRange(level_obj, kMinInt32, kMaxInt32);
-  Dart_Handle window_bits_obj = Dart_GetNativeArgument(args, 3);
-  int64_t window_bits = DartUtils::GetIntegerValue(window_bits_obj);
-  Dart_Handle mLevel_obj = Dart_GetNativeArgument(args, 4);
-  int64_t mem_level = DartUtils::GetIntegerValue(mLevel_obj);
-  Dart_Handle strategy_obj = Dart_GetNativeArgument(args, 5);
-  int64_t strategy = DartUtils::GetIntegerValue(strategy_obj);
+  int64_t window_bits = DartUtils::GetNativeIntegerArgument(args, 3);
+  int64_t mem_level = DartUtils::GetNativeIntegerArgument(args, 4);
+  int64_t strategy = DartUtils::GetNativeIntegerArgument(args, 5);
   Dart_Handle dict_obj = Dart_GetNativeArgument(args, 6);
-  Dart_Handle raw_obj = Dart_GetNativeArgument(args, 7);
-  bool raw = DartUtils::GetBooleanValue(raw_obj);
+  bool raw = DartUtils::GetNativeBooleanArgument(args, 7);
 
   Dart_Handle err;
   uint8_t* dictionary = nullptr;
@@ -417,14 +412,21 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
     case Z_STREAM_END:
     case Z_BUF_ERROR: {
       intptr_t processed = length - stream_.avail_out;
-
-      if (v == Z_STREAM_END) {
-        // Allow for concatenated compressed blocks. For example:
+      if (v == Z_STREAM_END && gzip_) {
+        // Allow for concatenated compressed data sets. For example:
         // final data = [
         //  ...gzip.encode([1, 2, 3]),
         //  ...gzip.encode([4, 5, 6]),
         // ];
         // final decoded = gzip.decode(data);  // [1, 2, 3, 4, 5, 6]
+        //
+        // This is only supported for gzip data because RFC-1950 says:
+        // > Any data which may appear after ADLER32 are not part of the zlib
+        // > stream.
+        // while RFC-1952 says:
+        // > A gzip file consists of a series of "members" (compressed data
+        // > sets)... The members simply appear one after another in the file,
+        // > with no additional information before, between, or after them.
 
         // The return code for `inflateReset` can be ignored because, if the
         // result is an error, the same error will be returned in the next

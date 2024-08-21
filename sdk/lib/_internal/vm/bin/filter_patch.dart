@@ -14,11 +14,13 @@ base class _FilterImpl extends NativeFieldWrapperClass1
 }
 
 base class _ZLibInflateFilter extends _FilterImpl {
-  _ZLibInflateFilter(int windowBits, List<int>? dictionary, bool raw) {
-    _init(windowBits, dictionary, raw);
+  _ZLibInflateFilter(
+      bool gzip, int windowBits, List<int>? dictionary, bool raw) {
+    _init(gzip, windowBits, dictionary, raw);
   }
   @pragma("vm:external-name", "Filter_CreateZLibInflate")
-  external void _init(int windowBits, List<int>? dictionary, bool raw);
+  external void _init(
+      bool gzip, int windowBits, List<int>? dictionary, bool raw);
 }
 
 base class _ZLibDeflateFilter extends _FilterImpl {
@@ -46,6 +48,6 @@ class RawZLibFilter {
           gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   @patch
   static RawZLibFilter _makeZLibInflateFilter(
-          int windowBits, List<int>? dictionary, bool raw) =>
-      new _ZLibInflateFilter(windowBits, dictionary, raw);
+          bool gzip, int windowBits, List<int>? dictionary, bool raw) =>
+      new _ZLibInflateFilter(gzip, windowBits, dictionary, raw);
 }

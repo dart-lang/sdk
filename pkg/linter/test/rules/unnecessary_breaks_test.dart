@@ -17,6 +17,73 @@ class UnnecessaryBreaksTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_breaks';
 
+  test_default() async {
+    await assertDiagnostics(r'''
+f() {
+  switch (1) {
+    case 1:
+      f();
+    default:
+      f();
+      break;
+  }
+}
+''', [
+      lint(74, 6),
+    ]);
+  }
+
+  test_default_empty() async {
+    // We allow the body of a `case` clause to be just a single `break;`,
+    // because that's necessary to prevent the clause from being grouped with
+    // the clause that follows it.
+    //
+    // For a `default` clause, that's not necessary, because the `default`
+    // clause is required to come last. But we allow just a single `break;`
+    // anyway, for consistency.
+    await assertNoDiagnostics(r'''
+f() {
+  switch (1) {
+    case 2:
+      f();
+    default:
+      break;
+  }
+}
+''');
+  }
+
+  test_default_notLast_ok() async {
+    // No lint is needed because there is already a DEAD_CODE warning.
+    await assertDiagnostics(r'''
+f(bool c) {
+  switch (1) {
+    case 1:
+      f(true);
+    default:
+      break;
+      f(true);
+  }
+}
+''', [
+      // No lint.
+      error(WarningCode.DEAD_CODE, 86, 8),
+    ]);
+  }
+
+  test_switch_pre30_default_ok() async {
+    await assertNoDiagnostics(r'''
+// @dart=2.19
+f() {
+  switch (1) {
+    default:
+      f();
+      break;
+  }
+}
+''');
+  }
+
   test_switch_pre30_ok() async {
     await assertNoDiagnostics(r'''
 // @dart=2.19
@@ -44,6 +111,20 @@ f() {
 ''', [
       lint(50, 6),
     ]);
+  }
+
+  test_switchPatternCase_default_ok() async {
+    await assertNoDiagnostics(r'''
+f(bool c) {
+  switch (1) {
+    case 1:
+      f(true);
+    default:
+      if (c) break;
+      f(true);
+  }
+}
+''');
   }
 
   test_switchPatternCase_empty_ok() async {

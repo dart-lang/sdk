@@ -79,7 +79,7 @@ namespace bin {
   V(FileSystemWatcher_UnwatchPath, 2)                                          \
   V(FileSystemWatcher_WatchPath, 5)                                            \
   V(Filter_CreateZLibDeflate, 8)                                               \
-  V(Filter_CreateZLibInflate, 4)                                               \
+  V(Filter_CreateZLibInflate, 5)                                               \
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
   V(ResourceHandleImpl_toFile, 1)                                              \
