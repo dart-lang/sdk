@@ -45,6 +45,7 @@ class ThreadPool {
   bool Run(Args&&... args) {
     return RunImpl(std::unique_ptr<Task>(new T(std::forward<Args>(args)...)));
   }
+  bool Run(Task* task) { return RunImpl(std::unique_ptr<Task>(task)); }
 
   // Returns `true` if the current thread is running on the [this] thread pool.
   bool CurrentThreadIsWorker();
