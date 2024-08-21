@@ -17,7 +17,7 @@ dart.ci_sandbox_builder(
     "flutter-analyze",
     category = "analyzer|fa",
     channels = ["try"],
-    execution_timeout = 60 * time.minute,
+    location_filters = paths.to_location_filters(paths.analyzer),
 )
 dart.ci_sandbox_builder(
     "analyzer-analysis-server-linux",
@@ -29,7 +29,6 @@ dart.ci_sandbox_builder(
     "analyzer-linux-release",
     category = "analyzer|l",
     channels = dart.channels,
-    location_filters = paths.to_location_filters(paths.analyzer),
 )
 dart.ci_sandbox_builder(
     "analyzer-mac-release",
@@ -42,4 +41,5 @@ dart.ci_sandbox_builder(
     category = "analyzer|w",
     channels = dart.channels,
     dimensions = windows,
+    location_filters = paths.to_location_filters(paths.analyzer),
 )
