@@ -128,6 +128,15 @@ class AvoidDynamicCalls extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  /// Member names which are allowed to be accessed on `dynamic`- or
+  /// `Function`-typed expressions.
+  static const _allowedMemberAccesses = {
+    'hashCode',
+    'noSuchMethod',
+    'runtimeType',
+    'toString',
+  };
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -161,7 +170,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // CFE. They would also make landing this lint exponentially harder.
         return;
     }
-    _lintIfDynamic(node.leftOperand);
+    _reportIfDynamic(node.leftOperand);
     // We don't check node.rightOperand, because that is an implicit cast, not a
     // dynamic call (the call itself is based on leftOperand). While it would be
     // useful to do so, it is better solved by other more specific lints to
@@ -170,12 +179,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _lintIfDynamicOrFunction(node.function);
+    _reportIfDynamicOrFunction(node.function);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _lintIfDynamic(node.realTarget);
+    _reportIfDynamic(node.realTarget);
   }
 
   @override
@@ -185,106 +194,90 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (methodName == 'noSuchMethod' &&
           node.argumentList.arguments.length == 1 &&
           node.argumentList.arguments.first is! NamedExpression) {
-        // Special-cased; these exist on every object, even those typed
-        // "Object?".
+        // Allowed as these exist on every object, even those typed `Object?`.
         return;
       }
       if (methodName == 'toString' && node.argumentList.arguments.isEmpty) {
-        // Special-cased; these exist on every object, even those typed
-        // "Object?".
+        // Allowed as these exist on every object, even those typed `Object?`.
         return;
       }
     }
-    var receiverWasDynamic = _lintIfDynamic(node.realTarget);
+    var receiverWasDynamic = _reportIfDynamic(node.realTarget);
     if (!receiverWasDynamic) {
       var target = node.realTarget;
-      // The ".call" method is special, where "a.call()" is treated ~as "a()".
+      // The `.call` method is special, where `a.call()` is treated ~as `a()`.
       //
-      // If the method is "call", and the receiver is a function, we assume then
+      // If the method is `call`, and the receiver is a function, we assume then
       // we are really checking the static type of the receiver, not the static
-      // type of the "call" method itself.
+      // type of the `call` method itself.
       DartType? staticType;
       if (methodName == 'call' &&
           target != null &&
           target.staticType is FunctionType) {
         staticType = target.staticType;
       }
-      _lintIfDynamicOrFunction(node.function, staticType: staticType);
+      _reportIfDynamicOrFunction(node.function, staticType: staticType);
     }
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
     if (node.operator.type == TokenType.BANG) {
-      // x! is not a dynamic call, even if "x" is dynamic.
+      // `x!` is not a dynamic call, even if `x` is `dynamic`.
       return;
     }
-    _lintPrefixOrPostfixExpression(node, node.operand);
+    _reportPrefixOrPostfixExpression(node, node.operand);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var property = node.identifier.name;
-    if (const {
-      'hashCode',
-      'noSuchMethod',
-      'runtimeType',
-      'toString',
-    }.contains(property)) {
-      // Special-cased; these exist on every object, even those typed "Object?".
+    if (_allowedMemberAccesses.contains(node.identifier.name)) {
+      // Allowed as these exist on every object, even those typed `Object?`.
       return;
     }
-    _lintIfDynamic(node.prefix);
+    _reportIfDynamic(node.prefix);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _lintPrefixOrPostfixExpression(node, node.operand);
+    _reportPrefixOrPostfixExpression(node, node.operand);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    _lintIfDynamic(node.realTarget);
+    if (_allowedMemberAccesses.contains(node.propertyName.name)) {
+      // Allowed as these exist on every object, even those typed `Object?`.
+      return;
+    }
+    _reportIfDynamic(node.realTarget);
   }
 
-  bool _lintIfDynamic(Expression? node) {
-    if (node == null || node.staticType is! DynamicType) {
-      return false;
-    }
-
-    if (node.unParenthesized is AsExpression) {
-      return false;
-    }
+  bool _reportIfDynamic(Expression? node) {
+    if (node == null || node.staticType is! DynamicType) return false;
+    if (node.unParenthesized is AsExpression) return false;
 
     rule.reportLint(node);
     return true;
   }
 
-  void _lintIfDynamicOrFunction(Expression node, {DartType? staticType}) {
+  void _reportIfDynamicOrFunction(Expression node, {DartType? staticType}) {
     staticType ??= node.staticType;
-    if (staticType == null) {
-      return;
-    }
-    if (node.unParenthesized is AsExpression) {
-      return;
-    }
-    if (staticType is DynamicType) {
-      rule.reportLint(node);
-    }
-    if (staticType.isDartCoreFunction) {
+    if (staticType == null) return;
+    if (node.unParenthesized is AsExpression) return;
+    if (staticType is DynamicType || staticType.isDartCoreFunction) {
       rule.reportLint(node);
     }
   }
 
-  void _lintPrefixOrPostfixExpression(Expression root, Expression operand) {
-    if (_lintIfDynamic(operand)) {
+  void _reportPrefixOrPostfixExpression(Expression root, Expression operand) {
+    if (_reportIfDynamic(operand)) {
       return;
     }
     if (root is CompoundAssignmentExpression) {
       if (root.readType is DynamicType) {
         // An assignment expression can only be a dynamic call if it is a
         // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
-        // dynamic we should lint.
+        // `dynamic` we should report.
         rule.reportLint(root);
       }
     }
