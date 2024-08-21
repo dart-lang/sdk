@@ -172,7 +172,6 @@ vars = {
   "pub_rev": "31fa75baa5872e7f094a554c0ec7741742889530", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "d9e5ee68a350fbf4319bd4dfcb895fc016337d3a",
   "shelf_rev": "9f2dffecbe8f219146a077e401758602752d486a",
-  "source_map_stack_trace_rev": "741b6ceb4b6cdb8ff620664337d7ecc63ca52cc1",
   "source_maps_rev": "5f82c613664ade03c7a6d0e6c59687c69dec894b",
   "source_span_rev": "f81cd4a2df630a97264fb4015fb93944b5b98b11",
   "sse_rev": "af2c5c572a8da6d2f7551b80d75121f2a38a4c79",
@@ -186,7 +185,7 @@ vars = {
   "test_descriptor_rev": "90743bc16bc00526a1b9a64f813614be9b2479d9",
   "test_process_rev": "6223572ca16d7585d5f08d9281de6a5734e45150",
   "test_reflective_loader_rev": "6e648863b39aab8d0204e769d25805eea9db0ac4",
-  "tools_rev": "5b15f8b60bf950a2f06dad3258dee61c153fdb44",
+  "tools_rev": "d3b92b11bd5f75017a0c3dc8c0f6c6e04abd923e",
   "typed_data_rev": "365468a74251c930a463daf5b8f13227e269111a",
   "vector_math_rev": "2cfbe2c115a57b368ccbc3c89ebd38a06764d3d1",
   "watcher_rev": "0484625589d8512b36a7ad898a6cc6351d24c556",
@@ -483,9 +482,6 @@ deps = {
       Var("dart_git") + "source_maps.git" + "@" + Var("source_maps_rev"),
   Var("dart_root") + "/third_party/pkg/source_span":
       Var("dart_git") + "source_span.git" + "@" + Var("source_span_rev"),
-  Var("dart_root") + "/third_party/pkg/source_map_stack_trace":
-      Var("dart_git") + "source_map_stack_trace.git" +
-      "@" + Var("source_map_stack_trace_rev"),
   Var("dart_root") + "/third_party/pkg/sse":
       Var("dart_git") + "sse.git" + "@" + Var("sse_rev"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
