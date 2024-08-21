@@ -729,12 +729,16 @@ final class PropertyAccessSuggestion extends ImportableSuggestion
   @override
   final InterfaceElement? referencingInterface;
 
+  /// Whether the accessor is being invoked with a target.
+  final bool withEnclosingName;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
   PropertyAccessSuggestion(
       {required this.element,
       required super.importData,
       required this.referencingInterface,
-      required super.matcherScore});
+      required super.matcherScore,
+      this.withEnclosingName = false});
 
   @override
   String get completion => element.name;
@@ -1146,6 +1150,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           inheritanceDistance: inheritanceDistance,
           relevance: relevance,
+          withEnclosingName: suggestion.withEnclosingName,
         );
       case RecordFieldSuggestion():
         suggestRecordField(

@@ -202,7 +202,15 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
           if (field.isStatic &&
               field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
-            builder.suggestStaticField(field, prefix: prefix);
+            if (field.isSynthetic) {
+              var getter = field.getter;
+              if (getter != null) {
+                builder.suggestAccessor(getter,
+                    inheritanceDistance: 0.0, withEnclosingName: true);
+              }
+            } else {
+              builder.suggestStaticField(field, prefix: prefix);
+            }
           }
         }
       }

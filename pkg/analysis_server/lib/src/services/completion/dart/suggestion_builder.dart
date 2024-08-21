@@ -1038,37 +1038,26 @@ class SuggestionBuilder {
   void suggestStaticField(FieldElement element,
       {String? prefix, int? relevance}) {
     assert(element.isStatic);
-    if (element.isSynthetic) {
-      var getter = element.getter;
-      if (getter != null) {
-        suggestAccessor(
-          getter,
-          inheritanceDistance: 0.0,
-          withEnclosingName: true,
-        );
-      }
-    } else {
-      var enclosingPrefix = '';
-      var enclosingName = _enclosingClassOrExtensionName(element);
-      if (enclosingName != null) {
-        enclosingPrefix = '$enclosingName.';
-      }
-      var completion = enclosingPrefix + element.name;
-      if (_couldMatch(completion, prefix)) {
-        relevance ??= relevanceComputer.computeTopLevelRelevance(element,
-            elementType: element.type,
-            isNotImportedLibrary: isNotImportedLibrary);
-        _addBuilder(
-          _createCompletionSuggestionBuilder(
-            element,
-            completion: completion,
-            kind: CompletionSuggestionKind.IDENTIFIER,
-            prefix: prefix,
-            relevance: relevance,
-            isNotImported: isNotImportedLibrary,
-          ),
-        );
-      }
+    var enclosingPrefix = '';
+    var enclosingName = _enclosingClassOrExtensionName(element);
+    if (enclosingName != null) {
+      enclosingPrefix = '$enclosingName.';
+    }
+    var completion = enclosingPrefix + element.name;
+    if (_couldMatch(completion, prefix)) {
+      relevance ??= relevanceComputer.computeTopLevelRelevance(element,
+          elementType: element.type,
+          isNotImportedLibrary: isNotImportedLibrary);
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          element,
+          completion: completion,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+        ),
+      );
     }
   }
 

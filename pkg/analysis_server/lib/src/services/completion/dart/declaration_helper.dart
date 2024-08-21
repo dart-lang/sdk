@@ -1802,11 +1802,24 @@ class DeclarationHelper {
       } else {
         var matcherScore = state.matcher.score(element.displayName);
         if (matcherScore != -1) {
-          var suggestion = StaticFieldSuggestion(
-              importData: importData,
-              element: element,
-              matcherScore: matcherScore);
-          collector.addSuggestion(suggestion);
+          if (element.isSynthetic) {
+            var getter = element.getter;
+            if (getter != null) {
+              var suggestion = PropertyAccessSuggestion(
+                  element: getter,
+                  importData: importData,
+                  referencingInterface: null,
+                  matcherScore: matcherScore,
+                  withEnclosingName: true);
+              collector.addSuggestion(suggestion);
+            }
+          } else {
+            var suggestion = StaticFieldSuggestion(
+                importData: importData,
+                element: element,
+                matcherScore: matcherScore);
+            collector.addSuggestion(suggestion);
+          }
         }
       }
     }
