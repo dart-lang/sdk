@@ -16,6 +16,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "platform/growable_array.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
@@ -23,7 +24,6 @@
 #include "vm/ffi_callback_metadata.h"
 #include "vm/field_table.h"
 #include "vm/fixed_cache.h"
-#include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/heap/verifier.h"
 #include "vm/intrusive_dlist.h"
@@ -31,6 +31,7 @@
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
 #include "vm/random.h"
+#include "vm/service.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/thread_pool.h"
@@ -706,7 +707,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
+  void VisitPointersInDefaultServiceIdZone(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.
@@ -1247,8 +1248,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
 #if !defined(PRODUCT)
-  ObjectIdRing* object_id_ring() const { return object_id_ring_; }
-  ObjectIdRing* EnsureObjectIdRing();
+  // The default Service ID zone is created lazily; this method returns the
+  // default Service ID zone, creating it if necessary.
+  RingServiceIdZone& EnsureDefaultServiceIdZone();
+
+  intptr_t NumServiceIdZones() const;
 #endif  // !defined(PRODUCT)
 
   bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
@@ -1643,13 +1647,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_ = nullptr;
 
+  // The array of Service ID zones is created lazily.
+  MallocGrowableArray<RingServiceIdZone*>* service_id_zones_;
+
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
-
-  // Ring buffer of objects assigned an id.
-  ObjectIdRing* object_id_ring_ = nullptr;
 #endif  // !defined(PRODUCT)
 
   // All other fields go here.

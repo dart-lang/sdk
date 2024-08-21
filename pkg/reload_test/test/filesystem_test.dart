@@ -89,8 +89,14 @@ void main() {
         filesystem.generationsToModifiedFilePaths,
         equals({
           '0': [
-            jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
-            jsOutputUri.resolve('generation0/file2.ext').toFilePath()
+            [
+              'file1.ext',
+              jsOutputUri.resolve('generation0/file1.ext').toFilePath()
+            ],
+            [
+              'file2.ext',
+              jsOutputUri.resolve('generation0/file2.ext').toFilePath()
+            ]
           ]
         }),
         reason:
@@ -149,12 +155,24 @@ void main() {
         filesystem.generationsToModifiedFilePaths,
         equals({
           '0': [
-            jsOutputUri.resolve('generation0/file1.ext').toFilePath(),
-            jsOutputUri.resolve('generation0/file2.ext').toFilePath()
+            [
+              'file1.ext',
+              jsOutputUri.resolve('generation0/file1.ext').toFilePath()
+            ],
+            [
+              'file2.ext',
+              jsOutputUri.resolve('generation0/file2.ext').toFilePath()
+            ]
           ],
           '1': [
-            jsOutputUri.resolve('generation1/file3.ext').toFilePath(),
-            jsOutputUri.resolve('generation1/file4.ext').toFilePath(),
+            [
+              'file3.ext',
+              jsOutputUri.resolve('generation1/file3.ext').toFilePath()
+            ],
+            [
+              'file4.ext',
+              jsOutputUri.resolve('generation1/file4.ext').toFilePath()
+            ],
           ],
         }),
         reason:

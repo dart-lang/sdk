@@ -26,6 +26,7 @@ import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
+import 'compiler_new.dart';
 import 'module_metadata.dart';
 import 'module_symbols.dart';
 import 'module_symbols_collector.dart';
@@ -453,8 +454,11 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
-  var compiler = ProgramCompiler(component, result.classHierarchy, options,
-      importToSummary, summaryToModule);
+  var compiler = options.emitLibraryBundle
+      ? LibraryBundleCompiler(component, result.classHierarchy, options,
+          importToSummary, summaryToModule)
+      : ProgramCompiler(component, result.classHierarchy, options,
+          importToSummary, summaryToModule);
 
   var jsModule = compiler.emitModule(compiledLibraries);
 
@@ -467,7 +471,11 @@ Future<CompilerResult> _compile(List<String> args,
     var file = File(output);
     await file.parent.create(recursive: true);
     var mapUrl = p.toUri('$output.map').toString();
-    var jsCode = jsProgramToCode(jsModule, moduleFormat,
+    var jsCode = jsProgramToCode(
+        jsModule,
+        options.emitLibraryBundle
+            ? ModuleFormat.ddcLibraryBundle
+            : moduleFormat,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         emitDebugMetadata: options.emitDebugMetadata,
@@ -597,7 +605,11 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     var moduleFormat = moduleFormats[i];
     var file = File(output);
     await file.parent.create(recursive: true);
-    var jsCode = jsProgramToCode(jsModule, moduleFormat,
+    var jsCode = jsProgramToCode(
+        jsModule,
+        options.emitLibraryBundle
+            ? ModuleFormat.ddcLibraryBundle
+            : moduleFormat,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
@@ -695,7 +707,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     String? sourceMapBase,
     String? customScheme,
     String? multiRootOutputPath,
-    ProgramCompiler? compiler,
+    Compiler? compiler,
     Component? component}) {
   var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
@@ -769,7 +781,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 /// Uses information from the [compiler] used to compile the JS module combined
 /// with [identifierNames] that maps JavaScript identifier nodes to their actual
 /// names used when outputting the JavaScript.
-ModuleSymbols _emitSymbols(ProgramCompiler compiler, String moduleName,
+ModuleSymbols _emitSymbols(Compiler compiler, String moduleName,
     Map<js_ast.Identifier, String> identifierNames, Component component) {
   /// Returns the name selected in the final JavaScript for [id].
   String lookupName(js_ast.Identifier id) {

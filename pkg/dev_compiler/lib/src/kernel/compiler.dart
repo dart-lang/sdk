@@ -46,11 +46,21 @@ import 'type_environment.dart';
 import 'type_recipe_generator.dart';
 import 'type_table.dart';
 
+/// Public API for DDC compilers.
+abstract class Compiler {
+  js_ast.Program emitModule(Component component);
+  Map<Class, js_ast.Identifier> get classIdentifiers;
+  Map<Member, String> get memberNames;
+  Map<Procedure, js_ast.Identifier> get procedureIdentifiers;
+  Map<VariableDeclaration, js_ast.Identifier> get variableIdentifiers;
+}
+
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     with OnceConstantVisitorDefaultMixin<js_ast.Expression>
     implements
         StatementVisitor<js_ast.Statement>,
-        ExpressionVisitor<js_ast.Expression> {
+        ExpressionVisitor<js_ast.Expression>,
+        Compiler {
   final SharedCompilerOptions _options;
 
   /// Maps each `Class` node compiled in the module to the `Identifier`s used to
@@ -58,6 +68,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This mapping is used when generating the symbol information for the
   /// module.
+  @override
   final classIdentifiers = <Class, js_ast.Identifier>{};
 
   /// Maps each class `Member` node compiled in the module to the name used for
@@ -65,6 +76,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This mapping is used when generating the symbol information for the
   /// module.
+  @override
   final memberNames = <Member, String>{};
 
   /// Maps each `Procedure` node compiled in the module to the `Identifier`s
@@ -72,6 +84,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This mapping is used when generating the symbol information for the
   /// module.
+  @override
   final procedureIdentifiers = <Procedure, js_ast.Identifier>{};
 
   /// Maps each `VariableDeclaration` node compiled in the module to the name
@@ -79,6 +92,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This mapping is used when generating the symbol information for the
   /// module.
+  @override
   final variableIdentifiers = <VariableDeclaration, js_ast.Identifier>{};
 
   /// Maps a library URI import, that is not in [_libraries], to the
@@ -521,6 +535,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Module can be emitted only once, and the compiler can be reused after
   /// only in incremental mode, for expression compilation only.
+  @override
   js_ast.Program emitModule(Component component) {
     if (_moduleEmitted) {
       throw StateError('Can only call emitModule once.');
@@ -7605,6 +7620,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   List<js_ast.Comment> _generateCompilationHeader() {
     var headerOptions = [
       if (_options.canaryFeatures) 'canary',
+      if (_options.emitLibraryBundle) 'emitLibraryBundle',
       'soundNullSafety(${_options.soundNullSafety})',
       'enableAsserts(${_options.enableAsserts})',
     ];

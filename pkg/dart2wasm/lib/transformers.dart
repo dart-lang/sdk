@@ -929,7 +929,7 @@ class PushPopWasmArrayTransformer {
         elementType.withDeclaredNullability(Nullability.nullable);
 
     final positionalArguments = invocation.arguments.positional;
-    assert(positionalArguments.length == 4);
+    assert(positionalArguments.length == 2);
 
     final array = positionalArguments[0];
     final length = positionalArguments[1];

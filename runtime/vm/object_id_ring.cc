@@ -60,7 +60,7 @@ ObjectPtr ObjectIdRing::GetObjectForId(int32_t id, LookupResult* kind) {
   return table_[index];
 }
 
-void ObjectIdRing::VisitPointers(ObjectPointerVisitor* visitor) {
+void ObjectIdRing::VisitPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(table_ != nullptr);
   visitor->VisitPointers(table_, capacity_);
 }
@@ -179,7 +179,7 @@ int32_t ObjectIdRing::IdOfIndex(int32_t index) {
   return id;
 }
 
-bool ObjectIdRing::IsValidContiguous(int32_t id) {
+bool ObjectIdRing::IsValidContiguous(int32_t id) const {
   ASSERT(id != kInvalidId);
   ASSERT((id >= 0) && (id < max_serial_));
   if (id >= serial_num_) {

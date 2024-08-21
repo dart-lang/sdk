@@ -78,6 +78,7 @@ io/https_nonblocking_trust_evaluation_test: SkipByDesign
 
 [ $simulator ]
 io/socket_sigpipe_test: SkipByDesign # Test uses ffi
+io/http_big_header_test: SkipSlow # Issue 52110
 
 [ $compiler == dartk && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.

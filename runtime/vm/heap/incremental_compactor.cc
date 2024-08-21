@@ -681,9 +681,8 @@ class EpilogueTask : public ThreadPool::Task {
       TIMELINE_FUNCTION_GC_DURATION(thread, "IdRing");
       isolate_group_->ForEachIsolate(
           [&](Isolate* isolate) {
-            ObjectIdRing* ring = isolate->object_id_ring();
-            if (ring != nullptr) {
-              ring->VisitPointers(&visitor);
+            if (isolate->NumServiceIdZones() > 0) {
+              isolate->EnsureDefaultServiceIdZone().VisitPointers(visitor);
             }
           },
           /*at_safepoint=*/true);

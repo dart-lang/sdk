@@ -1250,3 +1250,212 @@ if (!self.deferred_loader) {
     self.deferred_loader.loadIds = new Set();
   };
 }
+
+(function (dartDevEmbedder) {
+  'use strict';
+
+  if (dartDevEmbedder) {
+    console.warn('Dart Development Embedder is already defined.');
+    return;
+  }
+
+  /**
+   * Manager for the state of libraries that orchestrates loading and reloading
+   * of libraries.
+   *
+   * A library moves through multiple phases from the start of the application:
+   *  - Definition Phase: A library defines itself by declaring it's existence
+   *    to the library manager and provides an initialization function. At this
+   *    point the library is known to exist but is not yet usable. It is an
+   *    error to import a library that has not been defined.
+   *  - Initialization Phase: The library's initialization function is evaluated
+   *    to create a library object containing all of it's members. After
+   *    initialization a library is ready to be linked.
+   *  - Link Phase: The link function (a library member synthesized by the
+   *    compiler) is called to connect class hierarchies of the classes defined
+   *    by the library. This can trigger the initialization and linking of
+   *    dependency libraries. After a library has been linked it is ready for
+   *    use in the application.
+   */
+  class LibraryManager {
+    // A growable mapping of library names to their initialization functions.
+    libraryInitializers = Object.create(null);
+
+    // A growable mapping of library names to their initialized library objects.
+    //
+    // These are the result of calling a library's initialization function.
+    libraries = Object.create(null);
+
+    // TODO(nshahan): Set to true at the start of the hot reload process.
+    hotReloadInProgress = false;
+
+    createEmptyLibrary() {
+      return Object.create(null);
+    }
+
+    // See docs on `DartDevEmbedder.runMain`.
+    defineLibrary(libraryName, initializer) {
+      if (this.hotReloadInProgress) {
+        // TODO(nshahan): Store initialization functions on the side once a
+        // hot reload starts because the app could continue to run until the
+        // newly compiled libraries all arrive in the browser.
+      } else {
+        this.libraryInitializers[libraryName] = initializer;
+      }
+    }
+
+    /**
+     * Initializes and links a library.
+     *
+     * @param {string} libraryName Name of the library to be initialized and
+     *   linked.
+     * @param {?function (Object)} installFn A function to call to install the
+     *   initialized library object into the context of an import. See
+     *   `importLibrary` for more details.
+     */
+    initializeAndLinkLibrary(libraryName, installFn) {
+      let currentLibrary = this.libraries[libraryName];
+      if (currentLibrary == null) {
+        currentLibrary = this.createEmptyLibrary();
+        // Run the initialization logic.
+        // TODO(nshahan): Refactor so the init function does not return a value,
+        // it should modify the library object passed in.
+        let initializer = this.libraryInitializers[libraryName];
+        if (initializer == null) {
+          throw 'Library not defined: ' + libraryName + '. Failed to initialize.';
+        }
+        currentLibrary = initializer(currentLibrary);
+        // TODO(nshahan): Link the library when link methods are added to the
+        // compiled output.
+        this.libraries[libraryName] = currentLibrary;
+      }
+      if (installFn != null) {
+        installFn(currentLibrary);
+      }
+      return currentLibrary;
+    }
+
+    // See docs on `DartDevEmbedder.runMain`.
+    importLibrary(libraryName, installFn) {
+      let currentLibrary = this.libraries[libraryName];
+      if (currentLibrary != null) {
+        // Library has already been initialized and linked.
+        return currentLibrary;
+      }
+      // If there is no install function, the library must be initialized and
+      // linked immediately.
+      if (installFn == null) {
+        // TODO(nshahan): Should we make this a separate API only used for the
+        // SDK imports?
+        return this.initializeAndLinkLibrary(libraryName);
+      }
+
+      // Library initialization is lazy and only performed on the first access.
+      return new Proxy(Object.create(null), {
+        get: function (_, property) {
+          let library = libraryManager.initializeAndLinkLibrary(libraryName, installFn);
+          return library[property];
+        },
+        set: function (_, property, value) {
+          let library = libraryManager.initializeAndLinkLibrary(libraryName, installFn);
+          library[property] = value;
+          return true;
+        },
+      });
+    }
+
+    // See docs on `DartDevEmbedder.runMain`.
+    runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
+      console.log('Setting Dart SDK runtime options.');
+      let dartRuntimeLibrary = this.initializeAndLinkLibrary('dart');
+
+      // TODO(nshahan) Use a single method in the Dart SDK to set all options.
+      dartRuntimeLibrary.weakNullSafetyErrors(dartSdkRuntimeOptions.weakNullSafetyErrors);
+      dartRuntimeLibrary.nonNullAsserts(dartSdkRuntimeOptions.nonNullAsserts);
+      dartRuntimeLibrary.nativeNonNullAsserts(dartSdkRuntimeOptions.nativeNonNullAsserts);
+      dartRuntimeLibrary.jsInteropNonNullAsserts(dartSdkRuntimeOptions.jsInteropNonNullAsserts);
+
+      console.log('Starting application from main method in: ' + entryPointLibraryName + '.');
+      let entryPointLibrary = this.initializeAndLinkLibrary(entryPointLibraryName);
+      entryPointLibrary.main();
+    }
+
+    /**
+     * Begins a hot reload operation.
+     */
+    async hotReloadStart(filesToLoad, librariesToReload) {
+      // TODO(nshahan): Request newly compiled files and call `hotReloadEnd()`
+      // when complete.
+    }
+
+    /**
+     * Completes a hot reload operation.
+     */
+    hotReloadEnd(librariesToReload) {
+      // TODO(nshahan): Initialize and link all the newly compiled libraries.
+    }
+  }
+
+  const libraryManager = new LibraryManager();
+
+  /** The API for embedding a Dart application in the page at development time
+   *  that supports stateful hot reloading.
+   */
+  class DartDevEmbedder {
+    /**
+     * Runs the Dart main method.
+     *
+     * Intended to be invoked by the bootstrapping code where the application is
+     * being embedded.
+     *
+     * @param {string} entryPointLibraryName The name of the library that
+     * contains an entry point main method.
+     * @param {Object<String, boolean>} dartSdkRuntimeOptions An options bag for
+     * setting the runtime options in the Dart SDK.
+     */
+    runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
+      libraryManager.runMain(entryPointLibraryName, dartSdkRuntimeOptions);
+    }
+
+    /**
+     * Declares the existence of a library identified by the `libraryName` and
+     * initialized by `initFn`.
+     *
+     * Should only be called from DDC compiled code.
+     *
+     * The initialization function may be called lazily when needed.
+     *
+     * @param {string} libraryName Name for referencing the library being
+     *   defined.
+     * @param {function (Object): Object} initializer Function called to
+     *   initialize the library. This callback takes a library object and
+     *   installs the library members into it.
+     */
+    defineLibrary(libraryName, initializer) {
+      libraryManager.defineLibrary(libraryName, initializer);
+    }
+
+    /**
+     * Imports a library to make it available in the context of the import.
+     *
+     * Should only be called from DDC compiled code.
+     *
+     * The imported library may be initialized and linked lazily at the time of
+     * the first member access.
+     *
+     * @param {string} libraryName Name of the library to import.
+     * @param {?function (Object)} installFn A callback invoked with the library
+     *  object after the library has been initialized and linked. This
+     *  notification is used to improve performance. Callers may use this
+     *  callback to replace the proxy object with the real library object and,
+     *  in doing so, remove the overhead of jumping through an indirect proxy on
+     *  every property access.
+     * @return A library object or a proxy to a library object.
+     */
+    importLibrary(libraryName, installFn) {
+      return libraryManager.importLibrary(libraryName, installFn);
+    }
+  }
+
+  self.dartDevEmbedder = new DartDevEmbedder();
+})(self.dartDevEmbedder);
