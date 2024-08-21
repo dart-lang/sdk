@@ -187,7 +187,25 @@ final class ConstructorSuggestion extends ImportableSuggestion
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2);
 
   @override
-  String get completion => '$completionPrefix${element.displayName}';
+  String get completion {
+    var enclosingClass = element.enclosingElement.augmented.declaration;
+
+    var className = enclosingClass.name;
+
+    var completion = element.name;
+    if (completion.isEmpty && suggestUnnamedAsNew) {
+      completion = 'new';
+    }
+
+    if (!hasClassName) {
+      if (completion.isEmpty) {
+        completion = className;
+      } else {
+        completion = '$className.$completion';
+      }
+    }
+    return completion;
+  }
 }
 
 abstract interface class ElementBasedSuggestion {
@@ -1009,8 +1027,13 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             displayText: suggestion.displayText,
             selectionOffset: suggestion.selectionOffset);
       case ConstructorSuggestion():
+        var completion = suggestion.completion;
+        if (completion.isEmpty) {
+          break;
+        }
         suggestConstructor(suggestion.element,
             hasClassName: suggestion.hasClassName,
+            completion: completion,
             kind: suggestion.isRedirect || suggestion.isTearOff
                 ? CompletionSuggestionKind.IDENTIFIER
                 : CompletionSuggestionKind.INVOCATION,

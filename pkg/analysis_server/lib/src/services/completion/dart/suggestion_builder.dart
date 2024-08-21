@@ -378,32 +378,34 @@ class SuggestionBuilder {
     bool hasClassName = false,
     String? prefix,
     int? relevance,
+    String? completion,
   }) {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-
     var enclosingClass = constructor.enclosingElement.augmented.declaration;
 
-    var className = enclosingClass.name;
-    if (className.isEmpty) {
-      return;
-    }
-
-    var completion = constructor.name;
-    if (completion.isEmpty && suggestUnnamedAsNew) {
-      completion = 'new';
-    }
-
-    if (!hasClassName) {
-      if (completion.isEmpty) {
-        completion = className;
-      } else {
-        completion = '$className.$completion';
+    if (completion == null) {
+      var className = enclosingClass.name;
+      if (className.isEmpty) {
+        return;
       }
-    }
-    if (completion.isEmpty) {
-      return;
+
+      completion = constructor.name;
+      if (completion.isEmpty && suggestUnnamedAsNew) {
+        completion = 'new';
+      }
+
+      if (!hasClassName) {
+        if (completion.isEmpty) {
+          completion = className;
+        } else {
+          completion = '$className.$completion';
+        }
+      }
+      if (completion.isEmpty) {
+        return;
+      }
     }
 
     if (_couldMatch(completion, prefix)) {
