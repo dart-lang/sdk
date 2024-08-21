@@ -2099,6 +2099,228 @@ AnalysisErrors
 
 @reflectiveTest
 class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
+  /// Verifies the set of context roots created by the server and which were
+  /// provided to each plugin.
+  void expectPluginMapping(Map<String, List<String>> expected) {
+    var pluginMapping = pluginManager.contextRootPlugins.map(
+      (root, plugins) => MapEntry(
+        pathContext.basename(root.root.path),
+        plugins.map((pluginPath) => pathContext
+            .basename(pathContext.dirname(pathContext.dirname(pluginPath)))),
+      ),
+    );
+
+    // Additionally, add any context roots from the server that were not
+    // provided to plugins so the tests can also explicitly verify roots were
+    // created that didn't show up in the plugins list.
+    for (var serverContext in server.contextManager.analysisContexts) {
+      var name = pathContext.basename(serverContext.contextRoot.root.path);
+      pluginMapping.putIfAbsent(name, () => []);
+    }
+
+    expect(pluginMapping, expected);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    // These tests don't use the "test" package folder but have their own named
+    // package folders. Delete the "test" folder so it doesn't show up as a
+    // context root (else it would need listing in each test expectation).
+    deleteFolder(testPackageRootPath);
+  }
+
+  /// Tests a package with a nested folder that has an additional
+  /// `analysis_options.yaml` that does not enable the plugin. An additional
+  /// context should be created for the non-plugin folder and it should be
+  /// excluded from the parents plugin root.
+  Future<void>
+      test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_disabledPlugin() async {
+    if (!AnalysisServer.supportsPlugins) return;
+
+    var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
+
+    // package1 has plugin2 enabled.
+    _createTestPackage(
+      'package1',
+      withPackageConfig: false,
+      plugins: [plugin1],
+    );
+
+    // nestedFolder1 has no plugins enabled.
+    newAnalysisOptionsYamlFile(
+      join(workspaceRootPath, 'package1', 'nestedFolder1'),
+      AnalysisOptionsFileConfig(experiments: experiments).toContent(),
+    );
+
+    // Write the single package config at the root that can resolve both
+    // plugins.
+    newPackageConfigJsonFileFromBuilder(
+        workspaceRootPath,
+        PackageConfigFileBuilder()
+          ..add(name: 'plugin1', rootPath: plugin1.path));
+
+    // Set the analysis roots to the folder ('/home') that contains both
+    // packages but not the plugins (which are in '/plugins').
+    await setRoots(
+      included: [workspaceRootPath],
+      excluded: [],
+    );
+    await waitForTasksFinished();
+
+    expectPluginMapping({
+      'home': [],
+      'package1': ['plugin1'],
+      'nestedFolder1': [],
+    });
+  }
+
+  /// Tests a package with a nested folder that has an additional
+  /// `analysis_options.yaml` that enables a different plugin. An additional
+  /// root should be created.
+  Future<void>
+      test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledDifferentPlugin() async {
+    if (!AnalysisServer.supportsPlugins) return;
+
+    var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
+    var plugin2 = (name: 'plugin2', path: _createPlugin('plugin2'));
+
+    // package1 has plugin2 enabled.
+    _createTestPackage(
+      'package1',
+      withPackageConfig: false,
+      plugins: [plugin1],
+    );
+
+    // nestedFolder1 has plugin2 enabled.
+    newAnalysisOptionsYamlFile(
+      join(workspaceRootPath, 'package1', 'nestedFolder1'),
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+        plugins: [plugin2.name],
+      ).toContent(),
+    );
+
+    // Write the single package config at the root that can resolve both
+    // plugins.
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootPath: plugin1.path)
+        ..add(name: 'plugin2', rootPath: plugin2.path),
+    );
+
+    // Set the analysis roots to the folder ('/home') that contains both
+    // packages but not the plugins (which are in '/plugins').
+    await setRoots(
+      included: [workspaceRootPath],
+      excluded: [],
+    );
+    await waitForTasksFinished();
+
+    expectPluginMapping({
+      'home': [],
+      'package1': ['plugin1'],
+      'nestedFolder1': ['plugin2'],
+    });
+  }
+
+  /// Tests a package with a nested folder that has an additional
+  /// `analysis_options.yaml` that enables the same plugin explicitly. No
+  /// additional context needs to be created.
+  Future<void>
+      test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledPluginExplicit() async {
+    if (!AnalysisServer.supportsPlugins) return;
+
+    var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
+
+    // package1 has plugin2 enabled.
+    _createTestPackage(
+      'package1',
+      withPackageConfig: false,
+      plugins: [plugin1],
+    );
+
+    // nestedFolder1 also has plugin1 enabled.
+    newAnalysisOptionsYamlFile(
+      join(workspaceRootPath, 'package1', 'nestedFolder1'),
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+        plugins: [plugin1.name],
+      ).toContent(),
+    );
+
+    // Write the single package config at the root that can resolve both
+    // plugins.
+    newPackageConfigJsonFileFromBuilder(
+        workspaceRootPath,
+        PackageConfigFileBuilder()
+          ..add(name: 'plugin1', rootPath: plugin1.path));
+
+    // Set the analysis roots to the folder ('/home') that contains both
+    // packages but not the plugins (which are in '/plugins').
+    await setRoots(
+      included: [workspaceRootPath],
+      excluded: [],
+    );
+    await waitForTasksFinished();
+
+    expectPluginMapping({
+      'home': [],
+      'package1': ['plugin1'],
+      // nestedFolder1 is included as part of package1.
+    });
+  }
+
+  /// Tests a package with a nested folder that has an additional
+  /// `analysis_options.yaml` that enables the same plugin by including the
+  /// parents `analysis_options.yaml`. No additional context needs to be
+  /// created.
+  Future<void>
+      test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledPluginInclude() async {
+    if (!AnalysisServer.supportsPlugins) return;
+
+    var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
+
+    // package1 has plugin2 enabled.
+    _createTestPackage(
+      'package1',
+      withPackageConfig: false,
+      plugins: [plugin1],
+    );
+
+    // nestedFolder1 also has plugin1 enabled because it includes the parent
+    // `analysis_options.yaml`.
+    newAnalysisOptionsYamlFile(
+      join(workspaceRootPath, 'package1', 'nestedFolder1'),
+      AnalysisOptionsFileConfig(
+        include: '../analysis_options.yaml',
+      ).toContent(),
+    );
+
+    // Write the single package config at the root that can resolve both
+    // plugins.
+    newPackageConfigJsonFileFromBuilder(
+        workspaceRootPath,
+        PackageConfigFileBuilder()
+          ..add(name: 'plugin1', rootPath: plugin1.path));
+
+    // Set the analysis roots to the folder ('/home') that contains both
+    // packages but not the plugins (which are in '/plugins').
+    await setRoots(
+      included: [workspaceRootPath],
+      excluded: [],
+    );
+    await waitForTasksFinished();
+
+    expectPluginMapping({
+      'home': [],
+      'package1': ['plugin1'],
+      // nestedFolder1 is included as part of package1.
+    });
+  }
+
   /// Test that the correct context roots are passed to plugins when they are
   /// enabled only for projects nested within the workspace (which do not have
   /// their own package configs but use the one from the root).
@@ -2109,14 +2331,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   ///   - package1/ (plugin1, (plugin2 - disabled due to limit))
   ///   - package2/ (plugin2, (plugin1 - disabled due to limit))
   ///   - package3/ (plugin1)
-  @FailingTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/56475',
-    reason: 'Test passes in 3.5 if the `singleOptionContexts` flag is set back '
-        'to=true but as `false` (as shipped), we: '
-        '  a) enable plugins from previous sibling due to ContextBuilder reuse'
-        '  b) read child analysis_options so the root gets plugins'
-        '  c) do not create context roots for nested projects so do not provide those roots to plugins',
-  )
   Future<void>
       test_sentToPlugins_inNestedPackages_withoutPackageConfigs() async {
     if (!AnalysisServer.supportsPlugins) return;
@@ -2158,22 +2372,12 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     );
     await waitForTasksFinished();
 
-    // Verify the assignment of plugins to roots.
-    var pluginMapping = pluginManager.contextRootPlugins.map(
-      (root, plugins) => MapEntry(
-        pathContext.basename(root.root.path),
-        plugins.map((pluginPath) => pathContext
-            .basename(pathContext.dirname(pathContext.dirname(pluginPath)))),
-      ),
-    );
-    expect(
-      pluginMapping,
-      {
-        'package1': ['plugin1'],
-        'package2': ['plugin2'],
-        'package3': ['plugin1'],
-      },
-    );
+    expectPluginMapping({
+      'home': [],
+      'package1': ['plugin1'],
+      'package2': ['plugin2'],
+      'package3': ['plugin1'],
+    });
   }
 
   /// Test that the correct context roots are passed to plugins when they are
@@ -2186,14 +2390,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   ///   - package1/ (plugin1, (plugin2 - disabled due to limit))
   ///   - package2/ (plugin2, (plugin1 - disabled due to limit))
   ///   - package3/ (plugin1)
-  @FailingTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/56475',
-    reason: 'Test passes in 3.5 if the `singleOptionContexts` flag is set back '
-        'to=true but as `false` (as shipped), we: '
-        '  a) enable plugins from previous sibling due to ContextBuilder reuse'
-        '  b) read child analysis_options so the root gets plugins'
-        '  c) include duplicate plugins as a result of (b)',
-  )
   Future<void> test_sentToPlugins_inNestedPackages_withPackageConfigs() async {
     if (!AnalysisServer.supportsPlugins) return;
 
@@ -2223,22 +2419,12 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     );
     await waitForTasksFinished();
 
-    // Verify the assignment of plugins to roots.
-    var pluginMapping = pluginManager.contextRootPlugins.map(
-      (root, plugins) => MapEntry(
-        pathContext.basename(root.root.path),
-        plugins.map((pluginPath) => pathContext
-            .basename(pathContext.dirname(pathContext.dirname(pluginPath)))),
-      ),
-    );
-    expect(
-      pluginMapping,
-      {
-        'package1': ['plugin1'],
-        'package2': ['plugin2'],
-        'package3': ['plugin1'],
-      },
-    );
+    expectPluginMapping({
+      'home': [],
+      'package1': ['plugin1'],
+      'package2': ['plugin2'],
+      'package3': ['plugin1'],
+    });
   }
 
   /// Creates a plugin package named [name] and returns the path to the root
