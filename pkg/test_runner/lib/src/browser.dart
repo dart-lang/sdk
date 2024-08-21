@@ -328,11 +328,11 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
           src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
   </script>
   <script type="module">
-  const dartModulePromise = WebAssembly.compileStreaming(fetch('$wasmPath'));
-  const imports = {};
   let dart2wasm_runtime = await import('$mjsPath');
+  const dartModulePromise =
+      dart2wasm_runtime.compileStreaming(fetch('$wasmPath'));
   let moduleInstance =
-      await dart2wasm_runtime.instantiate(dartModulePromise, imports);
+      await dart2wasm_runtime.instantiate(dartModulePromise, {});
 
   dartMainRunner(() => {
     dart2wasm_runtime.invoke(moduleInstance);

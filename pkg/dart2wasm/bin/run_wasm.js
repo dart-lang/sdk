@@ -370,18 +370,7 @@ if (argsSplit != -1) {
 const main = async () => {
     const dart2wasm = await import(args[jsRuntimeArg]);
 
-    /// Returns whether the `js-string` built-in is supported.
-    function detectImportedStrings() {
-        let bytes = [
-            0,   97,  115, 109, 1,   0,   0,  0,   1,   4,   1,   96,  0,
-            0,   2,   23,  1,   14,  119, 97, 115, 109, 58,  106, 115, 45,
-            115, 116, 114, 105, 110, 103, 4,  99,  97,  115, 116, 0,   0
-        ];
-        return !WebAssembly.validate(
-            new Uint8Array(bytes), {builtins: ['js-string']});
-    }
-
-    function compile(filename, withJsStringBuiltins) {
+    function compile(filename) {
         // Create a Wasm module from the binary Wasm file.
         var bytes;
         if (isJSC) {
@@ -391,10 +380,7 @@ const main = async () => {
         } else {
           bytes = readRelativeToScript(filename, "binary");
         }
-        return WebAssembly.compile(
-            bytes,
-            withJsStringBuiltins ? {builtins: ['js-string']} : {}
-        );
+        return dart2wasm.compile(bytes);
     }
 
     globalThis.window ??= globalThis;
@@ -411,7 +397,7 @@ const main = async () => {
 
     // Instantiate the Dart module, importing from the global scope.
     var dartInstance = await dart2wasm.instantiate(
-        compile(args[wasmArg], detectImportedStrings()),
+        compile(args[wasmArg]),
         Promise.resolve(importObject),
     );
 

@@ -3,6 +3,42 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const jsRuntimeBlobPart1 = r'''
+// Returns whether the `js-string` built-in is supported.
+function detectJsStringBuiltins() {
+    let bytes = [
+        0,   97,  115, 109, 1,   0,   0,  0,   1,   4,   1,   96,  0,
+        0,   2,   23,  1,   14,  119, 97, 115, 109, 58,  106, 115, 45,
+        115, 116, 114, 105, 110, 103, 4,  99,  97,  115, 116, 0,   0
+    ];
+    return WebAssembly.validate(
+        new Uint8Array(bytes), {builtins: ['js-string']});
+}
+
+// Compile a dart2wasm-generated Wasm module using
+// `WebAssembly.compileStreaming`, with the flags needed by dart2wasm. `source`
+// needs to have a type expected by `WebAssembly.compileStreaming`.
+//
+// Pass the output of this to `instantiate` below to instantiate the compiled
+// module.
+export const compileStreaming = (source) => {
+    return WebAssembly.compileStreaming(
+        source,
+        detectJsStringBuiltins() ? {builtins: ['js-string']} : {}
+    );
+}
+
+// Compile a dart2wasm-generated Wasm module using `WebAssembly.compile`, with
+// the flags needed by dart2wasm. `source` needs to have a type expected by
+// `WebAssembly.compileStreaming`.
+//
+// Pass the output of this to `instantiate` below to instantiate the compiled
+// module.
+export const compile = (bytes) => {
+    return WebAssembly.compile(
+        bytes,
+        detectJsStringBuiltins() ? {builtins: ['js-string']} : {}
+    );
+}
 
 // `modulePromise` is a promise to the `WebAssembly.module` object to be
 //   instantiated.
