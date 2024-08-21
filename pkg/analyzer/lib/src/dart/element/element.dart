@@ -7287,10 +7287,13 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return super.metadata;
   }
 
+  String? _setterNameResolved ;
+
   @override
   String get name {
     if (isSetter) {
-      return considerCanonicalizeString("${super.name}=");
+      return
+        _setterNameResolved ??= considerCanonicalizeString("${super.name}=");
     }
     return super.name;
   }
