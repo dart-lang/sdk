@@ -2248,7 +2248,7 @@ class Parser {
     }
     token = token.next!;
     assert(optional(']', token));
-    listener.endOptionalFormalParameters(parameterCount, begin, token);
+    listener.endOptionalFormalParameters(parameterCount, begin, token, kind);
     return token;
   }
 
@@ -2299,7 +2299,7 @@ class Parser {
     }
     token = token.next!;
     assert(optional('}', token));
-    listener.endOptionalFormalParameters(parameterCount, begin, token);
+    listener.endOptionalFormalParameters(parameterCount, begin, token, kind);
     return token;
   }
 

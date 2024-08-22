@@ -2829,7 +2829,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("endOptionalFormalParameters");
     // When recovering from an empty list of optional arguments, count may be
     // 0. It might be simpler if the parser didn't call this method in that
