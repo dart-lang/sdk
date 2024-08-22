@@ -627,11 +627,15 @@ class DevToolsServer {
       final args = headlessMode
           ? [
               '--headless',
-              // When running headless, Chrome will quit immediately after loading
-              // the page unless we have the debug port open.
+              // When running headless, Chrome will quit immediately after
+              // loading the page unless we have the debug port open.
               '--remote-debugging-port=9223',
               '--disable-gpu',
               '--no-sandbox',
+              // When running on MacOS, Chrome may open system dialogs
+              // requesting credentials. This uses a mock keychain to avoid that
+              // dialog from blocking.
+              '--use-mock-keychain',
             ]
           : <String>[];
       final proc = await Chrome.start([uriToLaunch.toString()], args: args);
