@@ -311,6 +311,14 @@ class DTDClient extends Client {
     // method, forward the request to that client.
     final combinedName = parameters.method;
     final dotIndex = combinedName.indexOf('.');
+    if (dotIndex == -1) {
+      // All service methods must have a dot in the name.
+      throw json_rpc.RpcException(
+        RpcErrorCodes.kMethodNotFound,
+        'Unknown service method: $combinedName',
+      );
+    }
+
     final serviceName = combinedName.substring(0, dotIndex);
     final methodName = combinedName.substring(dotIndex + 1);
 
