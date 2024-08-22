@@ -76,22 +76,6 @@ class ForceGrowthSafepointOperationScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(ForceGrowthSafepointOperationScope);
 };
 
-// Subclasses of SafepointTask are able to run on thread blocked at a safepoint.
-class SafepointTask : public ThreadPool::Task,
-                      public IntrusiveDListEntry<SafepointTask> {
- protected:
-  SafepointTask() {}
-
- public:
-  virtual ~SafepointTask() {}
-
-  virtual void RunBlockedAtSafepoint() = 0;
-  virtual void RunMain() = 0;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(SafepointTask);
-};
-
 // Implements handling of safepoint operations for all threads in an
 // IsolateGroup.
 class SafepointHandler {
@@ -129,8 +113,6 @@ class SafepointHandler {
     }
     return false;
   }
-
-  void RunTasks(IntrusiveDList<SafepointTask>* tasks);
 
  private:
   class LevelHandler {
@@ -219,7 +201,6 @@ class SafepointHandler {
   IsolateGroup* isolate_group_;
 
   LevelHandler* handlers_[SafepointLevel::kNumLevels];
-  IntrusiveDList<SafepointTask> tasks_;
 
   friend class Isolate;
   friend class IsolateGroup;

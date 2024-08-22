@@ -215,7 +215,7 @@ void MournFinalizerEntry(GCVisitorType* visitor,
   // workers are not, but they bypass safepoint because the main
   // worker is at a safepoint already.
   ASSERT(Thread::Current()->OwnsGCSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kScavengerTask));
+         Thread::Current()->BypassSafepoints());
 
   if (finalizer.IsNativeFinalizer()) {
     NativeFinalizerPtr native_finalizer =

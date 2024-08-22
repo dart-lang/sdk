@@ -901,7 +901,7 @@ void GCMarker::ProcessRememberedSet(Thread* thread) {
   store_buffer->PushBlock(writing, StoreBuffer::kIgnoreThreshold);
 }
 
-class ParallelMarkTask : public SafepointTask {
+class ParallelMarkTask : public ThreadPool::Task {
  public:
   ParallelMarkTask(GCMarker* marker,
                    IsolateGroup* isolate_group,
@@ -915,10 +915,10 @@ class ParallelMarkTask : public SafepointTask {
         barrier_(barrier),
         visitor_(visitor),
         num_busy_(num_busy) {}
-  ~ParallelMarkTask() { barrier_->Release(); }
 
-  void Run() override {
+  virtual void Run() {
     if (!barrier_->TryEnter()) {
+      barrier_->Release();
       return;
     }
 
@@ -931,28 +931,7 @@ class ParallelMarkTask : public SafepointTask {
     Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
 
     barrier_->Sync();
-  }
-
-  void RunBlockedAtSafepoint() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    Thread* thread = Thread::Current();
-    Thread::TaskKind saved_task_kind = thread->task_kind();
-    thread->set_task_kind(Thread::kMarkerTask);
-
-    RunEnteredIsolateGroup();
-
-    thread->set_task_kind(saved_task_kind);
-
-    barrier_->Sync();
-  }
-
-  void RunMain() override {
-    RunEnteredIsolateGroup();
-
-    barrier_->Sync();
+    barrier_->Release();
   }
 
   void RunEnteredIsolateGroup() {
@@ -1364,8 +1343,8 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       ResetSlices();
       // Used to coordinate draining among tasks; all start out as 'busy'.
       RelaxedAtomic<uintptr_t> num_busy = 0;
+      // Phase 1: Iterate over roots and drain marking stack in tasks.
 
-      IntrusiveDList<SafepointTask> tasks;
       for (intptr_t i = 0; i < num_tasks; ++i) {
         SyncMarkingVisitor* visitor = visitors_[i];
         // Visitors may or may not have already been created depending on
@@ -1384,12 +1363,23 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
         // such a visitor's local blocks.
         visitor->Flush(&global_list_);
         // Need to move weak property list too.
-        tasks.Append(new ParallelMarkTask(this, isolate_group_,
-                                          &old_marking_stack_, barrier, visitor,
-                                          &num_busy));
+
+        if (i < (num_tasks - 1)) {
+          // Begin marking on a helper thread.
+          bool result = Dart::thread_pool()->Run<ParallelMarkTask>(
+              this, isolate_group_, &old_marking_stack_, barrier, visitor,
+              &num_busy);
+          ASSERT(result);
+        } else {
+          // Last worker is the main thread.
+          visitor->Adopt(&global_list_);
+          ParallelMarkTask task(this, isolate_group_, &old_marking_stack_,
+                                barrier, visitor, &num_busy);
+          task.RunEnteredIsolateGroup();
+          barrier->Sync();
+          barrier->Release();
+        }
       }
-      visitors_[0]->Adopt(&global_list_);
-      isolate_group_->safepoint_handler()->RunTasks(&tasks);
 
       for (intptr_t i = 0; i < num_tasks; i++) {
         SyncMarkingVisitor* visitor = visitors_[i];
