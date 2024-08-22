@@ -4,7 +4,8 @@
 
 library fasta.type_builder;
 
-import 'package:kernel/ast.dart' show DartType, Supertype, TreeNode;
+import 'package:kernel/ast.dart'
+    show DartType, Nullability, Supertype, TreeNode;
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/messages.dart';
@@ -463,6 +464,14 @@ sealed class TypeBuilder {
           List<TypeBuilder>? unboundTypes,
           List<StructuralVariableBuilder>? unboundTypeVariables}) =>
       this;
+
+  /// Computes the nullability of this type.
+  ///
+  /// [typeVariablesTraversalState] is passed to handle cyclic dependencies
+  /// between type variables,
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState});
 }
 
 abstract class OmittedTypeBuilder extends TypeBuilder {

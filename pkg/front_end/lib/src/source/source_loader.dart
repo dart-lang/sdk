@@ -1867,9 +1867,9 @@ severity: $severity
   void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
     Map<NominalVariableBuilder, SourceLibraryBuilder>
-        unboundTypeVariableBuilders = {};
+        unboundTypeVariableBuilders = new Map.identity();
     Map<StructuralVariableBuilder, SourceLibraryBuilder>
-        unboundFunctionTypeTypeVariableBuilders = {};
+        unboundFunctionTypeTypeVariableBuilders = new Map.identity();
     for (SourceLibraryBuilder library in libraryBuilders) {
       library.collectUnboundTypeVariables(
           unboundTypeVariableBuilders, unboundFunctionTypeTypeVariableBuilders);
@@ -1889,17 +1889,23 @@ severity: $severity
           SourceLibraryBuilder? libraryBuilder =
               unboundTypeVariableBuilders[builder]!;
           libraryBuilder.checkTypeVariableDependencies([builder]);
-          builder.finish(libraryBuilder, object, dynamicType);
         case StructuralVariableBuilder():
           SourceLibraryBuilder? libraryBuilder =
               unboundFunctionTypeTypeVariableBuilders[builder]!;
           libraryBuilder.checkTypeVariableDependencies([builder]);
-          builder.finish(libraryBuilder, object, dynamicType);
       }
     }
-
-    for (SourceLibraryBuilder library in libraryBuilders) {
-      library.processPendingNullabilities();
+    for (TypeVariableBuilder builder in sortedTypeVariables) {
+      switch (builder) {
+        case NominalVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundTypeVariableBuilders[builder]!;
+          builder.finish(libraryBuilder, object, dynamicType);
+        case StructuralVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundFunctionTypeTypeVariableBuilders[builder]!;
+          builder.finish(libraryBuilder, object, dynamicType);
+      }
     }
 
     ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
@@ -2606,9 +2612,6 @@ severity: $severity
         referenceFromIndex!.addIndexedLibrary(target, library.indexedLibrary!);
       }
       libraries.add(target);
-    }
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      library.processPendingNullabilities();
     }
     ticker.logMs("Built component");
   }

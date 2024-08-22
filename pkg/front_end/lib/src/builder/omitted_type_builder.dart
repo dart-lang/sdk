@@ -10,6 +10,7 @@ import '../kernel/implicit_field_type.dart';
 import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
+import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -106,6 +107,13 @@ class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
 
   @override
   DartType get type => const DynamicType();
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Nullability computeNullability(
+          {required Map<TypeVariableBuilder, TraversalState>
+              typeVariablesTraversalState}) =>
+      type.nullability;
 }
 
 /// [TypeBuilder] for when there is no explicit type provided by the user but
@@ -196,6 +204,13 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
     buffer.write(')');
     return buffer;
   }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    throw new UnsupportedError("$runtimeType.computeNullability");
+  }
 }
 
 // Coverage-ignore(suite): Not run.
@@ -251,6 +266,13 @@ class DependentTypeBuilder extends OmittedTypeBuilderImpl
     buffer.write(typeBuilder);
     buffer.write(')');
     return buffer;
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    throw new UnimplementedError("$runtimeType.computeNullability");
   }
 }
 

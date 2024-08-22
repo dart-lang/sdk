@@ -8913,7 +8913,6 @@ class BodyBuilder extends StackListenerImpl
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
-    libraryBuilder.processPendingNullabilities();
   }
 
   @override

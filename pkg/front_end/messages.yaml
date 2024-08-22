@@ -2517,10 +2517,6 @@ InternalProblemLabelUsageInVariablesDeclaration:
   problemMessage: "Unexpected usage of label inside declaration of variables."
   severity: INTERNAL_PROBLEM
 
-InternalProblemUnfinishedTypeVariable:
-  problemMessage: "Unfinished type variable '#name' found in non-source library '#uri'."
-  severity: INTERNAL_PROBLEM
-
 InternalProblemUnsupportedNullability:
   problemMessage: "Unsupported nullability value '#string' on type '#type'."
   severity: INTERNAL_PROBLEM

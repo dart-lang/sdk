@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart'
-    show DartType, InvalidType, NamedType, RecordType, Supertype;
+    show DartType, InvalidType, NamedType, Nullability, RecordType, Supertype;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
@@ -21,6 +21,7 @@ import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 import '../util/helpers.dart';
+import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
@@ -318,6 +319,13 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       NullabilityBuilder nullabilityBuilder) {
     return new RecordTypeBuilderImpl(
         positionalFields, namedFields, nullabilityBuilder, fileUri, charOffset);
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return nullabilityBuilder.build();
   }
 }
 

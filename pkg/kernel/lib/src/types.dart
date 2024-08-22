@@ -1210,13 +1210,14 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
             s,
             t.typeArgument.withDeclaredNullability(
                 combineNullabilitiesForSubstitution(
-                    t.typeArgument.declaredNullability, t.declaredNullability)))
+                    inner: t.typeArgument.declaredNullability,
+                    outer: t.declaredNullability)))
         // Rule 13.
         .orSubtypeCheckFor(
             s.parameter.bound.withDeclaredNullability(
                 combineNullabilitiesForSubstitution(
-                    s.parameter.bound.declaredNullability,
-                    s.declaredNullability)),
+                    inner: s.parameter.bound.declaredNullability,
+                    outer: s.declaredNullability)),
             t,
             types)
         // Rule 10.
@@ -1239,7 +1240,8 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
         .orSubtypeCheckFor(
             s.parameter.bound.withDeclaredNullability(
                 combineNullabilitiesForSubstitution(
-                    s.parameter.bound.nullability, s.nullability)),
+                    inner: s.parameter.bound.nullability,
+                    outer: s.nullability)),
             t,
             types)
         // Rule 10.

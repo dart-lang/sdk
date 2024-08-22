@@ -9156,41 +9156,6 @@ Message _withArgumentsInternalProblemUnexpected(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_)>
-    templateInternalProblemUnfinishedTypeVariable =
-    const Template<Message Function(String name, Uri uri_)>(
-  "InternalProblemUnfinishedTypeVariable",
-  problemMessageTemplate:
-      r"""Unfinished type variable '#name' found in non-source library '#uri'.""",
-  withArguments: _withArgumentsInternalProblemUnfinishedTypeVariable,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_)>
-    codeInternalProblemUnfinishedTypeVariable =
-    const Code<Message Function(String name, Uri uri_)>(
-  "InternalProblemUnfinishedTypeVariable",
-  severity: Severity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnfinishedTypeVariable(
-    String name, Uri uri_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  return new Message(
-    codeInternalProblemUnfinishedTypeVariable,
-    problemMessage:
-        """Unfinished type variable '${name}' found in non-source library '${uri}'.""",
-    arguments: {
-      'name': name,
-      'uri': uri_,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String string2)>
     templateInternalProblemUnhandled =
     const Template<Message Function(String string, String string2)>(

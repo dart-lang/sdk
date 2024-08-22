@@ -606,6 +606,15 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     }
     return null;
   }
+
+  @override
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return unalias(typeArguments, unboundTypes: [], unboundTypeVariables: [])!
+        .computeNullability(
+            typeVariablesTraversalState: typeVariablesTraversalState);
+  }
 }
 
 /// Used to detect cycles in the declaration of a typedef

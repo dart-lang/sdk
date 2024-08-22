@@ -77,6 +77,8 @@ class SourceExtensionTypeDeclarationBuilder
 
   final IndexedContainer? indexedContainer;
 
+  Nullability? _nullability;
+
   SourceExtensionTypeDeclarationBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -584,6 +586,78 @@ class SourceExtensionTypeDeclarationBuilder
         }
       }
     }
+  }
+
+  @override
+  Nullability computeNullability(
+          {Map<ExtensionTypeDeclarationBuilder, TraversalState>?
+              traversalState}) =>
+      _nullability ??= _computeNullability(traversalState: traversalState);
+
+  Nullability _computeNullabilityFromType(TypeBuilder typeBuilder,
+      {required Map<ExtensionTypeDeclarationBuilder, TraversalState>
+          traversalState}) {
+    Nullability nullability = typeBuilder.nullabilityBuilder.build();
+    if (typeBuilder is NamedTypeBuilder) {
+      TypeDeclarationBuilder? declaration = typeBuilder.declaration;
+      switch (declaration) {
+        case TypeAliasBuilder():
+          return combineNullabilitiesForSubstitution(
+              inner: _computeNullabilityFromType(
+                  declaration.unalias(typeBuilder.typeArguments,
+                      unboundTypes: [], unboundTypeVariables: [])!,
+                  traversalState: traversalState),
+              outer: nullability);
+        case ExtensionTypeDeclarationBuilder():
+          return combineNullabilitiesForSubstitution(
+              inner: declaration.computeNullability(
+                  traversalState: traversalState),
+              outer: nullability);
+        case ClassBuilder():
+        // Coverage-ignore(suite): Not run.
+        case NominalVariableBuilder():
+        // Coverage-ignore(suite): Not run.
+        case StructuralVariableBuilder():
+        // Coverage-ignore(suite): Not run.
+        case ExtensionBuilder():
+        // Coverage-ignore(suite): Not run.
+        case BuiltinTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
+        case InvalidTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
+        case OmittedTypeDeclarationBuilder():
+        case null:
+      }
+    }
+    return nullability;
+  }
+
+  Nullability _computeNullability(
+      {Map<ExtensionTypeDeclarationBuilder, TraversalState>? traversalState}) {
+    traversalState ??= {};
+    Nullability nullability = Nullability.undetermined;
+    switch (traversalState[this] ??= TraversalState.unvisited) {
+      case TraversalState.unvisited:
+        traversalState[this] = TraversalState.active;
+        List<TypeBuilder>? interfaceBuilders = this.interfaceBuilders;
+        if (interfaceBuilders != null) {
+          for (TypeBuilder interfaceBuilder in interfaceBuilders) {
+            Nullability interfaceNullability = _computeNullabilityFromType(
+                interfaceBuilder,
+                traversalState: traversalState);
+            if (interfaceNullability == Nullability.nonNullable) {
+              nullability = Nullability.nonNullable;
+              break;
+            }
+          }
+        }
+        traversalState[this] = TraversalState.visited;
+      // Coverage-ignore(suite): Not run.
+      case TraversalState.active:
+      case TraversalState.visited:
+        traversalState[this] = TraversalState.visited;
+    }
+    return nullability;
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {

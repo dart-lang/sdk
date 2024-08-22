@@ -4,7 +4,6 @@
 
 library fasta.source_library_builder;
 
-import 'dart:collection';
 import 'dart:convert' show jsonEncode;
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
@@ -141,12 +140,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // the former does not need to be updated after the body of the latter was
   // built.
   final List<Procedure> forwardersOrigins = <Procedure>[];
-
-  // While the bounds of type parameters aren't compiled yet, we can't tell the
-  // default nullability of the corresponding type-parameter types.  This list
-  // is used to collect such type-parameter types in order to set the
-  // nullability after the bounds are built.
-  final List<PendingNullability> _pendingNullabilities = <PendingNullability>[];
 
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of
@@ -1442,207 +1435,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  /// Assigns nullabilities to types in [_pendingNullabilities].
-  ///
-  /// It's a helper function to assign the nullabilities to type-parameter types
-  /// after the corresponding type parameters have their bounds set or changed.
-  /// The function takes into account that some of the types in the input list
-  /// may be bounds to some of the type parameters of other types from the input
-  /// list.
-  void processPendingNullabilities({Set<DartType>? typeFilter}) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        this.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.processPendingNullabilities();
-      }
-    }
-
-    // The bounds of type parameters may be type-parameter types of other
-    // parameters from the same declaration.  In this case we need to set the
-    // nullability for them first.  To preserve the ordering, we implement a
-    // depth-first search over the types.  We use the fact that a nullability
-    // of a type parameter type can't ever be 'nullable' if computed from the
-    // bound. It allows us to use 'nullable' nullability as the marker in the
-    // DFS implementation.
-
-    // We cannot set the declared nullability on the pending types to `null` so
-    // we create a map of the pending type parameter type nullabilities.
-    Map< /* TypeParameterType | StructuralParameterType */ DartType,
-        Nullability?> nullabilityMap = new LinkedHashMap.identity();
-    Nullability? getDeclaredNullability(
-        /* TypeParameterType | StructuralParameterType */ DartType type) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (nullabilityMap.containsKey(type)) {
-        return nullabilityMap[type];
-      }
-      return type.declaredNullability;
-    }
-
-    void setDeclaredNullability(
-        /* TypeParameterType | StructuralParameterType */ DartType type,
-        Nullability nullability) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (nullabilityMap.containsKey(type)) {
-        nullabilityMap[type] = nullability;
-      }
-      if (type is TypeParameterType) {
-        type.declaredNullability = nullability;
-      } else {
-        type as StructuralParameterType;
-        type.declaredNullability = nullability;
-      }
-    }
-
-    DartType getBound(
-        /* TypeParameterType | StructuralParameterType */ DartType type) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (type is TypeParameterType) {
-        return type.parameter.bound;
-      } else {
-        type as StructuralParameterType;
-        return type.parameter.bound;
-      }
-    }
-
-    // Coverage-ignore(suite): Not run.
-    void setBoundAndDefaultType(
-        /* TypeParameterType | StructuralParameterType */ type,
-        DartType bound,
-        DartType defaultType) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (type is TypeParameterType) {
-        type.parameter.bound = bound;
-        type.parameter.defaultType = defaultType;
-      } else {
-        type as StructuralParameterType;
-        type.parameter.bound = bound;
-        type.parameter.defaultType = defaultType;
-      }
-    }
-
-    Nullability computeNullabilityFromBound(
-        /* TypeParameterType | StructuralParameterType */ DartType type) {
-      assert(type is TypeParameterType || type is StructuralParameterType);
-      if (type is TypeParameterType) {
-        return TypeParameterType.computeNullabilityFromBound(type.parameter);
-      } else {
-        type as StructuralParameterType;
-        return StructuralParameterType.computeNullabilityFromBound(
-            type.parameter);
-      }
-    }
-
-    Nullability marker = Nullability.nullable;
-    List< /* TypeParameterType | StructuralParameterType */ DartType?> stack =
-        new List<DartType?>.filled(_pendingNullabilities.length, null);
-    int stackTop = 0;
-    for (PendingNullability pendingNullability in _pendingNullabilities) {
-      if (typeFilter != null &&
-          // Coverage-ignore(suite): Not run.
-          !typeFilter.contains(pendingNullability.type)) {
-        continue;
-      }
-      nullabilityMap[pendingNullability.type] = null;
-    }
-    for (PendingNullability pendingNullability in _pendingNullabilities) {
-      if (typeFilter != null &&
-          // Coverage-ignore(suite): Not run.
-          !typeFilter.contains(pendingNullability.type)) {
-        continue;
-      }
-      DartType type = pendingNullability.type;
-      if (getDeclaredNullability(type) != null) {
-        // Nullability for [type] was already computed on one of the branches
-        // of the depth-first search.  Continue to the next one.
-        continue;
-      }
-      DartType peeledBound = _peelOffFutureOr(getBound(type));
-      if (peeledBound is TypeParameterType) {
-        DartType current = type;
-        DartType? next = peeledBound;
-        bool isDirectDependency = identical(getBound(type), peeledBound);
-        while (next != null && getDeclaredNullability(next) == null) {
-          stack[stackTop++] = current;
-          setDeclaredNullability(current, marker);
-
-          current = next;
-          peeledBound = _peelOffFutureOr(getBound(current));
-          isDirectDependency =
-              isDirectDependency && identical(getBound(current), peeledBound);
-          if (peeledBound is TypeParameterType) {
-            next = peeledBound;
-            if (getDeclaredNullability(next) == marker) {
-              setDeclaredNullability(next, Nullability.undetermined);
-              if (isDirectDependency) {
-                // Coverage-ignore-block(suite): Not run.
-                assert(loader.assertProblemReportedElsewhere(
-                    "SourceLibraryBuilder.processPendingNullabilities: "
-                    "Cyclic dependency via TypeParameterType is detected while "
-                    "processing pending nullabilities.",
-                    expectedPhase:
-                        CompilationPhaseForProblemReporting.outline));
-                setBoundAndDefaultType(
-                    current, const InvalidType(), const InvalidType());
-              }
-              next = null;
-            }
-          } else {
-            next = null;
-          }
-        }
-        setDeclaredNullability(current, computeNullabilityFromBound(current));
-        while (stackTop != 0) {
-          --stackTop;
-          current = stack[stackTop]!;
-          setDeclaredNullability(current, computeNullabilityFromBound(current));
-        }
-      } else if (peeledBound is StructuralParameterType) {
-        // Coverage-ignore-block(suite): Not run.
-        DartType current = type;
-        DartType? next = peeledBound;
-        bool isDirectDependency = identical(getBound(type), peeledBound);
-        while (next != null && getDeclaredNullability(next) == null) {
-          stack[stackTop++] = current;
-          setDeclaredNullability(current, marker);
-
-          current = next;
-          peeledBound = _peelOffFutureOr(getBound(current));
-          isDirectDependency =
-              isDirectDependency && identical(getBound(current), peeledBound);
-          if (peeledBound is StructuralParameterType) {
-            next = peeledBound;
-            if (getDeclaredNullability(next) == marker) {
-              setDeclaredNullability(next, Nullability.undetermined);
-              if (isDirectDependency) {
-                assert(loader.assertProblemReportedElsewhere(
-                    "SourceLibraryBuilder.processPendingNullabilities: "
-                    "Cyclic dependency via StructuralParameterType is detected "
-                    "while processing pending nullabilities.",
-                    expectedPhase:
-                        CompilationPhaseForProblemReporting.outline));
-                setBoundAndDefaultType(
-                    current, const InvalidType(), const InvalidType());
-              }
-              next = null;
-            }
-          } else {
-            next = null;
-          }
-        }
-        setDeclaredNullability(current, computeNullabilityFromBound(current));
-        while (stackTop != 0) {
-          --stackTop;
-          current = stack[stackTop]!;
-          setDeclaredNullability(current, computeNullabilityFromBound(current));
-        }
-      } else {
-        setDeclaredNullability(type, computeNullabilityFromBound(type));
-      }
-    }
-    _pendingNullabilities.clear();
-  }
-
   /// Computes variances of type parameters on typedefs.
   ///
   /// The variance property of type parameters on typedefs is computed from the
@@ -2260,13 +2052,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypeVariableDependencies(List<TypeVariableBuilder> typeVariables) {
-    Map<TypeVariableBuilder, TypeVariableTraversalState>
-        typeVariablesTraversalState =
-        <TypeVariableBuilder, TypeVariableTraversalState>{};
+    Map<TypeVariableBuilder, TraversalState> typeVariablesTraversalState =
+        <TypeVariableBuilder, TraversalState>{};
     for (TypeVariableBuilder typeVariable in typeVariables) {
       if ((typeVariablesTraversalState[typeVariable] ??=
-              TypeVariableTraversalState.unvisited) ==
-          TypeVariableTraversalState.unvisited) {
+              TraversalState.unvisited) ==
+          TraversalState.unvisited) {
         TypeVariableCyclicDependency? dependency =
             typeVariable.findCyclicDependency(
                 typeVariablesTraversalState: typeVariablesTraversalState);
@@ -2306,6 +2097,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
+    _computeTypeVariableNullabilities(typeVariables);
+  }
+
+  void _computeTypeVariableNullabilities(
+      List<TypeVariableBuilder> typeVariables) {
+    Map<TypeVariableBuilder, TraversalState> typeVariablesTraversalState =
+        <TypeVariableBuilder, TraversalState>{};
+    for (TypeVariableBuilder typeVariable in typeVariables) {
+      if ((typeVariablesTraversalState[typeVariable] ??=
+              TraversalState.unvisited) ==
+          TraversalState.unvisited) {
+        typeVariable.computeNullability(
+            typeVariablesTraversalState: typeVariablesTraversalState);
+      }
+    }
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
@@ -2315,37 +2121,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // Coverage-ignore(suite): Not run.
   void clearExtensionsInScopeCache() {
     compilationUnit.clearExtensionsInScopeCache();
-  }
-
-  void registerPendingNullability(
-      Uri fileUri, int charOffset, TypeParameterType type) {
-    _pendingNullabilities
-        .add(new PendingNullability(fileUri, charOffset, type));
-  }
-
-  void registerPendingFunctionTypeNullability(
-      Uri fileUri, int charOffset, StructuralParameterType type) {
-    _pendingNullabilities
-        .add(new PendingNullability(fileUri, charOffset, type));
-  }
-
-  bool hasPendingNullability(DartType type) {
-    type = _peelOffFutureOr(type);
-    if (type is TypeParameterType) {
-      for (PendingNullability pendingNullability in _pendingNullabilities) {
-        if (pendingNullability.type == type) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  static DartType _peelOffFutureOr(DartType type) {
-    while (type is FutureOrType) {
-      type = type.typeArgument;
-    }
-    return type;
   }
 
   void registerBoundsCheck(
@@ -2680,20 +2455,6 @@ class ImplicitLanguageVersion implements LanguageVersion {
   @override
   String toString() {
     return 'ImplicitLanguageVersion(version=$version)';
-  }
-}
-
-class PendingNullability {
-  final Uri fileUri;
-  final int charOffset;
-  final /* TypeParameterType | StructuralParameterType */ DartType type;
-
-  PendingNullability(this.fileUri, this.charOffset, this.type)
-      : assert(type is TypeParameterType || type is StructuralParameterType);
-
-  @override
-  String toString() {
-    return "PendingNullability(${fileUri}, ${charOffset}, ${type})";
   }
 }
 

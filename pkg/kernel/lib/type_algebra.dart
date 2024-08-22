@@ -755,7 +755,7 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
     if (replacement == null) return node;
     return replacement.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            replacement.nullability, node.nullability));
+            inner: replacement.nullability, outer: node.nullability));
   }
 
   @override
@@ -905,7 +905,7 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
     if (replacement != null) {
       return replacement.withDeclaredNullability(
           combineNullabilitiesForSubstitution(
-              replacement.nullability, node.nullability));
+              inner: replacement.nullability, outer: node.nullability));
     }
     return node;
   }
@@ -919,18 +919,18 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
 /// Combines nullabilities of types during type substitution.
 ///
 /// In a type substitution, for example, when `int` is substituted for `T` in
-/// `List<T?>`, the nullability of the occurrence of the type parameter should
-/// be combined with the nullability of the type that is being substituted for
-/// that type parameter.  In the example above it's the nullability of `T?`
-/// and `int`.  The function computes the nullability for the replacement as
-/// per the following table:
+/// `List<T?>`, the nullability of the occurrence of the [outer] type parameter,
+/// should be combined with the nullability of the [inner] type that is being
+/// substituted for that type parameter.  In the example above it's the
+/// nullability of `T?` and `int`.  The function computes the nullability for
+/// the replacement as per the following table:
 ///
-/// |  a  \  b  |  !  |  ?  |  *  |  %  |
-/// |-----------|-----|-----|-----|-----|
-/// |     !     |  !  |  ?  |  *  |  !  |
-/// |     ?     | N/A |  ?  |  ?  |  ?  |
-/// |     *     |  *  |  ?  |  *  |  *  |
-/// |     %     | N/A |  ?  |  *  |  %  |
+/// |  inner \ outer  |  !  |  ?  |  *  |  %  |
+/// |-----------------|-----|-----|-----|-----|
+/// |     !           |  !  |  ?  |  *  |  !  |
+/// |     ?           | N/A |  ?  |  ?  |  ?  |
+/// |     *           |  *  |  ?  |  *  |  *  |
+/// |     %           | N/A |  ?  |  *  |  %  |
 ///
 /// Here `!` denotes `Nullability.nonNullable`, `?` denotes
 /// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
@@ -940,86 +940,87 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
 /// a is nonNullable:
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.nonNullable, Nullability.nonNullable),
+///     inner: Nullability.nonNullable, outer: Nullability.nonNullable),
 ///   Nullability.nonNullable
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.nonNullable, Nullability.nullable),
+///     inner: Nullability.nonNullable, outer: Nullability.nullable),
 ///   Nullability.nullable
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.nonNullable, Nullability.legacy),
+///     inner: Nullability.nonNullable, outer: Nullability.legacy),
 ///   Nullability.legacy
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.nonNullable, Nullability.undetermined),
+///     inner: Nullability.nonNullable, outer: Nullability.undetermined),
 ///   Nullability.nonNullable
 /// )
 ///
 /// a is nullable:
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.nullable, Nullability.nullable),
+///     inner: Nullability.nullable, outer: Nullability.nullable),
 ///   Nullability.nullable
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.nullable, Nullability.legacy),
+///     inner: Nullability.nullable, outer: Nullability.legacy),
 ///   Nullability.nullable
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.nullable, Nullability.undetermined),
+///     inner: Nullability.nullable, outer: Nullability.undetermined),
 ///   Nullability.nullable
 /// )
 ///
 /// a is legacy:
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.legacy, Nullability.nonNullable),
+///     inner: Nullability.legacy, outer: Nullability.nonNullable),
 ///   Nullability.legacy
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.legacy, Nullability.nullable),
+///     inner: Nullability.legacy, outer: Nullability.nullable),
 ///   Nullability.nullable
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.legacy, Nullability.legacy),
+///     inner: Nullability.legacy, outer: Nullability.legacy),
 ///   Nullability.legacy
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.legacy, Nullability.undetermined),
+///     inner: Nullability.legacy, outer: Nullability.undetermined),
 ///   Nullability.legacy
 /// )
 ///
 /// a is undetermined:
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.undetermined, Nullability.nullable),
+///     inner: Nullability.undetermined, outer: Nullability.nullable),
 ///   Nullability.nullable
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.undetermined, Nullability.legacy),
+///     inner: Nullability.undetermined, outer: Nullability.legacy),
 ///   Nullability.legacy
 /// )
 /// DartDocTest(
 ///   combineNullabilitiesForSubstitution(
-///     Nullability.undetermined, Nullability.undetermined),
+///     inner: Nullability.undetermined, outer: Nullability.undetermined),
 ///   Nullability.undetermined
 /// )
-Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
+Nullability combineNullabilitiesForSubstitution(
+    {required Nullability inner, required Nullability outer}) {
   // In the table above we may extend the function given by it, replacing N/A
   // with whatever is easier to implement.  In this implementation, we extend
   // the table function as follows:
   //
-  // |  a  \  b  |  !  |  ?  |  *  |  %  |
+  // |  inner  \  outer  |  !  |  ?  |  *  |  %  |
   // |-----------|-----|-----|-----|-----|
   // |     !     |  !  |  ?  |  *  |  !  |
   // |     ?     |  ?  |  ?  |  ?  |  ?  |
@@ -1027,15 +1028,15 @@ Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
   // |     %     |  %  |  ?  |  *  |  %  |
   //
 
-  if (a == Nullability.nullable || b == Nullability.nullable) {
+  if (inner == Nullability.nullable || outer == Nullability.nullable) {
     return Nullability.nullable;
   }
 
-  if (a == Nullability.legacy || b == Nullability.legacy) {
+  if (inner == Nullability.legacy || outer == Nullability.legacy) {
     return Nullability.legacy;
   }
 
-  return a;
+  return inner;
 }
 
 abstract class _SubstitutorBase implements DartTypeVisitor<DartType> {
@@ -1240,7 +1241,7 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
     if (replacement != null) {
       return replacement.withDeclaredNullability(
           combineNullabilitiesForSubstitution(
-              replacement.declaredNullability, node.nullability));
+              inner: replacement.declaredNullability, outer: node.nullability));
     }
     return node;
   }
@@ -1262,7 +1263,7 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
     if (replacement == null) return node;
     return replacement.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            node.declaredNullability, replacement.nullability));
+            inner: node.declaredNullability, outer: replacement.nullability));
   }
 
   @override
@@ -1518,7 +1519,7 @@ class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
     if (replacement != null) {
       return replacement.withDeclaredNullability(
           combineNullabilitiesForSubstitution(
-              replacement.declaredNullability, node.nullability));
+              inner: replacement.declaredNullability, outer: node.nullability));
     }
     return null;
   }

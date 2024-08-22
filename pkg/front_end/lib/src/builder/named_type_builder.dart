@@ -7,6 +7,7 @@ library fasta.named_type_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart' as unaliasing;
+import 'package:kernel/type_algebra.dart';
 
 import '../base/messages.dart'
     show
@@ -715,6 +716,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           charOffset: charOffset,
           instanceTypeVariableAccess: _instanceTypeVariableAccess);
     }
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return combineNullabilitiesForSubstitution(
+        inner: declaration!.computeNullabilityWithArguments(typeArguments,
+            typeVariablesTraversalState: typeVariablesTraversalState),
+        outer: nullabilityBuilder.build());
   }
 }
 
