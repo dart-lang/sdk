@@ -1,3 +1,12 @@
+## 3.5.2
+
+- Fixes issue where running `dart` from `PATH` could result in some commands not
+  working as expected (issues [#56080], [#56306], [#56499]).)
+
+[#56080]: https://github.com/dart-lang/sdk/issues/56080
+[#56306]: https://github.com/dart-lang/sdk/issues/56306
+[#56499]: https://github.com/dart-lang/sdk/issues/56499
+
 ## 3.5.1 - 2024-08-14
 
 - Fixes resolving `include:` in `analysis_options.yaml` file in a nested
@@ -96,7 +105,7 @@
   `ExternalDartReference` now accepts a type parameter `T` with a bound of
   `Object?` to capture the type of the Dart object that is externalized.
   `ExternalDartReferenceToObject.toDartObject` now returns a `T`.
-  `ExternalDartReferenceToObject` and `ObjectToExternalDartReference` are now
+  0`ExternalDartReferenceToObject` and `ObjectToExternalDartReference` are now
   extensions on `T` and `ExternalDartReference<T>`, respectively, where `T
   extends Object?`. See [#55342][] and [#55536][] for more details.
 - Fixes some consistency issues with `Function.toJS` across all compilers.
