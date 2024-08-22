@@ -273,6 +273,7 @@ List<LspEntity> getCustomClasses() {
       isRename: false,
     ),
 
+    interface('ConnectToDtdParams', [field('uri', type: 'Uri')]),
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
