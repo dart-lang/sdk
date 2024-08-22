@@ -1138,17 +1138,15 @@ class SourceCompilationUnitImpl
         bound.typeVariables != null &&
         bound.typeVariables!.isNotEmpty;
     bool isAliasedGenericFunctionType = false;
-    if (bound is NamedTypeBuilder) {
-      TypeDeclarationBuilder? declaration = bound.declaration;
-      // TODO(cstefantsova): Unalias beyond the first layer for the check.
-      if (declaration is TypeAliasBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        TypeBuilder? rhsType = declaration.type;
-        if (rhsType is FunctionTypeBuilder &&
-            rhsType.typeVariables != null &&
-            rhsType.typeVariables!.isNotEmpty) {
-          isAliasedGenericFunctionType = true;
-        }
+    TypeDeclarationBuilder? declaration = bound?.declaration;
+    // TODO(cstefantsova): Unalias beyond the first layer for the check.
+    if (declaration is TypeAliasBuilder) {
+      // Coverage-ignore-block(suite): Not run.
+      TypeBuilder? rhsType = declaration.type;
+      if (rhsType is FunctionTypeBuilder &&
+          rhsType.typeVariables != null &&
+          rhsType.typeVariables!.isNotEmpty) {
+        isAliasedGenericFunctionType = true;
       }
     }
 
@@ -1170,8 +1168,8 @@ class SourceCompilationUnitImpl
             declaration.typeVariablesCount > 0) {
           for (NominalVariableBuilder typeParameter
               in declaration.typeVariables!) {
-            typeParameter.variance = computeTypeVariableBuilderVariance(
-                    typeParameter, declaration.type,
+            typeParameter.variance = declaration.type
+                .computeTypeVariableBuilderVariance(typeParameter,
                     sourceLoader: libraryBuilder.loader)
                 .variance!;
             ++count;

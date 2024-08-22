@@ -753,31 +753,8 @@ String typeParameterToText(TypeParameter typeParameter) {
 /// Returns a textual representation of the [type] to be used in testing.
 String typeBuilderToText(TypeBuilder type) {
   StringBuffer sb = new StringBuffer();
-  _typeBuilderToText(type, sb);
+  type.printOn(sb);
   return sb.toString();
-}
-
-void _typeBuilderToText(TypeBuilder type, StringBuffer sb) {
-  if (type is NamedTypeBuilder) {
-    TypeName typeName = type.typeName;
-    sb.write(typeName.name);
-    if (type.typeArguments != null && type.typeArguments!.isNotEmpty) {
-      sb.write('<');
-      _typeBuildersToText(type.typeArguments!, sb);
-      sb.write('>');
-    }
-  } else {
-    throw 'Unhandled type builder $type (${type.runtimeType})';
-  }
-}
-
-void _typeBuildersToText(Iterable<TypeBuilder> types, StringBuffer sb) {
-  String comma = '';
-  for (TypeBuilder type in types) {
-    sb.write(comma);
-    _typeBuilderToText(type, sb);
-    comma = ',';
-  }
 }
 
 /// Returns a textual representation of the [typeVariable] to be used in

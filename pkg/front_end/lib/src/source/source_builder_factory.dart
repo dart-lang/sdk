@@ -54,7 +54,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/record_type_builder.dart';
+import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import 'builder_factory.dart';
@@ -226,32 +226,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  List<StructuralVariableBuilder> copyStructuralVariables(
-      List<StructuralVariableBuilder> original,
-      TypeParameterScopeBuilder declaration,
-      {required TypeVariableKind kind}) {
-    List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
-    List<StructuralVariableBuilder> copy = <StructuralVariableBuilder>[];
-    for (StructuralVariableBuilder variable in original) {
-      StructuralVariableBuilder newVariable = new StructuralVariableBuilder(
-          variable.name, _parent, variable.charOffset, variable.fileUri,
-          bound: variable.bound?.clone(newTypes, this, declaration),
-          variableVariance: variable.parameter.isLegacyCovariant
-              ? null
-              :
-              // Coverage-ignore(suite): Not run.
-              variable.variance,
-          isWildcard: variable.isWildcard);
-      copy.add(newVariable);
-      _unboundStructuralVariables.add(newVariable);
-    }
-    for (NamedTypeBuilder newType in newTypes) {
-      declaration.registerUnresolvedNamedType(newType);
-    }
-    return copy;
-  }
-
-  @override
+  // Coverage-ignore(suite): Not run.
   void registerUnboundStructuralVariables(
       List<StructuralVariableBuilder> variableBuilders) {
     _unboundStructuralVariables.addAll(variableBuilders);
@@ -525,6 +500,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata,
         name,
         typeVariables,
+        loader.target.underscoreEnumType,
         _applyMixins(
             loader.target.underscoreEnumType,
             supertypeBuilder,
@@ -845,76 +821,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         }
       }
 
-      /// Helper function that returns `true` if a type variable with a name
-      /// from [typeVariableNames] is referenced in [type].
-      bool usesTypeVariables(TypeBuilder? type) {
-        switch (type) {
-          case NamedTypeBuilder(
-              :TypeDeclarationBuilder? declaration,
-              typeArguments: List<TypeBuilder>? arguments
-            ):
-            if (declaration is NominalVariableBuilder) {
-              return typeVariableNames!.contains(declaration.name);
-            }
-            if (declaration is StructuralVariableBuilder) {
-              // Coverage-ignore-block(suite): Not run.
-              return typeVariableNames!.contains(declaration.name);
-            }
-
-            if (arguments != null && typeVariables != null) {
-              for (TypeBuilder argument in arguments) {
-                if (usesTypeVariables(argument)) {
-                  return true;
-                }
-              }
-            }
-          case FunctionTypeBuilder(
-              :List<ParameterBuilder>? formals,
-              :List<StructuralVariableBuilder>? typeVariables
-            ):
-            if (formals != null) {
-              for (ParameterBuilder formal in formals) {
-                if (usesTypeVariables(formal.type)) {
-                  return true;
-                }
-              }
-            }
-            if (typeVariables != null) {
-              for (StructuralVariableBuilder variable in typeVariables) {
-                if (usesTypeVariables(variable.bound)) {
-                  return true;
-                }
-              }
-            }
-            return usesTypeVariables(type.returnType);
-          case RecordTypeBuilder(
-              :List<RecordTypeFieldBuilder>? positionalFields,
-              :List<RecordTypeFieldBuilder>? namedFields
-            ):
-            if (positionalFields != null) {
-              for (RecordTypeFieldBuilder fieldBuilder in positionalFields) {
-                if (usesTypeVariables(fieldBuilder.type)) {
-                  return true;
-                }
-              }
-            }
-            if (namedFields != null) {
-              // Coverage-ignore-block(suite): Not run.
-              for (RecordTypeFieldBuilder fieldBuilder in namedFields) {
-                if (usesTypeVariables(fieldBuilder.type)) {
-                  return true;
-                }
-              }
-            }
-          case FixedTypeBuilder():
-          case InvalidTypeBuilder():
-          case OmittedTypeBuilder():
-          case null:
-            return false;
-        }
-        return false;
-      }
-
       /// Iterate over the mixins from left to right. At the end of each
       /// iteration, a new [supertype] is computed that is the mixin
       /// application of [supertype] with the current mixin.
@@ -924,12 +830,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             name != null && mixin == mixinApplications.mixins.last;
         bool isGeneric = false;
         if (!isNamedMixinApplication) {
-          if (supertype is NamedTypeBuilder) {
-            isGeneric = isGeneric || usesTypeVariables(supertype);
+          if (typeVariableNames != null) {
+            if (supertype != null) {
+              isGeneric =
+                  isGeneric || supertype.usesTypeVariables(typeVariableNames);
+            }
+            isGeneric = isGeneric || mixin.usesTypeVariables(typeVariableNames);
           }
-          if (mixin is NamedTypeBuilder) {
-            runningName += "&${mixin.typeName.name}";
-            isGeneric = isGeneric || usesTypeVariables(mixin);
+          TypeName? typeName = mixin.typeName;
+          if (typeName != null) {
+            runningName += "&${typeName.name}";
           }
         }
         String fullname =
@@ -948,28 +858,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                 TypeParameterScopeKind.unnamedMixinApplication,
                 "mixin application");
 
-            applicationTypeVariables = copyTypeVariables(
-                typeVariables!, currentTypeParameterScopeBuilder,
-                kind: TypeVariableKind.extensionSynthesized);
+            NominalVariableCopy nominalVariableCopy = copyTypeVariables(
+                typeVariables,
+                kind: TypeVariableKind.extensionSynthesized,
+                instanceTypeVariableAccess:
+                    InstanceTypeVariableAccessState.Allowed)!;
 
-            List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
-            if (supertype is NamedTypeBuilder &&
-                supertype.typeArguments != null) {
-              for (int i = 0; i < supertype.typeArguments!.length; ++i) {
-                supertype.typeArguments![i] = supertype.typeArguments![i]
-                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
-              }
-            }
-            if (mixin is NamedTypeBuilder && mixin.typeArguments != null) {
-              for (int i = 0; i < mixin.typeArguments!.length; ++i) {
-                mixin.typeArguments![i] = mixin.typeArguments![i]
-                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
-              }
-            }
-            for (NamedTypeBuilder newType in newTypes) {
-              currentTypeParameterScopeBuilder
-                  .registerUnresolvedNamedType(newType);
-            }
+            applicationTypeVariables = nominalVariableCopy.newVariableBuilders;
+            Map<NominalVariableBuilder, NominalVariableBuilder>
+                newToOldVariableMap = nominalVariableCopy.newToOldVariableMap;
+
+            Map<NominalVariableBuilder, TypeBuilder> substitutionMap =
+                nominalVariableCopy.substitutionMap;
 
             TypeParameterScopeBuilder mixinDeclaration = this
                 .endNestedDeclaration(
@@ -978,9 +878,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             mixinDeclaration.resolveNamedTypes(
                 applicationTypeVariables, _problemReporting);
 
-            applicationTypeArguments = <TypeBuilder>[];
-            for (NominalVariableBuilder typeVariable in typeVariables) {
-              applicationTypeArguments.add(
+            applicationTypeArguments = [];
+            for (NominalVariableBuilder typeVariable in typeVariables!) {
+              TypeBuilder applicationTypeArgument =
                   new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                       // The type variable types passed as arguments to the
                       // generic class representing the anonymous mixin
@@ -991,8 +891,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                       fileUri: _compilationUnit.fileUri,
                       charOffset: charOffset,
                       instanceTypeVariableAccess:
-                          InstanceTypeVariableAccessState.Allowed));
+                          InstanceTypeVariableAccessState.Allowed);
+              applicationTypeArguments.add(applicationTypeArgument);
             }
+            if (supertype != null) {
+              supertype = new SynthesizedTypeBuilder(
+                  supertype, newToOldVariableMap, substitutionMap);
+            }
+            mixin = new SynthesizedTypeBuilder(
+                mixin, newToOldVariableMap, substitutionMap);
           }
         }
         final int computedStartCharOffset =
@@ -1410,6 +1317,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       String? nativeMethodName,
       AsyncMarker asyncModifier) {
     TypeBuilder returnType;
+    List<TypeBuilder>? returnTypeArguments;
     if (currentTypeParameterScopeBuilder.parent?.kind ==
         TypeParameterScopeKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
@@ -1424,7 +1332,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           new SyntheticTypeName(
               currentTypeParameterScopeBuilder.parent!.name, charOffset),
           const NullabilityBuilder.omitted(),
-          <TypeBuilder>[],
+          returnTypeArguments = [],
           charOffset,
           instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     }
@@ -1483,7 +1391,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
 
     SourceFactoryBuilder procedureBuilder;
-    List<NominalVariableBuilder> typeVariables;
+    List<NominalVariableBuilder>? typeVariables;
     if (redirectionTarget != null) {
       procedureBuilder = new RedirectingFactoryBuilder(
           metadata,
@@ -1491,10 +1399,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           returnType,
           procedureName,
           typeVariables = copyTypeVariables(
-              currentTypeParameterScopeBuilder.typeVariables ??
-                  const <NominalVariableBuilder>[],
-              factoryDeclaration,
-              kind: TypeVariableKind.function),
+                  currentTypeParameterScopeBuilder.typeVariables,
+                  kind: TypeVariableKind.function,
+                  instanceTypeVariableAccess:
+                      InstanceTypeVariableAccessState.Allowed)
+              ?.newVariableBuilders,
           formals,
           _parent,
           startCharOffset,
@@ -1515,10 +1424,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           returnType,
           procedureName,
           typeVariables = copyTypeVariables(
-              currentTypeParameterScopeBuilder.typeVariables ??
-                  const <NominalVariableBuilder>[],
-              factoryDeclaration,
-              kind: TypeVariableKind.function),
+                  currentTypeParameterScopeBuilder.typeVariables,
+                  kind: TypeVariableKind.function,
+                  instanceTypeVariableAccess:
+                      InstanceTypeVariableAccessState.Allowed)
+              ?.newVariableBuilders,
           formals,
           _parent,
           startCharOffset,
@@ -1535,18 +1445,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeParameterScopeBuilder savedDeclaration =
         currentTypeParameterScopeBuilder;
     currentTypeParameterScopeBuilder = factoryDeclaration;
-    if (returnType is NamedTypeBuilderImpl && !typeVariables.isEmpty) {
-      returnType.typeArguments =
-          new List<TypeBuilder>.generate(typeVariables.length, (int index) {
-        return addNamedType(
+    if (returnTypeArguments != null && typeVariables != null) {
+      for (TypeVariableBuilder typeVariable in typeVariables) {
+        returnTypeArguments.add(addNamedType(
             new SyntheticTypeName(
-                typeVariables[index].name, procedureBuilder.charOffset),
+                typeVariable.name, procedureBuilder.charOffset),
             const NullabilityBuilder.omitted(),
             null,
             procedureBuilder.charOffset,
             instanceTypeVariableAccess:
-                InstanceTypeVariableAccessState.Allowed);
-      });
+                InstanceTypeVariableAccessState.Allowed));
+      }
     }
     currentTypeParameterScopeBuilder = savedDeclaration;
 
@@ -2125,30 +2034,55 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  List<NominalVariableBuilder> copyTypeVariables(
-      List<NominalVariableBuilder> original,
-      TypeParameterScopeBuilder declaration,
-      {required TypeVariableKind kind}) {
-    List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
-    List<NominalVariableBuilder> copy = <NominalVariableBuilder>[];
-    for (NominalVariableBuilder variable in original) {
+  NominalVariableCopy? copyTypeVariables(
+      List<NominalVariableBuilder>? oldVariableBuilders,
+      {required TypeVariableKind kind,
+      required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
+    if (oldVariableBuilders == null || oldVariableBuilders.isEmpty) {
+      return null;
+    }
+
+    List<TypeBuilder> newTypeArguments = [];
+    Map<NominalVariableBuilder, TypeBuilder> substitutionMap =
+        new Map.identity();
+    Map<NominalVariableBuilder, NominalVariableBuilder> newToOldVariableMap =
+        new Map.identity();
+
+    List<NominalVariableBuilder> newVariableBuilders =
+        <NominalVariableBuilder>[];
+    for (NominalVariableBuilder oldVariable in oldVariableBuilders) {
       NominalVariableBuilder newVariable = new NominalVariableBuilder(
-          variable.name, _parent, variable.charOffset, variable.fileUri,
-          bound: variable.bound?.clone(newTypes, this, declaration),
+          oldVariable.name,
+          _parent,
+          oldVariable.charOffset,
+          oldVariable.fileUri,
           kind: kind,
-          variableVariance: variable.parameter.isLegacyCovariant
+          variableVariance: oldVariable.parameter.isLegacyCovariant
               ? null
               :
               // Coverage-ignore(suite): Not run.
-              variable.variance,
-          isWildcard: variable.isWildcard);
-      copy.add(newVariable);
+              oldVariable.variance,
+          isWildcard: oldVariable.isWildcard);
+      newVariableBuilders.add(newVariable);
+      newToOldVariableMap[newVariable] = oldVariable;
       _unboundNominalVariables.add(newVariable);
     }
-    for (NamedTypeBuilder newType in newTypes) {
-      declaration.registerUnresolvedNamedType(newType);
+    for (int i = 0; i < newVariableBuilders.length; i++) {
+      NominalVariableBuilder oldVariableBuilder = oldVariableBuilders[i];
+      TypeBuilder newTypeArgument =
+          new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+              newVariableBuilders[i], const NullabilityBuilder.omitted(),
+              instanceTypeVariableAccess: instanceTypeVariableAccess);
+      substitutionMap[oldVariableBuilder] = newTypeArgument;
+      newTypeArguments.add(newTypeArgument);
+
+      if (oldVariableBuilder.bound != null) {
+        newVariableBuilders[i].bound = new SynthesizedTypeBuilder(
+            oldVariableBuilder.bound!, newToOldVariableMap, substitutionMap);
+      }
     }
-    return copy;
+    return new NominalVariableCopy(newVariableBuilders, newTypeArguments,
+        substitutionMap, newToOldVariableMap);
   }
 
   @override

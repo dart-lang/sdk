@@ -58,7 +58,6 @@ import '../kernel/type_algorithms.dart'
     show
         NonSimplicityIssue,
         calculateBounds,
-        computeTypeVariableBuilderVariance,
         findUnaliasedGenericFunctionTypes,
         getInboundReferenceIssuesInType,
         getNonSimplicityIssuesForDeclaration,

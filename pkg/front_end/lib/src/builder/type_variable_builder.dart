@@ -100,43 +100,6 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
   void finish(SourceLibraryBuilder library, ClassBuilder object,
       TypeBuilder dynamicType);
 
-  TypeBuilder? _unaliasAndErase(TypeBuilder? typeBuilder) {
-    if (typeBuilder is! NamedTypeBuilder) {
-      return typeBuilder;
-    } else {
-      TypeDeclarationBuilder? declaration = typeBuilder.declaration;
-      if (declaration is TypeAliasBuilder) {
-        // We pass empty lists as [unboundTypes] and [unboundTypeVariables]
-        // because new builders can be generated during unaliasing. We ignore
-        // the returned builders, however, because they will not be used in the
-        // output and are needed only for the checks.
-        //
-        // We also don't instantiate-to-bound raw types because it won't affect
-        // the dependency cycle analysis.
-        return _unaliasAndErase(declaration.unalias(typeBuilder.typeArguments,
-            unboundTypes: [], unboundTypeVariables: []));
-      } else if (declaration is ExtensionTypeDeclarationBuilder) {
-        TypeBuilder? representationType =
-            declaration.declaredRepresentationTypeBuilder;
-        if (representationType == null) {
-          return null;
-        } else {
-          List<NominalVariableBuilder>? typeParameters =
-              declaration.typeParameters;
-          List<TypeBuilder>? typeArguments = typeBuilder.typeArguments;
-          if (typeParameters != null && typeArguments != null) {
-            representationType = representationType.subst(
-                new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
-                    typeParameters, typeArguments));
-          }
-          return _unaliasAndErase(representationType);
-        }
-      } else {
-        return typeBuilder;
-      }
-    }
-  }
-
   Nullability _computeNullabilityFromType(TypeBuilder? typeBuilder,
       {required Map<TypeVariableBuilder, TraversalState>
           typeVariablesTraversalState}) {
@@ -201,28 +164,22 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
             viaTypeVariables: viaTypeVariables);
       case TraversalState.unvisited:
         typeVariablesTraversalState[this] = TraversalState.active;
-        TypeBuilder? bound = this.bound;
-        if (bound is NamedTypeBuilder) {
-          TypeBuilder? unaliasedAndErasedBound = _unaliasAndErase(bound);
-          TypeDeclarationBuilder? unaliasedAndErasedBoundDeclaration =
-              unaliasedAndErasedBound?.declaration;
-          TypeVariableBuilder? nextVariable;
-          if (unaliasedAndErasedBoundDeclaration is TypeVariableBuilder) {
-            nextVariable = unaliasedAndErasedBoundDeclaration;
-          }
+        TypeBuilder? unaliasedAndErasedBound = bound?.unaliasAndErase();
+        TypeDeclarationBuilder? unaliasedAndErasedBoundDeclaration =
+            unaliasedAndErasedBound?.declaration;
+        TypeVariableBuilder? nextVariable;
+        if (unaliasedAndErasedBoundDeclaration is TypeVariableBuilder) {
+          nextVariable = unaliasedAndErasedBoundDeclaration;
+        }
 
-          if (nextVariable != null) {
-            cycleElements[this] = nextVariable;
-            TypeVariableCyclicDependency? result =
-                nextVariable.findCyclicDependency(
-                    typeVariablesTraversalState: typeVariablesTraversalState,
-                    cycleElements: cycleElements);
-            typeVariablesTraversalState[this] = TraversalState.visited;
-            return result;
-          } else {
-            typeVariablesTraversalState[this] = TraversalState.visited;
-            return null;
-          }
+        if (nextVariable != null) {
+          cycleElements[this] = nextVariable;
+          TypeVariableCyclicDependency? result =
+              nextVariable.findCyclicDependency(
+                  typeVariablesTraversalState: typeVariablesTraversalState,
+                  cycleElements: cycleElements);
+          typeVariablesTraversalState[this] = TraversalState.visited;
+          return result;
         } else {
           typeVariablesTraversalState[this] = TraversalState.visited;
           return null;
@@ -240,6 +197,12 @@ class NominalVariableBuilder extends TypeVariableBuilder {
 
   @override
   NominalVariableBuilder? actualOrigin;
+
+  /// [NominalVariableBuilder] overrides ==/hashCode in terms of
+  /// [actualParameter] making it vulnerable to use in sets and maps. This
+  /// fields tracks the first access to [hashCode] when asserts are enabled, to
+  /// signal if the [hashCode] is used before updates to [actualParameter].
+  StackTrace? _hasHashCode;
 
   NominalVariableBuilder(
       String name, Builder? compilationUnit, int charOffset, Uri? fileUri,
@@ -296,6 +259,11 @@ class NominalVariableBuilder extends TypeVariableBuilder {
 
   @override
   void applyAugmentation(covariant NominalVariableBuilder augmentation) {
+    assert(
+        _hasHashCode == null,
+        // Coverage-ignore(suite): Not run.
+        "Cannot apply augmentation since to $this since hashCode has already "
+        "been computed from $actualParameter @\n$_hasHashCode");
     augmentation.actualOrigin = this;
   }
 
@@ -356,7 +324,13 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   }
 
   @override
-  int get hashCode => parameter.hashCode;
+  int get hashCode {
+    assert(() {
+      _hasHashCode ??= StackTrace.current;
+      return true;
+    }());
+    return parameter.hashCode;
+  }
 
   @override
   TypeParameterType buildAliasedTypeWithBuiltArguments(
@@ -561,9 +535,9 @@ void _sortAllTypeVariablesTopologicallyFromRoot(
           internalDependents.add(field.type);
         }
       }
-    // Coverage-ignore(suite): Not run.
     case OmittedTypeBuilder():
     case FixedTypeBuilder():
+    // Coverage-ignore(suite): Not run.
     case InvalidTypeBuilder():
   }
 

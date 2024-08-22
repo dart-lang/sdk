@@ -66,11 +66,11 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
+import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../base/operator.dart' show Operator;
 import '../base/problems.dart' show unhandled;
 import '../base/uris.dart';
-import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
 import 'builder_factory.dart';
 import 'offset_map.dart';
@@ -1764,11 +1764,14 @@ class OutlineBuilder extends StackListenerImpl {
         hasMembers: false);
     TypeParameterScopeBuilder scopeBuilder = _builderFactory
         .endNestedDeclaration(TypeParameterScopeKind.constructor, "#method");
-    var (
-      List<NominalVariableBuilder>? typeVariables,
-      _
-    ) = _createSyntheticTypeVariables(
-        _builderFactory.currentTypeParameterScopeBuilder, scopeBuilder, null);
+    NominalVariableCopy? nominalVariableCopy =
+        _builderFactory.copyTypeVariables(
+            _builderFactory.currentTypeParameterScopeBuilder.typeVariables,
+            kind: TypeVariableKind.extensionSynthesized,
+            instanceTypeVariableAccess:
+                declarationContext.instanceTypeVariableAccessState);
+    List<NominalVariableBuilder>? typeVariables =
+        nominalVariableCopy?.newVariableBuilders;
     scopeBuilder.resolveNamedTypes(typeVariables, _problemReporting);
 
     _builderFactory.addPrimaryConstructor(
@@ -2105,38 +2108,6 @@ class OutlineBuilder extends StackListenerImpl {
         endToken, _MethodKind.extensionTypeConstructor);
   }
 
-  (List<NominalVariableBuilder>?, Map<NominalVariableBuilder, TypeBuilder>?)
-      _createSyntheticTypeVariables(
-          TypeParameterScopeBuilder enclosingDeclarationScopeBuilder,
-          TypeParameterScopeBuilder memberScopeBuilder,
-          List<NominalVariableBuilder>? typeVariables) {
-    Map<NominalVariableBuilder, TypeBuilder>? substitution;
-    if (enclosingDeclarationScopeBuilder.typeVariables != null) {
-      // We synthesize the names of the generated [TypeParameter]s, i.e.
-      // rename 'T' to '#T'. We cannot do it on the builders because their
-      // names are used to create the scope.
-      List<NominalVariableBuilder> synthesizedTypeVariables =
-          _builderFactory.copyTypeVariables(
-              enclosingDeclarationScopeBuilder.typeVariables!,
-              memberScopeBuilder,
-              kind: TypeVariableKind.extensionSynthesized);
-      substitution = {};
-      for (int i = 0; i < synthesizedTypeVariables.length; i++) {
-        substitution[enclosingDeclarationScopeBuilder.typeVariables![i]] =
-            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                synthesizedTypeVariables[i], const NullabilityBuilder.omitted(),
-                instanceTypeVariableAccess:
-                    declarationContext.instanceTypeVariableAccessState);
-      }
-      if (typeVariables != null) {
-        typeVariables = synthesizedTypeVariables..addAll(typeVariables);
-      } else {
-        typeVariables = synthesizedTypeVariables;
-      }
-    }
-    return (typeVariables, substitution);
-  }
-
   void _endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken, _MethodKind methodKind) {
     assert(checkState(beginToken, [ValueKinds.MethodBody]));
@@ -2333,9 +2304,21 @@ class OutlineBuilder extends StackListenerImpl {
     if (cloneTypeVariablesFromEnclosingDeclaration) {
       TypeParameterScopeBuilder declaration =
           _builderFactory.currentTypeParameterScopeBuilder;
-      Map<NominalVariableBuilder, TypeBuilder>? substitution;
-      (typeVariables, substitution) = _createSyntheticTypeVariables(
-          declaration, declarationBuilder, typeVariables);
+      NominalVariableCopy? nominalVariableCopy =
+          _builderFactory.copyTypeVariables(declaration.typeVariables,
+              kind: TypeVariableKind.extensionSynthesized,
+              instanceTypeVariableAccess:
+                  declarationContext.instanceTypeVariableAccessState);
+
+      if (nominalVariableCopy != null) {
+        if (typeVariables != null) {
+          typeVariables = nominalVariableCopy.newVariableBuilders
+            ..addAll(typeVariables);
+        } else {
+          typeVariables = nominalVariableCopy.newVariableBuilders;
+        }
+      }
+
       if (!isConstructor) {
         List<FormalParameterBuilder> synthesizedFormals = [];
         TypeBuilder thisType;
@@ -2359,17 +2342,11 @@ class OutlineBuilder extends StackListenerImpl {
               instanceTypeVariableAccess:
                   InstanceTypeVariableAccessState.Allowed);
         }
-        if (substitution != null) {
-          List<NamedTypeBuilder> unboundTypes = [];
-          List<StructuralVariableBuilder> unboundTypeVariables = [];
-          thisType = substitute(thisType, substitution,
-              unboundTypes: unboundTypes,
-              unboundTypeVariables: unboundTypeVariables);
-          for (NamedTypeBuilder unboundType in unboundTypes) {
-            declaration.registerUnresolvedNamedType(unboundType);
-          }
-          _builderFactory
-              .registerUnboundStructuralVariables(unboundTypeVariables);
+        if (nominalVariableCopy != null) {
+          thisType = new SynthesizedTypeBuilder(
+              thisType,
+              nominalVariableCopy.newToOldVariableMap,
+              nominalVariableCopy.substitutionMap);
         }
         synthesizedFormals.add(new FormalParameterBuilder(
             FormalParameterKind.requiredPositional,

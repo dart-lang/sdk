@@ -86,14 +86,14 @@ library;
 // typedef TAlias<T> = T?;
 //                ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:42:7: Error: The type 'TAlias' can't be mixed in.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:42:7: Error: The type 'TAlias<B>' can't be mixed in.
 // class D3 = A with TAlias<B>;
 //       ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:9: Context: The issue arises via this type alias.
 // typedef TAlias<T> = T?;
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:46:7: Error: The type 'TAlias' can't be mixed in.
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:46:7: Error: The type 'TAlias<B>' can't be mixed in.
 // class D5 extends A with TAlias<B> {}
 //       ^
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:9: Context: The issue arises via this type alias.
