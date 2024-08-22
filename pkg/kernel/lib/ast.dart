@@ -2979,7 +2979,10 @@ class Procedure extends Member implements GenericFunction {
   /// this, it is stored explicitly as the [signatureType] on the procedure.
   ///
   /// When [signatureType] is null, you can compute the function type with
-  /// `function.computeFunctionType(Nullability.nonNullable)`.
+  /// `function.computeFunctionType(Nullability.nonNullable)`. Alternatively,
+  /// you can use [computeSignatureOrFunctionType] that computes the interface
+  /// member signature type accounting for the possibility of [signatureType]
+  /// being null.
   FunctionType? signatureType;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
@@ -3232,6 +3235,15 @@ class Procedure extends Member implements GenericFunction {
     flags = value
         ? (flags | FlagHasWeakTearoffReferencePragma)
         : (flags & ~FlagHasWeakTearoffReferencePragma);
+  }
+
+  /// Computes the interface member signature type of the procedure.
+  ///
+  /// In case [signatureType] is set, returns [signatureType]. Otherwise,
+  /// computes the function type of the function node.
+  FunctionType computeSignatureOrFunctionType() {
+    return signatureType ??
+        function.computeFunctionType(Nullability.nonNullable);
   }
 
   @override
