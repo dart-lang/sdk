@@ -143,7 +143,7 @@ main() {
       adapter.connectDebugger(Uri());
       await responseCompleter.future;
 
-      expect(adapter.ddsUriConverter, converter);
+      expect(adapter.uriConverter(), converter);
     });
   });
 }

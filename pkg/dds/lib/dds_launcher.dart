@@ -53,6 +53,7 @@ class DartDevelopmentServiceLauncher {
     bool enableServicePortFallback = false,
     List<String> cachedUserTags = const <String>[],
     String? dartExecutable,
+    Uri? google3WorkspaceRoot,
   }) async {
     final process = await Process.start(
       dartExecutable ?? Platform.executable,
@@ -73,6 +74,8 @@ class DartDevelopmentServiceLauncher {
           '--${DartDevelopmentServiceOptions.enableServicePortFallbackFlag}',
         for (final String tag in cachedUserTags)
           '--${DartDevelopmentServiceOptions.cachedUserTagsOption}=$tag',
+        if (google3WorkspaceRoot != null)
+          '--${DartDevelopmentServiceOptions.google3WorkspaceRootOption}=$google3WorkspaceRoot',
       ],
     );
     final completer = Completer<DartDevelopmentServiceLauncher>();
