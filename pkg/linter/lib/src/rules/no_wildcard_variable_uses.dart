@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
@@ -62,6 +63,10 @@ class NoWildcardVariableUses extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    if (context.libraryElement.hasWildcardVariablesFeatureEnabled) {
+      return;
+    }
+
     var visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }
