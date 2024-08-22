@@ -366,29 +366,32 @@ abstract class BuilderFactory {
       int charOffset,
       Uri fileUri);
 
-  /// Creates a copy of [original] into the scope of [declaration].
+  /// Creates a [NominalVariableCopy] object containing a copy of
+  /// [oldVariableBuilders] into the scope of [declaration].
   ///
   /// This is used for adding copies of class type parameters to factory
   /// methods and unnamed mixin applications, and for adding copies of
   /// extension type parameters to extension instance methods.
-  ///
-  /// If [synthesizeTypeParameterNames] is `true` the names of the
-  /// [TypeParameter] are prefix with '#' to indicate that their synthesized.
-  List<NominalVariableBuilder> copyTypeVariables(
-      List<NominalVariableBuilder> original,
-      TypeParameterScopeBuilder declaration,
-      {required TypeVariableKind kind});
-
-  List<StructuralVariableBuilder> copyStructuralVariables(
-      List<StructuralVariableBuilder> original,
-      TypeParameterScopeBuilder declaration,
-      {required TypeVariableKind kind});
+  NominalVariableCopy? copyTypeVariables(
+      List<NominalVariableBuilder>? oldVariableBuilders,
+      {required TypeVariableKind kind,
+      required InstanceTypeVariableAccessState instanceTypeVariableAccess});
 
   void registerUnboundStructuralVariables(
       List<StructuralVariableBuilder> variableBuilders);
 
   Builder addBuilder(String name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference});
+}
+
+class NominalVariableCopy {
+  final List<NominalVariableBuilder> newVariableBuilders;
+  final List<TypeBuilder> newTypeArguments;
+  final Map<NominalVariableBuilder, TypeBuilder> substitutionMap;
+  final Map<NominalVariableBuilder, NominalVariableBuilder> newToOldVariableMap;
+
+  NominalVariableCopy(this.newVariableBuilders, this.newTypeArguments,
+      this.substitutionMap, this.newToOldVariableMap);
 }
 
 class FieldInfo {

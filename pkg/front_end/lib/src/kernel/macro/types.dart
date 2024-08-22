@@ -139,6 +139,7 @@ class MacroTypes {
     UriOffset? uriOffset = typeBuilder?.fileUri != null
         ? new UriOffset(typeBuilder!.fileUri!, typeBuilder.charOffset!)
         : null;
+    // TODO(johnniwinther): Implement this directly on [TypeBuilder].
     switch (typeBuilder) {
       case NamedTypeBuilder():
         List<macro.TypeAnnotationImpl> typeArguments =

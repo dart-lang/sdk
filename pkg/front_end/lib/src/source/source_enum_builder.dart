@@ -65,6 +65,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   final List<EnumConstantInfo?>? enumConstantInfos;
 
+  final TypeBuilder _underscoreEnumTypeBuilder;
+
   late final NamedTypeBuilder intType;
 
   late final NamedTypeBuilder stringType;
@@ -86,6 +88,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       List<MetadataBuilder>? metadata,
       String name,
       List<NominalVariableBuilder>? typeVariables,
+      this._underscoreEnumTypeBuilder,
       TypeBuilder supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
       LookupScope typeParameterScope,
@@ -118,6 +121,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       List<MetadataBuilder>? metadata,
       String name,
       List<NominalVariableBuilder>? typeVariables,
+      TypeBuilder underscoreEnumTypeBuilder,
       TypeBuilder? supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
       List<EnumConstantInfo?>? enumConstantInfos,
@@ -131,14 +135,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
       DeclarationNameSpaceBuilder nameSpaceBuilder) {
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
-    // Coverage-ignore(suite): Not run.
-    supertypeBuilder ??= new NamedTypeBuilderImpl(
-        const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+    supertypeBuilder ??= underscoreEnumTypeBuilder;
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
         metadata,
         name,
         typeVariables,
+        underscoreEnumTypeBuilder,
         supertypeBuilder,
         interfaceBuilders,
         typeParameterScope,
@@ -496,23 +498,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
   @override
   TypeBuilder? get mixedInTypeBuilder => null;
 
-  NamedTypeBuilder? _computeEnumSupertype() {
-    TypeBuilder? supertypeBuilder = this.supertypeBuilder;
-    NamedTypeBuilder? enumType;
-
-    while (enumType == null && supertypeBuilder is NamedTypeBuilder) {
-      TypeDeclarationBuilder? superclassBuilder = supertypeBuilder.declaration;
-      if (superclassBuilder is ClassBuilder &&
-          superclassBuilder.isMixinApplication) {
-        supertypeBuilder = superclassBuilder.supertypeBuilder;
-      } else {
-        enumType = supertypeBuilder;
-      }
-    }
-    assert(enumType is NamedTypeBuilder && enumType.typeName.name == "_Enum");
-    return enumType;
-  }
-
   @override
   Class build(LibraryBuilder coreLibrary) {
     intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
@@ -520,9 +505,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     objectType.resolveIn(
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
-    NamedTypeBuilder? enumType = _computeEnumSupertype();
-    enumType!.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
-
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
     Class cls = super.build(coreLibrary);
@@ -534,12 +516,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // Other constructors are handled in [BodyBuilder.finishConstructor] as
     // they are processed via the pipeline for constructor parsing and
     // building.
-    if (identical(this.supertypeBuilder, enumType)) {
+    if (identical(this.supertypeBuilder, _underscoreEnumTypeBuilder)) {
       if (synthesizedDefaultConstructorBuilder != null) {
         Constructor constructor =
             synthesizedDefaultConstructorBuilder!.constructor;
         ClassBuilder objectClass = objectType.declaration as ClassBuilder;
-        ClassBuilder enumClass = enumType.declaration as ClassBuilder;
+        ClassBuilder enumClass =
+            _underscoreEnumTypeBuilder.declaration as ClassBuilder;
         MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
             "", charOffset, fileUri, libraryBuilder);
         if (superConstructor == null || !superConstructor.isConstructor) {
@@ -779,7 +762,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           toStringName, new Arguments([]), toStringSuperTarget));
     } else {
       ClassBuilder enumClass =
-          _computeEnumSupertype()!.declaration as ClassBuilder;
+          _underscoreEnumTypeBuilder.declaration as ClassBuilder;
       MemberBuilder? nameFieldBuilder =
           enumClass.lookupLocalMember("_name") as MemberBuilder?;
       assert(nameFieldBuilder != null);
