@@ -125,7 +125,7 @@ vars = {
   "bazel_worker_rev": "02f190b88df771fc8e05c07d4b64ae942c02f456",
   "benchmark_harness_rev": "a06785cdfc51538e3556c1d59bb4f03426e9e1c5",
   "boolean_selector_rev": "c5468f44fd9ca0ea3435e1a0a84ff9b6fac38261",
-  "browser_launcher_rev": "fe7ffa13ba59ec6f7d56256f79059344555fdaf2",
+  "browser_launcher_rev": "fa98c77e7a2fee21a4ad3528dd79da0f4df6bd0f",
   "characters_rev": "7633a16a22c626e19ca750223237396315268a06",
   "cli_util_rev": "6a0bb9292ea4bb2c9e547af03da4c9948f9556a1",
   "clock_rev": "6e43768a0b135a0d36fc886907b70c4bf27117e6",
@@ -207,7 +207,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "128.0.6613.5",
+  "chrome_tag": "128.0.6613.36",
   "download_firefox": False,
   "firefox_tag": "129.0",
 

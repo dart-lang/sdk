@@ -330,6 +330,21 @@ void main() {
         );
       });
 
+      test('calling a method without a dot', () {
+        expect(
+          () => client.sendRequest('abc', {}),
+          throwsA(
+            isA<RpcException>()
+                .having(
+                  (e) => e.code,
+                  'code',
+                  RpcException.methodNotFound('abc').code,
+                )
+                .having((e) => e.message, 'message', 'Unknown method "abc".'),
+          ),
+        );
+      });
+
       test('different clients cannot register the same service', () async {
         final client2 = _createClient(uri);
         final registerResult = await client.sendRequest('registerService', {

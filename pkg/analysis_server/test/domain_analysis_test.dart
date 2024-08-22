@@ -2427,6 +2427,49 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     });
   }
 
+  /// Test that the correct context roots are passed to plugins when they are
+  /// enabled for projects that contain subfolders that do not contain analysis
+  /// options and so the existing plugins apply.
+  ///
+  /// In this example, a project has plugins and it has subfolders that inherit
+  /// those options (and thus do not produce a new root).
+  ///
+  /// - root/ (no plugins enabled)
+  ///   - package1/ (plugin1)
+  ///   - package1/lib/ (no explicit options, plugin1 implied)
+  Future<void> test_sentToPlugins_inNestedPackages_withSubFolders() async {
+    if (!AnalysisServer.supportsPlugins) return;
+
+    var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
+
+    // Only the first plugin for each will be enabled due to the 1-plugin-limit.
+    var package1Path = _createTestPackage(
+      'package1',
+      withPackageConfig: false,
+      plugins: [plugin1],
+    );
+    newFolder(join(package1Path, 'lib'));
+
+    // Write the single package config at the root that can resolve the plugin.
+    newPackageConfigJsonFileFromBuilder(
+        workspaceRootPath,
+        PackageConfigFileBuilder()
+          ..add(name: 'plugin1', rootPath: plugin1.path));
+
+    // Set the analysis roots to the folder ('/home') that contains the
+    // package but not the plugin (which is in '/plugins').
+    await setRoots(
+      included: [workspaceRootPath],
+      excluded: [],
+    );
+    await waitForTasksFinished();
+
+    expectPluginMapping({
+      'home': [],
+      'package1': ['plugin1'],
+    });
+  }
+
   /// Creates a plugin package named [name] and returns the path to the root
   /// of the package.
   String _createPlugin(String name) {
