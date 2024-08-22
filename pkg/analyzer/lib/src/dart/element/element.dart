@@ -7189,6 +7189,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   /// this field contains the base method.
   PropertyAccessorElement? prototype;
 
+  String? _setterNameResolved;
+
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
   PropertyAccessorElementImpl(super.name, super.offset);
@@ -7287,13 +7289,11 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return super.metadata;
   }
 
-  String? _setterNameResolved ;
-
   @override
   String get name {
     if (isSetter) {
-      return
-        _setterNameResolved ??= considerCanonicalizeString("${super.name}=");
+      return _setterNameResolved ??=
+          considerCanonicalizeString("${super.name}=");
     }
     return super.name;
   }
