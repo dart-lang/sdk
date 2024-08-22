@@ -312,6 +312,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", '_Closure', "_getClosureRuntimeType");
   late final Procedure getMasqueradedRuntimeType =
       index.getTopLevelProcedure("dart:core", "_getMasqueradedRuntimeType");
+  late final Procedure isNullabilityCheck =
+      index.getTopLevelProcedure("dart:core", "_isNullabilityCheck");
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
   late final Procedure isInterfaceSubtype =

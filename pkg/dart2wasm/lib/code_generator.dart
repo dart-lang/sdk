@@ -2834,8 +2834,8 @@ abstract class AstCodeGenerator
         ? translator.topInfo.nullableType
         : translator.topInfo.nonNullableType;
     wrap(node.operand, boxedOperandType);
-    return types.emitAsCheck(
-        this, node.type, operandType, boxedOperandType, node.location);
+    return types.emitAsCheck(this, node.isCovarianceCheck, node.type,
+        operandType, boxedOperandType, node.location);
   }
 
   @override
@@ -2952,7 +2952,7 @@ abstract class AstCodeGenerator
     if (translator.options.minify) {
       // We don't need to include the name in the error message, so we can use
       // the optimized `as` checks.
-      types.emitAsCheck(this, testedAgainstType,
+      types.emitAsCheck(this, false, testedAgainstType,
           translator.coreTypes.objectNullableRawType, argumentType);
       b.drop();
     } else {
