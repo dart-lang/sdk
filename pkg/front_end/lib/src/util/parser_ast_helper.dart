@@ -1674,12 +1674,13 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     OptionalFormalParametersEnd data = new OptionalFormalParametersEnd(
         ParserAstType.END,
         count: count,
         beginToken: beginToken,
-        endToken: endToken);
+        endToken: endToken,
+        kind: kind);
     seen(data);
   }
 
@@ -6783,9 +6784,13 @@ class OptionalFormalParametersEnd extends ParserAstNode
   final Token beginToken;
   @override
   final Token endToken;
+  final MemberKind kind;
 
   OptionalFormalParametersEnd(ParserAstType type,
-      {required this.count, required this.beginToken, required this.endToken})
+      {required this.count,
+      required this.beginToken,
+      required this.endToken,
+      required this.kind})
       : super("OptionalFormalParameters", type);
 
   @override
@@ -6793,6 +6798,7 @@ class OptionalFormalParametersEnd extends ParserAstNode
         "count": count,
         "beginToken": beginToken,
         "endToken": endToken,
+        "kind": kind,
       };
 
   @override

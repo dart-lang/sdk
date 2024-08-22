@@ -1332,7 +1332,7 @@ class Listener implements UnescapeErrorListener {
   void beginOptionalFormalParameters(Token token) {}
 
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     logEvent("OptionalFormalParameters");
   }
 

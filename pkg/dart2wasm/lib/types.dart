@@ -387,9 +387,11 @@ class Types {
       operandTemp = b.addLocal(translator.topInfo.nullableType);
       b.local_tee(operandTemp);
     }
+    final checkOnlyNullAssignability =
+        _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
     final (typeToCheck, :checkArguments) =
         _canUseTypeCheckHelper(testedAgainstType, operandType);
-    if (typeToCheck != null) {
+    if (!checkOnlyNullAssignability && typeToCheck != null) {
       if (checkArguments) {
         for (final typeArgument in typeToCheck.typeArguments) {
           makeType(codeGen, typeArgument);
@@ -403,24 +405,35 @@ class Types {
         final typeClassInfo =
             translator.classInfo[testedAgainstType.classNode]!;
         final typeArguments = testedAgainstType.typeArguments;
-        b.i32_const(encodedNullability(testedAgainstType));
-        b.i32_const(typeClassInfo.classId);
-        if (typeArguments.isEmpty) {
-          codeGen.call(translator.isInterfaceSubtype0.reference);
-        } else if (typeArguments.length == 1) {
-          makeType(codeGen, typeArguments[0]);
-          codeGen.call(translator.isInterfaceSubtype1.reference);
-        } else if (typeArguments.length == 2) {
-          makeType(codeGen, typeArguments[0]);
-          makeType(codeGen, typeArguments[1]);
-          codeGen.call(translator.isInterfaceSubtype2.reference);
+        if (checkOnlyNullAssignability) {
+          b.i32_const(encodedNullability(testedAgainstType));
+          codeGen.call(translator.isNullabilityCheck.reference);
         } else {
-          _makeTypeArray(codeGen, typeArguments);
-          codeGen.call(translator.isInterfaceSubtype.reference);
+          b.i32_const(encodedNullability(testedAgainstType));
+          b.i32_const(typeClassInfo.classId);
+          if (typeArguments.isEmpty) {
+            codeGen.call(translator.isInterfaceSubtype0.reference);
+          } else if (typeArguments.length == 1) {
+            makeType(codeGen, typeArguments[0]);
+            codeGen.call(translator.isInterfaceSubtype1.reference);
+          } else if (typeArguments.length == 2) {
+            makeType(codeGen, typeArguments[0]);
+            makeType(codeGen, typeArguments[1]);
+            codeGen.call(translator.isInterfaceSubtype2.reference);
+          } else {
+            _makeTypeArray(codeGen, typeArguments);
+            codeGen.call(translator.isInterfaceSubtype.reference);
+          }
         }
       } else {
         makeType(codeGen, testedAgainstType);
-        codeGen.call(translator.isSubtype.reference);
+        if (checkOnlyNullAssignability) {
+          b.struct_get(typeClassInfo.struct,
+              translator.fieldIndex[translator.typeIsDeclaredNullableField]!);
+          codeGen.call(translator.isNullabilityCheck.reference);
+        } else {
+          codeGen.call(translator.isSubtype.reference);
+        }
       }
     }
     if (translator.options.verifyTypeChecks) {
@@ -438,14 +451,22 @@ class Types {
     }
   }
 
-  w.ValueType emitAsCheck(AstCodeGenerator codeGen, DartType testedAgainstType,
-      DartType operandType, w.RefType boxedOperandType,
+  w.ValueType emitAsCheck(
+      AstCodeGenerator codeGen,
+      bool isCovarianceCheck,
+      DartType testedAgainstType,
+      DartType operandType,
+      w.RefType boxedOperandType,
       [Location? location]) {
     final b = codeGen.b;
 
+    // Keep casts inserted by the CFE to ensure soundness of covariant types.
+    final checkOnlyNullAssignability = !isCovarianceCheck &&
+        _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
+
     final (typeToCheck, :checkArguments) =
         _canUseTypeCheckHelper(testedAgainstType, operandType);
-    if (typeToCheck != null) {
+    if (!checkOnlyNullAssignability && typeToCheck != null) {
       if (checkArguments) {
         for (final typeArgument in typeToCheck.typeArguments) {
           makeType(codeGen, typeArgument);
@@ -460,6 +481,7 @@ class Types {
     b.local_tee(operand);
 
     late List<w.ValueType> outputsToDrop;
+    b.i32_const(encodedBool(checkOnlyNullAssignability));
     if (testedAgainstType is InterfaceType &&
         classForType(testedAgainstType) == translator.interfaceTypeClass) {
       final typeClassInfo = translator.classInfo[testedAgainstType.classNode]!;
@@ -516,6 +538,17 @@ class Types {
     }
 
     return (null, checkArguments: false);
+  }
+
+  bool _requiresOnlyNullAssignabilityCheck(
+      DartType operandType, DartType testedAgainstType) {
+    // We may only need to check that either of these hold:
+    //   * value is non-null
+    //   * value is null and the type is nullable.
+    return translator.typeEnvironment.isSubtypeOf(
+        operandType,
+        testedAgainstType.withDeclaredNullability(Nullability.nonNullable),
+        type_env.SubtypeCheckMode.withNullabilities);
   }
 
   bool _staticTypesEnsureTypeArgumentsMatch(
@@ -639,6 +672,8 @@ class Types {
 
 int encodedNullability(DartType type) =>
     type.declaredNullability == Nullability.nullable ? 1 : 0;
+
+int encodedBool(bool value) => value ? 1 : 0;
 
 class IsCheckerCallTarget extends CallTarget {
   final Translator translator;

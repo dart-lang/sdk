@@ -1953,6 +1953,27 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
   void toTextInternal(AstPrinter printer) {
     printer.writeExtensionTypeDeclarationName(reference);
   }
+
+  /// Returns the inherent nullability of this extension type declaration.
+  ///
+  /// An extension type declaration is inherently non-nullable if it implements
+  /// a non-extension type or a non-nullable extension type declaration.
+  Nullability get inherentNullability {
+    for (DartType supertype in implements) {
+      if (supertype is! ExtensionType) {
+        // A supertype that is not an extension type has to be non-nullable and
+        // implement `Object` directly or indirectly.
+        return Nullability.nonNullable;
+      } else if (supertype.extensionTypeDeclaration.inherentNullability !=
+          Nullability.undetermined) {
+        // If an extension type is non-nullable, it implements `Object` directly
+        // or indirectly.
+        return Nullability.nonNullable;
+      }
+    }
+    // Direct or indirect implementation of `Objects` isn't found.
+    return Nullability.undetermined;
+  }
 }
 
 enum ExtensionTypeMemberKind {
@@ -11824,7 +11845,7 @@ class TypedefType extends DartType {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type!);
     return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
-        result.declaredNullability, nullability));
+        inner: result.declaredNullability, outer: nullability));
   }
 
   @override
@@ -12008,27 +12029,11 @@ class ExtensionType extends TypeDeclarationType {
   DartType get extensionTypeErasure => _computeTypeErasure(
       extensionTypeDeclarationReference, typeArguments, declaredNullability);
 
-  Nullability get _nullabilityDerivedFromSupertypes {
-    for (DartType supertype in extensionTypeDeclaration.implements) {
-      if (supertype is! ExtensionType) {
-        // A supertype that is not an extension type has to be non-nullable and
-        // implement `Object` directly or indirectly.
-        return Nullability.nonNullable;
-      } else if (supertype._nullabilityDerivedFromSupertypes !=
-          Nullability.undetermined) {
-        // If an extension type is non-nullable, it implements `Object` directly
-        // or indirectly.
-        return Nullability.nonNullable;
-      }
-    }
-    // Direct or indirect implementation of `Objects` isn't found.
-    return Nullability.undetermined;
-  }
-
   @override
   Nullability get nullability {
     return combineNullabilitiesForSubstitution(
-        _nullabilityDerivedFromSupertypes, declaredNullability);
+        inner: extensionTypeDeclaration.inherentNullability,
+        outer: declaredNullability);
   }
 
   @override
@@ -12074,7 +12079,7 @@ class ExtensionType extends TypeDeclarationType {
     Nullability erasureNullability;
     if (declaredNullability == Nullability.nullable) {
       erasureNullability = combineNullabilitiesForSubstitution(
-          result.nullability, declaredNullability);
+          inner: result.nullability, outer: declaredNullability);
     } else {
       erasureNullability = result.nullability;
     }
@@ -12308,8 +12313,8 @@ class IntersectionType extends DartType {
     DartType resolvedTypeParameterType = right.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.declaredNullability,
-            declaredNullability));
+            inner: resolvedTypeParameterType.declaredNullability,
+            outer: declaredNullability));
   }
 
   @override
@@ -12599,8 +12604,8 @@ class TypeParameterType extends DartType {
     DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.declaredNullability,
-            declaredNullability));
+            inner: resolvedTypeParameterType.declaredNullability,
+            outer: declaredNullability));
   }
 
   @override
@@ -12757,7 +12762,8 @@ class StructuralParameterType extends DartType {
     DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.nullability, declaredNullability));
+            inner: resolvedTypeParameterType.nullability,
+            outer: declaredNullability));
   }
 
   @override

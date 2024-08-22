@@ -5,7 +5,13 @@
 library fasta.function_type_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, FunctionType, StructuralParameter, NamedType, Supertype;
+    show
+        DartType,
+        FunctionType,
+        NamedType,
+        Nullability,
+        StructuralParameter,
+        Supertype;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
@@ -236,6 +242,13 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       NullabilityBuilder nullabilityBuilder) {
     return new FunctionTypeBuilderImpl(returnType, typeVariables, formals,
         nullabilityBuilder, fileUri, charOffset);
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    return nullabilityBuilder.build();
   }
 }
 

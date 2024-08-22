@@ -30,6 +30,7 @@ import 'test_macros.dart';
 
 // TODO(scheglov): this is duplicate
 class AnalysisOptionsFileConfig {
+  final String? include;
   final List<String> experiments;
   final List<String> plugins;
   final List<String> lints;
@@ -38,6 +39,7 @@ class AnalysisOptionsFileConfig {
   final bool strictRawTypes;
 
   AnalysisOptionsFileConfig({
+    this.include,
     this.experiments = const [],
     this.plugins = const [],
     this.lints = const [],
@@ -49,6 +51,10 @@ class AnalysisOptionsFileConfig {
   String toContent() {
     var buffer = StringBuffer();
 
+    var include = this.include;
+    if (include != null) {
+      buffer.writeln('include: $include');
+    }
     buffer.writeln('analyzer:');
     if (experiments.isNotEmpty) {
       buffer.writeln('  enable-experiment:');

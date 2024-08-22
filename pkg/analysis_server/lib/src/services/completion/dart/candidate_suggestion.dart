@@ -187,7 +187,25 @@ final class ConstructorSuggestion extends ImportableSuggestion
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2);
 
   @override
-  String get completion => '$completionPrefix${element.displayName}';
+  String get completion {
+    var enclosingClass = element.enclosingElement.augmented.declaration;
+
+    var className = enclosingClass.name;
+
+    var completion = element.name;
+    if (completion.isEmpty && suggestUnnamedAsNew) {
+      completion = 'new';
+    }
+
+    if (!hasClassName) {
+      if (completion.isEmpty) {
+        completion = className;
+      } else {
+        completion = '$className.$completion';
+      }
+    }
+    return completion;
+  }
 }
 
 abstract interface class ElementBasedSuggestion {
@@ -711,12 +729,16 @@ final class PropertyAccessSuggestion extends ImportableSuggestion
   @override
   final InterfaceElement? referencingInterface;
 
+  /// Whether the accessor is being invoked with a target.
+  final bool withEnclosingName;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
   PropertyAccessSuggestion(
       {required this.element,
       required super.importData,
       required this.referencingInterface,
-      required super.matcherScore});
+      required super.matcherScore,
+      this.withEnclosingName = false});
 
   @override
   String get completion => element.name;
@@ -1009,8 +1031,13 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             displayText: suggestion.displayText,
             selectionOffset: suggestion.selectionOffset);
       case ConstructorSuggestion():
+        var completion = suggestion.completion;
+        if (completion.isEmpty) {
+          break;
+        }
         suggestConstructor(suggestion.element,
             hasClassName: suggestion.hasClassName,
+            completion: completion,
             kind: suggestion.isRedirect || suggestion.isTearOff
                 ? CompletionSuggestionKind.IDENTIFIER
                 : CompletionSuggestionKind.INVOCATION,
@@ -1123,6 +1150,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           inheritanceDistance: inheritanceDistance,
           relevance: relevance,
+          withEnclosingName: suggestion.withEnclosingName,
         );
       case RecordFieldSuggestion():
         suggestRecordField(

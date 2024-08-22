@@ -8,8 +8,6 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:vm/modular/transformations/type_casts_optimizer.dart'
-    as typeCastsOptimizer show transformAsExpression;
 
 import 'list_factory_specializer.dart';
 
@@ -726,12 +724,6 @@ class _WasmTransformer extends Transformer {
   TreeNode visitFunctionTearOff(FunctionTearOff node) {
     node.transformChildren(this);
     return node.receiver;
-  }
-
-  @override
-  TreeNode visitAsExpression(AsExpression node) {
-    node.transformChildren(this);
-    return typeCastsOptimizer.transformAsExpression(node, typeContext);
   }
 }
 

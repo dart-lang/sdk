@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../source/builder_factory.dart';
 import '../source/type_parameter_scope_builder.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -84,5 +85,14 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   // Coverage-ignore(suite): Not run.
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder) {
     return this;
+  }
+
+  @override
+  Nullability computeNullability(
+      {required Map<TypeVariableBuilder, TraversalState>
+          typeVariablesTraversalState}) {
+    // TODO(johnniwinther,cstefantsova): Consider implementing
+    // invalidNullability.
+    return Nullability.nullable;
   }
 }

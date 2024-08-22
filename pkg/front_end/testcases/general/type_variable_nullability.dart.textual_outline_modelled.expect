@@ -1,0 +1,259 @@
+import 'dart:async';
+
+extension type ExtensionType1<Z>(Z o) {}
+
+extension type ExtensionType2<Z>(Z o) implements ExtensionType1<Z> {}
+
+extension type ExtensionType3<Z extends Object>(Z o) {}
+
+extension type ExtensionType4<Z extends Object>(Z o)
+    implements ExtensionType3<Z> {}
+
+extension type ExtensionType5<Z extends Object>(Z o) implements Object {}
+
+extension type ExtensionType6<Z extends Object>(Z o)
+    implements ExtensionType5<Z> {}
+
+extension type ExtensionType7<Z extends Object>(Z o)
+    implements Typedef3<ExtensionType2<Z>> {}
+
+extension type ExtensionType8<Z extends Object>(Z o)
+    implements Typedef3<ExtensionType6<Z>> {}
+
+method10a<X extends Y, Y extends ExtensionType2<List<X>>>() {}
+
+method10b<X extends ExtensionType2<List<Y>>, Y extends X>() {}
+
+method10c<X extends Y?, Y extends ExtensionType2<List<X>>>() {}
+
+method10d<X extends ExtensionType2<List<Y>>, Y extends X?>() {}
+
+method10e<X extends Y?, Y extends ExtensionType2<List<X>>?>() {}
+
+method10f<X extends ExtensionType2<List<Y>>?, Y extends X?>() {}
+
+method10g<X extends Y, Y extends ExtensionType2<List<X>?>>() {}
+
+method10h<X extends ExtensionType2<List<Y>?>, Y extends X>() {}
+
+method11a<X extends Y, Y extends ExtensionType3<List<X>>>() {}
+
+method11b<X extends ExtensionType3<List<Y>>, Y extends X>() {}
+
+method11c<X extends Y?, Y extends ExtensionType3<List<X>>>() {}
+
+method11d<X extends ExtensionType2<List<Y>>, Y extends X?>() {}
+
+method11e<X extends Y?, Y extends ExtensionType3<List<X>>?>() {}
+
+method11f<X extends ExtensionType3<List<Y>>?, Y extends X?>() {}
+
+method12a<X extends Y, Y extends ExtensionType4<List<X>>>() {}
+
+method12b<X extends ExtensionType4<List<Y>>, Y extends X>() {}
+
+method12c<X extends Y?, Y extends ExtensionType4<List<X>>>() {}
+
+method12d<X extends ExtensionType4<List<Y>>, Y extends X?>() {}
+
+method12e<X extends Y?, Y extends ExtensionType4<List<X>>?>() {}
+
+method12f<X extends ExtensionType4<List<Y>>?, Y extends X?>() {}
+
+method13a<X extends Y, Y extends ExtensionType5<List<X>>>() {}
+
+method13b<X extends ExtensionType5<List<Y>>, Y extends X>() {}
+
+method13c<X extends Y?, Y extends ExtensionType5<List<X>>>() {}
+
+method13d<X extends ExtensionType5<List<Y>>, Y extends X?>() {}
+
+method13e<X extends Y?, Y extends ExtensionType5<List<X>>?>() {}
+
+method13f<X extends ExtensionType5<List<Y>>?, Y extends X?>() {}
+
+method14a<X extends Y, Y extends ExtensionType6<List<X>>>() {}
+
+method14b<X extends ExtensionType6<List<Y>>, Y extends X>() {}
+
+method14c<X extends Y?, Y extends ExtensionType6<List<X>>>() {}
+
+method14d<X extends ExtensionType6<List<Y>>, Y extends X?>() {}
+
+method14e<X extends Y?, Y extends ExtensionType6<List<X>>?>() {}
+
+method14f<X extends ExtensionType6<List<Y>>?, Y extends X?>() {}
+
+method15a<X extends Y, Y extends ExtensionType7<List<X>>>() {}
+
+method15b<X extends ExtensionType7<List<Y>>, Y extends X>() {}
+
+method15c<X extends Y?, Y extends ExtensionType7<List<X>>>() {}
+
+method15d<X extends ExtensionType6<List<Y>>, Y extends X?>() {}
+
+method15e<X extends Y?, Y extends ExtensionType7<List<X>>?>() {}
+
+method15f<X extends ExtensionType7<List<Y>>?, Y extends X?>() {}
+
+method16a<X extends Y, Y extends ExtensionType8<List<X>>>() {}
+
+method16b<X extends ExtensionType8<List<Y>>, Y extends X>() {}
+
+method16c<X extends Y?, Y extends ExtensionType8<List<X>>>() {}
+
+method16d<X extends ExtensionType6<List<Y>>, Y extends X?>() {}
+
+method16e<X extends Y?, Y extends ExtensionType8<List<X>>?>() {}
+
+method16f<X extends ExtensionType8<List<Y>>?, Y extends X?>() {}
+
+method17a<X extends Y, Y extends X>() {}
+
+method17b<X extends Y?, Y extends X>() {}
+
+method17c<X extends Y, Y extends X?>() {}
+
+method17d<X extends Y?, Y extends X?>() {}
+
+method18a<X extends Typedef3<Y>, Y extends Typedef3<X>>() {}
+
+method18b<X extends Typedef3<Y>?, Y extends Typedef3<X>>() {}
+
+method18c<X extends Typedef3<Y>, Y extends Typedef3<X>?>() {}
+
+method18d<X extends Typedef3<Y>?, Y extends Typedef3<X>?>() {}
+
+method18e<X extends Typedef3<Y?>, Y extends Typedef3<X>>() {}
+
+method18f<X extends Typedef3<Y>, Y extends Typedef3<X?>>() {}
+
+method18g<X extends Typedef3<Y?>, Y extends Typedef3<X?>>() {}
+
+method1a<X extends Y, Y>() {}
+
+method1b<X, Y extends X>() {}
+
+method1c<X extends Y?, Y>() {}
+
+method1d<X, Y extends X?>() {}
+
+method2a<X extends Y, Y extends Object>() {}
+
+method2b<X extends Object, Y extends X>() {}
+
+method2c<X extends Y?, Y extends Object>() {}
+
+method2d<X extends Object, Y extends X?>() {}
+
+method2e<X extends Y?, Y extends Object?>() {}
+
+method2f<X extends Object?, Y extends X?>() {}
+
+method3a<X extends Y, Y extends List<X>>() {}
+
+method3b<X extends List<Y>, Y extends X>() {}
+
+method3c<X extends Y?, Y extends List<X>>() {}
+
+method3d<X extends List<Y>, Y extends X?>() {}
+
+method3e<X extends Y?, Y extends List<X>?>() {}
+
+method3f<X extends List<Y>?, Y extends X?>() {}
+
+method4a<X extends Y, Y extends Typedef1<X>>() {}
+
+method4b<X extends Typedef1<Y>, Y extends X>() {}
+
+method4c<X extends Y?, Y extends Typedef1<X>>() {}
+
+method4d<X extends Typedef1<Y>, Y extends X?>() {}
+
+method4e<X extends Y?, Y extends Typedef1<X>?>() {}
+
+method4f<X extends Typedef1<Y>?, Y extends X?>() {}
+
+method5a<X extends Y, Y extends Typedef2<X>>() {}
+
+method5b<X extends Typedef2<Y>, Y extends X>() {}
+
+method5c<X extends Y?, Y extends Typedef2<X>>() {}
+
+method5d<X extends Typedef2<Y>, Y extends X?>() {}
+
+method5e<X extends Y?, Y extends Typedef2<X>?>() {}
+
+method5f<X extends Typedef2<Y>?, Y extends X?>() {}
+
+method6a<X extends Y, Y extends Typedef3<List<X>>>() {}
+
+method6b<X extends Typedef3<List<Y>>, Y extends X>() {}
+
+method6c<X extends Y?, Y extends Typedef3<List<X>>>() {}
+
+method6d<X extends Typedef3<List<Y>>, Y extends X?>() {}
+
+method6e<X extends Y?, Y extends Typedef3<List<X>>?>() {}
+
+method6f<X extends Typedef3<List<Y>>?, Y extends X?>() {}
+
+method6g<X extends Y, Y extends Typedef3<List<X>?>>() {}
+
+method6h<X extends Typedef3<List<Y>?>, Y extends X>() {}
+
+method7a<X extends Y, Y extends Typedef4<List<X>>>() {}
+
+method7b<X extends Typedef4<List<Y>>, Y extends X>() {}
+
+method7c<X extends Y?, Y extends Typedef4<List<X>>>() {}
+
+method7d<X extends Typedef4<List<Y>>, Y extends X?>() {}
+
+method7e<X extends Y?, Y extends Typedef4<List<X>>?>() {}
+
+method7f<X extends Typedef4<List<Y>>?, Y extends X?>() {}
+
+method7g<X extends Y, Y extends Typedef4<List<X>?>>() {}
+
+method7h<X extends Typedef4<List<Y>?>, Y extends X>() {}
+
+method8a<X extends Y, Y extends FutureOr<X>>() {}
+
+method8b<X extends FutureOr<Y>, Y extends X>() {}
+
+method8c<X extends Y?, Y extends FutureOr<X>>() {}
+
+method8d<X extends FutureOr<Y>, Y extends X?>() {}
+
+method8e<X extends Y?, Y extends FutureOr<X>?>() {}
+
+method8f<X extends FutureOr<Y>?, Y extends X?>() {}
+
+method8g<X extends Y, Y extends FutureOr<X?>>() {}
+
+method8h<X extends FutureOr<Y?>, Y extends X>() {}
+
+method9a<X extends Y, Y extends ExtensionType1<List<X>>>() {}
+
+method9b<X extends ExtensionType1<List<Y>>, Y extends X>() {}
+
+method9c<X extends Y?, Y extends ExtensionType1<List<X>>>() {}
+
+method9d<X extends ExtensionType1<List<Y>>, Y extends X?>() {}
+
+method9e<X extends Y?, Y extends ExtensionType1<List<X>>?>() {}
+
+method9f<X extends ExtensionType1<List<Y>>?, Y extends X?>() {}
+
+method9g<X extends Y, Y extends ExtensionType1<List<X>?>>() {}
+
+method9h<X extends ExtensionType1<List<Y>?>, Y extends X>() {}
+
+typedef Typedef1<Z> = List<Z>;
+
+typedef Typedef2<Z> = List<Z>?;
+
+typedef Typedef3<Z> = Z;
+
+typedef Typedef4<Z> = Z?;

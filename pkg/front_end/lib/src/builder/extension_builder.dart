@@ -55,4 +55,11 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   String get debugName => "ExtensionBuilder";
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
+          {required Map<TypeVariableBuilder, TraversalState>
+              typeVariablesTraversalState}) =>
+      Nullability.nonNullable;
 }

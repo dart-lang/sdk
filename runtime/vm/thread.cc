@@ -396,11 +396,6 @@ void Thread::EnterIsolate(Isolate* isolate) {
     ASSERT(thread->scheduled_dart_mutator_isolate_ == isolate);
     ASSERT(thread->isolate() == isolate);
     ASSERT(thread->isolate_group() == isolate->group());
-    {
-      // Descheduled isolates are reloadable (if nothing else prevents it).
-      RawReloadParticipationScope enable_reload(thread);
-      thread->ExitSafepoint();
-    }
   } else {
     thread = AddActiveThread(group, isolate, /*is_dart_mutator*/ true,
                              /*bypass_safepoint=*/false);
@@ -411,6 +406,14 @@ void Thread::EnterIsolate(Isolate* isolate) {
 
   isolate->scheduled_mutator_thread_ = thread;
   ResumeDartMutatorThreadInternal(thread);
+
+  if (is_resumable) {
+    // Descheduled isolates are reloadable (if nothing else prevents it).
+    RawReloadParticipationScope enable_reload(thread);
+    thread->ExitSafepoint();
+  }
+
+  ASSERT(!thread->IsAtSafepoint());
 }
 
 static bool ShouldSuspend(bool isolate_shutdown, Thread* thread) {
@@ -556,7 +559,6 @@ void Thread::SuspendDartMutatorThreadInternal(Thread* thread,
 }
 
 void Thread::ResumeThreadInternal(Thread* thread) {
-  ASSERT(!thread->IsAtSafepoint());
   ASSERT(thread->isolate_group() != nullptr);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);
   ASSERT(thread->vm_tag() == VMTag::kInvalidTagId ||

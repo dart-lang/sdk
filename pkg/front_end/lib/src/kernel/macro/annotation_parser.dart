@@ -1531,7 +1531,7 @@ class _MacroListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken) {
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     _unsupported();
   }
 

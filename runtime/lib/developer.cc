@@ -173,9 +173,6 @@ DEFINE_NATIVE_ENTRY(Developer_getObjectId, 0, 1) {
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
-  if (isolate->NumServiceIdZones() == 0) {
-    return Object::null();
-  }
   return String::New(
       isolate->EnsureDefaultServiceIdZone().GetServiceId(instance));
 #endif

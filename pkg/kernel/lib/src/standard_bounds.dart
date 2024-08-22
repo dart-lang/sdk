@@ -559,8 +559,8 @@ mixin StandardBounds {
       case (IntersectionType(), _):
       case (_, IntersectionType()):
         return NeverType.fromNullability(combineNullabilitiesForSubstitution(
-            Nullability.nonNullable,
-            intersectNullabilities(
+            inner: Nullability.nonNullable,
+            outer: intersectNullabilities(
                 type1.declaredNullability, type2.declaredNullability)));
 
       case (NeverType(nullability: Nullability.undetermined), _):
@@ -1612,13 +1612,15 @@ mixin StandardBounds {
 
     if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
       return type2.withDeclaredNullability(combineNullabilitiesForSubstitution(
-          type2.nullability,
-          uniteNullabilities(type1.declaredNullability, type2.nullability)));
+          inner: type2.nullability,
+          outer: uniteNullabilities(
+              type1.declaredNullability, type2.nullability)));
     }
     if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(combineNullabilitiesForSubstitution(
-          type1.declaredNullability,
-          uniteNullabilities(type1.declaredNullability, type2.nullability)));
+          inner: type1.declaredNullability,
+          outer: uniteNullabilities(
+              type1.declaredNullability, type2.nullability)));
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
@@ -1635,8 +1637,9 @@ mixin StandardBounds {
     DartType result = _getNullabilityAwareStandardUpperBound(
         eliminator.eliminateToGreatest(bound1), type2);
     return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
-        result.declaredNullability,
-        uniteNullabilities(bound1.declaredNullability, type2.nullability)));
+        inner: result.declaredNullability,
+        outer:
+            uniteNullabilities(bound1.declaredNullability, type2.nullability)));
   }
 
   DartType _getNullabilityAwareIntersectionStandardUpperBound(

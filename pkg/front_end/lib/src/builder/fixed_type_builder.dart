@@ -8,6 +8,7 @@ import 'package:kernel/class_hierarchy.dart';
 import '../base/problems.dart';
 import '../source/builder_factory.dart';
 import '../source/type_parameter_scope_builder.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -87,4 +88,11 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isExplicit => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Nullability computeNullability(
+          {required Map<TypeVariableBuilder, TraversalState>
+              typeVariablesTraversalState}) =>
+      type.nullability;
 }

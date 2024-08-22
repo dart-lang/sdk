@@ -378,32 +378,34 @@ class SuggestionBuilder {
     bool hasClassName = false,
     String? prefix,
     int? relevance,
+    String? completion,
   }) {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-
     var enclosingClass = constructor.enclosingElement.augmented.declaration;
 
-    var className = enclosingClass.name;
-    if (className.isEmpty) {
-      return;
-    }
-
-    var completion = constructor.name;
-    if (completion.isEmpty && suggestUnnamedAsNew) {
-      completion = 'new';
-    }
-
-    if (!hasClassName) {
-      if (completion.isEmpty) {
-        completion = className;
-      } else {
-        completion = '$className.$completion';
+    if (completion == null) {
+      var className = enclosingClass.name;
+      if (className.isEmpty) {
+        return;
       }
-    }
-    if (completion.isEmpty) {
-      return;
+
+      completion = constructor.name;
+      if (completion.isEmpty && suggestUnnamedAsNew) {
+        completion = 'new';
+      }
+
+      if (!hasClassName) {
+        if (completion.isEmpty) {
+          completion = className;
+        } else {
+          completion = '$className.$completion';
+        }
+      }
+      if (completion.isEmpty) {
+        return;
+      }
     }
 
     if (_couldMatch(completion, prefix)) {
@@ -1036,37 +1038,26 @@ class SuggestionBuilder {
   void suggestStaticField(FieldElement element,
       {String? prefix, int? relevance}) {
     assert(element.isStatic);
-    if (element.isSynthetic) {
-      var getter = element.getter;
-      if (getter != null) {
-        suggestAccessor(
-          getter,
-          inheritanceDistance: 0.0,
-          withEnclosingName: true,
-        );
-      }
-    } else {
-      var enclosingPrefix = '';
-      var enclosingName = _enclosingClassOrExtensionName(element);
-      if (enclosingName != null) {
-        enclosingPrefix = '$enclosingName.';
-      }
-      var completion = enclosingPrefix + element.name;
-      if (_couldMatch(completion, prefix)) {
-        relevance ??= relevanceComputer.computeTopLevelRelevance(element,
-            elementType: element.type,
-            isNotImportedLibrary: isNotImportedLibrary);
-        _addBuilder(
-          _createCompletionSuggestionBuilder(
-            element,
-            completion: completion,
-            kind: CompletionSuggestionKind.IDENTIFIER,
-            prefix: prefix,
-            relevance: relevance,
-            isNotImported: isNotImportedLibrary,
-          ),
-        );
-      }
+    var enclosingPrefix = '';
+    var enclosingName = _enclosingClassOrExtensionName(element);
+    if (enclosingName != null) {
+      enclosingPrefix = '$enclosingName.';
+    }
+    var completion = enclosingPrefix + element.name;
+    if (_couldMatch(completion, prefix)) {
+      relevance ??= relevanceComputer.computeTopLevelRelevance(element,
+          elementType: element.type,
+          isNotImportedLibrary: isNotImportedLibrary);
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          element,
+          completion: completion,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+        ),
+      );
     }
   }
 
