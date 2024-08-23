@@ -128,9 +128,6 @@ class ScopeBuilder {
   // captured variable.
   LocalVariable* LookupVariable(intptr_t declaration_binary_offset);
 
-  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
-                                             const Function& function);
-
   const String& GenerateName(const char* prefix, intptr_t suffix);
 
   void HandleLoadReceiver();
@@ -162,8 +159,6 @@ class ScopeBuilder {
   LocalScope* current_function_scope_;
   LocalScope* scope_;
   DepthState depth_;
-
-  intptr_t name_index_;
 
   bool needs_expr_temp_;
   TokenPosition first_body_token_position_ = TokenPosition::kNoSource;
@@ -232,6 +227,9 @@ class ScopeBuildingResult : public ZoneAllocated {
   // Remembers closure function kernel offsets that do not capture any
   // variables.
   GrowableArray<intptr_t> closure_offsets_without_captures;
+
+  void PrintTo(BaseTextBuffer* f) const;
+  const char* ToCString() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ScopeBuildingResult);

@@ -299,6 +299,8 @@ if (is_fuchsia) {
     "tests/ffi/regress_51538_test.dart",
     "tests/ffi/regress_52298_test.dart",
     "tests/ffi/regress_52399_test.dart",
+    "tests/ffi/regress_56412_2_test.dart",
+    "tests/ffi/regress_56412_test.dart",
     "tests/ffi/regress_b_261224444_test.dart",
     "tests/ffi/regress_flutter79441_test.dart",
     "tests/ffi/regress_flutter97301_test.dart",
