@@ -4280,10 +4280,15 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* p) {
+  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
+
   const TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
-  Fragment instructions = BuildVariableDeclaration(nullptr);  // read variable.
-  instructions += BuildExpression();                          // read body.
+  Fragment instructions;
+  instructions += EnterScope(offset);
+  instructions += BuildVariableDeclaration(nullptr);  // read variable.
+  instructions += BuildExpression();                  // read body.
+  instructions += ExitScope(offset);
   return instructions;
 }
 

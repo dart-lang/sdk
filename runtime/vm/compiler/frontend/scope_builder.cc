@@ -4,9 +4,11 @@
 
 #include "vm/compiler/frontend/scope_builder.h"
 
+#include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/backend/il.h"  // For CompileType.
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/flags.h"
 
 namespace dart {
 namespace kernel {
@@ -25,7 +27,6 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
       current_function_scope_(nullptr),
       scope_(nullptr),
       depth_(0),
-      name_index_(0),
       needs_expr_temp_(false),
       helper_(
           zone_,
@@ -489,7 +490,43 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                  (parsed_function_->suspend_state_var()->index().value() ==
                   SuspendState::kSuspendStateVarIndex));
 
+#if defined(DEBUG)
+  if (FLAG_print_scopes && compiler::PrintFilter::ShouldPrint(function)) {
+    THR_Print("===== Scopes for %s\n", function.ToFullyQualifiedCString());
+    THR_Print("%s", result_->ToCString());
+    THR_Print("=====\n");
+  }
+#endif
+
   return result_;
+}
+
+void ScopeBuildingResult::PrintTo(BaseTextBuffer* f) const {
+  f->AddString("== function scopes:\n");
+  for (int i = 0; i < function_scopes.length(); i++) {
+    auto scope = function_scopes[i];
+    scope.scope->PrintTo(f);
+  }
+
+  f->AddString("== all scopes, indexed by kernel_offset:\n");
+  auto it = scopes.GetIterator();
+  while (auto scope = it.Next()) {
+    f->Printf("%" Pd ": ", scope->key);
+    scope->value->PrintTo(f);
+  }
+
+  f->AddString("== all variables:\n");
+  auto it2 = locals.GetIterator();
+  while (auto local = it2.Next()) {
+    local->value->PrintTo(f);
+  }
+}
+
+const char* ScopeBuildingResult::ToCString() const {
+  char buffer[1024 * 16];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 void ScopeBuilder::ReportUnexpectedTag(const char* variant, Tag tag) {
@@ -1344,9 +1381,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   AbstractType& type = BuildAndVisitVariableType();
 
-  const String& name = (H.StringSize(helper.name_index_) == 0)
-                           ? GenerateName(":var", name_index_++)
-                           : H.DartSymbolObfuscate(helper.name_index_);
+  const String& name = H.DartSymbolObfuscate(helper.name_index_);
 
   intptr_t initializer_offset = helper_.ReaderOffset();
   Tag tag = helper_.ReadTag();  // read (first part of) initializer.
@@ -1881,11 +1916,8 @@ LocalVariable* ScopeBuilder::LookupVariable(
     // declared in an outer scope.  In that case, look it up in the scope by
     // name and add it to the variable map to simplify later lookup.
     ASSERT(current_function_scope_->parent() != nullptr);
-    StringIndex var_name = GetNameFromVariableDeclaration(
-        declaration_binary_offset - helper_.data_program_offset_,
-        parsed_function_->function());
 
-    const String& name = H.DartSymbolObfuscate(var_name);
+    const auto& name = Object::null_string();  // only use kernel offset.
     variable = current_function_scope_->parent()->LookupVariable(
         name, declaration_binary_offset, true);
     ASSERT(variable != nullptr);
@@ -1911,20 +1943,6 @@ LocalVariable* ScopeBuilder::LookupVariable(
     ASSERT(variable->owner()->function_level() == scope_->function_level());
   }
   return variable;
-}
-
-StringIndex ScopeBuilder::GetNameFromVariableDeclaration(
-    intptr_t kernel_offset,
-    const Function& function) {
-  const auto& kernel_data = TypedDataView::Handle(Z, function.KernelLibrary());
-  ASSERT(!kernel_data.IsNull());
-
-  // Temporarily go to the variable declaration, read the name.
-  AlternativeReadingScopeWithNewData alt(&helper_.reader_, &kernel_data,
-                                         kernel_offset);
-  VariableDeclarationHelper helper(&helper_);
-  helper.ReadUntilIncluding(VariableDeclarationHelper::kNameIndex);
-  return helper.name_index_;
 }
 
 const String& ScopeBuilder::GenerateName(const char* prefix, intptr_t suffix) {
