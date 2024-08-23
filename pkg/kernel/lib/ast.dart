@@ -72,12 +72,12 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     show
-        SharedDynamicType,
-        SharedInvalidType,
-        SharedNamedType,
-        SharedRecordType,
-        SharedType,
-        SharedVoidType;
+        SharedDynamicTypeStructure,
+        SharedInvalidTypeStructure,
+        SharedNamedTypeStructure,
+        SharedRecordTypeStructure,
+        SharedTypeStructure,
+        SharedVoidTypeStructure;
 
 import 'src/extension_type_erasure.dart';
 import 'visitor.dart';
@@ -11054,7 +11054,7 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-sealed class DartType extends Node implements SharedType<DartType> {
+sealed class DartType extends Node implements SharedTypeStructure<DartType> {
   const DartType();
 
   @override
@@ -11173,7 +11173,7 @@ sealed class DartType extends Node implements SharedType<DartType> {
   String getDisplayString() => toText(const AstTextStrategy());
 
   @override
-  bool isStructurallyEqualTo(SharedType other) {
+  bool isStructurallyEqualTo(SharedTypeStructure other) {
     // TODO(cstefantsova): Use the actual algorithm for structural equality.
     return this == other;
   }
@@ -11221,7 +11221,8 @@ abstract class AuxiliaryType extends DartType {
 ///
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
-class InvalidType extends DartType implements SharedInvalidType<DartType> {
+class InvalidType extends DartType
+    implements SharedInvalidTypeStructure<DartType> {
   @override
   final int hashCode = 12345;
 
@@ -11274,7 +11275,8 @@ class InvalidType extends DartType implements SharedInvalidType<DartType> {
   }
 }
 
-class DynamicType extends DartType implements SharedDynamicType<DartType> {
+class DynamicType extends DartType
+    implements SharedDynamicTypeStructure<DartType> {
   @override
   final int hashCode = 54321;
 
@@ -11319,7 +11321,7 @@ class DynamicType extends DartType implements SharedDynamicType<DartType> {
   }
 }
 
-class VoidType extends DartType implements SharedVoidType<DartType> {
+class VoidType extends DartType implements SharedVoidTypeStructure<DartType> {
   @override
   final int hashCode = 123121;
 
@@ -12172,7 +12174,7 @@ class ExtensionType extends TypeDeclarationType {
 
 /// A named parameter in [FunctionType].
 class NamedType extends Node
-    implements Comparable<NamedType>, SharedNamedType<DartType> {
+    implements Comparable<NamedType>, SharedNamedTypeStructure<DartType> {
   // Flag used for serialization if [isRequired].
   static const int FlagRequiredNamedType = 1 << 0;
 
@@ -12899,7 +12901,8 @@ class StructuralParameterType extends DartType {
   }
 }
 
-class RecordType extends DartType implements SharedRecordType<DartType> {
+class RecordType extends DartType
+    implements SharedRecordTypeStructure<DartType> {
   final List<DartType> positional;
   final List<NamedType> named;
 
@@ -12924,7 +12927,7 @@ class RecordType extends DartType implements SharedRecordType<DartType> {
             "in a RecordType: ${named}");
 
   @override
-  List<SharedNamedType<DartType>> get namedTypes => named;
+  List<SharedNamedTypeStructure<DartType>> get namedTypes => named;
 
   @override
   Nullability get nullability => declaredNullability;

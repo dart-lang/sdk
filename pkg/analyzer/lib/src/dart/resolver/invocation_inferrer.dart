@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -239,7 +240,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           rawType.typeFormals, inferrer.choosePreliminaryTypes());
     }
 
-    List<ExpressionInfo<DartType>?>? identicalInfo = _isIdentical ? [] : null;
+    List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo =
+        _isIdentical ? [] : null;
     var parameterMap = _computeParameterMap(rawType?.parameters ?? const []);
     var deferredFunctionLiterals = _visitArguments(
         parameterMap: parameterMap,
@@ -469,7 +471,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
-  void _recordIdenticalInfo(List<ExpressionInfo<DartType>?>? identicalInfo) {
+  void _recordIdenticalInfo(
+      List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo) {
     var flow = resolver.flowAnalysis.flow;
     if (identicalInfo != null) {
       flow?.equalityOperation_end(argumentList.parent as Expression,
@@ -480,7 +483,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// Resolves any function literals that were deferred by [_visitArguments].
   void _resolveDeferredFunctionLiterals(
       {required List<_DeferredParamInfo> deferredFunctionLiterals,
-      List<ExpressionInfo<DartType>?>? identicalInfo,
+      List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     var flow = resolver.flowAnalysis.flow;
@@ -498,11 +501,12 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         parameterContextType = UnknownInferredType.instance;
       }
       var argument = arguments[deferredArgument.index];
-      resolver.analyzeExpression(argument, parameterContextType);
+      resolver.analyzeExpression(
+          argument, SharedTypeSchemaView(parameterContextType));
       argument = resolver.popRewrite()!;
       if (flow != null) {
-        identicalInfo?[deferredArgument.index] =
-            flow.equalityOperand_end(argument, argument.typeOrThrow);
+        identicalInfo?[deferredArgument.index] = flow.equalityOperand_end(
+            argument, SharedTypeView(argument.typeOrThrow));
       }
       if (parameter != null) {
         inferrer?.constrainArgument(
@@ -517,7 +521,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// returned.
   List<_DeferredParamInfo>? _visitArguments(
       {required Map<Object, ParameterElement> parameterMap,
-      List<ExpressionInfo<DartType>?>? identicalInfo,
+      List<ExpressionInfo<SharedTypeView<DartType>>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     assert(whyNotPromotedList.isEmpty);
@@ -560,11 +564,12 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         } else {
           parameterContextType = UnknownInferredType.instance;
         }
-        resolver.analyzeExpression(argument, parameterContextType);
+        resolver.analyzeExpression(
+            argument, SharedTypeSchemaView(parameterContextType));
         argument = resolver.popRewrite()!;
         if (flow != null) {
-          identicalInfo
-              ?.add(flow.equalityOperand_end(argument, argument.typeOrThrow));
+          identicalInfo?.add(flow.equalityOperand_end(
+              argument, SharedTypeView(argument.typeOrThrow)));
           whyNotPromotedList.add(flow.whyNotPromoted(argument));
         }
         if (parameter != null) {

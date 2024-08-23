@@ -30,7 +30,7 @@ import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
 /// The type associated with elements in the element model.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class DartType implements SharedType<DartType> {
+abstract class DartType implements SharedTypeStructure<DartType> {
   /// If this type is an instantiation of a type alias, information about
   /// the alias element, and the type arguments.
   /// Otherwise return `null`.
@@ -466,7 +466,8 @@ abstract class ParameterizedType implements DartType {
 /// The type of a record literal or a record type annotation.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class RecordType implements DartType, SharedRecordType<DartType> {
+abstract class RecordType
+    implements DartType, SharedRecordTypeStructure<DartType> {
   /// Creates a record type from of [positional] and [named] fields.
   factory RecordType({
     required List<DartType> positional,
@@ -500,7 +501,7 @@ abstract class RecordTypeField {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class RecordTypeNamedField
-    implements RecordTypeField, SharedNamedType<DartType> {
+    implements RecordTypeField, SharedNamedTypeStructure<DartType> {
   /// The name of the field.
   @override
   String get name;

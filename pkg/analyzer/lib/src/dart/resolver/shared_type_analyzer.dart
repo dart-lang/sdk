@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -20,7 +21,7 @@ typedef SharedPatternField
 class SharedTypeAnalyzerErrors
     implements
         shared.TypeAnalyzerErrors<AstNode, Statement, Expression,
-            PromotableElement, DartType, DartPattern, void> {
+            PromotableElement, SharedTypeView<DartType>, DartPattern, void> {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
@@ -32,8 +33,8 @@ class SharedTypeAnalyzerErrors
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required DartType scrutineeType,
-      required DartType caseExpressionType,
+      required SharedTypeView<DartType> scrutineeType,
+      required SharedTypeView<DartType> caseExpressionType,
       required bool nullSafetyEnabled}) {
     _errorReporter.atNode(
       caseExpression,
@@ -119,7 +120,7 @@ class SharedTypeAnalyzerErrors
   @override
   void matchedTypeIsStrictlyNonNullable({
     required DartPattern pattern,
-    required DartType matchedType,
+    required SharedTypeView<DartType> matchedType,
   }) {
     if (pattern is NullAssertPattern) {
       _errorReporter.atToken(
@@ -139,8 +140,8 @@ class SharedTypeAnalyzerErrors
   @override
   void matchedTypeIsSubtypeOfRequired({
     required covariant CastPatternImpl pattern,
-    required DartType matchedType,
-    required DartType requiredType,
+    required SharedTypeView<DartType> matchedType,
+    required SharedTypeView<DartType> requiredType,
   }) {
     _errorReporter.atToken(
       pattern.asToken,
@@ -160,7 +161,7 @@ class SharedTypeAnalyzerErrors
   void patternForInExpressionIsNotIterable({
     required AstNode node,
     required Expression expression,
-    required DartType expressionType,
+    required SharedTypeView<DartType> expressionType,
   }) {
     _errorReporter.atNode(
       expression,
@@ -173,8 +174,8 @@ class SharedTypeAnalyzerErrors
   void patternTypeMismatchInIrrefutableContext({
     required covariant DartPatternImpl pattern,
     required AstNode context,
-    required DartType matchedType,
-    required DartType requiredType,
+    required SharedTypeView<DartType> matchedType,
+    required SharedTypeView<DartType> requiredType,
   }) {
     _errorReporter.atNode(
       pattern,
@@ -195,8 +196,8 @@ class SharedTypeAnalyzerErrors
   @override
   void relationalPatternOperandTypeNotAssignable({
     required covariant RelationalPatternImpl pattern,
-    required DartType operandType,
-    required DartType parameterType,
+    required SharedTypeView<DartType> operandType,
+    required SharedTypeView<DartType> parameterType,
   }) {
     _errorReporter.atNode(
       pattern.operand,
@@ -208,7 +209,7 @@ class SharedTypeAnalyzerErrors
   @override
   void relationalPatternOperatorReturnTypeNotAssignableToBool({
     required covariant RelationalPatternImpl pattern,
-    required DartType returnType,
+    required SharedTypeView<DartType> returnType,
   }) {
     _errorReporter.atToken(
       pattern.operator,

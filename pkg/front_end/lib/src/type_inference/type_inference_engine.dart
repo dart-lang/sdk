@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     hide Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
@@ -432,8 +433,11 @@ class FlowAnalysisResult {
 
 /// CFE-specific implementation of [FlowAnalysisOperations].
 class OperationsCfe
+    with
+        TypeAnalyzerOperationsMixin<DartType, VariableDeclaration,
+            StructuralParameter, TypeDeclarationType, TypeDeclaration>
     implements
-        TypeAnalyzerOperations<VariableDeclaration, DartType, DartType,
+        TypeAnalyzerOperations<DartType, VariableDeclaration,
             StructuralParameter, TypeDeclarationType, TypeDeclaration> {
   final TypeEnvironment typeEnvironment;
 
@@ -459,48 +463,69 @@ class OperationsCfe
       required this.typeCacheLegacy});
 
   @override
-  DartType get boolType =>
-      typeEnvironment.coreTypes.boolRawType(Nullability.nonNullable);
+  SharedTypeView<DartType> get boolType {
+    return new SharedTypeView(
+        typeEnvironment.coreTypes.boolRawType(Nullability.nonNullable));
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
+  SharedTypeView<DartType> get doubleType {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
 
   @override
-  DartType get dynamicType => const DynamicType();
+  SharedTypeView<DartType> get dynamicType {
+    return new SharedTypeView(const DynamicType());
+  }
 
   @override
-  DartType get errorType => const InvalidType();
+  SharedTypeView<DartType> get errorType {
+    return new SharedTypeView(const InvalidType());
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get intType => throw new UnimplementedError('TODO(paulberry)');
+  SharedTypeView<DartType> get intType {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
 
   @override
-  DartType get neverType => const NeverType.nonNullable();
+  SharedTypeView<DartType> get neverType {
+    return new SharedTypeView(const NeverType.nonNullable());
+  }
 
   @override
-  DartType get nullType => const NullType();
+  SharedTypeView<DartType> get nullType {
+    return new SharedTypeView(const NullType());
+  }
 
   @override
-  DartType get objectQuestionType =>
-      typeEnvironment.coreTypes.objectNullableRawType;
+  SharedTypeView<DartType> get objectQuestionType {
+    return new SharedTypeView(typeEnvironment.coreTypes.objectNullableRawType);
+  }
 
   @override
-  DartType get objectType => typeEnvironment.coreTypes.objectNonNullableRawType;
+  SharedTypeView<DartType> get objectType {
+    return new SharedTypeView(
+        typeEnvironment.coreTypes.objectNonNullableRawType);
+  }
 
   @override
-  DartType get unknownType => const UnknownType();
+  SharedTypeSchemaView<DartType> get unknownType {
+    return new SharedTypeSchemaView(const UnknownType());
+  }
 
   @override
-  TypeClassification classifyType(DartType? type) {
-    if (type == null) {
+  TypeClassification classifyType(SharedTypeView<DartType>? type) {
+    DartType? unwrapped = type?.unwrapTypeView();
+    if (unwrapped == null) {
       // Note: this can happen during top-level inference.
       return TypeClassification.potentiallyNullable;
-    } else if (isSubtypeOf(
-        type, typeEnvironment.coreTypes.objectNonNullableRawType)) {
+    } else if (isSubtypeOfInternal(
+        unwrapped, typeEnvironment.coreTypes.objectNonNullableRawType)) {
       return TypeClassification.nonNullable;
-    } else if (isSubtypeOf(type, const NullType())) {
+    } else if (isSubtypeOfInternal(unwrapped, const NullType())) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -508,48 +533,56 @@ class OperationsCfe
   }
 
   @override
-  DartType factor(DartType from, DartType what) {
-    return factorType(typeEnvironment, from, what);
+  SharedTypeView<DartType> factor(
+      SharedTypeView<DartType> from, SharedTypeView<DartType> what) {
+    return new SharedTypeView(factorType(
+        typeEnvironment, from.unwrapTypeView(), what.unwrapTypeView()));
   }
 
   @override
-  DartType greatestClosure(DartType schema) =>
-      type_schema_elimination.greatestClosure(
-          schema, const DynamicType(), const NeverType.nonNullable());
-
-  @override
-  bool isAlwaysExhaustiveType(DartType type) {
-    return computeIsAlwaysExhaustiveType(type, typeEnvironment.coreTypes);
+  SharedTypeView<DartType> greatestClosure(
+      SharedTypeSchemaView<DartType> schema) {
+    return new SharedTypeView(type_schema_elimination.greatestClosure(
+        schema.unwrapTypeSchemaView(),
+        const DynamicType(),
+        const NeverType.nonNullable()));
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool isExtensionType(DartType type) {
-    return type is ExtensionType;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool isInterfaceType(DartType type) {
-    return type is InterfaceType;
-  }
-
-  @override
-  bool isNever(DartType type) {
-    return typeEnvironment.coreTypes.isBottom(type);
-  }
-
-  @override
-  bool isNull(DartType type) {
-    return type is NullType;
+  bool isAlwaysExhaustiveType(SharedTypeView<DartType> type) {
+    return computeIsAlwaysExhaustiveType(
+        type.unwrapTypeView(), typeEnvironment.coreTypes);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool isObject(DartType type) {
-    return type is InterfaceType &&
-        type.classNode == typeEnvironment.objectClass &&
-        type.nullability == Nullability.nonNullable;
+  bool isExtensionType(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() is ExtensionType;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool isInterfaceType(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() is InterfaceType;
+  }
+
+  @override
+  bool isNever(SharedTypeView<DartType> type) {
+    return typeEnvironment.coreTypes.isBottom(type.unwrapTypeView());
+  }
+
+  @override
+  bool isNull(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() is NullType;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool isObject(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    return unwrappedType is InterfaceType &&
+        unwrappedType.classNode == typeEnvironment.objectClass &&
+        unwrappedType.nullability == Nullability.nonNullable;
   }
 
   @override
@@ -590,23 +623,24 @@ class OperationsCfe
   }
 
   @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
+  bool isSubtypeOfInternal(DartType leftType, DartType rightType) {
     return typeEnvironment.isSubtypeOf(
         leftType, rightType, SubtypeCheckMode.withNullabilities);
   }
 
   @override
-  DartType promoteToNonNull(DartType type) {
-    if (type.nullability == Nullability.nonNullable) {
+  SharedTypeView<DartType> promoteToNonNull(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    if (unwrappedType.nullability == Nullability.nonNullable) {
       return type;
     }
-    DartType? cached = typeCacheNonNullable[type];
+    DartType? cached = typeCacheNonNullable[unwrappedType];
     if (cached != null) {
-      return cached;
+      return new SharedTypeView(cached);
     }
-    DartType result = type.toNonNull();
-    typeCacheNonNullable[type] = result;
-    return result;
+    DartType result = unwrappedType.toNonNull();
+    typeCacheNonNullable[unwrappedType] = result;
+    return new SharedTypeView(result);
   }
 
   DartType getNullableType(DartType type) {
@@ -626,68 +660,78 @@ class OperationsCfe
   }
 
   @override
-  DartType variableType(VariableDeclaration variable) {
+  SharedTypeView<DartType> variableType(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
       // When late variables get lowered, their type is changed, but the
       // original type is stored in `VariableDeclarationImpl.lateType`, so we
       // use that if it exists.
-      return variable.lateType ?? variable.type;
+      return new SharedTypeView(variable.lateType ?? variable.type);
     }
-    return variable.type;
+    return new SharedTypeView(variable.type);
   }
 
   @override
-  bool isTypeParameterType(DartType type) {
-    return type is TypeParameterType || type is IntersectionType;
+  bool isTypeParameterType(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() is TypeParameterType ||
+        type.unwrapTypeView() is IntersectionType;
   }
 
   @override
-  DartType tryPromoteToType(DartType to, DartType from) {
-    if (isSubtypeOf(to, from)) {
+  SharedTypeView<DartType> tryPromoteToType(
+      SharedTypeView<DartType> to, SharedTypeView<DartType> from) {
+    DartType unwrappedTo = to.unwrapTypeView();
+    DartType unwrappedFrom = from.unwrapTypeView();
+    if (isSubtypeOfInternal(unwrappedTo, unwrappedFrom)) {
       return to;
     }
-    if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.bound)) {
-        if (to.nullability != Nullability.nullable) {
+    if (unwrappedFrom is TypeParameterType) {
+      if (isSubtypeOfInternal(unwrappedTo, unwrappedFrom.bound)) {
+        if (to.unwrapTypeView().nullability != Nullability.nullable) {
           // We treat promotions of the form `x is T`, where `T` is not
           // nullable, as a two-step promotions equivalent to
           // `x != null && x is T`.
-          return new IntersectionType(
-              from.withDeclaredNullability(
+          return new SharedTypeView(new IntersectionType(
+              unwrappedFrom.withDeclaredNullability(
                   TypeParameterType.computeNullabilityFromBound(
-                      from.parameter)),
-              to);
+                      unwrappedFrom.parameter)),
+              unwrappedTo));
         } else {
-          return new IntersectionType(from, to);
+          return new SharedTypeView(
+              new IntersectionType(unwrappedFrom, unwrappedTo));
         }
       }
     }
-    if (from is IntersectionType) {
-      if (isSubtypeOf(to, from.right)) {
-        return new IntersectionType(from.left, to);
+    if (unwrappedFrom is IntersectionType) {
+      if (isSubtypeOfInternal(unwrappedTo, unwrappedFrom.right)) {
+        return new SharedTypeView(
+            new IntersectionType(unwrappedFrom.left, unwrappedTo));
       }
     }
-    return from;
+    return new SharedTypeView(unwrappedFrom);
   }
 
   @override
-  DartType glb(DartType type1, DartType type2) {
+  DartType glbInternal(DartType type1, DartType type2) {
     return typeEnvironment.getStandardLowerBound(type1, type2);
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType) {
+  bool isAssignableTo(
+      SharedTypeView<DartType> fromType, SharedTypeView<DartType> toType) {
     if (fromType is DynamicType) return true;
     return typeEnvironment
-        .performNullabilityAwareSubtypeCheck(fromType, toType)
+        .performNullabilityAwareSubtypeCheck(
+            fromType.unwrapTypeView(), toType.unwrapTypeView())
         .isSubtypeWhenUsingNullabilities();
   }
 
   @override
-  bool isFunctionType(DartType type) => type is FunctionType;
+  bool isFunctionType(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() is FunctionType;
+  }
 
   @override
-  DartType? matchFutureOr(DartType type) {
+  DartType? matchFutureOrInternal(DartType type) {
     if (type is! FutureOrType) {
       return null;
     } else {
@@ -698,8 +742,11 @@ class OperationsCfe
   @override
   // Coverage-ignore(suite): Not run.
   bool isTypeSchemaSatisfied(
-          {required DartType typeSchema, required DartType type}) =>
-      isSubtypeOf(type, typeSchema);
+      {required SharedTypeSchemaView<DartType> typeSchema,
+      required SharedTypeView<DartType> type}) {
+    return isSubtypeOfInternal(
+        type.unwrapTypeView(), typeSchema.unwrapTypeSchemaView());
+  }
 
   @override
   bool isVariableFinal(VariableDeclaration node) {
@@ -707,64 +754,48 @@ class OperationsCfe
   }
 
   @override
-  DartType iterableTypeSchema(DartType elementTypeSchema) {
-    return new InterfaceType(typeEnvironment.coreTypes.iterableClass,
-        Nullability.nonNullable, <DartType>[elementTypeSchema]);
+  SharedTypeSchemaView<DartType> iterableTypeSchema(
+      SharedTypeSchemaView<DartType> elementTypeSchema) {
+    return new SharedTypeSchemaView(new InterfaceType(
+        typeEnvironment.coreTypes.iterableClass,
+        Nullability.nonNullable,
+        <DartType>[elementTypeSchema.unwrapTypeSchemaView()]));
   }
 
   @override
-  DartType listType(DartType elementType) {
+  DartType listTypeInternal(DartType elementType) {
     return new InterfaceType(typeEnvironment.coreTypes.listClass,
         Nullability.nonNullable, <DartType>[elementType]);
   }
 
   @override
-  DartType listTypeSchema(DartType elementTypeSchema) {
-    return new InterfaceType(typeEnvironment.coreTypes.listClass,
-        Nullability.nonNullable, <DartType>[elementTypeSchema]);
-  }
-
-  @override
-  DartType lub(DartType type1, DartType type2) {
+  DartType lubInternal(DartType type1, DartType type2) {
     return typeEnvironment.getStandardUpperBound(type1, type2);
   }
 
   @override
-  DartType makeNullable(DartType type) {
+  DartType makeNullableInternal(DartType type) {
     return type.withDeclaredNullability(Nullability.nullable);
   }
 
   @override
-  DartType makeTypeSchemaNullable(DartType typeSchema) =>
-      typeSchema.withDeclaredNullability(Nullability.nullable);
-
-  @override
-  DartType mapType({required DartType keyType, required DartType valueType}) {
+  DartType mapTypeInternal(
+      {required DartType keyType, required DartType valueType}) {
     return new InterfaceType(typeEnvironment.coreTypes.mapClass,
         Nullability.nonNullable, <DartType>[keyType, valueType]);
   }
 
   @override
-  DartType mapTypeSchema(
-      {required DartType keyTypeSchema, required DartType valueTypeSchema}) {
-    return new InterfaceType(typeEnvironment.coreTypes.mapClass,
-        Nullability.nonNullable, <DartType>[keyTypeSchema, valueTypeSchema]);
-  }
-
-  @override
-  DartType? matchIterableTypeSchema(DartType typeSchema) =>
-      matchIterableType(typeSchema);
-
-  @override
-  DartType? matchListType(DartType type) {
-    if (type is TypeDeclarationType) {
+  SharedTypeView<DartType>? matchListType(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is TypeDeclarationType) {
       List<DartType>? typeArguments =
           typeEnvironment.getTypeArgumentsAsInstanceOf(
-              type, typeEnvironment.coreTypes.listClass);
+              unwrappedType, typeEnvironment.coreTypes.listClass);
       if (typeArguments == null || typeArguments.length != 1) {
         return null;
       } else {
-        return typeArguments.single;
+        return new SharedTypeView(typeArguments.single);
       }
     } else {
       return null;
@@ -772,33 +803,38 @@ class OperationsCfe
   }
 
   @override
-  ({DartType keyType, DartType valueType})? matchMapType(DartType type) {
-    if (type is! TypeDeclarationType) {
+  ({SharedTypeView<DartType> keyType, SharedTypeView<DartType> valueType})?
+      matchMapType(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is! TypeDeclarationType) {
       return null;
     } else {
       TypeDeclarationType? mapType = typeEnvironment.getTypeAsInstanceOf(
-          type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes);
+          unwrappedType,
+          typeEnvironment.coreTypes.mapClass,
+          typeEnvironment.coreTypes);
       if (mapType == null) {
         return null;
       } else {
         return (
-          keyType: mapType.typeArguments[0],
-          valueType: mapType.typeArguments[1]
+          keyType: new SharedTypeView(mapType.typeArguments[0]),
+          valueType: new SharedTypeView(mapType.typeArguments[1])
         );
       }
     }
   }
 
   @override
-  DartType? matchStreamType(DartType type) {
-    if (type is TypeDeclarationType) {
+  SharedTypeView<DartType>? matchStreamType(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is TypeDeclarationType) {
       List<DartType>? typeArguments =
           typeEnvironment.getTypeArgumentsAsInstanceOf(
-              type, typeEnvironment.coreTypes.streamClass);
+              unwrappedType, typeEnvironment.coreTypes.streamClass);
       if (typeArguments == null || typeArguments.length != 1) {
         return null;
       } else {
-        return typeArguments.single;
+        return new SharedTypeView(typeArguments.single);
       }
     } else {
       return null;
@@ -806,12 +842,13 @@ class OperationsCfe
   }
 
   @override
-  DartType normalize(DartType type) {
-    return norm(typeEnvironment.coreTypes, type);
+  SharedTypeView<DartType> normalize(SharedTypeView<DartType> type) {
+    return new SharedTypeView(
+        norm(typeEnvironment.coreTypes, type.unwrapTypeView()));
   }
 
   @override
-  DartType? matchIterableType(DartType type) {
+  DartType? matchIterableTypeInternal(DartType type) {
     if (type is! TypeDeclarationType) {
       return null;
     } else {
@@ -828,7 +865,7 @@ class OperationsCfe
   }
 
   @override
-  DartType recordType(
+  DartType recordTypeInternal(
       {required List<DartType> positional,
       required List<(String, DartType)> named}) {
     List<NamedType> namedFields = [];
@@ -840,70 +877,46 @@ class OperationsCfe
   }
 
   @override
-  DartType recordTypeSchema(
-          {required List<DartType> positional,
-          required List<(String, DartType)> named}) =>
-      recordType(positional: positional, named: named);
-
-  @override
-  DartType streamTypeSchema(DartType elementTypeSchema) {
-    return new InterfaceType(typeEnvironment.coreTypes.streamClass,
-        Nullability.nonNullable, <DartType>[elementTypeSchema]);
+  SharedTypeSchemaView<DartType> streamTypeSchema(
+      SharedTypeSchemaView<DartType> elementTypeSchema) {
+    return new SharedTypeSchemaView(new InterfaceType(
+        typeEnvironment.coreTypes.streamClass,
+        Nullability.nonNullable,
+        <DartType>[elementTypeSchema.unwrapTypeSchemaView()]));
   }
 
   @override
-  DartType extensionTypeErasure(DartType type) {
-    return type.extensionTypeErasure;
+  SharedTypeView<DartType> extensionTypeErasure(SharedTypeView<DartType> type) {
+    return new SharedTypeView(type.unwrapTypeView().extensionTypeErasure);
   }
 
   @override
-  DartType typeSchemaGlb(DartType typeSchema1, DartType typeSchema2) =>
-      glb(typeSchema1, typeSchema2);
-
-  @override
-  DartType typeToSchema(DartType type) => type;
-
-  @override
-  DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
-    return lub(typeSchema1, typeSchema2);
+  SharedTypeSchemaView<DartType> typeToSchema(SharedTypeView<DartType> type) {
+    return new SharedTypeSchemaView(type.unwrapTypeView());
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool typeSchemaIsSubtypeOfTypeSchema(
-      DartType leftSchema, DartType rightSchema) {
-    return isSubtypeOf(leftSchema, rightSchema);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool typeIsSubtypeOfTypeSchema(DartType leftType, DartType rightSchema) {
-    return isSubtypeOf(leftType, rightSchema);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {
-    return isSubtypeOf(leftSchema, rightType);
-  }
-
-  @override
-  DartType withNullabilitySuffix(DartType type, NullabilitySuffix modifier) {
+  SharedTypeView<DartType> withNullabilitySuffix(
+      SharedTypeView<DartType> type, NullabilitySuffix modifier) {
     switch (modifier) {
       case NullabilitySuffix.none:
-        return computeTypeWithoutNullabilityMarker(type);
+        return new SharedTypeView(
+            computeTypeWithoutNullabilityMarker(type.unwrapTypeView()));
       // Coverage-ignore(suite): Not run.
       case NullabilitySuffix.question:
-        return type.withDeclaredNullability(Nullability.nullable);
+        return new SharedTypeView(type
+            .unwrapTypeView()
+            .withDeclaredNullability(Nullability.nullable));
       // Coverage-ignore(suite): Not run.
       case NullabilitySuffix.star:
-        return type.withDeclaredNullability(Nullability.legacy);
+        return new SharedTypeView(
+            type.unwrapTypeView().withDeclaredNullability(Nullability.legacy));
     }
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  TypeDeclarationKind? getTypeDeclarationKind(DartType type) {
+  TypeDeclarationKind? getTypeDeclarationKindInternal(DartType type) {
     if (type is TypeDeclarationType) {
       switch (type) {
         case InterfaceType():
@@ -917,40 +930,38 @@ class OperationsCfe
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  TypeDeclarationKind? getTypeSchemaDeclarationKind(DartType typeSchema) {
-    return getTypeDeclarationKind(typeSchema);
+  bool isNonNullable(SharedTypeSchemaView<DartType> typeSchema) {
+    return typeSchema.unwrapTypeSchemaView().nullability ==
+        Nullability.nonNullable;
   }
 
   @override
-  bool isNonNullable(DartType typeSchema) {
-    return typeSchema.nullability == Nullability.nonNullable;
-  }
-
-  @override
-  StructuralParameter? matchInferableParameter(DartType type) {
-    if (type is StructuralParameterType) {
-      return type.parameter;
+  StructuralParameter? matchInferableParameter(SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is StructuralParameterType) {
+      return unwrappedType.parameter;
     } else {
       return null;
     }
   }
 
   @override
-  InterfaceType futureType(DartType argumentType) {
+  InterfaceType futureTypeInternal(DartType argumentType) {
     return new InterfaceType(typeEnvironment.coreTypes.futureClass,
         Nullability.nonNullable, <DartType>[argumentType]);
   }
 
   @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(DartType type) {
-    if (type is TypeDeclarationType) {
-      switch (type) {
+  TypeDeclarationMatchResult? matchTypeDeclarationType(
+      SharedTypeView<DartType> type) {
+    DartType unwrappedType = type.unwrapTypeView();
+    if (unwrappedType is TypeDeclarationType) {
+      switch (unwrappedType) {
         case InterfaceType(:List<DartType> typeArguments, :Class classNode):
           return new TypeDeclarationMatchResult(
               typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
               typeDeclaration: classNode,
-              typeDeclarationType: type,
+              typeDeclarationType: unwrappedType,
               typeArguments: typeArguments);
         case ExtensionType(
             :List<DartType> typeArguments,
@@ -959,7 +970,7 @@ class OperationsCfe
           return new TypeDeclarationMatchResult(
               typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
               typeDeclaration: extensionTypeDeclaration,
-              typeDeclarationType: type,
+              typeDeclarationType: unwrappedType,
               typeArguments: typeArguments);
       }
     } else {
@@ -974,29 +985,9 @@ class OperationsCfe
   }
 
   @override
-  bool isDartCoreFunction(DartType type) {
-    return type == typeEnvironment.coreTypes.functionNonNullableRawType;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NullabilitySuffix typeSchemaNullabilitySuffix(DartType typeSchema) {
-    return typeSchema.nullabilitySuffix;
-  }
-
-  @override
-  DartType futureTypeSchema(DartType argumentTypeSchema) {
-    return new InterfaceType(typeEnvironment.coreTypes.futureClass,
-        Nullability.nonNullable, <DartType>[argumentTypeSchema]);
-  }
-
-  @override
-  DartType? matchTypeSchemaFutureOr(DartType typeSchema) {
-    if (typeSchema is! FutureOrType) {
-      return null;
-    } else {
-      return typeSchema.typeArgument;
-    }
+  bool isDartCoreFunction(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() ==
+        typeEnvironment.coreTypes.functionNonNullableRawType;
   }
 }
 

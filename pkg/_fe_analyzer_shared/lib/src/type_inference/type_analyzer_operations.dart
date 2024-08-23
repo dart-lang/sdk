@@ -8,48 +8,95 @@ import 'nullability_suffix.dart';
 
 /// Callback API used by the shared type analyzer to query and manipulate the
 /// client's representation of variables and types.
+///
+/// Concrete classes that implement this class should also mix in
+/// [TypeAnalyzerOperationsMixin], which provides the implementations of the
+/// operations for types and type schemas using the related operations on type
+/// structures, implemented by the concrete class itself. For example,
+/// [TypeAnalyzerOperationsMixin] adds [TypeAnalyzerOperationsMixin.futureType]
+/// and [TypeAnalyzerOperationsMixin.futureTypeSchema] that are defined in terms
+/// of [TypeAnalyzerOperations.futureTypeInternal], so a concrete class
+/// implementing [TypeAnalyzerOperations] needs to implement only
+/// `futureTypeInternal` to receive the implementations of both `futureType` and
+/// `futureTypeSchema` by mixing in [TypeAnalyzerOperationsMixin].
 abstract interface class TypeAnalyzerOperations<
+        TypeStructure extends SharedTypeStructure<TypeStructure>,
         Variable extends Object,
-        Type extends SharedType<Type>,
-        TypeSchema extends SharedType<TypeSchema>,
         InferableParameter extends Object,
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
-    implements FlowAnalysisOperations<Variable, Type> {
+    implements FlowAnalysisOperations<Variable, SharedTypeView<TypeStructure>> {
   /// Returns the type `double`.
-  Type get doubleType;
+  SharedTypeView<TypeStructure> get doubleType;
 
   /// Returns the type `dynamic`.
-  Type get dynamicType;
+  SharedTypeView<TypeStructure> get dynamicType;
 
   /// Returns the type used by the client in the case of errors.
-  Type get errorType;
+  SharedTypeView<TypeStructure> get errorType;
 
   /// Returns the type `int`.
-  Type get intType;
+  SharedTypeView<TypeStructure> get intType;
 
   /// Returns the type `Never`.
-  Type get neverType;
+  SharedTypeView<TypeStructure> get neverType;
 
   /// Returns the type `Null`.
-  Type get nullType;
+  SharedTypeView<TypeStructure> get nullType;
 
   /// Returns the type `Object?`.
-  Type get objectQuestionType;
+  SharedTypeView<TypeStructure> get objectQuestionType;
 
   /// Returns the type `Object`.
-  Type get objectType;
+  SharedTypeView<TypeStructure> get objectType;
 
   /// Returns the unknown type schema (`_`) used in type inference.
-  TypeSchema get unknownType;
+  SharedTypeSchemaView<TypeStructure> get unknownType;
 
   /// Returns the type `Future` with omitted nullability and type argument
   /// [argumentType].
-  Type futureType(Type argumentType);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [futureTypeInternal] to
+  /// receive a concrete implementation of [futureType] instead of implementing
+  /// [futureType] directly.
+  SharedTypeView<TypeStructure> futureType(
+      SharedTypeView<TypeStructure> argumentType);
 
   /// Returns the type schema `Future` with omitted nullability and type
   /// argument [argumentTypeSchema].
-  TypeSchema futureTypeSchema(TypeSchema argumentTypeSchema);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [futureTypeInternal] to
+  /// receive a concrete implementation of [futureTypeSchema] instead of
+  /// implementing [futureTypeSchema] directly.
+  SharedTypeSchemaView<TypeStructure> futureTypeSchema(
+      SharedTypeSchemaView<TypeStructure> argumentTypeSchema);
+
+  /// [futureTypeInternal] should be implemented by concrete classes
+  /// implementing [TypeAnalyzerOperations]. The implementations of [futureType]
+  /// and [futureTypeSchema] are provided by mixing in
+  /// [TypeAnalyzerOperationsMixin], which defines [futureType] and
+  /// [futureTypeSchema] in terms of [futureTypeInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [futureTypeInternal], and receive
+  /// the implementation of both [futureType] and [futureTypeSchema] from the
+  /// mixin.
+  ///
+  /// The auxiliary purpose of [futureTypeInternal] is to facilitate the
+  /// development of the shared code at early stages. Sometimes the sharing of
+  /// the code starts by unifying the implementations of some concrete members
+  /// in the Analyzer and the CFE by bringing them in a form that looks
+  /// syntactically very similar in both tools, and then continues by
+  /// abstracting the two concrete members and using the shared abstracted one
+  /// instead of the two concrete methods existing previously. During the early
+  /// stages of unifying the two concrete members it can be beneficial to use
+  /// [futureTypeInternal] instead of the tool-specific ways of constructing a
+  /// future type, for the sake of uniformity, and to simplify the abstraction
+  /// step too.
+  TypeStructure futureTypeInternal(TypeStructure typeStructure);
 
   /// If [type] was introduced by a class, mixin, enum, or extension type,
   /// returns a [TypeDeclarationKind] indicating what kind of thing it was
@@ -58,7 +105,8 @@ abstract interface class TypeAnalyzerOperations<
   /// Examples of types derived from a class declarations are `A`, `A?`, `A*`,
   /// `B<T, S>`, where `A` and `B` are the names of class declarations or
   /// extension type declarations, `T` and `S` are types.
-  TypeDeclarationKind? getTypeDeclarationKind(Type type);
+  TypeDeclarationKind? getTypeDeclarationKind(
+      SharedTypeView<TypeStructure> type);
 
   /// Returns variance for of the type parameter at index [parameterIndex] in
   /// [typeDeclaration].
@@ -74,101 +122,332 @@ abstract interface class TypeAnalyzerOperations<
   /// declaration are `A`, `A?`, `A*`, `B<T, S>`, `B<_, B<_, _>>?`, where `A`
   /// and `B` are class declarations or extension type declarations, `T` and
   /// `S` are type schemas.
-  TypeDeclarationKind? getTypeSchemaDeclarationKind(TypeSchema typeSchema);
+  TypeDeclarationKind? getTypeSchemaDeclarationKind(
+      SharedTypeSchemaView<TypeStructure> typeSchema);
+
+  TypeDeclarationKind? getTypeDeclarationKindInternal(TypeStructure type);
 
   /// Computes the greatest lower bound of [type1] and [type2].
-  Type glb(Type type1, Type type2);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [glbInternal] to receive a
+  /// concrete implementation of [glb] instead of implementing [glb] directly.
+  SharedTypeView<TypeStructure> glb(
+      SharedTypeView<TypeStructure> type1, SharedTypeView<TypeStructure> type2);
+
+  /// Computes the greatest lower bound of [typeSchema1] and [typeSchema2].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [glbInternal] to receive a
+  /// concrete implementation of [typeSchemaGlb] instead of implementing
+  /// [typeSchemaGlb] directly.
+  SharedTypeSchemaView<TypeStructure> typeSchemaGlb(
+      SharedTypeSchemaView<TypeStructure> typeSchema1,
+      SharedTypeSchemaView<TypeStructure> typeSchema2);
+
+  /// [glbInternal] should be implemented by concrete classes implementing
+  /// [TypeAnalyzerOperations]. The implementations of [glb] and [typeSchemaGlb]
+  /// are provided by mixing in [TypeAnalyzerOperationsMixin], which defines
+  /// [glb] and [typeSchemaGlb] in terms of [glbInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [glbInternal], and receive the
+  /// implementation of both [glb] and [typeSchemaGlb] from the mixin.
+  ///
+  /// The auxiliary purpose of [glbInternal] is to facilitate the development of
+  /// the shared code at early stages. Sometimes the sharing of the code starts
+  /// by unifying the implementations of some concrete members in the Analyzer
+  /// and the CFE by bringing them in a form that looks syntactically very
+  /// similar in both tools, and then continues by abstracting the two concrete
+  /// members and using the shared abstracted one instead of the two concrete
+  /// methods existing previously. During the early stages of unifying the two
+  /// concrete members it can be beneficial to use [glbInternal] instead of the
+  /// tool-specific ways of constructing a future type, for the sake of
+  /// uniformity, and to simplify the abstraction step too.
+  TypeStructure glbInternal(TypeStructure type1, TypeStructure type2);
 
   /// Returns the greatest closure of [schema] with respect to the unknown type
   /// (`_`).
-  Type greatestClosure(TypeSchema schema);
+  SharedTypeView<TypeStructure> greatestClosure(
+      SharedTypeSchemaView<TypeStructure> schema);
 
   /// Queries whether [type] is an "always-exhaustive" type (as defined in the
   /// patterns spec).  Exhaustive types are types for which the switch statement
   /// is required to be exhaustive when patterns support is enabled.
-  bool isAlwaysExhaustiveType(Type type);
+  bool isAlwaysExhaustiveType(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if [fromType] is assignable to [toType].
-  bool isAssignableTo(Type fromType, Type toType);
+  bool isAssignableTo(SharedTypeView<TypeStructure> fromType,
+      SharedTypeView<TypeStructure> toType);
 
   /// Returns `true` if [type] is `Function` from `dart:core`. The method
   /// returns `false` for `Object?` and `Object*`.
-  bool isDartCoreFunction(Type type);
+  bool isDartCoreFunction(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if [type] is `E<T1, ..., Tn>`, `E<T1, ..., Tn>?`, or
   /// `E<T1, ..., Tn>*` for some extension type declaration E, some
   /// non-negative n, and some types T1, ..., Tn.
-  bool isExtensionType(Type type);
+  bool isExtensionType(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if [type] is `F`, `F?`, or `F*` for some function type `F`.
-  bool isFunctionType(Type type);
+  bool isFunctionType(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if [type] is `A<T1, ..., Tn>`, `A<T1, ..., Tn>?`, or
   /// `A<T1, ..., Tn>*` for some class, mixin, or enum A, some non-negative n,
   /// and some types T1, ..., Tn. The method returns `false` if [type] is an
   /// extension type, a type alias, `Null`, `Never`, or `FutureOr<X>` for any
   /// type `X`.
-  bool isInterfaceType(Type type);
+  bool isInterfaceType(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if `Null` is not a subtype of all types matching
   /// [typeSchema].
   ///
   /// The predicate of [isNonNullable] could be computed directly with a subtype
   /// query, but the implementations can do that more efficiently.
-  bool isNonNullable(TypeSchema typeSchema);
+  bool isNonNullable(SharedTypeSchemaView<TypeStructure> typeSchema);
 
   /// Returns `true` if [type] is `Null`.
-  bool isNull(Type type);
+  bool isNull(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
   /// `false` for `Object?` and `Object*`.
-  bool isObject(Type type);
+  bool isObject(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if the type [type] satisfies the type schema [typeSchema].
   bool isTypeSchemaSatisfied(
-      {required TypeSchema typeSchema, required Type type});
+      {required SharedTypeSchemaView<TypeStructure> typeSchema,
+      required SharedTypeView<TypeStructure> type});
 
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);
 
   /// Returns the type schema `Iterable`, with type argument.
-  TypeSchema iterableTypeSchema(TypeSchema elementTypeSchema);
+  SharedTypeSchemaView<TypeStructure> iterableTypeSchema(
+      SharedTypeSchemaView<TypeStructure> elementTypeSchema);
 
   /// Returns the type `List`, with type argument [elementType].
-  Type listType(Type elementType);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [listTypeInternal] to receive
+  /// a concrete implementation of [listType] instead of implementing [listType]
+  /// directly.
+  SharedTypeView<TypeStructure> listType(
+      SharedTypeView<TypeStructure> elementType);
 
   /// Returns the type schema `List`, with type argument [elementTypeSchema].
-  TypeSchema listTypeSchema(TypeSchema elementTypeSchema);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [listTypeInternal] to receive
+  /// a concrete implementation of [listTypeSchema] instead of implementing
+  /// [listTypeSchema] directly.
+  SharedTypeSchemaView<TypeStructure> listTypeSchema(
+      SharedTypeSchemaView<TypeStructure> elementTypeSchema);
+
+  /// [listTypeInternal] should be implemented by concrete classes implementing
+  /// [TypeAnalyzerOperations]. The implementations of [listType] and
+  /// [listTypeSchema] are provided by mixing in [TypeAnalyzerOperationsMixin],
+  /// which defines [listType] and [listTypeSchema] in terms of
+  /// [listTypeInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [listTypeInternal], and receive
+  /// the implementation of both [listType] and [listTypeSchema] from the mixin.
+  ///
+  /// The auxiliary purpose of [listTypeInternal] is to facilitate the
+  /// development of the shared code at early stages. Sometimes the sharing of
+  /// the code starts by unifying the implementations of some concrete members
+  /// in the Analyzer and the CFE by bringing them in a form that looks
+  /// syntactically very similar in both tools, and then continues by
+  /// abstracting the two concrete members and using the shared abstracted one
+  /// instead of the two concrete methods existing previously. During the early
+  /// stages of unifying the two concrete members it can be beneficial to use
+  /// [listTypeInternal] instead of the tool-specific ways of constructing a
+  /// future type, for the sake of uniformity, and to simplify the abstraction
+  /// step too.
+  TypeStructure listTypeInternal(TypeStructure elementType);
 
   /// Computes the least upper bound of [type1] and [type2].
-  Type lub(Type type1, Type type2);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [lubInternal] to receive a
+  /// concrete implementation of [lub] instead of implementing [lub] directly.
+  SharedTypeView<TypeStructure> lub(
+      SharedTypeView<TypeStructure> type1, SharedTypeView<TypeStructure> type2);
+
+  /// Computes the least upper bound of [typeSchema1] and [typeSchema2].
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [lubInternal] to receive a
+  /// concrete implementation of [typeSchemaLub] instead of implementing
+  /// [typeSchemaLub] directly.
+  SharedTypeSchemaView<TypeStructure> typeSchemaLub(
+      SharedTypeSchemaView<TypeStructure> typeSchema1,
+      SharedTypeSchemaView<TypeStructure> typeSchema2);
+
+  /// [lubInternal] should be implemented by concrete classes implementing
+  /// [TypeAnalyzerOperations]. The implementations of [lub] and [typeSchemaLub]
+  /// are provided by mixing in [TypeAnalyzerOperationsMixin], which defines
+  /// [lub] and [typeSchemaLub] in terms of [lubInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [lubInternal], and receive the
+  /// implementation of both [lub] and [typeSchemaLub] from the mixin.
+  ///
+  /// The auxiliary purpose of [lubInternal] is to facilitate the development of
+  /// the shared code at early stages. Sometimes the sharing of the code starts
+  /// by unifying the implementations of some concrete members in the Analyzer
+  /// and the CFE by bringing them in a form that looks syntactically very
+  /// similar in both tools, and then continues by abstracting the two concrete
+  /// members and using the shared abstracted one instead of the two concrete
+  /// methods existing previously. During the early stages of unifying the two
+  /// concrete members it can be beneficial to use [lubInternal] instead of the
+  /// tool-specific ways of constructing a future type, for the sake of
+  /// uniformity, and to simplify the abstraction step too.
+  TypeStructure lubInternal(TypeStructure type1, TypeStructure type2);
 
   /// Computes the nullable form of [type], in other words the least upper bound
   /// of [type] and `Null`.
-  Type makeNullable(Type type);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [makeNullableInternal] to
+  /// receive a concrete implementation of [makeNullable] instead of
+  /// implementing [makeNullable] directly.
+  SharedTypeView<TypeStructure> makeNullable(
+      SharedTypeView<TypeStructure> type);
 
   /// Computes the nullable form of [typeSchema].
-  TypeSchema makeTypeSchemaNullable(TypeSchema typeSchema);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [makeNullableInternal] to
+  /// receive a concrete implementation of [makeTypeSchemaNullable] instead of
+  /// implementing [makeTypeSchemaNullable] directly.
+  SharedTypeSchemaView<TypeStructure> makeTypeSchemaNullable(
+      SharedTypeSchemaView<TypeStructure> typeSchema);
+
+  /// [makeNullableInternal] should be implemented by concrete classes
+  /// implementing [TypeAnalyzerOperations]. The implementations of
+  /// [makeNullable] and [makeTypeSchemaNullable] are provided by mixing in
+  /// [TypeAnalyzerOperationsMixin], which defines [makeNullable] and
+  /// [makeTypeSchemaNullable] in terms of [makeNullableInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [makeNullableInternal], and
+  /// receive the implementation of both [makeNullable] and
+  /// [makeTypeSchemaNullable] from the mixin.
+  ///
+  /// The auxiliary purpose of [makeNullableInternal] is to facilitate the
+  /// development of the shared code at early stages. Sometimes the sharing of
+  /// the code starts by unifying the implementations of some concrete members
+  /// in the Analyzer and the CFE by bringing them in a form that looks
+  /// syntactically very similar in both tools, and then continues by
+  /// abstracting the two concrete members and using the shared abstracted one
+  /// instead of the two concrete methods existing previously. During the early
+  /// stages of unifying the two concrete members it can be beneficial to use
+  /// [makeNullableInternal] instead of the tool-specific ways of constructing a
+  /// future type, for the sake of uniformity, and to simplify the abstraction
+  /// step too.
+  TypeStructure makeNullableInternal(TypeStructure type);
 
   /// Returns the type `Map`, with type arguments.
-  Type mapType({
-    required Type keyType,
-    required Type valueType,
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [mapTypeInternal] to receive a
+  /// concrete implementation of [mapType] instead of implementing [mapType]
+  /// directly.
+  SharedTypeView<TypeStructure> mapType({
+    required SharedTypeView<TypeStructure> keyType,
+    required SharedTypeView<TypeStructure> valueType,
   });
 
   /// Returns the type schema `Map`, with type arguments [keyTypeSchema] and
   /// [valueTypeSchema].
-  TypeSchema mapTypeSchema(
-      {required TypeSchema keyTypeSchema, required TypeSchema valueTypeSchema});
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [mapTypeInternal] to receive a
+  /// concrete implementation of [makeTypeSchemaNullable] instead of
+  /// implementing [makeTypeSchemaNullable] directly.
+  SharedTypeSchemaView<TypeStructure> mapTypeSchema({
+    required SharedTypeSchemaView<TypeStructure> keyTypeSchema,
+    required SharedTypeSchemaView<TypeStructure> valueTypeSchema,
+  });
+
+  /// [mapTypeInternal] should be implemented by concrete classes implementing
+  /// [TypeAnalyzerOperations]. The implementations of [mapType] and
+  /// [makeTypeSchemaNullable] are provided by mixing in
+  /// [TypeAnalyzerOperationsMixin], which defines [mapType] and
+  /// [makeTypeSchemaNullable] in terms of [mapTypeInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [mapTypeInternal], and receive the
+  /// implementation of both [mapType] and [makeTypeSchemaNullable] from the
+  /// mixin.
+  ///
+  /// The auxiliary purpose of [mapTypeInternal] is to facilitate the
+  /// development of the shared code at early stages. Sometimes the sharing of
+  /// the code starts by unifying the implementations of some concrete members
+  /// in the Analyzer and the CFE by bringing them in a form that looks
+  /// syntactically very similar in both tools, and then continues by
+  /// abstracting the two concrete members and using the shared abstracted one
+  /// instead of the two concrete methods existing previously. During the early
+  /// stages of unifying the two concrete members it can be beneficial to use
+  /// [mapTypeInternal] instead of the tool-specific ways of constructing a
+  /// future type, for the sake of uniformity, and to simplify the abstraction
+  /// step too.
+  TypeStructure mapTypeInternal({
+    required TypeStructure keyType,
+    required TypeStructure valueType,
+  });
 
   /// If [type] takes the form `FutureOr<T>`, `FutureOr<T>?`, or `FutureOr<T>*`
   /// for some `T`, returns the type `T`. Otherwise returns `null`.
-  Type? matchFutureOr(Type type);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [matchFutureOrInternal] to
+  /// receive a concrete implementation of [matchFutureOr] instead of
+  /// implementing [matchFutureOr] directly.
+  SharedTypeView<TypeStructure>? matchFutureOr(
+      SharedTypeView<TypeStructure> type);
 
   /// If [typeSchema] takes the form `FutureOr<T>`, `FutureOr<T>?`, or
   /// `FutureOr<T>*` for some `T`, returns the type schema `T`. Otherwise
   /// returns `null`.
-  TypeSchema? matchTypeSchemaFutureOr(TypeSchema typeSchema);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [matchFutureOrInternal] to
+  /// receive a concrete implementation of [matchTypeSchemaFutureOr] instead of
+  /// implementing [matchTypeSchemaFutureOr] directly.
+  SharedTypeSchemaView<TypeStructure>? matchTypeSchemaFutureOr(
+      SharedTypeSchemaView<TypeStructure> typeSchema);
+
+  /// [matchFutureOrInternal] should be implemented by concrete classes
+  /// implementing [TypeAnalyzerOperations]. The implementations of
+  /// [matchFutureOr] and [matchTypeSchemaFutureOr] are provided by mixing in
+  /// [TypeAnalyzerOperationsMixin], which defines [matchFutureOr] and
+  /// [matchTypeSchemaFutureOr] in terms of [matchFutureOrInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [matchFutureOrInternal], and
+  /// receive the implementation of both [matchFutureOr] and
+  /// [matchTypeSchemaFutureOr] from the mixin.
+  ///
+  /// The auxiliary purpose of [matchFutureOrInternal] is to facilitate the
+  /// development of the shared code at early stages. Sometimes the sharing of
+  /// the code starts by unifying the implementations of some concrete members
+  /// in the Analyzer and the CFE by bringing them in a form that looks
+  /// syntactically very similar in both tools, and then continues by
+  /// abstracting the two concrete members and using the shared abstracted one
+  /// instead of the two concrete methods existing previously. During the early
+  /// stages of unifying the two concrete members it can be beneficial to use
+  /// [matchFutureOrInternal] instead of the tool-specific ways of constructing
+  /// a future type, for the sake of uniformity, and to simplify the abstraction
+  /// step too.
+  TypeStructure? matchFutureOrInternal(TypeStructure type);
 
   /// If [type] is a parameter type that is of a kind used in type inference,
   /// returns the corresponding parameter.
@@ -179,27 +458,70 @@ abstract interface class TypeAnalyzerOperations<
   /// `foo`.
   ///
   ///   X foo<X>(bool c, X x1, X x2) => c ? x1 : x2;
-  InferableParameter? matchInferableParameter(Type type);
+  InferableParameter? matchInferableParameter(
+      SharedTypeView<TypeStructure> type);
 
   /// If [type] is a subtype of the type `Iterable<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.
-  Type? matchIterableType(Type type);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [matchIterableTypeInternal] to
+  /// receive a concrete implementation of [matchIterableType] instead of
+  /// implementing [matchIterableType] directly.
+  SharedTypeView<TypeStructure>? matchIterableType(
+      SharedTypeView<TypeStructure> type);
 
   /// If [typeSchema] is the type schema `Iterable<T>?` (or a subtype thereof),
   /// for some `T`, returns the type `T`. Otherwise returns `null`.
-  TypeSchema? matchIterableTypeSchema(TypeSchema typeSchema);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [matchIterableTypeInternal] to
+  /// receive a concrete implementation of [matchIterableTypeSchema] instead of
+  /// implementing [matchIterableTypeSchema] directly.
+  SharedTypeSchemaView<TypeStructure>? matchIterableTypeSchema(
+      SharedTypeSchemaView<TypeStructure> typeSchema);
+
+  /// [matchIterableTypeInternal] should be implemented by concrete classes
+  /// implementing [TypeAnalyzerOperations]. The implementations of
+  /// [matchIterableType] and [matchIterableTypeSchema] are provided by mixing
+  /// in [TypeAnalyzerOperationsMixin], which defines [matchIterableType] and
+  /// [matchIterableTypeSchema] in terms of [matchIterableTypeInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [matchIterableTypeInternal], and
+  /// receive the implementation of both [matchIterableType] and
+  /// [matchIterableTypeSchema] from the mixin.
+  ///
+  /// The auxiliary purpose of [matchIterableTypeInternal] is to facilitate the
+  /// development of the shared code at early stages. Sometimes the sharing of
+  /// the code starts by unifying the implementations of some concrete members
+  /// in the Analyzer and the CFE by bringing them in a form that looks
+  /// syntactically very similar in both tools, and then continues by
+  /// abstracting the two concrete members and using the shared abstracted one
+  /// instead of the two concrete methods existing previously. During the early
+  /// stages of unifying the two concrete members it can be beneficial to use
+  /// [matchIterableTypeInternal] instead of the tool-specific ways of
+  /// constructing a future type, for the sake of uniformity, and to simplify
+  /// the abstraction step too.
+  TypeStructure? matchIterableTypeInternal(TypeStructure type);
 
   /// If [type] is a subtype of the type `List<T>?` for some `T`, returns the
   /// type `T`.  Otherwise returns `null`.
-  Type? matchListType(Type type);
+  SharedTypeView<TypeStructure>? matchListType(
+      SharedTypeView<TypeStructure> type);
 
   /// If [type] is a subtype of the type `Map<K, V>?` for some `K` and `V`,
   /// returns these `K` and `V`.  Otherwise returns `null`.
-  ({Type keyType, Type valueType})? matchMapType(Type type);
+  ({
+    SharedTypeView<TypeStructure> keyType,
+    SharedTypeView<TypeStructure> valueType
+  })? matchMapType(SharedTypeView<TypeStructure> type);
 
   /// If [type] is a subtype of the type `Stream<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.
-  Type? matchStreamType(Type type);
+  SharedTypeView<TypeStructure>? matchStreamType(
+      SharedTypeView<TypeStructure> type);
 
   /// If [type] was introduced by a class, mixin, enum, or extension type,
   /// returns an object of [TypeDeclarationMatchResult] describing the
@@ -207,24 +529,64 @@ abstract interface class TypeAnalyzerOperations<
   ///
   /// If [type] isn't introduced by a class, mixin, enum, or extension type,
   /// returns null.
-  TypeDeclarationMatchResult? matchTypeDeclarationType(Type type);
+  TypeDeclarationMatchResult? matchTypeDeclarationType(
+      SharedTypeView<TypeStructure> type);
 
   /// Computes `NORM` of [type].
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/normalization.md`
-  Type normalize(Type type);
+  SharedTypeView<TypeStructure> normalize(SharedTypeView<TypeStructure> type);
 
   /// Builds the client specific record type.
-  Type recordType(
-      {required List<Type> positional, required List<(String, Type)> named});
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [recordTypeInternal] to
+  /// receive a concrete implementation of [recordType] instead of implementing
+  /// [recordType] directly.
+  SharedTypeView<TypeStructure> recordType(
+      {required List<SharedTypeView<TypeStructure>> positional,
+      required List<(String, SharedTypeView<TypeStructure>)> named});
 
   /// Builds the client specific record type schema.
-  TypeSchema recordTypeSchema(
-      {required List<TypeSchema> positional,
-      required List<(String, TypeSchema)> named});
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement [recordTypeInternal] to
+  /// receive a concrete implementation of [recordTypeSchema] instead of
+  /// implementing [recordTypeSchema] directly.
+  SharedTypeSchemaView<TypeStructure> recordTypeSchema(
+      {required List<SharedTypeSchemaView<TypeStructure>> positional,
+      required List<(String, SharedTypeSchemaView<TypeStructure>)> named});
+
+  /// [recordTypeInternal] should be implemented by concrete classes
+  /// implementing [TypeAnalyzerOperations]. The implementations of [recordType]
+  /// and [recordTypeSchema] are provided by mixing in
+  /// [TypeAnalyzerOperationsMixin], which defines [recordType] and
+  /// [recordTypeSchema] in terms of [recordTypeInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case [recordTypeInternal], and receive
+  /// the implementation of both [recordType] and [recordTypeSchema] from the
+  /// mixin.
+  ///
+  /// The auxiliary purpose of [recordTypeInternal] is to facilitate the
+  /// development of the shared code at early stages. Sometimes the sharing of
+  /// the code starts by unifying the implementations of some concrete members
+  /// in the Analyzer and the CFE by bringing them in a form that looks
+  /// syntactically very similar in both tools, and then continues by
+  /// abstracting the two concrete members and using the shared abstracted one
+  /// instead of the two concrete methods existing previously. During the early
+  /// stages of unifying the two concrete members it can be beneficial to use
+  /// [recordTypeInternal] instead of the tool-specific ways of constructing a
+  /// future type, for the sake of uniformity, and to simplify the abstraction
+  /// step too.
+  TypeStructure recordTypeInternal(
+      {required List<TypeStructure> positional,
+      required List<(String, TypeStructure)> named});
 
   /// Returns the type schema `Stream`, with type argument [elementTypeSchema].
-  TypeSchema streamTypeSchema(TypeSchema elementTypeSchema);
+  SharedTypeSchemaView<TypeStructure> streamTypeSchema(
+      SharedTypeSchemaView<TypeStructure> elementTypeSchema);
 
   /// Returns `true` if [leftType] is a subtype of the greatest closure of
   /// [rightSchema].
@@ -234,10 +596,13 @@ abstract interface class TypeAnalyzerOperations<
   /// [leftType] via [isSubtypeOf]. However, that would mean at least two
   /// recursive descends over types. This method is supposed to have optimized
   /// implementations that only use one recursive descend.
-  bool typeIsSubtypeOfTypeSchema(Type leftType, TypeSchema rightSchema);
-
-  /// Computes the greatest lower bound of [typeSchema1] and [typeSchema2].
-  TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should
+  /// implement [isSubtypeOfInternal] and mix in [TypeAnalyzerOperationsMixin]
+  /// to receive an implementation of [typeIsSubtypeOfTypeSchema] instead of
+  /// implementing it directly.
+  bool typeIsSubtypeOfTypeSchema(SharedTypeView<TypeStructure> leftType,
+      SharedTypeSchemaView<TypeStructure> rightSchema);
 
   /// Returns `true` if the least closure of [leftSchema] is a subtype of
   /// [rightType].
@@ -247,7 +612,13 @@ abstract interface class TypeAnalyzerOperations<
   /// [isSubtypeOf]. However, that would mean at least two recursive descends
   /// over types. This method is supposed to have optimized implementations
   /// that only use one recursive descend.
-  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType);
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should
+  /// implement [isSubtypeOfInternal] and mix in [TypeAnalyzerOperationsMixin]
+  /// to receive an implementation of [typeSchemaIsSubtypeOfType] instead of
+  /// implementing it directly.
+  bool typeSchemaIsSubtypeOfType(SharedTypeSchemaView<TypeStructure> leftSchema,
+      SharedTypeView<TypeStructure> rightType);
 
   /// Returns `true` if least closure of [leftSchema] is a subtype of
   /// the greatest closure of [rightSchema].
@@ -257,20 +628,236 @@ abstract interface class TypeAnalyzerOperations<
   /// the resulting types via [isSubtypeOf]. However, that would mean at least
   /// three recursive descends over types. This method is supposed to have
   /// optimized implementations that only use one recursive descend.
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should
+  /// implement [isSubtypeOfInternal] and mix in [TypeAnalyzerOperationsMixin]
+  /// to receive an implementation of [typeSchemaIsSubtypeOfTypeSchema] instead
+  /// of implementing it directly.
   bool typeSchemaIsSubtypeOfTypeSchema(
-      TypeSchema leftSchema, TypeSchema rightSchema);
+      SharedTypeSchemaView<TypeStructure> leftSchema,
+      SharedTypeSchemaView<TypeStructure> rightSchema);
 
-  /// Computes the least upper bound of [typeSchema1] and [typeSchema2].
-  TypeSchema typeSchemaLub(TypeSchema typeSchema1, TypeSchema typeSchema2);
-
-  /// Returns the nullability suffix of [typeSchema].
-  NullabilitySuffix typeSchemaNullabilitySuffix(TypeSchema typeSchema);
+  /// The concrete classes implementing [TypeAnalyzerOperations] should
+  /// implement [isSubtypeOfInternal] in order to receive the implementations of
+  /// [typeIsSubtypeOfTypeSchema], [typeSchemaIsSubtypeOfType], and
+  /// [typeSchemaIsSubtypeOfTypeSchema] by mixing in
+  /// [TypeAnalyzerOperationsMixin].
+  bool isSubtypeOfInternal(TypeStructure left, TypeStructure right);
 
   /// Converts a type into a corresponding type schema.
-  TypeSchema typeToSchema(Type type);
+  SharedTypeSchemaView<TypeStructure> typeToSchema(
+      SharedTypeView<TypeStructure> type);
 
   /// Returns [type] suffixed with the [suffix].
-  Type withNullabilitySuffix(Type type, NullabilitySuffix suffix);
+  SharedTypeView<TypeStructure> withNullabilitySuffix(
+      SharedTypeView<TypeStructure> type, NullabilitySuffix suffix);
+
+  @override
+  bool isNever(SharedTypeView<TypeStructure> type);
+
+  @override
+  bool isTypeParameterType(SharedTypeView<TypeStructure> type);
+
+  @override
+  SharedTypeView<TypeStructure> promoteToNonNull(
+      SharedTypeView<TypeStructure> type);
+
+  @override
+  SharedTypeView<TypeStructure>? tryPromoteToType(
+      SharedTypeView<TypeStructure> to, SharedTypeView<TypeStructure> from);
+}
+
+mixin TypeAnalyzerOperationsMixin<
+        TypeStructure extends SharedTypeStructure<TypeStructure>,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    implements
+        TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
+            TypeDeclarationType, TypeDeclaration> {
+  @override
+  SharedTypeView<TypeStructure> futureType(
+      SharedTypeView<TypeStructure> argumentType) {
+    return new SharedTypeView(
+        futureTypeInternal(argumentType.unwrapTypeView()));
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> futureTypeSchema(
+      SharedTypeSchemaView<TypeStructure> argumentTypeSchema) {
+    return new SharedTypeSchemaView(
+        futureTypeInternal(argumentTypeSchema.unwrapTypeSchemaView()));
+  }
+
+  @override
+  TypeDeclarationKind? getTypeDeclarationKind(
+      SharedTypeView<TypeStructure> type) {
+    return getTypeDeclarationKindInternal(type.unwrapTypeView());
+  }
+
+  @override
+  TypeDeclarationKind? getTypeSchemaDeclarationKind(
+      SharedTypeSchemaView<TypeStructure> typeSchema) {
+    return getTypeDeclarationKindInternal(typeSchema.unwrapTypeSchemaView());
+  }
+
+  @override
+  SharedTypeView<TypeStructure> glb(SharedTypeView<TypeStructure> type1,
+      SharedTypeView<TypeStructure> type2) {
+    return new SharedTypeView(
+        glbInternal(type1.unwrapTypeView(), type2.unwrapTypeView()));
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> typeSchemaGlb(
+      SharedTypeSchemaView<TypeStructure> typeSchema1,
+      SharedTypeSchemaView<TypeStructure> typeSchema2) {
+    return new SharedTypeSchemaView(glbInternal(
+        typeSchema1.unwrapTypeSchemaView(),
+        typeSchema2.unwrapTypeSchemaView()));
+  }
+
+  @override
+  SharedTypeView<TypeStructure> listType(
+      SharedTypeView<TypeStructure> elementType) {
+    return new SharedTypeView(listTypeInternal(elementType.unwrapTypeView()));
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> listTypeSchema(
+      SharedTypeSchemaView<TypeStructure> elementTypeSchema) {
+    return new SharedTypeSchemaView(
+        listTypeInternal(elementTypeSchema.unwrapTypeSchemaView()));
+  }
+
+  @override
+  SharedTypeView<TypeStructure> lub(SharedTypeView<TypeStructure> type1,
+      SharedTypeView<TypeStructure> type2) {
+    return new SharedTypeView(
+        lubInternal(type1.unwrapTypeView(), type2.unwrapTypeView()));
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> typeSchemaLub(
+      SharedTypeSchemaView<TypeStructure> typeSchema1,
+      SharedTypeSchemaView<TypeStructure> typeSchema2) {
+    return new SharedTypeSchemaView(lubInternal(
+        typeSchema1.unwrapTypeSchemaView(),
+        typeSchema2.unwrapTypeSchemaView()));
+  }
+
+  @override
+  SharedTypeView<TypeStructure> makeNullable(
+      SharedTypeView<TypeStructure> type) {
+    return new SharedTypeView(makeNullableInternal(type.unwrapTypeView()));
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> makeTypeSchemaNullable(
+      SharedTypeSchemaView<TypeStructure> typeSchema) {
+    return new SharedTypeSchemaView(
+        makeNullableInternal(typeSchema.unwrapTypeSchemaView()));
+  }
+
+  @override
+  SharedTypeView<TypeStructure> mapType({
+    required SharedTypeView<TypeStructure> keyType,
+    required SharedTypeView<TypeStructure> valueType,
+  }) {
+    return new SharedTypeView(mapTypeInternal(
+        keyType: keyType.unwrapTypeView(),
+        valueType: valueType.unwrapTypeView()));
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> mapTypeSchema(
+      {required SharedTypeSchemaView<TypeStructure> keyTypeSchema,
+      required SharedTypeSchemaView<TypeStructure> valueTypeSchema}) {
+    return new SharedTypeSchemaView(mapTypeInternal(
+        keyType: keyTypeSchema.unwrapTypeSchemaView(),
+        valueType: valueTypeSchema.unwrapTypeSchemaView()));
+  }
+
+  @override
+  SharedTypeView<TypeStructure>? matchFutureOr(
+      SharedTypeView<TypeStructure> type) {
+    return matchFutureOrInternal(type.unwrapTypeView())?.wrapSharedTypeView();
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure>? matchTypeSchemaFutureOr(
+      SharedTypeSchemaView<TypeStructure> typeSchema) {
+    return matchFutureOrInternal(typeSchema.unwrapTypeSchemaView())
+        ?.wrapSharedTypeSchemaView();
+  }
+
+  @override
+  SharedTypeView<TypeStructure>? matchIterableType(
+      SharedTypeView<TypeStructure> type) {
+    return matchIterableTypeInternal(type.unwrapTypeView())
+        ?.wrapSharedTypeView();
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure>? matchIterableTypeSchema(
+      SharedTypeSchemaView<TypeStructure> typeSchema) {
+    return matchIterableTypeInternal(typeSchema.unwrapTypeSchemaView())
+        ?.wrapSharedTypeSchemaView();
+  }
+
+  @override
+  SharedTypeView<TypeStructure> recordType(
+      {required List<SharedTypeView<TypeStructure>> positional,
+      required List<(String, SharedTypeView<TypeStructure>)> named}) {
+    return new SharedTypeView(recordTypeInternal(
+        positional: positional.cast<TypeStructure>(),
+        named: named.cast<(String, TypeStructure)>()));
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> recordTypeSchema(
+      {required List<SharedTypeSchemaView<TypeStructure>> positional,
+      required List<(String, SharedTypeSchemaView<TypeStructure>)> named}) {
+    return new SharedTypeSchemaView(recordTypeInternal(
+        positional: positional.cast<TypeStructure>(),
+        named: named.cast<(String, TypeStructure)>()));
+  }
+
+  @override
+  bool isSubtypeOf(SharedTypeView<TypeStructure> leftType,
+      SharedTypeView<TypeStructure> rightType) {
+    return isSubtypeOfInternal(
+        leftType.unwrapTypeView(), rightType.unwrapTypeView());
+  }
+
+  @override
+  bool typeIsSubtypeOfTypeSchema(SharedTypeView<TypeStructure> leftType,
+      SharedTypeSchemaView<TypeStructure> rightSchema) {
+    return isSubtypeOfInternal(
+        leftType.unwrapTypeView(), rightSchema.unwrapTypeSchemaView());
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfType(SharedTypeSchemaView<TypeStructure> leftSchema,
+      SharedTypeView<TypeStructure> rightType) {
+    return isSubtypeOfInternal(
+        leftSchema.unwrapTypeSchemaView(), rightType.unwrapTypeView());
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      SharedTypeSchemaView<TypeStructure> leftSchema,
+      SharedTypeSchemaView<TypeStructure> rightSchema) {
+    return isSubtypeOfInternal(
+        leftSchema.unwrapTypeSchemaView(), rightSchema.unwrapTypeSchemaView());
+  }
+
+  @override
+  SharedTypeSchemaView<TypeStructure> typeToSchema(
+      SharedTypeView<TypeStructure> type) {
+    return new SharedTypeSchemaView(type.unwrapTypeView());
+  }
 }
 
 /// Describes all possibility for a type to be derived from a declaration.
@@ -456,9 +1043,8 @@ enum Variance {
 
 /// Abstract interface of a type constraint generator.
 abstract class TypeConstraintGenerator<
+    TypeStructure extends SharedTypeStructure<TypeStructure>,
     Variable extends Object,
-    Type extends SharedType<Type>,
-    TypeSchema extends SharedType<TypeSchema>,
     InferableParameter extends Object,
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object,
@@ -477,7 +1063,7 @@ abstract class TypeConstraintGenerator<
   void restoreState(TypeConstraintGeneratorState state);
 
   /// Abstract type operations to be used in the matching methods.
-  TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+  TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
       TypeDeclarationType, TypeDeclaration> get typeAnalyzerOperations;
 
   /// True if FutureOr types are required to have the empty [NullabilitySuffix]
@@ -503,7 +1089,8 @@ abstract class TypeConstraintGenerator<
   ///
   /// The algorithm for subtype constraint generation is described in
   /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
-  bool performSubtypeConstraintGenerationRightSchema(Type p, TypeSchema q,
+  bool performSubtypeConstraintGenerationRightSchema(
+      SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
       {required AstNode? astNodeForTesting});
 
   /// Matches type schema [p] against type [q] as a subtype against supertype,
@@ -520,7 +1107,8 @@ abstract class TypeConstraintGenerator<
   ///
   /// The algorithm for subtype constraint generation is described in
   /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
-  bool performSubtypeConstraintGenerationLeftSchema(TypeSchema p, Type q,
+  bool performSubtypeConstraintGenerationLeftSchema(
+      SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
       {required AstNode? astNodeForTesting});
 
   /// Matches type [p] against type schema [q] as a subtype against supertype
@@ -537,18 +1125,19 @@ abstract class TypeConstraintGenerator<
   /// supposed to restore the generator to the prior state in case of a
   /// mismatch, taking that responsibility away from the caller.
   bool performSubtypeConstraintGenerationForFutureOrRightSchema(
-      Type p, TypeSchema q,
+      SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
       {required AstNode? astNodeForTesting}) {
     // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
-    if (typeAnalyzerOperations.matchTypeSchemaFutureOr(q) case TypeSchema q0?
+    if (typeAnalyzerOperations.matchTypeSchemaFutureOr(q)
+        case SharedTypeSchemaView<TypeStructure> q0?
         when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
-            typeAnalyzerOperations.typeSchemaNullabilitySuffix(q) ==
-                NullabilitySuffix.none) {
+            q.nullabilitySuffix == NullabilitySuffix.none) {
       final TypeConstraintGeneratorState state = currentState;
 
       // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
       // constraint set `C`.
-      if (typeAnalyzerOperations.matchFutureOr(p) case Type p0?
+      if (typeAnalyzerOperations.matchFutureOr(p)
+          case SharedTypeView<TypeStructure> p0?
           when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
               p.nullabilitySuffix == NullabilitySuffix.none) {
         if (performSubtypeConstraintGenerationRightSchema(p0, q0,
@@ -600,20 +1189,21 @@ abstract class TypeConstraintGenerator<
   /// supposed to restore the generator to the prior state in case of a
   /// mismatch, taking that responsibility away from the caller.
   bool performSubtypeConstraintGenerationForFutureOrLeftSchema(
-      TypeSchema p, Type q,
+      SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
       {required AstNode? astNodeForTesting}) {
     // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
-    if (typeAnalyzerOperations.matchFutureOr(q) case Type q0?
+    if (typeAnalyzerOperations.matchFutureOr(q)
+        case SharedTypeView<TypeStructure> q0?
         when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
             q.nullabilitySuffix == NullabilitySuffix.none) {
       final TypeConstraintGeneratorState state = currentState;
 
       // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
       // constraint set `C`.
-      if (typeAnalyzerOperations.matchTypeSchemaFutureOr(p) case TypeSchema p0?
+      if (typeAnalyzerOperations.matchTypeSchemaFutureOr(p)
+          case SharedTypeSchemaView<TypeStructure> p0?
           when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
-              typeAnalyzerOperations.typeSchemaNullabilitySuffix(p) ==
-                  NullabilitySuffix.none) {
+              p.nullabilitySuffix == NullabilitySuffix.none) {
         if (performSubtypeConstraintGenerationLeftSchema(p0, q0,
             astNodeForTesting: astNodeForTesting)) {
           return true;
