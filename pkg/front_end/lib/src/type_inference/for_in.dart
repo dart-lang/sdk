@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 
 import '../base/instrumentation.dart' show InstrumentationValueForMember;
@@ -44,7 +45,8 @@ class LocalForInVariable implements ForInVariable {
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
     VariableDeclaration variable = variableSet.variable;
-    DartType? promotedType = visitor.flowAnalysis.promotedType(variable);
+    DartType? promotedType =
+        visitor.flowAnalysis.promotedType(variable)?.unwrapTypeView();
     return promotedType ?? variable.type;
   }
 
@@ -62,8 +64,8 @@ class LocalForInVariable implements ForInVariable {
         isVoidAllowed: true);
 
     variableSet.value = rhs..parent = variableSet;
-    visitor.flowAnalysis
-        .write(variableSet, variableSet.variable, rhsType, null);
+    visitor.flowAnalysis.write(
+        variableSet, variableSet.variable, new SharedTypeView(rhsType), null);
     return variableSet;
   }
 }

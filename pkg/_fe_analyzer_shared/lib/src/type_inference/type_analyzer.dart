@@ -130,10 +130,11 @@ enum RelationalOperatorKind {
 }
 
 /// Information about a relational operator.
-class RelationalOperatorResolution<Type extends SharedType<Type>> {
+class RelationalOperatorResolution<
+    TypeStructure extends SharedTypeStructure<TypeStructure>> {
   final RelationalOperatorKind kind;
-  final Type parameterType;
-  final Type returnType;
+  final SharedTypeView<TypeStructure> parameterType;
+  final SharedTypeView<TypeStructure> returnType;
 
   RelationalOperatorResolution({
     required this.kind,
@@ -261,26 +262,26 @@ class SwitchStatementMemberInfo<Node extends Object, Statement extends Node,
 /// of each entry in order to verify that when an entity is popped, it has the
 /// expected kind.
 mixin TypeAnalyzer<
+    TypeStructure extends SharedTypeStructure<TypeStructure>,
     Node extends Object,
     Statement extends Node,
     Expression extends Node,
     Variable extends Object,
-    Type extends SharedType<Type>,
     Pattern extends Node,
     Error,
-    TypeSchema extends SharedType<TypeSchema>,
     InferableParameter extends Object,
     TypeDeclarationType extends Object,
     TypeDeclaration extends Object> {
-  TypeAnalyzerErrors<Node, Statement, Expression, Variable, Type, Pattern,
-      Error> get errors;
+  TypeAnalyzerErrors<Node, Statement, Expression, Variable,
+      SharedTypeView<TypeStructure>, Pattern, Error> get errors;
 
   /// Returns the client's [FlowAnalysis] object.
-  FlowAnalysis<Node, Statement, Expression, Variable, Type> get flow;
+  FlowAnalysis<Node, Statement, Expression, Variable,
+      SharedTypeView<TypeStructure>> get flow;
 
   /// The [TypeAnalyzerOperations], used to access types, check subtyping, and
   /// query variable types.
-  TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+  TypeAnalyzerOperations<TypeStructure, Variable, InferableParameter,
       TypeDeclarationType, TypeDeclaration> get operations;
 
   /// Options affecting the behavior of [TypeAnalyzer].
@@ -299,11 +300,14 @@ mixin TypeAnalyzer<
   /// [analyzeDeclaredVariablePattern] should be used instead.
   ///
   /// Stack effect: none.
-  AssignedVariablePatternResult<Type, Error> analyzeAssignedVariablePattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
-      Pattern node,
-      Variable variable) {
-    Type matchedValueType = flow.getMatchedValueType();
+  AssignedVariablePatternResult<TypeStructure, Error>
+      analyzeAssignedVariablePattern(
+          MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+                  Variable>
+              context,
+          Pattern node,
+          Variable variable) {
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     Error? duplicateAssignmentPatternVariableError;
     Map<Variable, Pattern>? assignedVariables = context.assignedVariables;
     if (assignedVariables != null) {
@@ -320,14 +324,15 @@ mixin TypeAnalyzer<
       }
     }
 
-    Type variableDeclaredType = operations.variableType(variable);
+    SharedTypeView<TypeStructure> variableDeclaredType =
+        operations.variableType(variable);
     Node? irrefutableContext = context.irrefutableContext;
     assert(irrefutableContext != null,
         'Assigned variables must only appear in irrefutable pattern contexts');
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
-        matchedValueType is! SharedDynamicType &&
-        matchedValueType is! SharedInvalidType &&
+        matchedValueType is! SharedDynamicTypeStructure &&
+        matchedValueType is! SharedInvalidTypeStructure &&
         !operations.isSubtypeOf(matchedValueType, variableDeclaredType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -349,7 +354,8 @@ mixin TypeAnalyzer<
 
   /// Computes the type schema for a variable pattern appearing in an assignment
   /// context.  [variable] is the variable being referenced.
-  TypeSchema analyzeAssignedVariablePatternSchema(Variable variable) =>
+  SharedTypeSchemaView<TypeStructure> analyzeAssignedVariablePatternSchema(
+          Variable variable) =>
       operations.typeToSchema(
           flow.promotedType(variable) ?? operations.variableType(variable));
 
@@ -359,19 +365,21 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (Pattern innerPattern).
-  PatternResult<Type> analyzeCastPattern({
-    required MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  PatternResult<TypeStructure> analyzeCastPattern({
+    required MatchContext<Node, Expression, Pattern,
+            SharedTypeView<TypeStructure>, Variable>
+        context,
     required Pattern pattern,
     required Pattern innerPattern,
-    required Type requiredType,
+    required SharedTypeView<TypeStructure> requiredType,
   }) {
-    Type matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     flow.promoteForPattern(
         matchedType: matchedValueType,
         knownType: requiredType,
         matchFailsIfWrongType: false);
     if (operations.isSubtypeOf(matchedValueType, requiredType) &&
-        requiredType is! SharedInvalidType) {
+        requiredType is! SharedInvalidTypeStructure) {
       errors.matchedTypeIsSubtypeOfRequired(
         pattern: pattern,
         matchedType: matchedValueType,
@@ -394,7 +402,8 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a cast pattern.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeCastPatternSchema() => operations.unknownType;
+  SharedTypeSchemaView<TypeStructure> analyzeCastPatternSchema() =>
+      operations.unknownType;
 
   /// Analyzes a constant pattern.  [node] is the pattern itself, and
   /// [expression] is the constant expression.  Depending on the client's
@@ -406,11 +415,13 @@ mixin TypeAnalyzer<
   /// and information about reported errors.
   ///
   /// Stack effect: pushes (Expression).
-  ConstantPatternResult<Type, Error> analyzeConstantPattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  ConstantPatternResult<TypeStructure, Error> analyzeConstantPattern(
+      MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+              Variable>
+          context,
       Node node,
       Expression expression) {
-    Type matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     // Stack: ()
     Node? irrefutableContext = context.irrefutableContext;
     Error? refutablePatternInIrrefutableContextError;
@@ -419,7 +430,7 @@ mixin TypeAnalyzer<
           errors.refutablePatternInIrrefutableContext(
               pattern: node, context: irrefutableContext);
     }
-    Type expressionType = analyzeExpression(
+    SharedTypeView<TypeStructure> expressionType = analyzeExpression(
         expression, operations.typeToSchema(matchedValueType));
     flow.constantPattern_end(expression, expressionType,
         patternsEnabled: options.patternsEnabled,
@@ -454,7 +465,7 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a constant pattern.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeConstantPatternSchema() {
+  SharedTypeSchemaView<TypeStructure> analyzeConstantPatternSchema() {
     // Constant patterns are only allowed in refutable contexts, and refutable
     // contexts don't propagate a type schema into the scrutinee.  So this
     // code path is only reachable if the user's code contains errors.
@@ -475,21 +486,24 @@ mixin TypeAnalyzer<
   /// variable (possibly inferred) and information about reported errors.
   ///
   /// Stack effect: none.
-  DeclaredVariablePatternResult<Type, Error> analyzeDeclaredVariablePattern(
-    MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  DeclaredVariablePatternResult<TypeStructure, Error>
+      analyzeDeclaredVariablePattern(
+    MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+            Variable>
+        context,
     Pattern node,
     Variable variable,
     String variableName,
-    Type? declaredType,
+    SharedTypeView<TypeStructure>? declaredType,
   ) {
-    Type matchedValueType = flow.getMatchedValueType();
-    Type staticType =
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> staticType =
         declaredType ?? variableTypeFromInitializerType(matchedValueType);
     Node? irrefutableContext = context.irrefutableContext;
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
-        matchedValueType is! SharedDynamicType &&
-        matchedValueType is! SharedInvalidType &&
+        matchedValueType is! SharedDynamicTypeStructure &&
+        matchedValueType is! SharedInvalidTypeStructure &&
         !operations.isSubtypeOf(matchedValueType, staticType)) {
       patternTypeMismatchInIrrefutableContextError =
           errors.patternTypeMismatchInIrrefutableContext(
@@ -503,7 +517,8 @@ mixin TypeAnalyzer<
     // The promotion may have made the matched type even more specific than
     // either `matchedType` or `staticType`, so fetch it again and use that
     // in the call to `declaredVariablePattern` below.
-    Type promotedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> promotedValueType =
+        flow.getMatchedValueType();
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
     int promotionKey = context.patternVariablePromotionKeys[variableName] =
@@ -528,7 +543,8 @@ mixin TypeAnalyzer<
   /// declared type (if present).
   ///
   /// Stack effect: none.
-  TypeSchema analyzeDeclaredVariablePatternSchema(Type? declaredType) {
+  SharedTypeSchemaView<TypeStructure> analyzeDeclaredVariablePatternSchema(
+      SharedTypeView<TypeStructure>? declaredType) {
     return declaredType == null
         ? operations.unknownType
         : operations.typeToSchema(declaredType);
@@ -538,12 +554,13 @@ mixin TypeAnalyzer<
   /// [schema] is the type schema which should be used for type inference.
   ///
   /// Stack effect: pushes (Expression).
-  Type analyzeExpression(Expression node, TypeSchema schema) {
+  SharedTypeView<TypeStructure> analyzeExpression(
+      Expression node, SharedTypeSchemaView<TypeStructure> schema) {
     // Stack: ()
-    if (schema is SharedDynamicType<TypeSchema>) {
+    if (schema is SharedDynamicTypeSchemaView<TypeStructure>) {
       schema = operations.unknownType;
     }
-    ExpressionTypeAnalysisResult<Type> result =
+    ExpressionTypeAnalysisResult<TypeStructure> result =
         dispatchExpression(node, schema);
     // Stack: (Expression)
     if (operations.isNever(result.provisionalType)) {
@@ -572,7 +589,7 @@ mixin TypeAnalyzer<
   /// `else` clause, the representation for `ifFalse` will be pushed by
   /// [handleNoCollectionElement].  If there is no guard, the representation
   /// for `guard` will be pushed by [handleNoGuard].
-  IfCaseStatementResult<Type, Error> analyzeIfCaseElement({
+  IfCaseStatementResult<TypeStructure, Error> analyzeIfCaseElement({
     required Node node,
     required Expression expression,
     required Pattern pattern,
@@ -584,7 +601,7 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    Type initializerType =
+    SharedTypeView<TypeStructure> initializerType =
         analyzeExpression(expression, operations.unknownType);
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
@@ -592,7 +609,8 @@ mixin TypeAnalyzer<
     Map<String, int> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, Type, Variable>(
+      new MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+          Variable>(
         isFinal: false,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
@@ -604,7 +622,7 @@ mixin TypeAnalyzer<
         variables, componentVariables, patternVariablePromotionKeys,
         location: JoinedPatternVariableLocation.singlePattern);
     Error? nonBooleanGuardError;
-    Type? guardType;
+    SharedTypeView<TypeStructure>? guardType;
     if (guard != null) {
       guardType = analyzeExpression(
           guard, operations.typeToSchema(operations.boolType));
@@ -636,7 +654,7 @@ mixin TypeAnalyzer<
   /// representation for `ifFalse` will be pushed by [handleNoStatement].  If
   /// there is no guard, the representation for `guard` will be pushed by
   /// [handleNoGuard].
-  IfCaseStatementResult<Type, Error> analyzeIfCaseStatement(
+  IfCaseStatementResult<TypeStructure, Error> analyzeIfCaseStatement(
     Statement node,
     Expression expression,
     Pattern pattern,
@@ -647,7 +665,7 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    Type initializerType =
+    SharedTypeView<TypeStructure> initializerType =
         analyzeExpression(expression, operations.unknownType);
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
@@ -655,7 +673,8 @@ mixin TypeAnalyzer<
     Map<String, int> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, Type, Variable>(
+      new MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+          Variable>(
         isFinal: false,
         componentVariables: componentVariables,
         patternVariablePromotionKeys: patternVariablePromotionKeys,
@@ -673,7 +692,7 @@ mixin TypeAnalyzer<
     handle_ifCaseStatement_afterPattern(node: node);
     // Stack: (Expression, Pattern)
     Error? nonBooleanGuardError;
-    Type? guardType;
+    SharedTypeView<TypeStructure>? guardType;
     if (guard != null) {
       guardType = analyzeExpression(
           guard, operations.typeToSchema(operations.boolType));
@@ -741,13 +760,15 @@ mixin TypeAnalyzer<
   /// Analyzes an integer literal, given the type schema [schema].
   ///
   /// Stack effect: none.
-  IntTypeAnalysisResult<Type> analyzeIntLiteral(TypeSchema schema) {
+  IntTypeAnalysisResult<TypeStructure> analyzeIntLiteral(
+      SharedTypeSchemaView<TypeStructure> schema) {
     bool convertToDouble = !operations.isTypeSchemaSatisfied(
             type: operations.intType, typeSchema: schema) &&
         operations.isTypeSchemaSatisfied(
             type: operations.doubleType, typeSchema: schema);
-    Type type = convertToDouble ? operations.doubleType : operations.intType;
-    return new IntTypeAnalysisResult<Type>(
+    SharedTypeView<TypeStructure> type =
+        convertToDouble ? operations.doubleType : operations.intType;
+    return new IntTypeAnalysisResult<TypeStructure>(
         type: type, convertedToDouble: convertToDouble);
   }
 
@@ -761,28 +782,31 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (n * Pattern) where n = elements.length.
-  ListPatternResult<Type, Error> analyzeListPattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  ListPatternResult<TypeStructure, Error> analyzeListPattern(
+      MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+              Variable>
+          context,
       Pattern node,
-      {Type? elementType,
+      {SharedTypeView<TypeStructure>? elementType,
       required List<Node> elements}) {
-    Type matchedValueType = flow.getMatchedValueType();
-    Type valueType;
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> valueType;
     if (elementType != null) {
       valueType = elementType;
     } else {
-      Type? listElementType = operations.matchListType(matchedValueType);
+      SharedTypeView<TypeStructure>? listElementType =
+          operations.matchListType(matchedValueType);
       if (listElementType != null) {
         valueType = listElementType;
-      } else if (matchedValueType is SharedDynamicType) {
+      } else if (matchedValueType is SharedDynamicTypeStructure) {
         valueType = operations.dynamicType;
-      } else if (matchedValueType is SharedInvalidType) {
+      } else if (matchedValueType is SharedInvalidTypeStructure) {
         valueType = operations.errorType;
       } else {
         valueType = operations.objectQuestionType;
       }
     }
-    Type requiredType = operations.listType(valueType);
+    SharedTypeView<TypeStructure> requiredType = operations.listType(valueType);
     flow.promoteForPattern(
         matchedType: matchedValueType,
         knownType: requiredType,
@@ -804,7 +828,7 @@ mixin TypeAnalyzer<
         previousRestPattern = element;
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          Type subPatternMatchedType = requiredType;
+          SharedTypeView<TypeStructure> subPatternMatchedType = requiredType;
           flow.pushSubpattern(subPatternMatchedType);
           dispatchPattern(
               context.withUnnecessaryWildcardKind(null), subPattern);
@@ -842,8 +866,8 @@ mixin TypeAnalyzer<
   /// subpatterns.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeListPatternSchema({
-    required Type? elementType,
+  SharedTypeSchemaView<TypeStructure> analyzeListPatternSchema({
+    required SharedTypeView<TypeStructure>? elementType,
     required List<Node> elements,
   }) {
     if (elementType != null) {
@@ -854,13 +878,14 @@ mixin TypeAnalyzer<
       return operations.listTypeSchema(operations.unknownType);
     }
 
-    TypeSchema? currentGLB;
+    SharedTypeSchemaView<TypeStructure>? currentGLB;
     for (Node element in elements) {
-      TypeSchema? typeToAdd;
+      SharedTypeSchemaView<TypeStructure>? typeToAdd;
       if (isRestPatternElement(element)) {
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          TypeSchema subPatternType = dispatchPatternSchema(subPattern);
+          SharedTypeSchemaView<TypeStructure> subPatternType =
+              dispatchPatternSchema(subPattern);
           typeToAdd = operations.matchIterableTypeSchema(subPatternType);
         }
       } else {
@@ -884,12 +909,14 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (Pattern left, Pattern right)
-  PatternResult<Type> analyzeLogicalAndPattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  PatternResult<TypeStructure> analyzeLogicalAndPattern(
+      MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+              Variable>
+          context,
       Pattern node,
       Node lhs,
       Node rhs) {
-    Type matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     // Stack: ()
     dispatchPattern(
       context.withUnnecessaryWildcardKind(
@@ -912,7 +939,8 @@ mixin TypeAnalyzer<
   /// the left and right sides of the `&&` operator.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeLogicalAndPatternSchema(Node lhs, Node rhs) {
+  SharedTypeSchemaView<TypeStructure> analyzeLogicalAndPatternSchema(
+      Node lhs, Node rhs) {
     return operations.typeSchemaGlb(
         dispatchPatternSchema(lhs), dispatchPatternSchema(rhs));
   }
@@ -925,12 +953,14 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (Pattern left, Pattern right)
-  LogicalOrPatternResult<Type, Error> analyzeLogicalOrPattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  LogicalOrPatternResult<TypeStructure, Error> analyzeLogicalOrPattern(
+      MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+              Variable>
+          context,
       Pattern node,
       Node lhs,
       Node rhs) {
-    Type matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     Node? irrefutableContext = context.irrefutableContext;
     Error? refutablePatternInIrrefutableContextError;
     if (irrefutableContext != null) {
@@ -1002,7 +1032,8 @@ mixin TypeAnalyzer<
   /// the left and right sides of the `|` or `&` operator.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeLogicalOrPatternSchema(Node lhs, Node rhs) {
+  SharedTypeSchemaView<TypeStructure> analyzeLogicalOrPatternSchema(
+      Node lhs, Node rhs) {
     // Logical-or patterns are only allowed in refutable contexts, and
     // refutable contexts don't propagate a type schema into the scrutinee.
     // So this code path is only reachable if the user's code contains errors.
@@ -1020,16 +1051,21 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (n * MapPatternElement) where n = elements.length.
-  MapPatternResult<Type, Error> analyzeMapPattern(
-    MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  MapPatternResult<TypeStructure, Error> analyzeMapPattern(
+    MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+            Variable>
+        context,
     Pattern node, {
-    required ({Type keyType, Type valueType})? typeArguments,
+    required ({
+      SharedTypeView<TypeStructure> keyType,
+      SharedTypeView<TypeStructure> valueType
+    })? typeArguments,
     required List<Node> elements,
   }) {
-    Type matchedValueType = flow.getMatchedValueType();
-    Type keyType;
-    Type valueType;
-    TypeSchema keySchema;
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> keyType;
+    SharedTypeView<TypeStructure> valueType;
+    SharedTypeSchemaView<TypeStructure> keySchema;
     if (typeArguments != null) {
       keyType = typeArguments.keyType;
       valueType = typeArguments.valueType;
@@ -1040,11 +1076,11 @@ mixin TypeAnalyzer<
         keyType = typeArguments.keyType;
         valueType = typeArguments.valueType;
         keySchema = operations.typeToSchema(keyType);
-      } else if (matchedValueType is SharedDynamicType) {
+      } else if (matchedValueType is SharedDynamicTypeStructure) {
         keyType = operations.dynamicType;
         valueType = operations.dynamicType;
         keySchema = operations.unknownType;
-      } else if (matchedValueType is SharedInvalidType) {
+      } else if (matchedValueType is SharedInvalidTypeStructure) {
         keyType = operations.errorType;
         valueType = operations.errorType;
         keySchema = operations.unknownType;
@@ -1054,7 +1090,7 @@ mixin TypeAnalyzer<
         keySchema = operations.unknownType;
       }
     }
-    Type requiredType = operations.mapType(
+    SharedTypeView<TypeStructure> requiredType = operations.mapType(
       keyType: keyType,
       valueType: valueType,
     );
@@ -1077,7 +1113,8 @@ mixin TypeAnalyzer<
       Node element = elements[i];
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        Type keyType = analyzeExpression(entry.key, keySchema);
+        SharedTypeView<TypeStructure> keyType =
+            analyzeExpression(entry.key, keySchema);
         flow.pushSubpattern(valueType);
         dispatchPattern(
           context.withUnnecessaryWildcardKind(null),
@@ -1130,8 +1167,11 @@ mixin TypeAnalyzer<
   /// subpatterns.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeMapPatternSchema({
-    required ({Type keyType, Type valueType})? typeArguments,
+  SharedTypeSchemaView<TypeStructure> analyzeMapPatternSchema({
+    required ({
+      SharedTypeView<TypeStructure> keyType,
+      SharedTypeView<TypeStructure> valueType
+    })? typeArguments,
     required List<Node> elements,
   }) {
     if (typeArguments != null) {
@@ -1141,11 +1181,12 @@ mixin TypeAnalyzer<
       ));
     }
 
-    TypeSchema? valueType;
+    SharedTypeSchemaView<TypeStructure>? valueType;
     for (Node element in elements) {
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        TypeSchema entryValueType = dispatchPatternSchema(entry.value);
+        SharedTypeSchemaView<TypeStructure> entryValueType =
+            dispatchPatternSchema(entry.value);
         if (valueType == null) {
           valueType = entryValueType;
         } else {
@@ -1169,12 +1210,15 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (Pattern innerPattern).
-  NullCheckOrAssertPatternResult<Type, Error> analyzeNullCheckOrAssertPattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
-      Pattern node,
-      Pattern innerPattern,
-      {required bool isAssert}) {
-    Type matchedValueType = flow.getMatchedValueType();
+  NullCheckOrAssertPatternResult<TypeStructure, Error>
+      analyzeNullCheckOrAssertPattern(
+          MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+                  Variable>
+              context,
+          Pattern node,
+          Pattern innerPattern,
+          {required bool isAssert}) {
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     // Stack: ()
     Error? refutablePatternInIrrefutableContextError;
     Error? matchedTypeIsStrictlyNonNullableError;
@@ -1214,7 +1258,8 @@ mixin TypeAnalyzer<
   /// a null-check or a null-assert pattern.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeNullCheckOrAssertPatternSchema(Pattern innerPattern,
+  SharedTypeSchemaView<TypeStructure> analyzeNullCheckOrAssertPatternSchema(
+      Pattern innerPattern,
       {required bool isAssert}) {
     if (isAssert) {
       return operations
@@ -1237,16 +1282,19 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (n * Pattern) where n = fields.length.
-  ObjectPatternResult<Type, Error> analyzeObjectPattern(
-    MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  ObjectPatternResult<TypeStructure, Error> analyzeObjectPattern(
+    MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+            Variable>
+        context,
     Pattern node, {
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
-    Type matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     Map<int, Error>? duplicateRecordPatternFieldErrors =
         _reportDuplicateRecordPatternFields(node, fields);
 
-    Type requiredType = downwardInferObjectPatternRequiredType(
+    SharedTypeView<TypeStructure> requiredType =
+        downwardInferObjectPatternRequiredType(
       matchedType: matchedValueType,
       pattern: node,
     );
@@ -1255,9 +1303,9 @@ mixin TypeAnalyzer<
 
     // If the required type is `dynamic` or `Never`, then every getter is
     // treated as having the same type.
-    (Object?, Type)? overridePropertyGetType;
-    if (requiredType is SharedDynamicType ||
-        requiredType is SharedInvalidType ||
+    (Object?, SharedTypeView<TypeStructure>)? overridePropertyGetType;
+    if (requiredType is SharedDynamicTypeStructure ||
+        requiredType is SharedInvalidTypeStructure ||
         operations.isNever(requiredType)) {
       overridePropertyGetType = (null, requiredType);
     }
@@ -1277,20 +1325,23 @@ mixin TypeAnalyzer<
 
     // Stack: ()
     for (RecordPatternField<Node, Pattern> field in fields) {
-      var (Object? propertyMember, Type unpromotedPropertyType) =
-          overridePropertyGetType ??
-              resolveObjectPatternPropertyGet(
-                objectPattern: node,
-                receiverType: requiredType,
-                field: field,
-              );
+      var (
+        Object? propertyMember,
+        SharedTypeView<TypeStructure> unpromotedPropertyType
+      ) = overridePropertyGetType ??
+          resolveObjectPatternPropertyGet(
+            objectPattern: node,
+            receiverType: requiredType,
+            field: field,
+          );
       // Note: an object pattern field must always have a property name, but in
       // error recovery circumstances, one may be absent; when this happens, use
       // the empty string as a the property name to prevent a crash.
       String propertyName = field.name ?? '';
-      Type promotedPropertyType = flow.pushPropertySubpattern(
-              propertyName, propertyMember, unpromotedPropertyType) ??
-          unpromotedPropertyType;
+      SharedTypeView<TypeStructure> promotedPropertyType =
+          flow.pushPropertySubpattern(
+                  propertyName, propertyMember, unpromotedPropertyType) ??
+              unpromotedPropertyType;
       if (operations.isNever(promotedPropertyType)) {
         flow.handleExit();
       }
@@ -1314,7 +1365,8 @@ mixin TypeAnalyzer<
   /// specified with the object name, and with the type arguments applied.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeObjectPatternSchema(Type type) {
+  SharedTypeSchemaView<TypeStructure> analyzeObjectPatternSchema(
+      SharedTypeView<TypeStructure> type) {
     return operations.typeToSchema(type);
   }
 
@@ -1324,17 +1376,20 @@ mixin TypeAnalyzer<
   /// the pattern, and [rhs] for the right hand side.
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  PatternAssignmentAnalysisResult<Type, TypeSchema> analyzePatternAssignment(
+  PatternAssignmentAnalysisResult<TypeStructure> analyzePatternAssignment(
       Expression node, Pattern pattern, Expression rhs) {
     // Stack: ()
-    TypeSchema patternSchema = dispatchPatternSchema(pattern);
-    Type rhsType = analyzeExpression(rhs, patternSchema);
+    SharedTypeSchemaView<TypeStructure> patternSchema =
+        dispatchPatternSchema(pattern);
+    SharedTypeView<TypeStructure> rhsType =
+        analyzeExpression(rhs, patternSchema);
     // Stack: (Expression)
     flow.patternAssignment_afterRhs(rhs, rhsType);
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, Type, Variable>(
+      new MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+          Variable>(
         isFinal: false,
         irrefutableContext: node,
         assignedVariables: <Variable, Pattern>{},
@@ -1350,7 +1405,7 @@ mixin TypeAnalyzer<
     }
     flow.patternAssignment_end();
     // Stack: (Expression, Pattern)
-    return new PatternAssignmentAnalysisResult<Type, TypeSchema>(
+    return new PatternAssignmentAnalysisResult<TypeStructure>(
       patternSchema: patternSchema,
       type: rhsType,
     );
@@ -1370,7 +1425,7 @@ mixin TypeAnalyzer<
   ///
   /// Note, however, that the caller is responsible for reporting an error if
   /// the static type of [expression] is potentially nullable.
-  PatternForInResult<Type, Error> analyzePatternForIn({
+  PatternForInResult<TypeStructure, Error> analyzePatternForIn({
     required Node node,
     required bool hasAwait,
     required Pattern pattern,
@@ -1378,21 +1433,23 @@ mixin TypeAnalyzer<
     required void Function() dispatchBody,
   }) {
     // Stack: ()
-    TypeSchema patternTypeSchema = dispatchPatternSchema(pattern);
-    TypeSchema expressionTypeSchema = hasAwait
+    SharedTypeSchemaView<TypeStructure> patternTypeSchema =
+        dispatchPatternSchema(pattern);
+    SharedTypeSchemaView<TypeStructure> expressionTypeSchema = hasAwait
         ? operations.streamTypeSchema(patternTypeSchema)
         : operations.iterableTypeSchema(patternTypeSchema);
-    Type expressionType = analyzeExpression(expression, expressionTypeSchema);
+    SharedTypeView<TypeStructure> expressionType =
+        analyzeExpression(expression, expressionTypeSchema);
     // Stack: (Expression)
 
     Error? patternForInExpressionIsNotIterableError;
-    Type? elementType = hasAwait
+    SharedTypeView<TypeStructure>? elementType = hasAwait
         ? operations.matchStreamType(expressionType)
         : operations.matchIterableType(expressionType);
     if (elementType == null) {
-      if (expressionType is SharedDynamicType) {
+      if (expressionType is SharedDynamicTypeStructure) {
         elementType = operations.dynamicType;
-      } else if (expressionType is SharedInvalidType) {
+      } else if (expressionType is SharedInvalidTypeStructure) {
         elementType = operations.errorType;
       } else {
         patternForInExpressionIsNotIterableError =
@@ -1409,7 +1466,8 @@ mixin TypeAnalyzer<
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, Type, Variable>(
+      new MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+          Variable>(
         isFinal: false,
         irrefutableContext: node,
         componentVariables: componentVariables,
@@ -1442,20 +1500,23 @@ mixin TypeAnalyzer<
   /// type of the initializer and the type schema of the [pattern].
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  PatternVariableDeclarationAnalysisResult<Type, TypeSchema>
+  PatternVariableDeclarationAnalysisResult<TypeStructure>
       analyzePatternVariableDeclaration(
           Node node, Pattern pattern, Expression initializer,
           {required bool isFinal}) {
     // Stack: ()
-    TypeSchema patternSchema = dispatchPatternSchema(pattern);
-    Type initializerType = analyzeExpression(initializer, patternSchema);
+    SharedTypeSchemaView<TypeStructure> patternSchema =
+        dispatchPatternSchema(pattern);
+    SharedTypeView<TypeStructure> initializerType =
+        analyzeExpression(initializer, patternSchema);
     // Stack: (Expression)
     flow.patternVariableDeclaration_afterInitializer(
         initializer, initializerType);
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
-      new MatchContext<Node, Expression, Pattern, Type, Variable>(
+      new MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+          Variable>(
         isFinal: isFinal,
         irrefutableContext: node,
         componentVariables: componentVariables,
@@ -1481,24 +1542,27 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (n * Pattern) where n = fields.length.
-  RecordPatternResult<Type, Error> analyzeRecordPattern(
-    MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  RecordPatternResult<TypeStructure, Error> analyzeRecordPattern(
+    MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+            Variable>
+        context,
     Pattern node, {
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
-    Type matchedValueType = flow.getMatchedValueType();
-    List<Type> demonstratedPositionalTypes = [];
-    List<(String, Type)> demonstratedNamedTypes = [];
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
+    List<SharedTypeView<TypeStructure>> demonstratedPositionalTypes = [];
+    List<(String, SharedTypeView<TypeStructure>)> demonstratedNamedTypes = [];
     void dispatchField(
       RecordPatternField<Node, Pattern> field,
-      Type matchedType,
+      SharedTypeView<TypeStructure> matchedType,
     ) {
       flow.pushSubpattern(matchedType);
       dispatchPattern(
         context.withUnnecessaryWildcardKind(null),
         field.pattern,
       );
-      Type demonstratedType = flow.getMatchedValueType();
+      SharedTypeView<TypeStructure> demonstratedType =
+          flow.getMatchedValueType();
       String? name = field.name;
       if (name == null) {
         demonstratedPositionalTypes.add(demonstratedType);
@@ -1508,7 +1572,7 @@ mixin TypeAnalyzer<
       flow.popSubpattern();
     }
 
-    void dispatchFields(Type matchedType) {
+    void dispatchFields(SharedTypeView<TypeStructure> matchedType) {
       for (int i = 0; i < fields.length; i++) {
         dispatchField(fields[i], matchedType);
       }
@@ -1519,7 +1583,7 @@ mixin TypeAnalyzer<
 
     // Build the required type.
     int requiredTypePositionalCount = 0;
-    List<(String, Type)> requiredTypeNamedTypes = [];
+    List<(String, SharedTypeView<TypeStructure>)> requiredTypeNamedTypes = [];
     for (RecordPatternField<Node, Pattern> field in fields) {
       String? name = field.name;
       if (name == null) {
@@ -1530,7 +1594,7 @@ mixin TypeAnalyzer<
         );
       }
     }
-    Type requiredType = operations.recordType(
+    SharedTypeView<TypeStructure> requiredType = operations.recordType(
       positional: new List.filled(
         requiredTypePositionalCount,
         operations.objectQuestionType,
@@ -1541,8 +1605,9 @@ mixin TypeAnalyzer<
         matchedType: matchedValueType, knownType: requiredType);
 
     // Stack: ()
-    if (matchedValueType is SharedRecordType<Type>) {
-      List<Type>? fieldTypes = _matchRecordTypeShape(fields, matchedValueType);
+    if (matchedValueType is SharedRecordTypeView<TypeStructure>) {
+      List<SharedTypeView<TypeStructure>>? fieldTypes =
+          _matchRecordTypeShape(fields, matchedValueType);
       if (fieldTypes != null) {
         assert(fieldTypes.length == fields.length);
         for (int i = 0; i < fields.length; i++) {
@@ -1551,9 +1616,9 @@ mixin TypeAnalyzer<
       } else {
         dispatchFields(operations.objectQuestionType);
       }
-    } else if (matchedValueType is SharedDynamicType) {
+    } else if (matchedValueType is SharedDynamicTypeStructure) {
       dispatchFields(operations.dynamicType);
-    } else if (matchedValueType is SharedInvalidType) {
+    } else if (matchedValueType is SharedInvalidTypeStructure) {
       dispatchFields(operations.errorType);
     } else {
       dispatchFields(operations.objectQuestionType);
@@ -1573,7 +1638,7 @@ mixin TypeAnalyzer<
       );
     }
 
-    Type demonstratedType = operations.recordType(
+    SharedTypeView<TypeStructure> demonstratedType = operations.recordType(
         positional: demonstratedPositionalTypes, named: demonstratedNamedTypes);
     flow.promoteForPattern(
         matchedType: matchedValueType,
@@ -1590,13 +1655,14 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a record pattern.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeRecordPatternSchema({
+  SharedTypeSchemaView<TypeStructure> analyzeRecordPatternSchema({
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
-    List<TypeSchema> positional = [];
-    List<(String, TypeSchema)> named = [];
+    List<SharedTypeSchemaView<TypeStructure>> positional = [];
+    List<(String, SharedTypeSchemaView<TypeStructure>)> named = [];
     for (RecordPatternField<Node, Pattern> field in fields) {
-      TypeSchema fieldType = dispatchPatternSchema(field.pattern);
+      SharedTypeSchemaView<TypeStructure> fieldType =
+          dispatchPatternSchema(field.pattern);
       String? name = field.name;
       if (name != null) {
         named.add((name, fieldType));
@@ -1620,11 +1686,13 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (Expression).
-  RelationalPatternResult<Type, Error> analyzeRelationalPattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  RelationalPatternResult<TypeStructure, Error> analyzeRelationalPattern(
+      MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+              Variable>
+          context,
       Pattern node,
       Expression operand) {
-    Type matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     // Stack: ()
     Error? refutablePatternInIrrefutableContextError;
     Node? irrefutableContext = context.irrefutableContext;
@@ -1633,9 +1701,9 @@ mixin TypeAnalyzer<
           errors.refutablePatternInIrrefutableContext(
               pattern: node, context: irrefutableContext);
     }
-    RelationalOperatorResolution<Type>? operator =
+    RelationalOperatorResolution<TypeStructure>? operator =
         resolveRelationalPatternOperator(node, matchedValueType);
-    Type? parameterType = operator?.parameterType;
+    SharedTypeView<TypeStructure>? parameterType = operator?.parameterType;
     bool isEquality = switch (operator?.kind) {
       RelationalOperatorKind.equals => true,
       RelationalOperatorKind.notEquals => true,
@@ -1644,7 +1712,7 @@ mixin TypeAnalyzer<
     if (isEquality && parameterType != null) {
       parameterType = operations.makeNullable(parameterType);
     }
-    Type operandType = analyzeExpression(
+    SharedTypeView<TypeStructure> operandType = analyzeExpression(
         operand,
         parameterType == null
             ? operations.unknownType
@@ -1691,7 +1759,7 @@ mixin TypeAnalyzer<
   /// Computes the type schema for a relational pattern.
   ///
   /// Stack effect: none.
-  TypeSchema analyzeRelationalPatternSchema() {
+  SharedTypeSchemaView<TypeStructure> analyzeRelationalPatternSchema() {
     // Relational patterns are only allowed in refutable contexts, and refutable
     // contexts don't propagate a type schema into the scrutinee.  So this
     // code path is only reachable if the user's code contains errors.
@@ -1706,8 +1774,11 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression, n * ExpressionCase), where n is the
   /// number of cases.
-  SwitchExpressionResult<Type, Error> analyzeSwitchExpression(
-      Expression node, Expression scrutinee, int numCases, TypeSchema schema) {
+  SwitchExpressionResult<TypeStructure, Error> analyzeSwitchExpression(
+      Expression node,
+      Expression scrutinee,
+      int numCases,
+      SharedTypeSchemaView<TypeStructure> schema) {
     // Stack: ()
 
     // The static type of a switch expression `E` of the form `switch (e0) { p1
@@ -1715,15 +1786,16 @@ mixin TypeAnalyzer<
     // follows:
     //
     // - The scrutinee (`e0`) is first analyzed with context type `_`.
-    Type expressionType = analyzeExpression(scrutinee, operations.unknownType);
+    SharedTypeView<TypeStructure> expressionType =
+        analyzeExpression(scrutinee, operations.unknownType);
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
     flow.switchStatement_expressionEnd(null, scrutinee, expressionType);
 
     // - If the switch expression has no cases, its static type is `Never`.
     Map<int, Error>? nonBooleanGuardErrors;
-    Map<int, Type>? guardTypes;
-    Type staticType;
+    Map<int, SharedTypeView<TypeStructure>>? guardTypes;
+    SharedTypeView<TypeStructure> staticType;
     if (numCases == 0) {
       staticType = operations.neverType;
     } else {
@@ -1732,8 +1804,8 @@ mixin TypeAnalyzer<
       // - Let `T` be the least upper bound of the static types of all the case
       //   expressions.
       // - Let `S` be the greatest closure of `K`.
-      Type? t;
-      Type s = operations.greatestClosure(schema);
+      SharedTypeView<TypeStructure>? t;
+      SharedTypeView<TypeStructure> s = operations.greatestClosure(schema);
       bool allCasesSatisfyContext = true;
       for (int i = 0; i < numCases; i++) {
         // Stack: (Expression, i * ExpressionCase)
@@ -1748,7 +1820,8 @@ mixin TypeAnalyzer<
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
           dispatchPattern(
-            new MatchContext<Node, Expression, Pattern, Type, Variable>(
+            new MatchContext<Node, Expression, Pattern,
+                SharedTypeView<TypeStructure>, Variable>(
               isFinal: false,
               switchScrutinee: scrutinee,
               componentVariables: componentVariables,
@@ -1766,7 +1839,7 @@ mixin TypeAnalyzer<
           guard = memberInfo.head.guard;
           bool hasGuard = guard != null;
           if (hasGuard) {
-            Type guardType = analyzeExpression(
+            SharedTypeView<TypeStructure> guardType = analyzeExpression(
                 guard, operations.typeToSchema(operations.boolType));
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             (guardTypes ??= {})[i] = guardType;
@@ -1785,7 +1858,8 @@ mixin TypeAnalyzer<
         flow.switchStatement_endAlternative(guard, {});
         flow.switchStatement_endAlternatives(null, hasLabels: false);
         // Stack: (Expression, i * ExpressionCase, CaseHead)
-        Type ti = analyzeExpression(memberInfo.expression, schema);
+        SharedTypeView<TypeStructure> ti =
+            analyzeExpression(memberInfo.expression, schema);
         if (allCasesSatisfyContext && !operations.isSubtypeOf(ti, s)) {
           allCasesSatisfyContext = false;
         }
@@ -1828,10 +1902,12 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression, n * StatementCase), where n is the
   /// number of cases after merging together cases that share a body.
-  SwitchStatementTypeAnalysisResult<Type, Error> analyzeSwitchStatement(
-      Statement node, Expression scrutinee, final int numCases) {
+  SwitchStatementTypeAnalysisResult<TypeStructure, Error>
+      analyzeSwitchStatement(
+          Statement node, Expression scrutinee, final int numCases) {
     // Stack: ()
-    Type scrutineeType = analyzeExpression(scrutinee, operations.unknownType);
+    SharedTypeView<TypeStructure> scrutineeType =
+        analyzeExpression(scrutinee, operations.unknownType);
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
     flow.switchStatement_expressionEnd(node, scrutinee, scrutineeType);
@@ -1839,7 +1915,7 @@ mixin TypeAnalyzer<
     bool lastCaseTerminates = true;
     Map<int, Error>? switchCaseCompletesNormallyErrors;
     Map<int, Map<int, Error>>? nonBooleanGuardErrors;
-    Map<int, Map<int, Type>>? guardTypes;
+    Map<int, Map<int, SharedTypeView<TypeStructure>>>? guardTypes;
     for (int caseIndex = 0; caseIndex < numCases; caseIndex++) {
       // Stack: (Expression, numExecutionPaths * StatementCase)
       flow.switchStatement_beginAlternatives();
@@ -1861,7 +1937,8 @@ mixin TypeAnalyzer<
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
           dispatchPattern(
-            new MatchContext<Node, Expression, Pattern, Type, Variable>(
+            new MatchContext<Node, Expression, Pattern,
+                SharedTypeView<TypeStructure>, Variable>(
               isFinal: false,
               switchScrutinee: scrutinee,
               componentVariables: componentVariables,
@@ -1879,7 +1956,7 @@ mixin TypeAnalyzer<
           //         numHeads * CaseHead, Pattern),
           guard = head.guard;
           if (guard != null) {
-            Type guardType = analyzeExpression(
+            SharedTypeView<TypeStructure> guardType = analyzeExpression(
                 guard, operations.typeToSchema(operations.boolType));
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             ((guardTypes ??= {})[caseIndex] ??= {})[headIndex] = guardType;
@@ -1971,10 +2048,11 @@ mixin TypeAnalyzer<
   /// Stack effect: none.
   ///
   /// Returns the inferred type of the variable.
-  Type analyzeUninitializedVariableDeclaration(
-      Node node, Variable variable, Type? declaredType,
+  SharedTypeView<TypeStructure> analyzeUninitializedVariableDeclaration(
+      Node node, Variable variable, SharedTypeView<TypeStructure>? declaredType,
       {required bool isFinal}) {
-    Type inferredType = declaredType ?? operations.dynamicType;
+    SharedTypeView<TypeStructure> inferredType =
+        declaredType ?? operations.dynamicType;
     setVariableType(variable, inferredType);
     flow.declare(variable, inferredType, initialized: false);
     return inferredType;
@@ -1987,12 +2065,14 @@ mixin TypeAnalyzer<
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: none.
-  WildcardPatternResult<Type, Error> analyzeWildcardPattern({
-    required MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  WildcardPatternResult<TypeStructure, Error> analyzeWildcardPattern({
+    required MatchContext<Node, Expression, Pattern,
+            SharedTypeView<TypeStructure>, Variable>
+        context,
     required Pattern node,
-    required Type? declaredType,
+    required SharedTypeView<TypeStructure>? declaredType,
   }) {
-    Type matchedValueType = flow.getMatchedValueType();
+    SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     Node? irrefutableContext = context.irrefutableContext;
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null && declaredType != null) {
@@ -2033,8 +2113,8 @@ mixin TypeAnalyzer<
   /// explicitly declared type (if present).
   ///
   /// Stack effect: none.
-  TypeSchema analyzeWildcardPatternSchema({
-    required Type? declaredType,
+  SharedTypeSchemaView<TypeStructure> analyzeWildcardPatternSchema({
+    required SharedTypeView<TypeStructure>? declaredType,
   }) {
     return declaredType == null
         ? operations.unknownType
@@ -2058,8 +2138,8 @@ mixin TypeAnalyzer<
   /// [analyzeSwitchExpression].
   ///
   /// Stack effect: pushes (Expression).
-  ExpressionTypeAnalysisResult<Type> dispatchExpression(
-      Expression node, TypeSchema schema);
+  ExpressionTypeAnalysisResult<TypeStructure> dispatchExpression(
+      Expression node, SharedTypeSchemaView<TypeStructure> schema);
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].
   ///
@@ -2068,15 +2148,17 @@ mixin TypeAnalyzer<
   /// and the information accumulated while matching previous patterns.
   ///
   /// Stack effect: pushes (Pattern).
-  PatternResult<Type> dispatchPattern(
-      MatchContext<Node, Expression, Pattern, Type, Variable> context,
+  PatternResult<TypeStructure> dispatchPattern(
+      MatchContext<Node, Expression, Pattern, SharedTypeView<TypeStructure>,
+              Variable>
+          context,
       Node pattern);
 
   /// Calls the appropriate `analyze...Schema` method according to the form of
   /// [pattern].
   ///
   /// Stack effect: none.
-  TypeSchema dispatchPatternSchema(Node pattern);
+  SharedTypeSchemaView<TypeStructure> dispatchPatternSchema(Node pattern);
 
   /// Calls the appropriate `analyze` method according to the form of
   /// [statement], and then adjusts the stack as needed to combine any
@@ -2089,8 +2171,8 @@ mixin TypeAnalyzer<
   void dispatchStatement(Statement statement);
 
   /// Infers the type for the [pattern], should be a subtype of [matchedType].
-  Type downwardInferObjectPatternRequiredType({
-    required Type matchedType,
+  SharedTypeView<TypeStructure> downwardInferObjectPatternRequiredType({
+    required SharedTypeView<TypeStructure> matchedType,
     required Pattern pattern,
   });
 
@@ -2107,7 +2189,7 @@ mixin TypeAnalyzer<
     required JoinedPatternVariableLocation location,
     required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
-    required Type type,
+    required SharedTypeView<TypeStructure> type,
   });
 
   /// If the [element] is a map pattern entry, returns it.
@@ -2203,8 +2285,8 @@ mixin TypeAnalyzer<
   /// Called after visiting an entry element in a map pattern.
   ///
   /// Stack effect: pushes (MapPatternElement).
-  void handleMapPatternEntry(
-      Pattern container, Node entryElement, Type keyType);
+  void handleMapPatternEntry(Pattern container, Node entryElement,
+      SharedTypeView<TypeStructure> keyType);
 
   /// Called after visiting a rest element in a map pattern.
   ///
@@ -2268,14 +2350,15 @@ mixin TypeAnalyzer<
   /// eliminate this method.
   ///
   /// Stack effect: none.
-  void handleSwitchScrutinee(Type type);
+  void handleSwitchScrutinee(SharedTypeView<TypeStructure> type);
 
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  [expressionType] is the static type of the scrutinee.
   ///
   /// Will only be called if the switch statement or expression lacks a
   /// `default` clause, and patterns support is disabled.
-  bool isLegacySwitchExhaustive(Node node, Type expressionType);
+  bool isLegacySwitchExhaustive(
+      Node node, SharedTypeView<TypeStructure> expressionType);
 
   /// Returns whether [node] is a rest element in a list or map pattern.
   bool isRestPatternElement(Node node);
@@ -2286,9 +2369,9 @@ mixin TypeAnalyzer<
   /// Returns the type of the property in [receiverType] that corresponds to
   /// the name of the [field].  If the property cannot be resolved, the client
   /// should report an error, and return `dynamic` for recovery.
-  (Object?, Type) resolveObjectPatternPropertyGet({
+  (Object?, SharedTypeView<TypeStructure>) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
-    required Type receiverType,
+    required SharedTypeView<TypeStructure> receiverType,
     required RecordPatternField<Node, Pattern> field,
   });
 
@@ -2298,17 +2381,18 @@ mixin TypeAnalyzer<
   /// If no operator is found, `null` should be returned.  (This could happen
   /// either because the code is invalid, or because [matchedValueType] is
   /// `dynamic`).
-  RelationalOperatorResolution<Type>? resolveRelationalPatternOperator(
-      Pattern node, Type matchedValueType);
+  RelationalOperatorResolution<TypeStructure>? resolveRelationalPatternOperator(
+      Pattern node, SharedTypeView<TypeStructure> matchedValueType);
 
   /// Records that type inference has assigned a [type] to a [variable].  This
   /// is called once per variable, regardless of whether the variable's type is
   /// explicit or inferred.
-  void setVariableType(Variable variable, Type type);
+  void setVariableType(Variable variable, SharedTypeView<TypeStructure> type);
 
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].
-  Type variableTypeFromInitializerType(Type type);
+  SharedTypeView<TypeStructure> variableTypeFromInitializerType(
+      SharedTypeView<TypeStructure> type);
 
   /// Common functionality shared by [analyzeIfStatement] and
   /// [analyzeIfCaseStatement].
@@ -2354,7 +2438,8 @@ mixin TypeAnalyzer<
     // Stack: (CollectionElement ifTrue, CollectionElement ifFalse)
   }
 
-  Error? _checkGuardType(Expression expression, Type type) {
+  Error? _checkGuardType(
+      Expression expression, SharedTypeView<TypeStructure> type) {
     // TODO(paulberry): harmonize this with analyzer's checkForNonBoolExpression
     // TODO(paulberry): spec says the type must be `bool` or `dynamic`.  This
     // logic permits `T extends bool`, `T promoted to bool`, or `Never`.  What
@@ -2384,14 +2469,15 @@ mixin TypeAnalyzer<
       Variable? variable = variables[variableName];
       List<Variable> components = componentVariables[variableName] ?? [];
       bool isFirst = true;
-      Type? typeIfConsistent;
+      SharedTypeView<TypeStructure>? typeIfConsistent;
       bool? isFinalIfConsistent;
       bool isIdenticalToComponent = false;
       for (Variable component in components) {
         if (identical(variable, component)) {
           isIdenticalToComponent = true;
         }
-        Type componentType = operations.variableType(component);
+        SharedTypeView<TypeStructure> componentType =
+            operations.variableType(component);
         bool isComponentFinal = operations.isVariableFinal(component);
         if (isFirst) {
           typeIfConsistent = componentType;
@@ -2437,20 +2523,22 @@ mixin TypeAnalyzer<
   /// If the shape described by [fields] is the same as the shape of the
   /// [matchedType], returns matched types for each field in [fields].
   /// Otherwise returns `null`.
-  List<Type>? _matchRecordTypeShape(
+  List<SharedTypeView<TypeStructure>>? _matchRecordTypeShape(
     List<RecordPatternField<Node, Pattern>> fields,
-    SharedRecordType<Type> matchedType,
+    SharedRecordTypeView<TypeStructure> matchedType,
   ) {
-    Map<String, Type> matchedTypeNamed = {};
-    for (var SharedNamedType(:name, :type) in matchedType.namedTypes) {
+    Map<String, SharedTypeView<TypeStructure>> matchedTypeNamed = {};
+    for (var SharedNamedTypeView<TypeStructure>(:name, :type)
+        in matchedType.namedTypes) {
       matchedTypeNamed[name] = type;
     }
 
-    List<Type> result = [];
+    List<SharedTypeView<TypeStructure>> result = [];
     int namedCount = 0;
-    Iterator<Type> positionalIterator = matchedType.positionalTypes.iterator;
+    Iterator<SharedTypeView<TypeStructure>> positionalIterator =
+        matchedType.positionalTypes.iterator;
     for (RecordPatternField<Node, Pattern> field in fields) {
-      Type? fieldType;
+      SharedTypeView<TypeStructure>? fieldType;
       String? name = field.name;
       if (name != null) {
         fieldType = matchedTypeNamed[name];
@@ -2502,10 +2590,11 @@ mixin TypeAnalyzer<
     return errorResults;
   }
 
-  bool _structurallyEqualAfterNormTypes(Type type1, Type type2) {
-    Type norm1 = operations.normalize(type1);
-    Type norm2 = operations.normalize(type2);
-    return norm1.isStructurallyEqualTo(norm2);
+  bool _structurallyEqualAfterNormTypes(SharedTypeView<TypeStructure> type1,
+      SharedTypeView<TypeStructure> type2) {
+    SharedTypeView<TypeStructure> norm1 = operations.normalize(type1);
+    SharedTypeView<TypeStructure> norm2 = operations.normalize(type2);
+    return norm1.unwrapTypeView().isStructurallyEqualTo(norm2.unwrapTypeView());
   }
 }
 
@@ -2516,7 +2605,7 @@ abstract class TypeAnalyzerErrors<
     Statement extends Node,
     Expression extends Node,
     Variable extends Object,
-    Type extends SharedType<Type>,
+    Type extends Object,
     Pattern extends Node,
     Error> implements TypeAnalyzerErrorsBase {
   /// Called if pattern support is disabled and a case constant's static type

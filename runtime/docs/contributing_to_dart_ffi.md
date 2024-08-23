@@ -113,6 +113,21 @@ If you’re using vscode, you can use the following configuration to run the ana
 
 Replace the file under test in args as needed.
 
+To run the unit tests in the debugger:
+
+```
+      {
+        "name": "dart pkg/analyzer/test/...",
+        "type": "dart",
+        "request": "launch",
+        "program": "pkg/analyzer/test/src/diagnostics/subtype_of_struct_class_test.dart",
+        "args": [],
+        "enableAsserts": true,
+        "cwd": "${workspaceFolder}",
+      },
+```
+
+Replace the test as needed.
 
 ## Gotcha’s
 

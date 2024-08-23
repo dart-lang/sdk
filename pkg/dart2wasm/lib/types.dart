@@ -547,7 +547,7 @@ class Types {
     //   * value is null and the type is nullable.
     return translator.typeEnvironment.isSubtypeOf(
         operandType,
-        testedAgainstType.withDeclaredNullability(Nullability.nonNullable),
+        testedAgainstType.withDeclaredNullability(Nullability.nullable),
         type_env.SubtypeCheckMode.withNullabilities);
   }
 

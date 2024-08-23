@@ -32,6 +32,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart';
@@ -1192,15 +1193,17 @@ class BodyBuilder extends StackListenerImpl
 
     FunctionNode function = _context.function;
     if (thisVariable != null) {
-      typeInferrer.flowAnalysis
-          .declare(thisVariable!, thisVariable!.type, initialized: true);
+      typeInferrer.flowAnalysis.declare(
+          thisVariable!, new SharedTypeView(thisVariable!.type),
+          initialized: true);
     }
     if (formals?.parameters != null) {
       for (int i = 0; i < formals!.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis
-            .declare(variable, variable.type, initialized: true);
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
+            initialized: true);
       }
       for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
@@ -1654,8 +1657,9 @@ class BodyBuilder extends StackListenerImpl
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         VariableDeclaration variable = formals[i].variable!;
-        typeInferrer.flowAnalysis
-            .declare(variable, variable.type, initialized: true);
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
+            initialized: true);
       }
     }
     InferredFunctionBody inferredFunctionBody = typeInferrer.inferFunctionBody(
@@ -1784,7 +1788,8 @@ class BodyBuilder extends StackListenerImpl
         // around a failure in
         // co19/Language/Expressions/Postfix_Expressions/conditional_increment_t02;
         // fix this.
-        typeInferrer.flowAnalysis.declare(variable, variable.type,
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
             initialized: true, skipDuplicateCheck: true);
       }
     }

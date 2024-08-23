@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -89,10 +90,10 @@ class AssignmentExpressionResolver {
 
     var flow = _resolver.flowAnalysis.flow;
     if (flow != null && isIfNull) {
-      flow.ifNullExpression_rightBegin(left, node.readType!);
+      flow.ifNullExpression_rightBegin(left, SharedTypeView(node.readType!));
     }
 
-    _resolver.analyzeExpression(right, rhsContext);
+    _resolver.analyzeExpression(right, SharedTypeSchemaView(rhsContext));
     right = _resolver.popRewrite()!;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
@@ -101,8 +102,8 @@ class AssignmentExpressionResolver {
 
     if (flow != null) {
       if (writeElement is PromotableElement) {
-        flow.write(
-            node, writeElement, node.typeOrThrow, hasRead ? null : right);
+        flow.write(node, writeElement, SharedTypeView(node.typeOrThrow),
+            hasRead ? null : right);
       }
       if (isIfNull) {
         flow.ifNullExpression_end();
@@ -116,7 +117,8 @@ class AssignmentExpressionResolver {
     DartType writeType,
     Expression right,
     DartType rightType, {
-    required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+    required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+        whyNotPromoted,
   }) {
     if (writeType is! VoidType && _checkForUseOfVoidResult(right)) {
       return;
@@ -254,7 +256,8 @@ class AssignmentExpressionResolver {
   }
 
   void _resolveTypes(AssignmentExpressionImpl node,
-      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+      {required Map<SharedTypeView<DartType>, NonPromotionReason> Function()?
+          whyNotPromoted,
       required DartType contextType}) {
     DartType assignedType;
 

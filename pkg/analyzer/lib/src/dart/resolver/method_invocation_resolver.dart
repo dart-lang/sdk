@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -954,14 +955,16 @@ class MethodInvocationResolver with ScopeHelpers {
       if (element is ExecutableElement &&
           element.enclosingElement is InstanceElement &&
           !element.isStatic) {
-        targetType = _resolver.flowAnalysis.flow?.propertyGet(
-                functionExpression,
-                node.isCascaded
-                    ? CascadePropertyTarget.singleton
-                    : ThisPropertyTarget.singleton,
-                node.methodName.name,
-                element,
-                getterReturnType) ??
+        targetType = _resolver.flowAnalysis.flow
+                ?.propertyGet(
+                    functionExpression,
+                    node.isCascaded
+                        ? CascadePropertyTarget.singleton
+                        : ThisPropertyTarget.singleton,
+                    node.methodName.name,
+                    element,
+                    SharedTypeView(getterReturnType))
+                ?.unwrapTypeView() ??
             targetType;
       }
     } else {
@@ -980,20 +983,24 @@ class MethodInvocationResolver with ScopeHelpers {
         );
       }
       if (target is SuperExpressionImpl) {
-        targetType = _resolver.flowAnalysis.flow?.propertyGet(
-                functionExpression,
-                SuperPropertyTarget.singleton,
-                node.methodName.name,
-                node.methodName.staticElement,
-                getterReturnType) ??
+        targetType = _resolver.flowAnalysis.flow
+                ?.propertyGet(
+                    functionExpression,
+                    SuperPropertyTarget.singleton,
+                    node.methodName.name,
+                    node.methodName.staticElement,
+                    SharedTypeView(getterReturnType))
+                ?.unwrapTypeView() ??
             targetType;
       } else {
-        targetType = _resolver.flowAnalysis.flow?.propertyGet(
-                functionExpression,
-                ExpressionPropertyTarget(target),
-                node.methodName.name,
-                node.methodName.staticElement,
-                getterReturnType) ??
+        targetType = _resolver.flowAnalysis.flow
+                ?.propertyGet(
+                    functionExpression,
+                    ExpressionPropertyTarget(target),
+                    node.methodName.name,
+                    node.methodName.staticElement,
+                    SharedTypeView(getterReturnType))
+                ?.unwrapTypeView() ??
             targetType;
       }
       functionExpression.setPseudoExpressionStaticType(targetType);

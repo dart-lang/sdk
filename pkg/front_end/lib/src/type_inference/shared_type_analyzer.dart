@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -17,7 +18,7 @@ import 'inference_visitor.dart';
 class SharedTypeAnalyzerErrors
     implements
         TypeAnalyzerErrors<TreeNode, Statement, Expression, VariableDeclaration,
-            DartType, Pattern, InvalidExpression> {
+            SharedTypeView<DartType>, Pattern, InvalidExpression> {
   final InferenceVisitorImpl visitor;
   final InferenceHelper helper;
 
@@ -40,17 +41,19 @@ class SharedTypeAnalyzerErrors
   InvalidExpression caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required DartType caseExpressionType,
-      required DartType scrutineeType,
+      required SharedTypeView<DartType> caseExpressionType,
+      required SharedTypeView<DartType> scrutineeType,
       required bool nullSafetyEnabled}) {
     return helper.buildProblem(
         nullSafetyEnabled
             ? templateSwitchExpressionNotSubtype.withArguments(
-                caseExpressionType, scrutineeType)
+                caseExpressionType.unwrapTypeView(),
+                scrutineeType.unwrapTypeView())
             :
             // Coverage-ignore(suite): Not run.
             templateSwitchExpressionNotAssignable.withArguments(
-                scrutineeType, caseExpressionType),
+                scrutineeType.unwrapTypeView(),
+                caseExpressionType.unwrapTypeView()),
         caseExpression.fileOffset,
         noLength,
         context: [
@@ -130,7 +133,7 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression? matchedTypeIsStrictlyNonNullable({
     required Pattern pattern,
-    required DartType matchedType,
+    required SharedTypeView<DartType> matchedType,
   }) {
     // These are only warnings, so we don't report anything.
     return null;
@@ -139,8 +142,8 @@ class SharedTypeAnalyzerErrors
   @override
   void matchedTypeIsSubtypeOfRequired({
     required Pattern pattern,
-    required DartType matchedType,
-    required DartType requiredType,
+    required SharedTypeView<DartType> matchedType,
+    required SharedTypeView<DartType> requiredType,
   }) {
     // TODO(scheglov) implement
   }
@@ -155,11 +158,12 @@ class SharedTypeAnalyzerErrors
   InvalidExpression patternForInExpressionIsNotIterable({
     required TreeNode node,
     required Expression expression,
-    required DartType expressionType,
+    required SharedTypeView<DartType> expressionType,
   }) {
     return helper.buildProblem(
         templateForInLoopTypeNotIterable.withArguments(
-            expressionType, coreTypes.iterableNonNullableRawType),
+            expressionType.unwrapTypeView(),
+            coreTypes.iterableNonNullableRawType),
         expression.fileOffset,
         noLength);
   }
@@ -168,11 +172,11 @@ class SharedTypeAnalyzerErrors
   InvalidExpression patternTypeMismatchInIrrefutableContext(
       {required Pattern pattern,
       required TreeNode context,
-      required DartType matchedType,
-      required DartType requiredType}) {
+      required SharedTypeView<DartType> matchedType,
+      required SharedTypeView<DartType> requiredType}) {
     return helper.buildProblem(
         templatePatternTypeMismatchInIrrefutableContext.withArguments(
-            matchedType, requiredType),
+            matchedType.unwrapTypeView(), requiredType.unwrapTypeView()),
         pattern.fileOffset,
         noLength);
   }
@@ -187,12 +191,12 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression relationalPatternOperandTypeNotAssignable({
     required covariant RelationalPattern pattern,
-    required DartType operandType,
-    required DartType parameterType,
+    required SharedTypeView<DartType> operandType,
+    required SharedTypeView<DartType> parameterType,
   }) {
     return helper.buildProblem(
         templateArgumentTypeNotAssignable.withArguments(
-            operandType, parameterType),
+            operandType.unwrapTypeView(), parameterType.unwrapTypeView()),
         pattern.expression.fileOffset,
         noLength);
   }
@@ -200,11 +204,11 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression relationalPatternOperatorReturnTypeNotAssignableToBool({
     required Pattern pattern,
-    required DartType returnType,
+    required SharedTypeView<DartType> returnType,
   }) {
     return helper.buildProblem(
         templateInvalidAssignmentError.withArguments(
-            returnType, coreTypes.boolNonNullableRawType),
+            returnType.unwrapTypeView(), coreTypes.boolNonNullableRawType),
         pattern.fileOffset,
         noLength);
   }

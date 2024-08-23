@@ -25,6 +25,7 @@ absent
 absolute
 abstract
 abstracted
+abstracting
 abstraction
 abstractly
 abstracts
@@ -345,6 +346,7 @@ breakpoint
 breaks
 briefly
 bring
+bringing
 brittle
 broken
 browser
@@ -585,6 +587,7 @@ concatenated
 concatenating
 concatenation
 concepts
+concise
 conclude
 conclusion
 concrete
@@ -3299,6 +3302,7 @@ unhandled
 unhelpful
 unicode
 unified
+uniformity
 unifying
 unimplemented
 uninitialized
