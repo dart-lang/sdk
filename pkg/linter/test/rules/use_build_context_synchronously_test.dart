@@ -705,6 +705,22 @@ void foo(BuildContext context) async {
         AsyncState.asynchronous);
   }
 
+  test_ifStatement_referenceAfter_asyncOrNotMountedInCondition() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (await Future.value(true) || !context.mounted) return;
+  //} else {
+  context /* ref */;
+  //}
+}
+''');
+    var body = findNode.ifStatement('if ').parent!;
+    var reference = findNode.statement('context /* ref */');
+    expect(body.asyncStateFor(reference, contextElement),
+        AsyncState.notMountedCheck);
+  }
+
   test_ifStatement_referenceAfter_awaitThenExitInElse() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';

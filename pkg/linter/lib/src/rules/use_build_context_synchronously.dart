@@ -270,12 +270,14 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       return switch ((leftGuardState, rightGuardState)) {
         // Anything on the left followed by async on the right is async.
         (_, AsyncState.asynchronous) => AsyncState.asynchronous,
-        // Async on the left followed by anything on the right is async.
+        // Anything on the left followed by not-mounted on the right is a
+        // not-mounted check.
+        (_, AsyncState.notMountedCheck) => AsyncState.notMountedCheck,
+        // Async on the left followed by anything else on the right is async.
         (AsyncState.asynchronous, _) => AsyncState.asynchronous,
         // A mounted guard only applies if both sides are guarded.
         (AsyncState.mountedCheck, AsyncState.mountedCheck) =>
           AsyncState.mountedCheck,
-        (_, AsyncState.notMountedCheck) => AsyncState.notMountedCheck,
         (AsyncState.notMountedCheck, _) => AsyncState.notMountedCheck,
         // Otherwise it's just uninteresting.
         (_, _) => null,
