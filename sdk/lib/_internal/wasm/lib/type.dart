@@ -1308,48 +1308,44 @@ bool _isTypeSubtype(_Type s, _Type t) {
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
 void _asSubtype(Object? o, bool onlyNullabilityCheck, _Type t) {
-  final bool success =
-      (onlyNullabilityCheck && _isNullabilityCheck(o, t.isDeclaredNullable)) ||
-          _isSubtype(o, t);
-  if (!success) {
-    _TypeError._throwAsCheckError(o, t);
-  }
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, t.isDeclaredNullable)
+      : _isSubtype(o, t);
+  if (success) return;
+  _TypeError._throwAsCheckError(o, t);
 }
 
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
 void _asInterfaceSubtype(Object? o, bool onlyNullabilityCheck,
     bool isDeclaredNullable, WasmI32 tId, WasmArray<_Type> typeArguments) {
-  final bool success =
-      (onlyNullabilityCheck && _isNullabilityCheck(o, isDeclaredNullable)) ||
-          _isInterfaceSubtype(o, isDeclaredNullable, tId, typeArguments);
-  if (!success) {
-    _throwInterfaceTypeAsCheckError(o, isDeclaredNullable, tId, typeArguments);
-  }
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype(o, isDeclaredNullable, tId, typeArguments);
+  if (success) return;
+  _throwInterfaceTypeAsCheckError(o, isDeclaredNullable, tId, typeArguments);
 }
 
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
 void _asInterfaceSubtype0(Object? o, bool onlyNullabilityCheck,
     bool isDeclaredNullable, WasmI32 tId) {
-  final bool success =
-      (onlyNullabilityCheck && _isNullabilityCheck(o, isDeclaredNullable)) ||
-          _isInterfaceSubtype0(o, isDeclaredNullable, tId);
-  if (!success) {
-    _throwInterfaceTypeAsCheckError0(o, isDeclaredNullable, tId);
-  }
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype0(o, isDeclaredNullable, tId);
+  if (success) return;
+  _throwInterfaceTypeAsCheckError0(o, isDeclaredNullable, tId);
 }
 
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
 void _asInterfaceSubtype1(Object? o, bool onlyNullabilityCheck,
     bool isDeclaredNullable, WasmI32 tId, _Type typeArgument0) {
-  final bool success =
-      (onlyNullabilityCheck && _isNullabilityCheck(o, isDeclaredNullable)) ||
-          _isInterfaceSubtype1(o, isDeclaredNullable, tId, typeArgument0);
-  if (!success) {
-    _throwInterfaceTypeAsCheckError1(o, isDeclaredNullable, tId, typeArgument0);
-  }
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype1(o, isDeclaredNullable, tId, typeArgument0);
+  if (success) return;
+  _throwInterfaceTypeAsCheckError1(o, isDeclaredNullable, tId, typeArgument0);
 }
 
 @pragma("wasm:entry-point")
@@ -1361,14 +1357,13 @@ void _asInterfaceSubtype2(
     WasmI32 tId,
     _Type typeArgument0,
     _Type typeArgument1) {
-  final bool success =
-      (onlyNullabilityCheck && _isNullabilityCheck(o, isDeclaredNullable)) ||
-          _isInterfaceSubtype2(
-              o, isDeclaredNullable, tId, typeArgument0, typeArgument1);
-  if (!success) {
-    _throwInterfaceTypeAsCheckError2(
-        o, isDeclaredNullable, tId, typeArgument0, typeArgument1);
-  }
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype2(
+          o, isDeclaredNullable, tId, typeArgument0, typeArgument1);
+  if (success) return;
+  _throwInterfaceTypeAsCheckError2(
+      o, isDeclaredNullable, tId, typeArgument0, typeArgument1);
 }
 
 @pragma('wasm:never-inline')
