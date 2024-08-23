@@ -8,6 +8,7 @@ import 'analysis/test_all.dart' as analysis;
 import 'completion/test_all.dart' as completion;
 import 'coverage_test.dart' as coverage_test;
 import 'diagnostic/test_all.dart' as diagnostic;
+import 'dtd/test_all.dart' as dtd;
 import 'edit/test_all.dart' as edit;
 import 'execution/test_all.dart' as execution;
 import 'linter/test_all.dart' as linter;
@@ -22,6 +23,7 @@ void main() {
     completion.main();
     coverage_test.main();
     diagnostic.main();
+    dtd.main();
     edit.main();
     execution.main();
     linter.main();

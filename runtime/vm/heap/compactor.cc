@@ -122,7 +122,7 @@ struct Partition {
   Page* tail;
 };
 
-class CompactorTask : public SafepointTask {
+class CompactorTask : public ThreadPool::Task {
  public:
   CompactorTask(IsolateGroup* isolate_group,
                 GCCompactor* compactor,
@@ -147,14 +147,11 @@ class CompactorTask : public SafepointTask {
         free_page_(nullptr),
         free_current_(0),
         free_end_(0) {}
-  ~CompactorTask() { barrier_->Release(); }
 
-  void Run() override;
-  void RunBlockedAtSafepoint() override;
-  void RunMain() override;
+  void Run();
+  void RunEnteredIsolateGroup();
 
  private:
-  void RunEnteredIsolateGroup();
   void PlanPage(Page* page);
   void SlidePage(Page* page);
   uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
@@ -295,14 +292,24 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
     RelaxedAtomic<intptr_t> next_sliding_task = {0};
     RelaxedAtomic<intptr_t> next_forwarding_task = {0};
 
-    IntrusiveDList<SafepointTask> tasks;
-    for (intptr_t i = 0; i < num_tasks; i++) {
-      tasks.Append(new CompactorTask(thread()->isolate_group(), this, barrier,
-                                     &next_planning_task, &next_setup_task,
-                                     &next_sliding_task, &next_forwarding_task,
-                                     num_tasks, partitions, freelist));
+    for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
+      if (task_index < (num_tasks - 1)) {
+        // Begin compacting on a helper thread.
+        Dart::thread_pool()->Run<CompactorTask>(
+            thread()->isolate_group(), this, barrier, &next_planning_task,
+            &next_setup_task, &next_sliding_task, &next_forwarding_task,
+            num_tasks, partitions, freelist);
+      } else {
+        // Last worker is the main thread.
+        CompactorTask task(thread()->isolate_group(), this, barrier,
+                           &next_planning_task, &next_setup_task,
+                           &next_sliding_task, &next_forwarding_task, num_tasks,
+                           partitions, freelist);
+        task.RunEnteredIsolateGroup();
+        barrier->Sync();
+        barrier->Release();
+      }
     }
-    thread()->isolate_group()->safepoint_handler()->RunTasks(&tasks);
   }
 
   // Update inner pointers in typed data views (needs to be done after all
@@ -392,6 +399,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
 
 void CompactorTask::Run() {
   if (!barrier_->TryEnter()) {
+    barrier_->Release();
     return;
   }
 
@@ -406,28 +414,7 @@ void CompactorTask::Run() {
 
   // This task is done. Notify the original thread.
   barrier_->Sync();
-}
-
-void CompactorTask::RunBlockedAtSafepoint() {
-  if (!barrier_->TryEnter()) {
-    return;
-  }
-
-  Thread* thread = Thread::Current();
-  Thread::TaskKind saved_task_kind = thread->task_kind();
-  thread->set_task_kind(Thread::kCompactorTask);
-
-  RunEnteredIsolateGroup();
-
-  thread->set_task_kind(saved_task_kind);
-
-  barrier_->Sync();
-}
-
-void CompactorTask::RunMain() {
-  RunEnteredIsolateGroup();
-
-  barrier_->Sync();
+  barrier_->Release();
 }
 
 void CompactorTask::RunEnteredIsolateGroup() {

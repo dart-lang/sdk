@@ -670,7 +670,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
 
-class ParallelScavengerTask : public SafepointTask {
+class ParallelScavengerTask : public ThreadPool::Task {
  public:
   ParallelScavengerTask(IsolateGroup* isolate_group,
                         ThreadBarrier* barrier,
@@ -680,10 +680,10 @@ class ParallelScavengerTask : public SafepointTask {
         barrier_(barrier),
         visitor_(visitor),
         num_busy_(num_busy) {}
-  ~ParallelScavengerTask() { barrier_->Release(); }
 
-  void Run() override {
+  virtual void Run() {
     if (!barrier_->TryEnter()) {
+      barrier_->Release();
       return;
     }
 
@@ -696,28 +696,7 @@ class ParallelScavengerTask : public SafepointTask {
     Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
 
     barrier_->Sync();
-  }
-
-  void RunBlockedAtSafepoint() override {
-    if (!barrier_->TryEnter()) {
-      return;
-    }
-
-    Thread* thread = Thread::Current();
-    Thread::TaskKind saved_task_kind = thread->task_kind();
-    thread->set_task_kind(Thread::kScavengerTask);
-
-    RunEnteredIsolateGroup();
-
-    thread->set_task_kind(saved_task_kind);
-
-    barrier_->Sync();
-  }
-
-  void RunMain() override {
-    RunEnteredIsolateGroup();
-
-    barrier_->Sync();
+    barrier_->Release();
   }
 
   void RunEnteredIsolateGroup() {
@@ -2060,21 +2039,28 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
   RelaxedAtomic<uintptr_t> num_busy = 0;
 
-  IsolateGroup* isolate_group = heap_->isolate_group();
-
   ParallelScavengerVisitor** visitors =
       new ParallelScavengerVisitor*[num_tasks];
-  IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
     FreeList* freelist = heap_->old_space()->DataFreeList(i);
-    visitors[i] = new ParallelScavengerVisitor(isolate_group, this, from,
-                                               freelist, &promotion_stack_);
-    tasks.Append(new ParallelScavengerTask(isolate_group, barrier, visitors[i],
-                                           &num_busy));
+    visitors[i] = new ParallelScavengerVisitor(
+        heap_->isolate_group(), this, from, freelist, &promotion_stack_);
+    if (i < (num_tasks - 1)) {
+      // Begin scavenging on a helper thread.
+      bool result = Dart::thread_pool()->Run<ParallelScavengerTask>(
+          heap_->isolate_group(), barrier, visitors[i], &num_busy);
+      ASSERT(result);
+    } else {
+      // Last worker is the main thread.
+      ParallelScavengerTask task(heap_->isolate_group(), barrier, visitors[i],
+                                 &num_busy);
+      task.RunEnteredIsolateGroup();
+      barrier->Sync();
+      barrier->Release();
+    }
   }
-  isolate_group->safepoint_handler()->RunTasks(&tasks);
 
-  StoreBuffer* store_buffer = isolate_group->store_buffer();
+  StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
   for (intptr_t i = 0; i < num_tasks; i++) {
     ParallelScavengerVisitor* visitor = visitors[i];
     visitor->Finalize(store_buffer);

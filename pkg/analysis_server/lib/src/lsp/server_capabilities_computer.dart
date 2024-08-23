@@ -219,6 +219,9 @@ class ServerCapabilitiesComputer {
           'augmented': {},
           'augmentation': {},
         },
+        // TODO(dantup): Add something to indicate support for connectToDtd here
+        //  and also bump the legacy protocol version and record in the
+        //  changelog that this is available for LSP-over-Legacy.
       },
     );
   }

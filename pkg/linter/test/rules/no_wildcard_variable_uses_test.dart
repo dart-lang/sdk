@@ -19,6 +19,9 @@ class NoWildcardVariableUsesTest extends LintRuleTest {
 
   test_constructor() async {
     await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 class C {
   C._();
   m() {
@@ -31,6 +34,9 @@ class C {
 
   test_declaredIdentifier() async {
     await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 f() {
   for (var _ in [1, 2, 3]) ;
 }
@@ -39,6 +45,9 @@ f() {
 
   test_field() async {
     await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 class C {
   int _ = 0;
   m() {
@@ -50,6 +59,9 @@ class C {
 
   test_getter() async {
     await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 class C {
   int get _ => 0;
   m() {
@@ -72,8 +84,20 @@ f() {
     ]);
   }
 
+  test_localVar_wildcardsEnabled() async {
+    // Ensure no lint.
+    await assertNoDiagnostics(r'''
+f() {
+  var _ = 1;
+}
+''');
+  }
+
   test_method() async {
     await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 class C {
   String _() => '';
   m() {
@@ -86,16 +110,22 @@ class C {
 
   test_param() async {
     await assertDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 f(int __) {
   print(__);
 }
 ''', [
-      lint(20, 2),
+      lint(64, 2),
     ]);
   }
 
   test_topLevelFunction() async {
     await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 String _() => '';
 
 f() {
@@ -107,6 +137,9 @@ f() {
 
   test_topLevelGetter() async {
     await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 int get _ => 0;
 
 f() {
