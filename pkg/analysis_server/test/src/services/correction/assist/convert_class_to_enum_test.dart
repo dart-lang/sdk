@@ -348,7 +348,7 @@ base class E {
 class _E {
   static const _E c = _E();
 
-  // ignore: unused_element, recursive_constant_constructor
+  // ignore: unused_element_parameter, recursive_constant_constructor
   const _E({_E e = const _E()});
 }
 ''');
