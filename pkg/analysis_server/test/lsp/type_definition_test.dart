@@ -57,6 +57,16 @@ const a = [!12^.3!];
     _expectSdkCoreType(result, 'double');
   }
 
+  Future<void> test_doubleLiteral_wildcard() async {
+    var code = TestCode.parse('''
+const _ = [!12^.3!];
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'double');
+  }
+
   Future<void> test_getter() async {
     var code = TestCode.parse('''
 class A {
@@ -143,6 +153,18 @@ void f(String a) {
     _expectSdkCoreType(result, 'String');
   }
 
+  Future<void> test_parameter_wildcard() async {
+    var code = TestCode.parse('''
+void f(String _) {
+  f([!'te^st'!]);
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
   Future<void> test_parameterName() async {
     var code = TestCode.parse('''
 void f({String? a}) {
@@ -190,6 +212,19 @@ const a = [!'te^st string'!];
     var result = await _getResult(code);
     expect(result.originSelectionRange, code.range.range);
     _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_type_underscore() async {
+    var code = TestCode.parse('''
+class _ { }
+
+_ a = _();
+_ f() => [!^a!];
+''');
+
+    var result = await _getResult(code);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetRange, rangeOfString(code, 'class _ { }'));
   }
 
   Future<void> test_unopenedFile() async {
