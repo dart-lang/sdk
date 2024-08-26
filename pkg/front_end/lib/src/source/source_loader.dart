@@ -969,7 +969,8 @@ severity: $severity
   Set<SourceCompilationUnit> _unavailableDartLibraries = {};
 
   Future<Token> tokenize(SourceCompilationUnit compilationUnit,
-      {bool suppressLexicalErrors = false}) async {
+      {bool suppressLexicalErrors = false,
+      bool allowLazyStrings = true}) async {
     target.benchmarker
         // Coverage-ignore(suite): Not run.
         ?.beginSubdivide(BenchmarkSubdivides.tokenize);
@@ -1060,7 +1061,7 @@ severity: $severity
           enableExtensionMethods:
               compilationUnit.libraryFeatures.extensionMethods.isEnabled,
           enableNonNullable: true);
-    });
+    }, allowLazyStrings: allowLazyStrings);
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
@@ -1274,7 +1275,8 @@ severity: $severity
     // second time, and the first time was in [buildOutline] above. So this
     // time we suppress lexical errors.
     SourceCompilationUnit compilationUnit = library.compilationUnit;
-    Token tokens = await tokenize(compilationUnit, suppressLexicalErrors: true);
+    Token tokens = await tokenize(compilationUnit,
+        suppressLexicalErrors: true, allowLazyStrings: false);
 
     if (target.benchmarker != null) {
       // When benchmarking we do extra parsing on it's own to get a timing of
@@ -1310,8 +1312,8 @@ severity: $severity
         allowPatterns: library.libraryFeatures.patterns.isEnabled);
     parser.parseUnit(tokens);
     for (SourceCompilationUnit compilationUnit in library.parts) {
-      Token tokens =
-          await tokenize(compilationUnit, suppressLexicalErrors: true);
+      Token tokens = await tokenize(compilationUnit,
+          suppressLexicalErrors: true, allowLazyStrings: false);
       DietListener listener =
           createDietListener(library, compilationUnit.offsetMap);
       DietParser parser = new DietParser(listener,
@@ -1328,7 +1330,7 @@ severity: $severity
       FunctionNode parameters,
       VariableDeclaration? extensionThis) async {
     Token token = await tokenize(libraryBuilder.compilationUnit,
-        suppressLexicalErrors: false);
+        suppressLexicalErrors: false, allowLazyStrings: false);
     DietListener dietListener = createDietListener(
         libraryBuilder,
         // Expression compilation doesn't build an outline, and thus doesn't

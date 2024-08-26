@@ -97,9 +97,11 @@ class Utf8BytesScanner extends AbstractScanner {
   Utf8BytesScanner(this.bytes,
       {ScannerConfiguration? configuration,
       bool includeComments = false,
-      LanguageVersionChanged? languageVersionChanged})
+      LanguageVersionChanged? languageVersionChanged,
+      bool allowLazyStrings = true})
       : super(configuration, includeComments, languageVersionChanged,
-            numberOfBytesHint: bytes.length) {
+            numberOfBytesHint: bytes.length,
+            allowLazyStrings: allowLazyStrings) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
     if (containsBomAt(/* offset = */ 0)) {
@@ -241,12 +243,11 @@ class Utf8BytesScanner extends AbstractScanner {
   }
 
   @override
-  analyzer.StringToken createSubstringToken(
-      TokenType type, int start, bool asciiOnly,
-      [int extraOffset = 0]) {
+  analyzer.StringToken createSubstringToken(TokenType type, int start,
+      bool asciiOnly, int extraOffset, bool allowLazy) {
     return new StringTokenImpl.fromUtf8Bytes(
         type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart,
-        precedingComments: comments);
+        precedingComments: comments, allowLazyFoo: allowLazy);
   }
 
   @override
