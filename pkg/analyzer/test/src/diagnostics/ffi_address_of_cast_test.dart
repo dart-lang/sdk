@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class FfiAddressOfCast extends PubPackageResolutionTest {
-  test_struct() async {
+  test_struct_error_1() async {
     await assertErrorsInCode('''
 import 'dart:ffi';
 
@@ -39,20 +39,25 @@ final class MyStruct extends Struct {
   external Array<Int8> arr;
 }
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 68, 1),
-      error(FfiCode.ADDRESS_POSITION, 3, 1)
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 279, 33),
+      error(FfiCode.ADDRESS_POSITION, 346, 7)
     ]);
+  }
 
+  test_struct_error_2() async {
     await assertErrorsInCode('''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>(isLeaf: true)
 external void myNative(Pointer<Void> buffer);
 
+@Native<Void Function(Pointer<Void>)>()
+external void myNonLeafNative(Pointer<Void> buffer);
+
 main() {
   final myStruct = Struct.create<MyStruct>();
-  myNonLeafNative(myStruct.value.address.cast());
   myNative(myStruct.value.address.cast<Int8>());
+  myNonLeafNative(myStruct.value.address.cast());
 }
 
 final class MyStruct extends Struct {
@@ -62,10 +67,12 @@ final class MyStruct extends Struct {
   external Array<Int8> arr;
 }
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 68, 1),
-      error(FfiCode.ADDRESS_POSITION, 1, 1)
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 279, 35),
+      error(FfiCode.ADDRESS_POSITION, 350, 7)
     ]);
+  }
 
+  test_struct_no_error() async {
     await assertNoErrorsInCode('''
 import 'dart:ffi';
 
@@ -110,8 +117,8 @@ final class MyUnion extends Union {
   external Array<Int8> arr;
 }
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 67, 1),
-      error(FfiCode.ADDRESS_POSITION, 1, 1)
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 276, 32),
+      error(FfiCode.ADDRESS_POSITION, 341, 7)
     ]);
   }
 
@@ -121,6 +128,9 @@ import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>(isLeaf: true)
 external void myNative(Pointer<Void> buffer);
+
+@Native<Void Function(Pointer<Void>)>()
+external void myNonLeafNative(Pointer<Void> buffer);
 
 main() {
   final myUnion = Union.create<MyUnion>();
@@ -134,8 +144,8 @@ final class MyUnion extends Union {
   external Array<Int8> arr;
       }
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 68, 1),
-      error(FfiCode.ADDRESS_POSITION, 1, 1)
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 276, 34),
+      error(FfiCode.ADDRESS_POSITION, 345, 7)
     ]);
   }
 
