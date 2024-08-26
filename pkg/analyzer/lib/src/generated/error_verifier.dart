@@ -3452,11 +3452,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     void report(String memberName, List<ExecutableElement> candidates) {
       var contextMessages = candidates.map<DiagnosticMessage>((executable) {
+        var nonSynthetic = executable.nonSynthetic;
         var container = executable.enclosingElement as InterfaceElement;
         return DiagnosticMessageImpl(
           filePath: executable.source.fullName,
-          offset: executable.nameOffset,
-          length: executable.nameLength,
+          offset: nonSynthetic.nameOffset,
+          length: nonSynthetic.nameLength,
           message: "Inherited from '${container.name}'",
           url: null,
         );
