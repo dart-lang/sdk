@@ -669,7 +669,7 @@ class RawZLibFilter {
 
   @patch
   static RawZLibFilter _makeZLibInflateFilter(
-      int windowBits, List<int>? dictionary, bool raw) {
+      bool gzip, int windowBits, List<int>? dictionary, bool raw) {
     throw UnsupportedError("_newZLibInflateFilter");
   }
 }
