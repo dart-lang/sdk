@@ -440,9 +440,12 @@ class ClosureLayouter extends RecursiveVisitor {
         List<w.BaseFunction> instantiationTrampolines = [
           ...?parent?.instantiationTrampolines
         ];
+        String instantiationTrampolineFunctionName =
+            "${["#Instantiation", ...nameTags].join("-")} trampoline";
         if (names.isEmpty) {
           // Add trampoline to the corresponding entry in the generic closure.
           w.BaseFunction trampoline = _createInstantiationTrampoline(
+              instantiationTrampolineFunctionName,
               typeCount,
               closureStruct,
               _getInstantiationContextBaseStruct(typeCount),
@@ -461,6 +464,7 @@ class ClosureLayouter extends RecursiveVisitor {
             int? genericIndex = indexOfCombination![combination];
             w.BaseFunction trampoline = genericIndex != null
                 ? _createInstantiationTrampoline(
+                    instantiationTrampolineFunctionName,
                     typeCount,
                     closureStruct,
                     _getInstantiationContextBaseStruct(typeCount),
@@ -507,6 +511,7 @@ class ClosureLayouter extends RecursiveVisitor {
   }
 
   w.BaseFunction _createInstantiationTrampoline(
+      String name,
       int typeCount,
       w.StructType genericClosureStruct,
       w.StructType instantiationContextBaseStruct,
@@ -524,7 +529,7 @@ class ClosureLayouter extends RecursiveVisitor {
     assert(genericFunctionType.inputs.length ==
         instantiatedFunctionType.inputs.length + typeCount);
 
-    final trampoline = m.functions.define(instantiatedFunctionType);
+    final trampoline = m.functions.define(instantiatedFunctionType, name);
     final b = trampoline.body;
 
     // Cast context reference to actual context type.
