@@ -30,6 +30,7 @@ import 'package:vm/modular/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 
 import 'await_transformer.dart' as awaitTrans;
+import 'ffi_native_address_transformer.dart' as wasmFfiNativeAddressTrans;
 import 'ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'records.dart' show RecordShape;
 import 'transformers.dart' as wasmTrans;
@@ -338,6 +339,13 @@ class WasmTarget extends Target {
     if (transitiveImportingDartFfi == null) {
       logger?.call("Skipped ffi transformation");
     } else {
+      wasmFfiNativeAddressTrans.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingDartFfi,
+          diagnosticReporter,
+          referenceFromIndex);
       wasmFfiNativeTrans.transformLibraries(component, coreTypes, hierarchy,
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       transformFfiDefinitions.transformLibraries(
