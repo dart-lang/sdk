@@ -274,6 +274,20 @@ class _Element2Writer extends _AbstractElementWriter {
     if (e is SetterElement) {
       expect(name, endsWith('='));
     }
+    if (name.isEmpty && e is ConstructorElement2) {
+      return 'new';
+    }
+    return name;
+  }
+
+  String _fragmentName(Fragment f) {
+    var name = f.name ?? '<null>';
+    if (f is SetterFragment) {
+      expect(name, endsWith('='));
+    }
+    if (name.isEmpty && f is ConstructorFragment) {
+      return 'new';
+    }
     return name;
   }
 
@@ -282,9 +296,151 @@ class _Element2Writer extends _AbstractElementWriter {
       if (e is MaybeAugmentedInstanceElementMixin) {
         e = e.declaration;
       }
-      e as ElementImpl;
-      _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
-      _sink.writelnWithIndent('codeLength: ${e.codeLength}');
+      if (e is ElementImpl) {
+        _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
+        _sink.writelnWithIndent('codeLength: ${e.codeLength}');
+      } else {
+        throw UnsupportedError('Code range not supported for ${e.runtimeType}');
+      }
+    }
+  }
+
+  void _writeConstructorElement(ConstructorElement2 e) {
+    // Check that the reference exists, and filled with the element.
+    // var reference = e.reference;
+    // if (reference == null) {
+    //   fail('Every constructor must have a reference.');
+    // }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      // _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(e.isConst, 'const ');
+      _sink.writeIf(e.isFactory, 'factory ');
+      expect(e.isAbstract, isFalse);
+      _writeElementName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeElementReference(e);
+      // _writeEnclosingElement(e);
+      _writeDocumentation(e.documentationComment);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+      // _writeDisplayName(e);
+
+      // _writeParameterElements(e.parameters2);
+
+      // _writeElements(
+      //   'constantInitializers',
+      //   e.constantInitializers,
+      //   _writeNode,
+      // );
+
+      var superConstructor = e.superConstructor2;
+      if (superConstructor != null) {
+        var enclosingElement = superConstructor.enclosingElement2;
+        if (enclosingElement is ClassElement2 &&
+            !enclosingElement.isDartCoreObject) {
+          _writeElementReference(superConstructor, label: 'superConstructor: ');
+        }
+      }
+
+      var redirectedConstructor = e.redirectedConstructor2;
+      if (redirectedConstructor != null) {
+        _writeElementReference(redirectedConstructor,
+            label: 'redirectedConstructor: ');
+      }
+
+      // _writeNonSyntheticElement(e);
+      _writeMacroDiagnostics(e);
+      _writeFragmentReference(e.firstFragment, label: 'firstFragment: ');
+    });
+
+    // if (e.isSynthetic) {
+    //   expect(e.nameOffset, -1);
+    //   expect(e.nonSynthetic, same(e.enclosingElement));
+    // } else {
+    //   expect(e.nameOffset, isPositive);
+    // }
+  }
+
+  void _writeConstructorFragment(ConstructorFragment f) {
+    // Check that the reference exists, and filled with the element.
+    var reference = (f as ConstructorElementImpl).reference;
+    if (reference == null) {
+      fail('Every constructor must have a reference.');
+    }
+
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(f.isAugmentation, 'augment ');
+      _sink.writeIf(f.isSynthetic, 'synthetic ');
+      _sink.writeIf(f.isExternal, 'external ');
+      _sink.writeIf(f.isConst, 'const ');
+      _sink.writeIf(f.isFactory, 'factory ');
+      expect(f.isAbstract, isFalse);
+      _writeFragmentName(f);
+    });
+
+    _sink.withIndent(() {
+      _writeFragmentReference(f);
+      _writeFragmentReference(f.enclosingFragment,
+          label: 'enclosingFragment: ');
+      _writeDocumentation(f.documentationComment);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeCodeRange(f);
+      // _writeDisplayName(f);
+
+      var periodOffset = f.periodOffset;
+      var nameEnd = f.nameEnd;
+      if (periodOffset != null && nameEnd != null) {
+        _sink.writelnWithIndent('periodOffset: $periodOffset');
+        _sink.writelnWithIndent('nameEnd: $nameEnd');
+      }
+
+      // _writeParameterElements(f.parameters);
+
+      _writeElements(
+        'constantInitializers',
+        f.constantInitializers,
+        _writeNode,
+      );
+
+      var superConstructor = f.superConstructor;
+      if (superConstructor != null) {
+        var enclosingElement = superConstructor.enclosingElement;
+        if (enclosingElement is ClassElement &&
+            !enclosingElement.isDartCoreObject) {
+          _elementPrinter.writeNamedElement(
+            'superConstructor',
+            superConstructor,
+          );
+        }
+      }
+
+      var redirectedConstructor = f.redirectedConstructor;
+      if (redirectedConstructor != null) {
+        _elementPrinter.writeNamedElement(
+          'redirectedConstructor',
+          redirectedConstructor,
+        );
+      }
+
+      // _writeNonSyntheticElement(f);
+      _writeMacroDiagnostics(f);
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment: ');
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment: ');
+    });
+
+    expect(f.isAsynchronous, isFalse);
+    expect(f.isGenerator, isFalse);
+
+    if (f.isSynthetic) {
+      expect(f.nameOffset, -1);
+      expect(f.nonSynthetic, same(f.enclosingElement));
+    } else {
+      expect(f.nameOffset, isPositive);
     }
   }
 
@@ -298,18 +454,31 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeElementName(Element2 e) {
-    String name = _elementName(e);
-    _sink.write(name);
+    _sink.write(_elementName(e));
   }
 
-  void _writeElementReference(Element2 e) {
+  void _writeElementReference(Element2 e, {String? label}) {
     if (e is MaybeAugmentedInstanceElementMixin) {
       e = e.declaration;
     }
-    if ((e as ElementImpl).reference case var reference?) {
+    if (e is ElementImpl) {
+      if (e.reference case var reference?) {
+        _sink.writeIndentedLine(() {
+          _sink.write(label ?? 'reference: ');
+          _elementPrinter.writeReference(reference);
+        });
+      }
+      // } else if (e is MethodElementImpl2) {
+      //   if (e.reference case var reference?) {
+      //     _sink.writeIndentedLine(() {
+      //       _sink.write(label ?? 'reference: ');
+      //       _elementPrinter.writeReference(reference);
+      //     });
+      //   }
+    } else {
       _sink.writeIndentedLine(() {
-        _sink.write('reference: ');
-        _elementPrinter.writeReference(reference);
+        _sink.write(label ?? 'reference: ');
+        _sink.write('<none>');
       });
     }
   }
@@ -326,6 +495,46 @@ class _Element2Writer extends _AbstractElementWriter {
     var sortedEntries = map.entries.sortedBy((entry) => entry.key);
     for (var entry in sortedEntries) {
       _elementPrinter.writeNamedElement(entry.key, entry.value);
+    }
+  }
+
+  void _writeFragentBodyModifiers(ExecutableFragment f) {
+    if (f.isAsynchronous) {
+      expect(f.isSynchronous, isFalse);
+      _sink.write(' async');
+    }
+
+    if (f.isSynchronous && f.isGenerator) {
+      expect(f.isAsynchronous, isFalse);
+      _sink.write(' sync');
+    }
+
+    _sink.writeIf(f.isGenerator, '*');
+
+    if (f is ExecutableElementImpl && f.invokesSuperSelf) {
+      _sink.write(' invokesSuperSelf');
+    }
+  }
+
+  void _writeFragmentCodeRange(Fragment f) {
+    if (configuration.withCodeRanges) {
+      if (f is ElementImpl) {
+        var e = f as ElementImpl;
+        if (!e.isSynthetic) {
+          _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
+          _sink.writelnWithIndent('codeLength: ${e.codeLength}');
+        }
+      }
+    }
+  }
+
+  void _writeFragmentName(Fragment f) {
+    var name = _fragmentName(f);
+    _sink.write(name);
+    var offset = f.nameOffset;
+    if (offset != null) {
+      _sink.write(name.isNotEmpty ? ' @' : '@');
+      _sink.write(offset);
     }
   }
 
@@ -354,7 +563,10 @@ class _Element2Writer extends _AbstractElementWriter {
       }
     }
     if (element is! ElementImpl) {
-      _sink.write('<none>');
+      _sink.writeIndentedLine(() {
+        _sink.write(label ?? 'reference: ');
+        _sink.write('<none>');
+      });
       return;
     }
     if (element.reference case var reference?) {
@@ -449,16 +661,19 @@ class _Element2Writer extends _AbstractElementWriter {
 
       // _writeElements('fields', e.fields, _writePropertyInducingElement);
 
-      // var constructors = e.constructors;
-      // if (e is MixinElement) {
-      //   expect(constructors, isEmpty);
-      // } else if (configuration.withConstructors) {
-      //   _writeElements('constructors', constructors, _writeConstructorElement);
-      // }
+      if (e is InterfaceElement2) {
+        var constructors = e.constructors2;
+        if (e is MixinElement2) {
+          expect(constructors, isEmpty);
+        } else if (configuration.withConstructors) {
+          _writeElements(
+              'constructors', constructors, _writeConstructorElement);
+        }
+      }
 
-      // _writeElements('getters', f.getters, _writeGetterElement);
-      // _writeElements('setters', f.setters, _writeSetterElement);
-      // _writeMethods(e.methods);
+      // _writeElements('getters', e.getters2, _writeGetterElement);
+      // _writeElements('setters', e.setters2, _writeSetterElement);
+      _writeElements('methods', e.methods2, _writeMethodElement);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -515,6 +730,16 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference(f);
       _writeFragmentReference(f.previousFragment, label: 'previousFragment: ');
       _writeFragmentReference(f.nextFragment, label: 'nextFragment: ');
+      if (f is InterfaceFragment) {
+        var constructors = f.constructors2;
+        if (f is MixinElement2) {
+          expect(constructors, isEmpty);
+        } else if (configuration.withConstructors) {
+          _writeElements(
+              'constructors', constructors, _writeConstructorFragment);
+        }
+      }
+      _writeElements('methods', f.methods2, _writeMethodFragment);
     });
   }
 
@@ -853,6 +1078,74 @@ class _Element2Writer extends _AbstractElementWriter {
         });
       }
     }
+  }
+
+  void _writeMethodElement(MethodElement2 e) {
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isStatic, 'static ');
+      _sink.writeIf(e.isAbstract, 'abstract ');
+      // _sink.writeIf(e.isExternal, 'external ');
+
+      _writeElementName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeElementReference(e);
+      // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
+      _writeDocumentation(e.documentationComment);
+      _writeMetadata(e.metadata);
+      _writeSinceSdkVersion(e.sinceSdkVersion);
+      // _writeTypeInferenceError(e);
+
+      // _writeTypeParameterElements(e.typeParameters2);
+      // _writeParameterElements(e.parameters2);
+      // _writeReturnType(e.returnType);
+      // _writeNonSyntheticElement(e);
+      _writeMacroDiagnostics(e);
+      _writeFragmentReference(e.firstFragment, label: 'firstFragment: ');
+    });
+
+    // if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
+    //   expect(e.name, 'toString');
+    //   expect(e.nonSynthetic2, same(e.enclosingElement2));
+    // } else {
+    //   _assertNonSyntheticElementSelf(e);
+    // }
+  }
+
+  void _writeMethodFragment(MethodFragment f) {
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(f.isAugmentation, 'augment ');
+      // _sink.writeIf(f.isSynthetic, 'synthetic ');
+      // _sink.writeIf(f.isStatic, 'static ');
+      // _sink.writeIf(f.isAbstract, 'abstract ');
+      // _sink.writeIf(f.isExternal, 'external ');
+
+      _writeFragmentName(f);
+      _writeFragentBodyModifiers(f);
+    });
+
+    _sink.withIndent(() {
+      _writeFragmentReference(f);
+      _writeFragmentReference(f.previousFragment, label: 'previousFragment: ');
+      _writeFragmentReference(f.nextFragment, label: 'nextFragment: ');
+      _writeFragmentReference(f.enclosingFragment,
+          label: 'enclosingFragment: ');
+      _writeDocumentation(f.documentationComment);
+      _writeMetadata(f.metadata);
+      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeFragmentCodeRange(f);
+      // _writeTypeInferenceError(f);
+
+      // _writeTypeParameterElements(f.typeParameters);
+      // _writeParameterElements(f.parameters);
+      // _writeReturnType(f.returnType);
+      // _writeNonSyntheticElement(f);
+      // _writeMacroDiagnostics(f);
+      // _writeAugmentationTarget(f);
+      // _writeAugmentation(f);
+    });
   }
 
   void _writePrefixElement(PrefixElement2 e) {

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
@@ -19,7 +20,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
     with ConstructorElementMixin
-    implements ConstructorElement {
+    implements ConstructorElement, ConstructorFragment {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember({
@@ -46,7 +47,14 @@ class ConstructorMember extends ExecutableMember
   String get displayName => declaration.displayName;
 
   @override
+  ConstructorElement2 get element => super.element as ConstructorElement2;
+
+  @override
   InterfaceElement get enclosingElement => declaration.enclosingElement;
+
+  @override
+  InstanceFragment? get enclosingFragment =>
+      super.enclosingFragment as InstanceFragment?;
 
   @override
   bool get isConst => declaration.isConst;
@@ -64,7 +72,15 @@ class ConstructorMember extends ExecutableMember
   int? get nameEnd => declaration.nameEnd;
 
   @override
+  ConstructorFragment? get nextFragment =>
+      super.nextFragment as ConstructorFragment;
+
+  @override
   int? get periodOffset => declaration.periodOffset;
+
+  @override
+  ConstructorFragment? get previousFragment =>
+      super.previousFragment as ConstructorFragment;
 
   @override
   ConstructorElement? get redirectedConstructor {
@@ -148,7 +164,8 @@ class ConstructorMember extends ExecutableMember
 
 /// An executable element defined in a parameterized type where the values of
 /// the type parameters are known.
-abstract class ExecutableMember extends Member implements ExecutableElement {
+abstract class ExecutableMember extends Member
+    implements ExecutableElement, ExecutableFragment {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -172,10 +189,23 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   List<Element> get children => parameters;
 
   @override
+  // TODO(augmentations): This needs to return member built from the children
+  //  with the same type arguments as this member.
+  List<Fragment> get children3 =>
+      (declaration as ExecutableElementImpl).children3;
+
+  @override
   ExecutableElement get declaration => super.declaration as ExecutableElement;
 
   @override
   String get displayName => declaration.displayName;
+
+  @override
+  Element2 get element => (declaration as ExecutableElementImpl).element;
+
+  @override
+  Fragment? get enclosingFragment =>
+      (declaration as ExecutableElementImpl?)?.enclosingFragment;
 
   @override
   bool get hasImplicitReturnType => declaration.hasImplicitReturnType;
@@ -214,7 +244,20 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   LibraryElement get library => _declaration.library!;
 
   @override
+  LibraryFragment get libraryFragment =>
+      (declaration as ExecutableElementImpl).libraryFragment;
+
+  @override
   Source get librarySource => _declaration.librarySource!;
+
+  @override
+  int get nameOffset => declaration.nameOffset;
+
+  @override
+  // TODO(augmentations): This needs to return a member built from the next
+  //  fragment with the same type arguments as this member.
+  Fragment? get nextFragment =>
+      (declaration as ExecutableElementImpl).nextFragment;
 
   @override
   List<ParameterElement> get parameters {
@@ -230,6 +273,16 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       return ParameterMember(p, augmentationSubstitution, _substitution);
     }).toList();
   }
+
+  @override
+  List<FormalParameterFragment> get parameters2 =>
+      declaration.parameters.cast<FormalParameterFragment>();
+
+  @override
+  // TODO(augmentations): This needs to return a member built from the previous
+  //  fragment with the same type arguments as this member.
+  Fragment? get previousFragment =>
+      (declaration as ExecutableElementImpl).previousFragment;
 
   @override
   DartType get returnType {
@@ -773,7 +826,8 @@ abstract class Member implements Element {
 
 /// A method element defined in a parameterized type where the values of the
 /// type parameters are known.
-class MethodMember extends ExecutableMember implements MethodElement {
+class MethodMember extends ExecutableMember
+    implements MethodElement, MethodFragment {
   factory MethodMember(
     MethodElement declaration,
     MapSubstitution augmentationSubstitution,
@@ -813,10 +867,24 @@ class MethodMember extends ExecutableMember implements MethodElement {
   MethodElement get declaration => super.declaration as MethodElement;
 
   @override
+  MethodElement2 get element => super.element as MethodElement2;
+
+  @override
   Element get enclosingElement => declaration.enclosingElement;
 
   @override
+  InstanceFragment? get enclosingFragment =>
+      super.enclosingFragment as InstanceFragment?;
+
+  @override
   String get name => declaration.name;
+
+  @override
+  MethodFragment? get nextFragment => super.nextFragment as MethodFragment;
+
+  @override
+  MethodFragment? get previousFragment =>
+      super.previousFragment as MethodFragment;
 
   @override
   Source get source => _declaration.source!;

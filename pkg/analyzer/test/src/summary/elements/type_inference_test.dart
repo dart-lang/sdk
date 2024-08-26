@@ -143,11 +143,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -255,17 +263,33 @@ library
       classes
         class C @43
           reference: <testLibraryFragment>::@class::C
+          constructors
+            const new @58
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @77
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -361,17 +385,33 @@ library
       classes
         class C @38
           reference: <testLibraryFragment>::@class::C
+          constructors
+            const new @50
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @66
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -451,24 +491,50 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @18
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class S @40
           reference: <testLibraryFragment>::@class::S
+          constructors
+            new @59
+              reference: <testLibraryFragment>::@class::S::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::S
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class S
       reference: <testLibraryFragment>::@class::S
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::S
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::S::@constructor::new
 ''');
   }
 
@@ -600,30 +666,64 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @25
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @81
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @92
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
+              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
       supertype: C
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -781,11 +881,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -869,11 +977,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            new @29
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -923,11 +1039,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -978,11 +1102,27 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          methods
+            f @15
+              reference: <testLibraryFragment>::@class::C::@method::f
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        f
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
 
@@ -1037,11 +1177,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -1169,11 +1317,27 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            factory new @35
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+            _ @66
+              reference: <testLibraryFragment>::@class::C::@constructor::_
+              enclosingFragment: <testLibraryFragment>::@class::C
+              periodOffset: 65
+              nameEnd: 67
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        factory new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+        _
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::_
 ''');
   }
 
@@ -1234,11 +1398,27 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          methods
+            baz @100
+              reference: <testLibraryFragment>::@class::A::@method::baz
+              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        static baz
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::baz
 ''');
   }
 
@@ -1593,18 +1773,36 @@ library
       classes
         class C @31
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @69
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     abstract class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -1882,18 +2080,38 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+              superConstructor: ConstructorMember
+                base: <testLibraryFragment>::@class::D::@constructor::new
+                substitution: {U: int, V: T}
         class D @57
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D<int, T>
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     abstract class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -2032,18 +2250,54 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+              superConstructor: ConstructorMember
+                base: <testLibraryFragment>::@class::D::@constructor::new
+                substitution: {V: U, W: int}
+          methods
+            f @41
+              reference: <testLibraryFragment>::@class::C::@method::f
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @73
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
+          methods
+            f @90
+              reference: <testLibraryFragment>::@class::D::@method::f
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D<U, int>
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        f
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::f
     abstract class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+      methods
+        abstract f
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@method::f
 ''');
   }
 
@@ -2108,12 +2362,30 @@ library
       classes
         class C @23
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+              superConstructor: package:test/a.dart::<fragment>::@class::D::@constructor::new
+          methods
+            f @44
+              reference: <testLibraryFragment>::@class::C::@method::f
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        f
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
 
@@ -2175,18 +2447,52 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
+          methods
+            f @25
+              reference: <testLibraryFragment>::@class::C::@method::f
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @57
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
+          methods
+            f @66
+              reference: <testLibraryFragment>::@class::D::@method::f
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        f
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::f
     abstract class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+      methods
+        abstract f
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@method::f
 ''');
   }
 
@@ -2357,18 +2663,36 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @54
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     abstract class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -2428,12 +2752,30 @@ library
       classes
         class B @23
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          methods
+            m @39
+              reference: <testLibraryFragment>::@class::B::@method::m
+              enclosingFragment: <testLibraryFragment>::@class::B
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      methods
+        m
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@method::m
 ''');
     ClassElement b = library.definingCompilationUnit.classes[0];
     ParameterElement p = b.methods[0].parameters[0];
@@ -2515,11 +2857,27 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            new @12
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+            named @21
+              reference: <testLibraryFragment>::@class::A::@constructor::named
+              enclosingFragment: <testLibraryFragment>::@class::A
+              periodOffset: 20
+              nameEnd: 26
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+        named
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::named
 ''');
   }
 
@@ -2761,30 +3119,80 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          methods
+            m @25
+              reference: <testLibraryFragment>::@class::A::@method::m
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @48
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          methods
+            m @61
+              reference: <testLibraryFragment>::@class::B::@method::m
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @84
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @121
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
+              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        abstract m
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::m
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      methods
+        abstract m
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@method::m
     abstract class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     abstract class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
       supertype: C
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -2868,17 +3276,41 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          methods
+            call @19
+              reference: <testLibraryFragment>::@class::A::@method::call
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @42
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        call
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::call
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
   }
 
@@ -3179,11 +3611,19 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -3251,11 +3691,19 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -3343,17 +3791,33 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            new @27
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @51
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
   }
 
@@ -3482,10 +3946,37 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            new @27
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @51
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    arguments
+                      SimpleIdentifier
+                        token: value @-1
+                        staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value
+                        staticType: T
+                    rightParenthesis: ) @0
+                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              superConstructor: ConstructorMember
+                base: <testLibraryFragment>::@class::A::@constructor::new
+                substitution: {T: T}
         class C @78
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
       mixins
         mixin M @112
           reference: <testLibraryFragment>::@mixin::M
@@ -3494,15 +3985,28 @@ library
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class alias B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<T>
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -3568,11 +4072,19 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            new @28
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -3634,11 +4146,19 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            new @12
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -4145,24 +4665,50 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @18
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class C @40
           reference: <testLibraryFragment>::@class::C
+          constructors
+            const new @78
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -4310,11 +4856,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -4410,11 +4964,27 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          methods
+            m @15
+              reference: <testLibraryFragment>::@class::C::@method::m
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        m
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
 
@@ -4537,11 +5107,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -4594,11 +5172,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -4739,20 +5325,36 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
       enums
         enum E @16
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -4907,20 +5509,36 @@ library
       classes
         class C @17
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enums
         enum E @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
   classes
     class C
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
   enums
     enum E
       reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
 ''');
   }
 
@@ -5072,9 +5690,17 @@ library
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
       enums
         enum E @42
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
   classes
@@ -5082,12 +5708,20 @@ library
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -5253,9 +5887,17 @@ library
       classes
         class C @17
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enums
         enum E @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
   classes
@@ -5263,12 +5905,20 @@ library
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
   enums
     enum E
       reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
 ''');
   }
 
@@ -5422,20 +6072,36 @@ library
       classes
         class C @17
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enums
         enum E @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
   classes
     class C
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
   enums
     enum E
       reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
 ''');
   }
 
@@ -5481,11 +6147,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -5536,11 +6210,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -5591,11 +6273,19 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
 ''');
   }
 
@@ -5683,12 +6373,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 

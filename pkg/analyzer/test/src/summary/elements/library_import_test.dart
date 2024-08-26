@@ -67,12 +67,22 @@ library
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -128,12 +138,22 @@ library
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -189,12 +209,22 @@ library
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -250,12 +280,22 @@ library
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -311,12 +351,22 @@ library
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+              superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -842,18 +892,36 @@ library
       classes
         class C @31
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @42
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
+              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
       supertype: C
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 

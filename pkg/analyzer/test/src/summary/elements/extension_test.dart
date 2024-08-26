@@ -245,6 +245,18 @@ library
       extensions
         extension E @31
           reference: <testLibraryFragment>::@extension::E
+          methods
+            bar @88
+              reference: <testLibraryFragment>::@extension::E::@method::bar
+              enclosingFragment: <testLibraryFragment>::@extension::E
+              metadata
+                Annotation
+                  atSign: @ @76
+                  name: SimpleIdentifier
+                    token: foo @77
+                    staticElement: <testLibraryFragment>::@extension::E::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@extension::E::@getter::foo
 ''');
   }
 
@@ -316,6 +328,10 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
       extensions
         extension E @50
           reference: <testLibraryFragment>::@extension::E
@@ -324,6 +340,10 @@ library
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
 
@@ -600,12 +620,20 @@ library
         extension A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          methods
+            foo1 @65
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
         extension A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo2 @47
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -2232,12 +2260,20 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            bar @50
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -2316,12 +2352,25 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo1 @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo1
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+              enclosingFragment: <testLibraryFragment>::@extension::A
+            foo2 @60
+              reference: <testLibraryFragment>::@extension::A::@method::foo2
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            augment foo1 @58
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+              previousFragment: <testLibraryFragment>::@extension::A::@method::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -2424,6 +2473,11 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -2432,12 +2486,23 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
+          methods
+            augment foo @73
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensions
         extension A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            augment foo @55
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -2517,12 +2582,20 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            bar @52
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -2603,12 +2676,22 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            augment foo @60
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
@@ -2692,12 +2775,25 @@ library
         extension A @25
           reference: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@extension::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@extension::A
+            bar @59
+              reference: <testLibraryFragment>::@extension::A::@method::bar
+              enclosingFragment: <testLibraryFragment>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           previousFragment: <testLibraryFragment>::@extension::A
+          methods
+            augment foo @61
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@extension::A::@method::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
 ''');
   }
 
