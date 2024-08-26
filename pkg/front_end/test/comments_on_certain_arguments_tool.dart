@@ -401,9 +401,11 @@ class TestSourceLoader extends SourceLoader {
 
   @override
   Future<Token> tokenize(SourceCompilationUnit sourceCompilationUnit,
-      {bool suppressLexicalErrors = false}) async {
+      {bool suppressLexicalErrors = false,
+      bool allowLazyStrings = true}) async {
     Token result = await super.tokenize(sourceCompilationUnit,
-        suppressLexicalErrors: suppressLexicalErrors);
+        suppressLexicalErrors: suppressLexicalErrors,
+        allowLazyStrings: allowLazyStrings);
     cache[sourceCompilationUnit.fileUri] = result;
     return result;
   }
