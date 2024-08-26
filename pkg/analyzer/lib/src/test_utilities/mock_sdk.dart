@@ -833,6 +833,9 @@ final class Pointer<T extends NativeType> implements SizedNativeType {
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
       [Object exceptionalReturn]) {}
+
+  external Pointer<U> cast<U extends NativeType>();
+
 }
 
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
@@ -856,11 +859,20 @@ extension NativeFunctionPointer<NF extends Function>
 
 abstract final class _Compound implements NativeType {}
 
-@Since('2.12')
-abstract base class Struct extends _Compound implements SizedNativeType {}
+abstract base class Struct extends _Compound implements SizedNativeType {
+  @Since('3.4')
+  external static T create<T extends Struct>([TypedData typedData, int offset]);
+}
 
 @Since('2.14')
-abstract base class Union extends _Compound implements SizedNativeType {}
+abstract base class Union extends _Compound implements SizedNativeType {
+  @Since('3.4')
+  external static T create<T extends Union>([TypedData typedData, int offset]);
+}
+
+extension IntAddress on int {
+  external Pointer<Never> address;
+}
 
 @Since('2.13')
 final class Packed {
@@ -903,6 +915,11 @@ final class Array<T extends NativeType> extends _Compound {
   const factory Array.variableMulti(List<int> dimensions) =
       _ArraySize<T>.variableMulti;
 }
+
+extension ArrayAddress<T extends NativeType> on Array<T> {
+  external Pointer<T> get address;
+}
+
 
 final class _ArraySize<T extends NativeType> implements Array<T> {
   final int? dimension1;
@@ -1045,6 +1062,11 @@ abstract interface class Finalizable {
 
 @Since('3.0')
 abstract final class VarArgs<T extends Record> implements NativeType {}
+
+@Since('3.5')
+extension Int8ListAddress on Int8List {
+  external Pointer<Int8> get address;
+}
 ''',
   )
 ]);
