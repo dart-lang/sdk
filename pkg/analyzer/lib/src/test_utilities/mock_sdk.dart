@@ -746,6 +746,8 @@ final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
 @Since('2.6')
 library dart.ffi;
 
+import 'dart:typed_data';
+
 abstract final class NativeType {}
 
 @Since('3.4')
@@ -916,11 +918,6 @@ final class Array<T extends NativeType> extends _Compound {
       _ArraySize<T>.variableMulti;
 }
 
-extension ArrayAddress<T extends NativeType> on Array<T> {
-  external Pointer<T> get address;
-}
-
-
 final class _ArraySize<T extends NativeType> implements Array<T> {
   final int? dimension1;
   final int? dimension2;
@@ -1066,6 +1063,10 @@ abstract final class VarArgs<T extends Record> implements NativeType {}
 @Since('3.5')
 extension Int8ListAddress on Int8List {
   external Pointer<Int8> get address;
+}
+
+extension ArrayAddress<T extends NativeType> on Array<T> {
+  external Pointer<T> get address;
 }
 ''',
   )
