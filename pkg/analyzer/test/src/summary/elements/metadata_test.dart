@@ -381,250 +381,6 @@ library
 ''');
   }
 
-  test_metadata_augmentation_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-@deprecated
-class A {}
-''');
-    var library = await buildLibrary('''
-part 'a.dart';
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibraryFragment>
-      enclosingElement: <testLibrary>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          constructors
-            synthetic new @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
-  classes
-    class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      constructors
-        synthetic new
-          reference: <none>
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-''');
-  }
-
-  test_metadata_augmentation_exportLibrary() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-@deprecated
-export 'dart:math';
-''');
-    var library = await buildLibrary('''
-part 'a.dart';
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibraryFragment>
-      enclosingElement: <testLibrary>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      libraryExports
-        dart:math
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibraryFragment>
-''');
-  }
-
-  test_metadata_augmentation_importAugmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'b.dart';
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-part of 'test.dart';
-@deprecated
-part 'a.dart';
-''');
-
-    var library = await buildLibrary('''
-part 'b.dart';
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibraryFragment>
-      enclosingElement: <testLibrary>
-      parts
-        part_0
-          uri: package:test/b.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_1
-          uri: package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/b.dart
-    <testLibrary>::@fragment::package:test/b.dart
-      previousFragment: <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibrary>::@fragment::package:test/b.dart
-''');
-  }
-
-  test_metadata_augmentation_importLibrary() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-@deprecated
-import 'dart:math';
-''');
-    var library = await buildLibrary('''
-part 'a.dart';
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  parts
-    part_0
-  units
-    <testLibraryFragment>
-      enclosingElement: <testLibrary>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-      libraryImports
-        dart:math
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      previousFragment: <testLibraryFragment>
-      libraryImports
-        dart:math
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-''');
-  }
-
   test_metadata_class_field_first() async {
     var library = await buildLibrary(r'''
 const a = 0;
@@ -3851,7 +3607,7 @@ library
 ''');
   }
 
-  test_metadata_library_importAugmentation_augmentation() async {
+  test_metadata_library_part() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
@@ -3896,8 +3652,8 @@ library
 ''');
   }
 
-  /// Even though the target is not an augmentation, metadata is available.
-  test_metadata_library_importAugmentation_notAugmentation_library() async {
+  /// Even though the target is not a part, metadata is available.
+  test_metadata_library_part_notPart() async {
     var library = await buildLibrary('''
 @deprecated
 part 'dart:math';
@@ -6350,6 +6106,250 @@ part 'b.dart';
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
     expect(library.parts[0].metadata, isEmpty);
+  }
+
+  test_metadata_partOf_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+@deprecated
+class A {}
+''');
+    var library = await buildLibrary('''
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      classes
+        class A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+          constructors
+            synthetic @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
+              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      classes
+        class A @39
+          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
+  classes
+    class A
+      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+      enclosingElement2: <testLibrary>
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
+''');
+  }
+
+  test_metadata_partOf_exportLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+@deprecated
+export 'dart:math';
+''');
+    var library = await buildLibrary('''
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryExports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+''');
+  }
+
+  test_metadata_partOf_importLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+@deprecated
+import 'dart:math';
+''');
+    var library = await buildLibrary('''
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      libraryImports
+        dart:math
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibraryFragment>
+      libraryImports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+''');
+  }
+
+  test_metadata_partOf_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+@deprecated
+part 'a.dart';
+''');
+
+    var library = await buildLibrary('''
+part 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  parts
+    part_0
+  units
+    <testLibraryFragment>
+      enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
+    <testLibrary>::@fragment::package:test/b.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+          unit: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      enclosingElement: <testLibrary>
+      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/b.dart
+    <testLibrary>::@fragment::package:test/b.dart
+      previousFragment: <testLibraryFragment>
+      nextFragment: <testLibrary>::@fragment::package:test/a.dart
+    <testLibrary>::@fragment::package:test/a.dart
+      previousFragment: <testLibrary>::@fragment::package:test/b.dart
+''');
   }
 
   test_metadata_prefixed_variable() async {
