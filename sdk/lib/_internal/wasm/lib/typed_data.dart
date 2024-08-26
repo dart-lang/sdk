@@ -28,6 +28,8 @@ import 'dart:_internal'
         WhereTypeIterable;
 import 'dart:_simd';
 import 'dart:_wasm';
+import 'dart:_js_types';
+import 'dart:_js_helper';
 
 import 'dart:collection' show ListBase;
 import 'dart:math' show Random;
@@ -1742,6 +1744,39 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
 
     if (count == 0) return;
 
+    if (this is _UnmodifiableIntListMixin) {
+      throw UnsupportedError("Cannot modify an unmodifiable list");
+    }
+
+    if (from is JSIntegerArrayBase) {
+      // We only add this mixin to typed lists in this library so we know
+      // `this` is `TypedData`.
+      final fromTypedData = unsafeCast<JSIntegerArrayBase>(from);
+
+      final fromElementSize = fromTypedData.elementSizeInBytes;
+      if (fromElementSize == 1 && this is _WasmI8ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI8ArrayBase>(this);
+        copyToWasmI8Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 2 && this is _WasmI16ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI16ArrayBase>(this);
+        copyToWasmI16Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 4 && this is _WasmI32ArrayBase) {
+        final destTypedData = unsafeCast<_WasmI32ArrayBase>(this);
+        copyToWasmI32Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+
+      // NOTICE: We currently don't have `JSUint64Array` classes in
+      // `dart:js_interop`.
+    }
+
     if (from is TypedData) {
       // We only add this mixin to typed lists in this library so we know
       // `this` is `TypedData`.
@@ -2138,6 +2173,30 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
     }
 
     if (count == 0) return;
+
+    if (this is _UnmodifiableDoubleListMixin) {
+      throw UnsupportedError("Cannot modify an unmodifiable list");
+    }
+
+    if (from is JSFloatArrayBase) {
+      // We only add this mixin to typed lists in this library so we know
+      // `this` is `TypedData`.
+      final fromTypedData = unsafeCast<JSFloatArrayBase>(from);
+
+      final fromElementSize = fromTypedData.elementSizeInBytes;
+      if (fromElementSize == 4 && this is _WasmF32ArrayBase) {
+        final destTypedData = unsafeCast<_WasmF32ArrayBase>(this);
+        copyToWasmF32Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+      if (fromElementSize == 8 && this is _WasmF64ArrayBase) {
+        final destTypedData = unsafeCast<_WasmF64ArrayBase>(this);
+        copyToWasmF64Array(fromTypedData.toJSArrayExternRef()!, skipCount,
+            destTypedData.data, destTypedData.offsetInElements + start, count);
+        return;
+      }
+    }
 
     if (from is TypedData) {
       // We only add this mixin to typed lists in this library so we know
