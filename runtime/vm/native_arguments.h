@@ -157,6 +157,8 @@ class NativeArguments {
     return *retval_;
   }
 
+  uword GetCallerSP() const { return reinterpret_cast<uword>(retval_ + 1); }
+
   static intptr_t thread_offset() {
     return OFFSET_OF(NativeArguments, thread_);
   }

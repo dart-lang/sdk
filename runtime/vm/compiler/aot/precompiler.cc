@@ -620,7 +620,9 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_simple_instance_of_true_function(null_function);
         IG->object_store()->set_simple_instance_of_false_function(
             null_function);
+#if !defined(DART_DYNAMIC_MODULES)
         IG->object_store()->set_async_star_stream_controller(null_class);
+#endif
         IG->object_store()->set_native_assets_library(null_library);
         DropMetadata();
         DropLibraryEntries();

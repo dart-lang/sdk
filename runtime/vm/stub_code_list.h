@@ -72,6 +72,7 @@ namespace dart {
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
   V(InterpretCall)                                                             \
+  V(ResumeInterpreter)                                                         \
   V(CallBootstrapNative)                                                       \
   V(CallNoScopeNative)                                                         \
   V(CallAutoScopeNative)                                                       \

@@ -461,30 +461,14 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void emitSuspend(Label label) {
+    _emitJumpInstruction(Opcode.kSuspend, label);
+  }
+
+  @pragma('vm:prefer-inline')
   void emitReturnTOS() {
     emitSourcePosition();
     _emitInstruction0(Opcode.kReturnTOS);
-    isUnreachable = true;
-  }
-
-  @pragma('vm:prefer-inline')
-  void emitReturnAsync() {
-    emitSourcePosition();
-    _emitInstruction0(Opcode.kReturnAsync);
-    isUnreachable = true;
-  }
-
-  @pragma('vm:prefer-inline')
-  void emitReturnAsyncStar() {
-    emitSourcePosition();
-    _emitInstruction0(Opcode.kReturnAsyncStar);
-    isUnreachable = true;
-  }
-
-  @pragma('vm:prefer-inline')
-  void emitReturnSyncStar() {
-    emitSourcePosition();
-    _emitInstruction0(Opcode.kReturnSyncStar);
     isUnreachable = true;
   }
 

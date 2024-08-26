@@ -3569,6 +3569,8 @@ class UntaggedSuspendState : public UntaggedInstance {
   // Variable length payload follows here.
   uint8_t* payload() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* payload() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  friend class Interpreter;
 };
 
 // VM type for capturing JS regular expressions.

@@ -125,6 +125,9 @@ enum Opcode {
   kJumpIfNotNull,
   kJumpIfNotNull_Wide,
 
+  kSuspend,
+  kSuspend_Wide,
+
   // Calls.
   kDirectCall,
   kDirectCall_Wide,
@@ -143,9 +146,7 @@ enum Opcode {
   kDynamicCall,
   kDynamicCall_Wide,
   kReturnTOS,
-  kReturnAsync,
-  kReturnAsyncStar,
-  kReturnSyncStar,
+  kUnused25,
 
   // Types and type checks.
   kAssertAssignable,
@@ -359,6 +360,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kJumpIfUnchecked: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kSuspend: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kInterfaceCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kInstantiatedInterfaceCall: const Format(
@@ -366,12 +369,6 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kDynamicCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kReturnTOS: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kReturnAsync: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kReturnAsyncStar: const Format(
-      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kReturnSyncStar: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAssertAssignable: const Format(
       Encoding.kAE, const [Operand.imm, Operand.lit, Operand.none]),
@@ -550,17 +547,7 @@ bool isCall(Opcode opcode) {
   }
 }
 
-bool isReturn(Opcode opcode) {
-  switch (opcode) {
-    case Opcode.kReturnTOS:
-    case Opcode.kReturnAsync:
-    case Opcode.kReturnAsyncStar:
-    case Opcode.kReturnSyncStar:
-      return true;
-    default:
-      return false;
-  }
-}
+bool isReturn(Opcode opcode) => (opcode == Opcode.kReturnTOS);
 
 bool isControlFlow(Opcode opcode) =>
     isJump(opcode) || isThrow(opcode) || isCall(opcode) || isReturn(opcode);

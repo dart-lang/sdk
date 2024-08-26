@@ -340,6 +340,12 @@ class _ScopeBuilder extends RecursiveVisitor {
         final suspendStateVar = _currentFrame.suspendStateVar =
             VariableDeclaration(':suspend_state');
         _declareVariable(suspendStateVar);
+
+        if (function.dartAsyncMarker != AsyncMarker.SyncStar) {
+          final returnVar =
+              _currentFrame.returnVar = VariableDeclaration(':return');
+          _declareVariable(returnVar);
+        }
       }
 
       if (node is Procedure && node.isFactory) {
@@ -1190,6 +1196,11 @@ class _Allocator extends RecursiveVisitor {
 
   @override
   void visitNullCheck(NullCheck node) {
+    _visit(node, temps: 1);
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
     _visit(node, temps: 1);
   }
 }
