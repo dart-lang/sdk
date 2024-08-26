@@ -5295,7 +5295,7 @@ library
 abstract class EnumElementTest_augmentation extends ElementsBaseTest {
   test_add_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 enum A {
   v;
@@ -5308,7 +5308,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     configuration.withConstantInitializers = false;
@@ -5316,25 +5316,28 @@ import augment 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        enum A @35
+        enum A @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @41
+            static const enumConstant v @33
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               type: A
@@ -5357,7 +5360,7 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: List<A>
           methods
-            foo @51
+            foo @43
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: void
@@ -5375,12 +5378,12 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
-        augment enum A @76
+        augment enum A @68
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           methods
-            bar @88
+            bar @80
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
@@ -5393,10 +5396,10 @@ library
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @35
+        enum A @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-        enum A @76
+        enum A @68
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
   enums
@@ -5410,42 +5413,42 @@ library
 
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
-augment library 'test.dart';
-import augment 'a11.dart';
-import augment 'a12.dart';
+part of 'test.dart';
+part 'a11.dart';
+part 'a12.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a11.dart', r'''
-augment library 'a1.dart';
+part of 'a1.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a12.dart', r'''
-augment library 'a1.dart';
+part of 'a1.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a2.dart', r'''
-augment library 'test.dart';
-import augment 'a21.dart';
-import augment 'a22.dart';
+part of 'test.dart';
+part 'a21.dart';
+part 'a22.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a21.dart', r'''
-augment library 'a2.dart';
+part of 'a2.dart';
 augment enum A {}
 ''');
 
     newFile('$testPackageLibPath/a22.dart', r'''
-augment library 'a2.dart';
+part of 'a2.dart';
 augment enum A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a1.dart';
-import augment 'a2.dart';
+part 'a1.dart';
+part 'a2.dart';
 enum A {
   v
 }
@@ -5458,44 +5461,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a1.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a1.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a1.dart
-      augmentationImports
-        package:test/a11.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
-          reference: <testLibrary>::@augmentation::package:test/a11.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a11.dart
-        package:test/a12.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
-          reference: <testLibrary>::@augmentation::package:test/a12.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a12.dart
-    package:test/a2.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a2.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a2.dart
-      augmentationImports
-        package:test/a21.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
-          reference: <testLibrary>::@augmentation::package:test/a21.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a21.dart
-        package:test/a22.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
-          reference: <testLibrary>::@augmentation::package:test/a22.dart
-          definingUnit: <testLibrary>::@fragment::package:test/a22.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a1.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a1.dart
+        part_1
+          uri: package:test/a2.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a2.dart
       enums
-        enum A @57
+        enum A @37
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @63
+            static const enumConstant v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -5529,55 +5519,77 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a1.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a1.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_2
+          uri: package:test/a11.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
+          unit: <testLibrary>::@fragment::package:test/a11.dart
+        part_3
+          uri: package:test/a12.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
+          unit: <testLibrary>::@fragment::package:test/a12.dart
       enums
-        augment enum A @96
+        augment enum A @68
           reference: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a1.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a11.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
       enums
-        augment enum A @40
+        augment enum A @32
           reference: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a11.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           augmentation: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a12.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a1.dart
       enums
-        augment enum A @40
+        augment enum A @32
           reference: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a12.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
           augmentation: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a2.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a2.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_4
+          uri: package:test/a21.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
+          unit: <testLibrary>::@fragment::package:test/a21.dart
+        part_5
+          uri: package:test/a22.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
+          unit: <testLibrary>::@fragment::package:test/a22.dart
       enums
-        augment enum A @96
+        augment enum A @68
           reference: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a2.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
           augmentation: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a21.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a21.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
       enums
-        augment enum A @40
+        augment enum A @32
           reference: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a21.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
           augmentation: <testLibrary>::@fragment::package:test/a22.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a22.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a22.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a2.dart
       enums
-        augment enum A @40
+        augment enum A @32
           reference: <testLibrary>::@fragment::package:test/a22.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a22.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
@@ -5592,14 +5604,14 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a1.dart
       enums
-        enum A @57
+        enum A @37
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a1.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       enums
-        enum A @96
+        enum A @68
           reference: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
@@ -5607,7 +5619,7 @@ library
       previousFragment: <testLibrary>::@fragment::package:test/a1.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       enums
-        enum A @40
+        enum A @32
           reference: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
@@ -5615,7 +5627,7 @@ library
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/a2.dart
       enums
-        enum A @40
+        enum A @32
           reference: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a11.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
@@ -5623,7 +5635,7 @@ library
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/a21.dart
       enums
-        enum A @96
+        enum A @68
           reference: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a12.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
@@ -5631,14 +5643,14 @@ library
       previousFragment: <testLibrary>::@fragment::package:test/a2.dart
       nextFragment: <testLibrary>::@fragment::package:test/a22.dart
       enums
-        enum A @40
+        enum A @32
           reference: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a2.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/a22.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a22.dart
       previousFragment: <testLibrary>::@fragment::package:test/a21.dart
       enums
-        enum A @40
+        enum A @32
           reference: <testLibrary>::@fragment::package:test/a22.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a21.dart::@enumAugmentation::A
   enums
@@ -5656,7 +5668,7 @@ library
 
   test_augmentationTarget_augmentationThenDeclaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment enum A {;
   void foo1() {}
@@ -5673,7 +5685,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     configuration.withConstantInitializers = false;
@@ -5681,19 +5693,22 @@ import augment 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @43
+        augment enum A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           fields
@@ -5711,17 +5726,17 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
               returnType: List<A>
           methods
-            foo1 @55
+            foo1 @47
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
               returnType: void
-        enum A @73
+        enum A @65
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           supertype: Enum
           fields
-            static const enumConstant v @79
+            static const enumConstant v @71
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               type: A
@@ -5744,7 +5759,7 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: List<A>
           methods
-            foo2 @89
+            foo2 @81
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enum::A
               returnType: void
@@ -5762,12 +5777,12 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
-        augment enum A @115
+        augment enum A @107
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           methods
-            foo3 @127
+            foo3 @119
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
               returnType: void
@@ -5780,12 +5795,12 @@ library
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @43
+        enum A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
-        enum A @73
+        enum A @65
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
-        enum A @115
+        enum A @107
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
   enums
@@ -5804,46 +5819,50 @@ library
 
   test_augmentationTarget_no2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment enum A {;
   void foo1() {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment enum A {;
   void foo2() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        augment enum A @67
+        augment enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
@@ -5867,7 +5886,7 @@ library
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: List<A>
           methods
-            foo1 @79
+            foo1 @61
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
@@ -5882,15 +5901,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
               <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       enums
-        augment enum A @39
+        augment enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           methods
-            foo2 @51
+            foo2 @43
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: void
@@ -5904,13 +5923,13 @@ library
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @67
+        enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @39
+        enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -5924,14 +5943,14 @@ library
 
   test_augmented_constants_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   v2
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v1
 }
@@ -5942,22 +5961,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @36
+            static const enumConstant v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6028,15 +6050,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            static const enumConstant v2 @48
+            static const enumConstant v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
@@ -6069,13 +6091,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -6089,22 +6111,22 @@ library
 
   test_augmented_constants_add2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   v2
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   v3
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v1
 }
@@ -6115,26 +6137,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @61
+            static const enumConstant v1 @41
               reference: <testLibraryFragment>::@enum::A::@field::v1
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6212,16 +6239,16 @@ library
               <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           fields
-            static const enumConstant v2 @48
+            static const enumConstant v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
@@ -6248,15 +6275,15 @@ library
               id: getter_2
               variable: field_2
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            static const enumConstant v3 @48
+            static const enumConstant v3 @40
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               type: A
@@ -6289,21 +6316,21 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -6317,7 +6344,7 @@ library
 
   test_augmented_constants_add_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   v2,
   augment v2
@@ -6325,7 +6352,7 @@ augment enum A {
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v1
 }
@@ -6336,22 +6363,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @36
+            static const enumConstant v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6422,15 +6452,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            static const enumConstant v2 @48
+            static const enumConstant v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
@@ -6450,7 +6480,7 @@ library
               id: field_2
               getter: getter_2
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
-            augment static const enumConstant v2 @62
+            augment static const enumConstant v2 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
@@ -6483,13 +6513,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -6503,14 +6533,14 @@ library
 
   test_augmented_constants_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   augment v2
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v1, v2, v3
 }
@@ -6521,22 +6551,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @36
+            static const enumConstant v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6555,7 +6588,7 @@ library
                   staticType: A
               id: field_0
               getter: getter_0
-            static const enumConstant v2 @40
+            static const enumConstant v2 @30
               reference: <testLibraryFragment>::@enum::A::@field::v2
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6575,7 +6608,7 @@ library
               id: field_1
               getter: getter_1
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
-            static const enumConstant v3 @44
+            static const enumConstant v3 @34
               reference: <testLibraryFragment>::@enum::A::@field::v3
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6665,15 +6698,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v3
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment static const enumConstant v2 @56
+            augment static const enumConstant v2 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
@@ -6699,13 +6732,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -6719,14 +6752,14 @@ library
 
   test_augmented_constants_augment_withArguments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {
   augment v1(3)
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v1(1), v2(2);
   const A(int value);
@@ -6738,22 +6771,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v1 @36
+            static const enumConstant v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6770,14 +6806,14 @@ library
                     leftParenthesis: ( @0
                     arguments
                       IntegerLiteral
-                        literal: 1 @39
+                        literal: 1 @29
                         staticType: int
                     rightParenthesis: ) @0
                   staticType: A
               id: field_0
               getter: getter_0
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
-            static const enumConstant v2 @43
+            static const enumConstant v2 @33
               reference: <testLibraryFragment>::@enum::A::@field::v2
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6794,7 +6830,7 @@ library
                     leftParenthesis: ( @0
                     arguments
                       IntegerLiteral
-                        literal: 2 @46
+                        literal: 2 @36
                         staticType: int
                     rightParenthesis: ) @0
                   staticType: A
@@ -6821,11 +6857,11 @@ library
               id: field_2
               getter: getter_2
           constructors
-            const @58
+            const @48
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               enclosingElement: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional value @64
+                requiredPositional value @54
                   type: int
           accessors
             synthetic static get v1 @-1
@@ -6861,15 +6897,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v2
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment static const enumConstant v1 @56
+            augment static const enumConstant v1 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
@@ -6886,7 +6922,7 @@ library
                     leftParenthesis: ( @0
                     arguments
                       IntegerLiteral
-                        literal: 3 @59
+                        literal: 3 @51
                         staticType: int
                     rightParenthesis: ) @0
                   staticType: A
@@ -6899,13 +6935,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -6919,14 +6955,14 @@ library
 
   test_augmented_constants_typeParameterCountMismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T> {
   augment v
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v, v2
 }
@@ -6939,28 +6975,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
               shouldUseTypeForInitializerInference: false
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
-            static const enumConstant v2 @39
+            static const enumConstant v2 @29
               reference: <testLibraryFragment>::@enum::A::@field::v2
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -6999,18 +7038,18 @@ library
               <testLibraryFragment>::@enum::A::@getter::v2
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T @44
+            covariant T @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment static const enumConstant v @59
+            augment static const enumConstant v @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: A
@@ -7023,13 +7062,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7043,14 +7082,14 @@ library
 
   test_augmented_constructors_add_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A.named();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v.named();
 }
@@ -7061,22 +7100,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -7106,19 +7148,19 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @57
+            const named @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 56
-              nameEnd: 62
+              periodOffset: 48
+              nameEnd: 54
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -7126,13 +7168,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7146,14 +7188,14 @@ library
 
   test_augmented_constructors_add_named_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   const A.named(T2 a);
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T1> {
   v<int>.named()
 }
@@ -7164,25 +7206,28 @@ enum A<T1> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T1 @32
+            covariant T1 @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @40
+            static const enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<int>
@@ -7214,24 +7259,24 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @61
+            const named @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 60
-              nameEnd: 66
+              periodOffset: 52
+              nameEnd: 58
               parameters
-                requiredPositional a @70
+                requiredPositional a @62
                   type: T2
 ----------------------------------------
 library
@@ -7240,13 +7285,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7260,14 +7305,14 @@ library
 
   test_augmented_constructors_add_named_hasUnnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A.named();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   const A();
@@ -7279,22 +7324,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -7304,7 +7352,7 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const @47
+            const @37
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               enclosingElement: <testLibraryFragment>::@enum::A
           accessors
@@ -7329,19 +7377,19 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @57
+            const named @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 56
-              nameEnd: 62
+              periodOffset: 48
+              nameEnd: 54
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -7349,13 +7397,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7369,14 +7417,14 @@ library
 
   test_augmented_constructors_add_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
 }
@@ -7387,22 +7435,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -7432,15 +7483,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const @55
+            const @47
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
 ----------------------------------------
@@ -7450,13 +7501,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7470,14 +7521,14 @@ library
 
   test_augmented_constructors_add_unnamed_hasNamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   const A.named();
@@ -7489,22 +7540,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -7514,11 +7568,11 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const named @49
+            const named @39
               reference: <testLibraryFragment>::@enum::A::@constructor::named
               enclosingElement: <testLibraryFragment>::@enum::A
-              periodOffset: 48
-              nameEnd: 54
+              periodOffset: 38
+              nameEnd: 44
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::A::@getter::v
@@ -7541,15 +7595,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const @55
+            const @47
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
 ----------------------------------------
@@ -7559,13 +7613,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7579,14 +7633,14 @@ library
 
   test_augmented_constructors_add_useFieldFormal() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A.named(this.f);
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v(0);
   final int f;
@@ -7598,22 +7652,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -7622,7 +7679,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               enclosingElement: <testLibraryFragment>::@enum::A
               type: List<A>
-            final f @54
+            final f @44
               reference: <testLibraryFragment>::@enum::A::@field::f
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -7653,21 +7710,21 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @57
+            const named @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 56
-              nameEnd: 62
+              periodOffset: 48
+              nameEnd: 54
               parameters
-                requiredPositional final this.f @68
+                requiredPositional final this.f @60
                   type: int
                   field: <testLibraryFragment>::@enum::A::@field::f
 ----------------------------------------
@@ -7677,13 +7734,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7697,14 +7754,14 @@ library
 
   test_augmented_constructors_add_useFieldInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   const A.named() : f = 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int f;
@@ -7716,22 +7773,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -7740,7 +7800,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               enclosingElement: <testLibraryFragment>::@enum::A
               type: List<A>
-            final f @51
+            final f @41
               reference: <testLibraryFragment>::@enum::A::@field::f
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -7771,28 +7831,28 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            const named @57
+            const named @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 56
-              nameEnd: 62
+              periodOffset: 48
+              nameEnd: 54
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
-                    token: f @67
+                    token: f @59
                     staticElement: <testLibraryFragment>::@enum::A::@field::f
                     staticType: null
-                  equals: = @69
+                  equals: = @61
                   expression: IntegerLiteral
-                    literal: 0 @71
+                    literal: 0 @63
                     staticType: int
 ----------------------------------------
 library
@@ -7801,13 +7861,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7821,14 +7881,14 @@ library
 
   test_augmented_field_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 1;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo = 0;
@@ -7842,22 +7902,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -7870,7 +7933,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @51
+            final foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -7915,15 +7978,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
@@ -7937,13 +8000,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -7957,22 +8020,22 @@ library
 
   test_augmented_field_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   final int foo = 0;
@@ -7986,26 +8049,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -8018,7 +8086,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @76
+            final foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -8063,16 +8131,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
@@ -8081,15 +8149,15 @@ library
               augmentationTarget: <testLibraryFragment>::@enum::A::@field::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               type: int
@@ -8103,21 +8171,21 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -8131,22 +8199,22 @@ library
 
   test_augmented_field_augment_field_afterGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   final int foo = 0;
@@ -8160,26 +8228,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -8192,7 +8265,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @76
+            final foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -8238,16 +8311,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -8255,15 +8328,15 @@ library
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               type: int
@@ -8277,21 +8350,21 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -8305,22 +8378,22 @@ library
 
   test_augmented_field_augment_field_afterSetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment set foo(int _) {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   final int foo = 0;
@@ -8334,26 +8407,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -8366,7 +8444,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @76
+            final foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -8412,35 +8490,35 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           accessors
-            augment set foo= @61
+            augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @69
+                requiredPositional _ @61
                   type: int
               returnType: void
               id: setter_0
               variable: <null>
               augmentationTargetAny: <testLibraryFragment>::@enum::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               type: int
@@ -8454,21 +8532,21 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -8482,14 +8560,14 @@ library
 
   test_augmented_field_augment_field_differentTypes() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final double foo = 1.2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo = 0;
@@ -8503,22 +8581,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -8531,7 +8612,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @51
+            final foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -8576,15 +8657,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment final foo @70
+            augment final foo @62
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: double
@@ -8598,13 +8679,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -8618,7 +8699,7 @@ library
 
   test_augmented_field_augment_field_functionExpression() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int Function() foo = () {
     return augmented() + 1;
@@ -8627,7 +8708,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int Function() foo = () {
@@ -8640,22 +8721,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -8686,7 +8770,7 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
-            final foo @62
+            final foo @52
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int Function()
@@ -8728,15 +8812,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment final foo @78
+            augment final foo @70
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int Function()
@@ -8754,13 +8838,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -8776,14 +8860,14 @@ library
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment final int foo = 1;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   int get foo => 0;
@@ -8797,22 +8881,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -8849,7 +8936,7 @@ library
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo @49
+            get foo @39
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: int
@@ -8869,15 +8956,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            augment final foo @67
+            augment final foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
@@ -8891,13 +8978,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -8911,14 +8998,14 @@ library
 
   test_augmented_fields_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   final int foo2 = 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo1 = 0;
@@ -8932,22 +9019,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -8960,7 +9050,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo1 @51
+            final foo1 @41
               reference: <testLibraryFragment>::@enum::A::@field::foo1
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -9006,15 +9096,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            final foo2 @59
+            final foo2 @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
@@ -9035,13 +9125,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -9055,14 +9145,14 @@ library
 
   test_augmented_fields_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   final T2 foo2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T1> {
   v<int>();
   final T1 foo1;
@@ -9076,25 +9166,28 @@ enum A<T1> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T1 @32
+            covariant T1 @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @40
+            static const enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<int>
@@ -9107,7 +9200,7 @@ library
               type: List<A<dynamic>>
               id: field_1
               getter: getter_1
-            final foo1 @61
+            final foo1 @51
               reference: <testLibraryFragment>::@enum::A::@field::foo1
               enclosingElement: <testLibraryFragment>::@enum::A
               type: T1
@@ -9156,18 +9249,18 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            final foo2 @62
+            final foo2 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: T2
@@ -9187,13 +9280,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -9207,14 +9300,14 @@ library
 
   test_augmented_fields_add_useFieldFormal() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   final int foo;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v(0);
   const A(this.foo);
@@ -9226,22 +9319,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -9251,11 +9347,11 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const @50
+            const @40
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               enclosingElement: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional final this.foo @57
+                requiredPositional final this.foo @47
                   type: int
                   field: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
           accessors
@@ -9281,15 +9377,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            final foo @59
+            final foo @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
@@ -9305,13 +9401,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -9325,14 +9421,14 @@ library
 
   test_augmented_fields_add_useFieldInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   final int foo;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   const A() : foo = 0;
@@ -9344,22 +9440,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -9369,18 +9468,18 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const @47
+            const @37
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               enclosingElement: <testLibraryFragment>::@enum::A
               constantInitializers
                 ConstructorFieldInitializer
                   fieldName: SimpleIdentifier
-                    token: foo @53
+                    token: foo @43
                     staticElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
                     staticType: null
-                  equals: = @57
+                  equals: = @47
                   expression: IntegerLiteral
-                    literal: 0 @59
+                    literal: 0 @49
                     staticType: int
           accessors
             synthetic static get v @-1
@@ -9405,15 +9504,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
-            final foo @59
+            final foo @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               type: int
@@ -9429,13 +9528,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -9449,14 +9548,14 @@ library
 
   test_augmented_getters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   int get foo2 => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   int get foo1 => 0;
@@ -9470,22 +9569,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -9521,7 +9623,7 @@ library
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo1 @49
+            get foo1 @39
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: int
@@ -9543,10 +9645,10 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
@@ -9558,7 +9660,7 @@ library
               id: field_3
               getter: getter_3
           accessors
-            get foo2 @57
+            get foo2 @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -9571,13 +9673,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -9591,14 +9693,14 @@ library
 
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   T2 get foo2;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T1> {
   v<int>();
   T1 get foo1;
@@ -9612,25 +9714,28 @@ enum A<T1> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T1 @32
+            covariant T1 @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @40
+            static const enumConstant v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<int>
@@ -9666,7 +9771,7 @@ library
               returnType: List<A<dynamic>>
               id: getter_1
               variable: field_1
-            abstract get foo1 @59
+            abstract get foo1 @49
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: T1
@@ -9692,14 +9797,14 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
@@ -9710,7 +9815,7 @@ library
               id: field_3
               getter: getter_3
           accessors
-            abstract get foo2 @60
+            abstract get foo2 @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
@@ -9723,13 +9828,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -9743,14 +9848,14 @@ library
 
   test_augmented_getters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo = 0;
@@ -9764,22 +9869,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -9792,7 +9900,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @51
+            final foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -9837,15 +9945,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -9859,13 +9967,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -9879,22 +9987,22 @@ library
 
   test_augmented_getters_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   final int foo = 0;
@@ -9908,26 +10016,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -9940,7 +10053,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @76
+            final foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -9985,16 +10098,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -10003,15 +10116,15 @@ library
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: int
@@ -10025,21 +10138,21 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -10053,14 +10166,14 @@ library
 
   test_augmented_getters_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo1 => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   int get foo1 => 0;
@@ -10075,22 +10188,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -10132,14 +10248,14 @@ library
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo1 @49
+            get foo1 @39
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: int
               id: getter_2
               variable: field_2
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
-            get foo2 @70
+            get foo2 @60
               reference: <testLibraryFragment>::@enum::A::@getter::foo2
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: int
@@ -10161,15 +10277,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment get foo1 @65
+            augment get foo1 @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -10183,13 +10299,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -10203,7 +10319,7 @@ library
 
   test_augmented_getters_augment_getter2_oneLib_oneTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
   augment int get foo => 0;
@@ -10211,7 +10327,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   int get foo => 0;
@@ -10225,22 +10341,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -10276,7 +10395,7 @@ library
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo @49
+            get foo @39
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: int
@@ -10297,15 +10416,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -10313,7 +10432,7 @@ library
               variable: field_2
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
-            augment get foo @93
+            augment get foo @85
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -10327,13 +10446,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -10347,22 +10466,22 @@ library
 
   test_augmented_getters_augment_getter2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v;
   int get foo => 0;
@@ -10376,26 +10495,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -10431,7 +10555,7 @@ library
               returnType: List<A>
               id: getter_1
               variable: field_1
-            get foo @74
+            get foo @54
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: int
@@ -10452,16 +10576,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -10470,15 +10594,15 @@ library
               augmentationTarget: <testLibraryFragment>::@enum::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: int
@@ -10492,21 +10616,21 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -10520,14 +10644,14 @@ library
 
   test_augmented_getters_augment_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment int get foo => 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v
 }
@@ -10541,22 +10665,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -10593,15 +10720,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment get foo @65
+            augment get foo @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: int
@@ -10614,13 +10741,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -10634,13 +10761,13 @@ library
 
   test_augmented_interfaces() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A implements I2 {}
 class I2 {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A implements I1 {
   v
 }
@@ -10652,16 +10779,19 @@ class I1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @60
+        class I1 @50
           reference: <testLibraryFragment>::@class::I1
           enclosingElement: <testLibraryFragment>
           constructors
@@ -10669,7 +10799,7 @@ library
               reference: <testLibraryFragment>::@class::I1::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
@@ -10677,7 +10807,7 @@ library
           interfaces
             I1
           fields
-            static const enumConstant v @50
+            static const enumConstant v @40
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -10714,10 +10844,10 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        class I2 @67
+        class I2 @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           constructors
@@ -10725,7 +10855,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
@@ -10738,19 +10868,19 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @60
+        class I1 @50
           reference: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
-        class I2 @67
+        class I2 @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   classes
@@ -10773,20 +10903,20 @@ library
 
   test_augmented_interfaces_chain() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment enum A implements I2 {}
 class I2 {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment enum A implements I3 {}
 class I3 {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A implements I1 {
   v
 }
@@ -10798,21 +10928,19 @@ class I1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @60
+        class I1 @50
           reference: <testLibraryFragment>::@class::I1
           enclosingElement: <testLibraryFragment>
           constructors
@@ -10820,7 +10948,7 @@ library
               reference: <testLibraryFragment>::@class::I1::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
@@ -10828,7 +10956,7 @@ library
           interfaces
             I1
           fields
-            static const enumConstant v @50
+            static const enumConstant v @40
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -10866,10 +10994,16 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class I2 @92
+        class I2 @74
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           constructors
@@ -10877,7 +11011,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        augment enum A @67
+        augment enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
@@ -10885,10 +11019,10 @@ library
           interfaces
             I2
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I3 @64
+        class I3 @56
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           constructors
@@ -10896,7 +11030,7 @@ library
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       enums
-        augment enum A @39
+        augment enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
@@ -10909,30 +11043,30 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @60
+        class I1 @50
           reference: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class I2 @92
+        class I2 @74
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        enum A @67
+        enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I3 @64
+        class I3 @56
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       enums
-        enum A @39
+        enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   classes
@@ -10959,13 +11093,13 @@ library
 
   test_augmented_interfaces_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> implements I2<T2> {}
 class I2<E> {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T> implements I1 {
   v<int>()
 }
@@ -10977,16 +11111,19 @@ class I1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @70
+        class I1 @60
           reference: <testLibraryFragment>::@class::I1
           enclosingElement: <testLibraryFragment>
           constructors
@@ -10994,18 +11131,18 @@ library
               reference: <testLibraryFragment>::@class::I1::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           interfaces
             I1
           fields
-            static const enumConstant v @53
+            static const enumConstant v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<int>
@@ -11042,25 +11179,25 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        class I2 @75
+        class I2 @67
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant E @78
+            covariant E @70
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           interfaces
@@ -11072,19 +11209,19 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @70
+        class I1 @60
           reference: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
-        class I2 @75
+        class I2 @67
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   classes
@@ -11107,13 +11244,13 @@ library
 
   test_augmented_interfaces_generic_mismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2, T3> implements I2<T2> {}
 class I2<E> {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T> implements I1 {
   v
 }
@@ -11125,16 +11262,19 @@ class I1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @63
+        class I1 @53
           reference: <testLibraryFragment>::@class::I1
           enclosingElement: <testLibraryFragment>
           constructors
@@ -11142,18 +11282,18 @@ library
               reference: <testLibraryFragment>::@class::I1::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           interfaces
             I1
           fields
-            static const enumConstant v @53
+            static const enumConstant v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<dynamic>
@@ -11189,27 +11329,27 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        class I2 @79
+        class I2 @71
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant E @82
+            covariant E @74
               defaultType: dynamic
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
-            covariant T3 @48
+            covariant T3 @40
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           interfaces
@@ -11221,19 +11361,19 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class I1 @63
+        class I1 @53
           reference: <testLibraryFragment>::@class::I1
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
-        class I2 @79
+        class I2 @71
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   classes
@@ -11256,14 +11396,14 @@ library
 
   test_augmented_methods() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   void bar() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo() {}
@@ -11275,22 +11415,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -11313,7 +11456,7 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo @46
+            foo @36
               reference: <testLibraryFragment>::@enum::A::@method::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: void
@@ -11332,15 +11475,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               <testLibraryFragment>::@enum::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            bar @54
+            bar @46
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
@@ -11351,13 +11494,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -11371,14 +11514,14 @@ library
 
   test_augmented_methods_add_withDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   void foo([int x = 42]) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v
 }
@@ -11388,22 +11531,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -11461,23 +11607,23 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            foo @54
+            foo @46
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                optionalPositional default x @63
+                optionalPositional default x @55
                   type: int
                   constantInitializer
                     IntegerLiteral
-                      literal: 42 @67
+                      literal: 42 @59
                       staticType: int
               returnType: void
 ----------------------------------------
@@ -11487,13 +11633,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -11507,14 +11653,14 @@ library
 
   test_augmented_methods_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment void foo1() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo1() {}
@@ -11527,22 +11673,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -11565,12 +11714,12 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo1 @46
+            foo1 @36
               reference: <testLibraryFragment>::@enum::A::@method::foo1
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
-            foo2 @63
+            foo2 @53
               reference: <testLibraryFragment>::@enum::A::@method::foo2
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: void
@@ -11589,15 +11738,15 @@ library
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
               <testLibraryFragment>::@enum::A::@method::foo2
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            augment foo1 @62
+            augment foo1 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
@@ -11609,13 +11758,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -11629,7 +11778,7 @@ library
 
   test_augmented_methods_augment2_oneLib_oneTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment void foo() {}
   augment void foo() {}
@@ -11637,7 +11786,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo() {}
@@ -11649,22 +11798,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -11687,7 +11839,7 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo @46
+            foo @36
               reference: <testLibraryFragment>::@enum::A::@method::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: void
@@ -11706,21 +11858,21 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            augment foo @62
+            augment foo @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
-            augment foo @86
+            augment foo @78
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
@@ -11732,13 +11884,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -11752,7 +11904,7 @@ library
 
   test_augmented_methods_augment2_oneLib_twoTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment void foo() {}
 }
@@ -11762,7 +11914,7 @@ augment enum A {;
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo() {}
@@ -11774,22 +11926,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -11812,7 +11967,7 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo @46
+            foo @36
               reference: <testLibraryFragment>::@enum::A::@method::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: void
@@ -11831,27 +11986,27 @@ library
             methods
               <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           methods
-            augment foo @62
+            augment foo @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
               returnType: void
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
-        augment enum A @86
+        augment enum A @78
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           methods
-            augment foo @106
+            augment foo @98
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
               returnType: void
@@ -11863,17 +12018,17 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
-        enum A @86
+        enum A @78
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
   enums
@@ -11887,22 +12042,22 @@ library
 
   test_augmented_methods_augment2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-import augment 'b.dart';
+part of 'test.dart';
+part 'b.dart';
 augment enum A {;
   augment void foo() {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment enum A {;
   augment void foo() {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   void foo() {}
@@ -11914,27 +12069,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
-          reference: <testLibrary>::@augmentation::package:test/b.dart
-          definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -11957,7 +12110,7 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: List<A>
           methods
-            foo @46
+            foo @36
               reference: <testLibraryFragment>::@enum::A::@method::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: void
@@ -11976,31 +12129,37 @@ library
             methods
               <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
+      parts
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        augment enum A @67
+        augment enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           methods
-            augment foo @87
+            augment foo @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@enum::A::@method::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       enums
-        augment enum A @39
+        augment enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           methods
-            augment foo @59
+            augment foo @51
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
               returnType: void
@@ -12012,21 +12171,21 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @67
+        enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @39
+        enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -12040,14 +12199,14 @@ library
 
   test_augmented_methods_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   T2 bar() => throw 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T> {
   v<int>();
   T foo() => throw 0;
@@ -12059,25 +12218,28 @@ enum A<T> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @39
+            static const enumConstant v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<int>
@@ -12100,7 +12262,7 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@enum::A::@method::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: T
@@ -12121,18 +12283,18 @@ library
                 augmentationSubstitution: {T2: T}
               <testLibraryFragment>::@enum::A::@method::foo
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            bar @56
+            bar @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
@@ -12143,13 +12305,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -12163,14 +12325,14 @@ library
 
   test_augmented_methods_generic_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> {;
   augment T2 foo() => throw 0;
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T> {
   v<int>();
   T foo() => throw 0;
@@ -12182,25 +12344,28 @@ enum A<T> {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @39
+            static const enumConstant v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<int>
@@ -12223,7 +12388,7 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: List<A<dynamic>>
           methods
-            foo @53
+            foo @43
               reference: <testLibraryFragment>::@enum::A::@method::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: T
@@ -12244,18 +12409,18 @@ library
                 base: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
                 augmentationSubstitution: {T2: T}
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           methods
-            augment foo @64
+            augment foo @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               returnType: T2
@@ -12267,13 +12432,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -12287,13 +12452,13 @@ library
 
   test_augmented_mixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A with M2 {}
 mixin M2 {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A with M1 {
   v
 }
@@ -12305,16 +12470,19 @@ mixin M1 {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
@@ -12322,7 +12490,7 @@ library
           mixins
             M1
           fields
-            static const enumConstant v @44
+            static const enumConstant v @34
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -12359,23 +12527,23 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
       mixins
-        mixin M1 @54
+        mixin M1 @44
           reference: <testLibraryFragment>::@mixin::M1
           enclosingElement: <testLibraryFragment>
           superclassConstraints
             Object
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           mixins
             M2
       mixins
-        mixin M2 @61
+        mixin M2 @53
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           superclassConstraints
@@ -12387,20 +12555,20 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
       mixins
-        mixin M1 @54
+        mixin M1 @44
           reference: <testLibraryFragment>::@mixin::M1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
       mixins
-        mixin M2 @61
+        mixin M2 @53
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
   enums
     enum A
@@ -12426,20 +12594,20 @@ library
 
   test_augmented_mixins_inferredTypeArguments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T2> with M2 {}
 mixin M2<U2> on M1<U2> {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T3> with M3 {}
 mixin M3<U3> on M2<U3> {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A<T1> with M1<T1> {
   v<int>()
 }
@@ -12451,31 +12619,36 @@ mixin M1<U1> {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T1 @57
+            covariant T1 @37
               defaultType: dynamic
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           mixins
             M1<T1>
           fields
-            static const enumConstant v @77
+            static const enumConstant v @57
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<int>
@@ -12513,56 +12686,56 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
       mixins
-        mixin M1 @94
+        mixin M1 @74
           reference: <testLibraryFragment>::@mixin::M1
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant U1 @97
+            covariant U1 @77
               defaultType: dynamic
           superclassConstraints
             Object
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @44
+            covariant T2 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           mixins
             M2<T2>
       mixins
-        mixin M2 @65
+        mixin M2 @57
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant U2 @68
+            covariant U2 @60
               defaultType: dynamic
           superclassConstraints
             M1<U2>
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           typeParameters
-            covariant T3 @44
+            covariant T3 @36
               defaultType: dynamic
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           mixins
             M3<T3>
       mixins
-        mixin M3 @65
+        mixin M3 @57
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           typeParameters
-            covariant U3 @68
+            covariant U3 @60
               defaultType: dynamic
           superclassConstraints
             M2<U3>
@@ -12573,31 +12746,31 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
       mixins
-        mixin M1 @94
+        mixin M1 @74
           reference: <testLibraryFragment>::@mixin::M1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
       mixins
-        mixin M2 @65
+        mixin M2 @57
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
       mixins
-        mixin M3 @65
+        mixin M3 @57
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
   enums
     enum A
@@ -12629,14 +12802,14 @@ library
 
   test_augmented_setters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   set foo2(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   set foo1(int _) {}
@@ -12650,22 +12823,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -12701,11 +12877,11 @@ library
               returnType: List<A>
               id: getter_1
               variable: field_1
-            set foo1= @45
+            set foo1= @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
               enclosingElement: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional _ @54
+                requiredPositional _ @44
                   type: int
               returnType: void
               id: setter_0
@@ -12726,10 +12902,10 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
@@ -12741,11 +12917,11 @@ library
               id: field_3
               setter: setter_1
           accessors
-            set foo2= @53
+            set foo2= @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @62
+                requiredPositional _ @54
                   type: int
               returnType: void
               id: setter_1
@@ -12757,13 +12933,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -12777,14 +12953,14 @@ library
 
   test_augmented_setters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment set foo(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   final int foo = 0;
@@ -12798,22 +12974,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -12826,7 +13005,7 @@ library
               type: List<A>
               id: field_1
               getter: getter_1
-            final foo @51
+            final foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               enclosingElement: <testLibraryFragment>::@enum::A
               type: int
@@ -12871,19 +13050,19 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment set foo= @61
+            augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @69
+                requiredPositional _ @61
                   type: int
               returnType: void
               id: setter_0
@@ -12896,13 +13075,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -12916,14 +13095,14 @@ library
 
   test_augmented_setters_augment_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment set foo(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v
 }
@@ -12936,22 +13115,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -12994,19 +13176,19 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment set foo= @61
+            augment set foo= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @69
+                requiredPositional _ @61
                   type: int
               returnType: void
               id: setter_0
@@ -13018,13 +13200,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -13038,14 +13220,14 @@ library
 
   test_augmented_setters_augment_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment set foo1(int _) {}
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   set foo1(int _) {}
@@ -13060,22 +13242,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -13117,21 +13302,21 @@ library
               returnType: List<A>
               id: getter_1
               variable: field_1
-            set foo1= @45
+            set foo1= @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
               enclosingElement: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional _ @54
+                requiredPositional _ @44
                   type: int
               returnType: void
               id: setter_0
               variable: field_2
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
-            set foo2= @66
+            set foo2= @56
               reference: <testLibraryFragment>::@enum::A::@setter::foo2
               enclosingElement: <testLibraryFragment>::@enum::A
               parameters
-                requiredPositional _ @75
+                requiredPositional _ @65
                   type: int
               returnType: void
               id: setter_1
@@ -13152,19 +13337,19 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           accessors
-            augment set foo1= @61
+            augment set foo1= @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               parameters
-                requiredPositional _ @70
+                requiredPositional _ @62
                   type: int
               returnType: void
               id: setter_2
@@ -13177,13 +13362,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -13197,20 +13382,20 @@ library
 
   test_augmentedBy_class2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 enum A {v}
 ''');
@@ -13222,25 +13407,30 @@ enum A {v}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @56
+        enum A @36
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           supertype: Enum
           fields
-            static const enumConstant v @59
+            static const enumConstant v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -13259,18 +13449,18 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               returnType: List<A>
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTargetAny: <testLibraryFragment>::@enum::A
@@ -13281,18 +13471,18 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @56
+        enum A @36
           reference: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   classes
     class A
@@ -13314,20 +13504,20 @@ library
 
   test_augmentedBy_class_enum() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment enum A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 enum A {v}
 ''');
@@ -13339,26 +13529,31 @@ enum A {v}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @56
+        enum A @36
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @59
+            static const enumConstant v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -13386,18 +13581,18 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        augment class A @44
+        augment class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @43
+        augment enum A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
@@ -13408,19 +13603,19 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @56
+        enum A @36
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
-        class A @44
+        class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @43
+        enum A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   classes
@@ -13439,22 +13634,22 @@ library
 
   test_constructors_augment2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment const A.named();
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment const A.named();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 enum A {
   v.named();
   const A.named();
@@ -13466,26 +13661,31 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
+    part_1
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @61
+            static const enumConstant v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -13495,11 +13695,11 @@ library
               enclosingElement: <testLibraryFragment>::@enum::A
               type: List<A>
           constructors
-            const named @82
+            const named @62
               reference: <testLibraryFragment>::@enum::A::@constructor::named
               enclosingElement: <testLibraryFragment>::@enum::A
-              periodOffset: 81
-              nameEnd: 87
+              periodOffset: 61
+              nameEnd: 67
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
           accessors
             synthetic static get v @-1
@@ -13522,36 +13722,36 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           constructors
-            augment const named @65
+            augment const named @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 64
-              nameEnd: 70
+              periodOffset: 56
+              nameEnd: 62
               augmentationTarget: <testLibraryFragment>::@enum::A::@constructor::named
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           constructors
-            augment const named @65
+            augment const named @57
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-              periodOffset: 64
-              nameEnd: 70
+              periodOffset: 56
+              nameEnd: 62
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
 ----------------------------------------
 library
@@ -13560,21 +13760,21 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @55
+        enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
@@ -13588,14 +13788,14 @@ library
 
   test_constructors_augment_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment const A.named();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v.named();
   const A.named();
@@ -13606,22 +13806,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -13658,11 +13861,11 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            const named @57
+            const named @47
               reference: <testLibraryFragment>::@enum::A::@constructor::named
               enclosingElement: <testLibraryFragment>::@enum::A
-              periodOffset: 56
-              nameEnd: 62
+              periodOffset: 46
+              nameEnd: 52
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
           accessors
             synthetic static get v @-1
@@ -13685,19 +13888,19 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            augment const named @65
+            augment const named @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              periodOffset: 64
-              nameEnd: 70
+              periodOffset: 56
+              nameEnd: 62
               augmentationTarget: <testLibraryFragment>::@enum::A::@constructor::named
 ----------------------------------------
 library
@@ -13706,13 +13909,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -13726,14 +13929,14 @@ library
 
   test_constructors_augment_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A {;
   augment const A();
 }
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A {
   v;
   const A();
@@ -13744,22 +13947,25 @@ enum A {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @36
+            static const enumConstant v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A
@@ -13791,7 +13997,7 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            const @47
+            const @37
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               enclosingElement: <testLibraryFragment>::@enum::A
               augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
@@ -13816,15 +14022,15 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@enum::A
           constructors
-            augment const @63
+            augment const @55
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
               enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
               augmentationTarget: <testLibraryFragment>::@enum::A::@constructor::new
@@ -13835,13 +14041,13 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   enums
@@ -13861,7 +14067,7 @@ abstract class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum B {;
   foo(a) => 0;
 }
@@ -13869,7 +14075,7 @@ augment enum B {;
 
     var library = await buildLibrary(r'''
 import 'a.dart';
-import augment 'b.dart';
+part 'b.dart';
 
 enum B implements A {
   v
@@ -13885,11 +14091,8 @@ library
       enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
@@ -13897,8 +14100,14 @@ library
         package:test/a.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @48
+        enum B @38
           reference: <testLibraryFragment>::@enum::B
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
@@ -13906,7 +14115,7 @@ library
           interfaces
             A
           fields
-            static const enumConstant v @67
+            static const enumConstant v @57
               reference: <testLibraryFragment>::@enum::B::@field::v
               enclosingElement: <testLibraryFragment>::@enum::B
               type: B
@@ -13944,19 +14153,19 @@ library
             methods
               <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum B @42
+        augment enum B @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::B
           methods
-            foo @49
+            foo @41
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
               enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
               parameters
-                requiredPositional a @53
+                requiredPositional a @45
                   type: String
               returnType: int
 ----------------------------------------
@@ -13968,13 +14177,13 @@ library
       libraryImports
         package:test/a.dart
       enums
-        enum B @48
+        enum B @38
           reference: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum B @42
+        enum B @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           previousFragment: <testLibraryFragment>::@enum::B
   enums
@@ -13994,13 +14203,13 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 import 'a.dart';
 augment enum B implements A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'b.dart';
+part 'b.dart';
 
 enum B {
   v;
@@ -14013,26 +14222,25 @@ enum B {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      libraryImports
-        package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @31
+        enum B @21
           reference: <testLibraryFragment>::@enum::B
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           supertype: Enum
           fields
-            static const enumConstant v @37
+            static const enumConstant v @27
               reference: <testLibraryFragment>::@enum::B::@field::v
               enclosingElement: <testLibraryFragment>::@enum::B
               type: B
@@ -14055,11 +14263,11 @@ library
               enclosingElement: <testLibraryFragment>::@enum::B
               returnType: List<B>
           methods
-            foo @42
+            foo @32
               reference: <testLibraryFragment>::@enum::B::@method::foo
               enclosingElement: <testLibraryFragment>::@enum::B
               parameters
-                requiredPositional a @46
+                requiredPositional a @36
                   type: String
               returnType: int
           augmented
@@ -14078,14 +14286,14 @@ library
             methods
               <testLibraryFragment>::@enum::B::@method::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryImports
         package:test/a.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       enums
-        augment enum B @59
+        augment enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::B
@@ -14098,7 +14306,7 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @31
+        enum B @21
           reference: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
     <testLibrary>::@fragment::package:test/b.dart
@@ -14106,7 +14314,7 @@ library
       libraryImports
         package:test/a.dart
       enums
-        enum B @59
+        enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           previousFragment: <testLibraryFragment>::@enum::B
   enums
@@ -14126,13 +14334,13 @@ mixin A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 import 'a.dart';
 augment enum B with A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'b.dart';
+part 'b.dart';
 
 enum B {
   v;
@@ -14145,26 +14353,25 @@ enum B {
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/b.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/b.dart
-      libraryImports
-        package:test/a.dart
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      definingUnit: <testLibrary>::@fragment::package:test/b.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/b.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @31
+        enum B @21
           reference: <testLibraryFragment>::@enum::B
           enclosingElement: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           supertype: Enum
           fields
-            static const enumConstant v @37
+            static const enumConstant v @27
               reference: <testLibraryFragment>::@enum::B::@field::v
               enclosingElement: <testLibraryFragment>::@enum::B
               type: B
@@ -14187,11 +14394,11 @@ library
               enclosingElement: <testLibraryFragment>::@enum::B
               returnType: List<B>
           methods
-            foo @42
+            foo @32
               reference: <testLibraryFragment>::@enum::B::@method::foo
               enclosingElement: <testLibraryFragment>::@enum::B
               parameters
-                requiredPositional a @46
+                requiredPositional a @36
                   type: String
               returnType: int
           augmented
@@ -14210,14 +14417,14 @@ library
             methods
               <testLibraryFragment>::@enum::B::@method::foo
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/b.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryImports
         package:test/a.dart
           enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       enums
-        augment enum B @59
+        augment enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           enclosingElement: <testLibrary>::@fragment::package:test/b.dart
           augmentationTarget: <testLibraryFragment>::@enum::B
@@ -14230,7 +14437,7 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       enums
-        enum B @31
+        enum B @21
           reference: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
     <testLibrary>::@fragment::package:test/b.dart
@@ -14238,7 +14445,7 @@ library
       libraryImports
         package:test/a.dart
       enums
-        enum B @59
+        enum B @51
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           previousFragment: <testLibraryFragment>::@enum::B
   enums
@@ -14252,12 +14459,12 @@ library
 
   test_typeParameters_defaultType() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum A<T extends B> {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+part 'a.dart';
 enum A<T extends B> {
   v
 }
@@ -14269,16 +14476,19 @@ class B {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class B @59
+        class B @49
           reference: <testLibraryFragment>::@class::B
           enclosingElement: <testLibraryFragment>
           constructors
@@ -14286,17 +14496,17 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement: <testLibraryFragment>::@class::B
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           enclosingElement: <testLibraryFragment>
           typeParameters
-            covariant T @32
+            covariant T @22
               bound: B
               defaultType: B
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           supertype: Enum
           fields
-            static const enumConstant v @49
+            static const enumConstant v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               enclosingElement: <testLibraryFragment>::@enum::A
               type: A<B>
@@ -14330,14 +14540,14 @@ library
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       enums
-        augment enum A @42
+        augment enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T @44
+            covariant T @36
               bound: B
               defaultType: B
           augmentationTarget: <testLibraryFragment>::@enum::A
@@ -14348,16 +14558,16 @@ library
     <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class B @59
+        class B @49
           reference: <testLibraryFragment>::@class::B
       enums
-        enum A @30
+        enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
-        enum A @42
+        enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
   classes
