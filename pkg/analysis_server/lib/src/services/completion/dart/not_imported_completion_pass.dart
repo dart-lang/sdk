@@ -38,7 +38,7 @@ class InstanceExtensionMembersOperation extends NotImportedOperation {
   final DeclarationHelper _declarationHelper;
 
   /// The type that the extensions must extend.
-  final InterfaceType _type;
+  final DartType _type;
 
   /// The names of getters that should not be suggested.
   final Set<String> _excludedGetters;
@@ -51,7 +51,7 @@ class InstanceExtensionMembersOperation extends NotImportedOperation {
 
   InstanceExtensionMembersOperation(
       {required DeclarationHelper declarationHelper,
-      required InterfaceType type,
+      required DartType type,
       required Set<String> excludedGetters,
       required bool includeMethods,
       required bool includeSetters})
