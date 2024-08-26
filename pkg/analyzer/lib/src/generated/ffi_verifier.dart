@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
@@ -1042,11 +1041,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// calls.
   void _validateAddressPosition(Expression node, AstNode errorNode) {
     var parent = node.parent;
-
     // Since we are allowing .address.cast(), we need to traverse up one level
     // to get the ffi Invocation (.cast() nested down one level the expression)
     if (parent is MethodInvocation &&
-        parent.methodName.staticElement is MethodMember &&
+        parent.methodName.staticElement is MethodElement &&
         parent.methodName.name == "cast" &&
         parent.methodName.staticElement?.enclosingElement is ClassElement &&
         parent.methodName.staticElement!.enclosingElement.isPointer) {

@@ -1513,6 +1513,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     if (argument is InstanceInvocation &&
         argument.interfaceTarget == castMethod &&
         argument.functionType.returnType == parameterType) {
+    // Argument is .address.cast(), so truncating .cast()
       final subExpression = argument.receiver;
       return _replaceNativeCallParameterAndArgument(
           parameter, parameterType, subExpression, fileOffset);
