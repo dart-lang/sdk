@@ -335,37 +335,40 @@ library
 
   test_metadata_augmentation_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 @deprecated
 class A {}
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part 'a.dart';
 ''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
-        class A @47
+        class A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
           enclosingElement: <testLibrary>::@fragment::package:test/a.dart
           metadata
             Annotation
-              atSign: @ @29
+              atSign: @ @21
               name: SimpleIdentifier
-                token: deprecated @30
+                token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
@@ -382,7 +385,7 @@ library
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
-        class A @47
+        class A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
   classes
     class A
@@ -394,39 +397,30 @@ library
 
   test_metadata_augmentation_exportLibrary() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 @deprecated
 export 'dart:math';
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part 'a.dart';
 ''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      libraryExports
-        dart:math
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @29
-              name: SimpleIdentifier
-                token: deprecated @30
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         dart:math
@@ -434,9 +428,9 @@ library
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           metadata
             Annotation
-              atSign: @ @29
+              atSign: @ @21
               name: SimpleIdentifier
-                token: deprecated @30
+                token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
@@ -510,39 +504,30 @@ library
 
   test_metadata_augmentation_importLibrary() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 @deprecated
 import 'dart:math';
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part 'a.dart';
 ''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      libraryImports
-        dart:math
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @29
-              name: SimpleIdentifier
-                token: deprecated @30
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryImports
         dart:math
@@ -550,9 +535,9 @@ library
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           metadata
             Annotation
-              atSign: @ @29
+              atSign: @ @21
               name: SimpleIdentifier
-                token: deprecated @30
+                token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
@@ -568,9 +553,9 @@ library
         dart:math
           metadata
             Annotation
-              atSign: @ @29
+              atSign: @ @21
               name: SimpleIdentifier
-                token: deprecated @30
+                token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
@@ -3385,34 +3370,37 @@ library
 
   test_metadata_library_importAugmentation_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 ''');
     var library = await buildLibrary('''
 @deprecated
-import augment 'a.dart';
+part 'a.dart';
 ''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    package:test/a.dart
-      enclosingElement: <testLibrary>
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: deprecated @1
-            staticElement: dart:core::<fragment>::@getter::deprecated
-            staticType: null
-          element: dart:core::<fragment>::@getter::deprecated
-      reference: <testLibrary>::@augmentation::package:test/a.dart
-      definingUnit: <testLibrary>::@fragment::package:test/a.dart
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: package:test/a.dart
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: deprecated @1
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>::@augmentation::package:test/a.dart
+      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
@@ -3429,26 +3417,30 @@ library
   test_metadata_library_importAugmentation_notAugmentation_library() async {
     var library = await buildLibrary('''
 @deprecated
-import augment 'dart:math';
+part 'dart:math';
 ''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  augmentationImports
-    source 'dart:math'
-      enclosingElement: <testLibrary>
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: deprecated @1
-            staticElement: dart:core::<fragment>::@getter::deprecated
-            staticType: null
-          element: dart:core::<fragment>::@getter::deprecated
+  parts
+    part_0
   units
     <testLibraryFragment>
       enclosingElement: <testLibrary>
+      parts
+        part_0
+          uri: source 'dart:math'
+          enclosingElement: <testLibrary>
+          enclosingElement3: <testLibraryFragment>
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: deprecated @1
+                staticElement: dart:core::<fragment>::@getter::deprecated
+                staticType: null
+              element: dart:core::<fragment>::@getter::deprecated
 ----------------------------------------
 library
   reference: <testLibrary>

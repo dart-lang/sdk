@@ -1170,7 +1170,7 @@ library
 
   test_library_imports_withRelativeUri_notLibrary_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 ''');
     var library = await buildLibrary(r'''
 import 'a.dart';
