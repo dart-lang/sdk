@@ -380,6 +380,7 @@ final class _FfiAbiSpecificMapping {
   ///
   /// For easy access in the VM, this is a list, indexed by [Abi.index].
   @pragma("vm:entry-point")
+  @pragma("wasm:entry-point")
   final List<Type?> nativeTypes;
 
   const _FfiAbiSpecificMapping(this.nativeTypes);
