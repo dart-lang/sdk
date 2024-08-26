@@ -253,7 +253,7 @@ template <typename T>
 struct is_uncompressed_ptr<
     T,
     typename std::enable_if<std::is_base_of<ObjectPtr, T>::value, void>::type>
-    : std::true_type{};
+    : std::true_type {};
 template <typename T, typename Enable = void>
 struct is_compressed_ptr : std::false_type {};
 
@@ -301,7 +301,7 @@ template <typename T>
 struct is_compressed_ptr<
     T,
     typename std::enable_if<std::is_base_of<CompressedObjectPtr, T>::value,
-                            void>::type> : std::true_type{};
+                            void>::type> : std::true_type {};
 template <typename T>
 struct base_ptr_type<
     T,
