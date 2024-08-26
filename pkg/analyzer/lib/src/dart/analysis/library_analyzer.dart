@@ -135,10 +135,12 @@ class LibraryAnalyzer {
     required OperationPerformanceImpl performance,
   }) {
     var fileAnalysis = performance.run('parse', (performance) {
-      return _parse(file);
+      return _parse(
+        file: file,
+        unitElement: unitElement,
+      );
     });
     var parsedUnit = fileAnalysis.unit;
-    parsedUnit.declaredElement = unitElement;
 
     var node = NodeLocator(offset).searchWithin(parsedUnit);
 
@@ -585,12 +587,16 @@ class LibraryAnalyzer {
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
-  FileAnalysis _parse(FileState file) {
+  FileAnalysis _parse({
+    required FileState file,
+    required CompilationUnitElementImpl unitElement,
+  }) {
     var errorListener = RecordingErrorListener();
     var unit = file.parse(
       errorListener: errorListener,
       performance: OperationPerformanceImpl('<root>'),
     );
+    unit.declaredElement = unitElement;
 
     // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
 
@@ -598,6 +604,7 @@ class LibraryAnalyzer {
       file: file,
       errorListener: errorListener,
       unit: unit,
+      element: unitElement,
     );
     _libraryFiles[file] = result;
     return result;
@@ -752,12 +759,13 @@ class LibraryAnalyzer {
     required FileKind fileKind,
     required CompilationUnitElementImpl fileElement,
   }) {
-    var fileAnalysis = _parse(fileKind.file);
+    var fileAnalysis = _parse(
+      file: fileKind.file,
+      unitElement: fileElement,
+    );
     var containerUnit = fileAnalysis.unit;
-    containerUnit.declaredElement = fileElement;
 
     var containerErrorReporter = fileAnalysis.errorReporter;
-    fileAnalysis.element = fileElement;
 
     var augmentationImportIndex = 0;
     var libraryExportIndex = 0;

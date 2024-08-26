@@ -14,14 +14,14 @@ class FileAnalysis {
   final RecordingErrorListener errorListener;
   final ErrorReporter errorReporter;
   final CompilationUnitImpl unit;
+  final CompilationUnitElementImpl element;
   final IgnoreInfo ignoreInfo;
-
-  late final CompilationUnitElementImpl element;
 
   FileAnalysis({
     required this.file,
     required this.errorListener,
     required this.unit,
+    required this.element,
   })  : errorReporter = ErrorReporter(errorListener, file.source),
         ignoreInfo = IgnoreInfo.forDart(unit, file.content);
 }
