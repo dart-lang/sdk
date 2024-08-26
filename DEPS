@@ -701,7 +701,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "8WCo7tLjg_GoImlj5eax_w-wxsvRPnmaChqN4ok-5rYC",
+      "version": "oGxqx29_HA1eEBnt9pRiZYDa_BkzACC6l3_3xYYKLjYC",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -712,7 +712,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "sbh76PYVTMxav4ACTgA-TXWcbZTZcWWjsqATCxrGIvwC",
+      "version": "OKGFjciA5Vd0TQks4ow7-ppfxy_Y6v5hSjjn2w6LWjwC",
       }
     ],
     "condition": 'download_fuchsia_deps',
