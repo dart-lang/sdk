@@ -505,7 +505,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/const_conditional_simplifier.dart": (
-    hitCount: 72,
+    hitCount: 95,
     missCount: 0,
   ),
   // 100.0%.
