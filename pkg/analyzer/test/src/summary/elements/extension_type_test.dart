@@ -65,9 +65,17 @@ library
       extensionTypes
         extension type A @21
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @27
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             const new @21
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
@@ -128,6 +136,10 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @27
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             named @17
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
@@ -136,6 +148,10 @@ library
               codeLength: 14
               periodOffset: 16
               nameEnd: 22
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -195,6 +211,10 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -204,6 +224,10 @@ library
               enclosingFragment: <testLibraryFragment>::@extensionType::A
               periodOffset: 30
               nameEnd: 36
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -263,6 +287,10 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -272,6 +300,10 @@ library
               enclosingFragment: <testLibraryFragment>::@extensionType::A
               periodOffset: 30
               nameEnd: 36
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -341,6 +373,10 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
@@ -361,6 +397,10 @@ library
                     token: a @57
                     staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
                     staticType: int
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -418,12 +458,20 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@extensionType::A
               codeOffset: 16
               codeLength: 8
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -475,9 +523,17 @@ library
       extensionTypes
         extension type A @24
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @30
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @24
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
@@ -535,6 +591,20 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @46
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -591,6 +661,20 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @42
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -643,6 +727,20 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @35
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -714,9 +812,17 @@ library
       extensionTypes
         extension type A @32
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @43
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @32
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
@@ -769,6 +875,20 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @37
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -836,6 +956,14 @@ library
       extensionTypes
         extension type X @64
           reference: <testLibraryFragment>::@extensionType::X
+          fields
+            it @68
+              reference: <testLibraryFragment>::@extensionType::X::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::X
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::X::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
@@ -911,8 +1039,24 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @56
           reference: <testLibraryFragment>::@extensionType::B
+          fields
+            it @62
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
 ''');
   }
 
@@ -956,6 +1100,14 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -1016,8 +1168,24 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @43
           reference: <testLibraryFragment>::@extensionType::B
+          fields
+            it @49
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
 ''');
   }
 
@@ -1061,6 +1229,14 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -1102,6 +1278,14 @@ library
       extensionTypes
         extension type X @15
           reference: <testLibraryFragment>::@extensionType::X
+          fields
+            it @22
+              reference: <testLibraryFragment>::@extensionType::X::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::X
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::X::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::X
 ''');
   }
 
@@ -1146,6 +1330,14 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @22
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -1194,6 +1386,14 @@ library
       extensionTypes
         extension type X @33
           reference: <testLibraryFragment>::@extensionType::X
+          fields
+            it @39
+              reference: <testLibraryFragment>::@extensionType::X::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::X
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::X::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::X
 ''');
   }
 
@@ -1246,15 +1446,46 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            promotable _it @22
+              reference: <testLibraryFragment>::@extensionType::A::@field::_it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
   classes
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        _it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::_it
+      getters
+        synthetic get _it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::_it
+      setters
+        synthetic set _it=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::_it
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic _it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::_it
+      getters
+        get _it
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::_it
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields
@@ -1333,9 +1564,17 @@ library
       extensionTypes
         extension type A @37
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @43
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @37
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
@@ -1388,6 +1627,14 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
@@ -1448,6 +1695,14 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @34
               reference: <testLibraryFragment>::@extensionType::A::@method::foo
@@ -1509,12 +1764,20 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            <empty> @17
+              reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@extensionType::A
               codeOffset: 16
               codeLength: 2
+          getters
+            get <empty> @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -1560,6 +1823,14 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @34
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -1614,6 +1885,21 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo= @33
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -1673,8 +1959,24 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @19
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @42
           reference: <testLibraryFragment>::@extensionType::B
+          fields
+            it @46
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
 ''');
   }
 
@@ -1734,8 +2036,24 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @19
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @42
           reference: <testLibraryFragment>::@extensionType::B
+          fields
+            it @52
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
 ''');
   }
 
@@ -1777,6 +2095,14 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @19
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -1836,8 +2162,24 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @44
           reference: <testLibraryFragment>::@extensionType::B
+          fields
+            it @62
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
 ''');
   }
 
@@ -1900,8 +2242,24 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @22
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @45
           reference: <testLibraryFragment>::@extensionType::B
+          fields
+            it @57
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
 ''');
   }
 
@@ -1961,8 +2319,24 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type B @44
           reference: <testLibraryFragment>::@extensionType::B
+          fields
+            it @54
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::B
 ''');
   }
 
@@ -2004,6 +2378,14 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @21
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
 
@@ -2058,9 +2440,17 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @45
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @15
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
 ''');
   }
@@ -2170,9 +2560,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -2306,9 +2704,17 @@ library
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+          fields
+            it @65
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           constructors
             augment new @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          getters
+            get it @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           methods
             foo1 @78
@@ -2413,9 +2819,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -2529,9 +2943,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @40
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -2634,12 +3056,20 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @42
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             named @32
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
               enclosingFragment: <testLibraryFragment>::@extensionType::A
               periodOffset: 31
               nameEnd: 37
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -2774,9 +3204,28 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @55
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -2784,6 +3233,11 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          fields
+            foo @77
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -2940,9 +3394,28 @@ library
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @51
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @70
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -2952,12 +3425,23 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+          fields
+            foo @77
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            foo @77
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
 ''');
   }
 
@@ -3114,9 +3598,29 @@ library
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @51
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @70
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -3126,12 +3630,22 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+          getters
+            augment get foo @81
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            foo @77
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -3291,10 +3805,30 @@ library
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @51
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @70
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -3303,12 +3837,22 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+          setters
+            augment set foo= @77
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            foo @77
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -3433,9 +3977,28 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @55
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -3443,6 +4006,11 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          fields
+            foo @80
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -3557,9 +4125,24 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @59
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -3567,6 +4150,11 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          fields
+            foo @77
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
 ''');
   }
 
@@ -3710,9 +4298,27 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo1 @55
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo1 @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo1= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -3720,6 +4326,18 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          fields
+            foo2 @69
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          getters
+            get foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          setters
+            set foo2= @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
 ''');
   }
 
@@ -3839,9 +4457,23 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo1 @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo1 @52
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -3849,6 +4481,14 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          getters
+            get foo2 @66
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
 ''');
   }
 
@@ -3978,9 +4618,23 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @40
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo1 @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo1 @55
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -3988,6 +4642,14 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          getters
+            get foo2 @69
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
 ''');
   }
 
@@ -4112,9 +4774,28 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @55
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -4122,6 +4803,11 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            augment get foo @81
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
 ''');
   }
 
@@ -4278,9 +4964,28 @@ library
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @51
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @70
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -4290,12 +4995,23 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+          getters
+            augment get foo @81
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          getters
+            augment get foo @81
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -4423,9 +5139,30 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo1 @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo2 @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo2
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo1 @52
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
+            get foo2 @73
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo2
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -4433,6 +5170,11 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            augment get foo1 @74
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo1
 ''');
   }
 
@@ -4577,10 +5319,25 @@ library
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @51
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @45
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @67
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -4589,12 +5346,23 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+          getters
+            augment get foo @74
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          getters
+            augment get foo @74
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -4707,8 +5475,24 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type I1 @72
           reference: <testLibraryFragment>::@extensionType::I1
+          fields
+            it @79
+              reference: <testLibraryFragment>::@extensionType::I1::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::I1
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::I1::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::I1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
@@ -4717,6 +5501,14 @@ library
           previousFragment: <testLibraryFragment>::@extensionType::A
         extension type I2 @86
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          fields
+            it @93
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          getters
+            get it @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
 ''');
   }
 
@@ -4903,15 +5695,31 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type I1 @72
           reference: <testLibraryFragment>::@extensionType::I1
+          fields
+            it @79
+              reference: <testLibraryFragment>::@extensionType::I1::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::I1
           constructors
             new @72
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::I1
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::I1::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::I1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -4923,9 +5731,17 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
         extension type I2 @101
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          fields
+            it @108
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           constructors
             new @101
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          getters
+            get it @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -4935,9 +5751,17 @@ library
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
         extension type I3 @83
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
+          fields
+            it @90
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
           constructors
             new @83
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
+          getters
+            get it @-1
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
               enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
 ''');
   }
@@ -5085,15 +5909,31 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @39
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type I1 @75
           reference: <testLibraryFragment>::@extensionType::I1
+          fields
+            it @82
+              reference: <testLibraryFragment>::@extensionType::I1::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::I1
           constructors
             new @75
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::I1
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::I1::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::I1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -5103,9 +5943,17 @@ library
           previousFragment: <testLibraryFragment>::@extensionType::A
         extension type I2 @94
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          fields
+            it @104
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           constructors
             new @94
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          getters
+            get it @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
 ''');
   }
@@ -5254,15 +6102,31 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @39
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
         extension type I1 @75
           reference: <testLibraryFragment>::@extensionType::I1
+          fields
+            it @82
+              reference: <testLibraryFragment>::@extensionType::I1::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::I1
           constructors
             new @75
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::I1
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::I1::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::I1
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -5272,9 +6136,17 @@ library
           previousFragment: <testLibraryFragment>::@extensionType::A
         extension type I2 @98
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          fields
+            it @108
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
           constructors
             new @98
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+          getters
+            get it @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
               enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
 ''');
   }
@@ -5373,9 +6245,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
@@ -5495,9 +6375,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo1 @49
@@ -5646,9 +6534,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
@@ -5785,9 +6681,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @39
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
@@ -5909,9 +6813,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @39
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
@@ -6038,9 +6950,17 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingFragment: <testLibraryFragment>::@extensionType::A
           methods
             foo @49
@@ -6186,9 +7106,24 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo1 @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo1= @48
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -6196,6 +7131,14 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          fields
+            foo2 @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          setters
+            set foo2= @62
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
 ''');
   }
 
@@ -6323,16 +7266,40 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo @55
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            get foo @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo= @-1
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            augment set foo= @77
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
 ''');
   }
 
@@ -6469,9 +7436,31 @@ library
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+          fields
+            it @36
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo1 @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+            foo2 @-1
+              reference: <testLibraryFragment>::@extensionType::A::@field::foo2
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
           constructors
             new @30
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            set foo1= @48
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
+            set foo2= @69
+              reference: <testLibraryFragment>::@extensionType::A::@setter::foo2
               enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
@@ -6479,6 +7468,11 @@ library
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           previousFragment: <testLibraryFragment>::@extensionType::A
+          setters
+            augment set foo1= @70
+              reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+              previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
 ''');
   }
 
@@ -6566,6 +7560,14 @@ library
       extensionTypes
         extension type A @46
           reference: <testLibraryFragment>::@extensionType::A
+          fields
+            it @52
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -6680,6 +7682,14 @@ library
         extension type A @46
           reference: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+          fields
+            it @52
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingFragment: <testLibraryFragment>::@extensionType::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart

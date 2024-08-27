@@ -162,12 +162,42 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
+          fields
+            foo @57
+              reference: dart:foo::<fragment>::@class::A::@field::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+          getters
+            get foo @-1
+              reference: dart:foo::<fragment>::@class::A::@getter::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
+          setters
+            set foo= @-1
+              reference: dart:foo::<fragment>::@class::A::@setter::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
       enclosingElement2: dart:foo
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@class::A
+      fields
+        foo
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@class::A
+          type: int
+          firstFragment: dart:foo::<fragment>::@class::A::@field::foo
+      getters
+        synthetic get foo
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@class::A
+          firstFragment: dart:foo::<fragment>::@class::A::@getter::foo
+      setters
+        synthetic set foo=
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@class::A
+          firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
 ''');
   }
 
@@ -212,12 +242,32 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
+          fields
+            foo @-1
+              reference: dart:foo::<fragment>::@class::A::@field::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+          getters
+            get foo @61
+              reference: dart:foo::<fragment>::@class::A::@getter::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
       enclosingElement2: dart:foo
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@class::A
+      fields
+        synthetic foo
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@class::A
+          type: int
+          firstFragment: dart:foo::<fragment>::@class::A::@field::foo
+      getters
+        get foo
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@class::A
+          firstFragment: dart:foo::<fragment>::@class::A::@getter::foo
 ''');
   }
 
@@ -429,12 +479,32 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
+          fields
+            foo @-1
+              reference: dart:foo::<fragment>::@class::A::@field::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+          setters
+            set foo= @57
+              reference: dart:foo::<fragment>::@class::A::@setter::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
       enclosingElement2: dart:foo
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@class::A
+      fields
+        synthetic foo
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@class::A
+          type: int
+          firstFragment: dart:foo::<fragment>::@class::A::@field::foo
+      setters
+        set foo=
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@class::A
+          firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
 ''');
   }
 
@@ -499,12 +569,62 @@ library
       enums
         enum E @31
           reference: dart:foo::<fragment>::@enum::E
+          fields
+            enumConstant v1 @37
+              reference: dart:foo::<fragment>::@enum::E::@field::v1
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+            enumConstant v2 @60
+              reference: dart:foo::<fragment>::@enum::E::@field::v2
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+            values @-1
+              reference: dart:foo::<fragment>::@enum::E::@field::values
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+          getters
+            get v1 @-1
+              reference: dart:foo::<fragment>::@enum::E::@getter::v1
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+            get v2 @-1
+              reference: dart:foo::<fragment>::@enum::E::@getter::v2
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+              sinceSdkVersion: 2.15.0
+            get values @-1
+              reference: dart:foo::<fragment>::@enum::E::@getter::values
+              enclosingFragment: dart:foo::<fragment>::@enum::E
   enums
     enum E
       reference: dart:foo::<fragment>::@enum::E
       enclosingElement2: dart:foo
       firstFragment: dart:foo::<fragment>::@enum::E
       supertype: Enum
+      fields
+        static const v1
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          type: E
+          firstFragment: dart:foo::<fragment>::@enum::E::@field::v1
+        static const v2
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          type: E
+          firstFragment: dart:foo::<fragment>::@enum::E::@field::v2
+        synthetic static const values
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          type: List<E>
+          firstFragment: dart:foo::<fragment>::@enum::E::@field::values
+      getters
+        synthetic static get v1
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          firstFragment: dart:foo::<fragment>::@enum::E::@getter::v1
+        synthetic static get v2
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          firstFragment: dart:foo::<fragment>::@enum::E::@getter::v2
+        synthetic static get values
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          firstFragment: dart:foo::<fragment>::@enum::E::@getter::values
 ''');
   }
 
@@ -567,6 +687,21 @@ library
       enums
         enum E @46
           reference: dart:foo::<fragment>::@enum::E
+          fields
+            enumConstant v @52
+              reference: dart:foo::<fragment>::@enum::E::@field::v
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+            values @-1
+              reference: dart:foo::<fragment>::@enum::E::@field::values
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+          getters
+            get v @-1
+              reference: dart:foo::<fragment>::@enum::E::@getter::v
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+              sinceSdkVersion: 2.15.0
+            get values @-1
+              reference: dart:foo::<fragment>::@enum::E::@getter::values
+              enclosingFragment: dart:foo::<fragment>::@enum::E
           methods
             foo @62
               reference: dart:foo::<fragment>::@enum::E::@method::foo
@@ -579,6 +714,26 @@ library
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@enum::E
       supertype: Enum
+      fields
+        static const v
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          type: E
+          firstFragment: dart:foo::<fragment>::@enum::E::@field::v
+        synthetic static const values
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          type: List<E>
+          firstFragment: dart:foo::<fragment>::@enum::E::@field::values
+      getters
+        synthetic static get v
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          firstFragment: dart:foo::<fragment>::@enum::E::@getter::v
+        synthetic static get values
+          reference: <none>
+          enclosingElement: dart:foo::<fragment>::@enum::E
+          firstFragment: dart:foo::<fragment>::@enum::E::@getter::values
       methods
         foo
           reference: <none>

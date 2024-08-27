@@ -422,7 +422,8 @@ class FieldFormalParameterMember extends ParameterMember
 
 /// A field element defined in a parameterized type where the values of the type
 /// parameters are known.
-class FieldMember extends VariableMember implements FieldElement {
+class FieldMember extends VariableMember
+    implements FieldElement, FieldFragment {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember(
@@ -442,13 +443,23 @@ class FieldMember extends VariableMember implements FieldElement {
   }
 
   @override
+  List<Fragment> get children3 => (declaration as FieldFragment).children3;
+
+  @override
   FieldElement get declaration => super.declaration as FieldElement;
 
   @override
   String get displayName => declaration.displayName;
 
   @override
+  FieldElement2 get element => (declaration as FieldFragment).element;
+
+  @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Fragment? get enclosingFragment =>
+      (declaration as FieldFragment).enclosingFragment;
 
   @override
   PropertyAccessorElement? get getter {
@@ -459,6 +470,9 @@ class FieldMember extends VariableMember implements FieldElement {
     return PropertyAccessorMember(
         baseGetter, augmentationSubstitution, _substitution);
   }
+
+  @override
+  GetterFragment? get getter2 => (declaration as FieldFragment).getter2;
 
   @override
   bool get hasInitializer => declaration.hasInitializer;
@@ -485,7 +499,19 @@ class FieldMember extends VariableMember implements FieldElement {
   LibraryElement get library => _declaration.library!;
 
   @override
+  LibraryFragment get libraryFragment =>
+      (declaration as FieldFragment).libraryFragment;
+
+  @override
   String get name => declaration.name;
+
+  @override
+  FieldFragment? get nextFragment =>
+      (declaration as FieldFragment).nextFragment;
+
+  @override
+  FieldFragment? get previousFragment =>
+      (declaration as FieldFragment).previousFragment;
 
   @override
   PropertyAccessorElement? get setter {
@@ -496,6 +522,9 @@ class FieldMember extends VariableMember implements FieldElement {
     return PropertyAccessorMember(
         baseSetter, augmentationSubstitution, _substitution);
   }
+
+  @override
+  SetterFragment? get setter2 => (declaration as FieldFragment).setter2;
 
   @override
   Source? get source => _declaration.source;
@@ -1049,7 +1078,7 @@ class ParameterMember extends VariableMember
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
 class PropertyAccessorMember extends ExecutableMember
-    implements PropertyAccessorElement {
+    implements PropertyAccessorElement, GetterFragment, SetterFragment {
   factory PropertyAccessorMember(
     PropertyAccessorElement declaration,
     MapSubstitution augmentationSubstitution,
@@ -1095,6 +1124,10 @@ class PropertyAccessorMember extends ExecutableMember
   }
 
   @override
+  GetterFragment? get correspondingGetter2 =>
+      (declaration as SetterFragment).correspondingGetter2;
+
+  @override
   PropertyAccessorElement? get correspondingSetter {
     var baseSetter = declaration.correspondingSetter;
     if (baseSetter == null) {
@@ -1103,6 +1136,10 @@ class PropertyAccessorMember extends ExecutableMember
     return PropertyAccessorMember(
         baseSetter, augmentationSubstitution, _substitution);
   }
+
+  @override
+  SetterFragment? get correspondingSetter2 =>
+      (declaration as GetterFragment).correspondingSetter2;
 
   @override
   PropertyAccessorElement get declaration =>
@@ -1140,6 +1177,10 @@ class PropertyAccessorMember extends ExecutableMember
     }
     return variable;
   }
+
+  @override
+  PropertyInducingFragment? get variable3 =>
+      (declaration as PropertyAccessorElementImpl).variable3;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
