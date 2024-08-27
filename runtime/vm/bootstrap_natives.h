@@ -140,6 +140,7 @@ namespace dart {
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 5)                                          \
   V(Error_throwWithStackTrace, 2)                                              \
+  V(Error_trySetStackTrace, 2)                                                 \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
   V(Stopwatch_now, 0)                                                          \

@@ -53,6 +53,9 @@ class _WasmTransformer extends Transformer {
   final Procedure _streamControllerSetOnListen;
   final Procedure _streamControllerSetOnResume;
 
+  final Procedure _trySetStackTraceForwarder;
+  final Procedure _trySetStackTrace;
+
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
 
@@ -104,6 +107,10 @@ class _WasmTransformer extends Transformer {
             .getProcedure('dart:async', 'StreamController', 'set:onListen'),
         _streamControllerSetOnResume = coreTypes.index
             .getProcedure('dart:async', 'StreamController', 'set:onResume'),
+        _trySetStackTraceForwarder = coreTypes.index
+            .getTopLevelProcedure('dart:async', '_trySetStackTrace'),
+        _trySetStackTrace = coreTypes.index
+            .getProcedure('dart:core', 'Error', '_trySetStackTrace'),
         _listFactorySpecializer = ListFactorySpecializer(coreTypes),
         _pushPopWasmArrayTransformer = PushPopWasmArrayTransformer(coreTypes);
 
@@ -716,6 +723,12 @@ class _WasmTransformer extends Transformer {
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
+
+    // Forward calls in `dart:async` to private `dart:core` method.
+    if (node.target == _trySetStackTraceForwarder) {
+      node.target = _trySetStackTrace;
+    }
+
     return _pushPopWasmArrayTransformer.transformStaticInvocation(
         _listFactorySpecializer.transformStaticInvocation(node));
   }

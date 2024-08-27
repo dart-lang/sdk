@@ -1098,6 +1098,15 @@ class Primitives {
     if (jsError == null) return null;
     return getTraceFromException(jsError);
   }
+
+  static void trySetStackTrace(Error error, StackTrace stackTrace) {
+    var jsError = JS('', r'#.$thrownJsError', error);
+    if (jsError == null) {
+      jsError = wrapException(error);
+      JS('', r'#.$thrownJsError = #', error, jsError);
+      JS('void', '#.stack = #', jsError, stackTrace.toString());
+    }
+  }
 }
 
 /// Called by generated code to throw an illegal-argument exception,
@@ -1193,7 +1202,7 @@ String checkString(value) {
   return value;
 }
 
-/// Wrap the given Dart object and record a stack trace.
+/// Wrap the given Dart object as a JS `Error` that can carry a stack trace.
 ///
 /// The code in [unwrapException] deals with getting the original Dart
 /// object out of the wrapper again.

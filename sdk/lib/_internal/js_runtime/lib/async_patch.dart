@@ -10,6 +10,7 @@ import 'dart:_js_helper'
         ExceptionAndStackTrace,
         convertDartClosureToJS,
         getTraceFromException,
+        Primitives,
         requiresPreamble,
         wrapException,
         unwrapException;
@@ -18,6 +19,13 @@ import 'dart:_foreign_helper'
     show JS, JS_FALSE, JS_RAW_EXCEPTION, RAW_DART_FUNCTION_REF;
 
 import 'dart:_async_status_codes' as async_status_codes;
+
+@patch
+void _trySetStackTrace(Object error, StackTrace stackTrace) {
+  if (error is Error) {
+    Primitives.trySetStackTrace(error, stackTrace);
+  }
+}
 
 @patch
 class _AsyncRun {

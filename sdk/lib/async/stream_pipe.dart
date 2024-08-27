@@ -9,13 +9,11 @@ _runUserCode<T>(T userCode(), onSuccess(T value),
     onError(Object error, StackTrace stackTrace)) {
   try {
     onSuccess(userCode());
-  } catch (e, s) {
-    AsyncError? replacement = Zone.current.errorCallback(e, s);
-    if (replacement == null) {
-      onError(e, s);
+  } catch (error, stackTrace) {
+    AsyncError? replacement = _interceptError(error, stackTrace);
+    if (replacement != null) {
+      onError(replacement.error, replacement.stackTrace);
     } else {
-      var error = replacement.error;
-      var stackTrace = replacement.stackTrace;
       onError(error, stackTrace);
     }
   }
@@ -35,7 +33,7 @@ void _cancelAndError(StreamSubscription subscription, _Future future,
 
 void _cancelAndErrorWithReplacement(StreamSubscription subscription,
     _Future future, Object error, StackTrace stackTrace) {
-  AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
+  AsyncError? replacement = _interceptError(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
     stackTrace = replacement.stackTrace;
@@ -168,7 +166,7 @@ class _ForwardingStreamSubscription<S, T>
 
 void _addErrorWithReplacement(
     _EventSink sink, Object error, StackTrace stackTrace) {
-  AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
+  var replacement = _interceptError(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
     stackTrace = replacement.stackTrace;

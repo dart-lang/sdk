@@ -718,6 +718,9 @@ class ClassIdNumbering {
         firstClassId + concreteClassCount - 1,
         firstClassId + concreteClassCount + abstractClassCount - 1);
   }
+
+  Range getConcreteSubclassRange(Class klass) =>
+      _concreteSubclassIdRange[klass]!;
 }
 
 // A range of class ids, both ends inclusive.
