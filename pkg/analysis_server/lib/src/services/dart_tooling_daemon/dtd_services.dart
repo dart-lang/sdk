@@ -32,6 +32,17 @@ enum DtdConnectionState {
 /// A connection to DTD that exposes some analysis services (such as a subset
 /// of LSP) to other DTD clients.
 class DtdServices {
+  /// The set of LSP methods currently exposed over DTD.
+  ///
+  /// Eventually all "shared" methods will be exposed, but during initial
+  /// development and testing this will be restricted to selected methods (in
+  /// particular, those with well defined results that are not affected by
+  /// differences in client capabilities).
+  static const allowedLspMethods = <Method>{
+    // When removing this allowlist or adding simple methods like
+    // textDocument/hover, skipped tests in `SharedDtdTests` can be unskipped.
+  };
+
   /// The name of the DTD service that methods will be registered under.
   static const _lspServiceName = 'Lsp';
 
@@ -174,7 +185,8 @@ class DtdServices {
   ) async {
     await Future.wait([
       for (var lspHandler in handler.messageHandlers.values)
-        _registerLspService(lspHandler, dtd),
+        if (allowedLspMethods.contains(lspHandler.handlesMessage))
+          _registerLspService(lspHandler, dtd),
     ]);
 
     // Post a 'initialized' event to the LSP stream so clients know that all
