@@ -150,6 +150,10 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
@@ -158,6 +162,10 @@ library
       codeLength: 26
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -275,12 +283,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @43
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -356,12 +372,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -457,12 +481,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -537,12 +569,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -623,12 +663,28 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            factory named @26
+              reference: <testLibraryFragment>::@enum::E::@constructor::named
+              enclosingFragment: <testLibraryFragment>::@enum::E
+              periodOffset: 25
+              nameEnd: 31
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        factory named
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -704,12 +760,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            factory new @24
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        factory new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -801,12 +865,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @33
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -905,12 +977,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @55
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -990,12 +1070,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @22
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1097,12 +1185,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1191,12 +1287,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1285,12 +1389,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            new @27
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1379,12 +1491,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            new @27
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1474,12 +1594,22 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const named @34
+              reference: <testLibraryFragment>::@enum::E::@constructor::named
+              enclosingFragment: <testLibraryFragment>::@enum::E
+              periodOffset: 33
+              nameEnd: 39
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const named
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::named
 ''');
   }
 
@@ -1562,12 +1692,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @26
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1685,12 +1823,45 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @40
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
+              constantInitializers
+                AssertInitializer
+                  assertKeyword: assert @50
+                  leftParenthesis: ( @56
+                  condition: IsExpression
+                    expression: SimpleIdentifier
+                      token: a @57
+                      staticElement: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
+                      staticType: T?
+                    isOperator: is @59
+                    type: NamedType
+                      name: T @62
+                      element: T@7
+                      type: T
+                    staticType: bool
+                  rightParenthesis: ) @63
+                ConstructorFieldInitializer
+                  fieldName: SimpleIdentifier
+                    token: x @66
+                    staticElement: <testLibraryFragment>::@enum::E::@field::x
+                    staticType: null
+                  equals: = @68
+                  expression: IntegerLiteral
+                    literal: 0 @70
+                    staticType: int
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1767,6 +1938,10 @@ library
       enums
         enum E @65
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
@@ -1774,6 +1949,10 @@ library
       documentationComment: /**\n * Docs\n */
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1862,12 +2041,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1914,6 +2101,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -1997,12 +2188,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -2088,20 +2287,36 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I
       enums
         enum E @16
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   classes
     class I
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::I::@constructor::new
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -2297,20 +2512,36 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   classes
     class I
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::I::@constructor::new
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -2405,26 +2636,50 @@ library
       classes
         class X @6
           reference: <testLibraryFragment>::@class::X
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::X::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::X
         class Z @17
           reference: <testLibraryFragment>::@class::Z
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::Z::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::Z
       enums
         enum E @27
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   classes
     class X
       reference: <testLibraryFragment>::@class::X
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::X::@constructor::new
     class Z
       reference: <testLibraryFragment>::@class::Z
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::Z
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::Z::@constructor::new
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -2518,12 +2773,28 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
+          methods
+            foo @23
+              reference: <testLibraryFragment>::@enum::E::@method::foo
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@method::foo
 ''');
   }
 
@@ -2604,12 +2875,28 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
+          methods
+            toString @23
+              reference: <testLibraryFragment>::@enum::E::@method::toString
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      methods
+        toString
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@method::toString
 ''');
   }
 
@@ -2693,6 +2980,10 @@ library
       enums
         enum E @16
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
@@ -2702,6 +2993,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
   mixins
     mixin M
       reference: <testLibraryFragment>::@mixin::M
@@ -2907,6 +3202,10 @@ library
       enums
         enum E @44
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
       mixins
         mixin M1 @6
           reference: <testLibraryFragment>::@mixin::M1
@@ -2918,6 +3217,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
   mixins
     mixin M1
       reference: <testLibraryFragment>::@mixin::M1
@@ -3017,12 +3320,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3102,12 +3413,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3191,12 +3510,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3247,12 +3574,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3309,12 +3644,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3365,12 +3708,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3420,12 +3771,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3475,12 +3834,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3530,12 +3897,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3589,12 +3964,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3700,12 +4083,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3847,12 +4238,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -3948,12 +4347,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -4073,19 +4480,35 @@ library
       enums
         enum E1 @5
           reference: <testLibraryFragment>::@enum::E1
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E1::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E1
         enum E2 @20
           reference: <testLibraryFragment>::@enum::E2
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E2::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E2
   enums
     enum E1
       reference: <testLibraryFragment>::@enum::E1
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E1
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E1::@constructor::new
     enum E2
       reference: <testLibraryFragment>::@enum::E2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E2
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E2::@constructor::new
 ''');
   }
 
@@ -4290,46 +4713,125 @@ library
       classes
         class M @24
           reference: <testLibraryFragment>::@class::M
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::M::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::M
         class A @36
           reference: <testLibraryFragment>::@class::A
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          methods
+            foo @52
+              reference: <testLibraryFragment>::@class::A::@method::foo
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @70
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          methods
+            foo @92
+              reference: <testLibraryFragment>::@class::B::@method::foo
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @110
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          methods
+            foo @141
+              reference: <testLibraryFragment>::@class::C::@method::foo
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @159
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   classes
     class M
       reference: <testLibraryFragment>::@class::M
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::M
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::M::@constructor::new
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@method::foo
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       supertype: Object
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
     class alias D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
       supertype: Object
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -4423,12 +4925,20 @@ library
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -4612,20 +5122,36 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          constructors
+            const new @41
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
       enums
         enum E @64
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -4709,12 +5235,20 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -4815,12 +5349,36 @@ library
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            const new @41
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
+              metadata
+                Annotation
+                  atSign: @ @30
+                  name: SimpleIdentifier
+                    token: a @31
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          metadata
+            Annotation
+              atSign: @ @30
+              name: SimpleIdentifier
+                token: a @31
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -4926,12 +5484,44 @@ library
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
+          methods
+            foo @40
+              reference: <testLibraryFragment>::@enum::E::@method::foo
+              enclosingFragment: <testLibraryFragment>::@enum::E
+              metadata
+                Annotation
+                  atSign: @ @30
+                  name: SimpleIdentifier
+                    token: a @31
+                    staticElement: <testLibraryFragment>::@getter::a
+                    staticType: null
+                  element: <testLibraryFragment>::@getter::a
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      methods
+        foo
+          reference: <none>
+          metadata
+            Annotation
+              atSign: @ @30
+              name: SimpleIdentifier
+                token: a @31
+                staticElement: <testLibraryFragment>::@getter::a
+                staticType: null
+              element: <testLibraryFragment>::@getter::a
+          firstFragment: <testLibraryFragment>::@enum::E::@method::foo
 ''');
   }
 
@@ -5074,12 +5664,44 @@ library
       enums
         enum E @26
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
+          methods
+            bar @81
+              reference: <testLibraryFragment>::@enum::E::@method::bar
+              enclosingFragment: <testLibraryFragment>::@enum::E
+              metadata
+                Annotation
+                  atSign: @ @69
+                  name: SimpleIdentifier
+                    token: foo @70
+                    staticElement: <testLibraryFragment>::@enum::E::@getter::foo
+                    staticType: null
+                  element: <testLibraryFragment>::@enum::E::@getter::foo
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+      methods
+        bar
+          reference: <none>
+          metadata
+            Annotation
+              atSign: @ @69
+              name: SimpleIdentifier
+                token: foo @70
+                staticElement: <testLibraryFragment>::@enum::E::@getter::foo
+                staticType: null
+              element: <testLibraryFragment>::@enum::E::@getter::foo
+          firstFragment: <testLibraryFragment>::@enum::E::@method::bar
 ''');
   }
 
@@ -5183,12 +5805,20 @@ library
       enums
         enum E @19
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 
@@ -5282,12 +5912,20 @@ library
       enums
         enum E @22
           reference: <testLibraryFragment>::@enum::E
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::E::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::E
   enums
     enum E
       reference: <testLibraryFragment>::@enum::E
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
 ''');
   }
 }
@@ -5399,15 +6037,38 @@ library
         enum A @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+          methods
+            foo @43
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
         enum A @68
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+          methods
+            bar @80
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
+        bar
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
 
@@ -5607,6 +6268,10 @@ library
         enum A @37
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a1.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
@@ -5659,6 +6324,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
   exportedReferences
     declared <testLibraryFragment>::@enum::A
   exportNamespace
@@ -5797,23 +6466,62 @@ library
       enums
         enum A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+          methods
+            foo1 @47
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
         enum A @65
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+          methods
+            foo2 @81
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
         enum A @107
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
+          methods
+            foo3 @119
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
   enums
     enum A
       reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
+      methods
+        foo1
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
     enum A
       reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
+      methods
+        foo2
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
+        foo3
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
 ''');
   }
 
@@ -5926,18 +6634,41 @@ library
         enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          methods
+            foo1 @61
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
         enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          methods
+            foo2 @43
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+      methods
+        foo1
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
+        foo2
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
 ''');
   }
 
@@ -6094,6 +6825,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -6106,6 +6841,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -6319,6 +7058,10 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -6339,6 +7082,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -6516,6 +7263,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -6528,6 +7279,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -6735,6 +7490,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -6747,6 +7506,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -6938,6 +7701,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            const new @48
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -6950,6 +7717,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -7177,12 +7948,22 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 48
+              nameEnd: 54
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const named
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
 ''');
   }
 
@@ -7294,12 +8075,22 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @53
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 52
+              nameEnd: 58
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const named
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
 ''');
   }
 
@@ -7400,18 +8191,35 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 48
+              nameEnd: 54
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+        const named
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
 ''');
   }
 
@@ -7510,12 +8318,20 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const new @47
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
 ''');
   }
 
@@ -7616,18 +8432,35 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            const named @39
+              reference: <testLibraryFragment>::@enum::A::@constructor::named
+              enclosingFragment: <testLibraryFragment>::@enum::A
+              periodOffset: 38
+              nameEnd: 44
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const new @47
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const named
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
+        const new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
 ''');
   }
 
@@ -7743,12 +8576,22 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 48
+              nameEnd: 54
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const named
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
 ''');
   }
 
@@ -7870,12 +8713,32 @@ library
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            const named @49
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 48
+              nameEnd: 54
+              constantInitializers
+                ConstructorFieldInitializer
+                  fieldName: SimpleIdentifier
+                    token: f @59
+                    staticElement: <testLibraryFragment>::@enum::A::@field::f
+                    staticType: null
+                  equals: = @61
+                  expression: IntegerLiteral
+                    literal: 0 @63
+                    staticType: int
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const named
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::named
 ''');
   }
 
@@ -8003,6 +8866,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -8015,6 +8882,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -8174,6 +9045,10 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -8194,6 +9069,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -8353,6 +9232,10 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -8373,6 +9256,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -8535,6 +9422,10 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -8555,6 +9446,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -8682,6 +9577,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -8694,6 +9593,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -8841,6 +9744,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -8853,6 +9760,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -8981,6 +9892,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -8993,6 +9908,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -9128,6 +10047,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -9140,6 +10063,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -9283,6 +10210,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -9295,6 +10226,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -9404,6 +10339,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            const new @40
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -9416,6 +10355,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -9531,6 +10474,20 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+              constantInitializers
+                ConstructorFieldInitializer
+                  fieldName: SimpleIdentifier
+                    token: foo @43
+                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo
+                    staticType: null
+                  equals: = @47
+                  expression: IntegerLiteral
+                    literal: 0 @49
+                    staticType: int
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -9543,6 +10500,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -9676,6 +10637,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -9688,6 +10653,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -9831,6 +10800,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -9843,6 +10816,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -9970,6 +10947,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -9982,6 +10963,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -10141,6 +11126,10 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -10161,6 +11150,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -10302,6 +11295,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -10314,6 +11311,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -10449,6 +11450,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -10461,6 +11466,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -10619,6 +11628,10 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -10639,6 +11652,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -10870,15 +11887,27 @@ library
       classes
         class I1 @50
           reference: <testLibraryFragment>::@class::I1
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I1::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I1
       enums
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class I2 @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
@@ -10888,16 +11917,28 @@ library
       reference: <testLibraryFragment>::@class::I1
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I1
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -11045,16 +12086,28 @@ library
       classes
         class I1 @50
           reference: <testLibraryFragment>::@class::I1
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I1::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I1
       enums
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class I2 @74
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
         enum A @49
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
@@ -11065,6 +12118,10 @@ library
       classes
         class I3 @56
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       enums
         enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
@@ -11074,20 +12131,36 @@ library
       reference: <testLibraryFragment>::@class::I1
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I1
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
     class I3
       reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -11211,15 +12284,27 @@ library
       classes
         class I1 @60
           reference: <testLibraryFragment>::@class::I1
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I1::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I1
       enums
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class I2 @67
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
@@ -11229,16 +12314,28 @@ library
       reference: <testLibraryFragment>::@class::I1
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I1
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -11363,15 +12460,27 @@ library
       classes
         class I1 @53
           reference: <testLibraryFragment>::@class::I1
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::I1::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I1
       enums
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       classes
         class I2 @71
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+          constructors
+            synthetic new @-1
+              reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
@@ -11381,16 +12490,28 @@ library
       reference: <testLibraryFragment>::@class::I1
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I1
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
       reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -11497,18 +12618,41 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            bar @46
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
+        bar
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
 
@@ -11636,18 +12780,34 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo @46
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
 ''');
   }
 
@@ -11761,18 +12921,46 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo1 @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo1
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+              enclosingFragment: <testLibraryFragment>::@enum::A
+            foo2 @53
+              reference: <testLibraryFragment>::@enum::A::@method::foo2
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            augment foo1 @54
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      methods
+        foo2
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo2
+        foo1
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo1
 ''');
   }
 
@@ -11887,18 +13075,45 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            augment foo @54
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+            augment foo @78
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
 
@@ -12021,6 +13236,15 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -12028,15 +13252,34 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
+          methods
+            augment foo @54
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
         enum A @78
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
+          methods
+            augment foo @98
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
 
@@ -12174,6 +13417,15 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo @36
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -12182,18 +13434,37 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          methods
+            augment foo @69
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
         enum A @31
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          methods
+            augment foo @51
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
 
@@ -12308,18 +13579,41 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            bar @48
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
+        bar
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
 
@@ -12435,18 +13729,40 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+          methods
+            foo @43
+              reference: <testLibraryFragment>::@enum::A::@method::foo
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          methods
+            augment foo @56
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              previousFragment: <testLibraryFragment>::@enum::A::@method::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
 
@@ -12558,6 +13874,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
       mixins
         mixin M1 @44
           reference: <testLibraryFragment>::@mixin::M1
@@ -12576,6 +13896,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
   mixins
     mixin M1
       reference: <testLibraryFragment>::@mixin::M1
@@ -12749,6 +14073,10 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
       mixins
         mixin M1 @74
           reference: <testLibraryFragment>::@mixin::M1
@@ -12778,6 +14106,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
   mixins
     mixin M1
       reference: <testLibraryFragment>::@mixin::M1
@@ -12936,6 +14268,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -12948,6 +14284,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -13078,6 +14418,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -13090,6 +14434,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -13203,6 +14551,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -13215,6 +14567,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -13365,6 +14721,10 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -13377,6 +14737,10 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -13763,6 +15127,13 @@ library
         enum A @35
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            const named @62
+              reference: <testLibraryFragment>::@enum::A::@constructor::named
+              enclosingFragment: <testLibraryFragment>::@enum::A
+              periodOffset: 61
+              nameEnd: 67
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -13771,18 +15142,37 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+          constructors
+            augment const named @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 56
+              nameEnd: 62
+              nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+              previousFragment: <testLibraryFragment>::@enum::A::@constructor::named
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            augment const named @57
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              periodOffset: 56
+              nameEnd: 62
+              previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const named
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
 ''');
   }
 
@@ -13912,18 +15302,36 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            const named @47
+              reference: <testLibraryFragment>::@enum::A::@constructor::named
+              enclosingFragment: <testLibraryFragment>::@enum::A
+              periodOffset: 46
+              nameEnd: 52
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            augment const named @57
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              periodOffset: 56
+              nameEnd: 62
+              previousFragment: <testLibraryFragment>::@enum::A::@constructor::named
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const named
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::named
 ''');
   }
 
@@ -14044,18 +15452,32 @@ library
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            const new @37
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
+              nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
         enum A @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           previousFragment: <testLibraryFragment>::@enum::A
+          constructors
+            augment const new @55
+              reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+              previousFragment: <testLibraryFragment>::@enum::A::@constructor::new
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 
@@ -14180,18 +15602,34 @@ library
         enum B @38
           reference: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::B
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       enums
         enum B @34
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           previousFragment: <testLibraryFragment>::@enum::B
+          methods
+            foo @41
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
+              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
   enums
     enum B
       reference: <testLibraryFragment>::@enum::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
 ''');
   }
 
@@ -14309,6 +15747,14 @@ library
         enum B @21
           reference: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::B
+          methods
+            foo @32
+              reference: <testLibraryFragment>::@enum::B::@method::foo
+              enclosingFragment: <testLibraryFragment>::@enum::B
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -14323,6 +15769,14 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::B::@method::foo
 ''');
   }
 
@@ -14440,6 +15894,14 @@ library
         enum B @21
           reference: <testLibraryFragment>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::B
+          methods
+            foo @32
+              reference: <testLibraryFragment>::@enum::B::@method::foo
+              enclosingFragment: <testLibraryFragment>::@enum::B
     <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibraryFragment>
       libraryImports
@@ -14454,6 +15916,14 @@ library
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::B::@constructor::new
+      methods
+        foo
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::B::@method::foo
 ''');
   }
 
@@ -14560,10 +16030,18 @@ library
       classes
         class B @49
           reference: <testLibraryFragment>::@class::B
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
       enums
         enum A @20
           reference: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
+          constructors
+            synthetic const new @-1
+              reference: <testLibraryFragment>::@enum::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@enum::A
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
       enums
@@ -14575,12 +16053,20 @@ library
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   enums
     enum A
       reference: <testLibraryFragment>::@enum::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      constructors
+        synthetic const new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@enum::A::@constructor::new
 ''');
   }
 }

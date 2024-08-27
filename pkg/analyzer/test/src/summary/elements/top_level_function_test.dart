@@ -948,11 +948,19 @@ library
       classes
         class main @6
           reference: <testLibraryFragment>::@class::main
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::main::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::main
   classes
     class main
       reference: <testLibraryFragment>::@class::main
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::main
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::main::@constructor::new
 ''');
   }
 
@@ -1007,24 +1015,57 @@ library
       classes
         class main @6
           reference: <testLibraryFragment>::@class::main
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::main::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::main
+              constantInitializers
+                SuperConstructorInvocation
+                  superKeyword: super @0
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticElement: <testLibraryFragment>::@class::C::@constructor::new
+              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
         class C @29
           reference: <testLibraryFragment>::@class::C
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @40
           reference: <testLibraryFragment>::@class::D
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class alias main
       reference: <testLibraryFragment>::@class::main
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::main
       supertype: C
+      constructors
+        synthetic new
+          reference: <none>
+          superConstructor: <none>
+          firstFragment: <testLibraryFragment>::@class::main::@constructor::new
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
 ''');
   }
 
@@ -1475,6 +1516,10 @@ library
       classes
         class foo @22
           reference: <testLibraryFragment>::@class::foo
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::foo::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
   classes
@@ -1482,6 +1527,10 @@ library
       reference: <testLibraryFragment>::@class::foo
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::foo
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::foo::@constructor::new
 ''');
   }
 
@@ -2285,6 +2334,10 @@ library
       classes
         class foo @21
           reference: <testLibraryFragment>::@class::foo
+          constructors
+            synthetic new @-1
+              reference: <testLibraryFragment>::@class::foo::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibraryFragment>
   classes
@@ -2292,6 +2345,10 @@ library
       reference: <testLibraryFragment>::@class::foo
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::foo
+      constructors
+        synthetic new
+          reference: <none>
+          firstFragment: <testLibraryFragment>::@class::foo::@constructor::new
   exportedReferences
     declared <testLibraryFragment>::@class::foo
   exportNamespace

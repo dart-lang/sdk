@@ -76,7 +76,7 @@ vars = {
   "jsc_tag": "version:282418",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:3809e20afc68d7d03821f0ec59b928dcf9befbf4",
+  "clang_version": "git_revision:0cfd03ac0d3f9713090a581bda07584754c73a49",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:05eed8f6252e2dd6b555e0b65192ef03e2c4a276",
@@ -701,7 +701,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "8WCo7tLjg_GoImlj5eax_w-wxsvRPnmaChqN4ok-5rYC",
+      "version": "oGxqx29_HA1eEBnt9pRiZYDa_BkzACC6l3_3xYYKLjYC",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -712,7 +712,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "sbh76PYVTMxav4ACTgA-TXWcbZTZcWWjsqATCxrGIvwC",
+      "version": "OKGFjciA5Vd0TQks4ow7-ppfxy_Y6v5hSjjn2w6LWjwC",
       }
     ],
     "condition": 'download_fuchsia_deps',

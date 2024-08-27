@@ -87,4 +87,7 @@ callable:
     class: '_StreamIterator'
     member: '_subscription'
   - library: 'dart:async'
+    class: '_SuspendState'
+    member: 'get:_functionData'
+  - library: 'dart:async'
     member: '_asyncStarMoveNextHelper'

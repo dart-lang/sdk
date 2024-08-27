@@ -75,18 +75,39 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
+          constructors
+            named @55
+              reference: dart:foo::<fragment>::@class::A::@constructor::named
+              enclosingFragment: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
+              periodOffset: 54
+              nameEnd: 60
         class B @73
           reference: dart:foo::<fragment>::@class::B
+          constructors
+            named @81
+              reference: dart:foo::<fragment>::@class::B::@constructor::named
+              enclosingFragment: dart:foo::<fragment>::@class::B
+              periodOffset: 80
+              nameEnd: 86
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
       enclosingElement2: dart:foo
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@class::A
+      constructors
+        named
+          reference: <none>
+          firstFragment: dart:foo::<fragment>::@class::A::@constructor::named
     class B
       reference: dart:foo::<fragment>::@class::B
       enclosingElement2: dart:foo
       firstFragment: dart:foo::<fragment>::@class::B
+      constructors
+        named
+          reference: <none>
+          firstFragment: dart:foo::<fragment>::@class::B::@constructor::named
 ''');
   }
 
@@ -236,12 +257,21 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
+          methods
+            foo @58
+              reference: dart:foo::<fragment>::@class::A::@method::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
       enclosingElement2: dart:foo
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@class::A
+      methods
+        foo
+          reference: <none>
+          firstFragment: dart:foo::<fragment>::@class::A::@method::foo
 ''');
   }
 
@@ -282,12 +312,21 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
+          methods
+            foo @75
+              reference: dart:foo::<fragment>::@class::A::@method::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.16.0
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
       enclosingElement2: dart:foo
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@class::A
+      methods
+        foo
+          reference: <none>
+          firstFragment: dart:foo::<fragment>::@class::A::@method::foo
 ''');
   }
 
@@ -328,12 +367,21 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
+          methods
+            foo @75
+              reference: dart:foo::<fragment>::@class::A::@method::foo
+              enclosingFragment: dart:foo::<fragment>::@class::A
+              sinceSdkVersion: 2.15.0
   classes
     class A
       reference: dart:foo::<fragment>::@class::A
       enclosingElement2: dart:foo
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@class::A
+      methods
+        foo
+          reference: <none>
+          firstFragment: dart:foo::<fragment>::@class::A::@method::foo
 ''');
   }
 
@@ -519,6 +567,11 @@ library
       enums
         enum E @46
           reference: dart:foo::<fragment>::@enum::E
+          methods
+            foo @62
+              reference: dart:foo::<fragment>::@enum::E::@method::foo
+              enclosingFragment: dart:foo::<fragment>::@enum::E
+              sinceSdkVersion: 2.15.0
   enums
     enum E
       reference: dart:foo::<fragment>::@enum::E
@@ -526,6 +579,10 @@ library
       sinceSdkVersion: 2.15.0
       firstFragment: dart:foo::<fragment>::@enum::E
       supertype: Enum
+      methods
+        foo
+          reference: <none>
+          firstFragment: dart:foo::<fragment>::@enum::E::@method::foo
 ''');
   }
 
@@ -566,6 +623,11 @@ library
       extensions
         extension E @51
           reference: dart:foo::<fragment>::@extension::E
+          methods
+            foo @69
+              reference: dart:foo::<fragment>::@extension::E::@method::foo
+              enclosingFragment: dart:foo::<fragment>::@extension::E
+              sinceSdkVersion: 2.15.0
 ''');
   }
 
@@ -607,6 +669,11 @@ library
       mixins
         mixin M @47
           reference: dart:foo::<fragment>::@mixin::M
+          methods
+            foo @58
+              reference: dart:foo::<fragment>::@mixin::M::@method::foo
+              enclosingFragment: dart:foo::<fragment>::@mixin::M
+              sinceSdkVersion: 2.15.0
   mixins
     mixin M
       reference: dart:foo::<fragment>::@mixin::M
@@ -615,6 +682,10 @@ library
       firstFragment: dart:foo::<fragment>::@mixin::M
       superclassConstraints
         Object
+      methods
+        foo
+          reference: <none>
+          firstFragment: dart:foo::<fragment>::@mixin::M::@method::foo
 ''');
   }
 

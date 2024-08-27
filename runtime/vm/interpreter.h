@@ -97,6 +97,11 @@ class Interpreter {
                  ArrayPtr args_array,
                  Thread* thread);
 
+  ObjectPtr Resume(Thread* thread,
+                   uword resumed_frame_fp,
+                   uword resumed_frame_sp,
+                   ObjectPtr value);
+
   void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
   uword get_sp() const { return reinterpret_cast<uword>(fp_); }  // Yes, fp_.
@@ -114,6 +119,12 @@ class Interpreter {
 #endif  // !PRODUCT
 
  private:
+  enum {
+    kKBCFunctionSlotInSuspendedFrame,
+    kKBCPcOffsetSlotInSuspendedFrame,
+    kKBCSuspendedFrameFixedSlots
+  };
+
   uintptr_t* stack_;
   uword stack_base_;
   uword overflow_stack_limit_;
@@ -227,6 +238,10 @@ class Interpreter {
                        const KBCInstr* pc,
                        ObjectPtr* FP,
                        ObjectPtr* SP);
+
+  void SetupEntryFrame(Thread* thread);
+
+  ObjectPtr Run(Thread* thread, ObjectPtr* sp);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

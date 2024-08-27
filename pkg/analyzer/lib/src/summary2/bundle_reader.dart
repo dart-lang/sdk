@@ -208,6 +208,12 @@ class CompilationUnitElementLinkedData
       }
     }
 
+    for (var part in element.parts) {
+      part.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+    }
+
     applyConstantOffsets?.perform();
   }
 }

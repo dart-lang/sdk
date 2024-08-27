@@ -361,6 +361,8 @@ Interpreter::Interpreter()
   // High address.
   stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBufferMax;
 
+  fp_ = reinterpret_cast<ObjectPtr*>(stack_base_);
+
   last_setjmp_buffer_ = nullptr;
 
   DEBUG_ONLY(icount_ = 1);  // So that tracing after 0 traces first bytecode.
@@ -1467,34 +1469,7 @@ bool Interpreter::AllocateClosure(Thread* thread,
   }
 }
 
-ObjectPtr Interpreter::Call(FunctionPtr function,
-                            ArrayPtr argdesc,
-                            intptr_t argc,
-                            ObjectPtr const* argv,
-                            ArrayPtr args_array,
-                            Thread* thread) {
-  // Interpreter state (see constants_kbc.h for high-level overview).
-  const KBCInstr* pc;  // Program Counter: points to the next op to execute.
-  ObjectPtr* FP;       // Frame Pointer.
-  ObjectPtr* SP;       // Stack Pointer.
-
-  uint32_t op;  // Currently executing op.
-
-  bool reentering = fp_ != nullptr;
-  if (!reentering) {
-    fp_ = reinterpret_cast<ObjectPtr*>(stack_base_);
-  }
-#if defined(DEBUG)
-  if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
-    THR_Print("%s interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px " %s\n",
-              reentering ? "Re-entering" : "Entering",
-              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
-              thread->top_exit_frame_info(),
-              Function::Handle(function).ToFullyQualifiedCString());
-  }
-#endif
-
+void Interpreter::SetupEntryFrame(Thread* thread) {
   // Setup entry frame:
   //
   //                        ^
@@ -1518,10 +1493,6 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
   //                        |
   //                        v
   //
-  // A negative argc indicates reverse memory order of arguments.
-  const intptr_t arg_count = argc < 0 ? -argc : argc;
-  FP = fp_ + kKBCEntrySavedSlots + arg_count + kKBCDartFrameFixedSize;
-  SP = FP - 1;
 
   // Save outer top_exit_frame_info, current argdesc, and current pp.
   fp_[kKBCExitLinkSlotFromEntryFp] =
@@ -1529,6 +1500,31 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
   thread->set_top_exit_frame_info(0);
   fp_[kKBCSavedArgDescSlotFromEntryFp] = static_cast<ObjectPtr>(argdesc_);
   fp_[kKBCSavedPpSlotFromEntryFp] = static_cast<ObjectPtr>(pp_);
+}
+
+ObjectPtr Interpreter::Call(FunctionPtr function,
+                            ArrayPtr argdesc,
+                            intptr_t argc,
+                            ObjectPtr const* argv,
+                            ArrayPtr args_array,
+                            Thread* thread) {
+#if defined(DEBUG)
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("Entering interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px
+              " %s\n",
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+              thread->top_exit_frame_info(),
+              Function::Handle(function).ToFullyQualifiedCString());
+  }
+#endif
+
+  SetupEntryFrame(thread);
+
+  // A negative argc indicates reverse memory order of arguments.
+  const intptr_t arg_count = argc < 0 ? -argc : argc;
+  ObjectPtr* FP =
+      fp_ + kKBCEntrySavedSlots + arg_count + kKBCDartFrameFixedSize;
 
   // Copy arguments and setup the Dart frame.
   if (argv != nullptr) {
@@ -1554,10 +1550,87 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
-  pc = reinterpret_cast<const KBCInstr*>(bytecode->untag()->instructions_);
-  NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
-  NOT_IN_PRODUCT(fp_ = FP);  // For the profiler.
+  pc_ = reinterpret_cast<const KBCInstr*>(bytecode->untag()->instructions_);
   pp_ = bytecode->untag()->object_pool();
+  fp_ = FP;
+
+  return Run(thread, FP - 1);
+}
+
+ObjectPtr Interpreter::Resume(Thread* thread,
+                              uword resumed_frame_fp,
+                              uword resumed_frame_sp,
+                              ObjectPtr value) {
+  const intptr_t suspend_state_index_from_fp =
+      runtime_frame_layout.FrameSlotForVariableIndex(
+          SuspendState::kSuspendStateVarIndex);
+  ASSERT(suspend_state_index_from_fp < 0);
+
+  // Resumed native frame wraps interpreter state.
+  ASSERT(resumed_frame_fp > resumed_frame_sp);
+  ASSERT(resumed_frame_fp - resumed_frame_sp >=
+         static_cast<uword>(-suspend_state_index_from_fp +
+                            kKBCSuspendedFrameFixedSlots) *
+             kWordSize);
+  ObjectPtr* resumed_native_frame =
+      reinterpret_cast<ObjectPtr*>(resumed_frame_sp);
+  intptr_t interp_frame_size =
+      resumed_frame_fp - resumed_frame_sp -
+      (-suspend_state_index_from_fp + kKBCSuspendedFrameFixedSlots) * kWordSize;
+
+  FunctionPtr function =
+      Function::RawCast(resumed_native_frame[kKBCFunctionSlotInSuspendedFrame]);
+  const intptr_t pc_offset = Smi::Value(
+      Smi::RawCast(resumed_native_frame[kKBCPcOffsetSlotInSuspendedFrame]));
+
+#if defined(DEBUG)
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("Resuming interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px
+              " %s\n",
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+              thread->top_exit_frame_info(),
+              Function::Handle(function).ToFullyQualifiedCString());
+  }
+#endif
+
+  SetupEntryFrame(thread);
+
+  ObjectPtr* FP = fp_ + kKBCEntrySavedSlots + kKBCDartFrameFixedSize;
+
+  BytecodePtr bytecode = Function::GetBytecode(function);
+  FP[kKBCFunctionSlotFromFp] = function;
+  FP[kKBCPcMarkerSlotFromFp] = bytecode;
+  FP[kKBCSavedCallerPcSlotFromFp] = static_cast<ObjectPtr>(kEntryFramePcMarker);
+  FP[kKBCSavedCallerFpSlotFromFp] =
+      static_cast<ObjectPtr>(reinterpret_cast<uword>(fp_));
+
+  memmove(FP, &resumed_native_frame[kKBCSuspendedFrameFixedSlots],
+          interp_frame_size);
+
+  FP[kKBCSuspendStateSlotFromFp] = *reinterpret_cast<ObjectPtr*>(
+      resumed_frame_fp + suspend_state_index_from_fp * kWordSize);
+
+  ObjectPtr* SP = FP + (interp_frame_size >> kWordSizeLog2);
+  SP[0] = value;
+
+  argdesc_ = Array::null();
+  pc_ = reinterpret_cast<const KBCInstr*>(bytecode->untag()->instructions_ +
+                                          pc_offset);
+  pp_ = bytecode->untag()->object_pool();
+  fp_ = FP;
+
+  return Run(thread, SP);
+}
+
+ObjectPtr Interpreter::Run(Thread* thread, ObjectPtr* sp) {
+  // Interpreter state (see constants_kbc.h for high-level overview).
+  const KBCInstr* pc =
+      pc_;              // Program Counter: points to the next op to execute.
+  ObjectPtr* FP = fp_;  // Frame Pointer.
+  ObjectPtr* SP = sp;   // Stack Pointer.
+
+  uint32_t op;  // Currently executing op.
 
   // Save current VM tag and mark thread as executing Dart code. For the
   // profiler, do this *after* setting up the entry frame (compare the machine
@@ -1988,7 +2061,6 @@ SwitchDispatch:
   {
     BYTECODE(ReturnTOS, 0);
 
-  ReturnTOS:
     ObjectPtr result;  // result to return to the caller.
     result = *SP;
     // Restore caller PC.
@@ -2042,64 +2114,6 @@ SwitchDispatch:
     }
 #endif
     DISPATCH();
-  }
-
-  {
-    BYTECODE(ReturnAsync, 0);
-
-    argdesc_ = ArgumentsDescriptor::NewBoxed(0, 2);
-    ObjectPtr return_value = *SP;
-    ObjectPtr suspend_state = FP[kKBCSuspendStateSlotFromFp];
-    FP[kKBCSuspendStateSlotFromFp] = null_value;
-
-    FunctionPtr function =
-        thread->isolate_group()->object_store()->suspend_state_return_async();
-    ASSERT(Function::HasCode(function));
-
-    SP[0] = suspend_state;
-    SP[1] = return_value;
-    ObjectPtr* call_base = SP;
-    ObjectPtr* call_top = SP + 2;
-    call_top[0] = function;
-    if (!InvokeCompiled(thread, function, call_base, call_top, &pc, &FP, &SP)) {
-      HANDLE_EXCEPTION;
-    } else {
-      HANDLE_RETURN;
-    }
-    goto ReturnTOS;
-  }
-
-  {
-    BYTECODE(ReturnAsyncStar, 0);
-
-    argdesc_ = ArgumentsDescriptor::NewBoxed(0, 2);
-    ObjectPtr return_value = *SP;
-    ObjectPtr suspend_state = FP[kKBCSuspendStateSlotFromFp];
-    FP[kKBCSuspendStateSlotFromFp] = null_value;
-
-    FunctionPtr function = thread->isolate_group()
-                               ->object_store()
-                               ->suspend_state_return_async_star();
-    ASSERT(Function::HasCode(function));
-
-    SP[0] = suspend_state;
-    SP[1] = return_value;
-    ObjectPtr* call_base = SP;
-    ObjectPtr* call_top = SP + 2;
-    call_top[0] = function;
-    if (!InvokeCompiled(thread, function, call_base, call_top, &pc, &FP, &SP)) {
-      HANDLE_EXCEPTION;
-    } else {
-      HANDLE_RETURN;
-    }
-    goto ReturnTOS;
-  }
-
-  {
-    BYTECODE(ReturnSyncStar, 0);
-    // Return false from sync* function to indicate the end of iteration.
-    *SP = false_value;
-    goto ReturnTOS;
   }
 
   {
@@ -2548,6 +2562,91 @@ SwitchDispatch:
     BYTECODE(JumpIfUnchecked, T);
     // Interpreter is not tracking unchecked calls, so fall through to
     // parameter type checks.
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(Suspend, T);
+    const intptr_t suspend_state_index_from_fp =
+        runtime_frame_layout.FrameSlotForVariableIndex(
+            SuspendState::kSuspendStateVarIndex);
+    ASSERT(suspend_state_index_from_fp < 0);
+    // Saved interpreter frame is "wrapped" into a native frame in
+    // the suspend state:
+    //
+    // (-suspend_state_index_from_fp) words:
+    //         header to mimic native frame with the slot for suspend state
+    // (SP + 1 - FP) words:
+    //         locals and expression stack
+    // kKBCSuspendedFrameFixedSlots words:
+    //         suspended function and PC offset to resume.
+    const intptr_t frame_size = ((-suspend_state_index_from_fp) +
+                                 (SP + 1 - FP) + kKBCSuspendedFrameFixedSlots) *
+                                kWordSize;
+
+    SuspendStatePtr state;
+    ObjectPtr old_state = FP[kKBCSuspendStateSlotFromFp];
+    if (!old_state->IsSuspendState() ||
+#if defined(DART_PRECOMPILED_RUNTIME)
+        (SuspendState::RawCast(old_state)->untag()->frame_size_ != frame_size)
+#else
+        (SuspendState::RawCast(old_state)->untag()->frame_capacity_ <
+         frame_size)
+#endif
+    ) {
+      SP[1] = 0;  // Space for result.
+      SP[2] = Smi::New(frame_size);
+      SP[3] = old_state;
+      Exit(thread, FP, SP + 4, pc);
+      INVOKE_RUNTIME(
+          DRT_AllocateSuspendState,
+          NativeArguments(thread, 2, /* argv */ SP + 2, /* retval */ SP + 1));
+      state = SuspendState::RawCast(SP[1]);
+      ASSERT(state->untag()->frame_size_ == frame_size);
+      FP[kKBCSuspendStateSlotFromFp] = state;
+    } else {
+      state = SuspendState::RawCast(old_state);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      state->untag()->frame_size_ = frame_size;
+#endif
+    }
+
+    // Copy interpreter frame, locals and expression stack.
+    uint8_t* payload = state->untag()->payload();
+    ObjectPtr* suspended_frame = reinterpret_cast<ObjectPtr*>(payload);
+
+    FunctionPtr function = FrameFunction(FP);
+    const intptr_t pc_offset =
+        (reinterpret_cast<uword>(rT) -
+         Function::GetBytecode(function)->untag()->instructions_);
+    suspended_frame[kKBCFunctionSlotInSuspendedFrame] = function;
+    suspended_frame[kKBCPcOffsetSlotInSuspendedFrame] = Smi::New(pc_offset);
+
+    memmove(&suspended_frame[kKBCSuspendedFrameFixedSlots], FP,
+            (SP + 1 - FP) * kWordSize);
+
+    // Fill suspend state slot.
+    const uword native_fp = reinterpret_cast<uword>(payload + frame_size);
+    *reinterpret_cast<ObjectPtr*>(native_fp + suspend_state_index_from_fp *
+                                                  kWordSize) = state;
+    // Clear the rest of the slots.
+    for (intptr_t i = suspend_state_index_from_fp + 1; i < 0; ++i) {
+      *reinterpret_cast<ObjectPtr*>(native_fp + i * kWordSize) = 0;
+    }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    *(reinterpret_cast<ObjectPtr*>(
+        native_fp + runtime_frame_layout.code_from_fp * kWordSize)) =
+        StubCode::ResumeInterpreter().ptr();
+#endif
+    state->untag()->pc_ = StubCode::ResumeInterpreter().EntryPoint();
+
+    // Write barrier.
+    if (state->IsOldObject() || thread->is_marking()) {
+      DLRT_EnsureRememberedAndMarkingDeferred(static_cast<uword>(state),
+                                              thread);
+    }
+
     DISPATCH();
   }
 
@@ -3585,6 +3684,16 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   } else {
     pc_ = reinterpret_cast<const KBCInstr*>(pc);
   }
+
+#if defined(DEBUG)
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("JumpToFrame interpreter 0x%" Px " at fp_ 0x%" Px " pc_ 0x%" Px
+              "\n",
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+              reinterpret_cast<uword>(pc_));
+  }
+#endif
 
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartInterpretedTagId);

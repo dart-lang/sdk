@@ -358,6 +358,21 @@ class DeclarationHelper {
         excludedFields: const {},
       );
       _addMembersOfDartCoreObject();
+      _addExtensionMembers(
+        type: type,
+        excludedGetters: const {},
+        includeMethods: !mustBeAssignable,
+        includeSetters: true,
+      );
+      _recordOperation(
+        InstanceExtensionMembersOperation(
+          declarationHelper: this,
+          type: type,
+          excludedGetters: const {},
+          includeMethods: !mustBeAssignable,
+          includeSetters: true,
+        ),
+      );
     } else if (type is FunctionType) {
       _suggestFunctionCall();
       _addMembersOfDartCoreObject();
@@ -444,7 +459,7 @@ class DeclarationHelper {
   /// not yet imported [library] that are applicable for the given [type].
   void addNotImportedExtensionMethods(
       {required LibraryElement library,
-      required InterfaceType type,
+      required DartType type,
       required Set<String> excludedGetters,
       required bool includeMethods,
       required bool includeSetters}) {
@@ -680,11 +695,12 @@ class DeclarationHelper {
 
   /// Add members from all the applicable extensions that are visible for the
   /// given [InterfaceType].
-  void _addExtensionMembers(
-      {required InterfaceType type,
-      required Set<String> excludedGetters,
-      required bool includeMethods,
-      required bool includeSetters}) {
+  void _addExtensionMembers({
+    required DartType type,
+    required Set<String> excludedGetters,
+    required bool includeMethods,
+    required bool includeSetters,
+  }) {
     var libraryElement = request.libraryElement;
 
     var applicableExtensions = libraryElement.accessibleExtensions.applicableTo(

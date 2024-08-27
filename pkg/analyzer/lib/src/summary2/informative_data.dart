@@ -113,6 +113,7 @@ class InformativeDataApplier {
         applier.applyToMetadata(unitElement);
         applier.applyToImports(unitElement.libraryImports);
         applier.applyToExports(unitElement.libraryExports);
+        applier.applyToParts(unitElement.parts);
       },
     );
 
@@ -2142,6 +2143,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   void applyToPartDirectives(List<PartElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
+    }
+  }
+
+  void applyToParts(List<PartElementImpl> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }

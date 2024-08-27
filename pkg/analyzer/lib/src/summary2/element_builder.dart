@@ -1104,9 +1104,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var libraryElement = _libraryBuilder.element;
     var index = _partDirectiveIndex++;
-    var partElement = libraryElement.parts[index];
+    var partElement = _unitElement.parts[index];
     partElement.metadata = _buildAnnotations(node.metadata);
   }
 

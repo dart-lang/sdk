@@ -4261,6 +4261,44 @@ uword RuntimeEntry::InterpretCallEntry() {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
+// Restore suspended interpreter frame and resume execution.
+//
+// Arg0: result of the suspension
+DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 1) {
+#if defined(DART_DYNAMIC_MODULES)
+  const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
+                              StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = iterator.NextFrame();
+  ASSERT(frame != nullptr);
+  while (frame->IsExitFrame() ||
+         (frame->IsStubFrame() &&
+          !StubCode::ResumeInterpreter().ContainsInstructionAt(frame->pc()))) {
+    frame = iterator.NextFrame();
+    ASSERT(frame != nullptr);
+  }
+  RELEASE_ASSERT(frame->IsStubFrame());
+
+  uword fp = frame->fp();
+  uword sp = arguments.GetCallerSP();
+  ASSERT((fp > sp) && (sp > frame->sp()));
+  MSAN_UNPOISON(reinterpret_cast<uint8_t*>(sp), fp - sp);
+
+  Interpreter* interpreter = Interpreter::Current();
+  auto& result = Object::Handle(zone);
+
+  {
+    TransitionVMToGenerated transition(thread);
+    result = interpreter->Resume(thread, fp, sp, value.ptr());
+  }
+
+  arguments.SetReturn(result);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("%s", "EnterSafepoint");
