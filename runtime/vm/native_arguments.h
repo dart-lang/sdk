@@ -77,6 +77,12 @@ class Thread;
 // have DISALLOW_COPY_AND_ASSIGN in the class definition and do not make it a
 // subclass of ValueObject.
 class NativeArguments {
+ private:
+  using ArgcBits = BitField<intptr_t, int32_t, 0, 24>;
+  using GenericFunctionBit = BitField<intptr_t, bool, ArgcBits::kNextBit>;
+  using ReverseArgOrderBit =
+      BitField<intptr_t, bool, GenericFunctionBit::kNextBit>;
+
  public:
   Thread* thread() const { return thread_; }
 
@@ -99,24 +105,13 @@ class NativeArguments {
   }
 
   // Does not include hidden type arguments vector.
-  int NativeArgCount() const {
-    int function_bits = FunctionBits::decode(argc_tag_);
-    return ArgCount() - NumHiddenArgs(function_bits);
-  }
+  int NativeArgCount() const { return ArgCount() - NumHiddenArgs(); }
 
-  ObjectPtr NativeArg0() const {
-    int function_bits = FunctionBits::decode(argc_tag_);
-    return ArgAt(NumHiddenArgs(function_bits));
-  }
+  ObjectPtr NativeArg0() const { return ArgAt(NumHiddenArgs()); }
 
   ObjectPtr NativeArgAt(int index) const {
     ASSERT((index >= 0) && (index < NativeArgCount()));
-    if (index == 0) {
-      return NativeArg0();
-    }
-    int function_bits = FunctionBits::decode(argc_tag_);
-    const int actual_index = index + NumHiddenArgs(function_bits);
-    return ArgAt(actual_index);
+    return ArgAt(index + NumHiddenArgs());
   }
 
   TypeArgumentsPtr NativeTypeArgs() const {
@@ -181,34 +176,12 @@ class NativeArguments {
     ASSERT(function.is_old_native());
     ASSERT(!function.IsGenerativeConstructor());  // Not supported.
     ASSERT(!function.IsClosureFunction());        // Not supported.
-    int argc = function.NumParameters();
-    int function_bits = 0;
-    if (function.IsGeneric()) {
-      function_bits |= kGenericFunctionBit;
-      argc++;
-    }
-    int tag = ArgcBits::encode(argc);
-    tag = FunctionBits::update(function_bits, tag);
-    return tag;
+    bool is_generic = function.IsGeneric();
+    return ArgcBits::encode(function.NumParameters() + (is_generic ? 1 : 0)) |
+           GenericFunctionBit::encode(is_generic);
   }
 
  private:
-  enum {
-    kGenericFunctionBit = 1,
-  };
-  enum ArgcTagBits {
-    kArgcBit = 0,
-    kArgcSize = 24,
-    kFunctionBit = kArgcBit + kArgcSize,
-    kFunctionSize = 1,
-    kReverseArgOrderBit = kFunctionBit + kFunctionSize,
-    kReverseArgOrderSize = 1,
-  };
-  class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
-  class FunctionBits
-      : public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
-  class ReverseArgOrderBit
-      : public BitField<intptr_t, bool, kReverseArgOrderBit, 1> {};
   friend class Api;
   friend class Interpreter;
   friend class NativeEntry;
@@ -236,15 +209,11 @@ class NativeArguments {
 
   // Returns true if the arguments are those of a generic function call.
   bool ToGenericFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kGenericFunctionBit) != 0;
+    return GenericFunctionBit::decode(argc_tag_);
   }
 
-  int NumHiddenArgs(int function_bits) const {
-    int num_hidden_args = 0;
-    if ((function_bits & kGenericFunctionBit) == kGenericFunctionBit) {
-      num_hidden_args++;
-    }
-    return num_hidden_args;
+  int NumHiddenArgs() const {
+    return GenericFunctionBit::decode(argc_tag_) ? 1 : 0;
   }
 
   Thread* thread_;     // Current thread pointer.

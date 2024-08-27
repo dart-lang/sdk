@@ -1768,7 +1768,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(func->untag()->end_token_pos_);
         s->Write<uint32_t>(func->untag()->kernel_offset_);
-        s->Write<uint32_t>(func->untag()->packed_fields_);
+        s->Write<bool>(func->untag()->is_optimizable_);
       }
       s->Write<uint32_t>(func->untag()->kind_tag_);
     }
@@ -1934,7 +1934,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       func->untag()->end_token_pos_ = d.ReadTokenPosition();
       func->untag()->kernel_offset_ = d.Read<uint32_t>();
       func->untag()->unboxed_parameters_info_.Reset();
-      func->untag()->packed_fields_ = d.Read<uint32_t>();
+      func->untag()->is_optimizable_ = d.Read<bool>();
 #endif
 
       func->untag()->kind_tag_ = d.Read<uint32_t>();
