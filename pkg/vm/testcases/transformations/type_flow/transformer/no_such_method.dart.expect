@@ -56,7 +56,7 @@ class B extends self::A {
     ;
 
   [@vm.inferred-return-type.metadata=#lib::T1]
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T1::•();
@@ -84,7 +84,7 @@ abstract class C extends core::Object {
     ;
 
   [@vm.inferred-return-type.metadata=#lib::T2]
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T2::•();
@@ -117,7 +117,7 @@ class E extends core::Object implements self::A {
     ;
 
   [@vm.inferred-return-type.metadata=#lib::T4]
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T4::•();
@@ -129,7 +129,7 @@ class F extends core::Object {
     ;
 
   [@vm.inferred-return-type.metadata=#lib::T2]
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T2::•();
@@ -141,7 +141,7 @@ class G extends core::Object {
     ;
 
   [@vm.inferred-return-type.metadata=#lib::T5]
-  [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
+  [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T5::•();
@@ -158,7 +158,7 @@ class H extends core::Object {
     return new self::T6::•();
 
   [@vm.inferred-return-type.metadata=#lib::T7]
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T7::•();
