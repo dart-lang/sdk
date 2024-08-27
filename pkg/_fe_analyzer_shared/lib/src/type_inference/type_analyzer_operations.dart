@@ -1111,6 +1111,25 @@ abstract class TypeConstraintGenerator<
       SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
       {required AstNode? astNodeForTesting});
 
+  /// [performSubtypeConstraintGenerationInternal] should be implemented by
+  /// concrete classes implementing [TypeConstraintGenerator]. The
+  /// implementations of [performSubtypeConstraintGenerationLeftSchema] and
+  /// [performSubtypeConstraintGenerationRightSchema] are provided by mixing in
+  /// [TypeConstraintGeneratorMixin], which defines
+  /// [performSubtypeConstraintGenerationLeftSchema] and
+  /// [performSubtypeConstraintGenerationRightSchema] in terms of
+  /// [performSubtypeConstraintGenerationInternal].
+  ///
+  /// The main purpose of this method is to avoid code duplication in the
+  /// concrete classes implementing [TypeAnalyzerOperations], so they can
+  /// implement only one member, in this case
+  /// [performSubtypeConstraintGenerationInternal], and receive the
+  /// implementation of both [performSubtypeConstraintGenerationLeftSchema] and
+  /// [performSubtypeConstraintGenerationRightSchema] from the mixin.
+  bool performSubtypeConstraintGenerationInternal(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting});
+
   /// Matches type [p] against type schema [q] as a subtype against supertype
   /// and returns true if [p] and [q] are both FutureOr, with or without
   /// nullability suffixes as defined by
@@ -1127,52 +1146,9 @@ abstract class TypeConstraintGenerator<
   bool performSubtypeConstraintGenerationForFutureOrRightSchema(
       SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
       {required AstNode? astNodeForTesting}) {
-    // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
-    if (typeAnalyzerOperations.matchTypeSchemaFutureOr(q)
-        case SharedTypeSchemaView<TypeStructure> q0?
-        when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
-            q.nullabilitySuffix == NullabilitySuffix.none) {
-      final TypeConstraintGeneratorState state = currentState;
-
-      // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
-      // constraint set `C`.
-      if (typeAnalyzerOperations.matchFutureOr(p)
-          case SharedTypeView<TypeStructure> p0?
-          when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
-              p.nullabilitySuffix == NullabilitySuffix.none) {
-        if (performSubtypeConstraintGenerationRightSchema(p0, q0,
-            astNodeForTesting: astNodeForTesting)) {
-          return true;
-        }
-        restoreState(state);
-      }
-
-      // Or if `P` is a subtype match for `Future<Q0>` under non-empty
-      // constraint set `C`.
-      bool isMatchWithFuture = performSubtypeConstraintGenerationRightSchema(
-          p, typeAnalyzerOperations.futureTypeSchema(q0),
-          astNodeForTesting: astNodeForTesting);
-      bool matchWithFutureAddsConstraints = currentState != state;
-      if (isMatchWithFuture && matchWithFutureAddsConstraints) {
-        return true;
-      }
-      restoreState(state);
-
-      // Or if `P` is a subtype match for `Q0` under constraint set `C`.
-      if (performSubtypeConstraintGenerationRightSchema(p, q0,
-          astNodeForTesting: astNodeForTesting)) {
-        return true;
-      }
-      restoreState(state);
-
-      // Or if `P` is a subtype match for `Future<Q0>` under empty
-      // constraint set `C`.
-      if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
-        return true;
-      }
-    }
-
-    return false;
+    return _performSubtypeConstraintGenerationForFutureOrInternal(
+        p.unwrapTypeView(), q.unwrapTypeSchemaView(),
+        leftSchema: false, astNodeForTesting: astNodeForTesting);
   }
 
   /// Matches type schema [p] against type [q] as a subtype against supertype
@@ -1191,21 +1167,27 @@ abstract class TypeConstraintGenerator<
   bool performSubtypeConstraintGenerationForFutureOrLeftSchema(
       SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
       {required AstNode? astNodeForTesting}) {
+    return _performSubtypeConstraintGenerationForFutureOrInternal(
+        p.unwrapTypeSchemaView(), q.unwrapTypeView(),
+        leftSchema: true, astNodeForTesting: astNodeForTesting);
+  }
+
+  bool _performSubtypeConstraintGenerationForFutureOrInternal(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
     // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
-    if (typeAnalyzerOperations.matchFutureOr(q)
-        case SharedTypeView<TypeStructure> q0?
+    if (typeAnalyzerOperations.matchFutureOrInternal(q) case TypeStructure q0?
         when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
             q.nullabilitySuffix == NullabilitySuffix.none) {
       final TypeConstraintGeneratorState state = currentState;
 
       // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
       // constraint set `C`.
-      if (typeAnalyzerOperations.matchTypeSchemaFutureOr(p)
-          case SharedTypeSchemaView<TypeStructure> p0?
+      if (typeAnalyzerOperations.matchFutureOrInternal(p) case TypeStructure p0?
           when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
               p.nullabilitySuffix == NullabilitySuffix.none) {
-        if (performSubtypeConstraintGenerationLeftSchema(p0, q0,
-            astNodeForTesting: astNodeForTesting)) {
+        if (performSubtypeConstraintGenerationInternal(p0, q0,
+            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
           return true;
         }
         restoreState(state);
@@ -1213,9 +1195,9 @@ abstract class TypeConstraintGenerator<
 
       // Or if `P` is a subtype match for `Future<Q0>` under non-empty
       // constraint set `C`.
-      bool isMatchWithFuture = performSubtypeConstraintGenerationLeftSchema(
-          p, typeAnalyzerOperations.futureType(q0),
-          astNodeForTesting: astNodeForTesting);
+      bool isMatchWithFuture = performSubtypeConstraintGenerationInternal(
+          p, typeAnalyzerOperations.futureTypeInternal(q0),
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
       bool matchWithFutureAddsConstraints = currentState != state;
       if (isMatchWithFuture && matchWithFutureAddsConstraints) {
         return true;
@@ -1223,8 +1205,8 @@ abstract class TypeConstraintGenerator<
       restoreState(state);
 
       // Or if `P` is a subtype match for `Q0` under constraint set `C`.
-      if (performSubtypeConstraintGenerationLeftSchema(p, q0,
-          astNodeForTesting: astNodeForTesting)) {
+      if (performSubtypeConstraintGenerationInternal(p, q0,
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
         return true;
       }
       restoreState(state);
@@ -1250,3 +1232,31 @@ abstract class TypeConstraintGenerator<
 /// constraints generated so far. Since the count only increases as the
 /// generator proceeds, restoring to a state means discarding some constraints.
 extension type TypeConstraintGeneratorState(int count) {}
+
+mixin TypeConstraintGeneratorMixin<
+        TypeStructure extends SharedTypeStructure<TypeStructure>,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object,
+        AstNode extends Object>
+    on TypeConstraintGenerator<TypeStructure, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration, AstNode> {
+  @override
+  bool performSubtypeConstraintGenerationLeftSchema(
+      SharedTypeSchemaView<TypeStructure> p, SharedTypeView<TypeStructure> q,
+      {required AstNode? astNodeForTesting}) {
+    return performSubtypeConstraintGenerationInternal(
+        p.unwrapTypeSchemaView(), q.unwrapTypeView(),
+        leftSchema: true, astNodeForTesting: astNodeForTesting);
+  }
+
+  @override
+  bool performSubtypeConstraintGenerationRightSchema(
+      SharedTypeView<TypeStructure> p, SharedTypeSchemaView<TypeStructure> q,
+      {required AstNode? astNodeForTesting}) {
+    return performSubtypeConstraintGenerationInternal(
+        p.unwrapTypeView(), q.unwrapTypeSchemaView(),
+        leftSchema: false, astNodeForTesting: astNodeForTesting);
+  }
+}

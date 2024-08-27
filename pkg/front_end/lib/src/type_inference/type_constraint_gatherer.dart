@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     as shared
     show
         TypeConstraintGenerator,
+        TypeConstraintGeneratorMixin,
         TypeConstraintGeneratorState,
         TypeDeclarationKind,
         TypeDeclarationMatchResult,
@@ -25,12 +26,20 @@ import 'type_schema_environment.dart';
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
 class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
-    DartType,
-    VariableDeclaration,
-    StructuralParameter,
-    TypeDeclarationType,
-    TypeDeclaration,
-    TreeNode> {
+        DartType,
+        VariableDeclaration,
+        StructuralParameter,
+        TypeDeclarationType,
+        TypeDeclaration,
+        TreeNode>
+    with
+        shared.TypeConstraintGeneratorMixin<
+            DartType,
+            VariableDeclaration,
+            StructuralParameter,
+            TypeDeclarationType,
+            TypeDeclaration,
+            TreeNode> {
   final List<GeneratedTypeConstraint> _protoConstraints = [];
 
   final List<StructuralParameter> _parametersToConstrain;
@@ -349,21 +358,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }
 
   @override
-  bool performSubtypeConstraintGenerationRightSchema(
-      SharedTypeView<DartType> p, SharedTypeSchemaView<DartType> q,
-      {required TreeNode? astNodeForTesting}) {
-    return _isNullabilityAwareSubtypeMatch(
-        p.unwrapTypeView(), q.unwrapTypeSchemaView(),
-        constrainSupertype: false, treeNodeForTesting: astNodeForTesting);
-  }
-
-  @override
-  bool performSubtypeConstraintGenerationLeftSchema(
-      SharedTypeSchemaView<DartType> p, SharedTypeView<DartType> q,
-      {required TreeNode? astNodeForTesting}) {
-    return _isNullabilityAwareSubtypeMatch(
-        p.unwrapTypeSchemaView(), q.unwrapTypeView(),
-        constrainSupertype: true, treeNodeForTesting: astNodeForTesting);
+  bool performSubtypeConstraintGenerationInternal(DartType p, DartType q,
+      {required bool leftSchema, required TreeNode? astNodeForTesting}) {
+    return _isNullabilityAwareSubtypeMatch(p, q,
+        constrainSupertype: leftSchema, treeNodeForTesting: astNodeForTesting);
   }
 
   /// Matches [p] against [q] as a subtype against supertype.
