@@ -94,6 +94,43 @@ final class MyStruct extends Struct {
 ''');
   }
 
+  test_typed_data_error() async {
+    await assertErrorsInCode('''
+import 'dart:ffi';
+import 'dart:typed_data';
+
+@Native<Void Function(Pointer<Void>)>(isLeaf: true)
+external void myNative(Pointer<Void> buffer);
+
+@Native<Void Function(Pointer<Void>)>()
+external void myNonLeafNative(Pointer<Void> buffer);
+
+main() {
+  final buffer = Int8List(2);
+  myNative(buffer.address.cast<Int8>());
+  myNonLeafNative(buffer.address.cast());
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 289, 27),
+      error(FfiCode.ADDRESS_POSITION, 344, 7)
+    ]);
+  }
+
+  test_typed_data_no_error() async {
+    await assertNoErrorsInCode('''
+import 'dart:ffi';
+import 'dart:typed_data';
+
+@Native<Void Function(Pointer<Void>)>(isLeaf: true)
+external void myNative(Pointer<Void> buffer);
+
+main() {
+  final buffer = Int8List(2);
+  myNative(buffer.address.cast());
+}
+''');
+  }
+
   test_union_error_1() async {
     await assertErrorsInCode('''
 import 'dart:ffi';
@@ -166,43 +203,6 @@ final class MyUnion extends Union {
   external int value;
   @Array(2)
   external Array<Int8> arr;
-}
-''');
-  }
-
-  test_typed_data_error() async {
-    await assertErrorsInCode('''
-import 'dart:ffi';
-import 'dart:typed_data';
-
-@Native<Void Function(Pointer<Void>)>(isLeaf: true)
-external void myNative(Pointer<Void> buffer);
-
-@Native<Void Function(Pointer<Void>)>()
-external void myNonLeafNative(Pointer<Void> buffer);
-
-main() {
-  final buffer = Int8List(2);
-  myNative(buffer.address.cast<Int8>());
-  myNonLeafNative(buffer.address.cast());
-}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 289, 27),
-      error(FfiCode.ADDRESS_POSITION, 344, 7)
-    ]);
-  }
-
-  test_typed_data_no_error() async {
-    await assertNoErrorsInCode('''
-import 'dart:ffi';
-import 'dart:typed_data';
-
-@Native<Void Function(Pointer<Void>)>(isLeaf: true)
-external void myNative(Pointer<Void> buffer);
-
-main() {
-  final buffer = Int8List(2);
-  myNative(buffer.address.cast());
 }
 ''');
   }
