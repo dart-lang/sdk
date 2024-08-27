@@ -12,6 +12,13 @@ import 'dart:_foreign_helper'
     show JS, JS_RAW_EXCEPTION, JSExportName, RAW_DART_FUNCTION_REF;
 import 'dart:_runtime' as dart;
 
+@patch
+void _trySetStackTrace(Object error, StackTrace stackTrace) {
+  if (error is Error) {
+    dart.trySetStackTrace(error, stackTrace);
+  }
+}
+
 /// This function adapts ES6 generators to implement Dart's async/await.
 ///
 /// It's designed to interact with Dart's Future and follow Dart async/await

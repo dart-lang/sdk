@@ -41,6 +41,11 @@ class Exceptions : AllStatic {
   // Propagate an error to the entry frame, skipping over Dart frames.
   DART_NORETURN static void PropagateToEntry(const Error& error);
 
+  // Sets `Error._stackTrace` if possible.
+  static void TrySetStackTrace(Zone* zone,
+                               const Instance& exception,
+                               const Instance& stacktrace);
+
   // Helpers to create and throw errors.
   static StackTracePtr CurrentStackTrace();
   static ScriptPtr GetCallerScript(DartFrameIterator* iterator);

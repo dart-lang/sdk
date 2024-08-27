@@ -1154,6 +1154,17 @@ class Intrinsifier {
           codeGen.wrap(value, w.RefType.extern(nullable: true));
           b.ref_is_null();
           return w.NumType.i32;
+        case "isSubClassOf":
+          final baseClass =
+              (node.arguments.types.single as InterfaceType).classNode;
+          final range =
+              translator.classIdNumbering.getConcreteSubclassRange(baseClass);
+
+          final object = node.arguments.positional.single;
+          codeGen.wrap(object, w.RefType.any(nullable: false));
+          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.emitClassIdRangeCheck([range]);
+          return w.NumType.i32;
       }
     }
 
