@@ -346,11 +346,17 @@ class AnalysisDriver {
     return libraryContext.elementFactory.analysisSession;
   }
 
-  /// Return a list of the names of all the plugins enabled in analysis options
+  /// Return a set of the names of all the plugins enabled in analysis options
   /// in this driver.
-  List<String> get enabledPluginNames => analysisOptionsMap.entries
-      .map((e) => e.options.enabledPluginNames)
-      .flattenedToList;
+  Set<String> get enabledPluginNames {
+    // We currently only support plugins enabled at the very root of a context
+    // (and we create contexts for any analysis options that changes plugins
+    // from its parent context).
+    var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
+    return rootOptionsFile != null
+        ? getAnalysisOptionsForFile(rootOptionsFile).enabledPluginNames.toSet()
+        : const {};
+  }
 
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;

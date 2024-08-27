@@ -669,8 +669,9 @@ linter:
 ''');
     newFile('$testPackagePath/lib/a.dart', '');
 
-    var collection = _newCollection(includedPaths: [workspaceRootPath]);
-    var analysisContext = collection.contextFor(testPackagePath);
+    var collection =
+        _newCollection(includedPaths: [convertPath(workspaceRootPath)]);
+    var analysisContext = collection.contextFor(convertPath(testPackagePath));
     var analysisOptions =
         analysisContext.getAnalysisOptionsForFile(optionsFile);
 

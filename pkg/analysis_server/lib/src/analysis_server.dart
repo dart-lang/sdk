@@ -252,6 +252,7 @@ abstract class AnalysisServer {
     this.requestStatistics,
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
+    PluginManager? pluginManager,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']),
@@ -280,12 +281,13 @@ abstract class AnalysisServer {
 
     PluginWatcher? pluginWatcher;
     if (supportsPlugins) {
-      pluginManager = PluginManager(
+      this.pluginManager = pluginManager ??= PluginManager(
           resourceProvider,
           _getByteStorePath(),
           sdkManager.defaultSdkDirectory,
           notificationManager,
           instrumentationService);
+
       pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
     }
 
