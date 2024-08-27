@@ -426,8 +426,10 @@ class UntaggedObject : public AllStatic {
   static const word kSizeTagSize;
   static const word kClassIdTagPos;
   static const word kClassIdTagSize;
+#if defined(HASH_IN_OBJECT_HEADER)
   static const word kHashTagPos;
   static const word kHashTagSize;
+#endif
   static const word kSizeTagMaxSizeTag;
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
