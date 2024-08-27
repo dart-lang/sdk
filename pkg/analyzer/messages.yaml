@@ -27316,6 +27316,8 @@ WarningCode:
       kinds of declarations are analyzed:
       - Private top-level declarations and all of their members
       - Private members of public declarations
+      - Optional parameters of private functions for which a value is never
+        passed
 
       Not all references to an element will mark it as "used":
       - Assigning a value to a top-level variable (with a standard `=`
@@ -27334,26 +27336,6 @@ WarningCode:
       ```dart
       class [!_C!] {}
       ```
-
-      #### Common fixes
-
-      If the declaration isn't needed, then remove it.
-
-      If the declaration is intended to be used, then add the code to use it.
-  UNUSED_ELEMENT_PARAMETER:
-    problemMessage: "A value for optional parameter '{0}' isn't ever given."
-    correctionMessage: Try removing the unused parameter.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the parameter that is declared but not used
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a value is never passed for an
-      optional parameter declared within a private declaration.
-
-      #### Example
 
       Assuming that no code in the library passes a value for `y` in any
       invocation of `_m`, the following code produces this diagnostic:
@@ -27379,6 +27361,14 @@ WarningCode:
       ```
 
       If the declaration is intended to be used, then add the code to use it.
+  UNUSED_ELEMENT_PARAMETER:
+    sharedName: UNUSED_ELEMENT
+    problemMessage: "A value for optional parameter '{0}' isn't ever given."
+    correctionMessage: Try removing the unused parameter.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the parameter that is declared but not used
   UNUSED_FIELD:
     problemMessage: "The value of the field '{0}' isn't used."
     correctionMessage: Try removing the field, or using it.

@@ -7612,9 +7612,11 @@ class WarningCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the name of the parameter that is declared but not used
   static const WarningCode UNUSED_ELEMENT_PARAMETER = WarningCode(
-    'UNUSED_ELEMENT_PARAMETER',
+    'UNUSED_ELEMENT',
     "A value for optional parameter '{0}' isn't ever given.",
     correctionMessage: "Try removing the unused parameter.",
+    hasPublishedDocs: true,
+    uniqueName: 'UNUSED_ELEMENT_PARAMETER',
   );
 
   ///  Parameters:
