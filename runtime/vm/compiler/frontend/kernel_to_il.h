@@ -532,8 +532,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // expression stack only as needed, switching to Smis as soon as possible.
   template <typename T>
   Fragment BuildExtractUnboxedSlotBitFieldIntoSmi(const Slot& slot) {
-    // Currently this method is not used with any sign-extended BitFields.
-    COMPILE_ASSERT(!T::sign_extended());
     ASSERT(RepresentationUtils::IsUnboxedInteger(slot.representation()));
     Fragment instructions;
     if (!Boxing::RequiresAllocation(slot.representation())) {

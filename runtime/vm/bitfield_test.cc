@@ -70,65 +70,6 @@ VM_UNIT_TEST_CASE(BitFields_SignedField) {
   TestSignExtendedBitField<int32_t>();
 }
 
-VM_UNIT_TEST_CASE(BitFields_Defaults) {
-  using F1 = BitField<intptr_t, bool>;
-  using F2 = BitField<intptr_t, uint8_t, F1::kNextBit>;
-  using F3 = BitField<intptr_t, int16_t, F2::kNextBit>;
-  using F3s = BitField<intptr_t, int16_t, F2::kNextBit, kBitsPerInt16,
-                       /*sign_extend=*/true>;
-  using F4 = BitField<intptr_t, intptr_t, F3::kNextBit>;
-  using F4s = BitField<intptr_t, intptr_t, F3::kNextBit,
-                       kBitsPerWord - F3::kNextBit, /*sign_extend=*/true>;
-  // Like F4/F4s, but based on F3s.
-  using F5 = BitField<intptr_t, intptr_t, F3s::kNextBit>;
-  using F5s = BitField<intptr_t, intptr_t, F3s::kNextBit,
-                       kBitsPerWord - F3s::kNextBit, /*sign_extend=*/true>;
-
-  const intptr_t kF4Bitsize = kBitsPerWord - 24;
-  const intptr_t kF4Max = (static_cast<intptr_t>(1) << (kF4Bitsize)) - 1;
-  const intptr_t kF4sMax = (static_cast<intptr_t>(1) << (kF4Bitsize - 1)) - 1;
-
-  const intptr_t kF5Bitsize = kBitsPerWord - 25;
-  const intptr_t kF5Max = (static_cast<intptr_t>(1) << (kF5Bitsize)) - 1;
-  const intptr_t kF5sMax = (static_cast<intptr_t>(1) << (kF5Bitsize - 1)) - 1;
-
-  EXPECT_EQ(1, F1::bitsize());
-  EXPECT_EQ(8, F2::bitsize());
-  EXPECT_EQ(15, F3::bitsize());
-  EXPECT_EQ(16, F3s::bitsize());
-  EXPECT_EQ(kF4Bitsize, F4::bitsize());
-  EXPECT_EQ(kF4Bitsize, F4s::bitsize());
-  EXPECT_EQ(kF5Bitsize, F5::bitsize());
-  EXPECT_EQ(kF5Bitsize, F5s::bitsize());
-
-  EXPECT_EQ(0, F1::shift());
-  EXPECT_EQ(1, F2::shift());
-  EXPECT_EQ(9, F3::shift());
-  EXPECT_EQ(9, F3s::shift());
-  EXPECT_EQ(24, F4::shift());
-  EXPECT_EQ(24, F4s::shift());
-  EXPECT_EQ(25, F5::shift());
-  EXPECT_EQ(25, F5s::shift());
-
-  EXPECT_EQ(false, F1::min());
-  EXPECT_EQ(0, F2::min());
-  EXPECT_EQ(0, F3::min());
-  EXPECT_EQ(~0x7FFF, F3s::min());
-  EXPECT_EQ(0, F4::min());
-  EXPECT_EQ(~kF4sMax, F4s::min());
-  EXPECT_EQ(F5::min(), 0);
-  EXPECT_EQ(~kF5sMax, F5s::min());
-
-  EXPECT_EQ(true, F1::max());
-  EXPECT_EQ(0xFF, F2::max());
-  EXPECT_EQ(0x7FFF, F3::max());
-  EXPECT_EQ(0x7FFF, F3s::max());
-  EXPECT_EQ(kF4Max, F4::max());
-  EXPECT_EQ(kF4sMax, F4s::max());
-  EXPECT_EQ(kF5Max, F5::max());
-  EXPECT_EQ(kF5sMax, F5s::max());
-}
-
 #if defined(DEBUG)
 #define DEBUG_CRASH "Crash"
 #else

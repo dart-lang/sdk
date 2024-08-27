@@ -9130,6 +9130,14 @@ bool Function::is_eval_function() const {
   return false;
 }
 
+void Function::set_packed_fields(uint32_t packed_fields) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  StoreNonPointer(&untag()->packed_fields_, packed_fields);
+#endif
+}
+
 bool Function::IsOptimizable() const {
   if (FLAG_precompiled_mode) {
     return true;
@@ -9146,6 +9154,15 @@ bool Function::IsOptimizable() const {
             FLAG_huge_method_cutoff_in_code_size);
   }
   return false;
+}
+
+void Function::SetIsOptimizable(bool value) const {
+  ASSERT(!is_native());
+  set_is_optimizable(value);
+  if (!value) {
+    set_is_inlinable(false);
+    set_usage_counter(INT32_MIN);
+  }
 }
 
 bool Function::IsTypedDataViewFactory() const {
@@ -10449,6 +10466,7 @@ FunctionPtr Function::New(const FunctionType& signature,
   ASSERT(!signature.IsNull());
   const Function& result = Function::Handle(Function::New(space));
   result.set_kind_tag(0);
+  NOT_IN_PRECOMPILED(result.set_packed_fields(0));
   result.set_name(name);
   result.set_kind_tag(0);  // Ensure determinism of uninitialized bits.
   result.set_kind(kind);
@@ -12233,6 +12251,7 @@ void Field::InitializeNew(const Field& result,
                           const Object& owner,
                           TokenPosition token_pos,
                           TokenPosition end_token_pos) {
+  result.set_kind_bits(0);
   result.set_name(name);
   result.set_is_static(is_static);
   if (is_static) {
@@ -16450,7 +16469,7 @@ LocalVarDescriptorsPtr LocalVarDescriptors::New(intptr_t num_variables) {
     FATAL(
         "Fatal error in LocalVarDescriptors::New: "
         "invalid num_variables %" Pd ". Maximum is: %d\n",
-        num_variables, UntaggedLocalVarDescriptors::VarInfo::kMaxIndex);
+        num_variables, UntaggedLocalVarDescriptors::kMaxIndex);
   }
   auto raw = Object::Allocate<LocalVarDescriptors>(Heap::kOld, num_variables);
   NoSafepointScope no_safepoint;

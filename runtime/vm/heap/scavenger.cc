@@ -52,7 +52,7 @@ DEFINE_FLAG(int, new_gen_growth_factor, 2, "Grow new gen by this factor.");
 // object headers, and which doesn't intersect with the target address because
 // of object alignment.
 enum {
-  kForwardingMask = UntaggedObject::CardRememberedBit::mask(),
+  kForwardingMask = 1 << UntaggedObject::kCardRememberedBit,
   kNotForwarded = 0,
   kForwarded = kForwardingMask,
 };

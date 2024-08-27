@@ -1590,7 +1590,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   };
 
 #define DECLARE_BITFIELD(Name)                                                 \
-  using Name##Bit = BitField<uint32_t, bool, k##Name##Bit>;
+  class Name##Bit : public BitField<uint32_t, bool, k##Name##Bit, 1> {};
   ISOLATE_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 

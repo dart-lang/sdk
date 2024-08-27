@@ -373,63 +373,55 @@ word Object::tags_offset() {
 }
 
 const word UntaggedObject::kCardRememberedBit =
-    dart::UntaggedObject::CardRememberedBit::shift();
+    dart::UntaggedObject::kCardRememberedBit;
 
-const word UntaggedObject::kCanonicalBit =
-    dart::UntaggedObject::CanonicalBit::shift();
+const word UntaggedObject::kCanonicalBit = dart::UntaggedObject::kCanonicalBit;
 
 const word UntaggedObject::kNewOrEvacuationCandidateBit =
-    dart::UntaggedObject::NewOrEvacuationCandidateBit::shift();
+    dart::UntaggedObject::kNewOrEvacuationCandidateBit;
 
 const word UntaggedObject::kOldAndNotRememberedBit =
-    dart::UntaggedObject::OldAndNotRememberedBit::shift();
+    dart::UntaggedObject::kOldAndNotRememberedBit;
 
-const word UntaggedObject::kNotMarkedBit =
-    dart::UntaggedObject::NotMarkedBit::shift();
+const word UntaggedObject::kNotMarkedBit = dart::UntaggedObject::kNotMarkedBit;
 
-const word UntaggedObject::kImmutableBit =
-    dart::UntaggedObject::ImmutableBit::shift();
+const word UntaggedObject::kImmutableBit = dart::UntaggedObject::kImmutableBit;
 
-const word UntaggedObject::kSizeTagPos =
-    dart::UntaggedObject::SizeTagBits::shift();
+const word UntaggedObject::kSizeTagPos = dart::UntaggedObject::kSizeTagPos;
 
-const word UntaggedObject::kSizeTagSize =
-    dart::UntaggedObject::SizeTagBits::bitsize();
+const word UntaggedObject::kSizeTagSize = dart::UntaggedObject::kSizeTagSize;
 
 const word UntaggedObject::kClassIdTagPos =
-    dart::UntaggedObject::ClassIdTag::shift();
+    dart::UntaggedObject::kClassIdTagPos;
 
 const word UntaggedObject::kClassIdTagSize =
     dart::UntaggedObject::kClassIdTagSize;
 
-#if defined(HASH_IN_OBJECT_HEADER)
-const word UntaggedObject::kHashTagPos = dart::UntaggedObject::HashTag::shift();
+const word UntaggedObject::kHashTagPos = dart::UntaggedObject::kHashTagPos;
 
-const word UntaggedObject::kHashTagSize =
-    dart::UntaggedObject::HashTag::bitsize();
-#endif
+const word UntaggedObject::kHashTagSize = dart::UntaggedObject::kHashTagSize;
 
 const word UntaggedObject::kSizeTagMaxSizeTag =
     dart::UntaggedObject::SizeTag::kMaxSizeTagInUnitsOfAlignment *
     ObjectAlignment::kObjectAlignment;
 
 const word UntaggedObject::kTagBitsSizeTagPos =
-    dart::UntaggedObject::SizeTagBits::shift();
+    dart::UntaggedObject::TagBits::kSizeTagPos;
 
 const word UntaggedAbstractType::kTypeStateFinalizedInstantiated =
     dart::UntaggedAbstractType::kFinalizedInstantiated;
 const word UntaggedAbstractType::kTypeStateShift =
-    dart::UntaggedAbstractType::TypeStateBits::shift();
+    dart::UntaggedAbstractType::kTypeStateShift;
 const word UntaggedAbstractType::kTypeStateBits =
-    dart::UntaggedAbstractType::TypeStateBits::bitsize();
+    dart::UntaggedAbstractType::kTypeStateBits;
 const word UntaggedAbstractType::kNullabilityMask =
-    dart::UntaggedAbstractType::NullabilityBit::mask();
+    dart::UntaggedAbstractType::kNullabilityMask;
 
 const word UntaggedType::kTypeClassIdShift =
-    dart::UntaggedType::TypeClassIdBits::shift();
+    dart::UntaggedType::kTypeClassIdShift;
 
 const word UntaggedTypeParameter::kIsFunctionTypeParameterBit =
-    dart::UntaggedTypeParameter::IsFunctionTypeParameter::shift();
+    dart::UntaggedTypeParameter::kIsFunctionTypeParameterBit;
 
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;
