@@ -98,8 +98,6 @@ enum InstanceTypeVariableAccessState {
 }
 
 abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
-  final StackTrace st = StackTrace.current;
-
   @override
   final TypeName typeName;
 
