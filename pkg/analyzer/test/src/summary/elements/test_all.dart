@@ -14,7 +14,6 @@ import 'extension_test.dart' as extension_;
 import 'extension_type_test.dart' as extension_type;
 import 'formal_parameter_test.dart' as formal_parameter;
 import 'function_type_annotation_test.dart' as function_type_annotation;
-import 'library_augmentation_test.dart' as library_augmentation;
 import 'library_export_test.dart' as library_export;
 import 'library_fragment_test.dart' as library_fragment;
 import 'library_import_test.dart' as library_import;
@@ -45,7 +44,6 @@ main() {
     extension_type.main();
     formal_parameter.main();
     function_type_annotation.main();
-    library_augmentation.main();
     library_export.main();
     library_fragment.main();
     library_import.main();

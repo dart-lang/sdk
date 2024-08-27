@@ -1309,17 +1309,14 @@ class FileState {
             ),
           );
         } else if (uri != null) {
-          var uriStr = uri.stringValue;
-          if (uriStr != null) {
-            partOfUriDirective = UnlinkedPartOfUriDirective(
-              docImports: buildDocImports(directive),
-              uri: uriStr,
-              uriRange: UnlinkedSourceRange(
-                offset: uri.offset,
-                length: uri.length,
-              ),
-            );
-          }
+          partOfUriDirective = UnlinkedPartOfUriDirective(
+            docImports: buildDocImports(directive),
+            uri: uri.stringValue,
+            uriRange: UnlinkedSourceRange(
+              offset: uri.offset,
+              length: uri.length,
+            ),
+          );
         }
       }
     }

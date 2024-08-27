@@ -786,19 +786,47 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            f @16
+              reference: <testLibraryFragment>::@class::A::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::A::@getter::f
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set f= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::f
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::f
+      setters
+        synthetic set f=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::f
 ''');
   }
 
@@ -910,9 +938,21 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          fields
+            f @16
+              reference: <testLibraryFragment>::@class::I::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::I
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::I::@getter::f
+              enclosingFragment: <testLibraryFragment>::@class::I
+          setters
+            set f= @-1
+              reference: <testLibraryFragment>::@class::I::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::I
         class C @36
           reference: <testLibraryFragment>::@class::C
@@ -925,10 +965,26 @@ library
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+      fields
+        f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          type: int
+          firstFragment: <testLibraryFragment>::@class::I::@field::f
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::I::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          firstFragment: <testLibraryFragment>::@class::I::@getter::f
+      setters
+        synthetic set f=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          firstFragment: <testLibraryFragment>::@class::I::@setter::f
     abstract class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
@@ -1038,9 +1094,21 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          fields
+            f @16
+              reference: <testLibraryFragment>::@class::I::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::I
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::I::@getter::f
+              enclosingFragment: <testLibraryFragment>::@class::I
+          setters
+            set f= @-1
+              reference: <testLibraryFragment>::@class::I::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::I
         class C @36
           reference: <testLibraryFragment>::@class::C
@@ -1053,10 +1121,26 @@ library
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+      fields
+        f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          type: int
+          firstFragment: <testLibraryFragment>::@class::I::@field::f
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::I::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          firstFragment: <testLibraryFragment>::@class::I::@getter::f
+      setters
+        synthetic set f=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          firstFragment: <testLibraryFragment>::@class::I::@setter::f
     abstract class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
@@ -1354,9 +1438,21 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            a @16
+              reference: <testLibraryFragment>::@class::A::@field::a
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@class::A::@getter::a
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set a= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::a
               enclosingFragment: <testLibraryFragment>::@class::A
           methods
             m @26
@@ -1367,10 +1463,26 @@ library
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::a
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::a
+      setters
+        synthetic set a=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::a
       methods
         m
           reference: <none>
@@ -1714,61 +1826,415 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            f @16
+              reference: <testLibraryFragment>::@class::A::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::A::@getter::f
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set f= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::f
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @31
           reference: <testLibraryFragment>::@class::B
+          fields
+            a @39
+              reference: <testLibraryFragment>::@class::B::@field::a
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@class::B::@getter::a
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set a= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::a
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @50
           reference: <testLibraryFragment>::@class::C
+          fields
+            b @58
+              reference: <testLibraryFragment>::@class::C::@field::b
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get b @-1
+              reference: <testLibraryFragment>::@class::C::@getter::b
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set b= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::b
+              enclosingFragment: <testLibraryFragment>::@class::C
         class X @69
           reference: <testLibraryFragment>::@class::X
+          fields
+            a @77
+              reference: <testLibraryFragment>::@class::X::@field::a
+              enclosingFragment: <testLibraryFragment>::@class::X
+            b @94
+              reference: <testLibraryFragment>::@class::X::@field::b
+              enclosingFragment: <testLibraryFragment>::@class::X
+            c @111
+              reference: <testLibraryFragment>::@class::X::@field::c
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t01 @130
+              reference: <testLibraryFragment>::@class::X::@field::t01
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t02 @147
+              reference: <testLibraryFragment>::@class::X::@field::t02
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t03 @166
+              reference: <testLibraryFragment>::@class::X::@field::t03
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t11 @187
+              reference: <testLibraryFragment>::@class::X::@field::t11
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t12 @210
+              reference: <testLibraryFragment>::@class::X::@field::t12
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t13 @235
+              reference: <testLibraryFragment>::@class::X::@field::t13
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t21 @262
+              reference: <testLibraryFragment>::@class::X::@field::t21
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t22 @284
+              reference: <testLibraryFragment>::@class::X::@field::t22
+              enclosingFragment: <testLibraryFragment>::@class::X
+            t23 @308
+              reference: <testLibraryFragment>::@class::X::@field::t23
+              enclosingFragment: <testLibraryFragment>::@class::X
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::X
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@class::X::@getter::a
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get b @-1
+              reference: <testLibraryFragment>::@class::X::@getter::b
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get c @-1
+              reference: <testLibraryFragment>::@class::X::@getter::c
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t01 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t01
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t02 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t02
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t03 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t03
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t11 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t11
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t12 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t12
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t13 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t13
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t21 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t21
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t22 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t22
+              enclosingFragment: <testLibraryFragment>::@class::X
+            get t23 @-1
+              reference: <testLibraryFragment>::@class::X::@getter::t23
+              enclosingFragment: <testLibraryFragment>::@class::X
+          setters
+            set a= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::a
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set b= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::b
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set c= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::c
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t01= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t01
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t02= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t02
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t03= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t03
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t11= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t11
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t12= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t12
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t13= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t13
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t21= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t21
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t22= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t22
+              enclosingFragment: <testLibraryFragment>::@class::X
+            set t23= @-1
+              reference: <testLibraryFragment>::@class::X::@setter::t23
               enclosingFragment: <testLibraryFragment>::@class::X
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::f
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::f
+      setters
+        synthetic set f=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::f
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: A
+          firstFragment: <testLibraryFragment>::@class::B::@field::a
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::a
+      setters
+        synthetic set a=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::a
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: B
+          firstFragment: <testLibraryFragment>::@class::C::@field::b
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::b
+      setters
+        synthetic set b=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::b
     class X
       reference: <testLibraryFragment>::@class::X
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
+      fields
+        a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: A
+          firstFragment: <testLibraryFragment>::@class::X::@field::a
+        b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: B
+          firstFragment: <testLibraryFragment>::@class::X::@field::b
+        c
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: C
+          firstFragment: <testLibraryFragment>::@class::X::@field::c
+        t01
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t01
+        t02
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t02
+        t03
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t03
+        t11
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t11
+        t12
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t12
+        t13
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t13
+        t21
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t21
+        t22
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t22
+        t23
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: int
+          firstFragment: <testLibraryFragment>::@class::X::@field::t23
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
+      getters
+        synthetic get a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::a
+        synthetic get b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::b
+        synthetic get c
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::c
+        synthetic get t01
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t01
+        synthetic get t02
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t02
+        synthetic get t03
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t03
+        synthetic get t11
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t11
+        synthetic get t12
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t12
+        synthetic get t13
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t13
+        synthetic get t21
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t21
+        synthetic get t22
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t22
+        synthetic get t23
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::t23
+      setters
+        synthetic set a=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::a
+        synthetic set b=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::b
+        synthetic set c=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::c
+        synthetic set t01=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t01
+        synthetic set t02=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t02
+        synthetic set t03=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t03
+        synthetic set t11=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t11
+        synthetic set t12=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t12
+        synthetic set t13=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t13
+        synthetic set t21=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t21
+        synthetic set t22=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t22
+        synthetic set t23=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@setter::t23
 ''');
   }
 
@@ -2150,19 +2616,47 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          fields
+            f @16
+              reference: <testLibraryFragment>::@class::C::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::C::@getter::f
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set f= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::f
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::f
+      setters
+        synthetic set f=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::f
 ''');
   }
 
@@ -2339,19 +2833,47 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          fields
+            f @16
+              reference: <testLibraryFragment>::@class::C::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::C::@getter::f
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set f= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::f
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::f
+      setters
+        synthetic set f=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::f
 ''');
   }
 
@@ -2483,33 +3005,89 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            f @16
+              reference: <testLibraryFragment>::@class::A::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::A::@getter::f
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set f= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::f
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @27
           reference: <testLibraryFragment>::@class::B
+          fields
+            t @44
+              reference: <testLibraryFragment>::@class::B::@field::t
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get t @-1
+              reference: <testLibraryFragment>::@class::B::@getter::t
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set t= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::t
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::f
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::f
+      setters
+        synthetic set f=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::f
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        static t
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::t
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic static get t
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::t
+      setters
+        synthetic static set t=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::t
 ''');
   }
 
@@ -2594,19 +3172,47 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          fields
+            b @17
+              reference: <testLibraryFragment>::@class::C::@field::b
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get b @-1
+              reference: <testLibraryFragment>::@class::C::@getter::b
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set b= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::b
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: bool
+          firstFragment: <testLibraryFragment>::@class::C::@field::b
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::b
+      setters
+        synthetic set b=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::b
 ''');
   }
 
@@ -2701,9 +3307,21 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          fields
+            b @17
+              reference: <testLibraryFragment>::@class::I::@field::b
+              enclosingFragment: <testLibraryFragment>::@class::I
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I
+          getters
+            get b @-1
+              reference: <testLibraryFragment>::@class::I::@getter::b
+              enclosingFragment: <testLibraryFragment>::@class::I
+          setters
+            set b= @-1
+              reference: <testLibraryFragment>::@class::I::@setter::b
               enclosingFragment: <testLibraryFragment>::@class::I
         class C @37
           reference: <testLibraryFragment>::@class::C
@@ -2716,10 +3334,26 @@ library
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+      fields
+        b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          type: bool
+          firstFragment: <testLibraryFragment>::@class::I::@field::b
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::I::@constructor::new
+      getters
+        synthetic get b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          firstFragment: <testLibraryFragment>::@class::I::@getter::b
+      setters
+        synthetic set b=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          firstFragment: <testLibraryFragment>::@class::I::@setter::b
     abstract class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
@@ -2812,9 +3446,21 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
+          fields
+            b @17
+              reference: <testLibraryFragment>::@class::I::@field::b
+              enclosingFragment: <testLibraryFragment>::@class::I
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::I::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::I
+          getters
+            get b @-1
+              reference: <testLibraryFragment>::@class::I::@getter::b
+              enclosingFragment: <testLibraryFragment>::@class::I
+          setters
+            set b= @-1
+              reference: <testLibraryFragment>::@class::I::@setter::b
               enclosingFragment: <testLibraryFragment>::@class::I
         class C @37
           reference: <testLibraryFragment>::@class::C
@@ -2827,10 +3473,26 @@ library
       reference: <testLibraryFragment>::@class::I
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::I
+      fields
+        b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          type: bool
+          firstFragment: <testLibraryFragment>::@class::I::@field::b
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::I::@constructor::new
+      getters
+        synthetic get b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          firstFragment: <testLibraryFragment>::@class::I::@getter::b
+      setters
+        synthetic set b=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::I
+          firstFragment: <testLibraryFragment>::@class::I::@setter::b
     abstract class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
@@ -3521,9 +4183,27 @@ library
       classes
         class A @101
           reference: <testLibraryFragment>::@class::A
+          fields
+            staticClassVariable @118
+              reference: <testLibraryFragment>::@class::A::@field::staticClassVariable
+              enclosingFragment: <testLibraryFragment>::@class::A
+            staticGetter @-1
+              reference: <testLibraryFragment>::@class::A::@field::staticGetter
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get staticClassVariable @-1
+              reference: <testLibraryFragment>::@class::A::@getter::staticClassVariable
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get staticGetter @160
+              reference: <testLibraryFragment>::@class::A::@getter::staticGetter
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set staticClassVariable= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::staticClassVariable
               enclosingFragment: <testLibraryFragment>::@class::A
           methods
             staticClassMethod @195
@@ -3537,10 +4217,35 @@ library
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        static staticClassVariable
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::staticClassVariable
+        synthetic static staticGetter
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::staticGetter
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic static get staticClassVariable
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::staticClassVariable
+        static get staticGetter
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::staticGetter
+      setters
+        synthetic static set staticClassVariable=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::staticClassVariable
       methods
         static staticClassMethod
           reference: <none>
@@ -3649,33 +4354,89 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            a @23
+              reference: <testLibraryFragment>::@class::A::@field::a
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@class::A::@getter::a
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set a= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::a
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @40
           reference: <testLibraryFragment>::@class::B
+          fields
+            b @57
+              reference: <testLibraryFragment>::@class::B::@field::b
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get b @-1
+              reference: <testLibraryFragment>::@class::B::@getter::b
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set b= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::b
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        static a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::A::@field::a
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic static get a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::a
+      setters
+        synthetic static set a=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::a
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        static b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::B::@field::b
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic static get b
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::b
+      setters
+        synthetic static set b=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::b
 ''');
   }
 
@@ -3766,19 +4527,47 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            a @23
+              reference: <testLibraryFragment>::@class::A::@field::a
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get a @-1
+              reference: <testLibraryFragment>::@class::A::@getter::a
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set a= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::a
               enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        static a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::A::@field::a
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic static get a
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::a
+      setters
+        synthetic static set a=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::a
 ''');
   }
 
@@ -5753,33 +6542,89 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          fields
+            d @21
+              reference: <testLibraryFragment>::@class::C::@field::d
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get d @-1
+              reference: <testLibraryFragment>::@class::C::@getter::d
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set d= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::d
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @32
           reference: <testLibraryFragment>::@class::D
+          fields
+            i @42
+              reference: <testLibraryFragment>::@class::D::@field::i
+              enclosingFragment: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
+          getters
+            get i @-1
+              reference: <testLibraryFragment>::@class::D::@getter::i
+              enclosingFragment: <testLibraryFragment>::@class::D
+          setters
+            set i= @-1
+              reference: <testLibraryFragment>::@class::D::@setter::i
               enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        static d
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: D
+          firstFragment: <testLibraryFragment>::@class::C::@field::d
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic static get d
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::d
+      setters
+        synthetic static set d=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::d
     class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      fields
+        i
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::D
+          type: int
+          firstFragment: <testLibraryFragment>::@class::D::@field::i
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+      getters
+        synthetic get i
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::D
+          firstFragment: <testLibraryFragment>::@class::D::@getter::i
+      setters
+        synthetic set i=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::D
+          firstFragment: <testLibraryFragment>::@class::D::@setter::i
 ''');
   }
 
@@ -5868,33 +6713,80 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
+          fields
+            d @-1
+              reference: <testLibraryFragment>::@class::C::@field::d
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get d @25
+              reference: <testLibraryFragment>::@class::C::@getter::d
+              enclosingFragment: <testLibraryFragment>::@class::C
         class D @44
           reference: <testLibraryFragment>::@class::D
+          fields
+            i @54
+              reference: <testLibraryFragment>::@class::D::@field::i
+              enclosingFragment: <testLibraryFragment>::@class::D
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::D
+          getters
+            get i @-1
+              reference: <testLibraryFragment>::@class::D::@getter::i
+              enclosingFragment: <testLibraryFragment>::@class::D
+          setters
+            set i= @-1
+              reference: <testLibraryFragment>::@class::D::@setter::i
               enclosingFragment: <testLibraryFragment>::@class::D
   classes
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic static d
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: D
+          firstFragment: <testLibraryFragment>::@class::C::@field::d
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        static get d
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::d
     class D
       reference: <testLibraryFragment>::@class::D
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::D
+      fields
+        i
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::D
+          type: int
+          firstFragment: <testLibraryFragment>::@class::D::@field::i
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+      getters
+        synthetic get i
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::D
+          firstFragment: <testLibraryFragment>::@class::D::@getter::i
+      setters
+        synthetic set i=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::D
+          firstFragment: <testLibraryFragment>::@class::D::@setter::i
 ''');
   }
 
@@ -6064,33 +6956,80 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @25
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @36
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @59
+              reference: <testLibraryFragment>::@class::B::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
 ''');
   }
 
@@ -6149,19 +7088,47 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            f @16
+              reference: <testLibraryFragment>::@class::A::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             new @25
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::A::@getter::f
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set f= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::f
               enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::f
       constructors
         new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::f
+      setters
+        synthetic set f=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::f
 ''');
   }
 
@@ -6293,33 +7260,163 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @25
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            y @34
+              reference: <testLibraryFragment>::@class::A::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            z @43
+              reference: <testLibraryFragment>::@class::A::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get y @-1
+              reference: <testLibraryFragment>::@class::A::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get z @-1
+              reference: <testLibraryFragment>::@class::A::@getter::z
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            set y= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            set z= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::z
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @54
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @77
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            y @-1
+              reference: <testLibraryFragment>::@class::B::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+            z @-1
+              reference: <testLibraryFragment>::@class::B::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            get y @86
+              reference: <testLibraryFragment>::@class::B::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            set z= @103
+              reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
+        y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::y
+        z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+        synthetic get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::y
+        synthetic get z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::z
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
+        synthetic set y=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::y
+        synthetic set z=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::z
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::y
+        synthetic z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+        get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::y
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
+        set z=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::z
 ''');
   }
 
@@ -6399,33 +7496,89 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @29
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @40
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @63
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
 ''');
   }
 
@@ -6563,33 +7716,163 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @26
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            y @33
+              reference: <testLibraryFragment>::@class::A::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            z @40
+              reference: <testLibraryFragment>::@class::A::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get y @-1
+              reference: <testLibraryFragment>::@class::A::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get z @-1
+              reference: <testLibraryFragment>::@class::A::@getter::z
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            set y= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            set z= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::z
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @51
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @80
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            y @-1
+              reference: <testLibraryFragment>::@class::B::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+            z @-1
+              reference: <testLibraryFragment>::@class::B::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            get y @89
+              reference: <testLibraryFragment>::@class::B::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            set z= @106
+              reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: E
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
+        y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: E
+          firstFragment: <testLibraryFragment>::@class::A::@field::y
+        z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: E
+          firstFragment: <testLibraryFragment>::@class::A::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+        synthetic get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::y
+        synthetic get z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::z
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
+        synthetic set y=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::y
+        synthetic set z=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::z
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: T
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: T
+          firstFragment: <testLibraryFragment>::@class::B::@field::y
+        synthetic z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: T
+          firstFragment: <testLibraryFragment>::@class::B::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+        get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::y
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
+        set z=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::z
 ''');
   }
 
@@ -6669,33 +7952,89 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @25
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @36
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @59
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
 ''');
   }
 
@@ -6775,33 +8114,89 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @25
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @36
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @59
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: num
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: num
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
 ''');
   }
 
@@ -6912,33 +8307,140 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            y @-1
+              reference: <testLibraryFragment>::@class::A::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            z @-1
+              reference: <testLibraryFragment>::@class::A::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get y @42
+              reference: <testLibraryFragment>::@class::A::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get z @55
+              reference: <testLibraryFragment>::@class::A::@getter::z
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @66
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @89
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            y @-1
+              reference: <testLibraryFragment>::@class::B::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+            z @-1
+              reference: <testLibraryFragment>::@class::B::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            get y @98
+              reference: <testLibraryFragment>::@class::B::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            set z= @115
+              reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::y
+        synthetic z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+        abstract get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::y
+        abstract get z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::z
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::y
+        synthetic z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+        get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::y
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
+        set z=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::z
 ''');
   }
 
@@ -7055,33 +8557,140 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            y @-1
+              reference: <testLibraryFragment>::@class::A::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            z @-1
+              reference: <testLibraryFragment>::@class::A::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @30
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get y @41
+              reference: <testLibraryFragment>::@class::A::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get z @52
+              reference: <testLibraryFragment>::@class::A::@getter::z
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @63
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @92
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            y @-1
+              reference: <testLibraryFragment>::@class::B::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+            z @-1
+              reference: <testLibraryFragment>::@class::B::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            get y @101
+              reference: <testLibraryFragment>::@class::B::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            set z= @118
+              reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: E
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: E
+          firstFragment: <testLibraryFragment>::@class::A::@field::y
+        synthetic z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: E
+          firstFragment: <testLibraryFragment>::@class::A::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+        abstract get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::y
+        abstract get z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::z
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: T
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: T
+          firstFragment: <testLibraryFragment>::@class::B::@field::y
+        synthetic z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: T
+          firstFragment: <testLibraryFragment>::@class::B::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+        get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::y
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
+        set z=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::z
 ''');
   }
 
@@ -7168,47 +8777,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @49
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @66
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @77
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @103
+              reference: <testLibraryFragment>::@class::C::@getter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: String
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
 ''');
   }
 
@@ -7295,47 +8961,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @49
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @67
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @78
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @104
+              reference: <testLibraryFragment>::@class::C::@getter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
 ''');
   }
 
@@ -7428,47 +9151,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @30
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @50
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @65
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @76
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @115
+              reference: <testLibraryFragment>::@class::C::@getter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: T
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: T
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
 ''');
   }
 
@@ -7554,47 +9334,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @49
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @63
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @74
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @100
+              reference: <testLibraryFragment>::@class::C::@getter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
 ''');
   }
 
@@ -7720,47 +9557,158 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            y @-1
+              reference: <testLibraryFragment>::@class::A::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get y @42
+              reference: <testLibraryFragment>::@class::A::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @62
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            y @-1
+              reference: <testLibraryFragment>::@class::B::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @77
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            set y= @101
+              reference: <testLibraryFragment>::@class::B::@setter::y
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @122
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @148
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
+            y @159
+              reference: <testLibraryFragment>::@class::C::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::C::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::C
+            get y @-1
+              reference: <testLibraryFragment>::@class::C::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::y
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+        abstract get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::y
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: String
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: String
+          firstFragment: <testLibraryFragment>::@class::B::@field::y
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
+        abstract set y=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::y
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
+        final y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::y
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
+        synthetic get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::y
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
 
@@ -7849,47 +9797,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @49
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @64
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @85
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @111
+              reference: <testLibraryFragment>::@class::C::@getter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: String
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
 ''');
   }
 
@@ -7982,47 +9987,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @49
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @64
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @85
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set x= @111
+              reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: String
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: String
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
 
@@ -8118,47 +10180,113 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @49
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @64
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @82
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @108
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::C::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
 
@@ -8247,47 +10375,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @49
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @64
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @82
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @108
+              reference: <testLibraryFragment>::@class::C::@getter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
 ''');
   }
 
@@ -8379,47 +10564,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @49
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @64
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @82
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          setters
+            set x= @108
+              reference: <testLibraryFragment>::@class::C::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@setter::x
 ''');
   }
 
@@ -8539,33 +10781,140 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            y @-1
+              reference: <testLibraryFragment>::@class::A::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            z @-1
+              reference: <testLibraryFragment>::@class::A::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @30
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            set y= @51
+              reference: <testLibraryFragment>::@class::A::@setter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
+            set z= @72
+              reference: <testLibraryFragment>::@class::A::@setter::z
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @90
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @113
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            y @-1
+              reference: <testLibraryFragment>::@class::B::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+            z @-1
+              reference: <testLibraryFragment>::@class::B::@field::z
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            get y @122
+              reference: <testLibraryFragment>::@class::B::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            set z= @139
+              reference: <testLibraryFragment>::@class::B::@setter::z
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::y
+        synthetic z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
+        abstract set y=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::y
+        abstract set z=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::z
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::y
+        synthetic z
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::z
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+        get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::y
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
+        set z=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::z
 ''');
   }
 
@@ -8657,47 +11006,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @30
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @57
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @72
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @93
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @119
+              reference: <testLibraryFragment>::@class::C::@getter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: String
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
 ''');
   }
 
@@ -8789,47 +11195,104 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @30
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @57
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @72
+              reference: <testLibraryFragment>::@class::B::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
         class C @90
           reference: <testLibraryFragment>::@class::C
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::C::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::C
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::C
+          getters
+            get x @116
+              reference: <testLibraryFragment>::@class::C::@getter::x
               enclosingFragment: <testLibraryFragment>::@class::C
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
     abstract class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
     class C
       reference: <testLibraryFragment>::@class::C
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          type: int
+          firstFragment: <testLibraryFragment>::@class::C::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::C
+          firstFragment: <testLibraryFragment>::@class::C::@getter::x
 ''');
   }
 
@@ -8941,12 +11404,33 @@ library
       classes
         class A @23
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            y @-1
+              reference: <testLibraryFragment>::@class::A::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @41
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get y @69
+              reference: <testLibraryFragment>::@class::A::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @89
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            y @-1
+              reference: <testLibraryFragment>::@class::B::@field::y
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -8954,25 +11438,78 @@ library
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
+          getters
+            get x @114
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+            get y @131
+              reference: <testLibraryFragment>::@class::B::@getter::y
+              enclosingFragment: <testLibraryFragment>::@class::B
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: dynamic Function()
+            alias: <testLibraryFragment>::@typeAlias::F
+              typeArguments
+                T
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: List<dynamic Function()>
+          firstFragment: <testLibraryFragment>::@class::A::@field::y
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+        get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::y
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: dynamic Function()
+            alias: <testLibraryFragment>::@typeAlias::F
+              typeArguments
+                int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
+        synthetic y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: List<dynamic Function()>
+          firstFragment: <testLibraryFragment>::@class::B::@field::y
       constructors
         synthetic new
           reference: <none>
           superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+        get y
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::y
 ''');
   }
 
@@ -9052,33 +11589,89 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @43
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @71
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @94
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          getters
+            get x @-1
+              reference: <testLibraryFragment>::@class::B::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @-1
+              reference: <testLibraryFragment>::@class::B::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: num
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      getters
+        synthetic get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@getter::x
+      setters
+        synthetic set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
 ''');
   }
 
@@ -9154,33 +11747,80 @@ library
       classes
         class A @15
           reference: <testLibraryFragment>::@class::A
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::A::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get x @29
+              reference: <testLibraryFragment>::@class::A::@getter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set x= @43
+              reference: <testLibraryFragment>::@class::A::@setter::x
+              enclosingFragment: <testLibraryFragment>::@class::A
         class B @71
           reference: <testLibraryFragment>::@class::B
+          fields
+            x @-1
+              reference: <testLibraryFragment>::@class::B::@field::x
+              enclosingFragment: <testLibraryFragment>::@class::B
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::B
+          setters
+            set x= @94
+              reference: <testLibraryFragment>::@class::B::@setter::x
               enclosingFragment: <testLibraryFragment>::@class::B
   classes
     abstract class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: num
+          firstFragment: <testLibraryFragment>::@class::A::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::x
+      setters
+        abstract set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::x
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+      fields
+        synthetic x
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          type: int
+          firstFragment: <testLibraryFragment>::@class::B::@field::x
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+      setters
+        set x=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibraryFragment>::@class::B::@setter::x
 ''');
   }
 
@@ -9265,19 +11905,91 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            t1 @16
+              reference: <testLibraryFragment>::@class::A::@field::t1
+              enclosingFragment: <testLibraryFragment>::@class::A
+            t2 @30
+              reference: <testLibraryFragment>::@class::A::@field::t2
+              enclosingFragment: <testLibraryFragment>::@class::A
+            t3 @46
+              reference: <testLibraryFragment>::@class::A::@field::t3
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get t1 @-1
+              reference: <testLibraryFragment>::@class::A::@getter::t1
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get t2 @-1
+              reference: <testLibraryFragment>::@class::A::@getter::t2
+              enclosingFragment: <testLibraryFragment>::@class::A
+            get t3 @-1
+              reference: <testLibraryFragment>::@class::A::@getter::t3
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set t1= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::t1
+              enclosingFragment: <testLibraryFragment>::@class::A
+            set t2= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::t2
+              enclosingFragment: <testLibraryFragment>::@class::A
+            set t3= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::t3
               enclosingFragment: <testLibraryFragment>::@class::A
   classes
     class A
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        t1
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::t1
+        t2
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: double
+          firstFragment: <testLibraryFragment>::@class::A::@field::t2
+        t3
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: dynamic
+          firstFragment: <testLibraryFragment>::@class::A::@field::t3
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get t1
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::t1
+        synthetic get t2
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::t2
+        synthetic get t3
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::t3
+      setters
+        synthetic set t1=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::t1
+        synthetic set t2=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::t2
+        synthetic set t3=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::t3
 ''');
   }
 
@@ -10644,9 +13356,21 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
+          fields
+            m @16
+              reference: <testLibraryFragment>::@class::A::@field::m
+              enclosingFragment: <testLibraryFragment>::@class::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::A
+          getters
+            get m @-1
+              reference: <testLibraryFragment>::@class::A::@getter::m
+              enclosingFragment: <testLibraryFragment>::@class::A
+          setters
+            set m= @-1
+              reference: <testLibraryFragment>::@class::A::@setter::m
               enclosingFragment: <testLibraryFragment>::@class::A
         class B @32
           reference: <testLibraryFragment>::@class::B
@@ -10664,10 +13388,26 @@ library
       reference: <testLibraryFragment>::@class::A
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      fields
+        m
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          type: int
+          firstFragment: <testLibraryFragment>::@class::A::@field::m
       constructors
         synthetic new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic get m
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@getter::m
+      setters
+        synthetic set m=
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::A
+          firstFragment: <testLibraryFragment>::@class::A::@setter::m
     class B
       reference: <testLibraryFragment>::@class::B
       enclosingElement2: <testLibrary>

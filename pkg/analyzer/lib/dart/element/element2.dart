@@ -543,7 +543,16 @@ abstract class FieldFormalParameterFragment
 /// The portion of a [FieldElement2] contributed by a single declaration.
 ///
 /// Clients may not extend, implement, or mix-in this class.
-abstract class FieldFragment implements PropertyInducingFragment {}
+abstract class FieldFragment implements PropertyInducingFragment {
+  @override
+  FieldElement2 get element;
+
+  @override
+  FieldFragment? get nextFragment;
+
+  @override
+  FieldFragment? get previousFragment;
+}
 
 /// A formal parameter defined by an executable element.
 ///
@@ -760,7 +769,7 @@ abstract class GetterElement implements ExecutableElement2, _Fragmented {
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable
   /// associated with it will be synthetic.
-  PropertyInducingElement2? get variable2;
+  PropertyInducingElement2? get variable3;
 }
 
 /// The portion of a [GetterElement] contributed by a single declaration.
@@ -769,13 +778,13 @@ abstract class GetterElement implements ExecutableElement2, _Fragmented {
 abstract class GetterFragment implements ExecutableFragment {
   /// The setter that corresponds to (has the same name as) this getter, or
   /// `null` if there is no corresponding setter.
-  SetterFragment? get correspondingSetter;
+  SetterFragment? get correspondingSetter2;
 
   /// The field or top-level variable associated with this getter.
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable
   /// associated with it will be synthetic.
-  PropertyInducingFragment? get variable;
+  PropertyInducingFragment? get variable3;
 }
 
 /// An element whose instance members can refer to `this`.
@@ -1445,10 +1454,16 @@ abstract class PropertyInducingFragment implements VariableFragment {
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
   /// getter associated with it will be synthetic.
-  GetterFragment? get getter;
+  GetterFragment? get getter2;
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
+
+  @override
+  PropertyInducingFragment? get nextFragment;
+
+  @override
+  PropertyInducingFragment? get previousFragment;
 
   /// The setter associated with this variable.
   ///
@@ -1460,7 +1475,7 @@ abstract class PropertyInducingFragment implements VariableFragment {
   /// that does not have a corresponding setter. If this variable was
   /// explicitly defined (is not synthetic) then the setter associated with
   /// it will be synthetic.
-  SetterFragment? get setter;
+  SetterFragment? get setter2;
 }
 
 /// A setter.
@@ -1481,7 +1496,7 @@ abstract class SetterElement implements ExecutableElement2, _Fragmented {
   ///
   /// If this setter was explicitly defined (is not synthetic) then the variable
   /// associated with it will be synthetic.
-  PropertyInducingElement2? get variable2;
+  PropertyInducingElement2? get variable3;
 }
 
 /// The portion of a [SetterElement] contributed by a single declaration.
@@ -1490,13 +1505,13 @@ abstract class SetterElement implements ExecutableElement2, _Fragmented {
 abstract class SetterFragment implements ExecutableFragment {
   /// The getter that corresponds to (has the same name as) this setter, or
   /// `null` if there is no corresponding getter.
-  GetterFragment? get correspondingGetter;
+  GetterFragment? get correspondingGetter2;
 
   /// The field or top-level variable associated with this setter.
   ///
   /// If this setter was explicitly defined (is not synthetic) then the variable
   /// associated with it will be synthetic.
-  PropertyInducingFragment? get variable;
+  PropertyInducingFragment? get variable3;
 }
 
 /// A super formal parameter.
@@ -1559,7 +1574,13 @@ abstract class TopLevelVariableElement2 implements PropertyInducingElement2 {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TopLevelVariableFragment implements PropertyInducingFragment {}
+abstract class TopLevelVariableFragment implements PropertyInducingFragment {
+  @override
+  TopLevelVariableFragment? get nextFragment;
+
+  @override
+  TopLevelVariableFragment? get previousFragment;
+}
 
 /// A type alias (`typedef`).
 ///

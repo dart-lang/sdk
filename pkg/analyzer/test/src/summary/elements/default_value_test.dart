@@ -177,19 +177,41 @@ library
       classes
         class X @57
           reference: <testLibraryFragment>::@class::X
+          fields
+            f @71
+              reference: <testLibraryFragment>::@class::X::@field::f
+              enclosingFragment: <testLibraryFragment>::@class::X
           constructors
             const new @82
               reference: <testLibraryFragment>::@class::X::@constructor::new
+              enclosingFragment: <testLibraryFragment>::@class::X
+          getters
+            get f @-1
+              reference: <testLibraryFragment>::@class::X::@getter::f
               enclosingFragment: <testLibraryFragment>::@class::X
   classes
     class X
       reference: <testLibraryFragment>::@class::X
       enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
+      fields
+        final f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          type: void Function(dynamic)
+            alias: <testLibraryFragment>::@typeAlias::F
+              typeArguments
+                dynamic
+          firstFragment: <testLibraryFragment>::@class::X::@field::f
       constructors
         const new
           reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
+      getters
+        synthetic get f
+          reference: <none>
+          enclosingElement: <testLibraryFragment>::@class::X
+          firstFragment: <testLibraryFragment>::@class::X::@getter::f
 ''');
   }
 

@@ -2126,39 +2126,9 @@ library
 ''');
   }
 
-  test_library_exports_withRelativeUri_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-''');
-    var library = await buildLibrary(r'''
-export 'a.dart';
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  libraryExports
-    source 'package:test/a.dart'
-      enclosingElement: <testLibrary>
-      enclosingElement3: <testLibraryFragment>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement: <testLibrary>
-      libraryExports
-        source 'package:test/a.dart'
-          enclosingElement: <testLibrary>
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-''');
-  }
-
   test_library_exports_withRelativeUri_notLibrary_part() async {
     newFile('$testPackageLibPath/a.dart', r'''
-part of other.lib;
+part of 'test.dart';
 ''');
     var library = await buildLibrary(r'''
 export 'a.dart';
