@@ -11,6 +11,7 @@ import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../integration/support/dart_tooling_daemon.dart';
 import '../integration/support/web_sockets.dart';
@@ -89,9 +90,6 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
       await lspEventSub.cancel();
       await dtd.streamCancel(lspStreamName);
     }
-
-    // We should always have had some events at this point.
-    expect(availableMethods, isNotEmpty);
   }
 
   Future<void> setUpDtd() async {
@@ -159,13 +157,18 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   test_connectToDtd_success_afterFailureToConnect() async {
     await initializeServer();
 
-    try {
-      await sendConnectToDtdRequest(invalidUri);
-    } catch (_) {}
+    // Perform a failed connection.
+    await expectLater(
+      sendConnectToDtdRequest(invalidUri),
+      throwsA(isResponseError(
+        ErrorCodes.RequestFailed,
+        message: startsWith(
+            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:'),
+      )),
+    );
 
-    expect(availableMethods, isEmpty);
+    // Expect complete with no error.
     await sendConnectToDtdRequest();
-    expect(availableMethods, isNotEmpty);
   }
 
   test_connectToDtd_success_afterPreviousDtdShutdown() async {
@@ -173,19 +176,16 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
 
     // Connect to the initial DTD.
     await sendConnectToDtdRequest();
-    expect(availableMethods, isNotEmpty);
 
     // Shut down the initial DTD process as if it crashed. Server should notice
     // this and now allow us to connect a new one.
     await tearDownDtd();
-    availableMethods.clear();
 
     // Start up a new DTD.
     await setUpDtd();
 
-    // Connect to the new DTD and ensure services are registered.
+    // Connect to the new DTD and ensure completion with no error.
     await sendConnectToDtdRequest();
-    expect(availableMethods, isNotEmpty);
   }
 
   test_connectToDtd_success_doesNotRegister_connectToDtdMethod() async {
@@ -215,6 +215,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(Method.initialized, available: false);
   }
 
+  @SkippedTest(reason: 'Shared LSP methods are currently disabled')
   test_connectToDtd_success_registers_standardLspMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -227,6 +228,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(Method.textDocument_documentColor);
   }
 
+  @SkippedTest(reason: 'Shared LSP methods are currently disabled')
   test_service_failure_hover() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -253,6 +255,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await expectLater(call, throwsA(expectedException));
   }
 
+  @SkippedTest(reason: 'Shared LSP methods are currently disabled')
   test_service_success_hover() async {
     var code = TestCode.parse('''
 /// A function.
@@ -290,6 +293,7 @@ void [!myFun^ction!]() {}
     expect(hoverStringContent, contains('A function.'));
   }
 
+  @SkippedTest(reason: 'Shared LSP methods are currently disabled')
   test_service_unregisteredOnShutdown() async {
     await initializeServer();
     await sendConnectToDtdRequest();

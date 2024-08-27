@@ -17,7 +17,7 @@ class B<T extends core::Object? = dynamic> extends self::A<core::String> impleme
     ;
 
   [@vm.inferred-return-type.metadata=!]
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=[!regcc]]
   method noSuchMethod(core::Invocation i) → dynamic
     return throw "Not implemented";

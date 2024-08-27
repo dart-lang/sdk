@@ -173,7 +173,6 @@ class LibraryFragmentScope implements Scope {
   final PrefixScope noPrefixScope;
 
   final Map<String, PrefixElementImpl> _prefixElements = {};
-  final Map<PrefixElementImpl, PrefixScope> _prefixScopes = {};
 
   /// The cached result for [accessibleExtensions].
   List<ExtensionElement>? _extensions;
@@ -198,7 +197,7 @@ class LibraryFragmentScope implements Scope {
   }) {
     for (var prefix in fragment.libraryImportPrefixes) {
       _prefixElements[prefix.name] = prefix;
-      _prefixScopes[prefix] = PrefixScope(
+      prefix.scope = PrefixScope(
         libraryElement: fragment.library,
         parent: _getParentPrefixScope(prefix),
         libraryImports: fragment.libraryImports,
@@ -213,14 +212,9 @@ class LibraryFragmentScope implements Scope {
     return _extensions ??= {
       ...libraryDeclarations.extensions,
       ...noPrefixScope._extensions,
-      for (var prefixScope in _prefixScopes.values) ...prefixScope._extensions,
+      for (var prefix in _prefixElements.values) ...prefix.scope._extensions,
       ...?parent?.accessibleExtensions,
     }.toFixedList();
-  }
-
-  PrefixScope getPrefixScope(PrefixElementImpl prefix) {
-    // SAFETY: We create the scope for each prefix.
-    return _prefixScopes[prefix]!;
   }
 
   @override
@@ -251,7 +245,7 @@ class LibraryFragmentScope implements Scope {
     for (var scope = parent; scope != null; scope = scope.parent) {
       var parentPrefix = scope._prefixElements[prefix.name];
       if (parentPrefix != null) {
-        return scope._prefixScopes[parentPrefix];
+        return parentPrefix.scope;
       }
     }
     return null;

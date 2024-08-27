@@ -17,7 +17,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -7966,7 +7965,7 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
 /// A concrete implementation of a [PrefixElement].
 class PrefixElementImpl extends _ExistingElementImpl
     implements PrefixElement, PrefixElement2 {
-  /// The scope of this prefix, `null` if it has not been created yet.
+  /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
 
   /// Initialize a newly created method element to have the given [name] and
@@ -8014,8 +8013,14 @@ class PrefixElementImpl extends _ExistingElementImpl
   }
 
   @override
-  Scope get scope {
-    return _scope ??= enclosingElement3.scope.getPrefixScope(this);
+  PrefixScope get scope {
+    enclosingElement3.scope;
+    // SAFETY: The previous statement initializes this field.
+    return _scope!;
+  }
+
+  set scope(PrefixScope value) {
+    _scope = value;
   }
 
   @override
