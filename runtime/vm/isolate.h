@@ -1256,6 +1256,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       ObjectIdRing::IdPolicy id_assignment_policy,
       int32_t capacity);
 
+  void DeleteServiceIdZone(int32_t id);
+
   // The default Service ID zone is created lazily; this method returns the
   // default Service ID zone, creating it if necessary.
   RingServiceIdZone& EnsureDefaultServiceIdZone();

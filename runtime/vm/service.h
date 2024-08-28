@@ -40,6 +40,13 @@ class ServiceIdZone {
   ServiceIdZone(intptr_t id, ObjectIdRing::IdPolicy policy);
   virtual ~ServiceIdZone();
 
+  // Parses a Service ID zone ID string and returns the corresponding integer
+  // ID. Or, returns -1 if |id_string| is invalid.
+  //
+  // For example, this function will return 5 when called with the argument
+  // "zones/5".
+  intptr_t static StringIdToInt(const char* id_string);
+
   intptr_t id() const { return id_; }
   ObjectIdRing::IdPolicy policy() const { return policy_; }
 

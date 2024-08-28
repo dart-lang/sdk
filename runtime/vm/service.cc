@@ -185,6 +185,38 @@ class NoSuchParameter : public MethodParameter {
 #define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
 #define OBJECT_PARAMETER new IdParameter("objectId", true)
 
+static bool ValidateUIntParameter(const char* value) {
+  if (value == nullptr) {
+    return false;
+  }
+  for (const char* cp = value; *cp != '\0'; cp++) {
+    if (*cp < '0' || *cp > '9') {
+      return false;
+    }
+  }
+  return true;
+}
+
+class UIntParameter : public MethodParameter {
+ public:
+  UIntParameter(const char* name, bool required)
+      : MethodParameter(name, required) {}
+
+  virtual bool Validate(const char* value) const {
+    return ValidateUIntParameter(value);
+  }
+
+  static uintptr_t Parse(const char* value) {
+    if (value == nullptr) {
+      return -1;
+    }
+    char* end_ptr = nullptr;
+    uintptr_t result = strtoul(value, &end_ptr, 10);
+    ASSERT(*end_ptr == '\0');  // Parsed full string
+    return result;
+  }
+};
+
 class EnumListParameter : public MethodParameter {
  public:
   EnumListParameter(const char* name, bool required, const char* const* enums)
@@ -369,6 +401,14 @@ ServiceIdZone::ServiceIdZone(intptr_t id, ObjectIdRing::IdPolicy policy)
     : id_(id), policy_(policy) {}
 
 ServiceIdZone::~ServiceIdZone() {}
+
+intptr_t ServiceIdZone::StringIdToInt(const char* id_string) {
+  if (Utils::StrStartsWith(id_string, "zones/") &&
+      ValidateUIntParameter(id_string + 6)) {
+    return UIntParameter::Parse(id_string + 6);
+  }
+  return -1;
+}
 
 RingServiceIdZone::RingServiceIdZone(intptr_t id,
                                      ObjectIdRing::IdPolicy policy,
@@ -751,34 +791,6 @@ class BoolParameter : public MethodParameter {
   }
 };
 
-class UIntParameter : public MethodParameter {
- public:
-  UIntParameter(const char* name, bool required)
-      : MethodParameter(name, required) {}
-
-  virtual bool Validate(const char* value) const {
-    if (value == nullptr) {
-      return false;
-    }
-    for (const char* cp = value; *cp != '\0'; cp++) {
-      if (*cp < '0' || *cp > '9') {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  static uintptr_t Parse(const char* value) {
-    if (value == nullptr) {
-      return -1;
-    }
-    char* end_ptr = nullptr;
-    uintptr_t result = strtoul(value, &end_ptr, 10);
-    ASSERT(*end_ptr == '\0');  // Parsed full string
-    return result;
-  }
-};
-
 class Int64Parameter : public MethodParameter {
  public:
   Int64Parameter(const char* name, bool required)
@@ -1030,14 +1042,11 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     // are about to create, meaning that it is where temporary Service IDs may
     // be allocated by the RPC currently being handled.
     RingServiceIdZone* id_zone = &isolate.EnsureDefaultServiceIdZone();
-    const char* id_zone_arg = js.LookupParam("_idZoneId");
-    if (id_zone_arg != nullptr) {
-      // We must create a temporary |UIntParameter| to use the
-      // |UIntParameter::Validate| helper because it is not a static method.
-      if (Utils::StrStartsWith(id_zone_arg, "zones/") &&
-          UIntParameter("temp", true).Validate(id_zone_arg + 6)) {
-        id_zone =
-            isolate.GetServiceIdZone(UIntParameter::Parse(id_zone_arg + 6));
+    const char* id_zone_id_arg = js.LookupParam("_idZoneId");
+    if (id_zone_id_arg != nullptr) {
+      intptr_t id_zone_id = ServiceIdZone::StringIdToInt(id_zone_id_arg);
+      if (id_zone_id != -1) {
+        id_zone = isolate.GetServiceIdZone(id_zone_id);
       } else {
         id_zone = nullptr;
       }
@@ -5182,6 +5191,37 @@ static void CreateIdZone(Thread* thread, JSONStream* js) {
       .PrintJSON(*js);
 }
 
+static const MethodParameter* const delete_id_zone_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void DeleteIdZone(Thread* thread, JSONStream* js) {
+  ASSERT(thread != nullptr);
+  ASSERT(js != nullptr);
+
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != nullptr);
+
+  const char* id_zone_id_arg = js->LookupParam("_idZoneId");
+  if (id_zone_id_arg == nullptr) {
+    PrintMissingParamError(js, "_idZoneId");
+  }
+
+  // If the `_idZoneId` argument is not missing, we know that the some
+  // properties of |id_zone_id| have already been checked in |InvokeMethod|
+  // (search for `js.set_id_zone(*id_zone)` to find the checks), so we can
+  // assert these properties to be true below.
+
+  intptr_t id_zone_id = ServiceIdZone::StringIdToInt(id_zone_id_arg);
+  ASSERT(id_zone_id != -1);
+  ASSERT(id_zone_id < isolate->NumServiceIdZones());
+
+  isolate->DeleteServiceIdZone(id_zone_id);
+
+  PrintSuccess(js);
+}
+
 static const MethodParameter* const get_object_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new UIntParameter("offset", false),
@@ -6016,6 +6056,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
   { "_compileExpression", CompileExpression, compile_expression_params },
   { "_createIdZone", CreateIdZone,
     create_id_zone_params },
+  { "_deleteIdZone", DeleteIdZone,
+    delete_id_zone_params },
   { "_enableProfiler", EnableProfiler,
     enable_profiler_params, },
   { "evaluate", Evaluate,

@@ -263,6 +263,47 @@ final tests = <IsolateTest>[
     expect(cInstanceRef3['type'], '@Instance');
     expect(cInstanceRef3['id'], 'objects/0/3');
   },
+
+  // Test deleting an ID Zone.
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    final idZone4 = (await service.callMethod(
+      '_createIdZone',
+      isolateId: isolateId,
+      args: {
+        'backingBufferKind': 'Ring',
+        'idAssignmentPolicy': 'AlwaysAllocate',
+      },
+    ))
+        .json!;
+    expect(idZone4['type'], '_IdZone');
+    expect(idZone4['id'], 'zones/4');
+    expect(idZone4['backingBufferKind'], 'Ring');
+    expect(idZone4['idAssignmentPolicy'], 'AlwaysAllocate');
+
+    await service.callMethod(
+      '_deleteIdZone',
+      isolateId: isolateId,
+      args: {
+        '_idZoneId': idZone4['id'],
+      },
+    );
+
+    try {
+      await service.callMethod(
+        'evaluateInFrame',
+        isolateId: isolateId,
+        args: {
+          'frameIndex': 0,
+          'expression': 'c',
+          '_idZoneId': idZone4['id'],
+        },
+      );
+      fail('successfully used an ID zone that should have been deleted');
+    } on RPCError catch (e) {
+      expect(e.code, RPCErrorKind.kInvalidParams.code);
+    }
+  },
   resumeIsolate,
 ];
 

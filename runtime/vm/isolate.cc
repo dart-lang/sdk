@@ -3023,6 +3023,13 @@ RingServiceIdZone& Isolate::AddServiceIdZone(
   }
 }
 
+void Isolate::DeleteServiceIdZone(int32_t id) {
+  ASSERT(service_id_zones_ != nullptr);
+  ASSERT(id < service_id_zones_->length());
+  delete service_id_zones_->At(id);
+  (*service_id_zones_)[id] = nullptr;
+}
+
 RingServiceIdZone& Isolate::EnsureDefaultServiceIdZone() {
   if (service_id_zones_ == nullptr) {
     service_id_zones_ = new MallocGrowableArray<RingServiceIdZone*>();
