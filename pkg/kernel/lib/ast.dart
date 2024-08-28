@@ -12269,13 +12269,11 @@ class IntersectionType extends DartType {
             // pkg/front_end/test/fasta/types/kernel_type_parser_test
             // pkg/front_end/test/fasta/incremental_hello_test
             // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/tool/fasta_perf_test
             // nnbd/issue42089
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
                 rightNullability == Nullability.nullable) ||
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/test/dill_round_trip_test
             // pkg/front_end/test/compile_dart2js_with_no_sdk_test
             // pkg/front_end/test/fasta/types/large_app_benchmark_test
@@ -12293,7 +12291,6 @@ class IntersectionType extends DartType {
             (leftNullability == Nullability.legacy &&
                 rightNullability == Nullability.nonNullable) ||
             // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/tool/fasta_perf_test
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
@@ -12434,12 +12431,10 @@ class IntersectionType extends DartType {
             // pkg/front_end/test/fasta/types/kernel_type_parser_test
             // pkg/front_end/test/fasta/incremental_hello_test
             // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/tool/fasta_perf_test
             // nnbd/issue42089
             (lhsNullability == Nullability.nullable &&
                 rhsNullability == Nullability.nullable) ||
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/test/dill_round_trip_test
             // pkg/front_end/test/compile_dart2js_with_no_sdk_test
             // pkg/front_end/test/fasta/types/large_app_benchmark_test
@@ -12456,7 +12451,6 @@ class IntersectionType extends DartType {
             (lhsNullability == Nullability.legacy &&
                 rhsNullability == Nullability.nonNullable) ||
             // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/explicit_creation_test
             // pkg/front_end/tool/fasta_perf_test
             // pkg/front_end/test/fasta/incremental_hello_test
             (lhsNullability == Nullability.nullable &&

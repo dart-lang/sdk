@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import "explicit_creation_impl.dart" show runExplicitCreationTest;
+import "compile_and_lint_impl.dart" show runCompileAndLintTest;
 import 'testing_utils.dart' show getGitFiles;
 import "utils/io_utils.dart" show computeRepoDirUri;
 
@@ -15,20 +15,11 @@ Future<void> main(List<String> args) async {
 
   if (args.isEmpty) {
     libUris.add(repoDir.resolve("pkg/front_end/lib/"));
+    libUris.add(repoDir.resolve("pkg/kernel/lib/"));
     libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/"));
     libUris.add(repoDir.resolve("pkg/frontend_server/"));
   } else {
-    for (String arg in args) {
-      if (arg == "--front-end-only") {
-        libUris.add(repoDir.resolve("pkg/front_end/lib/"));
-      } else if (arg == "--shared-only") {
-        libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/"));
-      } else if (arg == "--frontend_server-only") {
-        libUris.add(repoDir.resolve("pkg/frontend_server/"));
-      } else {
-        throw "Unsupported arguments: $args";
-      }
-    }
+    throw "Test doesn't support arguments.";
   }
 
   Set<Uri> inputs = {};
@@ -45,9 +36,9 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  int explicitCreationErrorsFound = await runExplicitCreationTest(
+  int compileAndLintErrorsFound = await runCompileAndLintTest(
       includedFiles: inputs, includedDirectoryUris: libUris, repoDir: repoDir);
-  if (explicitCreationErrorsFound > 0) {
+  if (compileAndLintErrorsFound > 0) {
     exitCode = 1;
   }
 }

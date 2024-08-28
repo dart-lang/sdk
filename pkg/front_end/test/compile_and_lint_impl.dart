@@ -11,6 +11,8 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, SimpleToken, Token;
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api
     show DiagnosticMessage;
+import 'package:front_end/src/base/command_line_reporting.dart'
+    as command_line_reporting;
 import 'package:front_end/src/builder/declaration_builders.dart'
     show TypeDeclarationBuilder;
 import 'package:front_end/src/builder/type_builder.dart' show TypeBuilder;
@@ -22,16 +24,18 @@ import 'package:front_end/src/kernel/expression_generator_helper.dart'
     show UnresolvedKind;
 import 'package:front_end/src/kernel/kernel_target.dart' show BuildResult;
 import 'package:front_end/src/util/import_export_etc_helper.dart';
-import 'package:kernel/kernel.dart' show Arguments, Expression;
+import 'package:kernel/kernel.dart';
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:package_config/package_config.dart';
 
 import 'compiler_test_helper.dart' show BodyBuilderTest, compile;
 
 Set<Uri> _ignoredDirectoryUris = {};
+Set<Uri> _explicitCreationIgnoredDirectoryUris = {};
 
 Set<Uri> _includedDirectoryUris = {};
 
-/// Run the explicit creation test (i.e. reporting missing 'new' tokens).
+/// Run the compile and lint test (e.g. reporting missing 'new' tokens).
 ///
 /// Explicitly compiles [includedFiles], reporting only errors for files in a
 /// path in [includedDirectoryUris] and not in [ignoredDirectoryUris].
@@ -39,7 +43,7 @@ Set<Uri> _includedDirectoryUris = {};
 /// explicitly included in [includedFiles], although that is not guaranteed.
 ///
 /// Returns the number of errors found.
-Future<int> runExplicitCreationTest(
+Future<int> runCompileAndLintTest(
     {required Set<Uri> includedFiles,
     required Set<Uri> includedDirectoryUris,
     required Uri repoDir}) async {
@@ -48,6 +52,12 @@ Future<int> runExplicitCreationTest(
   _ignoredDirectoryUris.clear();
   _ignoredDirectoryUris
       .add(repoDir.resolve("pkg/frontend_server/test/fixtures/"));
+
+  // Ignore kernel for the explicit creation, but include in ast-walking
+  // problem finder.
+  _explicitCreationIgnoredDirectoryUris.clear();
+  _explicitCreationIgnoredDirectoryUris.add(repoDir.resolve("pkg/kernel/"));
+
   int errorCount = 0;
 
   Uri packageConfigUri = repoDir.resolve(".dart_tool/package_config.json");
@@ -86,6 +96,7 @@ Future<int> runExplicitCreationTest(
       // Compile sdk because when this is run from a lint it uses the checked-in
       // sdk and we might not have a suitable compiled platform.dill file.
       compileSdk: true,
+      omitPlatform: false,
       packagesFileUri: packageConfigUri,
       onDiagnostic: (api.DiagnosticMessage message) {
         if (message.severity == Severity.error) {
@@ -106,7 +117,13 @@ Future<int> runExplicitCreationTest(
 
   print("Compiled ${result.component?.libraries.length} libraries.");
 
-  return errorCount;
+  ProblemFinder problemFinder = new ProblemFinder(partsReplaced);
+  Stopwatch visitStopwatch = new Stopwatch()..start();
+  result.component?.accept(problemFinder);
+  print("Visited result in ${visitStopwatch.elapsed} and "
+      "found ${problemFinder.foundErrors} error(s).");
+
+  return errorCount + problemFinder.foundErrors;
 }
 
 /// Try to replace any uri that's a "part of identifier;" with the uri of the
@@ -197,6 +214,11 @@ Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
 class BodyBuilderTester = BodyBuilderTest with BodyBuilderTestMixin;
 
 mixin BodyBuilderTestMixin on BodyBuilder {
+  late Set<Uri> _ignoredDirs = {
+    ..._ignoredDirectoryUris,
+    ..._explicitCreationIgnoredDirectoryUris
+  };
+
   @override
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder? type,
@@ -231,7 +253,7 @@ mixin BodyBuilderTestMixin on BodyBuilder {
         }
       }
       if (match) {
-        for (Uri libUri in _ignoredDirectoryUris) {
+        for (Uri libUri in _ignoredDirs) {
           if (uri.toString().startsWith(libUri.toString())) {
             match = false;
             break;
@@ -252,5 +274,78 @@ mixin BodyBuilderTestMixin on BodyBuilder {
         arguments, name, typeArguments, charOffset, constness,
         isTypeArgumentsInForest: isTypeArgumentsInForest,
         unresolvedKind: unresolvedKind);
+  }
+}
+
+class ProblemFinder extends RecursiveVisitor {
+  final Set<Uri> wantedUris;
+  Reference? stackTraceCurrent;
+  Map<Uri, Source>? uriToSource;
+  bool inField = false;
+  int foundErrors = 0;
+
+  ProblemFinder(this.wantedUris);
+
+  void reportError(TreeNode node, int squigglyLength, String messageText) {
+    foundErrors++;
+    Location location = node.location!;
+    print(command_line_reporting.formatErrorMessage(
+        uriToSource?[location.file]?.getTextLine(location.line),
+        location,
+        squigglyLength,
+        location.file.toFilePath(),
+        messageText));
+  }
+
+  @override
+  void visitAssertStatement(AssertStatement node) {
+    // For now allow it in asserts.
+    return;
+  }
+
+  @override
+  void visitComponent(Component node) {
+    uriToSource = node.uriToSource;
+    LibraryIndex platformIndex = new LibraryIndex.coreLibraries(node);
+    stackTraceCurrent = platformIndex
+        .getProcedure("dart:core", "StackTrace", "get:current")
+        .reference;
+    super.visitComponent(node);
+  }
+
+  @override
+  void visitField(Field node) {
+    inField = true;
+    super.visitField(node);
+    inField = false;
+  }
+
+  @override
+  void visitLibrary(Library node) {
+    if (wantedUris.contains(node.importUri) ||
+        wantedUris.contains(node.fileUri)) {
+      super.visitLibrary(node);
+    }
+  }
+
+  @override
+  void visitProcedure(Procedure node) {
+    if (node.name.text.startsWith("assert")) {
+      // Assume this is only called via asserts.
+      return;
+    }
+    super.visitProcedure(node);
+  }
+
+  @override
+  void visitStaticGet(StaticGet node) {
+    super.visitStaticGet(node);
+
+    // For now only disallow it in fields.
+    if (!inField) return;
+
+    if (node.targetReference == stackTraceCurrent) {
+      reportError(node, "current".length, "Usage of StackTrace.current");
+    }
   }
 }
