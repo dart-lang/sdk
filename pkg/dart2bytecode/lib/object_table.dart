@@ -308,6 +308,7 @@ enum ConstTag {
   kString,
   kMap,
   kSet,
+  kRecord,
 }
 
 enum TypeTag {
@@ -1405,6 +1406,7 @@ class _ConstObjectHandle extends ObjectHandle {
         }
         break;
       case ConstTag.kList:
+      case ConstTag.kRecord:
       case ConstTag.kMap:
       case ConstTag.kSet:
         {
@@ -1461,6 +1463,7 @@ class _ConstObjectHandle extends ObjectHandle {
                     reader.readPackedObject(), reader.readPackedObject())));
         break;
       case ConstTag.kList:
+      case ConstTag.kRecord:
       case ConstTag.kMap:
       case ConstTag.kSet:
         type = reader.readPackedObject();
@@ -1503,6 +1506,7 @@ class _ConstObjectHandle extends ObjectHandle {
         }
         break;
       case ConstTag.kList:
+      case ConstTag.kRecord:
       case ConstTag.kMap:
       case ConstTag.kSet:
         {
@@ -1579,6 +1583,7 @@ class _ConstObjectHandle extends ObjectHandle {
               _combineHashes(type.hashCode, mapHashCode(fieldValues));
         }
       case ConstTag.kList:
+      case ConstTag.kRecord:
       case ConstTag.kMap:
       case ConstTag.kSet:
         {
@@ -1610,6 +1615,7 @@ class _ConstObjectHandle extends ObjectHandle {
         case ConstTag.kInstance:
           return this.type == other.type && mapEquals(this.value, other.value);
         case ConstTag.kList:
+        case ConstTag.kRecord:
         case ConstTag.kMap:
         case ConstTag.kSet:
           return this.type == other.type && listEquals(this.value, other.value);
@@ -1634,6 +1640,8 @@ class _ConstObjectHandle extends ObjectHandle {
         return 'const $type $value';
       case ConstTag.kList:
         return 'const List<$type> $value';
+      case ConstTag.kRecord:
+        return 'const Record<$type> $value';
       case ConstTag.kMap:
         return 'const Map<$type> $value';
       case ConstTag.kSet:
@@ -2381,6 +2389,16 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
           ConstTag.kList,
           objectTable.getHandles(node.entries),
           objectTable.getHandle(node.typeArgument)));
+
+  @override
+  ObjectHandle? visitRecordConstant(RecordConstant node) =>
+      objectTable.getOrAddObject(new _ConstObjectHandle(
+          ConstTag.kRecord,
+          objectTable.getHandles([
+            ...node.positional,
+            ...node.named.values,
+          ]),
+          objectTable.getHandle(node.recordType)));
 
   @override
   ObjectHandle? visitMapConstant(MapConstant node) =>

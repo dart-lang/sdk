@@ -193,6 +193,7 @@ if (is_fuchsia) {
     "tests/ffi/abi_specific_int_test.dart",
     "tests/ffi/abi_test.dart",
     "tests/ffi/address_of_array_generated_test.dart",
+    "tests/ffi/address_of_cast_test.dart",
     "tests/ffi/address_of_struct_generated_test.dart",
     "tests/ffi/address_of_test.dart",
     "tests/ffi/address_of_typeddata_generated_test.dart",

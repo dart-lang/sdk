@@ -10,6 +10,7 @@
 
 #include "vm/compiler/method_recognizer.h"
 #include "vm/constants_kbc.h"
+#include "vm/object.h"
 #include "vm/tagged_pointer.h"
 
 namespace dart {
@@ -229,6 +230,11 @@ class Interpreter {
                      const KBCInstr* pc,
                      ObjectPtr* FP,
                      ObjectPtr* SP);
+  bool AllocateRecord(Thread* thread,
+                      RecordShape shape,
+                      const KBCInstr* pc,
+                      ObjectPtr* FP,
+                      ObjectPtr* SP);
   bool AllocateContext(Thread* thread,
                        intptr_t num_variables,
                        const KBCInstr* pc,

@@ -321,3 +321,8 @@ To add all the CI bots that cover running the FFI in different configurations, y
 (This only works for already existing tests, so if you’re adding a new test, you can get the list of bots from a pre-existing test, for example the one above.)
 
 Prefer using Gerrit directly for uploading a PR rather than using pull requests via GitHub. For more info see [the Contributing guide](https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md#uploading-the-patch-for-review).
+
+## New tests
+
+Any new tests need to be added to the root `BUILD.gn` `test_sources`.
+This adds the test sources to the `fuchsia_component` that tests FFI on Fuchsia.

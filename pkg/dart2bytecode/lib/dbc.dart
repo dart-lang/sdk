@@ -209,6 +209,12 @@ enum Opcode {
   kCompareDoubleLt,
   kCompareDoubleGe,
   kCompareDoubleLe,
+
+  // Records
+  kAllocateRecord,
+  kAllocateRecord_Wide,
+  kLoadRecordField,
+  kLoadRecordField_Wide,
 }
 
 /// Compact variants of opcodes are always even.
@@ -456,6 +462,10 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kCompareDoubleLe: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kAllocateRecord: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kLoadRecordField: const Format(
+      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
 };
 
 // Should match constant in runtime/vm/stack_frame_kbc.h.

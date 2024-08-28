@@ -1413,6 +1413,33 @@ bool Interpreter::AllocateArray(Thread* thread,
   return InvokeRuntime(thread, this, DRT_AllocateArray, args);
 }
 
+// Allocate a Record with the given shape and put it into SP[0].
+// Returns false on exception.
+bool Interpreter::AllocateRecord(Thread* thread,
+                                 RecordShape shape,
+                                 const KBCInstr* pc,
+                                 ObjectPtr* FP,
+                                 ObjectPtr* SP) {
+  const intptr_t num_fields = shape.num_fields();
+  RecordPtr result;
+  if (TryAllocate(thread, kRecordCid, Record::InstanceSize(num_fields),
+                  reinterpret_cast<ObjectPtr*>(&result))) {
+    result->untag()->set_shape(shape.AsSmi());
+    ObjectPtr null_value = Object::null();
+    for (intptr_t i = 0; i < num_fields; i++) {
+      result->untag()->set_field(i, null_value, thread);
+    }
+    SP[0] = result;
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = shape.AsSmi();
+    Exit(thread, FP, SP + 2, pc);
+    NativeArguments args(thread, 1, SP + 1, SP);
+    return InvokeRuntime(thread, this, DRT_AllocateRecord, args);
+  }
+}
+
 // Allocate a _Context with the given length and put it into SP[0].
 // Returns false on exception.
 bool Interpreter::AllocateContext(Thread* thread,
@@ -2294,6 +2321,14 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(LoadRecordField, D);
+    const intptr_t field_index = rD;
+    RecordPtr record = Record::RawCast(SP[0]);
+    SP[0] = record->untag()->field(field_index);
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AllocateContext, A_E);
     ++SP;
     const uint32_t num_context_variables = rE;
@@ -2408,6 +2443,24 @@ SwitchDispatch:
     if (!AllocateArray(thread, type_args, length, pc, FP, SP)) {
       HANDLE_EXCEPTION;
     }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(AllocateRecord, D);
+    RecordTypePtr type = RecordType::RawCast(LOAD_CONSTANT(rD));
+    RecordShape shape(Smi::RawCast(type->untag()->shape()));
+    ++SP;
+    if (!AllocateRecord(thread, shape, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
+    RecordPtr record = Record::RawCast(SP[0]);
+    const intptr_t num_fields = shape.num_fields();
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      record->untag()->set_field(i, SP[-num_fields + i], thread);
+    }
+    SP -= num_fields;
+    SP[0] = record;
     DISPATCH();
   }
 

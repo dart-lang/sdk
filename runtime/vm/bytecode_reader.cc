@@ -1064,6 +1064,7 @@ ObjectPtr BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
     kString,
     kMap,
     kSet,
+    kRecord,
   };
 
   switch (tag) {
@@ -1221,6 +1222,20 @@ ObjectPtr BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
       }
       return Canonicalize(set);
     }
+    case kRecord: {
+      const RecordType& record_type =
+          RecordType::CheckedHandle(Z, ReadObject());
+      const intptr_t num_fields = reader_.ReadUInt();
+      ASSERT(num_fields == record_type.NumFields());
+      const RecordShape shape = record_type.shape();
+      const auto& record = Record::Handle(Z, Record::New(shape));
+      Object& value = Object::Handle(Z);
+      for (intptr_t i = 0; i < num_fields; ++i) {
+        value = ReadObject();
+        record.SetFieldAt(i, value);
+      }
+      return Canonicalize(record);
+    }
     default:
       UNREACHABLE();
   }
@@ -1337,7 +1352,44 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
           /* has_positional_param_names = */ false,
           /* has_parameter_flags */ false);
     }
-    case kRecordType:
+    case kRecordType: {
+      const intptr_t num_positional = reader_.ReadUInt();
+      const intptr_t num_named = reader_.ReadUInt();
+
+      const intptr_t num_fields = num_positional + num_named;
+      const Array& field_types =
+          Array::Handle(Z, Array::New(num_fields, Heap::kOld));
+      const Array& field_names =
+          (num_named == 0)
+              ? Object::empty_array()
+              : Array::Handle(Z, Array::New(num_named, Heap::kOld));
+      AbstractType& type = AbstractType::Handle(Z);
+
+      intptr_t pos = 0;
+      for (intptr_t i = 0; i < num_positional; ++i) {
+        type ^= ReadObject();
+        field_types.SetAt(pos++, type);
+      }
+
+      if (num_named > 0) {
+        String& name = String::Handle(Z);
+        for (intptr_t i = 0; i < num_named; ++i) {
+          name ^= ReadObject();
+          field_names.SetAt(i, name);
+          type ^= ReadObject();
+          field_types.SetAt(pos++, type);
+        }
+        field_names.MakeImmutable();
+      }
+
+      const RecordShape shape =
+          RecordShape::Register(thread_, num_fields, field_names);
+
+      type = RecordType::New(shape, field_types, nullability);
+      type.SetIsFinalized();
+      return type.Canonicalize(thread_);
+    }
+
       UNIMPLEMENTED();
     default:
       UNREACHABLE();
