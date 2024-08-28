@@ -1041,6 +1041,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// calls.
   void _validateAddressPosition(Expression node, AstNode errorNode) {
     var parent = node.parent;
+    // Since we are allowing .address.cast(), we need to traverse up one level
+    // to get the ffi Invocation (.cast() nested down one level the expression)
+    if (parent is MethodInvocation &&
+        parent.methodName.staticElement is MethodElement &&
+        parent.methodName.name == "cast" &&
+        parent.methodName.staticElement?.enclosingElement is ClassElement &&
+        parent.methodName.staticElement!.enclosingElement.isPointer) {
+      parent = parent.parent;
+    }
     var grandParent = parent?.parent;
     if (parent is! ArgumentList ||
         grandParent is! MethodInvocation ||
