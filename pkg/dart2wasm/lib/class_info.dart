@@ -776,7 +776,8 @@ extension RangeListExtention on List<Range> {
       }
       if (nextRange.isEmpty) continue;
       if (currentRange.containsRange(nextRange)) continue;
-      if (currentRange.contains(nextRange.start)) {
+      if (currentRange.contains(nextRange.start) ||
+          (currentRange.end + 1) == nextRange.start) {
         currentRange = Range(currentRange.start, nextRange.end);
         continue;
       }
