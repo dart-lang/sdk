@@ -1510,6 +1510,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ('', parameterType, argument);
     }
 
+    if (argument is InvalidExpression) {
+      return ('E', parameterType, InvalidExpression('Invalid Type'));
+    }
+
     if (argument is InstanceInvocation &&
         argument.interfaceTarget == castMethod &&
         argument.functionType.returnType == parameterType) {
