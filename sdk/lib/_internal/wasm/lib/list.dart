@@ -188,6 +188,7 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
         makeListFixedLength(GrowableList<E>.fromIterable(elements)));
   }
 
+  @pragma('wasm:prefer-inline')
   Iterator<E> get iterator {
     return _FixedSizeListIterator<E>(this);
   }
@@ -200,6 +201,7 @@ class ImmutableList<E> extends WasmListBase<E> with UnmodifiableListMixin<E> {
         "ImmutableList can only be allocated by the runtime");
   }
 
+  @pragma('wasm:prefer-inline')
   Iterator<E> get iterator {
     return _FixedSizeListIterator<E>(this);
   }
@@ -212,6 +214,7 @@ class _FixedSizeListIterator<E> implements Iterator<E> {
   int _index;
   E? _current;
 
+  @pragma("wasm:prefer-inline")
   _FixedSizeListIterator(WasmListBase<E> list)
       : _data = list._data,
         _length = list.length,
@@ -219,8 +222,10 @@ class _FixedSizeListIterator<E> implements Iterator<E> {
     assert(list is ModifiableFixedLengthList<E> || list is ImmutableList<E>);
   }
 
+  @pragma("wasm:prefer-inline")
   E get current => _current as E;
 
+  @pragma("wasm:prefer-inline")
   bool moveNext() {
     if (_index >= _length) {
       _current = null;
@@ -517,6 +522,7 @@ class GrowableList<E> extends _ModifiableList<E> {
     _data = newData;
   }
 
+  @pragma('wasm:prefer-inline')
   Iterator<E> get iterator {
     return _GrowableListIterator<E>(this);
   }
@@ -529,13 +535,16 @@ class _GrowableListIterator<E> implements Iterator<E> {
   int _index;
   E? _current;
 
+  @pragma("wasm:prefer-inline")
   _GrowableListIterator(GrowableList<E> list)
       : _list = list,
         _length = list.length,
         _index = 0;
 
+  @pragma("wasm:prefer-inline")
   E get current => _current as E;
 
+  @pragma("wasm:prefer-inline")
   bool moveNext() {
     if (_list.length != _length) {
       throw ConcurrentModificationError(_list);
