@@ -85,6 +85,36 @@ final tests = <IsolateTest>[
 
     final cInstance2 = await service.getObject(isolateId, cObjectId2);
     expect(cInstance2.type, 'Instance');
+
+    await service.callMethod(
+      '_invalidateIdZone',
+      isolateId: isolateId,
+      args: {
+        '_idZoneId': idZone1['id'],
+      },
+    );
+
+    try {
+      await service.getObject(isolateId, cObjectId1);
+      fail('successfully retrieved object using expired ID');
+    } on SentinelException catch (e) {
+      expect(e.sentinel.kind, startsWith('Expired'));
+      expect(e.sentinel.valueAsString, equals('<expired>'));
+    }
+
+    // Ensure that the zone can be reused after it was invalidated.
+    final cInstanceRef3 = (await service.callMethod(
+      'evaluateInFrame',
+      isolateId: isolateId,
+      args: {
+        'frameIndex': 0,
+        'expression': 'c',
+        '_idZoneId': idZone1['id'],
+      },
+    ))
+        .json!;
+    expect(cInstanceRef3['type'], '@Instance');
+    expect(cInstanceRef3['id'], 'objects/0/1');
   },
 
   // Test the behaviour of an ID Zone with a `backingBufferKind` of `Ring`, an
@@ -202,6 +232,36 @@ final tests = <IsolateTest>[
 
     final cInstance2 = await service.getObject(isolateId, cObjectId2);
     expect(cInstance2.type, 'Instance');
+
+    await service.callMethod(
+      '_invalidateIdZone',
+      isolateId: isolateId,
+      args: {
+        '_idZoneId': idZone3['id'],
+      },
+    );
+
+    try {
+      await service.getObject(isolateId, cObjectId1);
+      fail('successfully retrieved object using expired ID');
+    } on SentinelException catch (e) {
+      expect(e.sentinel.kind, startsWith('Expired'));
+      expect(e.sentinel.valueAsString, equals('<expired>'));
+    }
+
+    // Ensure that the zone can be reused after it was invalidated.
+    final cInstanceRef3 = (await service.callMethod(
+      'evaluateInFrame',
+      isolateId: isolateId,
+      args: {
+        'frameIndex': 0,
+        'expression': 'c',
+        '_idZoneId': idZone3['id'],
+      },
+    ))
+        .json!;
+    expect(cInstanceRef3['type'], '@Instance');
+    expect(cInstanceRef3['id'], 'objects/0/3');
   },
   resumeIsolate,
 ];

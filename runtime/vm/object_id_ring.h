@@ -44,6 +44,9 @@ class ObjectIdRing {
   explicit ObjectIdRing(int32_t capacity);
   ~ObjectIdRing();
 
+  // Invalidate all the Service IDs currently living in this ring.
+  void Invalidate();
+
   // Adds the argument to the ring and returns its id. Note we do not allow
   // adding Object::null().
   int32_t GetIdForObject(ObjectPtr raw_obj, IdPolicy policy = kAllocateId);

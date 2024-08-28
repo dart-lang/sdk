@@ -395,6 +395,10 @@ char* RingServiceIdZone::GetServiceId(const Object& obj) {
                              id());
 }
 
+void RingServiceIdZone::Invalidate() {
+  ring_.Invalidate();
+}
+
 void RingServiceIdZone::VisitPointers(ObjectPointerVisitor& visitor) const {
   ring_.VisitPointers(&visitor);
 }
@@ -2680,6 +2684,23 @@ static void GetReachableSize(Thread* thread, JSONStream* js) {
   intptr_t retained_size = graph.SizeReachableByInstance(obj);
   const Object& result = Object::Handle(Integer::New(retained_size));
   result.PrintJSON(js, true);
+}
+
+static const MethodParameter* const invalidate_id_zone_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void InvalidateIdZone(Thread* thread, JSONStream* js) {
+  ASSERT(thread != nullptr);
+  ASSERT(js != nullptr);
+
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != nullptr);
+
+  js->id_zone().Invalidate();
+
+  PrintSuccess(js);
 }
 
 static const MethodParameter* const invoke_params[] = {
@@ -6087,6 +6108,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_timeline_flags_params },
   { "getVMTimelineMicros", GetVMTimelineMicros,
     get_vm_timeline_micros_params },
+  { "_invalidateIdZone", InvalidateIdZone,
+    invalidate_id_zone_params },
   { "invoke", Invoke, invoke_params },
   { "kill", Kill, kill_params },
   { "pause", Pause,
