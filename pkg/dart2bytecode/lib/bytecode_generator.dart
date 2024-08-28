@@ -4252,17 +4252,39 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitRecordIndexGet(RecordIndexGet node) {
-    _unimplemented(node, 'RecordIndexGet');
+    _generateNode(node.receiver);
+    asm.emitLoadRecordField(node.index);
   }
 
   @override
   void visitRecordNameGet(RecordNameGet node) {
-    _unimplemented(node, 'RecordNameGet');
+    final type = node.receiverType;
+    final namedFields = type.named;
+    final name = node.name;
+    int fieldIndex = -1;
+    for (int i = 0; i < namedFields.length; ++i) {
+      if (namedFields[i].name == name) {
+        fieldIndex = type.positional.length + i;
+        break;
+      }
+    }
+    if (fieldIndex < 0) {
+      throw 'Unable to find record field "$name" in $type';
+    }
+    _generateNode(node.receiver);
+    asm.emitLoadRecordField(fieldIndex);
   }
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
-    _unimplemented(node, 'RecordLiteral');
+    assert(!node.isConst);
+    for (final expr in node.positional) {
+      _generateNode(expr);
+    }
+    for (final expr in node.named) {
+      _generateNode(expr.value);
+    }
+    asm.emitAllocateRecord(cp.addType(node.recordType));
   }
 
   @override

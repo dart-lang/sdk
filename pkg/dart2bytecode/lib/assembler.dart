@@ -755,4 +755,14 @@ class BytecodeAssembler {
   void emitJumpIfInitialized(Label label) {
     _emitJumpInstruction(Opcode.kJumpIfInitialized, label);
   }
+
+  @pragma('vm:prefer-inline')
+  void emitAllocateRecord(int rd) {
+    _emitInstructionD(Opcode.kAllocateRecord, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitLoadRecordField(int rd) {
+    _emitInstructionD(Opcode.kLoadRecordField, rd);
+  }
 }

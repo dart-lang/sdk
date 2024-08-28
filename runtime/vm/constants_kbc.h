@@ -638,6 +638,10 @@ namespace dart {
   V(CompareDoubleLt,                       0, ORDN, ___, ___, ___)             \
   V(CompareDoubleGe,                       0, ORDN, ___, ___, ___)             \
   V(CompareDoubleLe,                       0, ORDN, ___, ___, ___)             \
+  V(AllocateRecord,                        D, ORDN, lit, ___, ___)             \
+  V(AllocateRecord_Wide,                   D, WIDE, lit, ___, ___)             \
+  V(LoadRecordField,                       D, ORDN, num, ___, ___)             \
+  V(LoadRecordField_Wide,                  D, WIDE, num, ___, ___)             \
 
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.
