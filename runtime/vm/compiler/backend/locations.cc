@@ -247,8 +247,7 @@ Location Location::ToSpRelative(intptr_t fp_to_sp_delta) const {
   if (HasStackIndex()) {
     ASSERT(base_reg() == FPREG);
     uword payload = StackSlotBaseField::encode(SPREG) |
-                    StackIndexField::encode(
-                        EncodeStackIndex(stack_index() - fp_to_sp_delta));
+                    StackIndexField::encode(stack_index() - fp_to_sp_delta);
     return Location(kind(), payload);
   }
 

@@ -178,6 +178,8 @@ class Place : public ValueObject {
 
     // Indexed location with a constant index.
     kConstantIndexed,
+
+    // Update KindBits below if more kinds are added.
   };
 
   // Size of the element accessed by constant index. Size is only important
@@ -647,16 +649,16 @@ class Place : public ValueObject {
     return base_offset + index * ElementSizeMultiplier(size);
   }
 
-  class KindBits : public BitField<uword, Kind, 0, 3> {};
-  class RepresentationBits
-      : public BitField<uword, Representation, KindBits::kNextBit, 11> {};
-
-  static constexpr int kNumElementSizeBits = Utils::ShiftForPowerOfTwo(
-      Utils::RoundUpToPowerOfTwo(kLargestElementSize));
-  class ElementSizeBits : public BitField<uword,
-                                          ElementSize,
-                                          RepresentationBits::kNextBit,
-                                          kNumElementSizeBits> {};
+  using KindBits = BitField<uword, Kind, 0, Utils::BitLength(kConstantIndexed)>;
+  using RepresentationBits =
+      BitField<uword,
+               Representation,
+               KindBits::kNextBit,
+               Utils::BitLength(kNumRepresentations - 1)>;
+  using ElementSizeBits = BitField<uword,
+                                   ElementSize,
+                                   RepresentationBits::kNextBit,
+                                   Utils::BitLength(kLargestElementSize)>;
 
   uword flags_;
   Definition* instance_;

@@ -8683,10 +8683,11 @@ RegExpPtr Function::regexp() const {
   return RegExp::RawCast(pair.At(0));
 }
 
-class StickySpecialization : public BitField<intptr_t, bool, 0, 1> {};
-class StringSpecializationCid
-    : public BitField<intptr_t, intptr_t, 1, UntaggedObject::kClassIdTagSize> {
-};
+using StickySpecialization = BitField<intptr_t, bool>;
+using StringSpecializationCid = BitField<intptr_t,
+                                         intptr_t,
+                                         StickySpecialization::kNextBit,
+                                         UntaggedObject::ClassIdTag::bitsize()>;
 
 intptr_t Function::string_specialization_cid() const {
   ASSERT(kind() == UntaggedFunction::kIrregexpFunction);

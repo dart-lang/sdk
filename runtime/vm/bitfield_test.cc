@@ -11,7 +11,7 @@
 namespace dart {
 
 VM_UNIT_TEST_CASE(BitFields) {
-  class TestBitFields : public BitField<uword, int32_t, 1, 8> {};
+  using TestBitFields = BitField<uword, int32_t, 1, 8>;
   EXPECT(TestBitFields::is_valid(16));
   EXPECT(!TestBitFields::is_valid(256));
   EXPECT_EQ(0x00ffU, TestBitFields::mask());
@@ -25,15 +25,10 @@ VM_UNIT_TEST_CASE(BitFields) {
 
 template <typename T>
 static void TestSignExtendedBitField() {
-  class F1 : public BitField<T, intptr_t, 0, 8, /*sign_extend=*/true> {};
-  class F2
-      : public BitField<T, uintptr_t, F1::kNextBit, 8, /*sign_extend=*/false> {
-  };
-  class F3
-      : public BitField<T, intptr_t, F2::kNextBit, 8, /*sign_extend=*/true> {};
-  class F4
-      : public BitField<T, uintptr_t, F3::kNextBit, 8, /*sign_extend=*/false> {
-  };
+  using F1 = BitField<T, intptr_t, 0, 8, /*sign_extend=*/true>;
+  using F2 = BitField<T, uintptr_t, F1::kNextBit, 8, /*sign_extend=*/false>;
+  using F3 = BitField<T, intptr_t, F2::kNextBit, 8, /*sign_extend=*/true>;
+  using F4 = BitField<T, uintptr_t, F3::kNextBit, 8, /*sign_extend=*/false>;
 
   const uint32_t value =
       F1::encode(-1) | F2::encode(1) | F3::encode(-2) | F4::encode(2);
@@ -46,15 +41,10 @@ static void TestSignExtendedBitField() {
 
 template <typename T>
 static void TestNotSignExtendedBitField() {
-  class F1 : public BitField<T, intptr_t, 0, 8, /*sign_extend=*/false> {};
-  class F2
-      : public BitField<T, uintptr_t, F1::kNextBit, 8, /*sign_extend=*/false> {
-  };
-  class F3
-      : public BitField<T, intptr_t, F2::kNextBit, 8, /*sign_extend=*/false> {};
-  class F4
-      : public BitField<T, uintptr_t, F3::kNextBit, 8, /*sign_extend=*/false> {
-  };
+  using F1 = BitField<T, intptr_t, 0, 8, /*sign_extend=*/false>;
+  using F2 = BitField<T, uintptr_t, F1::kNextBit, 8, /*sign_extend=*/false>;
+  using F3 = BitField<T, intptr_t, F2::kNextBit, 8, /*sign_extend=*/false>;
+  using F4 = BitField<T, uintptr_t, F3::kNextBit, 8, /*sign_extend=*/false>;
 
   const uint32_t value =
       F1::encode(-1) | F2::encode(1) | F3::encode(-2) | F4::encode(2);
@@ -77,12 +67,10 @@ VM_UNIT_TEST_CASE(BitFields_Defaults) {
   using F3s = BitField<intptr_t, int16_t, F2::kNextBit, kBitsPerInt16,
                        /*sign_extend=*/true>;
   using F4 = BitField<intptr_t, intptr_t, F3::kNextBit>;
-  using F4s = BitField<intptr_t, intptr_t, F3::kNextBit,
-                       kBitsPerWord - F3::kNextBit, /*sign_extend=*/true>;
+  using F4s = SignedBitField<intptr_t, intptr_t, F3::kNextBit>;
   // Like F4/F4s, but based on F3s.
   using F5 = BitField<intptr_t, intptr_t, F3s::kNextBit>;
-  using F5s = BitField<intptr_t, intptr_t, F3s::kNextBit,
-                       kBitsPerWord - F3s::kNextBit, /*sign_extend=*/true>;
+  using F5s = SignedBitField<intptr_t, intptr_t, F3s::kNextBit>;
 
   const intptr_t kF4Bitsize = kBitsPerWord - 24;
   const intptr_t kF4Max = (static_cast<intptr_t>(1) << (kF4Bitsize)) - 1;
@@ -136,7 +124,7 @@ VM_UNIT_TEST_CASE(BitFields_Defaults) {
 #endif
 
 VM_UNIT_TEST_CASE_WITH_EXPECTATION(BitFields_Assert, DEBUG_CRASH) {
-  class F : public BitField<uint32_t, uint32_t, 0, 8, /*sign_extend=*/false> {};
+  using F = BitField<uint32_t, uint32_t, 0, 8, /*sign_extend=*/false>;
   const uint32_t value = F::encode(kMaxUint32);
   EXPECT_EQ(kMaxUint8, value);
 }
