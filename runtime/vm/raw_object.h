@@ -265,10 +265,8 @@ class UntaggedObject {
     }
   };
 
-  class ClassIdTag : public BitField<decltype(tags_),
-                                     ClassIdTagType,
-                                     SizeTagBits::kNextBit,
-                                     20> {};
+  using ClassIdTag =
+      BitField<decltype(tags_), ClassIdTagType, SizeTagBits::kNextBit, 20>;
   COMPILE_ASSERT(kClassIdTagMax == ClassIdTag::max());
   static constexpr intptr_t kClassIdTagSize = ClassIdTag::bitsize();
 
@@ -2367,11 +2365,7 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
    private:
     using KindBits = BitField<decltype(index_kind), int8_t>;
     using IndexBits =
-        BitField<decltype(index_kind),
-                 int32_t,
-                 KindBits::kNextBit,
-                 sizeof(index_kind) * kBitsPerByte - KindBits::kNextBit,
-                 /*sign_extend=*/true>;
+        SignedBitField<decltype(index_kind), int32_t, KindBits::kNextBit>;
 
    public:
     // Since there are 32 - 8 = 24 bits for the stack slot index, Functions can

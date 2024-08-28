@@ -812,7 +812,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   };
 
 #define DECLARE_BITFIELD(Name)                                                 \
-  class Name##Bit : public BitField<uint32_t, bool, k##Name##Bit, 1> {};
+  using Name##Bit = BitField<uint32_t, bool, k##Name##Bit>;
   ISOLATE_GROUP_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 

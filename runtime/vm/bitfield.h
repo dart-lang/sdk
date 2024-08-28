@@ -157,7 +157,7 @@ class BitField {
                 "The container type cannot be larger than 64 bits.");
   static_assert(sizeof(T) * kBitsPerByte <= kBitsPerInt64,
                 "The value type cannot be larger than 64 bits.");
-  static_assert(requested_size > 0, "A negative size was requested.");
+  static_assert(requested_size > 0, "A non-positive size was requested.");
   static_assert(requested_size <= sizeof(T) * kBitsPerByte,
                 "The value type cannot hold all values of the requested size.");
   static_assert(!sign_extend || std::is_signed_v<T>,
@@ -314,8 +314,6 @@ class BitField<S,
                       BITFIELD_NON_BOOL_MIN_SIZE_WITH_POSITION(S, T, 0),
                       false> {};
 
-#undef BITFIELD_NON_BOOL_MIN_SIZE_WITH_POSITION
-
 template <typename S, int position, int size>
 class BitField<
     S,
@@ -340,6 +338,21 @@ class BitField<
 template <typename S>
 class BitField<S, bool, 0, 1, false, std::void_t<typename S::ContainedType>>
     : public BitField<typename S::ContainedType, bool, 0, 1, false> {};
+
+// Alias for sign-extended BitFields to avoid being forced to provide a size
+// and/or position when the default values are appropriate.
+template <typename S,
+          typename T,
+          int position = 0,
+          int size = BITFIELD_NON_BOOL_MIN_SIZE_WITH_POSITION(S, T, position)>
+using SignedBitField = BitField<S,
+                                T,
+                                position,
+                                size,
+                                /*sign_extend=*/true,
+                                std::enable_if_t<std::is_signed_v<T>, void>>;
+
+#undef BITFIELD_NON_BOOL_MIN_SIZE_WITH_POSITION
 
 }  // namespace dart
 

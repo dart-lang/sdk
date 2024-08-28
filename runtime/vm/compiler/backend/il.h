@@ -11677,20 +11677,20 @@ class Environment : public ZoneAllocated {
   }
 
   bool LazyDeoptToBeforeDeoptId() const {
-    return LazyDeoptToBeforeDeoptId::decode(bitfield_);
+    return LazyDeoptToBeforeDeoptIdBit::decode(bitfield_);
   }
 
   void MarkAsLazyDeoptToBeforeDeoptId() {
-    bitfield_ = LazyDeoptToBeforeDeoptId::update(true, bitfield_);
+    bitfield_ = LazyDeoptToBeforeDeoptIdBit::update(true, bitfield_);
     // As eager and lazy deopts will target the before environment, we do not
     // want to prune inputs on lazy deopts.
     bitfield_ = LazyDeoptPruningBits::update(0, bitfield_);
   }
 
   // This environment belongs to an optimistically hoisted instruction.
-  bool IsHoisted() const { return Hoisted::decode(bitfield_); }
+  bool IsHoisted() const { return HoistedBit::decode(bitfield_); }
 
-  void MarkAsHoisted() { bitfield_ = Hoisted::update(true, bitfield_); }
+  void MarkAsHoisted() { bitfield_ = HoistedBit::update(true, bitfield_); }
 
   Environment* GetLazyDeoptEnv(Zone* zone) {
     if (LazyDeoptToBeforeDeoptId()) {
@@ -11774,19 +11774,6 @@ class Environment : public ZoneAllocated {
   friend class ShallowIterator;
   friend class compiler::BlockBuilder;  // For Environment constructor.
 
-  class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
-  class LazyDeoptToBeforeDeoptId
-      : public BitField<uintptr_t, bool, LazyDeoptPruningBits::kNextBit, 1> {};
-  class Hoisted : public BitField<uintptr_t,
-                                  bool,
-                                  LazyDeoptToBeforeDeoptId::kNextBit,
-                                  1> {};
-  class DeoptIdBits : public BitField<uintptr_t,
-                                      intptr_t,
-                                      Hoisted::kNextBit,
-                                      kBitsPerWord - Hoisted::kNextBit,
-                                      /*sign_extend=*/true> {};
-
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
               intptr_t lazy_deopt_pruning_count,
@@ -11795,7 +11782,7 @@ class Environment : public ZoneAllocated {
       : values_(length),
         fixed_parameter_count_(fixed_parameter_count),
         bitfield_(DeoptIdBits::encode(DeoptId::kNone) |
-                  LazyDeoptToBeforeDeoptId::encode(false) |
+                  LazyDeoptToBeforeDeoptIdBit::encode(false) |
                   LazyDeoptPruningBits::encode(lazy_deopt_pruning_count)),
         function_(function),
         outer_(outer) {}
@@ -11807,7 +11794,7 @@ class Environment : public ZoneAllocated {
     bitfield_ = LazyDeoptPruningBits::update(value, bitfield_);
   }
   void SetLazyDeoptToBeforeDeoptId(bool value) {
-    bitfield_ = LazyDeoptToBeforeDeoptId::update(value, bitfield_);
+    bitfield_ = LazyDeoptToBeforeDeoptIdBit::update(value, bitfield_);
   }
 
   GrowableArray<Value*> values_;
@@ -11818,6 +11805,15 @@ class Environment : public ZoneAllocated {
   uintptr_t bitfield_;
   const Function& function_;
   Environment* outer_;
+
+  using LazyDeoptPruningBits = BitField<decltype(bitfield_), uintptr_t, 0, 8>;
+  using LazyDeoptToBeforeDeoptIdBit =
+      BitField<decltype(bitfield_), bool, LazyDeoptPruningBits::kNextBit>;
+  using HoistedBit = BitField<decltype(bitfield_),
+                              bool,
+                              LazyDeoptToBeforeDeoptIdBit::kNextBit>;
+  using DeoptIdBits =
+      SignedBitField<decltype(bitfield_), intptr_t, HoistedBit::kNextBit>;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };
