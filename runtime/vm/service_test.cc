@@ -159,6 +159,7 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
 
   {
     JSONStream js;
+    js.set_id_zone(isolate->EnsureDefaultServiceIdZone());
     isolate->PrintJSON(&js, false);
     // No error property and no PauseExit state.
     EXPECT_NOTSUBSTRING("\"error\":", js.ToCString());
@@ -176,6 +177,7 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
 
   {
     JSONStream js;
+    js.set_id_zone(isolate->EnsureDefaultServiceIdZone());
     isolate->PrintJSON(&js, false);
     // Error and PauseExit set.
     EXPECT_SUBSTRING("\"error\":", js.ToCString());
@@ -198,23 +200,23 @@ ISOLATE_UNIT_TEST_CASE(Service_RingServiceIdZonePolicies) {
   // Always allocate a new id.
   RingServiceIdZone always_allocate_zone(
       kDefaultIdZoneId, ObjectIdRing::kAllocateId, kTestIdZoneCapacity);
-  EXPECT_STREQ("objects/0", always_allocate_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/1", always_allocate_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/2", always_allocate_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/3", always_allocate_zone.GetServiceId(test_b));
-  EXPECT_STREQ("objects/4", always_allocate_zone.GetServiceId(test_c));
+  EXPECT_STREQ("objects/0/0", always_allocate_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/1/0", always_allocate_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/2/0", always_allocate_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/3/0", always_allocate_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/4/0", always_allocate_zone.GetServiceId(test_c));
 
   // Reuse an existing id or allocate a new id.
   RingServiceIdZone reuse_existing_zone(
       kDefaultIdZoneId, ObjectIdRing::kReuseId, kTestIdZoneCapacity);
-  EXPECT_STREQ("objects/0", reuse_existing_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/0", reuse_existing_zone.GetServiceId(test_a));
-  EXPECT_STREQ("objects/1", reuse_existing_zone.GetServiceId(test_b));
-  EXPECT_STREQ("objects/1", reuse_existing_zone.GetServiceId(test_b));
-  EXPECT_STREQ("objects/2", reuse_existing_zone.GetServiceId(test_c));
-  EXPECT_STREQ("objects/2", reuse_existing_zone.GetServiceId(test_c));
-  EXPECT_STREQ("objects/3", reuse_existing_zone.GetServiceId(test_d));
-  EXPECT_STREQ("objects/3", reuse_existing_zone.GetServiceId(test_d));
+  EXPECT_STREQ("objects/0/0", reuse_existing_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/0/0", reuse_existing_zone.GetServiceId(test_a));
+  EXPECT_STREQ("objects/1/0", reuse_existing_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/1/0", reuse_existing_zone.GetServiceId(test_b));
+  EXPECT_STREQ("objects/2/0", reuse_existing_zone.GetServiceId(test_c));
+  EXPECT_STREQ("objects/2/0", reuse_existing_zone.GetServiceId(test_c));
+  EXPECT_STREQ("objects/3/0", reuse_existing_zone.GetServiceId(test_d));
+  EXPECT_STREQ("objects/3/0", reuse_existing_zone.GetServiceId(test_d));
 }
 
 ISOLATE_UNIT_TEST_CASE(Service_Code) {

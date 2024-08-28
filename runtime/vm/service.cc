@@ -390,8 +390,9 @@ char* RingServiceIdZone::GetServiceId(const Object& obj) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != nullptr);
-  const intptr_t id = GetIdForObject(obj.ptr());
-  return zone->PrintToString("objects/%" Pd "", id);
+  const intptr_t object_part_of_service_id = GetIdForObject(obj.ptr());
+  return zone->PrintToString("objects/%" Pd "/%" Pd, object_part_of_service_id,
+                             id());
 }
 
 void RingServiceIdZone::VisitPointers(ObjectPointerVisitor& visitor) const {
@@ -990,6 +991,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
   {
     StackZone zone(T);
 
+    Isolate& isolate = *T->isolate();
     Instance& reply_port = Instance::Handle(Z);
     Instance& seq = String::Handle(Z);
     String& method_name = String::Handle(Z);
@@ -1020,16 +1022,30 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     js.Setup(zone.GetZone(), reply_port_id, seq, method_name, param_keys,
              param_values, parameters_are_dart_objects);
 
-    // RPC came in with a custom service id zone.
-    const char* id_zone_param = js.LookupParam("_idZone");
+    // |id_zone| is the zone that will be stored into the |JSONStream| that we
+    // are about to create, meaning that it is where temporary Service IDs may
+    // be allocated by the RPC currently being handled.
+    RingServiceIdZone* id_zone = &isolate.EnsureDefaultServiceIdZone();
+    const char* id_zone_arg = js.LookupParam("_idZoneId");
+    if (id_zone_arg != nullptr) {
+      // We must create a temporary |UIntParameter| to use the
+      // |UIntParameter::Validate| helper because it is not a static method.
+      if (Utils::StrStartsWith(id_zone_arg, "zones/") &&
+          UIntParameter("temp", true).Validate(id_zone_arg + 6)) {
+        id_zone =
+            isolate.GetServiceIdZone(UIntParameter::Parse(id_zone_arg + 6));
+      } else {
+        id_zone = nullptr;
+      }
+    }
 
-    if (id_zone_param != nullptr) {
-      // TODO(derekxu16): Support invalidating and selecting custom Service ID
-      // zones. For now, always return an error.
-      PrintInvalidParamError(&js, "_idZone");
+    if (id_zone == nullptr) {
+      PrintInvalidParamError(&js, "_idZoneId");
       js.PostReply();
       return T->StealStickyError();
     }
+    js.set_id_zone(*id_zone);
+
     const char* c_method_name = method_name.ToCString();
 
     const ServiceMethodDescriptor* method = FindMethod(c_method_name);
@@ -1234,6 +1250,12 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     return;
   }
   JSONStream js;
+  // When a Service event needs to include temporary object IDs, these IDs will
+  // be allocated in the default ID zone of the isolate associated with the
+  // Service event.
+  if (event->isolate() != nullptr) {
+    js.set_id_zone(event->isolate()->EnsureDefaultServiceIdZone());
+  }
   if (event->stream_info() != nullptr) {
     js.set_include_private_members(
         event->stream_info()->include_private_members());
@@ -1827,35 +1849,61 @@ static bool ContainsNonInstance(const Object& obj) {
   }
 }
 
-static ObjectPtr LookupObjectId(Thread* thread,
-                                const char* arg,
-                                ObjectIdRing::LookupResult* kind) {
+static ObjectPtr LookUpObjectByServiceId(
+    Thread* thread,
+    const char* id_zone_part_of_service_id_as_string,
+    const char* object_part_of_service_id_as_string,
+    ObjectIdRing::LookupResult* kind) {
+  ASSERT(thread != nullptr);
+
+  // First, check if the provided ID is a fixed Service ID.
   *kind = ObjectIdRing::kValid;
-  if (strncmp(arg, "int-", 4) == 0) {
-    arg += 4;
+  if (strncmp(object_part_of_service_id_as_string, "int-", 4) == 0) {
+    object_part_of_service_id_as_string += 4;
     int64_t value = 0;
-    if (!OS::StringToInt64(arg, &value) || !Smi::IsValid(value)) {
+    if (!OS::StringToInt64(object_part_of_service_id_as_string, &value) ||
+        !Smi::IsValid(value)) {
       *kind = ObjectIdRing::kInvalid;
       return Object::null();
     }
     const Integer& obj =
         Integer::Handle(thread->zone(), Smi::New(static_cast<intptr_t>(value)));
     return obj.ptr();
-  } else if (strcmp(arg, "bool-true") == 0) {
+  } else if (strcmp(object_part_of_service_id_as_string, "bool-true") == 0) {
     return Bool::True().ptr();
-  } else if (strcmp(arg, "bool-false") == 0) {
+  } else if (strcmp(object_part_of_service_id_as_string, "bool-false") == 0) {
     return Bool::False().ptr();
-  } else if (strcmp(arg, "null") == 0) {
+  } else if (strcmp(object_part_of_service_id_as_string, "null") == 0) {
     return Object::null();
   }
 
-  intptr_t id = -1;
-  if (!GetIntegerId(arg, &id)) {
+  // The provided ID is not a fixed Service ID, now we will interpret the ID as
+  // a temporary Service ID. Temporary Service IDs of objects look like
+  // "objects/1123/4", where 4 is the ID of the ID Zone where the ID was
+  // allocated, and 1123 is the part that identifies an object within zone 4.
+  intptr_t id_zone_part_of_service_id = -1;
+  if (!GetIntegerId(id_zone_part_of_service_id_as_string,
+                    &id_zone_part_of_service_id)) {
     *kind = ObjectIdRing::kInvalid;
     return Object::null();
   }
-  return thread->isolate()->EnsureDefaultServiceIdZone().GetObjectForId(id,
-                                                                        kind);
+  intptr_t object_part_of_service_id = -1;
+  if (!GetIntegerId(object_part_of_service_id_as_string,
+                    &object_part_of_service_id)) {
+    *kind = ObjectIdRing::kInvalid;
+    return Object::null();
+  }
+
+  ASSERT(thread->isolate() != nullptr);
+  const Isolate& isolate = *thread->isolate();
+  if (id_zone_part_of_service_id >= isolate.NumServiceIdZones()) {
+    *kind = ObjectIdRing::kInvalid;
+    return Object::null();
+  }
+
+  RingServiceIdZone& id_zone =
+      *isolate.GetServiceIdZone(id_zone_part_of_service_id);
+  return id_zone.GetObjectForId(object_part_of_service_id, kind);
 }
 
 static ObjectPtr LookupClassMembers(Thread* thread,
@@ -2221,10 +2269,9 @@ static ObjectPtr LookupHeapObject(Thread* thread,
 
   Isolate* isolate = thread->isolate();
   if (strcmp(parts[0], "objects") == 0) {
-    // Object ids look like "objects/1123"
     Object& obj = Object::Handle(thread->zone());
     ObjectIdRing::LookupResult lookup_result;
-    obj = LookupObjectId(thread, parts[1], &lookup_result);
+    obj = LookUpObjectByServiceId(thread, parts[2], parts[1], &lookup_result);
     if (lookup_result != ObjectIdRing::kValid) {
       if (result != nullptr) {
         *result = lookup_result;

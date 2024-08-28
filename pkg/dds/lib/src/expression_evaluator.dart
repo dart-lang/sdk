@@ -129,6 +129,9 @@ class ExpressionEvaluator {
     if (parameters['scope'].asMapOr({}).isNotEmpty) {
       params['scope'] = parameters['scope'].asMap;
     }
+    if (parameters['_idZoneId'].asStringOr('').isNotEmpty) {
+      params['_idZoneId'] = parameters['_idZoneId'].asString;
+    }
     return (await dds.vmServiceClient.sendRequest(
       '_evaluateCompiledExpression',
       params,
