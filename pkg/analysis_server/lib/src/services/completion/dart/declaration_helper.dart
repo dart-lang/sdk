@@ -436,10 +436,10 @@ class DeclarationHelper {
     }
     for (var accessor in extension.accessors) {
       if (!accessor.isStatic) {
-        _suggestProperty(
+        _suggestFieldOrProperty(
             accessor: accessor,
-            importData: importData,
-            referencingInterface: referencingInterface);
+            referencingInterface: referencingInterface,
+            importData: importData);
       }
     }
   }
@@ -721,8 +721,20 @@ class DeclarationHelper {
         }
       }
       for (var accessor in extension.accessors) {
-        if (accessor.isGetter || includeSetters && accessor.isSetter) {
-          _suggestProperty(accessor: accessor);
+        if (!accessor.isSynthetic) {
+          if (accessor.isGetter || includeSetters && accessor.isSetter) {
+            _suggestProperty(accessor: accessor);
+          }
+        } else {
+          // Avoid visiting a field twice. All fields induce a getter, but only
+          // non-final fields induce a setter, so we don't add a suggestion for a
+          // synthetic setter.
+          if (accessor.isGetter) {
+            var variable = accessor.variable2;
+            if (variable is FieldElement) {
+              _suggestField(field: variable);
+            }
+          }
         }
       }
     }
@@ -917,10 +929,8 @@ class DeclarationHelper {
             referencingInterface: referencingInterface,
           );
         case PropertyAccessorElement():
-          _suggestProperty(
-            accessor: member,
-            referencingInterface: referencingInterface,
-          );
+          _suggestFieldOrProperty(
+              accessor: member, referencingInterface: referencingInterface);
       }
     }
   }
@@ -1625,6 +1635,30 @@ class DeclarationHelper {
     }
   }
 
+  /// Adds a suggestion for a [FieldElement] or a [PropertyAccessorElement].
+  void _suggestFieldOrProperty(
+      {required PropertyAccessorElement accessor,
+      required InterfaceElement? referencingInterface,
+      ImportData? importData}) {
+    if (accessor.isSynthetic) {
+      // Avoid visiting a field twice. All fields induce a getter, but only
+      // non-final fields induce a setter, so we don't add a suggestion for a
+      // synthetic setter.
+      if (accessor.isGetter) {
+        var variable = accessor.variable2;
+        if (variable is FieldElement) {
+          _suggestField(
+              field: variable, referencingInterface: referencingInterface);
+        }
+      }
+    } else {
+      _suggestProperty(
+          accessor: accessor,
+          referencingInterface: referencingInterface,
+          importData: importData);
+    }
+  }
+
   /// Adds a suggestion for the method `call` defined on the class `Function`.
   void _suggestFunctionCall() {
     var matcherScore = state.matcher.score('call');
@@ -1772,12 +1806,28 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(accessor.displayName);
       if (matcherScore != -1) {
-        var suggestion = PropertyAccessSuggestion(
-            element: accessor,
-            importData: importData,
-            matcherScore: matcherScore,
-            referencingInterface: referencingInterface);
-        collector.addSuggestion(suggestion);
+        if (accessor.isSynthetic) {
+          // Avoid visiting a field twice. All fields induce a getter, but only
+          // non-final fields induce a setter, so we don't add a suggestion for a
+          // synthetic setter.
+          if (accessor.isGetter) {
+            var variable = accessor.variable2;
+            if (variable is FieldElement) {
+              var suggestion = FieldSuggestion(
+                  element: variable,
+                  matcherScore: matcherScore,
+                  referencingInterface: referencingInterface);
+              collector.addSuggestion(suggestion);
+            }
+          }
+        } else {
+          var suggestion = PropertyAccessSuggestion(
+              element: accessor,
+              importData: importData,
+              matcherScore: matcherScore,
+              referencingInterface: referencingInterface);
+          collector.addSuggestion(suggestion);
+        }
       }
     }
   }
@@ -1821,13 +1871,24 @@ class DeclarationHelper {
           if (element.isSynthetic) {
             var getter = element.getter;
             if (getter != null) {
-              var suggestion = PropertyAccessSuggestion(
-                  element: getter,
-                  importData: importData,
-                  referencingInterface: null,
-                  matcherScore: matcherScore,
-                  withEnclosingName: true);
-              collector.addSuggestion(suggestion);
+              if (getter.isSynthetic) {
+                var variable = getter.variable2;
+                if (variable is FieldElement) {
+                  var suggestion = FieldSuggestion(
+                      element: variable,
+                      matcherScore: matcherScore,
+                      referencingInterface: null);
+                  collector.addSuggestion(suggestion);
+                }
+              } else {
+                var suggestion = PropertyAccessSuggestion(
+                    element: getter,
+                    importData: importData,
+                    referencingInterface: null,
+                    matcherScore: matcherScore,
+                    withEnclosingName: true);
+                collector.addSuggestion(suggestion);
+              }
             }
           } else {
             var suggestion = StaticFieldSuggestion(

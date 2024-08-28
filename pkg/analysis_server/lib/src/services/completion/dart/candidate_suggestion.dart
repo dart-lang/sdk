@@ -741,7 +741,37 @@ final class PropertyAccessSuggestion extends ImportableSuggestion
       this.withEnclosingName = false});
 
   @override
-  String get completion => element.name;
+  String get completion {
+    var prefix = _enclosingPrefix;
+    if (prefix.isNotEmpty) {
+      return '$prefix${element.displayName}';
+    }
+    return element.displayName;
+  }
+
+  /// Return the name of the enclosing class or extension.
+  ///
+  /// The enclosing element must be either a class, or extension; otherwise
+  /// we either fail with assertion, or return `null`.
+  String? get _enclosingClassOrExtensionName {
+    var enclosing = element.enclosingElement;
+    if (enclosing is InterfaceElement) {
+      return enclosing.name;
+    } else if (enclosing is ExtensionElement) {
+      return enclosing.name;
+    } else {
+      assert(false, 'Expected ClassElement or ExtensionElement');
+      return null;
+    }
+  }
+
+  String get _enclosingPrefix {
+    if (withEnclosingName) {
+      var enclosingName = _enclosingClassOrExtensionName;
+      return enclosingName != null ? '$enclosingName.' : '';
+    }
+    return '';
+  }
 }
 
 /// The information about a candidate suggestion based on a field in a record
@@ -1150,7 +1180,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           inheritanceDistance: inheritanceDistance,
           relevance: relevance,
-          withEnclosingName: suggestion.withEnclosingName,
+          completion: suggestion.completion,
         );
       case RecordFieldSuggestion():
         suggestRecordField(

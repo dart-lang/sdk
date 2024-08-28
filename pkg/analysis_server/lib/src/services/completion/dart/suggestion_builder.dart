@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -48,121 +46,6 @@ abstract class CompletionSuggestionBuilder {
   String get textToMatch;
 
   CompletionSuggestion build();
-}
-
-/// This class provides suggestions based upon the visible instance members in
-/// an interface type.
-class MemberSuggestionBuilder {
-  /// Enumerated value indicating that we have not generated any completions for
-  /// a given identifier yet.
-  static const int _COMPLETION_TYPE_NONE = 0;
-
-  /// Enumerated value indicating that we have generated a completion for a
-  /// getter.
-  static const int _COMPLETION_TYPE_GETTER = 1;
-
-  /// Enumerated value indicating that we have generated a completion for a
-  /// setter.
-  static const int _COMPLETION_TYPE_SETTER = 2;
-
-  /// Enumerated value indicating that we have generated a completion for a
-  /// field, a method, or a getter/setter pair.
-  static const int _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET = 3;
-
-  /// The request for which suggestions are being built.
-  final DartCompletionRequest request;
-
-  /// The builder used to build the suggestions.
-  final SuggestionBuilder builder;
-
-  /// Map indicating, for each possible completion identifier, whether we have
-  /// already generated completions for a getter, setter, or both.  The "both"
-  /// case also handles the case where have generated a completion for a method
-  /// or a field.
-  ///
-  /// Note: the enumerated values stored in this map are intended to be bitwise
-  /// compared.
-  final Map<String, int> _completionTypesGenerated = HashMap<String, int>();
-
-  MemberSuggestionBuilder(this.request, this.builder);
-
-  /// Add a suggestion for the given [accessor].
-  void addSuggestionForAccessor(
-      {required PropertyAccessorElement accessor,
-      required double inheritanceDistance}) {
-    if (accessor.isAccessibleIn(request.libraryElement)) {
-      var member =
-          accessor.isSynthetic ? accessor.variable2 ?? accessor : accessor;
-      if (_shouldAddSuggestion(member)) {
-        builder.suggestAccessor(accessor,
-            inheritanceDistance: inheritanceDistance);
-      }
-    }
-  }
-
-  /// Add a suggestion for the given [method].
-  void addSuggestionForMethod(
-      {required MethodElement method,
-      required CompletionSuggestionKind kind,
-      required double inheritanceDistance}) {
-    if (method.isAccessibleIn(request.libraryElement) &&
-        _shouldAddSuggestion(method) &&
-        request.opType.patternLocation == null) {
-      builder.suggestMethod(method,
-          kind: kind, inheritanceDistance: inheritanceDistance);
-    }
-  }
-
-  /// Return `true` if a suggestion for the given [element] should be created.
-  bool _shouldAddSuggestion(Element element) {
-    // TODO(brianwilkerson): Consider moving this into SuggestionBuilder.
-    var identifier = element.displayName;
-
-    var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
-        identifier, () => _COMPLETION_TYPE_NONE);
-    if (element is MethodElement) {
-      // Anything shadows a method.
-      if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
-        return false;
-      }
-      _completionTypesGenerated[identifier] =
-          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else if (element is PropertyAccessorElement) {
-      if (element.isGetter) {
-        // Getters, fields, and methods shadow a getter.
-        if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
-          return false;
-        }
-        _completionTypesGenerated[identifier] =
-            _completionTypesGenerated[identifier]! | _COMPLETION_TYPE_GETTER;
-      } else {
-        // Setters, fields, and methods shadow a setter.
-        if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
-          return false;
-        } else if (element.hasDeprecated &&
-            !(element.correspondingGetter?.hasDeprecated ?? true)) {
-          // A deprecated setter should not take priority over a non-deprecated
-          // getter.
-          return false;
-        }
-        _completionTypesGenerated[identifier] =
-            _completionTypesGenerated[identifier]! | _COMPLETION_TYPE_SETTER;
-      }
-    } else if (element is FieldElement) {
-      // Fields and methods shadow a field.  A getter/setter pair shadows a
-      // field, but a getter or setter by itself doesn't.
-      if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
-        return false;
-      }
-      _completionTypesGenerated[identifier] =
-          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else {
-      // Unexpected element type; skip it.
-      assert(false);
-      return false;
-    }
-    return true;
-  }
 }
 
 /// An object used to build a list of suggestions in response to a single
@@ -265,6 +148,7 @@ class SuggestionBuilder {
     required double inheritanceDistance,
     bool withEnclosingName = false,
     int? relevance,
+    String? completion,
   }) {
     var enclosingPrefix = '';
     var enclosingName = _enclosingClassOrExtensionName(accessor);
@@ -272,54 +156,41 @@ class SuggestionBuilder {
       enclosingPrefix = '$enclosingName.';
     }
 
-    if (accessor.isSynthetic) {
-      // Avoid visiting a field twice. All fields induce a getter, but only
-      // non-final fields induce a setter, so we don't add a suggestion for a
-      // synthetic setter.
-      if (accessor.isGetter) {
-        var variable = accessor.variable2;
-        if (variable is FieldElement) {
-          suggestField(variable, inheritanceDistance: inheritanceDistance);
-        }
-      }
-    } else {
-      var completion = enclosingPrefix + accessor.displayName;
-      if (_couldMatch(completion, null)) {
-        var type = _getPropertyAccessorType(accessor);
-        var featureComputer = request.featureComputer;
-        var contextType =
-            featureComputer.contextTypeFeature(request.contextType, type);
-        var elementKind =
-            _computeElementKind(accessor, distance: inheritanceDistance);
-        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
-        var isConstant = _preferConstants
-            ? featureComputer.isConstantFeature(accessor)
-            : 0.0;
-        var startsWithDollar =
-            featureComputer.startsWithDollarFeature(accessor.name);
-        var superMatches = featureComputer.superMatchesFeature(
-            _containingMemberName, accessor.name);
-        relevance ??= relevanceComputer.computeScore(
-          contextType: contextType,
-          elementKind: elementKind,
-          hasDeprecated: hasDeprecated,
-          isConstant: isConstant,
-          isNotImported: request.featureComputer
-              .isNotImportedFeature(isNotImportedLibrary),
-          startsWithDollar: startsWithDollar,
-          superMatches: superMatches,
-          inheritanceDistance: inheritanceDistance,
-        );
-        _addBuilder(
-          _createCompletionSuggestionBuilder(
-            accessor,
-            completion: completion,
-            kind: CompletionSuggestionKind.IDENTIFIER,
-            relevance: relevance,
-            isNotImported: isNotImportedLibrary,
-          ),
-        );
-      }
+    completion ??= enclosingPrefix + accessor.displayName;
+    if (_couldMatch(completion, null)) {
+      var type = _getPropertyAccessorType(accessor);
+      var featureComputer = request.featureComputer;
+      var contextType =
+          featureComputer.contextTypeFeature(request.contextType, type);
+      var elementKind =
+          _computeElementKind(accessor, distance: inheritanceDistance);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+      var isConstant =
+          _preferConstants ? featureComputer.isConstantFeature(accessor) : 0.0;
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(accessor.name);
+      var superMatches = featureComputer.superMatchesFeature(
+          _containingMemberName, accessor.name);
+      relevance ??= relevanceComputer.computeScore(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        isConstant: isConstant,
+        isNotImported:
+            request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches,
+        inheritanceDistance: inheritanceDistance,
+      );
+      _addBuilder(
+        _createCompletionSuggestionBuilder(
+          accessor,
+          completion: completion,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+        ),
+      );
     }
   }
 
