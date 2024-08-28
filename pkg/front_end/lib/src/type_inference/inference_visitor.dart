@@ -9396,11 +9396,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult? initializerResult;
 
     // Wildcard variable declarations can be removed, except for the ones in
-    // for loops. This logic turns them into `ExpressionStatement`s or
-    // `EmptyStatement`s so the backends don't need to allocate space for
-    // them.
+    // for loops, const variables, and late variables. This logic turns them
+    // into `ExpressionStatement`s or `EmptyStatement`s so the backends don't
+    // need to allocate space for them.
     if (node.isWildcard && !node.isConst && node.parent is! ForStatement) {
-      if (node.initializer case var initializer?) {
+      if (node.initializer case var initializer? when !node.isLate) {
         return new StatementInferenceResult.single(createExpressionStatement(
             inferExpression(initializer, declaredType, isVoidAllowed: true)
                 .expression));
