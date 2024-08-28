@@ -37,9 +37,10 @@ class String;
 
 class ServiceIdZone {
  public:
-  explicit ServiceIdZone(ObjectIdRing::IdPolicy policy);
+  ServiceIdZone(intptr_t id, ObjectIdRing::IdPolicy policy);
   virtual ~ServiceIdZone();
 
+  intptr_t id() const { return id_; }
   ObjectIdRing::IdPolicy policy() const { return policy_; }
 
   virtual int32_t GetIdForObject(const ObjectPtr obj) = 0;
@@ -49,7 +50,10 @@ class ServiceIdZone {
   virtual char* GetServiceId(const Object& obj) = 0;
   virtual void VisitPointers(ObjectPointerVisitor& visitor) const = 0;
 
+  virtual void PrintJSON(JSONStream& js) const = 0;
+
  private:
+  intptr_t id_;
   ObjectIdRing::IdPolicy policy_;
 
   friend class ServiceIdZonePolicyOverrideScope;
@@ -62,7 +66,11 @@ class ServiceIdZone {
 
 class RingServiceIdZone final : public ServiceIdZone {
  public:
-  explicit RingServiceIdZone(ObjectIdRing::IdPolicy policy);
+  static constexpr int32_t kDefaultCapacity = 8192;
+
+  RingServiceIdZone(intptr_t id,
+                    ObjectIdRing::IdPolicy policy,
+                    int32_t capacity);
   ~RingServiceIdZone() final;
 
   int32_t GetIdForObject(const ObjectPtr obj) final;
@@ -70,6 +78,8 @@ class RingServiceIdZone final : public ServiceIdZone {
   // Returned string will be zone allocated.
   char* GetServiceId(const Object& obj) final;
   void VisitPointers(ObjectPointerVisitor& visitor) const final;
+
+  void PrintJSON(JSONStream& js) const final;
 
  private:
   ObjectIdRing ring_;

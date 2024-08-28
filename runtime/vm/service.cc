@@ -4,6 +4,7 @@
 
 #include "vm/service.h"
 
+#include <cstdint>
 #include <memory>
 #include <utility>
 
@@ -364,12 +365,15 @@ static const char* GetVMName() {
   return vm_name;
 }
 
-ServiceIdZone::ServiceIdZone(ObjectIdRing::IdPolicy policy) : policy_(policy) {}
+ServiceIdZone::ServiceIdZone(intptr_t id, ObjectIdRing::IdPolicy policy)
+    : id_(id), policy_(policy) {}
 
 ServiceIdZone::~ServiceIdZone() {}
 
-RingServiceIdZone::RingServiceIdZone(ObjectIdRing::IdPolicy policy)
-    : ServiceIdZone(policy), ring_() {}
+RingServiceIdZone::RingServiceIdZone(intptr_t id,
+                                     ObjectIdRing::IdPolicy policy,
+                                     int32_t capacity)
+    : ServiceIdZone(id, policy), ring_(capacity) {}
 
 RingServiceIdZone::~RingServiceIdZone() {}
 
@@ -392,6 +396,21 @@ char* RingServiceIdZone::GetServiceId(const Object& obj) {
 
 void RingServiceIdZone::VisitPointers(ObjectPointerVisitor& visitor) const {
   ring_.VisitPointers(&visitor);
+}
+
+void RingServiceIdZone::PrintJSON(JSONStream& js) const {
+  JSONObject jsobj(&js);
+  jsobj.AddProperty("type", "_IdZone");
+  jsobj.AddPropertyF("id", "zones/%" Pd, id());
+  jsobj.AddProperty("backingBufferKind", "Ring");
+  switch (policy()) {
+    case dart::ObjectIdRing::IdPolicy::kAllocateId:
+      jsobj.AddProperty("idAssignmentPolicy", "AlwaysAllocate");
+      break;
+    case dart::ObjectIdRing::IdPolicy::kReuseId:
+      jsobj.AddProperty("idAssignmentPolicy", "ReuseExisting");
+      break;
+  }
 }
 
 // TODO(johnmccutchan): Unify embedder service handler lists and their APIs.
@@ -1005,8 +1024,8 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     const char* id_zone_param = js.LookupParam("_idZone");
 
     if (id_zone_param != nullptr) {
-      // TODO(derekxu16): Support creating, deleting, and selecting custom
-      // Service ID zones. For now, always return an error.
+      // TODO(derekxu16): Support invalidating and selecting custom Service ID
+      // zones. For now, always return an error.
       PrintInvalidParamError(&js, "_idZone");
       js.PostReply();
       return T->StealStickyError();
@@ -5043,6 +5062,58 @@ static bool GetHeapObjectCommon(Thread* thread,
   return false;
 }
 
+static const MethodParameter* const create_id_zone_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    new StringParameter("backingBufferKind", true),
+    new StringParameter("idAssignmentPolicy", true),
+    new UIntParameter("capacity", false),
+    nullptr,
+};
+
+static void CreateIdZone(Thread* thread, JSONStream* js) {
+  ASSERT(thread != nullptr);
+  ASSERT(js != nullptr);
+
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != nullptr);
+
+  const char* backing_buffer_kind_as_string =
+      js->LookupParam("backingBufferKind");
+  ASSERT(backing_buffer_kind_as_string != nullptr);
+  ObjectIdRing::BackingBufferKind backing_buffer_kind;
+  if (strcmp(backing_buffer_kind_as_string, "Ring") == 0) {
+    backing_buffer_kind = ObjectIdRing::BackingBufferKind::kRing;
+  } else {
+    PrintInvalidParamError(js, "backingBufferKind");
+    return;
+  }
+
+  const char* id_assignment_policy_as_string =
+      js->LookupParam("idAssignmentPolicy");
+  ASSERT(id_assignment_policy_as_string != nullptr);
+  ObjectIdRing::IdPolicy id_assignment_policy;
+  if (strcmp(id_assignment_policy_as_string, "AlwaysAllocate") == 0) {
+    id_assignment_policy = ObjectIdRing::IdPolicy::kAllocateId;
+  } else if (strcmp(id_assignment_policy_as_string, "ReuseExisting") == 0) {
+    id_assignment_policy = ObjectIdRing::IdPolicy::kReuseId;
+  } else {
+    PrintInvalidParamError(js, "idAssignmentPolicy");
+    return;
+  }
+
+  int32_t capacity = RingServiceIdZone::kDefaultCapacity;
+  if (js->HasParam("capacity")) {
+    intptr_t value = UIntParameter::Parse(js->LookupParam("capacity"));
+    if (value < 0 || value > INT32_MAX) {
+      PrintInvalidParamError(js, "capacity");
+      return;
+    }
+    capacity = value;
+  }
+  isolate->AddServiceIdZone(backing_buffer_kind, id_assignment_policy, capacity)
+      .PrintJSON(*js);
+}
+
 static const MethodParameter* const get_object_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new UIntParameter("offset", false),
@@ -5875,6 +5946,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
   { "clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
   { "_compileExpression", CompileExpression, compile_expression_params },
+  { "_createIdZone", CreateIdZone,
+    create_id_zone_params },
   { "_enableProfiler", EnableProfiler,
     enable_profiler_params, },
   { "evaluate", Evaluate,

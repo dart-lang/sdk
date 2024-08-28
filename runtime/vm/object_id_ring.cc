@@ -86,11 +86,11 @@ void ObjectIdRing::PrintJSON(JSONStream* js) {
   }
 }
 
-ObjectIdRing::ObjectIdRing() {
+ObjectIdRing::ObjectIdRing(int32_t capacity) {
   serial_num_ = 0;
   wrapped_ = false;
   table_ = nullptr;
-  SetCapacityAndMaxSerial(kDefaultCapacity, kMaxId);
+  SetCapacityAndMaxSerial(capacity, kMaxId);
 }
 
 void ObjectIdRing::SetCapacityAndMaxSerial(int32_t capacity,

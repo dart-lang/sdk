@@ -707,7 +707,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitPointersInDefaultServiceIdZone(ObjectPointerVisitor& visitor);
+  void VisitPointersInAllServiceIdZones(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.
@@ -1248,9 +1248,19 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
 #if !defined(PRODUCT)
+  // This method first ensures that the default Service ID zone for this isolate
+  // exists, by creating it if necessary, and then adds a new Service ID zone to
+  // `serivce_id_zones_` and returns a reference to that new zone.
+  RingServiceIdZone& AddServiceIdZone(
+      ObjectIdRing::BackingBufferKind backing_buffer_kind,
+      ObjectIdRing::IdPolicy id_assignment_policy,
+      int32_t capacity);
+
   // The default Service ID zone is created lazily; this method returns the
   // default Service ID zone, creating it if necessary.
   RingServiceIdZone& EnsureDefaultServiceIdZone();
+
+  RingServiceIdZone* GetServiceIdZone(intptr_t zone_id) const;
 
   intptr_t NumServiceIdZones() const;
 #endif  // !defined(PRODUCT)
