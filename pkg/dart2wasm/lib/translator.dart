@@ -1012,7 +1012,15 @@ class Translator with KernelNodes {
   bool supportsInlining(Reference target) {
     final Member member = target.asMember;
     if (membersContainingInnerFunctions.contains(member)) return false;
-    if (membersBeingGenerated.contains(member)) return false;
+    if (membersBeingGenerated.contains(member)) {
+      // Guard against recursive inlining.
+      // Though we allow inlining calls to constructor initializer & body
+      // functions while generating the constructor.
+      if (!target.isInitializerReference &&
+          !target.isConstructorBodyReference) {
+        return false;
+      }
+    }
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     return true;
