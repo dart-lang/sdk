@@ -568,9 +568,9 @@ class ImageWriter : public ValueObject {
       flags = IsObjectField::update(value, flags);
     }
 
-    using IsObjectField = BitField<uint8_t, bool, 0, 1>;
+    using IsObjectField = BitField<uint8_t, bool>;
     using IsOriginalObjectField =
-        BitField<uint8_t, bool, IsObjectField::kNextBit, 1>;
+        BitField<uint8_t, bool, IsObjectField::kNextBit>;
   };
 
   // Methods abstracting out the particulars of the underlying concrete writer.

@@ -864,8 +864,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       position = parsePartial(position);
       if (position == length) return;
     }
-    final OneByteString charAttributes =
-        unsafeCast<OneByteString>(_characterAttributes);
 
     int state = this.state;
     outer:
@@ -876,7 +874,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         if (isUtf16Input && char > 0xFF) {
           break;
         }
-        if ((charAttributes.codeUnitAtUnchecked(char) & CHAR_WHITESPACE) == 0) {
+        if ((_characterAttributes.readUnsigned(char) & CHAR_WHITESPACE) == 0) {
           break;
         }
         position++;
@@ -1064,17 +1062,30 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * list[$('\n')] |= CHAR_WHITESPACE;
    * list[$('\t')] |= CHAR_WHITESPACE;
    * for (var i = 0; i < 256; i += 64) {
-   *   print("'${String.fromCharCodes([
-   *         for (var v in list.skip(i).take(64)) v + $(' '),
-   *       ])}'");
+   *   for (var v in list.skip(i).take(64)) {
+   *     print('${v + $(' ')},');
+   *   }
    * }
    * ```
    */
-  static const String _characterAttributes =
-      '!!!!!!!!!##!!#!!!!!!!!!!!!!!!!!!" !                             '
-      '                            !                                   '
-      '                                                                '
-      '                                                                ';
+  static const WasmArray<WasmI8> _characterAttributes =
+      WasmArray<WasmI8>.literal([
+    33, 33, 33, 33, 33, 33, 33, 33, 33, 35, 35, 33, 33, 35, 33, 33, 33, 33, //
+    33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 34, 32, 33, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 33, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, //
+    32, 32, 32, 32,
+  ]);
 
   /**
    * Parses a string value.
@@ -1083,9 +1094,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Returned position right after the final quote.
    */
   int parseString(int position) {
-    final OneByteString charAttributes =
-        unsafeCast<OneByteString>(_characterAttributes);
-
     // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
     // Initial position is right after first '"'.
     int start = position;
@@ -1103,7 +1111,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         if (isUtf16Input && char > 0xFF) {
           continue;
         }
-        if ((charAttributes.codeUnitAtUnchecked(char) &
+        if ((_characterAttributes.readUnsigned(char) &
                 CHAR_SIMPLE_STRING_END) !=
             0) {
           break;
@@ -1169,9 +1177,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * slices of non-escape characters using [addSliceToString].
    */
   int parseStringToBuffer(int position) {
-    final OneByteString charAttributes =
-        unsafeCast<OneByteString>(_characterAttributes);
-
     int end = chunkEnd;
     int start = position;
     while (true) {
@@ -1189,7 +1194,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         if (isUtf16Input && char > 0xFF) {
           continue;
         }
-        if ((charAttributes.codeUnitAtUnchecked(char) &
+        if ((_characterAttributes.readUnsigned(char) &
                 CHAR_SIMPLE_STRING_END) !=
             0) {
           break;
@@ -1772,16 +1777,39 @@ class _Utf8Decoder {
   // Non-BMP   'R' = 64 + (2 | flagNonLatin1);
   // Illegal   'a' = 64 + (1 | flagIllegal);
   // Illegal   'b' = 64 + (2 | flagIllegal);
-  static const String scanTable = ""
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 00-1F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 20-3F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 40-5F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 60-7F
-      "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" // 80-9F
-      "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" // A0-BF
-      "aaIIQQQQQQQQQQQQQQQQQQQQQQQQQQQQ" // C0-DF
-      "QQQQQQQQQQQQQQQQRRRRRbbbbbbbbbbb" // E0-FF
-      ;
+  static const WasmArray<WasmI8> scanTable = WasmArray<WasmI8>.literal([
+    // 00-1F
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+
+    // 20-3F
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+
+    // 40-5F
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+
+    // 60-7F
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+    65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+
+    // 80-9F
+    68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
+    68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
+
+    // A0-BF
+    68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
+    68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
+
+    // C0-DF
+    97, 97, 73, 73, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+    81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+
+    // E0-FF
+    81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 82, 82, 82,
+    82, 82, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98,
+  ]);
 
   /// Max chunk to scan at a time.
   ///
@@ -1815,7 +1843,7 @@ class _Utf8Decoder {
     int size = 0;
     int flags = 0;
     for (int i = start; i < end; i++) {
-      int t = scanTable.codeUnitAtUnchecked(bytes[i]);
+      int t = scanTable.readUnsigned(bytes[i]);
       size += t & sizeMask;
       flags |= t;
     }
