@@ -1510,6 +1510,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ('', parameterType, argument);
     }
 
+    if (argument is InstanceInvocation &&
+        argument.interfaceTarget == castMethod &&
+        argument.functionType.returnType == parameterType) {
+      // Argument is .address.cast(), so truncating .cast()
+      final subExpression = argument.receiver;
+      return _replaceNativeCallParameterAndArgument(
+          parameter, parameterType, subExpression, fileOffset);
+    }
     if (argument is! StaticInvocation ||
         !addressOfMethods.contains(argument.target)) {
       // The argument has type Pointer, but it's not produced by any of the
