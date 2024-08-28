@@ -66,11 +66,13 @@ class FileSystemService extends InternalService {
   void _ensureIDEWorkspaceRootsContainUri(Uri uri) {
     // If in unrestricted mode, no need to do these checks.
     if (unrestrictedMode) return;
-    if (_ideWorkspaceRoots.any(
-      (root) =>
-          path.isWithin(root.path, uri.path) ||
-          path.equals(root.path, uri.path),
-    )) {
+
+    final requestedPath = uri.toFilePath();
+    if (_ideWorkspaceRoots.any((root) {
+      final rootPath = root.toFilePath();
+      return path.isWithin(rootPath, requestedPath) ||
+          path.equals(rootPath, requestedPath);
+    })) {
       return;
     }
 
