@@ -10281,6 +10281,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       return analyzeRelationalPatternSchema();
     } else if (node is RestPattern) {
+      // Coverage-ignore-block(suite): Not run.
       // This pattern can't appear on it's own.
       return new SharedTypeSchemaView(const InvalidType());
     } else if (node is VariablePattern) {

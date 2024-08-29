@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.verifier;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -22,8 +20,8 @@ List<LocatedMessage> verifyComponent(
     CompilerContext context, VerificationStage stage, Component component,
     {bool skipPlatform = false,
     bool Function(Library library)? librarySkipFilter}) {
-  FastaVerificationErrorListener listener =
-      new FastaVerificationErrorListener(context);
+  CfeVerificationErrorListener listener =
+      new CfeVerificationErrorListener(context);
   VerifyingVisitor verifier = new VerifyingVisitor(
       context.options.target, stage,
       skipPlatform: skipPlatform,
@@ -33,11 +31,11 @@ List<LocatedMessage> verifyComponent(
   return listener.errors;
 }
 
-class FastaVerificationErrorListener implements VerificationErrorListener {
+class CfeVerificationErrorListener implements VerificationErrorListener {
   final CompilerContext compilerContext;
   List<LocatedMessage> errors = [];
 
-  FastaVerificationErrorListener(this.compilerContext);
+  CfeVerificationErrorListener(this.compilerContext);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -68,13 +66,13 @@ class FastaVerificationErrorListener implements VerificationErrorListener {
 
 void verifyGetStaticType(TypeEnvironment env, Component component,
     {bool skipPlatform = false}) {
-  component.accept(new FastaVerifyGetStaticType(env, skipPlatform));
+  component.accept(new CfeVerifyGetStaticType(env, skipPlatform));
 }
 
-class FastaVerifyGetStaticType extends VerifyGetStaticType {
+class CfeVerifyGetStaticType extends VerifyGetStaticType {
   final bool skipPlatform;
 
-  FastaVerifyGetStaticType(TypeEnvironment env, this.skipPlatform) : super(env);
+  CfeVerifyGetStaticType(TypeEnvironment env, this.skipPlatform) : super(env);
 
   @override
   void visitLibrary(Library node) {

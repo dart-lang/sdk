@@ -324,7 +324,7 @@ class SourceCompilationUnitImpl
         _offsetMap == null, // Coverage-ignore(suite): Not run.
         "OffsetMap has already been set for $this");
     return new OutlineBuilder(
-        this, this, _builderFactory, _offsetMap = new OffsetMap(fileUri));
+        this, _builderFactory, _offsetMap = new OffsetMap(fileUri));
   }
 
   @override
@@ -416,10 +416,6 @@ class SourceCompilationUnitImpl
       Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
     _builderFactoryResult.takeMixinApplications(mixinApplications);
   }
-
-  @override
-  List<NamedTypeBuilder> get unresolvedNamedTypes =>
-      _builderFactoryResult.unresolvedNamedTypes;
 
   @override
   void includeParts(SourceLibraryBuilder libraryBuilder,
@@ -622,7 +618,6 @@ class SourceCompilationUnitImpl
         libraryBuilder.addBuilder(name, declaration, declaration.charOffset);
       }
     }
-    libraryBuilder.unresolvedNamedTypes.addAll(unresolvedNamedTypes);
     _libraryName.reference = libraryBuilder.libraryName.reference;
 
     // TODO(johnniwinther): Avoid these. The compilation unit should not have
@@ -652,6 +647,11 @@ class SourceCompilationUnitImpl
       // (anymore).
       library.isSynthetic = true;
     }
+  }
+
+  @override
+  int resolveTypes(ProblemReporting problemReporting) {
+    return _builderFactoryResult.typeScope.resolveTypes(problemReporting);
   }
 
   @override

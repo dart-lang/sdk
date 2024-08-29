@@ -3331,6 +3331,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                     (target as ExtensionTypeRepresentationAccessTarget)
                         .representationField,
                     new SharedTypeView(type))
+                // Coverage-ignore(suite): Not run.
                 ?.unwrapTypeView() ??
             type;
         Expression read = new AsExpression(receiver, type)
@@ -3498,6 +3499,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? promotedType = flowAnalysis
         .propertyGet(expression, SuperPropertyTarget.singleton, name.text,
             member, new SharedTypeView(inferredType))
+        // Coverage-ignore(suite): Not run.
         ?.unwrapTypeView();
     if (promotedType != null) {
       // Coverage-ignore-block(suite): Not run.

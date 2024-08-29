@@ -79,7 +79,7 @@ import 'constructor_tearoff_lowering.dart';
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'macro/macro.dart';
-import 'verifier.dart' show verifyComponent, verifyGetStaticType;
+import 'cfe_verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget {
   final Ticker ticker;

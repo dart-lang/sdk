@@ -469,7 +469,6 @@ class OperationsCfe
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   SharedTypeView<DartType> get doubleType {
     throw new UnimplementedError('TODO(paulberry)');
   }
@@ -485,7 +484,6 @@ class OperationsCfe
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   SharedTypeView<DartType> get intType {
     throw new UnimplementedError('TODO(paulberry)');
   }

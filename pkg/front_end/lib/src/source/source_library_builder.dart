@@ -483,9 +483,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return augmentationLibrary;
   }
 
-  List<NamedTypeBuilder> get unresolvedNamedTypes =>
-      compilationUnit.unresolvedNamedTypes;
-
   @override
   bool get isSynthetic => compilationUnit.isSynthetic;
 
@@ -781,12 +778,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    typeCount += unresolvedNamedTypes.length;
-    for (NamedTypeBuilder namedType in unresolvedNamedTypes) {
-      namedType.resolveIn(
-          scope, namedType.charOffset!, namedType.fileUri!, this);
+    typeCount += compilationUnit.resolveTypes(this);
+    for (SourceCompilationUnit part in parts) {
+      typeCount += part.resolveTypes(this);
     }
-    unresolvedNamedTypes.clear();
+
     return typeCount;
   }
 

@@ -27,6 +27,7 @@ import '../base/messages.dart'
         messageTypedefCause,
         noLength,
         templateExtendingRestricted,
+        templateNotAPrefixInTypeAnnotation,
         templateNotAType,
         templateSupertypeIsIllegal,
         templateSupertypeIsIllegalAliased,
@@ -208,6 +209,18 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       if (prefix is PrefixBuilder) {
         _isDeferred = prefix.deferred;
         member = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
+      } else {
+        // Attempt to use a member or type variable as a prefix.
+        int nameOffset = typeName.fullNameOffset;
+        int nameLength = typeName.fullNameLength;
+        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
+            qualifier, typeName.name);
+        problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
+        bind(
+            problemReporting,
+            buildInvalidTypeDeclarationBuilder(
+                message.withLocation(fileUri, nameOffset, nameLength)));
+        return;
       }
     } else {
       member = scope.lookupGetable(typeName.name, typeName.nameOffset, fileUri);
@@ -999,14 +1012,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   @override
   bool usesTypeVariables(Set<String> typeVariableNames) {
-    if (declaration is NominalVariableBuilder) {
-      return typeVariableNames.contains(declaration!.name);
+    if (typeVariableNames.contains(typeName.name)) {
+      return true;
     }
-    if (declaration is StructuralVariableBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      return typeVariableNames.contains(declaration!.name);
-    }
-
     if (typeArguments != null) {
       for (TypeBuilder argument in typeArguments!) {
         if (argument.usesTypeVariables(typeVariableNames)) {
