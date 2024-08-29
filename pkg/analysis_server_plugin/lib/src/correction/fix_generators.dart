@@ -49,6 +49,11 @@ class _RegisteredFixGenerators {
   /// parsed results.
   final Map<LintCode, List<ProducerGenerator>> parseLintProducers = {};
 
+  /// Clears the lint producers.
+  void clearLintProducers() {
+    lintProducers.clear();
+  }
+
   /// Associates the given correction producer [generator] with the lint with
   /// the given [lintCode].
   void registerFixForLint(LintCode lintCode, ProducerGenerator generator) {
