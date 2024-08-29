@@ -151,10 +151,8 @@ enum Opcode {
   // Types and type checks.
   kAssertAssignable,
   kAssertAssignable_Wide,
-  kUnused30, // Reserved for AsSimpleType
-  kUnused31, // Reserved for AsSimpleType_Wide
-  kAssertBoolean,
   kAssertSubtype,
+  kUnused30,
   kLoadTypeArgumentsField,
   kLoadTypeArgumentsField_Wide,
   kInstantiateType,
@@ -378,8 +376,6 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAssertAssignable: const Format(
       Encoding.kAE, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kAssertBoolean: const Format(
-      Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kAssertSubtype: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kLoadTypeArgumentsField: const Format(

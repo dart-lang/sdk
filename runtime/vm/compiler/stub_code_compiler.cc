@@ -235,14 +235,6 @@ void StubCodeCompiler::GenerateReThrowStub() {
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateAssertBooleanStub() {
-  __ EnterStubFrame();
-  __ PushObject(NullObject());  // Make room for (unused) result.
-  __ PushRegister(AssertBooleanABI::kObjectReg);
-  __ CallRuntime(kNonBoolTypeErrorRuntimeEntry, /*argument_count=*/1);
-  __ Breakpoint();
-}
-
 void StubCodeCompiler::GenerateAssertSubtypeStub() {
   __ EnterStubFrame();
   __ PushRegistersInOrder({AssertSubtypeABI::kInstantiatorTypeArgumentsReg,

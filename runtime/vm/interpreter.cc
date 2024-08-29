@@ -2506,29 +2506,6 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AssertBoolean, A);
-    ObjectPtr value = SP[0];
-    if (rA != 0u) {  // Should we perform type check?
-      if ((value == true_value) || (value == false_value)) {
-        goto AssertBooleanOk;
-      }
-    } else if (value != null_value) {
-      goto AssertBooleanOk;
-    }
-
-    // Assertion failed.
-    {
-      SP[1] = SP[0];  // instance
-      Exit(thread, FP, SP + 2, pc);
-      INVOKE_RUNTIME(DRT_NonBoolTypeError,
-                     NativeArguments(thread, 1, SP + 1, SP));
-    }
-
-  AssertBooleanOk:
-    DISPATCH();
-  }
-
-  {
     BYTECODE(Jump, T);
     LOAD_JUMP_TARGET();
     DISPATCH();

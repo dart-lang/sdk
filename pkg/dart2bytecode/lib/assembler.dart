@@ -695,12 +695,6 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
-  void emitAssertBoolean(int ra) {
-    emitSourcePosition();
-    _emitInstructionA(Opcode.kAssertBoolean, ra);
-  }
-
-  @pragma('vm:prefer-inline')
   void emitCheckStack(int ra) {
     emitSourcePosition();
     _emitInstructionA(Opcode.kCheckStack, ra);
