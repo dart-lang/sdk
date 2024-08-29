@@ -1975,4 +1975,57 @@ ISOLATE_UNIT_TEST_CASE(IL_RecordCoverageSurvivesOptimizations) {
   EXPECT(flow_graph->graph_entry()->normal_entry()->next()->IsRecordCoverage());
 }
 
+// This test verifies that the ASSERT in Assembler::ElementAddressForIntIndex
+// appropriately accounts for the heap object tag to check the displacement.
+// Regression test for https://github.com/dart-lang/sdk/issues/56588.
+ISOLATE_UNIT_TEST_CASE(IRTest_Regress_56588) {
+  TestPipeline pipeline(CompilerPass::kAOT, [&]() {
+    FlowGraphBuilderHelper H(1);
+
+    const classid_t cid = kTypedDataUint8ClampedArrayCid;
+    // Must not be a view or an external cid, so that the untagged address
+    // isn't extracted first.
+    EXPECT(IsTypedDataClassId(cid));
+    const intptr_t index_scale = 1;
+    // Set the constant index such that the displacement is not a signed 32-bit
+    // integer unless the displacement also takes into account that the
+    // base address is tagged.
+    const int64_t constant_index =
+        static_cast<int64_t>(kMaxInt32) + kHeapObjectTag -
+        compiler::target::Instance::DataOffsetFor(cid);
+
+    // Double-check that we chose such an index correctly.
+    const int64_t disp = constant_index * index_scale +
+                         compiler::target::Instance::DataOffsetFor(cid);
+    EXPECT(!Utils::IsInt(32, disp));
+    EXPECT(Utils::IsInt(32, disp - kHeapObjectTag));
+
+    const auto& cls =
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
+    ASSERT(!cls.IsNull());
+    auto& type =
+        AbstractType::ZoneHandle(Type::New(cls, Object::null_type_arguments()));
+    type = ClassFinalizer::FinalizeType(type);
+
+    H.AddVariable("arg", type);
+
+    auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+    {
+      compiler::BlockBuilder builder(H.flow_graph(), normal_entry);
+      Definition* const array = builder.AddParameter(0);
+      auto* const index = H.IntConstant(constant_index, kUnboxedInt64);
+      auto* const deref = builder.AddDefinition(new LoadIndexedInstr(
+          new Value(array), new Value(index),
+          index->representation() != kTagged, index_scale, cid, kAlignedAccess,
+          CompilerState::Current().GetNextDeoptId(), InstructionSource()));
+      builder.AddReturn(new Value(deref));
+    }
+    H.FinishGraph();
+    return H.flow_graph();
+  });
+  pipeline.RunPasses({});
+  pipeline.CompileGraphAndAttachFunction();
+}
+
 }  // namespace dart
