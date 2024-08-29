@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -142,6 +143,12 @@ class CommentReferenceResolver {
   Element? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
     var lookupResult = identifier.scopeLookupResult!;
     var element = lookupResult.getter ?? lookupResult.setter;
+
+    // Usually referencing just an import prefix is an error.
+    // But we allow this in documentation comments.
+    if (element is PrefixElementImpl) {
+      element.scope.notifyErrorReported();
+    }
 
     if (element == null) {
       InterfaceType enclosingType;

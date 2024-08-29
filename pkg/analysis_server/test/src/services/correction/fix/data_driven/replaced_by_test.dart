@@ -1068,7 +1068,7 @@ import '$importUri';
 f() {
   expect(true, true);
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_new_element_uris_single() async {
@@ -1102,7 +1102,7 @@ import '$importUri';
 main() {
   expect(true, true);
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 }
 
