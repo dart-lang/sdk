@@ -45,6 +45,6 @@ main() {
   myNativeWith3Param(buffer.address.cast(), buffer.address, buffer.address);
   //                                                               ^^^^^^^
   // [cfe] The argument type 'Pointer<Int8>' can't be assigned to the parameter type 'Pointer<Void>'.
-  //                                                        ^^^^^^^^^^^^^^^^
+  //                                                        ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 }
