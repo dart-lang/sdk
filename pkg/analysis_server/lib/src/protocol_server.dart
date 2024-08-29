@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/computer/computer_color.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
 import 'package:analysis_server/src/utilities/extensions/element.dart';
@@ -50,6 +51,25 @@ String? getAliasedTypeString(engine.Element element) {
   if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     return aliasedType.getDisplayString();
+  }
+  return null;
+}
+
+/// Returns a color hex code (in the form '#FFFFFF')  if [element] represents
+/// a color.
+String? getColorHexString(engine.Element? element) {
+  if (element is engine.VariableElement) {
+    var dartValue = element.computeConstantValue();
+    if (dartValue != null) {
+      var color = ColorComputer.getColorForValue(dartValue);
+      if (color != null) {
+        return '#'
+                '${color.red.toRadixString(16).padLeft(2, '0')}'
+                '${color.green.toRadixString(16).padLeft(2, '0')}'
+                '${color.blue.toRadixString(16).padLeft(2, '0')}'
+            .toUpperCase();
+      }
+    }
   }
   return null;
 }

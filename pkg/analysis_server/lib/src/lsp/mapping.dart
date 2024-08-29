@@ -17,6 +17,7 @@ import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
@@ -1038,11 +1039,18 @@ lsp.CompletionItem toCompletionItem(
   }
 
   var element = suggestion.element;
-  var completionKind = element != null
-      ? elementKindToCompletionItemKind(
-          capabilities.completionItemKinds, element.kind)
-      : suggestionKindToCompletionItemKind(
-          capabilities.completionItemKinds, suggestion.kind, label);
+  var colorPreviewHex =
+      capabilities.completionItemKinds.contains(CompletionItemKind.Color) &&
+              suggestion is DartCompletionSuggestion
+          ? suggestion.colorHex
+          : null;
+  var completionKind = colorPreviewHex != null
+      ? CompletionItemKind.Color
+      : element != null
+          ? elementKindToCompletionItemKind(
+              capabilities.completionItemKinds, element.kind)
+          : suggestionKindToCompletionItemKind(
+              capabilities.completionItemKinds, suggestion.kind, label);
 
   var labelDetails = getCompletionDetail(
     suggestion,
@@ -1093,6 +1101,13 @@ lsp.CompletionItem toCompletionItem(
       truncatedSignature: labelDetails.truncatedSignature,
       autoImportUri: labelDetails.autoImportUri,
     );
+  }
+
+  // Append hex colours to the end of the docs, this will allow editors that
+  // use a regex to find a color at the start/end like VS Code to show a color
+  // preview.
+  if (colorPreviewHex != null) {
+    cleanedDoc = '${cleanedDoc ?? ''}\n\n$colorPreviewHex'.trim();
   }
 
   // Because we potentially send thousands of these items, we should minimise

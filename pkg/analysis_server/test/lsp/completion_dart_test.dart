@@ -864,6 +864,35 @@ void f() {
     );
   }
 
+  /// Verifies a color completion with text [label] for the code [content] that
+  /// includes a prefix for [colorHex] in the description.
+  Future<void> expectColorCompletion(
+    String content,
+    String label,
+    String colorHex,
+  ) async {
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+    var completion = res.singleWhere((c) => c.label == label);
+
+    // Verify correct kind for color preview.
+    expect(completion.kind, CompletionItemKind.Color);
+
+    // Verify the docs are either entirely the hex code, or end with it.
+    // VS Code's regex only allows the hex code at the start or end to show the
+    // preview.
+    var docs = completion.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+    expect(
+      docs,
+      anyOf(equals(colorHex), endsWith('\n\n$colorHex')),
+    );
+  }
+
   /// Expect [item] to use the default edit range, inserting the value [text].
   void expectUsesDefaultEditRange(CompletionItem item, String text) {
     expect(item.textEditText ?? item.label, text);
@@ -966,6 +995,24 @@ void g() {
       applyEditsFor: '({a, b}) =>',
       expectedContent: expectedContent,
     );
+  }
+
+  Future<void> test_color_material() async {
+    var content = '''
+import 'package:flutter/material.dart';
+var a = Colors.re^
+''';
+
+    await expectColorCompletion(content, 'red', '#FF0000');
+  }
+
+  Future<void> test_color_materialAccent() async {
+    var content = '''
+import 'package:flutter/material.dart';
+var a = Colors.redAcce^
+''';
+
+    await expectColorCompletion(content, 'redAccent', '#FFAA00');
   }
 
   Future<void> test_comment() async {

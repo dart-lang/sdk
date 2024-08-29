@@ -1239,6 +1239,7 @@ class SuggestionBuilder {
     }
 
     var returnType = getReturnTypeString(element);
+    var colorHex = getColorHexString(element);
 
     List<String>? parameterNames;
     List<String>? parameterTypes;
@@ -1277,6 +1278,7 @@ class SuggestionBuilder {
       defaultArgumentList: defaultArgumentList,
       element: suggestedElement,
       elementLocation: element.location,
+      colorHex: colorHex,
     );
   }
 
@@ -1525,6 +1527,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       isNotImported: isNotImported ? true : null,
       elementLocation: element.elementLocation,
       requiredImports: requiredImports,
+      colorHex: element.colorHex,
     );
   }
 }
@@ -1544,6 +1547,7 @@ class _ElementCompletionData {
   final _ElementDocumentation? documentation;
   final protocol.Element element;
   final ElementLocation? elementLocation;
+  final String? colorHex;
 
   _ElementCompletionData({
     required this.isDeprecated,
@@ -1557,6 +1561,7 @@ class _ElementCompletionData {
     required this.documentation,
     required this.element,
     required this.elementLocation,
+    required this.colorHex,
   });
 }
 
