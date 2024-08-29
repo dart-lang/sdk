@@ -1617,7 +1617,7 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClass_getterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   int get foo => 0;
@@ -1625,7 +1625,7 @@ augment class A {
 ''');
 
     await assertErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -1633,7 +1633,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 56, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 3),
     ]);
 
     var node = findNode.singleAssignmentExpression;
@@ -1667,14 +1667,14 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClass_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment set foo(int _) {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   set foo(int _) {}
@@ -1716,14 +1716,14 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClass_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   set foo(int _) {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -1763,7 +1763,7 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClassName_getterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   static int get foo => 0;
@@ -1771,7 +1771,7 @@ augment class A {
 ''');
 
     await assertErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -1779,7 +1779,7 @@ void f() {
   A.foo = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 43, 3),
     ]);
 
     var node = findNode.singleAssignmentExpression;
@@ -1813,14 +1813,14 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClassName_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment static set foo(int _) {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   static set foo(int _) {}
@@ -1862,14 +1862,14 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClassName_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   static set foo(int _) {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -2522,14 +2522,14 @@ AssignmentExpression
 
   test_propertyAccess_ofClass_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment set foo(int _) {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   set foo(int _) {}
@@ -2574,14 +2574,14 @@ AssignmentExpression
 
   test_propertyAccess_ofClass_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   set foo(int _) {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 

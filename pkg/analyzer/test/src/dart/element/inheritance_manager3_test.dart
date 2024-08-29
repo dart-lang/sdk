@@ -1436,7 +1436,7 @@ conflicts
 
   test_interface_candidatesConflict_interfaceInAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 mixin A {
   void foo(int _);
@@ -1450,7 +1450,7 @@ abstract class C extends Object with A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment abstract class C implements B {}
 ''');

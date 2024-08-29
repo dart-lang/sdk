@@ -1654,14 +1654,14 @@ class A {
 
   test_lookUpGetter_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   int get g {}
 }
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 ''');
@@ -1687,14 +1687,14 @@ class B extends A {}
 
   test_lookUpGetter_inherited_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   int get g {}
 }
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 class B extends A {}
@@ -1751,14 +1751,14 @@ class A {
 
   test_lookUpMethod_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   int m() {}
 }
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 ''');
@@ -1784,14 +1784,14 @@ class B extends A {}
 
   test_lookUpMethod_inherited_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   int m() {}
 }
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part'a.dart';
 
 class A {}
 class B extends A {}
@@ -1848,14 +1848,14 @@ class A {
 
   test_lookUpSetter_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   set s(x) {}
 }
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 ''');
@@ -1881,14 +1881,14 @@ class B extends A {}
 
   test_lookUpSetter_inherited_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   set s(x) {}
 }
 ''');
     var library = await buildLibrary('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 class B extends A {}

@@ -37,7 +37,7 @@ class C {
 
   test_instance_field_field_augment() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment int foo = 42;
@@ -45,7 +45,7 @@ augment class A {
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   int foo = 0;
@@ -76,7 +76,7 @@ class C {
 
   test_instance_field_field_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   int foo = 42;
@@ -84,7 +84,7 @@ augment class A {
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   int foo = 0;
@@ -96,8 +96,8 @@ class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 54, 3,
-          contextMessages: [message(testFile, 42, 3)]),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 46, 3,
+          contextMessages: [message(testFile, 32, 3)]),
     ]);
   }
 
@@ -2128,7 +2128,7 @@ mixin M {
 
   test_instance_method_method_augment() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment mixin A {
   augment void foo() {}
@@ -2136,7 +2136,7 @@ augment mixin A {
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {
   void foo() {}
@@ -2152,7 +2152,7 @@ mixin A {
 
   test_instance_method_method_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment mixin A {
   void foo() {}
@@ -2160,7 +2160,7 @@ augment mixin A {
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {
   void foo() {}
@@ -2172,8 +2172,8 @@ mixin A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 55, 3,
-          contextMessages: [message(testFile, 43, 3)]),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 47, 3,
+          contextMessages: [message(testFile, 33, 3)]),
     ]);
   }
 
@@ -3210,13 +3210,13 @@ class A {}
 
   test_class_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {}
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 ''');
@@ -3230,13 +3230,13 @@ class A {}
 
   test_mixin_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment mixin A {}
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {}
 ''');
@@ -3318,13 +3318,13 @@ typedef A = List<int>;
 
   test_variable_variable_augment() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment int foo = 42;
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int foo = 0;
 ''');
@@ -3338,13 +3338,13 @@ int foo = 0;
 
   test_variable_variable_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 int foo = 42;
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 int foo = 0;
 ''');
@@ -3354,8 +3354,8 @@ int foo = 0;
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 34, 3,
-          contextMessages: [message(testFile, 30, 3)]),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 26, 3,
+          contextMessages: [message(testFile, 20, 3)]),
     ]);
   }
 }

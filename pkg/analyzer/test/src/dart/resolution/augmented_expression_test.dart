@@ -17,7 +17,7 @@ main() {
 class AugmentedExpressionResolutionTest extends PubPackageResolutionTest {
   test_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   num foo = 0;
@@ -25,7 +25,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment num foo = augmented;
@@ -43,7 +43,7 @@ AugmentedExpression
 
   test_class_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int get foo => 0;
@@ -51,7 +51,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int get foo {
@@ -74,7 +74,7 @@ ReturnStatement
 
   test_class_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   set foo(int _) {}
@@ -82,7 +82,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment set foo(int _) {
@@ -120,7 +120,7 @@ Block
 
   test_class_setter_inGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int foo = 0;
@@ -128,7 +128,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int get foo {
@@ -137,7 +137,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 73, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 65, 9),
     ]);
 
     var node = findNode.singleAssignmentExpression;
@@ -163,7 +163,7 @@ AssignmentExpression
 
   test_class_setter_inMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   void foo() {}
@@ -171,7 +171,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment void foo() {
@@ -179,7 +179,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 72, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 64, 9),
     ]);
 
     var node = findNode.singleAssignmentExpression;
@@ -205,13 +205,13 @@ AssignmentExpression
 
   test_topLevel_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 int get foo => 0;
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment int get foo {
   return augmented;
@@ -232,13 +232,13 @@ ReturnStatement
 
   test_topLevel_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 set foo(int _) {}
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment set foo(int _) {
   augmented = 0;
@@ -274,13 +274,13 @@ Block
 
   test_topLevel_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 num foo = 0;
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment num foo = augmented;
 ''');

@@ -17,14 +17,14 @@ main() {
 class EnumWithoutConstantsTest extends PubPackageResolutionTest {
   test_hasConstants_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment enum E {
   v
 }
 ''');
 
     await assertNoErrorsInCode('''
-import augment 'a.dart';
+part 'a.dart';
 enum E {}
 ''');
   }
@@ -39,17 +39,17 @@ enum E {}
 
   test_noConstants_hasAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 enum E {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment enum E {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS, 30, 1),
+      error(CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS, 20, 1),
     ]);
 
     await assertErrorsInFile2(b, []);

@@ -21,8 +21,8 @@ class FinalInitializedByMultipleInitializersTest
 
   test_class_augmentation2_bothInitialize() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
-import augment 'b.dart';
+part 'a.dart';
+part 'b.dart';
 
 class A {
   final int f;
@@ -31,7 +31,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f = 0;
@@ -39,7 +39,7 @@ augment class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f = 1;
@@ -54,13 +54,13 @@ augment class A {
 
     await resolveFile2(b);
     assertErrorsInResult([
-      error(_errorCode, 64, 1),
+      error(_errorCode, 56, 1),
     ]);
   }
 
   test_class_augmentation_augmentationInitializes() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f;
@@ -69,7 +69,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f = 0;
@@ -85,7 +85,7 @@ augment class A {
 
   test_class_augmentation_bothInitialize() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f;
@@ -94,7 +94,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A() : f = 1;
@@ -106,13 +106,13 @@ augment class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(_errorCode, 64, 1),
+      error(_errorCode, 56, 1),
     ]);
   }
 
   test_class_augmentation_declarationInitializes() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f;
@@ -121,7 +121,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A();

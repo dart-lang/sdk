@@ -819,7 +819,7 @@ self::@class::C::@method::main
 
   test_searchReferences_class_constructor_declaredInAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   A.named();
@@ -827,7 +827,7 @@ augment class A {
 ''');
 
     await resolveTestCode('''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   void foo() {
@@ -846,9 +846,9 @@ void f() {
 
     await assertElementReferencesText(element, r'''
 self::@class::A::@method::foo
-  56 5:6 |.named| INVOCATION qualified
+  46 5:6 |.named| INVOCATION qualified
 self::@function::f
-  87 10:4 |.named| INVOCATION qualified
+  77 10:4 |.named| INVOCATION qualified
 ''');
   }
 

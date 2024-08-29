@@ -617,14 +617,14 @@ PrefixedIdentifier
 
   test_ofClass_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   int get foo => 0;
@@ -654,14 +654,14 @@ PrefixedIdentifier
 
   test_ofClass_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -689,14 +689,14 @@ PrefixedIdentifier
 
   test_ofClassName_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   augment static int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   static int get foo => 0;
@@ -726,14 +726,14 @@ PrefixedIdentifier
 
   test_ofClassName_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   static int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -761,14 +761,14 @@ PrefixedIdentifier
 
   test_ofClassName_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment class A {
   static void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {}
 
@@ -950,14 +950,14 @@ AssignmentExpression
 
   test_ofMixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {}
 
@@ -985,14 +985,14 @@ PrefixedIdentifier
 
   test_ofMixinName_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   static int get foo => 0;
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {}
 
@@ -1020,14 +1020,14 @@ PrefixedIdentifier
 
   test_ofMixinName_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart'
+part of 'test.dart'
 
 augment mixin A {
   static void foo() {}
 }
 ''');
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 mixin A {}
 

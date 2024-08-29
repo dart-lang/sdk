@@ -404,7 +404,7 @@ BinaryExpression
 
   test_plus_augmentedExpression_augments_plus() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int operator+(Object? a) => 0;
@@ -412,7 +412,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int operator+(Object? a) {
@@ -441,7 +441,7 @@ BinaryExpression
 
   test_plus_augmentedExpression_augments_unaryMinus() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int operator-() => 0;
@@ -449,7 +449,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int operator-() {
@@ -457,7 +457,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 84, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 76, 9),
     ]);
 
     var node = findNode.singleBinaryExpression;
@@ -480,7 +480,7 @@ BinaryExpression
 
   test_plus_augmentedExpression_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   num foo = 0;
@@ -488,7 +488,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment num foo = augmented + 1;
@@ -515,7 +515,7 @@ BinaryExpression
 
   test_plus_augmentedExpression_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   int get foo => 0;
@@ -523,7 +523,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment int get foo {
@@ -552,7 +552,7 @@ BinaryExpression
 
   test_plus_augmentedExpression_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'test.dart';
+part 'test.dart';
 
 class A {
   set foo(int _) {}
@@ -560,7 +560,7 @@ class A {
 ''');
 
     await assertErrorsInCode('''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   augment set foo(int _) {
@@ -568,7 +568,7 @@ augment class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 76, 9),
+      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 68, 9),
     ]);
 
     var node = findNode.singleBinaryExpression;
