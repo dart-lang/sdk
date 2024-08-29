@@ -13,6 +13,13 @@ nsm_invocation_test: SkipByDesign # Relies on non-obfuscated symbols
 symbol_test: SkipByDesign # Relies on non-obfuscated symbols
 type_tostring_test: SkipByDesign # Expects names in Type.toString()
 
+[ $compiler == dart2bytecode ]
+core_runtime_types_test: Crash
+error_stack_trace2_test: Crash
+error_stacktrace_test: Crash
+list_write_elements_test: Crash
+type_tostring_test: Crash
+
 [ $compiler == dartkp ]
 bigint_parse_radix_test: Slow, Pass # --no_intrinsify
 bigint_test/03: SkipSlow # --no_intrinsify

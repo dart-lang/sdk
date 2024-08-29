@@ -1812,6 +1812,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     // At this moment, owner class is not fully loaded yet and it won't be
     // able to serve function lookup requests.
     FunctionScope function_scope(this, function, name, cls);
+    FunctionTypeScope function_type_scope(this, signature);
 
     function.set_has_pragma(has_pragma);
     NOT_IN_PRECOMPILED(function.set_end_token_pos(end_position));

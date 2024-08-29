@@ -3534,8 +3534,49 @@ SwitchDispatch:
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
-    UNIMPLEMENTED();
-    DISPATCH();
+    ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
+    FunctionPtr target = Function::RawCast(data->untag()->parent_function());
+    ASSERT(Function::KindOf(target) == UntaggedFunction::kConstructor);
+
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+    ObjectPtr* argv = FrameArguments(FP, argc);
+
+    ClassPtr cls = Function::Owner(target);
+    TypeParametersPtr type_params = cls->untag()->type_parameters();
+    TypeArgumentsPtr type_args =
+        (type_params == null_value)
+            ? TypeArguments::null()
+            : ((type_args_len > 0) ? TypeArguments::RawCast(argv[0])
+                                   : type_params->untag()->defaults());
+
+    SP[1] = target;    // Save target.
+    SP[2] = argdesc_;  // Save arguments descriptor.
+
+    // Allocate instance and put it into the receiver slot.
+    SP[3] = cls;
+    SP[4] = type_args;
+    Exit(thread, FP, SP + 5, pc);
+    INVOKE_RUNTIME(DRT_AllocateObject,
+                   NativeArguments(thread, 2, SP + 3, argv + receiver_idx));
+
+    argdesc_ = Array::RawCast(SP[2]);
+
+    if (type_args_len > 0) {
+      // Need to adjust arguments descriptor in order to drop type arguments.
+      SP[2] = 0;  // Space for result.
+      SP[3] = argdesc_;
+      SP[4] = SP[1];  // Target.
+      Exit(thread, FP, SP + 5, pc);
+      INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
+                     NativeArguments(thread, 2, SP + 3, SP + 2));
+      argdesc_ = Array::RawCast(SP[2]);
+    }
+
+    goto TailCallSP1;
   }
 
   {

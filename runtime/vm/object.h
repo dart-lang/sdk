@@ -3046,7 +3046,8 @@ class Function : public Object {
 
   bool IsPrivate() const;
 
-  ClassPtr Owner() const;
+  ClassPtr Owner() const { return Owner(ptr()); }
+  static ClassPtr Owner(FunctionPtr function);
   void set_owner(const Object& value) const;
   ScriptPtr script() const;
 #if !defined(DART_PRECOMPILED_RUNTIME)

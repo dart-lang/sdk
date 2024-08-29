@@ -11055,14 +11055,14 @@ bool Function::IsPrivate() const {
   return Library::IsPrivate(String::Handle(name()));
 }
 
-ClassPtr Function::Owner() const {
-  ASSERT(untag()->owner() != Object::null());
-  if (untag()->owner()->IsClass()) {
-    return Class::RawCast(untag()->owner());
+ClassPtr Function::Owner(FunctionPtr function) {
+  ObjectPtr owner = function->untag()->owner();
+  ASSERT(owner != Object::null());
+  if (owner->IsClass()) {
+    return Class::RawCast(owner);
   }
-  const Object& obj = Object::Handle(untag()->owner());
-  ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).wrapped_class();
+  ASSERT(owner->IsPatchClass());
+  return PatchClass::RawCast(owner)->untag()->wrapped_class();
 }
 
 #if defined(DART_DYNAMIC_MODULES)
