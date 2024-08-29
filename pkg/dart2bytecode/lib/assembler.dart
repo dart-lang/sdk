@@ -729,9 +729,9 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
-  void emitAllocateClosure(int rd) {
+  void emitAllocateClosure() {
     emitSourcePosition();
-    _emitInstructionD(Opcode.kAllocateClosure, rd);
+    _emitInstruction0(Opcode.kAllocateClosure);
   }
 
   @pragma('vm:prefer-inline')

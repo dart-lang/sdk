@@ -2468,17 +2468,10 @@ SwitchDispatch:
     BYTECODE(AssertAssignable, A_E);
     // Stack: instance, type, instantiator type args, function type args, name
     ObjectPtr* args = SP - 4;
-    const bool may_be_smi = (rA == 1);
-    const bool is_smi =
-        ((static_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
-    const bool smi_ok = is_smi && may_be_smi;
-    if (!smi_ok && (args[0] != null_value)) {
-      SubtypeTestCachePtr cache =
-          static_cast<SubtypeTestCachePtr>(LOAD_CONSTANT(rE));
+    SubtypeTestCachePtr cache = SubtypeTestCache::RawCast(LOAD_CONSTANT(rE));
 
-      if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
-        HANDLE_EXCEPTION;
-      }
+    if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
+      HANDLE_EXCEPTION;
     }
 
     SP -= 4;  // Instance remains on stack.
@@ -3049,17 +3042,28 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AllocateClosure, D);
+    BYTECODE(AllocateClosure, 0);
     ++SP;
     if (!AllocateClosure(thread, pc, FP, SP)) {
       HANDLE_EXCEPTION;
     }
-    FunctionPtr function = Function::RawCast(LOAD_CONSTANT(rD));
-    ASSERT(Function::KindOf(function) == UntaggedFunction::kClosureFunction);
     ClosurePtr closure = Closure::RawCast(SP[0]);
+    FunctionPtr function = Function::RawCast(SP[-3]);
+    ObjectPtr context = SP[-2];
+    TypeArgumentsPtr instantiator_type_arguments =
+        TypeArguments::RawCast(SP[-1]);
+
+    ASSERT((Function::KindOf(function) == UntaggedFunction::kClosureFunction) ||
+           (Function::KindOf(function) ==
+            UntaggedFunction::kImplicitClosureFunction));
     closure->untag()->set_function(function);
     ONLY_IN_PRECOMPILED(closure->untag()->entry_point_ =
                             function->untag()->entry_point_);
+    closure->untag()->set_context(context);
+    closure->untag()->set_instantiator_type_arguments(
+        instantiator_type_arguments);
+    SP -= 3;
+    SP[0] = closure;
     DISPATCH();
   }
 
