@@ -1,5 +1,6 @@
 # 4.2.6
 - [DAP] Fixed an issue where "Service connection disposed" errors may go unhandled during termination/shutdown.
+- Add `google3WorkspaceRoot` parameter to `DartDevelopmentServiceLauncher.start`.
 
 # 4.2.5+1
 - Fix issue where `DartDevelopmentServiceException.fromJson` would throw a `StateError` whenever called, except when called to create an `ExistingDartDevelopmentServiceException`.
