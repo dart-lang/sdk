@@ -212,7 +212,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
+    _nameSpace = nameSpaceBuilder.buildNameSpace(libraryBuilder, this);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class $name",
         parent: typeParameterScope);

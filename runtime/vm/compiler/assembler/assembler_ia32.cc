@@ -3147,9 +3147,10 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
     return Address(array, index * index_scale + extra_disp);
   } else {
     const int64_t disp = static_cast<int64_t>(index) * index_scale +
-                         target::Instance::DataOffsetFor(cid) + extra_disp;
+                         target::Instance::DataOffsetFor(cid) + extra_disp -
+                         kHeapObjectTag;
     ASSERT(Utils::IsInt(32, disp));
-    return FieldAddress(array, static_cast<int32_t>(disp));
+    return Address(array, static_cast<int32_t>(disp));
   }
 }
 

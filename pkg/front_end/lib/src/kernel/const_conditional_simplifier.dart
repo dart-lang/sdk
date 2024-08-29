@@ -146,14 +146,17 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   Constant? _evaluate(Expression node) =>
       evaluateOrNull(staticTypeContext, node, requireConstant: false);
 
-  // Coverage-ignore(suite): Not run.
   Constant? _evaluateFunctionInvocation(FunctionNode node) {
     if (node.typeParameters.isNotEmpty ||
+        // Coverage-ignore(suite): Not run.
         node.requiredParameterCount != 0 ||
+        // Coverage-ignore(suite): Not run.
         node.positionalParameters.isNotEmpty ||
+        // Coverage-ignore(suite): Not run.
         node.namedParameters.isNotEmpty) {
       return null;
     }
+    // Coverage-ignore-block(suite): Not run.
     Statement? body = node.body;
     if (body is! ReturnStatement) return null;
     Expression? expression = body.expression;
@@ -165,7 +168,6 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     // A function parameter can be declared final with an initializer, but
     // doesn't necessarily have the initializer's value.
     if (variable.parent is FunctionNode) return null;
-    // Coverage-ignore-block(suite): Not run.
     if (_shouldNotInline(variable)) return null;
     if (!variable.isFinal) return null;
     Expression? initializer = variable.initializer;
@@ -229,18 +231,15 @@ class _ConstantEvaluator extends TryConstantEvaluator {
       _lookupLocalFunctionInvocation(node) ??
       super.visitLocalFunctionInvocation(node);
 
-  // Coverage-ignore(suite): Not run.
   Constant? _evaluateStaticInvocation(Procedure target) {
     if (_shouldNotInline(target)) return null;
     return _evaluateFunctionInvocation(target.function);
   }
 
-  // Coverage-ignore(suite): Not run.
   Constant? _lookupStaticInvocation(Procedure target) => _functionCache
       .putIfAbsent(target.function, () => _evaluateStaticInvocation(target));
 
   @override
-  // Coverage-ignore(suite): Not run.
   Constant visitStaticInvocation(StaticInvocation node) {
     return _lookupStaticInvocation(node.target) ??
         super.visitStaticInvocation(node);

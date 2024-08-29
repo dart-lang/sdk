@@ -45,34 +45,6 @@ library;
 // main() {
 // ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:45:3: Error: 'C' is already declared in this scope.
-//   C(a, b);
-//   ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:44:3: Context: Previous declaration of 'C'.
-//   C(a);
-//   ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:48:7: Error: 'field' is already declared in this scope.
-//   var field = "2nd";
-//       ^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:46:7: Context: Previous declaration of 'field'.
-//   var field = "1st";
-//       ^^^^^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:54:3: Error: 'm' is already declared in this scope.
-//   m() {
-//   ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:50:3: Context: Previous declaration of 'm'.
-//   m() {
-//   ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:62:10: Error: 's' is already declared in this scope.
-//   static s() {
-//          ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:58:10: Context: Previous declaration of 's'.
-//   static s() {
-//          ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:74:7: Error: 'C' is already declared in this scope.
 // class C {
 //       ^
@@ -186,6 +158,34 @@ library;
 // main() {
 // ^^^^
 //
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:67:7: Error: 'C' is already declared in this scope.
+// class C {
+//       ^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:41:7: Context: Previous declaration of 'C'.
+// class C {
+//       ^
+//
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:71:7: Error: 'C' is already declared in this scope.
+// class C {
+//       ^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:67:7: Context: Previous declaration of 'C'.
+// class C {
+//       ^
+//
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:82:6: Error: 'Enum' is already declared in this scope.
+// enum Enum {
+//      ^^^^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:75:6: Context: Previous declaration of 'Enum'.
+// enum Enum {
+//      ^^^^
+//
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:88:6: Error: 'Enum' is already declared in this scope.
+// enum Enum {
+//      ^^^^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:82:6: Context: Previous declaration of 'Enum'.
+// enum Enum {
+//      ^^^^
+//
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:43:3: Error: 'C' is already declared in this scope.
 //   C(a, b);
 //   ^
@@ -214,33 +214,33 @@ library;
 //   static s() {
 //          ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:67:7: Error: 'C' is already declared in this scope.
-// class C {
-//       ^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:41:7: Context: Previous declaration of 'C'.
-// class C {
-//       ^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:45:3: Error: 'C' is already declared in this scope.
+//   C(a, b);
+//   ^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:44:3: Context: Previous declaration of 'C'.
+//   C(a);
+//   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:71:7: Error: 'C' is already declared in this scope.
-// class C {
-//       ^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:67:7: Context: Previous declaration of 'C'.
-// class C {
-//       ^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:48:7: Error: 'field' is already declared in this scope.
+//   var field = "2nd";
+//       ^^^^^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:46:7: Context: Previous declaration of 'field'.
+//   var field = "1st";
+//       ^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:82:6: Error: 'Enum' is already declared in this scope.
-// enum Enum {
-//      ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:75:6: Context: Previous declaration of 'Enum'.
-// enum Enum {
-//      ^^^^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:54:3: Error: 'm' is already declared in this scope.
+//   m() {
+//   ^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:50:3: Context: Previous declaration of 'm'.
+//   m() {
+//   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:88:6: Error: 'Enum' is already declared in this scope.
-// enum Enum {
-//      ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:82:6: Context: Previous declaration of 'Enum'.
-// enum Enum {
-//      ^^^^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:62:10: Error: 's' is already declared in this scope.
+//   static s() {
+//          ^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:58:10: Context: Previous declaration of 's'.
+//   static s() {
+//          ^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:70:4: Error: Name of enum constant 'Enum' can't be the same as the enum's own name.
 //   Sub() : super(null);

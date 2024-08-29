@@ -1336,16 +1336,6 @@ abstract class MultiplyDefinedElement2 implements Element2 {
   List<Element2> get conflictingElements2;
 }
 
-/// An [ExecutableElement], with the additional information of a list of
-/// [ExecutableElement]s from which this element was composed.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class MultiplyInheritedExecutableElement2
-    implements ExecutableElement2 {
-  /// The executable elements defined within this executable element.
-  List<ExecutableElement2> get inheritedElements2;
-}
-
 /// A pattern variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
