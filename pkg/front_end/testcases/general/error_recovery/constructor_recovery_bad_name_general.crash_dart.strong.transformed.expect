@@ -10,13 +10,6 @@ library;
 //   foo.x() : initializer = true { }
 //   ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:5:3: Error: 'Foo.x' is already declared in this scope.
-//   foo.x() : initializer = true { }
-//   ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:3:3: Context: Previous declaration of 'Foo.x'.
-//   foo.x() { }
-//   ^^^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:7:3: Error: The name of a constructor must match the name of the enclosing class.
 //   foo() : initializer = true { }
 //   ^^^
@@ -29,13 +22,6 @@ library;
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:9:7: Error: A class member can't have the same name as the enclosing class.
 // Try renaming the member.
 //   get Foo {
-//       ^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:9:7: Error: 'Foo' is already declared in this scope.
-//   get Foo {
-//       ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:8:7: Context: Previous declaration of 'Foo'.
-//   get Foo => 0;
 //       ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:12:7: Error: A method declaration needs an explicit list of parameters.
@@ -58,13 +44,6 @@ library;
 //   get Foo.X {
 //   ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:13:7: Error: 'Foo.X' is already declared in this scope.
-//   get Foo.X {
-//       ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:12:7: Context: Previous declaration of 'Foo.X'.
-//   get Foo.X => 0;
-//       ^^^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:7: Error: A method declaration needs an explicit list of parameters.
 // Try adding a parameter list to the method declaration.
 //   get Foo : bla = null => 0;
@@ -84,13 +63,6 @@ library;
 // Try removing 'get'.
 //   get Foo.X : bla = null {
 //   ^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:17:7: Error: 'Foo.X' is already declared in this scope.
-//   get Foo.X : bla = null {
-//       ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:13:7: Context: Previous declaration of 'Foo.X'.
-//   get Foo.X {
-//       ^^^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:7: Error: A method declaration needs an explicit list of parameters.
 // Try adding a parameter list to the method declaration.
@@ -112,13 +84,6 @@ library;
 //   set Foo {
 //       ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:21:7: Error: 'Foo' is already declared in this scope.
-//   set Foo {
-//       ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:7: Context: Previous declaration of 'Foo'.
-//   set Foo => 0;
-//       ^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: A method declaration needs an explicit list of parameters.
 // Try adding a parameter list to the method declaration.
 //   set Foo.X => 0;
@@ -128,13 +93,6 @@ library;
 // Try removing 'set'.
 //   set Foo.X => 0;
 //   ^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: 'Foo.X' is already declared in this scope.
-//   set Foo.X => 0;
-//       ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:17:7: Context: Previous declaration of 'Foo.X'.
-//   get Foo.X : bla = null {
-//       ^^^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:25:7: Error: A method declaration needs an explicit list of parameters.
 // Try adding a parameter list to the method declaration.
@@ -146,13 +104,6 @@ library;
 //   set Foo.X {
 //   ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:25:7: Error: 'Foo.X' is already declared in this scope.
-//   set Foo.X {
-//       ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Context: Previous declaration of 'Foo.X'.
-//   set Foo.X => 0;
-//       ^^^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Error: A method declaration needs an explicit list of parameters.
 // Try adding a parameter list to the method declaration.
 //   set Foo : bla = null => 0;
@@ -162,13 +113,6 @@ library;
 // Try removing 'set'.
 //   set Foo : bla = null => 0;
 //   ^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Error: 'Foo' is already declared in this scope.
-//   set Foo : bla = null => 0;
-//       ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:7: Context: Previous declaration of 'Foo'.
-//   get Foo : bla = null => 0;
-//       ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:29:7: Error: A method declaration needs an explicit list of parameters.
 // Try adding a parameter list to the method declaration.
@@ -180,23 +124,9 @@ library;
 //   set Foo.X : bla = null {
 //   ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:29:7: Error: 'Foo.X' is already declared in this scope.
-//   set Foo.X : bla = null {
-//       ^^^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:25:7: Context: Previous declaration of 'Foo.X'.
-//   set Foo.X {
-//       ^^^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:18: Error: An external constructor can't have any initializers.
 //   external Foo() : bla = null;
 //                  ^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:12: Error: 'Foo' is already declared in this scope.
-//   external Foo() : bla = null;
-//            ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Context: Previous declaration of 'Foo'.
-//   set Foo : bla = null => 0;
-//       ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:33:33: Error: An external or native method can't have a body.
 //   external Foo.X() : bla = null {
@@ -206,6 +136,86 @@ library;
 //   external Foo.X() : bla = null {
 //                    ^
 //
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   int Foo;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:37:10: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   int A, Foo, B;
+//          ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:5:3: Error: 'Foo.x' is already declared in this scope.
+//   foo.x() : initializer = true { }
+//   ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:3:3: Context: Previous declaration of 'Foo.x'.
+//   foo.x() { }
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:9:7: Error: 'Foo' is already declared in this scope.
+//   get Foo {
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:8:7: Context: Previous declaration of 'Foo'.
+//   get Foo => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:13:7: Error: 'Foo.X' is already declared in this scope.
+//   get Foo.X {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:12:7: Context: Previous declaration of 'Foo.X'.
+//   get Foo.X => 0;
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:17:7: Error: 'Foo.X' is already declared in this scope.
+//   get Foo.X : bla = null {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:13:7: Context: Previous declaration of 'Foo.X'.
+//   get Foo.X {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:21:7: Error: 'Foo' is already declared in this scope.
+//   set Foo {
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:7: Context: Previous declaration of 'Foo'.
+//   set Foo => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: 'Foo.X' is already declared in this scope.
+//   set Foo.X => 0;
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:17:7: Context: Previous declaration of 'Foo.X'.
+//   get Foo.X : bla = null {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:25:7: Error: 'Foo.X' is already declared in this scope.
+//   set Foo.X {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Context: Previous declaration of 'Foo.X'.
+//   set Foo.X => 0;
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Error: 'Foo' is already declared in this scope.
+//   set Foo : bla = null => 0;
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:7: Context: Previous declaration of 'Foo'.
+//   get Foo : bla = null => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:29:7: Error: 'Foo.X' is already declared in this scope.
+//   set Foo.X : bla = null {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:25:7: Context: Previous declaration of 'Foo.X'.
+//   set Foo.X {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:12: Error: 'Foo' is already declared in this scope.
+//   external Foo() : bla = null;
+//            ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Context: Previous declaration of 'Foo'.
+//   set Foo : bla = null => 0;
+//       ^^^
+//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:33:12: Error: 'Foo.X' is already declared in this scope.
 //   external Foo.X() : bla = null {
 //            ^^^^^
@@ -213,22 +223,12 @@ library;
 //   set Foo.X : bla = null {
 //       ^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:7: Error: A class member can't have the same name as the enclosing class.
-// Try renaming the member.
-//   int Foo;
-//       ^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:7: Error: 'Foo' is already declared in this scope.
 //   int Foo;
 //       ^^^
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:9:7: Context: Previous declaration of 'Foo'.
 //   get Foo {
 //       ^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:37:10: Error: A class member can't have the same name as the enclosing class.
-// Try renaming the member.
-//   int A, Foo, B;
-//          ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:37:10: Error: 'Foo' is already declared in this scope.
 //   int A, Foo, B;

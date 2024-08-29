@@ -113,7 +113,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = _nameSpaceBuilder.buildNameSpace(this);
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(libraryBuilder, this);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension type $name",
         parent: typeParameterScope);

@@ -4,9 +4,11 @@
 
 import '../base/messages.dart';
 import '../base/name_space.dart';
+import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import 'name_scheme.dart';
@@ -106,8 +108,6 @@ class TypeParameterScopeBuilder {
 
   final Map<String, Builder>? members;
 
-  final Map<String, MemberBuilder>? constructors;
-
   final Map<String, MemberBuilder>? setters;
 
   final Set<ExtensionBuilder>? extensions;
@@ -118,6 +118,8 @@ class TypeParameterScopeBuilder {
       <String, List<Builder>>{};
 
   List<SourceFieldBuilder>? primaryConstructorFields;
+
+  List<_AddBuilder> _addedBuilders = [];
 
   // TODO(johnniwinther): Stop using [_name] for determining the declaration
   // kind.
@@ -139,35 +141,25 @@ class TypeParameterScopeBuilder {
 
   bool declaresConstConstructor = false;
 
-  TypeParameterScopeBuilder(
-      this._kind,
-      this.members,
-      this.setters,
-      this.constructors,
-      this.extensions,
-      this._name,
-      this._charOffset,
-      this.parent);
+  TypeParameterScopeBuilder(this._kind, this.members, this.setters,
+      this.extensions, this._name, this._charOffset, this.parent);
 
   TypeParameterScopeBuilder.library()
       : this(
             TypeParameterScopeKind.library,
             <String, Builder>{},
             <String, MemberBuilder>{},
-            null,
-            // No support for constructors in library scopes.
             <ExtensionBuilder>{},
             "<library>",
             -1,
             null);
 
   TypeParameterScopeBuilder createNested(
-      TypeParameterScopeKind kind, String name, bool hasMembers) {
+      TypeParameterScopeKind kind, String name) {
     return new TypeParameterScopeBuilder(
         kind,
-        hasMembers ? <String, MemberBuilder>{} : null,
-        hasMembers ? <String, MemberBuilder>{} : null,
-        hasMembers ? <String, MemberBuilder>{} : null,
+        null,
+        null,
         null,
         // No support for extensions in nested scopes.
         name,
@@ -326,14 +318,6 @@ class TypeParameterScopeBuilder {
     (primaryConstructorFields ??= []).add(builder);
   }
 
-  // Coverage-ignore(suite): Not run.
-  LookupScope toLookupScope(List<TypeVariableBuilder>? typeVariableBuilders) {
-    LookupScope lookupScope = new FixedLookupScope(
-        ScopeKind.typeParameters, name,
-        getables: members, setables: setters);
-    return TypeParameterScope.fromList(lookupScope, typeVariableBuilders);
-  }
-
   NameSpace toNameSpace() {
     return new NameSpaceImpl(
         getables: members, setables: setters, extensions: extensions);
@@ -341,58 +325,144 @@ class TypeParameterScopeBuilder {
 
   DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
       Map<String, NominalVariableBuilder>? typeVariables) {
+    assert(members == null);
+    assert(setters == null);
+    assert(extensions == null);
     return new DeclarationNameSpaceBuilder._(
-        members, setters, constructors, extensions, typeVariables);
+        name, typeVariables, _addedBuilders);
+  }
+
+  void addBuilderToDeclaration(
+      String name, Builder declaration, Uri fileUri, int charOffset) {
+    _addedBuilders.add(new _AddBuilder(name, declaration, fileUri, charOffset));
   }
 
   @override
   String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
 }
 
+class _AddBuilder {
+  final String name;
+  final Builder declaration;
+  final Uri fileUri;
+  final int charOffset;
+
+  _AddBuilder(this.name, this.declaration, this.fileUri, this.charOffset);
+}
+
 class DeclarationNameSpaceBuilder {
-  final Map<String, Builder>? _getables;
-  final Map<String, MemberBuilder>? _setables;
-  final Map<String, MemberBuilder>? _constructors;
-  final Set<ExtensionBuilder>? _extensions;
+  final String _name;
   final Map<String, NominalVariableBuilder>? _typeVariables;
+  final List<_AddBuilder> _addedBuilders;
 
   DeclarationNameSpaceBuilder.empty()
-      : _getables = null,
-        _setables = null,
-        _constructors = null,
-        _extensions = null,
-        _typeVariables = null;
+      : _name = '',
+        _typeVariables = null,
+        _addedBuilders = const [];
 
-  DeclarationNameSpaceBuilder._(this._getables, this._setables,
-      this._constructors, this._extensions, this._typeVariables);
+  DeclarationNameSpaceBuilder._(
+      this._name, this._typeVariables, this._addedBuilders);
 
-  void addLocalMember(String name, MemberBuilder builder,
-      {required bool setter}) {
-    (setter
-        ?
+  void _addBuilder(
+      ProblemReporting problemReporting,
+      Map<String, Builder> getables,
+      Map<String, MemberBuilder> setables,
+      Map<String, MemberBuilder> constructors,
+      _AddBuilder addBuilder) {
+    String name = addBuilder.name;
+    Builder declaration = addBuilder.declaration;
+    Uri fileUri = addBuilder.fileUri;
+    int charOffset = addBuilder.charOffset;
+
+    bool isConstructor = declaration is FunctionBuilder &&
+        (declaration.isConstructor || declaration.isFactory);
+    if (!isConstructor && name == _name) {
+      problemReporting.addProblem(
+          messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
+    }
+    Map<String, Builder> members = isConstructor
+        ? constructors
+        : (declaration.isSetter ? setables : getables);
+
+    Builder? existing = members[name];
+
+    if (existing == declaration) return;
+
+    if (declaration.next != null &&
         // Coverage-ignore(suite): Not run.
-        _setables
-        : _getables)![name] = builder;
+        declaration.next != existing) {
+      unexpected(
+          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
+          "${existing?.fileUri}@${existing?.charOffset}",
+          declaration.charOffset,
+          declaration.fileUri);
+    }
+    declaration.next = existing;
+    if (isDuplicatedDeclaration(existing, declaration)) {
+      String fullName = name;
+      if (isConstructor) {
+        if (name.isEmpty) {
+          fullName = _name;
+        } else {
+          fullName = "${_name}.$name";
+        }
+      }
+      problemReporting.addProblem(
+          templateDuplicatedDeclaration.withArguments(fullName),
+          charOffset,
+          fullName.length,
+          declaration.fileUri!,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(fullName)
+                .withLocation(
+                    existing!.fileUri!, existing.charOffset, fullName.length)
+          ]);
+    } else if (declaration.isAugment) {
+      // Coverage-ignore-block(suite): Not run.
+      if (existing != null) {
+        if (declaration.isSetter) {
+          // TODO(johnniwinther): Collection augment setables.
+        } else {
+          // TODO(johnniwinther): Collection augment getables.
+        }
+      } else {
+        // TODO(cstefantsova): Report an error.
+      }
+    }
+    members[name] = declaration;
   }
 
-  MemberBuilder? lookupLocalMember(String name, {required bool setter}) {
-    return (setter
-        ?
-        // Coverage-ignore(suite): Not run.
-        _setables
-        : _getables)![name] as MemberBuilder?;
+  void checkTypeVariableConflict(ProblemReporting _problemReporting,
+      String name, Builder member, Uri fileUri) {
+    if (_typeVariables != null) {
+      NominalVariableBuilder? tv = _typeVariables![name];
+      if (tv != null) {
+        _problemReporting.addProblem(
+            templateConflictsWithTypeVariable.withArguments(name),
+            member.charOffset,
+            name.length,
+            fileUri,
+            context: [
+              messageConflictsWithTypeVariableCause.withLocation(
+                  tv.fileUri!, tv.charOffset, name.length)
+            ]);
+      }
+    }
   }
 
-  void addConstructor(String name, MemberBuilder builder) {
-    _constructors![name] = builder;
-  }
-
-  Iterable<MemberBuilder> get constructors =>
-      _constructors?.values ?? // Coverage-ignore(suite): Not run.
-      [];
-
-  DeclarationNameSpace buildNameSpace(IDeclarationBuilder parent,
+  DeclarationNameSpace buildNameSpace(
+      ProblemReporting problemReporting, IDeclarationBuilder parent,
       {bool includeConstructors = true}) {
+    Map<String, Builder> getables = {};
+    Map<String, MemberBuilder> setables = {};
+    Map<String, MemberBuilder> constructors = {};
+
+    for (_AddBuilder addedBuilder in _addedBuilders) {
+      _addBuilder(
+          problemReporting, getables, setables, constructors, addedBuilder);
+    }
+
     void setParent(MemberBuilder? member) {
       while (member != null) {
         member.parent = parent;
@@ -401,34 +471,22 @@ class DeclarationNameSpaceBuilder {
     }
 
     void setParentAndCheckConflicts(String name, Builder member) {
-      if (_typeVariables != null) {
-        NominalVariableBuilder? tv = _typeVariables![name];
-        if (tv != null) {
-          parent.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
+      checkTypeVariableConflict(
+          problemReporting, name, member, member.fileUri!);
       setParent(member as MemberBuilder);
     }
 
-    _getables?.forEach(setParentAndCheckConflicts);
-    _setables?.forEach(setParentAndCheckConflicts);
-    _constructors?.forEach(setParentAndCheckConflicts);
+    getables.forEach(setParentAndCheckConflicts);
+    setables.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
 
     return new DeclarationNameSpaceImpl(
-        getables: _getables,
-        setables: _setables,
-        extensions: _extensions,
+        getables: getables,
+        setables: setables,
         // TODO(johnniwinther): Handle constructors in extensions consistently.
         // Currently they are not part of the name space but still processed
         // for instance when inferring redirecting factories.
-        constructors: includeConstructors ? _constructors : null);
+        constructors: includeConstructors ? constructors : null);
   }
 }
 
@@ -516,4 +574,26 @@ class DeclarationBuilderScope implements LookupScope {
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     return _declarationBuilder?.scope.lookupSetable(name, charOffset, fileUri);
   }
+}
+
+bool isDuplicatedDeclaration(Builder? existing, Builder other) {
+  if (existing == null) return false;
+  if (other.isAugment) return false;
+  Builder? next = existing.next;
+  if (next == null) {
+    if (existing.isGetter && other.isSetter) return false;
+    if (existing.isSetter && other.isGetter) return false;
+  } else {
+    if (next is ClassBuilder && !next.isMixinApplication) return true;
+  }
+  if (existing is ClassBuilder && other is ClassBuilder) {
+    // We allow multiple mixin applications with the same name. An
+    // alternative is to share these mixin applications. This situation can
+    // happen if you have `class A extends Object with Mixin {}` and `class B
+    // extends Object with Mixin {}` in the same library.
+    return !existing.isMixinApplication ||
+        // Coverage-ignore(suite): Not run.
+        !other.isMixinApplication;
+  }
+  return true;
 }

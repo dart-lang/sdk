@@ -157,8 +157,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _createSynthesizedMembers(coreLibrary);
     super.buildScopes(coreLibrary);
+    _createSynthesizedMembers(coreLibrary);
 
     Iterator<MemberBuilder> iterator =
         nameSpace.filteredConstructorNameIterator(
@@ -279,7 +279,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     Builder? customValuesDeclaration =
-        nameSpaceBuilder.lookupLocalMember("values", setter: false);
+        nameSpace.lookupLocalMember("values", setter: false);
     if (customValuesDeclaration != null) {
       // Retrieve the earliest declaration for error reporting.
       while (customValuesDeclaration?.next != null) {
@@ -297,7 +297,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "hashCode",
       "=="
     ]) {
-      Builder? customIndexDeclaration = nameSpaceBuilder
+      Builder? customIndexDeclaration = nameSpace
           .lookupLocalMember(restrictedInstanceMemberName, setter: false);
       if (customIndexDeclaration is MemberBuilder &&
           !customIndexDeclaration.isAbstract) {
@@ -332,14 +332,22 @@ class SourceEnumBuilder extends SourceClassBuilder {
         isSynthesized: true);
     if (customValuesDeclaration != null) {
       customValuesDeclaration.next = valuesBuilder;
+      nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+          valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
+      valuesBuilder.parent = this;
     } else {
-      nameSpaceBuilder.addLocalMember("values", valuesBuilder, setter: false);
+      nameSpace.addLocalMember("values", valuesBuilder, setter: false);
+      nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+          valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
+      valuesBuilder.parent = this;
     }
 
     // The default constructor is added if no generative or unnamed factory
     // constructors are declared.
     bool needsSynthesizedDefaultConstructor = true;
-    for (MemberBuilder constructorBuilder in nameSpaceBuilder.constructors) {
+    Iterator<MemberBuilder> iterator = nameSpace.unfilteredConstructorIterator;
+    while (iterator.moveNext()) {
+      MemberBuilder constructorBuilder = iterator.current;
       if (!constructorBuilder.isFactory || constructorBuilder.name == "") {
         needsSynthesizedDefaultConstructor = false;
         break;
@@ -372,8 +380,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
               isSynthetic: true);
       synthesizedDefaultConstructorBuilder!
           .registerInitializedField(valuesBuilder);
-      nameSpaceBuilder.addConstructor(
-          "", synthesizedDefaultConstructorBuilder!);
+      nameSpace.addConstructor("", synthesizedDefaultConstructorBuilder!);
+      nameSpaceBuilder.checkTypeVariableConflict(
+          libraryBuilder,
+          synthesizedDefaultConstructorBuilder!.name,
+          synthesizedDefaultConstructorBuilder!,
+          synthesizedDefaultConstructorBuilder!.fileUri);
+      synthesizedDefaultConstructorBuilder!.parent = this;
     }
 
     ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
@@ -399,8 +412,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
             containerType: ContainerType.Class,
             libraryName: new LibraryName(coreLibrary.library.reference)),
         isSynthetic: true);
-    nameSpaceBuilder.addLocalMember("_enumToString", toStringBuilder,
-        setter: false);
+    nameSpace.addLocalMember("_enumToString", toStringBuilder, setter: false);
+    nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+        toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri!);
+    toStringBuilder.parent = this;
+
     String className = name;
 
     if (enumConstantInfos != null) {
@@ -409,7 +425,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         List<MetadataBuilder>? metadata = enumConstantInfo.metadata;
         String name = enumConstantInfo.name;
         MemberBuilder? existing =
-            nameSpaceBuilder.lookupLocalMember(name, setter: false);
+            nameSpace.lookupLocalMember(name, setter: false) as MemberBuilder?;
         if (existing != null) {
           // The existing declaration is synthetic if it has the same
           // charOffset as the enclosing enum.
@@ -478,8 +494,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fieldSetterReference: setterReference,
             initializerToken: enumConstantInfo.argumentsBeginToken,
             isEnumElement: true);
-        nameSpaceBuilder.addLocalMember(name, fieldBuilder..next = existing,
+        nameSpace.addLocalMember(name, fieldBuilder..next = existing,
             setter: false);
+        nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+            fieldBuilder.name, fieldBuilder, fieldBuilder.fileUri);
+        fieldBuilder.parent = this;
         elementBuilders.add(fieldBuilder);
       }
     }

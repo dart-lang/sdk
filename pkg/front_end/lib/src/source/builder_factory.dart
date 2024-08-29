@@ -490,8 +490,7 @@ abstract class BuilderFactory {
   void registerUnboundStructuralVariables(
       List<StructuralVariableBuilder> variableBuilders);
 
-  Builder addBuilder(String name, Builder declaration, int charOffset,
-      {Reference? getterReference, Reference? setterReference});
+  Builder addBuilder(String name, Builder declaration, int charOffset);
 }
 
 class NominalVariableCopy {

@@ -191,8 +191,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     currentTypeParameterScopeBuilder =
         currentTypeParameterScopeBuilder.createNested(
             TypeParameterScopeKind.classOrNamedMixinApplication,
-            "class or mixin application",
-            true);
+            "class or mixin application");
 
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
@@ -391,7 +390,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginEnumDeclarationHeader(String name) {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.enumDeclaration, name, true);
+        .createNested(TypeParameterScopeKind.enumDeclaration, name);
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -478,8 +477,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     currentTypeParameterScopeBuilder =
         currentTypeParameterScopeBuilder.createNested(
             TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
-            "extension",
-            true);
+            "extension");
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -584,9 +582,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginFactoryMethod() {
-    currentTypeParameterScopeBuilder =
-        currentTypeParameterScopeBuilder.createNested(
-            TypeParameterScopeKind.factoryMethod, "#factory_method", false);
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
+        .createNested(TypeParameterScopeKind.factoryMethod, "#factory_method");
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -631,7 +628,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginConstructor() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.constructor, "#method", false);
+        .createNested(TypeParameterScopeKind.constructor, "#method");
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -680,7 +677,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginStaticMethod() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.staticMethod, "#method", false);
+        .createNested(TypeParameterScopeKind.staticMethod, "#method");
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -727,7 +724,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginInstanceMethod() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.instanceMethod, "#method", false);
+        .createNested(TypeParameterScopeKind.instanceMethod, "#method");
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -776,7 +773,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginTopLevelMethod() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.topLevelMethod, "#method", false);
+        .createNested(TypeParameterScopeKind.topLevelMethod, "#method");
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -825,7 +822,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginTypedef() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.typedef, "#typedef", false);
+        .createNested(TypeParameterScopeKind.typedef, "#typedef");
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -871,9 +868,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginFunctionType() {
-    currentTypeParameterScopeBuilder =
-        currentTypeParameterScopeBuilder.createNested(
-            TypeParameterScopeKind.functionType, "#function_type", false);
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
+        .createNested(TypeParameterScopeKind.functionType, "#function_type");
     Map<String, StructuralVariableBuilder> structuralParameterScope = {};
     _structuralParameterScopes.push(structuralParameterScope);
     _typeScopes.push(new TypeScope(
@@ -903,8 +899,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     currentTypeParameterScopeBuilder =
         currentTypeParameterScopeBuilder.createNested(
             TypeParameterScopeKind.unnamedMixinApplication,
-            "mixin application",
-            false);
+            "mixin application");
     Map<String, NominalVariableBuilder> nominalParameterScope = {};
     _nominalParameterScopes.push(nominalParameterScope);
     _typeScopes.push(new TypeScope(
@@ -1284,7 +1279,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _constructorReferences.clear();
 
-    addBuilder(name, enumBuilder, charOffset,
+    _addBuilderInternal(name, enumBuilder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
 
     offsetMap.registerNamedDeclaration(identifier, enumBuilder);
@@ -1425,7 +1420,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _constructorReferences.clear();
 
-    addBuilder(className, classBuilder, nameOffset,
+    _addBuilderInternal(className, classBuilder, nameOffset,
         getterReference: _indexedContainer?.reference);
     offsetMap.registerNamedDeclaration(identifier, classBuilder);
   }
@@ -1700,7 +1695,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
-        addBuilder(fullname, application, charOffset,
+        _addBuilderInternal(fullname, application, charOffset,
             getterReference: referencesFromIndexedClass?.cls.reference);
         supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             application, const NullabilityBuilder.omitted(),
@@ -1778,7 +1773,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _declarationBuilderScopes.pop().declarationBuilder = extensionBuilder;
     _constructorReferences.clear();
 
-    addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
+    _addBuilderInternal(extensionBuilder.name, extensionBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
     if (identifier != null) {
       offsetMap.registerNamedDeclaration(identifier, extensionBuilder);
@@ -1842,7 +1837,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         extensionTypeDeclarationBuilder;
     _constructorReferences.clear();
 
-    addBuilder(extensionTypeDeclarationBuilder.name,
+    _addBuilderInternal(extensionTypeDeclarationBuilder.name,
         extensionTypeDeclarationBuilder, identifier.nameOffset,
         getterReference: indexedContainer?.reference);
     offsetMap.registerNamedDeclaration(
@@ -1870,7 +1865,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         ownerName: name, allowNameConflict: true);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endTypedef();
-    addBuilder(name, typedefBuilder, charOffset,
+    _addBuilderInternal(name, typedefBuilder, charOffset,
         getterReference: referenceFrom?.reference);
   }
 
@@ -2030,7 +2025,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _checkTypeVariables(typeVariables,
         ownerName: constructorBuilder.name, allowNameConflict: true);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
-    addBuilder(constructorName, constructorBuilder, charOffset,
+    _addBuilderInternal(constructorName, constructorBuilder, charOffset,
         getterReference: constructorReference);
     if (nativeMethodName != null) {
       _addNativeMethod(constructorBuilder);
@@ -2202,7 +2197,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _checkTypeVariables(typeVariables,
         ownerName: identifier.name, allowNameConflict: true);
 
-    addBuilder(procedureName, procedureBuilder, charOffset,
+    _addBuilderInternal(procedureName, procedureBuilder, charOffset,
         getterReference: constructorReference);
     if (nativeMethodName != null) {
       _addNativeMethod(procedureBuilder);
@@ -2359,7 +2354,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         nativeMethodName: nativeMethodName);
     _checkTypeVariables(typeVariables,
         ownerName: procedureBuilder.name, allowNameConflict: true);
-    addBuilder(name, procedureBuilder, charOffset,
+    _addBuilderInternal(name, procedureBuilder, charOffset,
         getterReference: procedureReference);
     if (nativeMethodName != null) {
       _addNativeMethod(procedureBuilder);
@@ -2537,7 +2532,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         lateSetterReference: lateSetterReference,
         initializerToken: initializerToken,
         constInitializerToken: constInitializerToken);
-    addBuilder(name, fieldBuilder, charOffset,
+    _addBuilderInternal(name, fieldBuilder, charOffset,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference);
     return fieldBuilder;
@@ -2829,51 +2824,60 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  Builder addBuilder(String name, Builder declaration, int charOffset,
+  Builder addBuilder(String name, Builder declaration, int charOffset) {
+    return _addBuilderToLibrary(name, declaration, charOffset);
+  }
+
+  void _addBuilderInternal(String name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference}) {
-    // TODO(ahe): Set the parent correctly here. Could then change the
-    // implementation of MemberBuilder.isTopLevel to test explicitly for a
-    // LibraryBuilder.
-    if (declaration is SourceExtensionBuilder &&
-        declaration.isUnnamedExtension) {
-      assert(currentTypeParameterScopeBuilder ==
-          _libraryTypeParameterScopeBuilder);
-      declaration.parent = _parent;
-      currentTypeParameterScopeBuilder.extensions!.add(declaration);
-      return declaration;
-    }
     if (getterReference != null) {
       loader.buildersCreatedWithReferences[getterReference] = declaration;
     }
     if (setterReference != null) {
       loader.buildersCreatedWithReferences[setterReference] = declaration;
     }
+    _addBuilder(name, declaration, charOffset);
+  }
+
+  void _addBuilder(String name, Builder declaration, int charOffset) {
     if (currentTypeParameterScopeBuilder == _libraryTypeParameterScopeBuilder) {
-      if (declaration is MemberBuilder) {
-        declaration.parent = _parent;
-      } else if (declaration is TypeDeclarationBuilder) {
-        declaration.parent = _parent;
-      } else if (declaration is PrefixBuilder) {
-        assert(declaration.parent == _parent);
-      } else {
-        return unhandled("${declaration.runtimeType}", "addBuilder", charOffset,
-            _compilationUnit.fileUri);
-      }
+      _addBuilderToLibrary(name, declaration, charOffset);
     } else {
-      assert(currentTypeParameterScopeBuilder.parent ==
-          _libraryTypeParameterScopeBuilder);
+      _addBuilderToDeclaration(name, declaration, charOffset);
     }
-    bool isConstructor = declaration is FunctionBuilder &&
-        (declaration.isConstructor || declaration.isFactory);
-    if (!isConstructor && name == currentTypeParameterScopeBuilder.name) {
-      _problemReporting.addProblem(messageMemberWithSameNameAsClass, charOffset,
-          noLength, _compilationUnit.fileUri);
+  }
+
+  Builder _addBuilderToLibrary(
+      String name, Builder declaration, int charOffset) {
+    assert(
+        currentTypeParameterScopeBuilder == _libraryTypeParameterScopeBuilder);
+    if (declaration is SourceExtensionBuilder &&
+        declaration.isUnnamedExtension) {
+      declaration.parent = _parent;
+      currentTypeParameterScopeBuilder.extensions!.add(declaration);
+      return declaration;
     }
-    Map<String, Builder> members = isConstructor
-        ? currentTypeParameterScopeBuilder.constructors!
-        : (declaration.isSetter
-            ? currentTypeParameterScopeBuilder.setters!
-            : currentTypeParameterScopeBuilder.members!);
+
+    if (declaration is MemberBuilder) {
+      declaration.parent = _parent;
+    } else if (declaration is TypeDeclarationBuilder) {
+      declaration.parent = _parent;
+    } else if (declaration is PrefixBuilder) {
+      assert(declaration.parent == _parent);
+    } else {
+      return unhandled("${declaration.runtimeType}", "addBuilder", charOffset,
+          _compilationUnit.fileUri);
+    }
+
+    assert(
+        !(declaration is FunctionBuilder &&
+            (declaration.isConstructor || declaration.isFactory)),
+        // Coverage-ignore(suite): Not run.
+        "Unexpected constructor in library: $declaration.");
+
+    Map<String, Builder> members = declaration.isSetter
+        ? currentTypeParameterScopeBuilder.setters!
+        : currentTypeParameterScopeBuilder.members!;
 
     Builder? existing = members[name];
 
@@ -2915,15 +2919,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       existing.mergeScopes(declaration, _problemReporting, _nameSpace,
           uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
       return existing;
-    } else if (_isDuplicatedDeclaration(existing, declaration)) {
+    } else if (isDuplicatedDeclaration(existing, declaration)) {
       String fullName = name;
-      if (isConstructor) {
-        if (name.isEmpty) {
-          fullName = currentTypeParameterScopeBuilder.name;
-        } else {
-          fullName = "${currentTypeParameterScopeBuilder.name}.$name";
-        }
-      }
       _problemReporting.addProblem(
           templateDuplicatedDeclaration.withArguments(fullName),
           charOffset,
@@ -2960,26 +2957,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return members[name] = declaration;
   }
 
-  bool _isDuplicatedDeclaration(Builder? existing, Builder other) {
-    if (existing == null) return false;
-    if (other.isAugment) return false;
-    Builder? next = existing.next;
-    if (next == null) {
-      if (existing.isGetter && other.isSetter) return false;
-      if (existing.isSetter && other.isGetter) return false;
-    } else {
-      if (next is ClassBuilder && !next.isMixinApplication) return true;
-    }
-    if (existing is ClassBuilder && other is ClassBuilder) {
-      // We allow multiple mixin applications with the same name. An
-      // alternative is to share these mixin applications. This situation can
-      // happen if you have `class A extends Object with Mixin {}` and `class B
-      // extends Object with Mixin {}` in the same library.
-      return !existing.isMixinApplication ||
-          // Coverage-ignore(suite): Not run.
-          !other.isMixinApplication;
-    }
-    return true;
+  void _addBuilderToDeclaration(
+      String name, Builder declaration, int charOffset) {
+    assert(currentTypeParameterScopeBuilder.parent ==
+        _libraryTypeParameterScopeBuilder);
+
+    currentTypeParameterScopeBuilder.addBuilderToDeclaration(
+        name, declaration, _compilationUnit.fileUri, charOffset);
   }
 
   @override
