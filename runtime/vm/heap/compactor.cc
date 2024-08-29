@@ -509,9 +509,8 @@ void CompactorTask::RunEnteredIsolateGroup() {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
           isolate_group_->ForEachIsolate(
               [&](Isolate* isolate) {
-                if (isolate->NumServiceIdZones() > 0) {
-                  isolate->EnsureDefaultServiceIdZone().VisitPointers(
-                      *compactor_);
+                for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+                  isolate->GetServiceIdZone(i)->VisitPointers(*compactor_);
                 }
               },
               /*at_safepoint=*/true);

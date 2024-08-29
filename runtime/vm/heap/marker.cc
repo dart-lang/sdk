@@ -778,7 +778,7 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
       case kObjectIdRing: {
         TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                       "ProcessObjectIdTable");
-        isolate_group_->VisitPointersInDefaultServiceIdZone(*visitor);
+        isolate_group_->VisitPointersInAllServiceIdZones(*visitor);
         break;
       }
     }

@@ -2981,12 +2981,12 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   visitor->clear_gc_root_type();
 }
 
-void IsolateGroup::VisitPointersInDefaultServiceIdZone(
+void IsolateGroup::VisitPointersInAllServiceIdZones(
     ObjectPointerVisitor& visitor) {
 #if !defined(PRODUCT)
   for (Isolate* isolate : isolates_) {
-    if (isolate->NumServiceIdZones() > 0) {
-      isolate->EnsureDefaultServiceIdZone().VisitPointers(visitor);
+    for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+      isolate->GetServiceIdZone(i)->VisitPointers(visitor);
     }
   }
 #endif  // !defined(PRODUCT)
@@ -3008,15 +3008,45 @@ void IsolateGroup::RememberLiveTemporaries() {
 }
 
 #if !defined(PRODUCT)
+RingServiceIdZone& Isolate::AddServiceIdZone(
+    ObjectIdRing::BackingBufferKind backing_buffer_kind,
+    ObjectIdRing::IdPolicy id_assignment_policy,
+    int32_t capacity) {
+  EnsureDefaultServiceIdZone();
+  switch (backing_buffer_kind) {
+    case ObjectIdRing::BackingBufferKind::kRing:
+      service_id_zones_->Add(new RingServiceIdZone(
+          service_id_zones_->length(), id_assignment_policy, capacity));
+      return *service_id_zones_->Last();
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Isolate::DeleteServiceIdZone(int32_t id) {
+  ASSERT(service_id_zones_ != nullptr);
+  ASSERT(id < service_id_zones_->length());
+  delete service_id_zones_->At(id);
+  (*service_id_zones_)[id] = nullptr;
+}
+
 RingServiceIdZone& Isolate::EnsureDefaultServiceIdZone() {
   if (service_id_zones_ == nullptr) {
     service_id_zones_ = new MallocGrowableArray<RingServiceIdZone*>();
   }
   if (service_id_zones_->is_empty()) {
     service_id_zones_->Add(
-        new RingServiceIdZone(ObjectIdRing::IdPolicy::kAllocateId));
+        new RingServiceIdZone(0, ObjectIdRing::IdPolicy::kAllocateId,
+                              RingServiceIdZone::kDefaultCapacity));
   }
   return *service_id_zones_->At(0);
+}
+
+RingServiceIdZone* Isolate::GetServiceIdZone(intptr_t zone_id) const {
+  if (service_id_zones_ == nullptr || service_id_zones_->length() <= zone_id) {
+    return nullptr;
+  }
+  return service_id_zones_->At(zone_id);
 }
 
 intptr_t Isolate::NumServiceIdZones() const {

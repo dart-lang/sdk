@@ -5915,6 +5915,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   }
   for (intptr_t i = 0; i < objects.length(); ++i) {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     objects[i]->PrintJSON(&js, false);
     EXPECT_SUBSTRING("\"type\":", js.ToCString());
   }
@@ -5929,6 +5930,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Class reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Class& cls = Class::Handle(isolate->group()->object_store()->bool_class());
     cls.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -5951,6 +5953,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   {
     Thread* thread = Thread::Current();
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Class& cls = Class::Handle(isolate->group()->object_store()->bool_class());
     const String& func_name = String::Handle(String::New("toString"));
     Function& func =
@@ -5983,6 +5986,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Library reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Library& lib =
         Library::Handle(isolate->group()->object_store()->core_library());
     lib.PrintJSON(&js, true);
@@ -5997,6 +6001,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Bool reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Bool::True().PrintJSON(&js, true);
     const char* json_str = js.ToCString();
     ASSERT(strlen(json_str) < kBufferSize);
@@ -6018,6 +6023,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Smi reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Integer& smi = Integer::Handle(Integer::New(7));
     smi.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6041,6 +6047,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Mint reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Integer& smi = Integer::Handle(Integer::New(Mint::kMinValue));
     smi.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6065,6 +6072,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Double reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Double& dub = Double::Handle(Double::New(0.1234));
     dub.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6089,6 +6097,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // String reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const String& str = String::Handle(String::New("dw"));
     str.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6113,6 +6122,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Array reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Array& array = Array::Handle(Array::New(0));
     array.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6161,6 +6171,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // GrowableObjectArray reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const GrowableObjectArray& array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     array.PrintJSON(&js, true);
@@ -6210,6 +6221,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Map reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     const Map& array = Map::Handle(Map::NewDefault());
     array.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6281,6 +6293,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // UserTag reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Instance& tag = Instance::Handle(isolate->default_tag());
     tag.PrintJSON(&js, true);
     const char* json_str = js.ToCString();
@@ -6312,6 +6325,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // TODO(turnidge): Add in all of the other Type siblings.
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Instance& type =
         Instance::Handle(isolate->group()->object_store()->bool_type());
     type.PrintJSON(&js, true);
@@ -6348,6 +6362,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Null reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Object::null_object().PrintJSON(&js, true);
     const char* json_str = js.ToCString();
     ASSERT(strlen(json_str) < kBufferSize);
@@ -6368,6 +6383,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Sentinel reference
   {
     JSONStream js;
+    js.set_id_zone(thread->isolate()->EnsureDefaultServiceIdZone());
     Object::sentinel().PrintJSON(&js, true);
     EXPECT_STREQ(
         "{\"type\":\"Sentinel\","
