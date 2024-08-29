@@ -357,8 +357,12 @@ class FixedLookupScope implements LookupScope {
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
-        getable: _getables?[name],
-        setable: _setables?[name],
+        getable: _getables
+            // Coverage-ignore(suite): Not run.
+            ?[name],
+        setable: _setables
+            // Coverage-ignore(suite): Not run.
+            ?[name],
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,

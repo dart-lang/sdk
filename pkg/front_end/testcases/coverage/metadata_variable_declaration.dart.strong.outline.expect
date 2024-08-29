@@ -104,20 +104,6 @@ library;
 //   int f6 = -1, @annotation f7 = -1; // Error
 //                            ^^
 //
-// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:25:3: Error: 'int' isn't a type.
-//   int f4 = -1; // This should by itself be fine, but recovery is bad.
-//   ^^^
-// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:3: Context: This isn't a type.
-//   int @annotation f5 = -1; // Error
-//   ^^^
-//
-// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:27:3: Error: 'int' isn't a type.
-//   int f6 = -1, @annotation f7 = -1; // Error
-//   ^^^
-// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:3: Context: This isn't a type.
-//   int @annotation f5 = -1; // Error
-//   ^^^
-//
 // pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:14:10: Error: 'annotation' isn't a type.
 // var v2, @annotation v3; // Error
 //          ^^^^^^^^^^
@@ -145,6 +131,20 @@ library;
 // pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:10:7: Context: This isn't a type.
 // const annotation = null;
 //       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:25:3: Error: 'int' isn't a type.
+//   int f4 = -1; // This should by itself be fine, but recovery is bad.
+//   ^^^
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:3: Context: This isn't a type.
+//   int @annotation f5 = -1; // Error
+//   ^^^
+//
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:27:3: Error: 'int' isn't a type.
+//   int f6 = -1, @annotation f7 = -1; // Error
+//   ^^^
+// pkg/front_end/testcases/coverage/metadata_variable_declaration.dart:26:3: Context: This isn't a type.
+//   int @annotation f5 = -1; // Error
+//   ^^^
 //
 import self as self;
 import "dart:core" as core;

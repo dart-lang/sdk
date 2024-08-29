@@ -32,7 +32,6 @@ import '../base/modifier.dart'
         initializingFormalMask,
         superInitializingFormalMask,
         lateMask,
-        mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
 import '../base/name_space.dart';
@@ -57,6 +56,7 @@ import '../builder/prefix_builder.dart';
 import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
+import '../util/local_stack.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
 import 'offset_map.dart';
@@ -144,6 +144,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   /// Index for building unique lowered names for wildcard variables.
   int wildcardVariableIndex = 0;
 
+  final LocalStack<TypeScope> _typeScopes;
+
+  final LocalStack<Map<String, NominalVariableBuilder>>
+      _nominalParameterScopes = new LocalStack([]);
+
+  final LocalStack<Map<String, StructuralVariableBuilder>>
+      _structuralParameterScopes = new LocalStack([]);
+
+  final LocalStack<DeclarationBuilderScope> _declarationBuilderScopes =
+      new LocalStack([]);
+
   BuilderFactoryImpl(
       {required SourceCompilationUnit compilationUnit,
       required SourceLibraryBuilder augmentationRoot,
@@ -165,7 +176,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _nameSpace = nameSpace,
         libraryName = libraryName,
         indexedLibrary = indexedLibrary,
-        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders;
+        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
+        _typeScopes =
+            new LocalStack([new TypeScope(TypeScopeKind.library, scope)]);
 
   SourceLoader get loader => _compilationUnit.loader;
 
@@ -174,33 +187,774 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   final List<ConstructorReferenceBuilder> _constructorReferences = [];
 
   @override
-  void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
-      {bool hasMembers = true}) {
+  void beginClassOrNamedMixinApplicationHeader() {
     currentTypeParameterScopeBuilder =
-        currentTypeParameterScopeBuilder.createNested(kind, name, hasMembers);
+        currentTypeParameterScopeBuilder.createNested(
+            TypeParameterScopeKind.classOrNamedMixinApplication,
+            "class or mixin application",
+            true);
+
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.declarationTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
   }
 
   @override
-  TypeParameterScopeBuilder endNestedDeclaration(
-      TypeParameterScopeKind kind, String? name) {
+  void beginClassDeclaration(String name, int charOffset,
+      List<NominalVariableBuilder>? typeVariables) {
+    currentTypeParameterScopeBuilder.markAsClassDeclaration(
+        name, charOffset, typeVariables);
+  }
+
+  @override
+  void beginClassBody() {
+    DeclarationBuilderScope declarationBuilderScope =
+        new DeclarationBuilderScope();
+    _declarationBuilderScopes.push(declarationBuilderScope);
+    _typeScopes.push(new TypeScope(TypeScopeKind.classDeclaration,
+        declarationBuilderScope, _typeScopes.current));
+  }
+
+  @override
+  TypeParameterScopeBuilder endClassDeclaration(String name) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.classDeclaration;
     assert(
         currentTypeParameterScopeBuilder.kind == kind,
         // Coverage-ignore(suite): Not run.
         "Unexpected declaration. "
         "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
     assert(
-        (name?.startsWith(currentTypeParameterScopeBuilder.name) ??
-                (name == currentTypeParameterScopeBuilder.name)) ||
-            currentTypeParameterScopeBuilder.name == "operator" ||
-            (name == null &&
-                currentTypeParameterScopeBuilder.name ==
-                    UnnamedExtensionName.unnamedExtensionSentinel) ||
-            identical(name, "<syntax-error>"),
+        name.startsWith(currentTypeParameterScopeBuilder.name),
         // Coverage-ignore(suite): Not run.
         "${name} != ${currentTypeParameterScopeBuilder.name}");
     TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope bodyScope = _typeScopes.pop();
+    assert(
+        bodyScope.kind == TypeScopeKind.classDeclaration,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $bodyScope.");
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(
+        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeParameterScope.");
+
     return previous;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endClassDeclarationForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.classDeclaration;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope bodyScope = _typeScopes.pop();
+    assert(bodyScope.kind == TypeScopeKind.classDeclaration,
+        "Unexpected type scope: $bodyScope.");
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        "Unexpected type scope: $typeParameterScope.");
+
+    _declarationBuilderScopes.pop();
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginMixinDeclaration(String name, int charOffset,
+      List<NominalVariableBuilder>? typeVariables) {
+    currentTypeParameterScopeBuilder.markAsMixinDeclaration(
+        name, charOffset, typeVariables);
+  }
+
+  @override
+  void beginMixinBody() {
+    DeclarationBuilderScope declarationBuilderScope =
+        new DeclarationBuilderScope();
+    _declarationBuilderScopes.push(declarationBuilderScope);
+    _typeScopes.push(new TypeScope(TypeScopeKind.mixinDeclaration,
+        declarationBuilderScope, _typeScopes.current));
+  }
+
+  @override
+  TypeParameterScopeBuilder endMixinDeclaration(String name) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.mixinDeclaration;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    assert(
+        name == currentTypeParameterScopeBuilder.name,
+        // Coverage-ignore(suite): Not run.
+        "${name} != ${currentTypeParameterScopeBuilder.name}");
+    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope bodyScope = _typeScopes.pop();
+    assert(
+        bodyScope.kind == TypeScopeKind.mixinDeclaration,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $bodyScope.");
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(
+        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeParameterScope.");
+
+    return previous;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endMixinDeclarationForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.mixinDeclaration;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope bodyScope = _typeScopes.pop();
+    assert(bodyScope.kind == TypeScopeKind.mixinDeclaration,
+        "Unexpected type scope: $bodyScope.");
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        "Unexpected type scope: $typeParameterScope.");
+
+    _declarationBuilderScopes.pop();
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginNamedMixinApplication(String name, int charOffset,
+      List<NominalVariableBuilder>? typeVariables) {
+    currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
+        name, charOffset, typeVariables);
+  }
+
+  @override
+  void endNamedMixinApplication(String name) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.namedMixinApplication;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    assert(
+        name == currentTypeParameterScopeBuilder.name,
+        // Coverage-ignore(suite): Not run.
+        "${name} != ${currentTypeParameterScopeBuilder.name}");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(
+        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeParameterScope.");
+  }
+
+  @override
+  void endNamedMixinApplicationForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.namedMixinApplication;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(
+        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeParameterScope.");
+
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginEnumDeclarationHeader(String name) {
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
+        .createNested(TypeParameterScopeKind.enumDeclaration, name, true);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.declarationTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void beginEnumDeclaration(String name, int charOffset,
+      List<NominalVariableBuilder>? typeVariables) {
+    currentTypeParameterScopeBuilder.markAsEnumDeclaration(
+        name, charOffset, typeVariables);
+  }
+
+  @override
+  void beginEnumBody() {
+    DeclarationBuilderScope declarationBuilderScope =
+        new DeclarationBuilderScope();
+    _declarationBuilderScopes.push(declarationBuilderScope);
+    _typeScopes.push(new TypeScope(TypeScopeKind.enumDeclaration,
+        declarationBuilderScope, _typeScopes.current));
+  }
+
+  @override
+  TypeParameterScopeBuilder endEnumDeclaration(String name) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.enumDeclaration;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    assert(
+        name == currentTypeParameterScopeBuilder.name,
+        // Coverage-ignore(suite): Not run.
+        "${name} != ${currentTypeParameterScopeBuilder.name}");
+    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope bodyScope = _typeScopes.pop();
+    assert(
+        bodyScope.kind == TypeScopeKind.enumDeclaration,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $bodyScope.");
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(
+        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeParameterScope.");
+
+    return previous;
+  }
+
+  @override
+  void endEnumDeclarationForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.enumDeclaration;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope bodyScope = _typeScopes.pop();
+    assert(
+        bodyScope.kind == TypeScopeKind.enumDeclaration,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $bodyScope.");
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(
+        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeParameterScope.");
+
+    _declarationBuilderScopes.pop();
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginExtensionOrExtensionTypeHeader() {
+    currentTypeParameterScopeBuilder =
+        currentTypeParameterScopeBuilder.createNested(
+            TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
+            "extension",
+            true);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.declarationTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void beginExtensionDeclaration(String? name, int charOffset,
+      List<NominalVariableBuilder>? typeVariables) {
+    currentTypeParameterScopeBuilder.markAsExtensionDeclaration(
+        name, charOffset, typeVariables);
+  }
+
+  @override
+  void beginExtensionBody() {
+    DeclarationBuilderScope declarationBuilderScope =
+        new DeclarationBuilderScope();
+    _declarationBuilderScopes.push(declarationBuilderScope);
+    _typeScopes.push(new TypeScope(TypeScopeKind.extensionDeclaration,
+        declarationBuilderScope, _typeScopes.current));
+  }
+
+  @override
+  TypeParameterScopeBuilder endExtensionDeclaration(String? name) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.extensionDeclaration;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    assert(
+        name == currentTypeParameterScopeBuilder.name ||
+            currentTypeParameterScopeBuilder.name ==
+                UnnamedExtensionName.unnamedExtensionSentinel,
+        // Coverage-ignore(suite): Not run.
+        "${name} != ${currentTypeParameterScopeBuilder.name}");
+    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope bodyScope = _typeScopes.pop();
+    assert(
+        bodyScope.kind == TypeScopeKind.extensionDeclaration,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $bodyScope.");
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(
+        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeParameterScope.");
+
+    return previous;
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(String name, int charOffset,
+      List<NominalVariableBuilder>? typeVariables) {
+    currentTypeParameterScopeBuilder.markAsExtensionTypeDeclaration(
+        name, charOffset, typeVariables);
+  }
+
+  @override
+  void beginExtensionTypeBody() {
+    DeclarationBuilderScope declarationBuilderScope =
+        new DeclarationBuilderScope();
+    _declarationBuilderScopes.push(declarationBuilderScope);
+    _typeScopes.push(new TypeScope(TypeScopeKind.extensionTypeDeclaration,
+        declarationBuilderScope, _typeScopes.current));
+  }
+
+  @override
+  TypeParameterScopeBuilder endExtensionTypeDeclaration(String name) {
+    TypeParameterScopeKind kind =
+        TypeParameterScopeKind.extensionTypeDeclaration;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    assert(
+        name == currentTypeParameterScopeBuilder.name,
+        // Coverage-ignore(suite): Not run.
+        "${name} != ${currentTypeParameterScopeBuilder.name}");
+    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+
+    TypeScope bodyScope = _typeScopes.pop();
+    assert(
+        bodyScope.kind == TypeScopeKind.extensionTypeDeclaration,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $bodyScope.");
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(
+        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeParameterScope.");
+
+    return previous;
+  }
+
+  @override
+  void beginFactoryMethod() {
+    currentTypeParameterScopeBuilder =
+        currentTypeParameterScopeBuilder.createNested(
+            TypeParameterScopeKind.factoryMethod, "#factory_method", false);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.memberTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void endFactoryMethod() {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.factoryMethod;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endFactoryMethodForParserRecovery() {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.factoryMethod;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        "Unexpected type scope: $typeVariableScope.");
+
+    _checkTypeVariables(null, ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginConstructor() {
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
+        .createNested(TypeParameterScopeKind.constructor, "#method", false);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.memberTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void endConstructor() {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.constructor;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+  }
+
+  @override
+  void endConstructorForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.constructor;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginStaticMethod() {
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
+        .createNested(TypeParameterScopeKind.staticMethod, "#method", false);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.memberTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void endStaticMethod() {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.staticMethod;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endStaticMethodForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.staticMethod;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        "Unexpected type scope: $typeVariableScope.");
+
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginInstanceMethod() {
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
+        .createNested(TypeParameterScopeKind.instanceMethod, "#method", false);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.memberTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void endInstanceMethod() {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.instanceMethod;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+  }
+
+  @override
+  void endInstanceMethodForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.instanceMethod;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginTopLevelMethod() {
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
+        .createNested(TypeParameterScopeKind.topLevelMethod, "#method", false);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.memberTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void endTopLevelMethod() {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.topLevelMethod;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+  }
+
+  @override
+  void endTopLevelMethodForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.topLevelMethod;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginTypedef() {
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
+        .createNested(TypeParameterScopeKind.typedef, "#typedef", false);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.declarationTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void endTypedef() {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.typedef;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endTypedefForParserRecovery(
+      List<NominalVariableBuilder>? typeVariables) {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.typedef;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
+        "Unexpected type scope: $typeVariableScope.");
+
+    _checkTypeVariables(typeVariables,
+        ownerName: null, allowNameConflict: true);
+  }
+
+  @override
+  void beginFunctionType() {
+    currentTypeParameterScopeBuilder =
+        currentTypeParameterScopeBuilder.createNested(
+            TypeParameterScopeKind.functionType, "#function_type", false);
+    Map<String, StructuralVariableBuilder> structuralParameterScope = {};
+    _structuralParameterScopes.push(structuralParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.functionTypeParameters,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, structuralParameterScope),
+        _typeScopes.current));
+  }
+
+  @override
+  void endFunctionType() {
+    TypeParameterScopeKind kind = TypeParameterScopeKind.functionType;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.functionTypeParameters,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+  }
+
+  void beginUnnamedMixinApplication() {
+    currentTypeParameterScopeBuilder =
+        currentTypeParameterScopeBuilder.createNested(
+            TypeParameterScopeKind.unnamedMixinApplication,
+            "mixin application",
+            false);
+    Map<String, NominalVariableBuilder> nominalParameterScope = {};
+    _nominalParameterScopes.push(nominalParameterScope);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.unnamedMixinApplication,
+        new TypeParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterScope),
+        _typeScopes.current));
+  }
+
+  void endUnnamedMixinApplication() {
+    TypeParameterScopeKind kind =
+        TypeParameterScopeKind.unnamedMixinApplication;
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
+    TypeScope typeVariableScope = _typeScopes.pop();
+    assert(
+        typeVariableScope.kind == TypeScopeKind.unnamedMixinApplication,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope.");
+    assert(
+        typeVariableScope.isEmpty, // Coverage-ignore(suite): Not run.
+        "Unexpected type scope: $typeVariableScope");
+  }
+
+  @override
+  void checkStacks() {
+    assert(
+        _typeScopes.isSingular,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected type scope stack: "
+        "$_typeScopes.");
+    assert(
+        _declarationBuilderScopes.isEmpty,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected declaration builder scope stack: "
+        "$_declarationBuilderScopes.");
+    assert(
+        _nominalParameterScopes.isEmpty,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected nominal parameter scope stack : "
+        "$_nominalParameterScopes.");
+    assert(
+        _structuralParameterScopes.isEmpty,
+        // Coverage-ignore(suite): Not run.
+        "Unexpected structural parameter scope stack : "
+        "$_structuralParameterScopes.");
   }
 
   // TODO(johnniwinther): Use [_indexedContainer] for library members and make
@@ -444,7 +1198,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isMixinClass}) {
     _addClass(
         offsetMap,
-        TypeParameterScopeKind.classDeclaration,
         metadata,
         modifiers,
         identifier,
@@ -462,6 +1215,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isInterface: isInterface,
         isFinal: isFinal,
         isAugmentation: isAugmentation,
+        isMixinDeclaration: false,
         isMixinClass: isMixinClass);
   }
 
@@ -484,9 +1238,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       referencesFromIndexedClass = indexedLibrary!.lookupIndexedClass(name);
     }
     // Nested declaration began in `OutlineBuilder.beginEnum`.
-    TypeParameterScopeBuilder declaration =
-        endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
-          ..resolveNamedTypes(typeVariables, _problemReporting);
+    TypeParameterScopeBuilder declaration = endEnumDeclaration(name);
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables,
             ownerName: name, allowNameConflict: false);
@@ -528,6 +1280,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         referencesFromIndexedClass,
         typeParameterScope,
         nameSpaceBuilder);
+    _declarationBuilderScopes.pop().declarationBuilder = enumBuilder;
+
     _constructorReferences.clear();
 
     addBuilder(name, enumBuilder, charOffset,
@@ -540,7 +1294,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addMixinDeclaration(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
       Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       List<TypeBuilder>? supertypeConstraints,
@@ -564,9 +1317,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
     _addClass(
         offsetMap,
-        TypeParameterScopeKind.mixinDeclaration,
         metadata,
-        modifiers,
+        0,
         identifier,
         typeVariables,
         supertype,
@@ -582,12 +1334,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isInterface: false,
         isFinal: false,
         isAugmentation: isAugmentation,
+        isMixinDeclaration: true,
         isMixinClass: false);
   }
 
   void _addClass(
       OffsetMap offsetMap,
-      TypeParameterScopeKind kind,
       List<MetadataBuilder>? metadata,
       int modifiers,
       Identifier identifier,
@@ -605,12 +1357,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isInterface,
       required bool isFinal,
       required bool isAugmentation,
+      required bool isMixinDeclaration,
       required bool isMixinClass}) {
     String className = identifier.name;
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    TypeParameterScopeBuilder declaration =
-        endNestedDeclaration(kind, className)
-          ..resolveNamedTypes(typeVariables, _problemReporting);
+    TypeParameterScopeBuilder declaration;
+    if (isMixinDeclaration) {
+      declaration = endMixinDeclaration(className);
+    } else {
+      declaration = endClassDeclaration(className);
+    }
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
 
     Map<String, NominalVariableBuilder>? typeVariablesByName =
@@ -623,10 +1379,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     DeclarationNameSpaceBuilder nameSpaceBuilder =
         declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
 
-    bool isMixinDeclaration = false;
-    if (modifiers & mixinDeclarationMask != 0) {
-      isMixinDeclaration = true;
-      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    if (isMixinDeclaration) {
+      modifiers = abstractMask;
     }
     if (declaration.declaresConstConstructor) {
       modifiers |= declaresConstConstructorMask;
@@ -667,6 +1421,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isFinal: isFinal,
         isAugmentation: isAugmentation,
         isMixinClass: isMixinClass);
+    _declarationBuilderScopes.pop().declarationBuilder = classBuilder;
 
     _constructorReferences.clear();
 
@@ -702,8 +1457,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isAugmentation,
       required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
-        .resolveNamedTypes(typeVariables, _problemReporting);
+    endNamedMixinApplication(name);
     supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
         charOffset, charEndOffset, name, false,
         metadata: metadata,
@@ -854,9 +1608,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           // Otherwise, we pass the fresh type variables to the mixin
           // application in the same order as they're declared on the subclass.
           if (isGeneric) {
-            this.beginNestedDeclaration(
-                TypeParameterScopeKind.unnamedMixinApplication,
-                "mixin application");
+            beginUnnamedMixinApplication();
 
             NominalVariableCopy nominalVariableCopy = copyTypeVariables(
                 typeVariables,
@@ -871,12 +1623,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             Map<NominalVariableBuilder, TypeBuilder> substitutionMap =
                 nominalVariableCopy.substitutionMap;
 
-            TypeParameterScopeBuilder mixinDeclaration = this
-                .endNestedDeclaration(
-                    TypeParameterScopeKind.unnamedMixinApplication,
-                    "mixin application");
-            mixinDeclaration.resolveNamedTypes(
-                applicationTypeVariables, _problemReporting);
+            endUnnamedMixinApplication();
 
             applicationTypeArguments = [];
             for (NominalVariableBuilder typeVariable in typeVariables!) {
@@ -894,6 +1641,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                           InstanceTypeVariableAccessState.Allowed);
               applicationTypeArguments.add(applicationTypeArgument);
             }
+            _checkTypeVariables(applicationTypeVariables,
+                ownerName: fullname, allowNameConflict: true);
             if (supertype != null) {
               supertype = new SynthesizedTypeBuilder(
                   supertype, newToOldVariableMap, substitutionMap);
@@ -995,9 +1744,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     String? name = identifier?.name;
     // Nested declaration began in
     // `OutlineBuilder.beginExtensionDeclarationPrelude`.
-    TypeParameterScopeBuilder declaration =
-        endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
-          ..resolveNamedTypes(typeVariables, _problemReporting);
+    TypeParameterScopeBuilder declaration = endExtensionDeclaration(name);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables,
@@ -1028,6 +1775,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         nameOffset,
         endOffset,
         referenceFrom);
+    _declarationBuilderScopes.pop().declarationBuilder = extensionBuilder;
     _constructorReferences.clear();
 
     addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
@@ -1051,9 +1799,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int endOffset) {
     String name = identifier.name;
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    TypeParameterScopeBuilder declaration = endNestedDeclaration(
-        TypeParameterScopeKind.extensionTypeDeclaration, name)
-      ..resolveNamedTypes(typeVariables, _problemReporting);
+    TypeParameterScopeBuilder declaration = endExtensionTypeDeclaration(name);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables,
@@ -1092,6 +1838,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             endOffset,
             indexedContainer,
             representationFieldBuilder);
+    _declarationBuilderScopes.pop().declarationBuilder =
+        extensionTypeDeclarationBuilder;
     _constructorReferences.clear();
 
     addBuilder(extensionTypeDeclarationBuilder.name,
@@ -1121,8 +1869,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _checkTypeVariables(typeVariables,
         ownerName: name, allowNameConflict: true);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
-    endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
-        .resolveNamedTypes(typeVariables, _problemReporting);
+    endTypedef();
     addBuilder(name, typedefBuilder, charOffset,
         getterReference: referenceFrom?.reference);
   }
@@ -1318,8 +2065,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       AsyncMarker asyncModifier) {
     TypeBuilder returnType;
     List<TypeBuilder>? returnTypeArguments;
-    if (currentTypeParameterScopeBuilder.parent?.kind ==
-        TypeParameterScopeKind.extensionDeclaration) {
+    TypeParameterScopeBuilder? parentDeclaration =
+        currentTypeParameterScopeBuilder.parent!;
+    if (parentDeclaration.kind == TypeParameterScopeKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
       String name = currentTypeParameterScopeBuilder.parent!.name;
       returnType = new NamedTypeBuilderImpl.forInvalidType(
@@ -1329,31 +2077,26 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               _compilationUnit.fileUri, charOffset, name.length));
     } else {
       returnType = addNamedType(
-          new SyntheticTypeName(
-              currentTypeParameterScopeBuilder.parent!.name, charOffset),
+          new SyntheticTypeName(parentDeclaration.name, charOffset),
           const NullabilityBuilder.omitted(),
           returnTypeArguments = [],
           charOffset,
           instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     }
-    // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
-    TypeParameterScopeBuilder factoryDeclaration = endNestedDeclaration(
-        TypeParameterScopeKind.factoryMethod, "#factory_method");
 
     // Prepare the simple procedure name.
     String procedureName;
-    String? constructorName =
-        computeAndValidateConstructorName(identifier, isFactory: true);
+    String? constructorName = computeAndValidateConstructorName(
+        parentDeclaration, identifier,
+        isFactory: true);
     if (constructorName != null) {
       procedureName = constructorName;
     } else {
       procedureName = identifier.name;
     }
 
-    ContainerType containerType =
-        currentTypeParameterScopeBuilder.containerType;
-    ContainerName? containerName =
-        currentTypeParameterScopeBuilder.containerName;
+    ContainerType containerType = parentDeclaration.containerType;
+    ContainerName? containerName = parentDeclaration.containerName;
 
     NameScheme procedureNameScheme = new NameScheme(
         containerName: containerName,
@@ -1398,8 +2141,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           staticMask | modifiers,
           returnType,
           procedureName,
-          typeVariables = copyTypeVariables(
-                  currentTypeParameterScopeBuilder.typeVariables,
+          typeVariables = copyTypeVariables(parentDeclaration.typeVariables,
                   kind: TypeVariableKind.function,
                   instanceTypeVariableAccess:
                       InstanceTypeVariableAccessState.Allowed)
@@ -1423,8 +2165,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           staticMask | modifiers,
           returnType,
           procedureName,
-          typeVariables = copyTypeVariables(
-                  currentTypeParameterScopeBuilder.typeVariables,
+          typeVariables = copyTypeVariables(parentDeclaration.typeVariables,
                   kind: TypeVariableKind.function,
                   instanceTypeVariableAccess:
                       InstanceTypeVariableAccessState.Allowed)
@@ -1442,9 +2183,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           nativeMethodName: nativeMethodName);
     }
 
-    TypeParameterScopeBuilder savedDeclaration =
-        currentTypeParameterScopeBuilder;
-    currentTypeParameterScopeBuilder = factoryDeclaration;
     if (returnTypeArguments != null && typeVariables != null) {
       for (TypeVariableBuilder typeVariable in typeVariables) {
         returnTypeArguments.add(addNamedType(
@@ -1457,10 +2195,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                 InstanceTypeVariableAccessState.Allowed));
       }
     }
-    currentTypeParameterScopeBuilder = savedDeclaration;
 
-    factoryDeclaration.resolveNamedTypes(
-        procedureBuilder.typeVariables, _problemReporting);
+    // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
+    endFactoryMethod();
+
+    _checkTypeVariables(typeVariables,
+        ownerName: identifier.name, allowNameConflict: true);
+
     addBuilder(procedureName, procedureBuilder, charOffset,
         getterReference: constructorReference);
     if (nativeMethodName != null) {
@@ -1479,9 +2220,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  String? computeAndValidateConstructorName(Identifier identifier,
+  String? computeAndValidateConstructorName(
+      TypeParameterScopeBuilder parentDeclaration, Identifier identifier,
       {isFactory = false}) {
-    String className = currentTypeParameterScopeBuilder.name;
+    String className = parentDeclaration.name;
     String prefix;
     String? suffix;
     int charOffset;
@@ -1510,11 +2252,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         prefix.length, _compilationUnit.fileUri,
         context: [
           templateConstructorWithWrongNameContext
-              .withArguments(currentTypeParameterScopeBuilder.name)
-              .withLocation(
-                  _compilationUnit.importUri,
-                  currentTypeParameterScopeBuilder.charOffset,
-                  currentTypeParameterScopeBuilder.name.length)
+              .withArguments(parentDeclaration.name)
+              .withLocation(_compilationUnit.importUri,
+                  parentDeclaration.charOffset, parentDeclaration.name.length)
         ]);
 
     return suffix;
@@ -1864,7 +2604,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   NamedTypeBuilder _registerUnresolvedNamedType(NamedTypeBuilder type) {
-    currentTypeParameterScopeBuilder.registerUnresolvedNamedType(type);
+    _typeScopes.current.registerUnresolvedNamedType(type);
     return type;
   }
 
@@ -1885,7 +2625,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         fileUri,
         charOffset,
         hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
-    _checkStructuralVariables(structuralVariableBuilders, null);
+    _checkStructuralVariables(structuralVariableBuilders);
     if (structuralVariableBuilders != null) {
       for (StructuralVariableBuilder builder in structuralVariableBuilders) {
         if (builder.metadata != null) {
@@ -1901,16 +2641,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
-    endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
-        .resolveNamedTypes(structuralVariableBuilders, _problemReporting);
+    endFunctionType();
     return builder;
   }
 
-  Map<String, StructuralVariableBuilder>? _checkStructuralVariables(
-      List<StructuralVariableBuilder>? typeVariables, Builder? owner) {
-    if (typeVariables == null || typeVariables.isEmpty) return null;
+  void _checkStructuralVariables(
+      List<StructuralVariableBuilder>? typeVariables) {
     Map<String, StructuralVariableBuilder> typeVariablesByName =
-        <String, StructuralVariableBuilder>{};
+        _structuralParameterScopes.pop();
+    if (typeVariables == null || typeVariables.isEmpty) return null;
     for (StructuralVariableBuilder tv in typeVariables) {
       if (tv.isWildcard) continue;
       StructuralVariableBuilder? existing = typeVariablesByName[tv.name];
@@ -1926,18 +2665,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             ]);
       } else {
         typeVariablesByName[tv.name] = tv;
-        if (owner is ClassBuilder) {
-          // Coverage-ignore-block(suite): Not run.
-          // Only classes and type variables can't have the same name. See
-          // [#29555](https://github.com/dart-lang/sdk/issues/29555).
-          if (tv.name == owner.name) {
-            _problemReporting.addProblem(messageTypeVariableSameNameAsEnclosing,
-                tv.charOffset, tv.name.length, _compilationUnit.fileUri);
-          }
-        }
       }
     }
-    return typeVariablesByName;
   }
 
   @override
@@ -1996,9 +2725,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<NominalVariableBuilder>? typeVariables,
       {required String? ownerName,
       required bool allowNameConflict}) {
-    if (typeVariables == null || typeVariables.isEmpty) return null;
     Map<String, NominalVariableBuilder> typeVariablesByName =
-        <String, NominalVariableBuilder>{};
+        _nominalParameterScopes.pop();
+    if (typeVariables == null || typeVariables.isEmpty) return null;
     for (NominalVariableBuilder tv in typeVariables) {
       NominalVariableBuilder? existing = typeVariablesByName[tv.name];
       if (tv.isWildcard) continue;
@@ -2279,8 +3008,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  List<NamedTypeBuilder> get unresolvedNamedTypes =>
-      _libraryTypeParameterScopeBuilder.unresolvedNamedTypes;
+  TypeScope get typeScope => _typeScopes.current;
 
   @override
   String? get name => _name;
@@ -2319,7 +3047,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes) {
     for (NamedTypeBuilder unboundType in unboundTypes) {
       // Coverage-ignore-block(suite): Not run.
-      currentTypeParameterScopeBuilder.registerUnresolvedNamedType(unboundType);
+      _registerUnresolvedNamedType(unboundType);
     }
   }
 

@@ -180,7 +180,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/modifier.dart": (
-    hitCount: 29,
+    hitCount: 28,
     missCount: 0,
   ),
   // 100.0%.
@@ -205,7 +205,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 646,
+    hitCount: 644,
     missCount: 0,
   ),
   // 100.0%.
@@ -340,7 +340,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/named_type_builder.dart": (
-    hitCount: 608,
+    hitCount: 616,
     missCount: 0,
   ),
   // 100.0%.
@@ -494,6 +494,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
+  "package:front_end/src/kernel/cfe_verifier.dart": (
+    hitCount: 21,
+    missCount: 0,
+  ),
+  // 100.0%.
   "package:front_end/src/kernel/collections.dart": (
     hitCount: 329,
     missCount: 0,
@@ -505,7 +510,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/const_conditional_simplifier.dart": (
-    hitCount: 95,
+    hitCount: 72,
     missCount: 0,
   ),
   // 100.0%.
@@ -709,11 +714,6 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/kernel/verifier.dart": (
-    hitCount: 21,
-    missCount: 0,
-  ),
-  // 100.0%.
   "package:front_end/src/kernel/wildcard_lowering.dart": (
     hitCount: 9,
     missCount: 0,
@@ -785,7 +785,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/outline_builder.dart": (
-    hitCount: 2286,
+    hitCount: 2292,
     missCount: 0,
   ),
   // 100.0%.
@@ -795,7 +795,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_factory.dart": (
-    hitCount: 1082,
+    hitCount: 1590,
     missCount: 0,
   ),
   // 100.0%.
@@ -810,7 +810,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_compilation_unit.dart": (
-    hitCount: 740,
+    hitCount: 738,
     missCount: 0,
   ),
   // 100.0%.
@@ -851,7 +851,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1327,
+    hitCount: 1320,
     missCount: 0,
   ),
   // 100.0%.
@@ -881,7 +881,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 206,
+    hitCount: 198,
     missCount: 0,
   ),
   // 100.0%.
@@ -904,25 +904,25 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 16,
     missCount: 0,
   ),
-  // 99.18032786885246%.
+  // 100.0%.
   "package:front_end/src/type_inference/for_in.dart": (
     hitCount: 121,
-    missCount: 1,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_results.dart": (
     hitCount: 168,
     missCount: 0,
   ),
-  // 99.98780636507743%.
+  // 100.0%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
     hitCount: 8200,
-    missCount: 1,
+    missCount: 0,
   ),
-  // 99.91697799916977%.
+  // 100.0%.
   "package:front_end/src/type_inference/inference_visitor_base.dart": (
     hitCount: 2407,
-    missCount: 2,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/type_inference/matching_cache.dart": (
@@ -951,7 +951,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/type_constraint_gatherer.dart": (
-    hitCount: 498,
+    hitCount: 492,
     missCount: 0,
   ),
   // 100.0%.
@@ -1001,7 +1001,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/util/local_stack.dart": (
-    hitCount: 15,
+    hitCount: 20,
     missCount: 0,
   ),
   // 100.0%.

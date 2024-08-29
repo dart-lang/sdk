@@ -112,8 +112,6 @@ class TypeParameterScopeBuilder {
 
   final Set<ExtensionBuilder>? extensions;
 
-  final List<NamedTypeBuilder> unresolvedNamedTypes = <NamedTypeBuilder>[];
-
   final Map<String, List<Builder>> augmentations = <String, List<Builder>>{};
 
   final Map<String, List<Builder>> setterAugmentations =
@@ -324,70 +322,11 @@ class TypeParameterScopeBuilder {
     return _extensionThisType!;
   }
 
-  /// Adds the yet unresolved [type] to this scope builder.
-  ///
-  /// Unresolved type will be resolved through [resolveNamedTypes] when the
-  /// scope is fully built. This allows for resolving self-referencing types,
-  /// like type parameter used in their own bound, for instance
-  /// `<T extends A<T>>`.
-  void registerUnresolvedNamedType(NamedTypeBuilder type) {
-    unresolvedNamedTypes.add(type);
-  }
-
   void addPrimaryConstructorField(SourceFieldBuilder builder) {
     (primaryConstructorFields ??= []).add(builder);
   }
 
-  /// Resolves type variables in [unresolvedNamedTypes] and propagate other
-  /// types to [parent].
-  void resolveNamedTypes(List<TypeVariableBuilder>? typeVariables,
-      ProblemReporting problemReporting) {
-    Map<String, Builder>? map;
-    if (typeVariables != null) {
-      map = <String, Builder>{};
-      for (TypeVariableBuilder builder in typeVariables) {
-        if (builder.isWildcard) continue;
-        map[builder.name] = builder;
-      }
-    }
-    LookupScope? lookupScope;
-    for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
-      TypeName typeName = namedTypeBuilder.typeName;
-      String? qualifier = typeName.qualifier;
-      String? name = qualifier ?? typeName.name;
-      Builder? declaration;
-      if (members != null) {
-        declaration = members![name];
-      }
-      if (declaration == null && map != null) {
-        declaration = map[name];
-      }
-      if (declaration == null) {
-        // Since name didn't resolve in this scope, propagate it to the
-        // parent declaration.
-        parent!.registerUnresolvedNamedType(namedTypeBuilder);
-      } else if (qualifier != null) {
-        // Attempt to use a member or type variable as a prefix.
-        int nameOffset = typeName.fullNameOffset;
-        int nameLength = typeName.fullNameLength;
-        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
-            qualifier, typeName.name);
-        problemReporting.addProblem(
-            message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
-        namedTypeBuilder.bind(
-            problemReporting,
-            namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
-                message.withLocation(
-                    namedTypeBuilder.fileUri!, nameOffset, nameLength)));
-      } else {
-        lookupScope ??= toLookupScope(typeVariables);
-        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!, problemReporting);
-      }
-    }
-    unresolvedNamedTypes.clear();
-  }
-
+  // Coverage-ignore(suite): Not run.
   LookupScope toLookupScope(List<TypeVariableBuilder>? typeVariableBuilders) {
     LookupScope lookupScope = new FixedLookupScope(
         ScopeKind.typeParameters, name,
@@ -490,5 +429,91 @@ class DeclarationNameSpaceBuilder {
         // Currently they are not part of the name space but still processed
         // for instance when inferring redirecting factories.
         constructors: includeConstructors ? _constructors : null);
+  }
+}
+
+enum TypeScopeKind {
+  library,
+  declarationTypeParameters,
+  classDeclaration,
+  mixinDeclaration,
+  enumDeclaration,
+  extensionDeclaration,
+  extensionTypeDeclaration,
+  memberTypeParameters,
+  functionTypeParameters,
+
+  unnamedMixinApplication,
+}
+
+class TypeScope {
+  final TypeScopeKind kind;
+
+  List<NamedTypeBuilder> _unresolvedNamedTypes = [];
+
+  List<TypeScope> _childScopes = [];
+
+  final LookupScope lookupScope;
+
+  TypeScope(this.kind, this.lookupScope, [TypeScope? parent]) {
+    parent?._childScopes.add(this);
+  }
+
+  void registerUnresolvedNamedType(NamedTypeBuilder namedTypeBuilder) {
+    _unresolvedNamedTypes.add(namedTypeBuilder);
+  }
+
+  int resolveTypes(ProblemReporting problemReporting) {
+    int typeCount = _unresolvedNamedTypes.length;
+    if (_unresolvedNamedTypes.isNotEmpty) {
+      for (NamedTypeBuilder namedTypeBuilder in _unresolvedNamedTypes) {
+        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
+            namedTypeBuilder.fileUri!, problemReporting);
+      }
+      _unresolvedNamedTypes.clear();
+    }
+    for (TypeScope childScope in _childScopes) {
+      typeCount += childScope.resolveTypes(problemReporting);
+    }
+    return typeCount;
+  }
+
+  bool get isEmpty => _unresolvedNamedTypes.isEmpty && _childScopes.isEmpty;
+
+  @override
+  String toString() => 'TypeScope($kind,$_unresolvedNamedTypes)';
+}
+
+class DeclarationBuilderScope implements LookupScope {
+  DeclarationBuilder? _declarationBuilder;
+
+  DeclarationBuilderScope();
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _declarationBuilder?.scope.forEachExtension(f);
+  }
+
+  void set declarationBuilder(DeclarationBuilder value) {
+    assert(_declarationBuilder == null,
+        "declarationBuilder has already been set.");
+    _declarationBuilder = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ScopeKind get kind =>
+      _declarationBuilder?.scope.kind ?? ScopeKind.declaration;
+
+  @override
+  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
+    return _declarationBuilder?.scope.lookupGetable(name, charOffset, fileUri);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
+    return _declarationBuilder?.scope.lookupSetable(name, charOffset, fileUri);
   }
 }
