@@ -3271,6 +3271,65 @@ void f() {
     expect(resolved.detail, isNot(contains('Auto import from')));
   }
 
+  /// Verify extensions can be auto-imported if not already in-scope.
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/56320')
+  Future<void> test_unimportedSymbols_extension() async {
+    // Define extensions in 'extensions.dart'.
+    newFile(
+      join(projectFolderPath, 'lib', 'extensions.dart'),
+      '''
+extension StringExtensions on String {
+  String get empty => '';
+}
+''',
+    );
+
+    // Also import the extensions into an unrelated file to ensure this doesn't
+    // cause extra suggestions (https://github.com/dart-lang/sdk/issues/56320).
+    newFile(
+      join(projectFolderPath, 'lib', 'other.dart'),
+      'import "extensions.dart";',
+    );
+
+    var content = '''
+void f(String a) {
+  a.empt^
+}
+''';
+
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    await initialAnalysis;
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    // Expect only a single entry for the 'empty' extension member.
+    var completions = res.where((c) => c.label == 'empty');
+    expect(completions, hasLength(1));
+
+    // Expect it to auto-import from 'extensions.dart'.
+    var resolved = await resolveCompletion(completions.single);
+    expect(
+      resolved.detail,
+      startsWith("Auto import from 'package:test/extensions.dart'"),
+    );
+
+    // Verify the edits.
+    var newContent = applyTextEdits(
+      code.code,
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+    expect(newContent, equals('''
+import 'package:test/extensions.dart';
+
+void f(String a) {
+  a.empty
+}
+'''));
+  }
+
   Future<void> test_unimportedSymbols_filtersOutAlreadyImportedSymbols() async {
     newFile(
       join(projectFolderPath, 'lib', 'source_file.dart'),

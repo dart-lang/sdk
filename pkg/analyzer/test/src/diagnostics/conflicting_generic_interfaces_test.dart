@@ -17,13 +17,13 @@ main() {
 class ConflictingGenericInterfacesTest extends PubPackageResolutionTest {
   test_class_extends_augmentation_implements() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class B implements I<String> {}
 ''');
 
     newFile(testFile.path, '''
-import augment 'a.dart';
+part 'a.dart';
 
 class I<T> {}
 class A implements I<int> {}
@@ -33,7 +33,7 @@ class B extends A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(testFile, [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 1),
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 65, 1),
     ]);
   }
 

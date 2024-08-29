@@ -767,13 +767,13 @@ class B {}
 
   test_getUnitElement_augmentationKnown_inLibrary() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 class A {}
 class B {}
 ''');
 
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 ''');
 
     await _assertFileUnitElementResultText(a, r'''

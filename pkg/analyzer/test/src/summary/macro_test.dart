@@ -12977,7 +12977,7 @@ class A
 
   test_class_fields_augmented() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   final int foo = 0;
@@ -12985,7 +12985,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   final int bar = 0;
@@ -13055,14 +13055,14 @@ class C
 const a = 0;
 const b = 1;
 
-import augment 'b.dart';
+part 'b.dart';
 
 @a
 class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 @b
 augment class A {}
@@ -13458,7 +13458,7 @@ class A
 
   test_class_methods_augmented() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 
 class A {
   void foo() {}
@@ -13466,7 +13466,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 augment class A {
   void bar() {}
@@ -14184,14 +14184,14 @@ mixin A
 const a = 0;
 const b = 1;
 
-import augment 'b.dart';
+part 'b.dart';
 
 @a
 mixin A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 
 @b
 augment mixin A {}

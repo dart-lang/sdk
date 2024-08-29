@@ -18,7 +18,7 @@ class FinalInitializedInDeclarationAndConstructorTest
     extends PubPackageResolutionTest {
   test_class_augmentation() async {
     newFile(testFile.path, r'''
-import augment 'a.dart';
+part 'a.dart';
 
 class A {
   final int f = 0;
@@ -27,7 +27,7 @@ class A {
 ''');
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment class A {
   augment A(this.f);
@@ -38,7 +38,7 @@ augment class A {
     assertErrorsInResult([
       error(
           CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-          64,
+          54,
           1),
     ]);
 

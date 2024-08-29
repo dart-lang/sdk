@@ -31,17 +31,17 @@ class B extends A {}
 
   test_class_extends_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 augment class B extend A {}
 ''');
 
     await assertErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 final class A {}
 class B {}
 ''', [
       error(CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          48, 1,
+          38, 1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'."),
     ]);

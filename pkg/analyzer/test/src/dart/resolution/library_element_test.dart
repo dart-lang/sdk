@@ -263,7 +263,7 @@ extensions
 
   test_lookup_extensions_local_withAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
+part of 'test.dart';
 
 augment extension E {
   void foo() {}
@@ -271,7 +271,7 @@ augment extension E {
 ''');
 
     await assertNoErrorsInCode(r'''
-import augment 'a.dart';
+part 'a.dart';
 
 extension E on int {}
 ''');

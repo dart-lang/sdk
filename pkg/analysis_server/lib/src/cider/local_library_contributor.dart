@@ -136,7 +136,15 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
             variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
-        builder.suggestAccessor(element, inheritanceDistance: 0.0);
+        if (element.isSynthetic) {
+          if (element.isGetter) {
+            if (variable is FieldElement) {
+              builder.suggestField(variable, inheritanceDistance: 0.0);
+            }
+          }
+        } else {
+          builder.suggestAccessor(element, inheritanceDistance: 0.0);
+        }
       } else {
         builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);
       }

@@ -134,18 +134,18 @@ class A implements String {}
 
   test_class_String_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
+part 'b.dart';
 class A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-augment library 'a.dart';
+part of 'a.dart';
 augment class A implements String {}
 ''');
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 53, 6),
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 45, 6),
     ]);
   }
 
