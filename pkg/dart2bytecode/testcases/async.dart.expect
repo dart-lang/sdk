@@ -11,14 +11,11 @@ Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:
 Bytecode {
   Entry                3
   CheckStack           0
-  AllocateClosure      CP#0
-  StoreLocal           r2
-  Push                 r2
   PushConstant         CP#0
-  StoreFieldTOS        CP#14
-  Push                 r2
   Push                 r0
-  StoreFieldTOS        CP#1
+  PushNull
+  AllocateClosure
+  StoreLocal           r2
   ReturnTOS
 }
 ConstantPool {
@@ -36,8 +33,6 @@ ConstantPool {
   [11] = DirectCall 'dart:async::_SuspendState::_returnAsync', ArgDesc num-args 2, num-type-args 0, names []
   [12] = Reserved
   [13] = EndClosureFunctionScope
-  [14] = InstanceField dart:core::_Closure::_function (field)
-  [15] = Reserved
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/async.dart::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int > x) -> dart:async::Future < Null >
 ClosureCode {
@@ -426,14 +421,11 @@ Bytecode {
   Push                 r0
   PushInt              3
   StoreContextVar      0, 1
-  AllocateClosure      CP#0
-  StoreLocal           r3
-  Push                 r3
   PushConstant         CP#0
-  StoreFieldTOS        CP#15
-  Push                 r3
   Push                 r0
-  StoreFieldTOS        CP#1
+  PushNull
+  AllocateClosure
+  StoreLocal           r3
   PopLocal             r2
   Push                 r2
   ReturnTOS
@@ -454,8 +446,6 @@ ConstantPool {
   [12] = DirectCall 'dart:async::_SuspendState::_returnAsync', ArgDesc num-args 2, num-type-args 0, names []
   [13] = Reserved
   [14] = EndClosureFunctionScope
-  [15] = InstanceField dart:core::_Closure::_function (field)
-  [16] = Reserved
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/async.dart::closure::'nested' async () -> dart:async::Future < dart:core::int >
 ClosureCode {

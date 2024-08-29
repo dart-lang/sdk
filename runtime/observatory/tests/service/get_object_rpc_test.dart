@@ -705,7 +705,7 @@ var tests = <IsolateTest>[
   // An expired object.
   (Isolate isolate) async {
     var params = {
-      'objectId': 'objects/99999999',
+      'objectId': 'objects/99999999/0',
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Sentinel'));

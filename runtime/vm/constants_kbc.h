@@ -445,9 +445,16 @@ namespace dart {
 //    Receiver and argument should have static type double.
 //    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0] ? true : false.
 //
-//  - AllocateClosure D
+//  - AllocateClosure
 //
-//    Allocate closure object for closure function ConstantPool[D].
+//    Allocate closure object and initialize its fields:
+//
+//      SP[-2] closure function
+//      SP[-1] context
+//      SP[0]  instantiator type arguments
+//
+//    These arguments are consumed from the stack and allocated
+//    object is pushed.
 //
 // BYTECODE LIST FORMAT
 //
@@ -494,8 +501,8 @@ namespace dart {
   V(Allocate_Wide,                         D, WIDE, lit, ___, ___)             \
   V(AllocateT,                             0, ORDN, ___, ___, ___)             \
   V(CreateArrayTOS,                        0, ORDN, ___, ___, ___)             \
-  V(AllocateClosure,                       D, ORDN, lit, ___, ___)             \
-  V(AllocateClosure_Wide,                  D, WIDE, lit, ___, ___)             \
+  V(AllocateClosure,                       0, ORDN, ___, ___, ___)             \
+  V(Unused03,                              0, RESV, ___, ___, ___)             \
   V(AllocateContext,                     A_E, ORDN, num, num, ___)             \
   V(AllocateContext_Wide,                A_E, WIDE, num, num, ___)             \
   V(CloneContext,                        A_E, ORDN, num, num, ___)             \

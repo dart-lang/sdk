@@ -2468,17 +2468,10 @@ SwitchDispatch:
     BYTECODE(AssertAssignable, A_E);
     // Stack: instance, type, instantiator type args, function type args, name
     ObjectPtr* args = SP - 4;
-    const bool may_be_smi = (rA == 1);
-    const bool is_smi =
-        ((static_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
-    const bool smi_ok = is_smi && may_be_smi;
-    if (!smi_ok && (args[0] != null_value)) {
-      SubtypeTestCachePtr cache =
-          static_cast<SubtypeTestCachePtr>(LOAD_CONSTANT(rE));
+    SubtypeTestCachePtr cache = SubtypeTestCache::RawCast(LOAD_CONSTANT(rE));
 
-      if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
-        HANDLE_EXCEPTION;
-      }
+    if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
+      HANDLE_EXCEPTION;
     }
 
     SP -= 4;  // Instance remains on stack.
@@ -3049,17 +3042,28 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AllocateClosure, D);
+    BYTECODE(AllocateClosure, 0);
     ++SP;
     if (!AllocateClosure(thread, pc, FP, SP)) {
       HANDLE_EXCEPTION;
     }
-    FunctionPtr function = Function::RawCast(LOAD_CONSTANT(rD));
-    ASSERT(Function::KindOf(function) == UntaggedFunction::kClosureFunction);
     ClosurePtr closure = Closure::RawCast(SP[0]);
+    FunctionPtr function = Function::RawCast(SP[-3]);
+    ObjectPtr context = SP[-2];
+    TypeArgumentsPtr instantiator_type_arguments =
+        TypeArguments::RawCast(SP[-1]);
+
+    ASSERT((Function::KindOf(function) == UntaggedFunction::kClosureFunction) ||
+           (Function::KindOf(function) ==
+            UntaggedFunction::kImplicitClosureFunction));
     closure->untag()->set_function(function);
     ONLY_IN_PRECOMPILED(closure->untag()->entry_point_ =
                             function->untag()->entry_point_);
+    closure->untag()->set_context(context);
+    closure->untag()->set_instantiator_type_arguments(
+        instantiator_type_arguments);
+    SP -= 3;
+    SP[0] = closure;
     DISPATCH();
   }
 
@@ -3530,8 +3534,49 @@ SwitchDispatch:
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
-    UNIMPLEMENTED();
-    DISPATCH();
+    ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
+    FunctionPtr target = Function::RawCast(data->untag()->parent_function());
+    ASSERT(Function::KindOf(target) == UntaggedFunction::kConstructor);
+
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+    ObjectPtr* argv = FrameArguments(FP, argc);
+
+    ClassPtr cls = Function::Owner(target);
+    TypeParametersPtr type_params = cls->untag()->type_parameters();
+    TypeArgumentsPtr type_args =
+        (type_params == null_value)
+            ? TypeArguments::null()
+            : ((type_args_len > 0) ? TypeArguments::RawCast(argv[0])
+                                   : type_params->untag()->defaults());
+
+    SP[1] = target;    // Save target.
+    SP[2] = argdesc_;  // Save arguments descriptor.
+
+    // Allocate instance and put it into the receiver slot.
+    SP[3] = cls;
+    SP[4] = type_args;
+    Exit(thread, FP, SP + 5, pc);
+    INVOKE_RUNTIME(DRT_AllocateObject,
+                   NativeArguments(thread, 2, SP + 3, argv + receiver_idx));
+
+    argdesc_ = Array::RawCast(SP[2]);
+
+    if (type_args_len > 0) {
+      // Need to adjust arguments descriptor in order to drop type arguments.
+      SP[2] = 0;  // Space for result.
+      SP[3] = argdesc_;
+      SP[4] = SP[1];  // Target.
+      Exit(thread, FP, SP + 5, pc);
+      INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
+                     NativeArguments(thread, 2, SP + 3, SP + 2));
+      argdesc_ = Array::RawCast(SP[2]);
+    }
+
+    goto TailCallSP1;
   }
 
   {

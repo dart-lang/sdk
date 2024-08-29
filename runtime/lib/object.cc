@@ -594,17 +594,27 @@ DEFINE_NATIVE_ENTRY(Internal_loadDynamicModule, 0, 1) {
   ASSERT(function.is_static());
   ASSERT(function.is_declared_in_bytecode());
   auto& result = Object::Handle(zone);
-  if (function.NumParameters() == 0) {
-    result = DartEntry::InvokeFunction(function, Object::empty_array());
-  } else {
-    ASSERT(function.NumParameters() == 1);
+
+  intptr_t num_arguments;
+  for (num_arguments = 2; num_arguments >= 0; --num_arguments) {
+    if (function.AreValidArgumentCounts(
+            /*num_type_arguments=*/0, num_arguments,
+            /*num_named_arguments=*/0, /*error_message=*/nullptr)) {
+      break;
+    }
+  }
+  if (num_arguments < 0) {
+    Exceptions::ThrowUnsupportedError(
+        "Unsupported number of arguments of dynamic module entry point.");
+  }
+  const auto& args = Array::Handle(zone, Array::New(num_arguments));
+  if (num_arguments > 0) {
     // <String>[]
     const auto& arg0 = Array::Handle(
         zone, Array::New(0, Type::Handle(zone, Type::StringType())));
-    const auto& args = Array::Handle(zone, Array::New(1));
     args.SetAt(0, arg0);
-    result = DartEntry::InvokeFunction(function, args);
   }
+  result = DartEntry::InvokeFunction(function, args);
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }

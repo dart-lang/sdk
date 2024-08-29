@@ -35,7 +35,7 @@ enum Opcode {
   kAllocateT,
   kCreateArrayTOS,
   kAllocateClosure,
-  kAllocateClosure_Wide,
+  kUnused03,
 
   // Context allocation and access.
   kAllocateContext,
@@ -437,7 +437,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kUncheckedDirectCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kAllocateClosure: const Format(
-      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kUncheckedClosureCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kUncheckedInterfaceCall: const Format(
