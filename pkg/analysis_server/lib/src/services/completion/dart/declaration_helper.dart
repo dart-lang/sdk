@@ -463,14 +463,16 @@ class DeclarationHelper {
       required Set<String> excludedGetters,
       required bool includeMethods,
       required bool includeSetters}) {
-    var applicableExtensions = library.accessibleExtensions.applicableTo(
-      targetLibrary: library,
-      // Ignore nullability, consistent with non-extension members.
-      targetType: type.isDartCoreNull
-          ? type
-          : library.typeSystem.promoteToNonNull(type),
-      strictCasts: false,
-    );
+    var applicableExtensions = library.exportNamespace.definedNames.values
+        .whereType<ExtensionElement>()
+        .applicableTo(
+          targetLibrary: library,
+          // Ignore nullability, consistent with non-extension members.
+          targetType: type.isDartCoreNull
+              ? type
+              : library.typeSystem.promoteToNonNull(type),
+          strictCasts: false,
+        );
     var importData = ImportData(
         libraryUri: library.source.uri, prefix: null, isNotImported: true);
     for (var instantiatedExtension in applicableExtensions) {
