@@ -150,7 +150,6 @@ class _SignatureElementVisitor
 
   @override
   StringBuffer visitElement(Element element) {
-    assert(element is! MultiplyInheritedExecutableElement);
     var enclosingElt = element.enclosingElement!;
     var buffer = enclosingElt.accept(this)!;
     if (buffer.isNotEmpty) {
