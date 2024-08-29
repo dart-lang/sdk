@@ -1,3 +1,7 @@
+## 14.3.0-wip
+- Update to version `4.16` of the spec.
+- Add `reloadFailureReason` property to `Event`.
+
 ## 14.2.5
 - Include a stack trace in the RPCError that is thrown when an attempt is made
   to invoke an RPC using a `VmService` instance that has been disposed.
