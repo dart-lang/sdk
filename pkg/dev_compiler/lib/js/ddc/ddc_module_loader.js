@@ -1367,7 +1367,7 @@ if (!self.deferred_loader) {
     // See docs on `DartDevEmbedder.runMain`.
     runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
       console.log('Setting Dart SDK runtime options.');
-      let dartRuntimeLibrary = this.initializeAndLinkLibrary('dart');
+      let dartRuntimeLibrary = this.initializeAndLinkLibrary('dart:_runtime');
 
       // TODO(nshahan) Use a single method in the Dart SDK to set all options.
       dartRuntimeLibrary.weakNullSafetyErrors(dartSdkRuntimeOptions.weakNullSafetyErrors);

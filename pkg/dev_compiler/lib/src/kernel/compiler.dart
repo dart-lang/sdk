@@ -7934,38 +7934,70 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       items.add(js.statement('#.library = #', [_runtimeModule, libraryProto]));
       exports.add(js_ast.NameSpecifier(_runtimeModule));
     }
-
-    for (var library in libraries) {
-      if (_isBuildingSdk && _isSdkInternalRuntime(library)) {
-        _libraries[library] = _runtimeModule;
-        continue;
+    if (_options.emitLibraryBundle) {
+      assert(_isBuildingSdk);
+      for (var library in libraries) {
+        js_ast.Identifier libraryId;
+        if (_isSdkInternalRuntime(library)) {
+          libraryId = _runtimeModule;
+        } else if (_isDartLibrary(library, '_rti')) {
+          libraryId = _rtiLibraryId;
+        } else {
+          libraryId = js_ast.TemporaryId(_jsLibraryName(library));
+        }
+        _libraries[library] = libraryId;
+        var alias = _jsLibraryAlias(library);
+        var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+        items.add(js_ast.ExportDeclaration(js_ast.ExportClause(
+            [js_ast.NameSpecifier(libraryId, asName: aliasId)],
+            from: js.string('${library.importUri}'))));
+        // The initialization object for the runtime library is created above so
+        // it is skipped here.
+        if (_isSdkInternalRuntime(library)) continue;
+        items.add(js.statement(
+            'const # = Object.create(#.library)', [libraryId, _runtimeModule]));
       }
-      var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
-          ? _rtiLibraryId
-          : js_ast.TemporaryId(_jsLibraryName(library));
+      // dart:_runtime has a magic library that holds extension method symbols.
+      // TODO(nshahan): Could this be created with a kernel transform or just
+      // become a member in dart:_runtime?
+      items.add(js.statement('const # = Object.create(#.library)',
+          [_extensionSymbolsModule, _runtimeModule]));
+      items.add(js_ast.ExportDeclaration(js_ast.ExportClause(
+          [js_ast.NameSpecifier(_extensionSymbolsModule)],
+          from: js.string('dartx'))));
+    } else {
+      for (var library in libraries) {
+        if (_isBuildingSdk && _isSdkInternalRuntime(library)) {
+          _libraries[library] = _runtimeModule;
+          continue;
+        }
+        var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
+            ? _rtiLibraryId
+            : js_ast.TemporaryId(_jsLibraryName(library));
 
-      _libraries[library] = libraryId;
-      var alias = _jsLibraryAlias(library);
-      var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+        _libraries[library] = libraryId;
+        var alias = _jsLibraryAlias(library);
+        var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
 
-      // TODO(vsm): Change back to `const`.
-      // See https://github.com/dart-lang/sdk/issues/40380.
-      items.add(js.statement(
-          'var # = Object.create(#.library)', [libraryId, _runtimeModule]));
-      exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
+        // TODO(vsm): Change back to `const`.
+        // See https://github.com/dart-lang/sdk/issues/40380.
+        items.add(js.statement(
+            'var # = Object.create(#.library)', [libraryId, _runtimeModule]));
+        exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
+      }
+
+      // dart:_runtime has a magic module that holds extension method symbols.
+      // TODO(jmesserly): find a cleaner design for this.
+      if (_isBuildingSdk) {
+        var id = _extensionSymbolsModule;
+        // TODO(vsm): Change back to `const`.
+        // See https://github.com/dart-lang/sdk/issues/40380.
+        items.add(js.statement(
+            'var # = Object.create(#.library)', [id, _runtimeModule]));
+        exports.add(js_ast.NameSpecifier(id));
+      }
+      items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
     }
-
-    // dart:_runtime has a magic module that holds extension method symbols.
-    // TODO(jmesserly): find a cleaner design for this.
-    if (_isBuildingSdk) {
-      var id = _extensionSymbolsModule;
-      // TODO(vsm): Change back to `const`.
-      // See https://github.com/dart-lang/sdk/issues/40380.
-      items.add(js
-          .statement('var # = Object.create(#.library)', [id, _runtimeModule]));
-      exports.add(js_ast.NameSpecifier(id));
-    }
-    items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
 
     if (_isBuildingSdk) {
       // Initialize the private name function.
