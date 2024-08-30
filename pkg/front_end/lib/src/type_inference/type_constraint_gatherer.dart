@@ -474,59 +474,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return true;
     }
 
-    // If P is a legacy type P0* then the match holds under constraint set C:
-    //
-    // Only if P0 is a subtype match for Q under constraint set C.
-    if (pNullability == NullabilitySuffix.star) {
-      // Coverage-ignore-block(suite): Not run.
-      return _isNullabilityAwareSubtypeMatch(
-          typeOperations
-              .withNullabilitySuffix(
-                  new SharedTypeView(p), NullabilitySuffix.none)
-              .unwrapTypeView(),
-          q,
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting);
-    }
-
-    // If Q is a legacy type Q0* then the match holds under constraint set C:
-    //
-    // If P is dynamic or void and P is a subtype match for Q0 under constraint
-    // set C.
-    // Or if P is not dynamic or void and P is a subtype match for Q0? under
-    // constraint set C.
-    if (qNullability == NullabilitySuffix.star) {
-      // Coverage-ignore-block(suite): Not run.
-      final int baseConstraintCount = _protoConstraints.length;
-
-      if ((p is SharedDynamicTypeStructure || p is SharedVoidTypeStructure) &&
-          _isNullabilityAwareSubtypeMatch(
-              p,
-              typeOperations
-                  .withNullabilitySuffix(
-                      new SharedTypeView(q), NullabilitySuffix.none)
-                  .unwrapTypeView(),
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
-
-      if (p is! SharedDynamicTypeStructure &&
-          p is! SharedVoidTypeStructure &&
-          _isNullabilityAwareSubtypeMatch(
-              p,
-              typeOperations
-                  .withNullabilitySuffix(
-                      new SharedTypeView(q), NullabilitySuffix.question)
-                  .unwrapTypeView(),
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
-    }
-
     if (constrainSupertype
         ? performSubtypeConstraintGenerationForFutureOrLeftSchema(
             new SharedTypeSchemaView(p), new SharedTypeView(q),
