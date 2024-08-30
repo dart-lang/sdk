@@ -476,12 +476,11 @@ class VMService extends MessageRouter {
     // Close receive ports.
     isolateControlPort.close();
     scriptLoadPort.close();
-    await clearState();
     final cleanup = VMServiceEmbedderHooks.cleanup;
     if (cleanup != null) {
       await cleanup();
     }
-
+    await clearState();
     // Notify the VM that we have exited.
     _onExit();
   }
