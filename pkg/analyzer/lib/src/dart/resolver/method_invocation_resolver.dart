@@ -265,7 +265,11 @@ class MethodInvocationResolver with ScopeHelpers {
     );
   }
 
-  void _reportPrefixIdentifierNotFollowedByDot(SimpleIdentifier target) {
+  void _reportPrefixIdentifierNotFollowedByDot(
+    SimpleIdentifier target,
+    PrefixElementImpl prefixElement,
+  ) {
+    prefixElement.scope.notifyErrorReported();
     _resolver.errorReporter.atNode(
       target,
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
@@ -586,10 +590,10 @@ class MethodInvocationResolver with ScopeHelpers {
         return _rewriteAsFunctionExpressionInvocation(node, targetType);
       }
       // TODO(scheglov): This is a questionable distinction.
-      if (element is PrefixElement) {
+      if (element is PrefixElementImpl) {
         _setInvalidTypeResolution(node,
             whyNotPromotedList: whyNotPromotedList, contextType: contextType);
-        _reportPrefixIdentifierNotFollowedByDot(nameNode);
+        _reportPrefixIdentifierNotFollowedByDot(nameNode, element);
         return null;
       }
       _reportInvocationOfNonFunction(node, whyNotPromotedList,

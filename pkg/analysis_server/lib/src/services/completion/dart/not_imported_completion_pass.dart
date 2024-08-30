@@ -143,7 +143,7 @@ class NotImportedCompletionPass {
       var element = elementResult.element;
       if (element == library) {
         // Don't suggest elements from the library in which completion is being
-        // requested. They've already been sugpested.
+        // requested. They've already been suggested.
         continue;
       }
 

@@ -6,6 +6,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 
 /// Information about a file being analyzed.
@@ -16,6 +17,7 @@ class FileAnalysis {
   final CompilationUnitImpl unit;
   final CompilationUnitElementImpl element;
   final IgnoreInfo ignoreInfo;
+  late ImportsTracking importsTracking;
 
   FileAnalysis({
     required this.file,

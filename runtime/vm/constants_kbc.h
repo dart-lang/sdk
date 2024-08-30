@@ -348,10 +348,6 @@ namespace dart {
 //
 //    Instance remains on stack. Other arguments are consumed.
 //
-//  - AssertBoolean A
-//
-//    Assert that TOS is a boolean (A = 1) or that TOS is not null (A = 0).
-//
 //  - AssertSubtype
 //
 //    Assert that one type is a subtype of another.  Throws a TypeError
@@ -597,10 +593,8 @@ namespace dart {
   V(Unused25,                              0, RESV, ___, ___, ___)             \
   V(AssertAssignable,                    A_E, ORDN, num, lit, ___)             \
   V(AssertAssignable_Wide,               A_E, WIDE, num, lit, ___)             \
-  V(Unused30,                              0, RESV, ___, ___, ___)             \
-  V(Unused31,                              0, RESV, ___, ___, ___)             \
-  V(AssertBoolean,                         A, ORDN, num, ___, ___)             \
   V(AssertSubtype,                         0, ORDN, ___, ___, ___)             \
+  V(Unused30,                              0, RESV, ___, ___, ___)             \
   V(LoadTypeArgumentsField,                D, ORDN, lit, ___, ___)             \
   V(LoadTypeArgumentsField_Wide,           D, WIDE, lit, ___, ___)             \
   V(InstantiateType,                       D, ORDN, lit, ___, ___)             \

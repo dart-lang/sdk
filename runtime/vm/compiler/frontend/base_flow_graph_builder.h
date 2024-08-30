@@ -379,7 +379,6 @@ class BaseFlowGraphBuilder {
   JoinEntryInstr* BuildThrowNoSuchMethod();
   Fragment ThrowException(TokenPosition position);
 
-  Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& scope);
   // Top of the stack should be the closure function.

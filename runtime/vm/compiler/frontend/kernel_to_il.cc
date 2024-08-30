@@ -2293,15 +2293,6 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
                     ICData::kStatic);
 }
 
-Fragment FlowGraphBuilder::CheckBoolean(TokenPosition position) {
-  Fragment instructions;
-  LocalVariable* top_of_stack = MakeTemporary();
-  instructions += LoadLocal(top_of_stack);
-  instructions += AssertBool(position);
-  instructions += Drop();
-  return instructions;
-}
-
 Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            const String& dst_name,
                                            AssertAssignableInstr::Kind kind,

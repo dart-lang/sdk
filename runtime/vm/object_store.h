@@ -257,7 +257,6 @@ class ObjectPointerVisitor;
   RW(Code, array_write_barrier_stub)                                           \
   RW(Code, throw_stub)                                                         \
   RW(Code, re_throw_stub)                                                      \
-  RW(Code, assert_boolean_stub)                                                \
   RW(Code, instance_of_stub)                                                   \
   RW(Code, init_static_field_stub)                                             \
   RW(Code, init_late_static_field_stub)                                        \
@@ -369,7 +368,6 @@ class ObjectPointerVisitor;
   DO(array_write_barrier_stub, ArrayWriteBarrier)                              \
   DO(throw_stub, Throw)                                                        \
   DO(re_throw_stub, ReThrow)                                                   \
-  DO(assert_boolean_stub, AssertBoolean)                                       \
   DO(init_static_field_stub, InitStaticField)                                  \
   DO(init_late_static_field_stub, InitLateStaticField)                         \
   DO(init_late_final_static_field_stub, InitLateFinalStaticField)              \

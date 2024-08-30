@@ -163,7 +163,6 @@ class Thread;
     nullptr)                                                                   \
   V(CodePtr, throw_stub_, StubCode::Throw().ptr(), nullptr)                    \
   V(CodePtr, re_throw_stub_, StubCode::Throw().ptr(), nullptr)                 \
-  V(CodePtr, assert_boolean_stub_, StubCode::AssertBoolean().ptr(), nullptr)   \
   V(CodePtr, optimize_stub_, StubCode::OptimizeFunction().ptr(), nullptr)      \
   V(CodePtr, deoptimize_stub_, StubCode::Deoptimize().ptr(), nullptr)          \
   V(CodePtr, lazy_deopt_from_return_stub_,                                     \

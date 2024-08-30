@@ -155,7 +155,6 @@ namespace dart {
   V(InitSharedLateFinalStaticField)                                            \
   V(Throw)                                                                     \
   V(ReThrow)                                                                   \
-  V(AssertBoolean)                                                             \
   V(InstanceOf)                                                                \
   V(InstantiateType)                                                           \
   V(InstantiateTypeNonNullableClassTypeParameter)                              \

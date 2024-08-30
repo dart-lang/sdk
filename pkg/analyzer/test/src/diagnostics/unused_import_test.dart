@@ -475,6 +475,40 @@ f() {
     ]);
   }
 
+  test_noPrefix_constructorName_name() async {
+    await assertErrorsInCode(r'''
+import 'dart:async';
+
+class A {
+  A.foo();
+}
+
+void f() {
+  A.foo();
+}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 12),
+    ]);
+  }
+
+  test_prefixed_commentReference_prefix() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:math' as math;
+
+/// [math]
+void f() {}
+''');
+  }
+
+  test_prefixed_commentReference_prefixClass() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:math' as math;
+
+/// [math.Random]
+void f() {}
+''');
+  }
+
   test_show() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}

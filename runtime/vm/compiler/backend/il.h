@@ -432,7 +432,6 @@ struct InstrAttrs {
   M(Branch, kNoGC)                                                             \
   M(AssertAssignable, _)                                                       \
   M(AssertSubtype, _)                                                          \
-  M(AssertBoolean, _)                                                          \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
   M(LeafRuntimeCall, kNoGC)                                                    \
@@ -4474,48 +4473,6 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
-};
-
-class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
- public:
-  AssertBooleanInstr(const InstructionSource& source,
-                     Value* value,
-                     intptr_t deopt_id)
-      : TemplateDefinition(source, deopt_id), token_pos_(source.token_pos) {
-    SetInputAt(0, value);
-  }
-
-  DECLARE_INSTRUCTION(AssertBoolean)
-  virtual CompileType ComputeType() const;
-
-  virtual TokenPosition token_pos() const { return token_pos_; }
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool ComputeCanDeoptimizeAfterCall() const {
-    return !CompilerState::Current().is_aot();
-  }
-  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
-    return InputCount();
-  }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  virtual bool AttributesEqual(const Instruction& other) const { return true; }
-
-  virtual Value* RedefinedValue() const;
-
-  PRINT_OPERANDS_TO_SUPPORT
-
-#define FIELD_LIST(F) F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AssertBooleanInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
 };
 
 struct ArgumentsInfo {

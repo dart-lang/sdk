@@ -3319,7 +3319,6 @@ void f() {
   }
 
   /// Verify extensions can be auto-imported if not already in-scope.
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/56320')
   Future<void> test_unimportedSymbols_extension() async {
     // Define extensions in 'extensions.dart'.
     newFile(

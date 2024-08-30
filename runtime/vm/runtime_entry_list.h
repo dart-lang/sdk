@@ -39,7 +39,6 @@ namespace dart {
   V(Instanceof)                                                                \
   V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \
-  V(NonBoolTypeError)                                                          \
   V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
   V(NoSuchMethodFromCallStub)                                                  \

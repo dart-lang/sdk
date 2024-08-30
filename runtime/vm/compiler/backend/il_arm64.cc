@@ -909,21 +909,6 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->always_calls());
-
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& assert_boolean_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->assert_boolean_stub());
-
-  compiler::Label done;
-  __ tbnz(&done, AssertBooleanABI::kObjectReg, kBoolVsNullBitPosition);
-  compiler->GenerateStubCall(source(), assert_boolean_stub,
-                             /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id(), env());
-  __ Bind(&done);
-}
-
 static Condition TokenKindToIntCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:

@@ -1570,43 +1570,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   arguments.SetReturn(src_instance);
 }
 
-// Report that the type of the given object is not bool in conditional context.
-// Throw assertion error if the object is null. (cf. Boolean Conversion
-// in language Spec.)
-// Arg0: bad object.
-// Return value: none, throws TypeError or AssertionError.
-DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
-  const TokenPosition location = GetCallerLocation();
-  const Instance& src_instance =
-      Instance::CheckedHandle(zone, arguments.ArgAt(0));
-
-  if (src_instance.IsNull()) {
-    const Array& args = Array::Handle(zone, Array::New(5));
-    args.SetAt(
-        0, String::Handle(
-               zone,
-               String::New(
-                   "Failed assertion: boolean expression must not be null")));
-
-    // No source code for this assertion, set url to null.
-    args.SetAt(1, String::Handle(zone, String::null()));
-    args.SetAt(2, Object::smi_zero());
-    args.SetAt(3, Object::smi_zero());
-    args.SetAt(4, String::Handle(zone, String::null()));
-
-    Exceptions::ThrowByType(Exceptions::kAssertion, args);
-    UNREACHABLE();
-  }
-
-  ASSERT(!src_instance.IsBool());
-  const Type& bool_interface = Type::Handle(Type::BoolType());
-  const AbstractType& src_type =
-      AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
-  Exceptions::CreateAndThrowTypeError(location, src_type, bool_interface,
-                                      Symbols::BooleanExpression());
-  UNREACHABLE();
-}
-
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::Throw(thread, exception);
