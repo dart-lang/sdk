@@ -4530,7 +4530,8 @@ class AstCallTarget extends CallTarget {
   bool get supportsInlining => _translator.supportsInlining(_reference);
 
   @override
-  bool get shouldInline => _translator.shouldInline(_reference);
+  bool get shouldInline =>
+      _translator.shouldInline(_reference, signature, useUncheckedEntry);
 
   @override
   CodeGenerator get inliningCodeGen => getInlinableMemberCodeGenerator(

@@ -18,12 +18,12 @@ void g() {
 
 runtimeFalse() => int.parse('1') == 0;
 
-// `frameDetails` is (line, column) of the frames we check.
+// `expectedFrames` is (String, line, column) of the frames we check.
 //
 // Information we don't check are "null": we don't want to check line/column
 // of standard library functions to avoid breaking the test with unrelated
 // changes to the standard library.
-void testMain(String testName, List<(int?, int?)?> frameDetails) {
+void testMain(String testName, List<(String?, int?, int?)?> expectedFrames) {
   // Use `f` and `g` in a few places to make sure wasm-opt won't inline them
   // in the test.
   final fTearOff = f;
@@ -31,12 +31,6 @@ void testMain(String testName, List<(int?, int?)?> frameDetails) {
 
   if (runtimeFalse()) f();
   if (runtimeFalse()) g();
-
-  // Read source map of the current program.
-  final compilationDir = const String.fromEnvironment("TEST_COMPILATION_DIR");
-  final sourceMapFileContents =
-      readfile('$compilationDir/${testName}_test.wasm.map');
-  final mapping = parse(utf8.decode(sourceMapFileContents)) as SingleMapping;
 
   // Get some simple stack trace.
   String? stackTraceString;
@@ -51,42 +45,74 @@ void testMain(String testName, List<(int?, int?)?> frameDetails) {
   print(stackTraceString);
   print("-----");
 
-  final stackTraceLines = stackTraceString!.split('\n');
+  final actualFrames =
+      parseStack(getSourceMapping(testName), stackTraceString!);
+  print('Got stack trace:');
+  for (final frame in actualFrames) {
+    print('  $frame');
+  }
+  print('Matching against:');
+  for (final frame in expectedFrames) {
+    print('  $frame');
+  }
 
-  for (int frameIdx = 0; frameIdx < frameDetails.length; frameIdx += 1) {
-    final line = stackTraceLines[frameIdx];
+  if (actualFrames.length < expectedFrames.length) {
+    throw 'Less actual frames than expected';
+  }
+
+  for (int i = 0; i < expectedFrames.length; i++) {
+    final expected = expectedFrames[i];
+    final actual = actualFrames[i];
+    if (expected == null) continue;
+    if (actual == null) {
+      throw 'Mismatch:\n  Expected: $expected\n  Actual: <no mapping>';
+    }
+    if ((expected.$1 != null && actual.$1 != expected.$1) ||
+        (expected.$2 != null && actual.$2 != expected.$2) ||
+        (expected.$3 != null && actual.$3 != expected.$3)) {
+      throw 'Mismatch:\n  Expected: $expected\n  Actual: $actual';
+    }
+  }
+}
+
+SingleMapping getSourceMapping(String testName) {
+  // Read source map of the current program.
+  final compilationDir = const String.fromEnvironment("TEST_COMPILATION_DIR");
+  final sourceMapFileContents =
+      readfile('$compilationDir/${testName}_test.wasm.map');
+  return parse(utf8.decode(sourceMapFileContents)) as SingleMapping;
+}
+
+List<(String?, int?, int?)?> parseStack(
+    SingleMapping mapping, String stackTraceString) {
+  final parsed = <(String?, int?, int?)?>[];
+  for (final line in stackTraceString.split('\n')) {
+    if (line.contains('.mjs') || line.contains('.js')) {
+      parsed.add(null);
+      continue;
+    }
+
     final hexOffsetMatch = stackTraceHexOffsetRegExp.firstMatch(line);
     if (hexOffsetMatch == null) {
-      throw "Unable to parse hex offset from stack frame $frameIdx";
+      throw 'Unable to parse hex offset in frame "$line"';
     }
     final hexOffsetStr = hexOffsetMatch.group(1)!; // includes '0x'
     final offset = int.tryParse(hexOffsetStr);
     if (offset == null) {
-      throw "Unable to parse hex number in frame $frameIdx: $hexOffsetStr";
+      throw 'Unable to parse hex number in frame "$line"';
     }
     final span = mapping.spanFor(0, offset);
-    final frameInfo = frameDetails[frameIdx];
-    if (frameInfo == null) {
-      if (span != null) {
-        throw "Stack frame $frameIdx should not have a source span, but it is mapped: $span";
-      }
+    if (span == null) {
+      print('Stack frame "$line" not have source mapping');
+      parsed.add(null);
       continue;
     }
-    if (span == null) {
-      print("Stack frame $frameIdx does not have source mapping");
-    } else {
-      if (frameInfo.$1 != null) {
-        if (span.start.line + 1 != frameInfo.$1) {
-          throw "Stack frame $frameIdx is expected to have line ${frameInfo.$1}, but it has line ${span.start.line + 1}";
-        }
-      }
-      if (frameInfo.$2 != null) {
-        if (span.start.column + 1 != frameInfo.$2) {
-          throw "Stack frame $frameIdx is expected to have column ${frameInfo.$2}, but it has column ${span.start.column + 1}";
-        }
-      }
-    }
+    final filename = span.sourceUrl!.pathSegments.last;
+    final lineNumber = span.start.line;
+    final columnNumber = span.start.column;
+    parsed.add((filename, 1 + lineNumber, 1 + columnNumber));
   }
+  return parsed;
 }
 
 /// Read the file at the given [path].

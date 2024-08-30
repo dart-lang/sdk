@@ -264,9 +264,6 @@ class NamedTypeResolver with ScopeHelpers {
       );
       return _verifyTypeAliasForContext(node, element, type);
     } else if (_isInstanceCreation(node)) {
-      if (element is PrefixElementImpl) {
-        element.scope.notifyErrorReported();
-      }
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
       return InvalidTypeImpl.instance;
     } else if (element is DynamicElementImpl) {
@@ -617,9 +614,6 @@ class _ErrorHelper {
     }
 
     if (element != null) {
-      if (element is PrefixElementImpl) {
-        element.scope.notifyErrorReported();
-      }
       var errorRange = _getErrorRange(node);
       errorReporter.atOffset(
         offset: errorRange.offset,

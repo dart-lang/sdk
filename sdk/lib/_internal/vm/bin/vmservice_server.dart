@@ -216,10 +216,7 @@ class _DebuggingSession {
     return true;
   }
 
-  void shutdown() {
-    print('Shutting down DDS!\n${StackTrace.current}');
-    _process!.kill();
-  }
+  void shutdown() => _process!.kill();
 
   Process? _process;
 }
@@ -635,22 +632,15 @@ class Server {
     }
   }
 
-  Future<void> cleanup(bool force) {
-    final serverLocal = _server;
-    if (serverLocal == null) {
-      return Future.value();
-    }
-    if (Platform.isFuchsia) {
-      // Remove the file with the port number.
-      final tmp = Directory.systemTemp.path;
-      final path = '$tmp/dart.services/${serverLocal.port}';
-      serverPrint('Deleting $path');
-      File(path)..deleteSync();
-    }
-    return serverLocal.close(force: force);
+  void _cleanupFuchsiaState(int port) {
+    // Remove the file with the port number.
+    final tmp = Directory.systemTemp.path;
+    final path = '$tmp/dart.services/$port';
+    serverPrint('Deleting $path');
+    File(path).deleteSync();
   }
 
-  Future<Server> shutdown(bool forced) async {
+  Future<void> shutdown(bool forced) async {
     // If start is pending, wait for it to complete.
     if (_startingCompleter != null) {
       if (!_startingCompleter!.isCompleted) {
@@ -658,32 +648,37 @@ class Server {
       }
     }
 
-    if (_server == null) {
+    final server = _server;
+    if (server == null) {
       // Not started.
-      return Future.value(this);
+      return;
     }
 
-    // Shutdown HTTP server and subscription.
-    Uri oldServerAddress = serverAddress!;
-    return cleanup(forced).then((_) {
-      serverPrint('Dart VM service no longer listening on $oldServerAddress');
-      _server = null;
-      _startingCompleter = null;
+    if (Platform.isFuchsia) {
+      _cleanupFuchsiaState(server.port);
+    }
+
+    final address = serverAddress!;
+
+    try {
+      // Shutdown HTTP server and subscription.
+      await server.close(force: forced);
+      if (!_service.isExiting) {
+        // Only print this message if the service has been toggled off, not
+        // when the VM is exiting.
+        serverPrint('Dart VM service no longer listening on $address');
+      }
+    } catch (e, st) {
+      serverPrint('Could not shutdown Dart VM service HTTP server:\n$e\n$st\n');
+    } finally {
       _ddsInstance?.shutdown();
       _ddsInstance = null;
-      _running = false;
-      _notifyServerState('');
-      onServerAddressChange(null);
-      return this;
-    }).catchError((e, st) {
       _server = null;
       _startingCompleter = null;
-      serverPrint('Could not shutdown Dart VM service HTTP server:\n$e\n$st\n');
       _running = false;
       _notifyServerState('');
       onServerAddressChange(null);
-      return this;
-    });
+    }
   }
 }
 

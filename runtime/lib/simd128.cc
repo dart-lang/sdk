@@ -183,6 +183,28 @@ DEFINE_NATIVE_ENTRY(Float32x4_abs, 0, 1) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
+static float vminf(float f1, float f2) {
+  if (f1 == f2) {
+    // take care of (-0.0) < 0.0, (they are equal according to minss)
+    auto result = signbit(f1) ? f1 : f2;
+    return result;
+  }
+  auto result = f1 > f2 ? f2 : f1;
+  return result;
+}
+
+static float vmaxf(float f1, float f2) {
+  if (f1 == f2) {
+    // take care of (-0.0) < 0.0, (they are equal according to minss)
+    auto result = signbit(f1) ? f2 : f1;
+    return result;
+  }
+  auto result = f1 < f2 ? f2 : f1;
+  return result;
+}
+#endif
+
 DEFINE_NATIVE_ENTRY(Float32x4_clamp, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, lo, arguments->NativeArgAt(1));
@@ -195,8 +217,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_clamp, 0, 3) {
   float _w;
   // ARM semantics are different from X86/X64 at an instruction level. Ensure
   // that we match the semantics of the architecture in the C version.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   _x = self.x() < hi.x() ? self.x() : hi.x();
   _y = self.y() < hi.y() ? self.y() : hi.y();
   _z = self.z() < hi.z() ? self.z() : hi.z();
@@ -205,7 +226,16 @@ DEFINE_NATIVE_ENTRY(Float32x4_clamp, 0, 3) {
   _y = lo.y() < _y ? _y : lo.y();
   _z = lo.z() < _z ? _z : lo.z();
   _w = lo.w() < _w ? _w : lo.w();
-#else
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
+  _x = vminf(self.x(), hi.x());
+  _y = vminf(self.y(), hi.y());
+  _z = vminf(self.z(), hi.z());
+  _w = vminf(self.w(), hi.w());
+  _x = vmaxf(_x, lo.x());
+  _y = vmaxf(_y, lo.y());
+  _z = vmaxf(_z, lo.z());
+  _w = vmaxf(_w, lo.w());
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
   _x = fminf(self.x(), hi.x());
   _y = fminf(self.y(), hi.y());
   _z = fminf(self.z(), hi.z());
@@ -214,6 +244,8 @@ DEFINE_NATIVE_ENTRY(Float32x4_clamp, 0, 3) {
   _y = fmaxf(_y, lo.y());
   _z = fmaxf(_z, lo.z());
   _w = fmaxf(_w, lo.w());
+#else
+#error Unknown architecture.
 #endif
   return Float32x4::New(_x, _y, _z, _w);
 }
@@ -731,6 +763,24 @@ DEFINE_NATIVE_ENTRY(Float64x2_abs, 0, 1) {
   return Float64x2::New(_x, _y);
 }
 
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
+static double vmind(double f1, double f2) {
+  if (f1 == f2) {
+    // take care of (-0.0) < 0.0, (they are equal according to minss)
+    return signbit(f1) ? f1 : f2;
+  }
+  return f1 > f2 ? f2 : f1;
+}
+
+static double vmaxd(double f1, double f2) {
+  if (f1 == f2) {
+    // take care of (-0.0) < 0.0, (they are equal according to minss)
+    return signbit(f1) ? f2 : f1;
+  }
+  return f1 < f2 ? f2 : f1;
+}
+#endif
+
 DEFINE_NATIVE_ENTRY(Float64x2_clamp, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, lo, arguments->NativeArgAt(1));
@@ -742,17 +792,23 @@ DEFINE_NATIVE_ENTRY(Float64x2_clamp, 0, 3) {
 
   // ARM semantics are different from X86/X64 at an instruction level. Ensure
   // that we match the semantics of the architecture in the C version.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   _x = self.x() < hi.x() ? self.x() : hi.x();
   _y = self.y() < hi.y() ? self.y() : hi.y();
   _x = lo.x() < _x ? _x : lo.x();
   _y = lo.y() < _y ? _y : lo.y();
-#else
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
+  _x = vmind(self.x(), hi.x());
+  _y = vmind(self.y(), hi.y());
+  _x = vmaxd(_x, lo.x());
+  _y = vmaxd(_y, lo.y());
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
   _x = fmin(self.x(), hi.x());
   _y = fmin(self.y(), hi.y());
   _x = fmax(_x, lo.x());
   _y = fmax(_y, lo.y());
+#else
+#error Unknown architecture.
 #endif
   return Float64x2::New(_x, _y);
 }

@@ -334,6 +334,7 @@ class ListIterator<E> implements Iterator<E> {
   int _index;
   E? _current;
 
+  @pragma("wasm:prefer-inline")
   ListIterator(Iterable<E> iterable)
       : _iterable = iterable,
         _length = iterable.length,
@@ -342,6 +343,7 @@ class ListIterator<E> implements Iterator<E> {
   E get current => _current as E;
 
   @pragma("vm:prefer-inline")
+  @pragma("wasm:prefer-inline")
   bool moveNext() {
     int length = _iterable.length;
     if (_length != length) {

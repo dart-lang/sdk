@@ -96,7 +96,7 @@ Future<void> cleanupCallback() async {
   final localServer = server;
   if (localServer != null) {
     try {
-      await localServer.cleanup(true);
+      await localServer.shutdown(true);
     } catch (e, st) {
       print('Error in vm-service shutdown: $e\n$st\n');
     }
