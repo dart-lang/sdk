@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal'
-    show makeFixedListUnmodifiable, makeListFixedLength, patch;
+import 'dart:_internal' show patch, EfficientLengthIterable;
 import 'dart:_list';
+import 'dart:_wasm';
 
 @patch
 class List<E> {
   @patch
+  @pragma("wasm:prefer-inline")
   factory List.empty({bool growable = false}) {
     return growable ? <E>[] : ModifiableFixedLengthList<E>(0);
   }
@@ -20,19 +21,10 @@ class List<E> {
       : ModifiableFixedLengthList<E>.filled(length, fill);
 
   @patch
-  factory List.from(Iterable elements, {bool growable = true}) {
-    // If elements is an Iterable<E>, we won't need a type-test for each
-    // element.
-    if (elements is Iterable<E>) {
-      return List.of(elements, growable: growable);
-    }
-    List<E> list = GrowableList<E>(0);
-    for (E e in elements) {
-      list.add(e);
-    }
-    if (growable) return list;
-    return makeListFixedLength(list);
-  }
+  @pragma("wasm:prefer-inline")
+  factory List.from(Iterable elements, {bool growable = true}) => growable
+      ? GrowableList<E>.ofUntypedIterable(elements)
+      : ModifiableFixedLengthList<E>.ofUntypedIterable(elements);
 
   @patch
   @pragma("wasm:prefer-inline")
@@ -49,8 +41,8 @@ class List<E> {
           : ModifiableFixedLengthList<E>.generate(length, generator);
 
   @patch
+  @pragma("wasm:prefer-inline")
   factory List.unmodifiable(Iterable elements) {
-    final result = List<E>.from(elements, growable: false);
-    return makeFixedListUnmodifiable(result);
+    return ImmutableList<E>.ofUntypedIterable(elements);
   }
 }

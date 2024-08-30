@@ -882,10 +882,6 @@ class Intrinsifier {
           codeGen.wrap(node.arguments.positional.single, info.nonNullableType);
           b.struct_get(info.struct, FieldIndex.classId);
           return w.NumType.i32;
-        case "makeListFixedLength":
-          return _changeListClassID(node, translator.fixedLengthListClass);
-        case "makeFixedListUnmodifiable":
-          return _changeListClassID(node, translator.immutableListClass);
       }
     }
 
@@ -1169,30 +1165,6 @@ class Intrinsifier {
     }
 
     return null;
-  }
-
-  w.ValueType _changeListClassID(StaticInvocation node, Class newClass) {
-    ClassInfo receiverInfo = translator.classInfo[translator.listBaseClass]!;
-    codeGen.wrap(
-        node.arguments.positional.single, receiverInfo.nonNullableType);
-    w.Local receiverLocal = b.addLocal(receiverInfo.nonNullableType);
-    b.local_set(receiverLocal);
-
-    ClassInfo newInfo = translator.classInfo[newClass]!;
-    translator.functions.recordClassAllocation(newInfo.classId);
-    b.i32_const(newInfo.classId);
-    b.i32_const(initialIdentityHash);
-    b.local_get(receiverLocal);
-    b.struct_get(
-        receiverInfo.struct,
-        translator.typeParameterIndex[
-            translator.listBaseClass.typeParameters.single]!);
-    b.local_get(receiverLocal);
-    b.struct_get(receiverInfo.struct, FieldIndex.listLength);
-    b.local_get(receiverLocal);
-    b.struct_get(receiverInfo.struct, FieldIndex.listArray);
-    b.struct_new(newInfo.struct);
-    return newInfo.nonNullableType;
   }
 
   /// Generate inline code for a [ConstructorInvocation] if the constructor is
