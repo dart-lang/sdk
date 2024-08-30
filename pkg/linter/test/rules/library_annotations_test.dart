@@ -128,6 +128,15 @@ class C {}
     );
   }
 
+  test_libraryDirective() async {
+    await assertNoDiagnostics(r'''
+@pragma('dart2js:late:trust')
+library;
+
+class C {}
+''');
+  }
+
   test_mixinDeclaration() async {
     await assertDiagnostics(
       r'''
@@ -136,6 +145,49 @@ mixin M {}
 ''',
       [lint(0, 29)],
     );
+  }
+
+  test_partFile() async {
+    newFile('$testPackageRootPath/lib/part.dart', r'''
+part of 'test.dart';
+''');
+
+    await assertDiagnostics(r'''
+@pragma('dart2js:late:trust')
+
+part 'part.dart';
+
+class C {}
+''', [
+      lint(0, 29),
+    ]);
+  }
+
+  test_partOfFile() async {
+    newFile('$testPackageRootPath/test/part.dart', r'''
+part 'test.dart';
+''');
+
+    await assertNoDiagnostics(r'''
+@pragma('dart2js:late:trust')
+
+part of 'part.dart';
+
+class C {}
+''');
+  }
+
+  test_partOfFile_annotatedPartOf() async {
+    newFile('$testPackageRootPath/test/part.dart', r'''
+part 'test.dart';
+''');
+
+    await assertNoDiagnostics(r'''
+@pragma('dart2js:late:trust')
+part of 'part.dart';
+
+class C {}
+''');
   }
 
   test_topLevelVariableDeclaration() async {

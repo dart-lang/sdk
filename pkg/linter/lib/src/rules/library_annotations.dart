@@ -74,9 +74,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       firstDirective = node.directives.first;
     }
     for (var directive in node.directives) {
-      if (directive is PartDirective) {
-        return;
-      }
+      if (directive is PartOfDirective) return;
+
       if (directive is! LibraryDirective) {
         _check(directive);
       }
