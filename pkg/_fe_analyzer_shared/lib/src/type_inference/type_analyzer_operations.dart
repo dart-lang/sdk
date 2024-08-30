@@ -1220,6 +1220,146 @@ abstract class TypeConstraintGenerator<
 
     return false;
   }
+
+  /// Matches [p] against [q] as a subtype against supertype and returns true if
+  /// [p] and [q] are both type declaration types as defined by the enum
+  /// [TypeDeclarationKind], and [p] is a subtype of [q] under some constraints
+  /// imposed on type parameters occurring in [q], and false otherwise.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  ///
+  /// As the generator computes the constraints making the relation possible, it
+  /// changes its internal state. The current state of the generator can be
+  /// obtained by [currentState], and the generator can be restored to a state
+  /// via [restoreState]. All of the shared constraint generation methods are
+  /// supposed to restore the generator to the prior state in case of a
+  /// mismatch, taking that responsibility away from the caller.
+  bool? performSubtypeConstraintGenerationForTypeDeclarationTypes(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    switch ((
+      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(p)),
+      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(q))
+    )) {
+      // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
+      // holds under constraints `C0 + ... + Ck`:
+      //   If `Mi` is a subtype match for `Ni` with respect to L under
+      //   constraints `Ci`.
+      case (
+            TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind pTypeDeclarationKind,
+              typeDeclaration: TypeDeclaration pDeclarationObject,
+              typeArguments: List<TypeStructure> pTypeArguments
+            ),
+            TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind qTypeDeclarationKind,
+              typeDeclaration: TypeDeclaration qDeclarationObject,
+              typeArguments: List<TypeStructure> qTypeArguments
+            )
+          )
+          when pTypeDeclarationKind == qTypeDeclarationKind &&
+              pDeclarationObject == qDeclarationObject:
+        return _interfaceTypeArguments(
+            pDeclarationObject, pTypeArguments, qTypeArguments, leftSchema,
+            astNodeForTesting: astNodeForTesting);
+
+      case (TypeDeclarationMatchResult(), TypeDeclarationMatchResult()):
+        return _interfaceTypes(p, q, leftSchema,
+            astNodeForTesting: astNodeForTesting);
+
+      case (
+          TypeDeclarationMatchResult? pMatched,
+          TypeDeclarationMatchResult? qMatched
+        ):
+        assert(pMatched == null || qMatched == null);
+        return null;
+    }
+  }
+
+  /// Match arguments [pTypeArguments] of P against arguments [qTypeArguments]
+  /// of Q, taking into account the variance of type variables in [declaration].
+  /// If returns `false`, the constraints are unchanged.
+  bool _interfaceTypeArguments(
+      TypeDeclaration declaration,
+      List<TypeStructure> pTypeArguments,
+      List<TypeStructure> qTypeArguments,
+      bool leftSchema,
+      {required AstNode? astNodeForTesting}) {
+    assert(pTypeArguments.length == qTypeArguments.length);
+
+    final TypeConstraintGeneratorState state = currentState;
+
+    for (int i = 0; i < pTypeArguments.length; i++) {
+      Variance variance =
+          typeAnalyzerOperations.getTypeParameterVariance(declaration, i);
+      TypeStructure M = pTypeArguments[i];
+      TypeStructure N = qTypeArguments[i];
+      if ((variance == Variance.covariant || variance == Variance.invariant) &&
+          !performSubtypeConstraintGenerationInternal(M, N,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        restoreState(state);
+        return false;
+      }
+      if ((variance == Variance.contravariant ||
+              variance == Variance.invariant) &&
+          !performSubtypeConstraintGenerationInternal(N, M,
+              leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
+        restoreState(state);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _interfaceTypes(TypeStructure p, TypeStructure q, bool leftSchema,
+      {required AstNode? astNodeForTesting}) {
+    if (p.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    if (q.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    // If `P` is `C0<M0, ..., Mk>` and `Q` is `C1<N0, ..., Nj>` then the match
+    // holds with respect to `L` under constraints `C`:
+    //   If `C1<B0, ..., Bj>` is a superinterface of `C0<M0, ..., Mk>` and
+    //   `C1<B0, ..., Bj>` is a subtype match for `C1<N0, ..., Nj>` with
+    //   respect to `L` under constraints `C`.
+
+    if ((
+      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(p)),
+      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(q))
+    )
+        case (
+          TypeDeclarationMatchResult(
+            typeDeclarationType: TypeDeclarationType pTypeDeclarationType
+          ),
+          TypeDeclarationMatchResult(
+            typeDeclaration: TypeDeclaration qTypeDeclaration,
+            typeArguments: List<TypeStructure> qTypeArguments
+          )
+        )) {
+      if (getTypeArgumentsAsInstanceOf(pTypeDeclarationType, qTypeDeclaration)
+          case List<TypeStructure> typeArguments) {
+        return _interfaceTypeArguments(
+            qTypeDeclaration, typeArguments, qTypeArguments, leftSchema,
+            astNodeForTesting: astNodeForTesting);
+      }
+    }
+
+    return false;
+  }
+
+  /// Returns the type arguments of the supertype of [type] that is an
+  /// instantiation of [typeDeclaration]. If none of the supertypes of [type]
+  /// are instantiations of [typeDeclaration], returns null.
+  List<TypeStructure>? getTypeArgumentsAsInstanceOf(
+      TypeDeclarationType type, TypeDeclaration typeDeclaration);
 }
 
 /// Representation of the state of [TypeConstraintGenerator].

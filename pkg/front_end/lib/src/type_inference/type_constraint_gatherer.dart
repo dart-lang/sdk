@@ -10,8 +10,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
         TypeConstraintGenerator,
         TypeConstraintGeneratorMixin,
         TypeConstraintGeneratorState,
-        TypeDeclarationKind,
-        TypeDeclarationMatchResult,
         Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
@@ -95,6 +93,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         .getInterfaceMember(class_, name, setter: setter);
   }
 
+  @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
       TypeDeclarationType type, TypeDeclaration typeDeclaration) {
     return _environment.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
@@ -690,98 +689,11 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       _protoConstraints.length = baseConstraintCount;
     }
 
-    switch ((
-      typeOperations.matchTypeDeclarationType(new SharedTypeView(p)),
-      typeOperations.matchTypeDeclarationType(new SharedTypeView(q))
-    )) {
-      // If P is C<M0, ..., Mk> and Q is C<N0, ..., Nk>, then the match holds
-      // under constraints C0 + ... + Ck:
-      //
-      // If Mi is a subtype match for Ni with respect to L under constraints Ci.
-      case (
-            shared.TypeDeclarationMatchResult(
-              typeDeclarationKind: shared.TypeDeclarationKind pDeclarationKind,
-              typeDeclaration: TypeDeclaration pDeclarationObject,
-              typeDeclarationType: TypeDeclarationType _,
-              typeArguments: List<DartType> pTypeArguments
-            ),
-            shared.TypeDeclarationMatchResult(
-              typeDeclarationKind: shared.TypeDeclarationKind qDeclarationKind,
-              typeDeclaration: TypeDeclaration qDeclarationObject,
-              typeDeclarationType: TypeDeclarationType _,
-              typeArguments: List<DartType> qTypeArguments
-            )
-          )
-          when pDeclarationKind == qDeclarationKind &&
-              pDeclarationObject == qDeclarationObject:
-        assert(pTypeArguments.length == qTypeArguments.length);
-
-        final int baseConstraintCount = _protoConstraints.length;
-        bool isMatch = true;
-        for (int i = 0; isMatch && i < pTypeArguments.length; ++i) {
-          shared.Variance variance =
-              typeOperations.getTypeParameterVariance(pDeclarationObject, i);
-          if (variance == shared.Variance.covariant ||
-              variance == shared.Variance.invariant) {
-            isMatch = isMatch &&
-                _isNullabilityAwareSubtypeMatch(
-                    pTypeArguments[i], qTypeArguments[i],
-                    constrainSupertype: constrainSupertype,
-                    treeNodeForTesting: treeNodeForTesting);
-          }
-          if (variance == shared.Variance.contravariant ||
-              variance == shared.Variance.invariant) {
-            isMatch = isMatch &&
-                _isNullabilityAwareSubtypeMatch(
-                    qTypeArguments[i], pTypeArguments[i],
-                    constrainSupertype: !constrainSupertype,
-                    treeNodeForTesting: treeNodeForTesting);
-          }
-        }
-        if (isMatch) return true;
-        _protoConstraints.length = baseConstraintCount;
-
-      // If P is C0<M0, ..., Mk> and Q is C1<N0, ..., Nj> then the match holds
-      // with respect to L under constraints C:
-      //
-      // If C1<B0, ..., Bj> is a superinterface of C0<M0, ..., Mk> and C1<B0,
-      // ..., Bj> is a subtype match for C1<N0, ..., Nj> with respect to L under
-      // constraints C.
-      case (
-          shared.TypeDeclarationMatchResult(
-            typeDeclarationKind: shared.TypeDeclarationKind _,
-            typeDeclaration: TypeDeclaration _,
-            typeDeclarationType: TypeDeclarationType pTypeDeclarationType,
-            typeArguments: List<DartType> _
-          ),
-          shared.TypeDeclarationMatchResult(
-            typeDeclarationKind: shared.TypeDeclarationKind _,
-            typeDeclaration: TypeDeclaration qDeclarationObject,
-            typeDeclarationType: TypeDeclarationType _,
-            typeArguments: List<DartType> qTypeArguments
-          )
-        ):
-        final List<DartType>? sArguments = getTypeArgumentsAsInstanceOf(
-            pTypeDeclarationType, qDeclarationObject);
-        if (sArguments != null) {
-          assert(sArguments.length == qTypeArguments.length);
-
-          final int baseConstraintCount = _protoConstraints.length;
-          bool isMatch = true;
-          for (int i = 0; isMatch && i < sArguments.length; ++i) {
-            isMatch = isMatch &&
-                _isNullabilityAwareSubtypeMatch(
-                    sArguments[i], qTypeArguments[i],
-                    constrainSupertype: constrainSupertype,
-                    treeNodeForTesting: treeNodeForTesting);
-          }
-          if (isMatch) return true;
-          // Coverage-ignore-block(suite): Not run.
-          _protoConstraints.length = baseConstraintCount;
-        }
-
-      case (_, _):
-      // Do nothing.
+    bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(
+        p, q,
+        leftSchema: constrainSupertype, astNodeForTesting: treeNodeForTesting);
+    if (result != null) {
+      return result;
     }
 
     // If Q is Function then the match holds under no constraints:
