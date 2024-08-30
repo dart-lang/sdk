@@ -146,8 +146,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final LocalStack<TypeScope> _typeScopes;
 
-  final LocalStack<Map<String, NominalVariableBuilder>>
-      _nominalParameterScopes = new LocalStack([]);
+  final LocalStack<NominalParameterNameSpace> _nominalParameterNameSpaces =
+      new LocalStack([]);
 
   final LocalStack<Map<String, StructuralVariableBuilder>>
       _structuralParameterScopes = new LocalStack([]);
@@ -193,12 +193,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             TypeParameterScopeKind.classOrNamedMixinApplication,
             "class or mixin application");
 
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.declarationTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -266,7 +267,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected type scope: $typeParameterScope.");
 
     _declarationBuilderScopes.pop();
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -334,7 +336,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected type scope: $typeParameterScope.");
 
     _declarationBuilderScopes.pop();
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -383,7 +386,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // Coverage-ignore(suite): Not run.
         "Unexpected type scope: $typeParameterScope.");
 
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -391,12 +395,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginEnumDeclarationHeader(String name) {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
         .createNested(TypeParameterScopeKind.enumDeclaration, name);
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.declarationTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -468,7 +473,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected type scope: $typeParameterScope.");
 
     _declarationBuilderScopes.pop();
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -478,12 +484,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         currentTypeParameterScopeBuilder.createNested(
             TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
             "extension");
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.declarationTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -584,12 +591,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginFactoryMethod() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
         .createNested(TypeParameterScopeKind.factoryMethod, "#factory_method");
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.memberTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -622,19 +630,21 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
-    _checkTypeVariables(null, ownerName: null, allowNameConflict: true);
+    _nominalParameterNameSpaces.pop().addTypeVariables(_problemReporting, null,
+        ownerName: null, allowNameConflict: true);
   }
 
   @override
   void beginConstructor() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
         .createNested(TypeParameterScopeKind.constructor, "#method");
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.memberTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -670,7 +680,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // Coverage-ignore(suite): Not run.
         "Unexpected type scope: $typeVariableScope.");
 
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -678,12 +689,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginStaticMethod() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
         .createNested(TypeParameterScopeKind.staticMethod, "#method");
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.memberTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -717,7 +729,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -725,12 +738,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginInstanceMethod() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
         .createNested(TypeParameterScopeKind.instanceMethod, "#method");
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.memberTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -766,7 +780,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // Coverage-ignore(suite): Not run.
         "Unexpected type scope: $typeVariableScope.");
 
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -774,12 +789,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginTopLevelMethod() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
         .createNested(TypeParameterScopeKind.topLevelMethod, "#method");
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.memberTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -815,7 +831,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // Coverage-ignore(suite): Not run.
         "Unexpected type scope: $typeVariableScope.");
 
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -823,12 +840,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginTypedef() {
     currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
         .createNested(TypeParameterScopeKind.typedef, "#typedef");
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.declarationTypeParameters,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -862,7 +880,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: null, allowNameConflict: true);
   }
 
@@ -900,12 +919,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         currentTypeParameterScopeBuilder.createNested(
             TypeParameterScopeKind.unnamedMixinApplication,
             "mixin application");
-    Map<String, NominalVariableBuilder> nominalParameterScope = {};
-    _nominalParameterScopes.push(nominalParameterScope);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
     _typeScopes.push(new TypeScope(
         TypeScopeKind.unnamedMixinApplication,
-        new TypeParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterScope),
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
   }
 
@@ -941,10 +961,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected declaration builder scope stack: "
         "$_declarationBuilderScopes.");
     assert(
-        _nominalParameterScopes.isEmpty,
+        _nominalParameterNameSpaces.isEmpty,
         // Coverage-ignore(suite): Not run.
-        "Unexpected nominal parameter scope stack : "
-        "$_nominalParameterScopes.");
+        "Unexpected nominal parameter name space stack : "
+        "$_nominalParameterNameSpaces.");
     assert(
         _structuralParameterScopes.isEmpty,
         // Coverage-ignore(suite): Not run.
@@ -1234,15 +1254,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
     // Nested declaration began in `OutlineBuilder.beginEnum`.
     TypeParameterScopeBuilder declaration = endEnumDeclaration(name);
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        _checkTypeVariables(typeVariables,
-            ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = typeVariablesByName != null
-        ? new TypeParameterScope(_scope, typeVariablesByName)
-        : _scope;
+    NominalParameterNameSpace nominalParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+    nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
+        ownerName: name, allowNameConflict: false);
+
+    LookupScope typeParameterScope =
+        new NominalParameterScope(_scope, nominalParameterNameSpace);
     DeclarationNameSpaceBuilder nameSpaceBuilder =
-        declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
+        declaration.toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
@@ -1364,15 +1385,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
 
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        _checkTypeVariables(typeVariables,
-            ownerName: className, allowNameConflict: false);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+    nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
+        ownerName: className, allowNameConflict: false);
 
-    LookupScope typeParameterScope = typeVariablesByName != null
-        ? new TypeParameterScope(_scope, typeVariablesByName)
-        : _scope;
+    LookupScope typeParameterScope =
+        new NominalParameterScope(_scope, nominalParameterNameSpace);
     DeclarationNameSpaceBuilder nameSpaceBuilder =
-        declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
+        declaration.toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
 
     if (isMixinDeclaration) {
       modifiers = abstractMask;
@@ -1467,7 +1488,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isFinal: isFinal,
         isAugmentation: isAugmentation,
         isMixinClass: isMixinClass)!;
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: supertype.declaration!.name, allowNameConflict: false);
   }
 
@@ -1636,7 +1658,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                           InstanceTypeVariableAccessState.Allowed);
               applicationTypeArguments.add(applicationTypeArgument);
             }
-            _checkTypeVariables(applicationTypeVariables,
+            _nominalParameterNameSpaces.pop().addTypeVariables(
+                _problemReporting, applicationTypeVariables,
                 ownerName: fullname, allowNameConflict: true);
             if (supertype != null) {
               supertype = new SynthesizedTypeBuilder(
@@ -1741,15 +1764,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // `OutlineBuilder.beginExtensionDeclarationPrelude`.
     TypeParameterScopeBuilder declaration = endExtensionDeclaration(name);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        _checkTypeVariables(typeVariables,
-            ownerName: name, allowNameConflict: false);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+    nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
+        ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = typeVariablesByName != null
-        ? new TypeParameterScope(_scope, typeVariablesByName)
-        : _scope;
-    DeclarationNameSpaceBuilder extensionNameSpace =
-        declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
+    LookupScope typeParameterScope =
+        new NominalParameterScope(_scope, nominalParameterNameSpace);
+    DeclarationNameSpaceBuilder nameSpaceBuilder =
+        declaration.toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
 
     Extension? referenceFrom;
     ExtensionName extensionName = declaration.extensionName!;
@@ -1764,7 +1787,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeVariables,
         type,
         typeParameterScope,
-        extensionNameSpace,
+        nameSpaceBuilder,
         _parent,
         startOffset,
         nameOffset,
@@ -1796,15 +1819,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endExtensionTypeDeclaration(name);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        _checkTypeVariables(typeVariables,
-            ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = typeVariablesByName != null
-        ? new TypeParameterScope(_scope, typeVariablesByName)
-        : _scope;
+    NominalParameterNameSpace nominalParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+    nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
+        ownerName: name, allowNameConflict: false);
+
+    LookupScope typeParameterScope =
+        new NominalParameterScope(_scope, nominalParameterNameSpace);
     DeclarationNameSpaceBuilder nameSpaceBuilder =
-        declaration.toDeclarationNameSpaceBuilder(typeVariablesByName);
+        declaration.toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
 
     IndexedContainer? indexedContainer =
         indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
@@ -1861,7 +1885,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
         metadata, name, typeVariables, type, _parent, charOffset,
         referenceFrom: referenceFrom);
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: name, allowNameConflict: true);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endTypedef();
@@ -2022,7 +2047,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           nativeMethodName: nativeMethodName,
           forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
     }
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: constructorBuilder.name, allowNameConflict: true);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
     _addBuilderInternal(constructorName, constructorBuilder, charOffset,
@@ -2194,7 +2220,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     endFactoryMethod();
 
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: identifier.name, allowNameConflict: true);
 
     _addBuilderInternal(procedureName, procedureBuilder, charOffset,
@@ -2352,7 +2379,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         asyncModifier,
         nameScheme,
         nativeMethodName: nativeMethodName);
-    _checkTypeVariables(typeVariables,
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
         ownerName: procedureBuilder.name, allowNameConflict: true);
     _addBuilderInternal(name, procedureBuilder, charOffset,
         getterReference: procedureReference);
@@ -2714,47 +2742,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _unboundStructuralVariables.add(builder);
     return builder;
-  }
-
-  Map<String, NominalVariableBuilder>? _checkTypeVariables(
-      List<NominalVariableBuilder>? typeVariables,
-      {required String? ownerName,
-      required bool allowNameConflict}) {
-    Map<String, NominalVariableBuilder> typeVariablesByName =
-        _nominalParameterScopes.pop();
-    if (typeVariables == null || typeVariables.isEmpty) return null;
-    for (NominalVariableBuilder tv in typeVariables) {
-      NominalVariableBuilder? existing = typeVariablesByName[tv.name];
-      if (tv.isWildcard) continue;
-      if (existing != null) {
-        if (existing.kind == TypeVariableKind.extensionSynthesized) {
-          // The type parameter from the extension is shadowed by the type
-          // parameter from the member. Rename the shadowed type parameter.
-          existing.parameter.name = '#${existing.name}';
-          typeVariablesByName[tv.name] = tv;
-        } else {
-          _problemReporting.addProblem(messageTypeVariableDuplicatedName,
-              tv.charOffset, tv.name.length, _compilationUnit.fileUri,
-              context: [
-                templateTypeVariableDuplicatedNameCause
-                    .withArguments(tv.name)
-                    .withLocation(_compilationUnit.fileUri, existing.charOffset,
-                        existing.name.length)
-              ]);
-        }
-      } else {
-        typeVariablesByName[tv.name] = tv;
-        // Only classes and extension types and type variables can't have the
-        // same name. See
-        // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
-        // [#54602](https://github.com/dart-lang/sdk/issues/54602).
-        if (tv.name == ownerName && !allowNameConflict) {
-          _problemReporting.addProblem(messageTypeVariableSameNameAsEnclosing,
-              tv.charOffset, tv.name.length, _compilationUnit.fileUri);
-        }
-      }
-    }
-    return typeVariablesByName;
   }
 
   @override

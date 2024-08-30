@@ -324,12 +324,12 @@ class TypeParameterScopeBuilder {
   }
 
   DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
-      Map<String, NominalVariableBuilder>? typeVariables) {
+      NominalParameterNameSpace? nominalParameterNameSpace) {
     assert(members == null);
     assert(setters == null);
     assert(extensions == null);
     return new DeclarationNameSpaceBuilder._(
-        name, typeVariables, _addedBuilders);
+        name, nominalParameterNameSpace, _addedBuilders);
   }
 
   void addBuilderToDeclaration(
@@ -339,6 +339,59 @@ class TypeParameterScopeBuilder {
 
   @override
   String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
+}
+
+class NominalParameterScope extends AbstractTypeParameterScope {
+  final NominalParameterNameSpace _nameSpace;
+
+  NominalParameterScope(super._parent, this._nameSpace);
+
+  @override
+  Builder? getTypeParameter(String name) => _nameSpace.getTypeParameter(name);
+}
+
+class NominalParameterNameSpace {
+  Map<String, NominalVariableBuilder> _typeParametersByName = {};
+
+  NominalVariableBuilder? getTypeParameter(String name) =>
+      _typeParametersByName[name];
+
+  void addTypeVariables(ProblemReporting _problemReporting,
+      List<NominalVariableBuilder>? typeVariables,
+      {required String? ownerName, required bool allowNameConflict}) {
+    if (typeVariables == null || typeVariables.isEmpty) return;
+    for (NominalVariableBuilder tv in typeVariables) {
+      NominalVariableBuilder? existing = _typeParametersByName[tv.name];
+      if (tv.isWildcard) continue;
+      if (existing != null) {
+        if (existing.kind == TypeVariableKind.extensionSynthesized) {
+          // The type parameter from the extension is shadowed by the type
+          // parameter from the member. Rename the shadowed type parameter.
+          existing.parameter.name = '#${existing.name}';
+          _typeParametersByName[tv.name] = tv;
+        } else {
+          _problemReporting.addProblem(messageTypeVariableDuplicatedName,
+              tv.charOffset, tv.name.length, tv.fileUri,
+              context: [
+                templateTypeVariableDuplicatedNameCause
+                    .withArguments(tv.name)
+                    .withLocation(existing.fileUri!, existing.charOffset,
+                        existing.name.length)
+              ]);
+        }
+      } else {
+        _typeParametersByName[tv.name] = tv;
+        // Only classes and extension types and type variables can't have the
+        // same name. See
+        // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
+        // [#54602](https://github.com/dart-lang/sdk/issues/54602).
+        if (tv.name == ownerName && !allowNameConflict) {
+          _problemReporting.addProblem(messageTypeVariableSameNameAsEnclosing,
+              tv.charOffset, tv.name.length, tv.fileUri);
+        }
+      }
+    }
+  }
 }
 
 class _AddBuilder {
@@ -352,16 +405,16 @@ class _AddBuilder {
 
 class DeclarationNameSpaceBuilder {
   final String _name;
-  final Map<String, NominalVariableBuilder>? _typeVariables;
+  final NominalParameterNameSpace? _nominalParameterNameSpace;
   final List<_AddBuilder> _addedBuilders;
 
   DeclarationNameSpaceBuilder.empty()
       : _name = '',
-        _typeVariables = null,
+        _nominalParameterNameSpace = null,
         _addedBuilders = const [];
 
   DeclarationNameSpaceBuilder._(
-      this._name, this._typeVariables, this._addedBuilders);
+      this._name, this._nominalParameterNameSpace, this._addedBuilders);
 
   void _addBuilder(
       ProblemReporting problemReporting,
@@ -435,8 +488,9 @@ class DeclarationNameSpaceBuilder {
 
   void checkTypeVariableConflict(ProblemReporting _problemReporting,
       String name, Builder member, Uri fileUri) {
-    if (_typeVariables != null) {
-      NominalVariableBuilder? tv = _typeVariables![name];
+    if (_nominalParameterNameSpace != null) {
+      NominalVariableBuilder? tv =
+          _nominalParameterNameSpace.getTypeParameter(name);
       if (tv != null) {
         _problemReporting.addProblem(
             templateConflictsWithTypeVariable.withArguments(name),
