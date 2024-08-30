@@ -621,7 +621,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --inlining
       --minify
       --omit-implicit-checks
-      --omit-explicit-checks
       --omit-bounds-checks
     '''); // end of optimizationLevel4Flags
 
