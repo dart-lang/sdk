@@ -23,13 +23,6 @@ void testTypedData() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //              ^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
-  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
-
-  // The second[cfe] error is not expected actually,
-  // its a bug. Reported here https://github.com/dart-lang/sdk/issues/56462
-  // once it fixed the second error can be removed.
-  // This is same across remaining test cases (testStructField, testUnionField),
-  // where in every `myNative()` call the second error is not expected.
 }
 
 void testStructField() {
@@ -43,7 +36,6 @@ void testStructField() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //                    ^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
-  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 
   myNativeNonLeaf(myStruct.value.address.cast());
   //                             ^^^^^^^
@@ -55,8 +47,6 @@ void testStructField() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //                              ^^^^^^^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
-  //                      ^^^^^^^
-  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 }
 
 void testUnionField() {
@@ -71,7 +61,6 @@ void testUnionField() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //                   ^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
-  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 
   myNativeNonLeaf(myUnion.value.address.cast());
   //                            ^^^^^^^
@@ -83,8 +72,6 @@ void testUnionField() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //                             ^^^^^^^^^^^^^
   // [cfe] The argument type 'Pointer<Int32>' can't be assigned to the parameter type 'Pointer<Void>'.
-  //                     ^^^^^^^
-  // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
 }
 
 void main() {
