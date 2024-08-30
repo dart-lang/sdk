@@ -1325,8 +1325,9 @@ if (!self.deferred_loader) {
           throw 'Library not defined: ' + libraryName + '. Failed to initialize.';
         }
         currentLibrary = initializer(currentLibrary);
-        // TODO(nshahan): Link the library when link methods are added to the
-        // compiled output.
+        // Link the library. This action will trigger the initialization and
+        // linking of dependency libraries as needed.
+        currentLibrary.link();
         this.libraries[libraryName] = currentLibrary;
       }
       if (installFn != null) {

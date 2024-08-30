@@ -877,6 +877,29 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return compiledLibrary;
   }
 
+  /// Returns a method that will perform all class hierarchy operations for the
+  /// classes defined in this module.
+  ///
+  /// At a high level this method performs the prototype stitching for all
+  /// `class A extends B` relationships but in practice will also include the
+  /// operations that implicitly depend on those relationships to be established
+  /// so they can walk the prototype chain.
+  js_ast.Statement _emitLibraryLinkMethod(Library library) {
+    var libraryName = _emitLibraryName(library);
+    var nameExpr = js_ast.PropertyAccess.field(libraryName, 'link');
+    var functionName = _emitTemporaryId('link__${_jsLibraryName(library)}');
+
+    var parameters = const <js_ast.Parameter>[];
+    var body = js_ast.Block([
+      // TODO(nshahan): Remove logging and add linking statements here.
+      js.statement(
+          'console.log("Linking library: ${_jsLibraryName(library)}")'),
+    ]);
+    var function =
+        js_ast.NamedFunction(functionName, js_ast.Fun(parameters, body));
+    return js.statement('# = #', [nameExpr, function]);
+  }
+
   /// Choose a canonical name from the [library] element.
   String _jsLibraryName(Library library) {
     return libraryUriToJsIdentifier(library.importUri);
@@ -998,7 +1021,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
     }
-
+    // Additional method used by the module system to link class hierarchies.
+    _moduleItems.add(_emitLibraryLinkMethod(library));
     _staticTypeContext.leaveLibrary(_currentLibrary!);
   }
 

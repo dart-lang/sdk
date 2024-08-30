@@ -915,9 +915,31 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
     }
-
+    if (_options.emitLibraryBundle) {
+      // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+      // `LibraryBundleCompiler`.
+      _moduleItems.add(_emitEmptyLinkMethod(
+          _jsLibraryName(library), _emitLibraryName(library)));
+    }
     _staticTypeContext.leaveLibrary(_currentLibrary!);
     _currentLibrary = null;
+  }
+
+  /// Returns an empty placeholder link method for the libraries in the SDK.
+  ///
+  /// This is a temporary solution to allow the Dart SDK to act like it was
+  /// compiled as a bundle of individual libraries.
+  // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+  // `LibraryBundleCompiler`.
+  js_ast.Statement _emitEmptyLinkMethod(
+      String libraryName, js_ast.Identifier libraryId) {
+    assert(_options.emitLibraryBundle && _isBuildingSdk);
+    var functionName = _emitTemporaryId('link__$libraryName');
+    return js.statement('# = #', [
+      js_ast.PropertyAccess.field(libraryId, 'link'),
+      js_ast.NamedFunction(
+          functionName, js_ast.Fun(const [], js_ast.Block(const [])))
+    ]);
   }
 
   void _emitExports(Library library) {
@@ -8242,6 +8264,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// field of the result.
   js_ast.Program _finishModule(List<js_ast.ModuleItem> items, String moduleName,
       {List<js_ast.Comment> header = const []}) {
+    if (_options.emitLibraryBundle) {
+      assert(_isBuildingSdk);
+      // Manually add a link method for the runtime "dartx" library. It is
+      // synthetically created by DDC and doesn't have an associated kernel
+      // library node.
+      // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+      // `LibraryBundleCompiler`.
+      _moduleItems.add(_emitEmptyLinkMethod('dartx', _extensionSymbolsModule));
+    }
     // TODO(jmesserly): there's probably further consolidation we can do
     // between DDC's two backends, by moving more code into this method, as the
     // code between `startModule` and `finishModule` is very similar in both.
