@@ -22,7 +22,8 @@ part 'named_lookup.dart';
 
 final isolateControlPort = RawReceivePort(null, 'Isolate Control Port');
 
-String _makeAuthToken() {
+// The randomly generated auth token used to access the VM service.
+late final String serviceAuthToken = () {
   final kTokenByteSize = 8;
   Uint8List bytes = Uint8List(kTokenByteSize);
   Random random = Random.secure();
@@ -30,10 +31,7 @@ String _makeAuthToken() {
     bytes[i] = random.nextInt(256);
   }
   return base64Url.encode(bytes);
-}
-
-// The randomly generated auth token used to access the VM service.
-final serviceAuthToken = _makeAuthToken();
+}();
 
 // These must be kept in sync with the declarations in vm/json_stream.h and
 // pkg/dds/lib/src/rpc_error_codes.dart.
@@ -448,41 +446,37 @@ class VMService extends MessageRouter {
 
   void messageHandler(message) {
     if (message is List) {
-      if (message.length == 2) {
+      if (message case [String streamId, Object event]) {
         // This is an event.
-        _eventMessageHandler(
-            message[0] as String, Response.from(message[1] as Object));
+        _eventMessageHandler(streamId, Response.from(event));
         return;
       }
-      if (message.length == 1) {
+      if (message case [int opcode]) {
         // This is a control message directing the vm service to exit.
-        assert(message[0] == Constants.SERVICE_EXIT_MESSAGE_ID);
+        assert(opcode == Constants.SERVICE_EXIT_MESSAGE_ID);
         _exit();
         return;
       }
-      final opcode = message[0];
-      if (message.length == 3 && opcode == Constants.METHOD_CALL_FROM_NATIVE) {
-        _handleNativeRpcCall(message[1] as List<int>, message[2] as SendPort);
+      if (message case [int opcode, List<int> messageBytes, SendPort replyPort]
+          when opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+        _handleNativeRpcCall(messageBytes, replyPort);
         return;
       }
-      if (message.length == 4) {
-        if ((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
-            (opcode == Constants.SERVER_INFO_MESSAGE_ID)) {
-          // This is a message interacting with the web server.
-          _serverMessageHandler(
-            message[0] as int,
-            message[1] as SendPort,
-            message[2] as bool,
-            message[3] as bool?,
-          );
-          return;
-        } else {
-          // This is a message informing us of the birth or death of an
-          // isolate.
-          _controlMessageHandler(message[0] as int, message[1] as int,
-              message[2] as SendPort, message[3] as String);
-          return;
-        }
+      if (message
+          case [int opcode, SendPort sendPort, bool enable, bool? silenceOutput]
+          when opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID ||
+              opcode == Constants.SERVER_INFO_MESSAGE_ID) {
+        // This is a message interacting with the web server.
+        _serverMessageHandler(opcode, sendPort, enable, silenceOutput);
+        return;
+      }
+      if (message case [int opcode, int portId, SendPort sendPort, String name]
+          when opcode == Constants.ISOLATE_STARTUP_MESSAGE_ID ||
+              opcode == Constants.ISOLATE_SHUTDOWN_MESSAGE_ID) {
+        // This is a message informing us of the birth or death of an
+        // isolate.
+        _controlMessageHandler(opcode, portId, sendPort, name);
+        return;
       }
       print('Internal vm-service error: ignoring illegal message: $message');
     }
