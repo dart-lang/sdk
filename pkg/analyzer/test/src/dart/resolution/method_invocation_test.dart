@@ -2112,6 +2112,7 @@ main() {
   math?.loadLibrary();
 }
 ''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
     ]);
 

@@ -198,8 +198,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
       element = null;
-    } else if (element is PrefixElementImpl && !_isValidAsPrefix(node)) {
-      element.scope.notifyErrorReported();
+    } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
       errorReporter.atNode(
         node,
         CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
