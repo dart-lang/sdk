@@ -7,10 +7,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     show
         TypeConstraintGenerator,
         TypeConstraintGeneratorMixin,
-        TypeConstraintGeneratorState,
-        TypeDeclarationKind,
-        TypeDeclarationMatchResult,
-        Variance;
+        TypeConstraintGeneratorState;
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -91,6 +88,20 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
 
     return result;
+  }
+
+  @override
+  List<DartType>? getTypeArgumentsAsInstanceOf(
+      InterfaceType type, InterfaceElement typeDeclaration) {
+    for (var interface in type.element.allSupertypes) {
+      if (interface.element == typeDeclaration) {
+        var substitution = Substitution.fromInterfaceType(type);
+        var substitutedInterface =
+            substitution.substituteType(interface) as InterfaceType;
+        return substitutedInterface.typeArguments;
+      }
+    }
+    return null;
   }
 
   @override
@@ -291,52 +302,11 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       _constraints.length = rewind;
     }
 
-    switch ((
-      _typeSystemOperations.matchTypeDeclarationType(SharedTypeView(P)),
-      _typeSystemOperations.matchTypeDeclarationType(SharedTypeView(Q))
-    )) {
-      // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
-      // holds under constraints `C0 + ... + Ck`:
-      //   If `Mi` is a subtype match for `Ni` with respect to L under
-      //   constraints `Ci`.
-      case (
-            shared.TypeDeclarationMatchResult(
-              typeDeclarationKind: shared.TypeDeclarationKind
-                  P_typeDeclarationKind,
-              typeDeclaration: InterfaceElement P_declarationObject,
-              typeDeclarationType: InterfaceType _,
-              typeArguments: List<DartType> P_typeArguments
-            ),
-            shared.TypeDeclarationMatchResult(
-              typeDeclarationKind: shared.TypeDeclarationKind
-                  Q_typeDeclarationKind,
-              typeDeclaration: InterfaceElement Q_declarationObject,
-              typeDeclarationType: InterfaceType _,
-              typeArguments: List<DartType> Q_typeArguments
-            )
-          )
-          when P_typeDeclarationKind == Q_typeDeclarationKind &&
-              P_declarationObject == Q_declarationObject:
-        return _interfaceType_arguments(P_declarationObject, P_typeArguments,
-            Q_declarationObject, Q_typeArguments, leftSchema,
-            nodeForTesting: nodeForTesting);
-
-      case (
-          shared.TypeDeclarationMatchResult(
-            typeDeclarationKind: shared.TypeDeclarationKind _,
-            typeDeclaration: InterfaceElement _,
-            typeDeclarationType: InterfaceType P_interfaceType,
-            typeArguments: List<DartType> _
-          ),
-          shared.TypeDeclarationMatchResult(
-            typeDeclarationKind: shared.TypeDeclarationKind _,
-            typeDeclaration: InterfaceElement _,
-            typeDeclarationType: InterfaceType Q_interfaceType,
-            typeArguments: List<DartType> _
-          )
-        ):
-        return _interfaceType(P_interfaceType, Q_interfaceType, leftSchema,
-            nodeForTesting: nodeForTesting);
+    bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(
+        P, Q,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting);
+    if (result != null) {
+      return result;
     }
 
     // If `Q` is `Function` then the match holds under no constraints:
@@ -579,77 +549,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     if (gIndex < gParameters.length) {
       _constraints.length = rewind;
       return false;
-    }
-
-    return true;
-  }
-
-  bool _interfaceType(InterfaceType P, InterfaceType Q, bool leftSchema,
-      {required AstNode? nodeForTesting}) {
-    if (P.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    if (Q.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    // If `P` is `C0<M0, ..., Mk>` and `Q` is `C1<N0, ..., Nj>` then the match
-    // holds with respect to `L` under constraints `C`:
-    //   If `C1<B0, ..., Bj>` is a superinterface of `C0<M0, ..., Mk>` and
-    //   `C1<B0, ..., Bj>` is a subtype match for `C1<N0, ..., Nj>` with
-    //   respect to `L` under constraints `C`.
-    var C0 = P.element;
-    var C1 = Q.element;
-    for (var interface in C0.allSupertypes) {
-      if (interface.element == C1) {
-        var substitution = Substitution.fromInterfaceType(P);
-        var substitutedInterface =
-            substitution.substituteType(interface) as InterfaceType;
-        return _interfaceType_arguments(
-            substitutedInterface.element,
-            substitutedInterface.typeArguments,
-            Q.element,
-            Q.typeArguments,
-            leftSchema,
-            nodeForTesting: nodeForTesting);
-      }
-    }
-
-    return false;
-  }
-
-  /// Match arguments [P_typeArguments] of P against arguments [Q_typeArguments]
-  /// of Q, taking into account the variance of type variables in [P_element]
-  /// and [Q_element]. If returns `false`, the constraints are unchanged.
-  bool _interfaceType_arguments(
-      InterfaceElement P_element,
-      List<DartType> P_typeArguments,
-      InterfaceElement Q_element,
-      List<DartType> Q_typeArguments,
-      bool leftSchema,
-      {required AstNode? nodeForTesting}) {
-    assert(P_typeArguments.length == Q_typeArguments.length);
-
-    var rewind = _constraints.length;
-
-    for (var i = 0; i < P_typeArguments.length; i++) {
-      var variance =
-          _typeSystemOperations.getTypeParameterVariance(P_element, i);
-      var M = P_typeArguments[i];
-      var N = Q_typeArguments[i];
-      if ((variance == shared.Variance.covariant ||
-              variance == shared.Variance.invariant) &&
-          !trySubtypeMatch(M, N, leftSchema, nodeForTesting: nodeForTesting)) {
-        _constraints.length = rewind;
-        return false;
-      }
-      if ((variance == shared.Variance.contravariant ||
-              variance == shared.Variance.invariant) &&
-          !trySubtypeMatch(N, M, leftSchema, nodeForTesting: nodeForTesting)) {
-        _constraints.length = rewind;
-        return false;
-      }
     }
 
     return true;

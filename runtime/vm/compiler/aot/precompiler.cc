@@ -1268,19 +1268,27 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     AddTypeArguments(TypeArguments::Handle(Z, instance.GetTypeArguments()));
   }
 
-  class ConstObjectVisitor : public ObjectPointerVisitor {
+  // Collects instances directly referenced from an object.
+  class SubInstanceCollector : public ObjectPointerVisitor {
    public:
-    ConstObjectVisitor(Precompiler* precompiler, IsolateGroup* isolate_group)
-        : ObjectPointerVisitor(isolate_group),
-          precompiler_(precompiler),
-          subinstance_(Object::Handle()) {}
+    explicit SubInstanceCollector(IsolateGroup* isolate_group)
+        : ObjectPointerVisitor(isolate_group), subinstance_(Object::Handle()) {}
+
+    void HandlePointer(ObjectPtr ptr) {
+      // Note: do not invoke AddConstObject recursively here because it can
+      // cause a GC which would invalidate raw pointers we are working with.
+      // Instead collect all instance pointers in an array of handles they
+      // will be processed later.
+      subinstance_ = ptr;
+      if (subinstance_.IsInstance()) {
+        subinstances_.Add(
+            &Instance::Handle(Instance::Cast(subinstance_).ptr()));
+      }
+    }
 
     void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
       for (ObjectPtr* current = first; current <= last; current++) {
-        subinstance_ = *current;
-        if (subinstance_.IsInstance()) {
-          precompiler_->AddConstObject(Instance::Cast(subinstance_));
-        }
+        HandlePointer(*current);
       }
       subinstance_ = Object::null();
     }
@@ -1290,22 +1298,34 @@ void Precompiler::AddConstObject(const class Instance& instance) {
                                  CompressedObjectPtr* first,
                                  CompressedObjectPtr* last) override {
       for (CompressedObjectPtr* current = first; current <= last; current++) {
-        subinstance_ = current->Decompress(heap_base);
-        if (subinstance_.IsInstance()) {
-          precompiler_->AddConstObject(Instance::Cast(subinstance_));
-        }
+        HandlePointer(current->Decompress(heap_base));
       }
       subinstance_ = Object::null();
     }
 #endif
 
+    const GrowableArray<class Instance*>& subinstances() const {
+      return subinstances_;
+    }
+
    private:
-    Precompiler* precompiler_;
     Object& subinstance_;
+    GrowableArray<class Instance*> subinstances_;
   };
 
-  ConstObjectVisitor visitor(this, IG);
-  instance.ptr()->untag()->VisitPointers(&visitor);
+  SubInstanceCollector visitor(IG);
+  {
+    NoSafepointScope no_safepoint_scope;  // Working with raw pointers here.
+    instance.ptr()->untag()->VisitPointers(&visitor);
+  }
+
+  // Recursively call AddConstObject on all subinstances.
+  //
+  // Note: AddConstObject can trigger GC.
+  for (auto instance : visitor.subinstances()) {
+    AddConstObject(*instance);
+    *instance = Instance::null();
+  }
 }
 
 void Precompiler::AddClosureCall(const String& call_selector,

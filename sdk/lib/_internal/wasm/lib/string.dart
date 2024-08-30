@@ -8,12 +8,12 @@ import "dart:_internal"
         ClassID,
         EfficientLengthIterable,
         indexCheck,
-        makeListFixedLength,
         unsafeCast,
         WasmStringBase;
 
 import 'dart:_js_helper' show JS, jsStringFromDartString, jsStringToDartString;
 import 'dart:_string';
+import 'dart:_list';
 import 'dart:_object_helper';
 import 'dart:_string_helper';
 import 'dart:_typed_data';
@@ -263,7 +263,7 @@ abstract final class StringBase extends WasmStringBase
     // If <0 or >0xFFFFF at the end, inputs were not valid.
     int bits = 0;
     int takeCount = end == null ? -1 : end - start;
-    final list = <int>[];
+    final list = GrowableList<int>(0);
     while (takeCount != 0 && it.moveNext()) {
       takeCount--;
       int code = it.current;
@@ -282,13 +282,16 @@ abstract final class StringBase extends WasmStringBase
     if (bits.gtU(0xFFFFF)) {
       throw ArgumentError(charCodes);
     }
-    List<int> charCodeList = makeListFixedLength<int>(list);
-    int length = charCodeList.length;
-    bool isOneByteString = (bits <= _maxLatin1);
+    final int length = list.length;
+    final bool isOneByteString = (bits <= _maxLatin1);
     if (isOneByteString) {
-      return createOneByteString(charCodeList, 0, length);
+      final charCodeList = WasmArray<WasmI8>(length);
+      for (int i = 0; i < length; ++i) charCodeList.write(i, list[i]);
+      return OneByteString.withData(charCodeList);
     }
-    return TwoByteString.allocateFromTwoByteList(charCodeList, 0, length);
+    final charCodeList = WasmArray<WasmI16>(length);
+    for (int i = 0; i < length; ++i) charCodeList.write(i, list[i]);
+    return TwoByteString.withData(charCodeList);
   }
 
   static String createOneByteString(List<int> charCodes, int start, int len) {
@@ -1582,6 +1585,9 @@ final class TwoByteString extends StringBase {
   final WasmArray<WasmI16> _array;
 
   TwoByteString.withLength(int length) : _array = WasmArray<WasmI16>(length);
+
+  @pragma("wasm:prefer-inline")
+  TwoByteString.withData(this._array);
 
   // Same hash as VM
   @override

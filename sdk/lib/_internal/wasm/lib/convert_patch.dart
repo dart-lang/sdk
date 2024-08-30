@@ -8,7 +8,7 @@ import "dart:_internal"
 import "dart:_js_string_convert";
 import "dart:_js_types";
 import "dart:_js_helper" show jsStringToDartString;
-import "dart:_list" show GrowableList, GrowableListUnsafeExtensions;
+import "dart:_list" show GrowableList, WasmListBaseUnsafeExtensions;
 import "dart:_string";
 import "dart:_typed_data";
 import "dart:_wasm";
