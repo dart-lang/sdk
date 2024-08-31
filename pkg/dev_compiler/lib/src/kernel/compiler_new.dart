@@ -867,15 +867,37 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit the hoisted instantiated generic class table cache variables
     items.addAll(_genericClassTable.dischargeBoundTypes());
     _ticker?.logMs('Emitted instantiated generic class table');
-
-    var module = _finishLibrary(
-        items, _jsLibraryName(library), _emitLibraryName(library));
+    var compiledLibrary = _finishLibrary(
+        items, '${library.importUri}', _emitLibraryName(library));
     _ticker?.logMs('Finished emitting module');
 
     // Mark as finished for incremental mode, so it is safe to
     // switch to the incremental mode for expression compilation.
     _moduleEmitted = true;
-    return module;
+    return compiledLibrary;
+  }
+
+  /// Returns a method that will perform all class hierarchy operations for the
+  /// classes defined in this module.
+  ///
+  /// At a high level this method performs the prototype stitching for all
+  /// `class A extends B` relationships but in practice will also include the
+  /// operations that implicitly depend on those relationships to be established
+  /// so they can walk the prototype chain.
+  js_ast.Statement _emitLibraryLinkMethod(Library library) {
+    var libraryName = _emitLibraryName(library);
+    var nameExpr = js_ast.PropertyAccess.field(libraryName, 'link');
+    var functionName = _emitTemporaryId('link__${_jsLibraryName(library)}');
+
+    var parameters = const <js_ast.Parameter>[];
+    var body = js_ast.Block([
+      // TODO(nshahan): Remove logging and add linking statements here.
+      js.statement(
+          'console.log("Linking library: ${_jsLibraryName(library)}")'),
+    ]);
+    var function =
+        js_ast.NamedFunction(functionName, js_ast.Fun(parameters, body));
+    return js.statement('# = #', [nameExpr, function]);
   }
 
   /// Choose a canonical name from the [library] element.
@@ -999,7 +1021,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
     }
-
+    // Additional method used by the module system to link class hierarchies.
+    _moduleItems.add(_emitLibraryLinkMethod(library));
     _staticTypeContext.leaveLibrary(_currentLibrary!);
   }
 
@@ -8023,35 +8046,37 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         //     import {foo} from 'foo';         // if no rename needed
         //     import {foo as foo$} from 'foo'; // if rename was needed
         //
-        var imports = <js_ast.NameSpecifier>[];
         for (var library in libraries) {
           if (!_incrementalMode ||
               usedLibraries!.contains(_jsLibraryName(library))) {
             var alias = _jsLibraryAlias(library);
             if (alias != null) {
               var aliasId = js_ast.TemporaryId(alias);
-              imports.add(
-                  js_ast.NameSpecifier(aliasId, asName: _imports[library]));
+              items.add(js_ast.ImportDeclaration(
+                  from: js.string('${library.importUri}'),
+                  namedImports: [
+                    js_ast.NameSpecifier(aliasId, asName: _imports[library])
+                  ]));
             } else {
-              imports.add(js_ast.NameSpecifier(_imports[library]));
+              items.add(js_ast.ImportDeclaration(
+                  from: js.string('${library.importUri}'),
+                  namedImports: [js_ast.NameSpecifier(_imports[library])]));
             }
           }
         }
-
         if (module == coreModuleName) {
           if (!_incrementalMode ||
               usedLibraries!.contains(_runtimeModule.name)) {
-            imports.add(js_ast.NameSpecifier(_runtimeModule));
+            items.add(js_ast.ImportDeclaration(
+                from: js.string('dart:_runtime'),
+                namedImports: [js_ast.NameSpecifier(_runtimeModule)]));
           }
           if (!_incrementalMode ||
               usedLibraries!.contains(_extensionSymbolsModule.name)) {
-            imports.add(js_ast.NameSpecifier(_extensionSymbolsModule));
+            items.add(js_ast.ImportDeclaration(
+                from: js.string('dartx'),
+                namedImports: [js_ast.NameSpecifier(_extensionSymbolsModule)]));
           }
-        }
-
-        if (!_incrementalMode || imports.isNotEmpty) {
-          items.add(js_ast.ImportDeclaration(
-              namedImports: imports, from: js.string(module, "'")));
         }
       }
     });

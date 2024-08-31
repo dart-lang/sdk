@@ -915,9 +915,31 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitLibraryProcedures(library);
       _emitTopLevelFields(library.fields);
     }
-
+    if (_options.emitLibraryBundle) {
+      // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+      // `LibraryBundleCompiler`.
+      _moduleItems.add(_emitEmptyLinkMethod(
+          _jsLibraryName(library), _emitLibraryName(library)));
+    }
     _staticTypeContext.leaveLibrary(_currentLibrary!);
     _currentLibrary = null;
+  }
+
+  /// Returns an empty placeholder link method for the libraries in the SDK.
+  ///
+  /// This is a temporary solution to allow the Dart SDK to act like it was
+  /// compiled as a bundle of individual libraries.
+  // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+  // `LibraryBundleCompiler`.
+  js_ast.Statement _emitEmptyLinkMethod(
+      String libraryName, js_ast.Identifier libraryId) {
+    assert(_options.emitLibraryBundle && _isBuildingSdk);
+    var functionName = _emitTemporaryId('link__$libraryName');
+    return js.statement('# = #', [
+      js_ast.PropertyAccess.field(libraryId, 'link'),
+      js_ast.NamedFunction(
+          functionName, js_ast.Fun(const [], js_ast.Block(const [])))
+    ]);
   }
 
   void _emitExports(Library library) {
@@ -7934,38 +7956,70 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       items.add(js.statement('#.library = #', [_runtimeModule, libraryProto]));
       exports.add(js_ast.NameSpecifier(_runtimeModule));
     }
-
-    for (var library in libraries) {
-      if (_isBuildingSdk && _isSdkInternalRuntime(library)) {
-        _libraries[library] = _runtimeModule;
-        continue;
+    if (_options.emitLibraryBundle) {
+      assert(_isBuildingSdk);
+      for (var library in libraries) {
+        js_ast.Identifier libraryId;
+        if (_isSdkInternalRuntime(library)) {
+          libraryId = _runtimeModule;
+        } else if (_isDartLibrary(library, '_rti')) {
+          libraryId = _rtiLibraryId;
+        } else {
+          libraryId = js_ast.TemporaryId(_jsLibraryName(library));
+        }
+        _libraries[library] = libraryId;
+        var alias = _jsLibraryAlias(library);
+        var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+        items.add(js_ast.ExportDeclaration(js_ast.ExportClause(
+            [js_ast.NameSpecifier(libraryId, asName: aliasId)],
+            from: js.string('${library.importUri}'))));
+        // The initialization object for the runtime library is created above so
+        // it is skipped here.
+        if (_isSdkInternalRuntime(library)) continue;
+        items.add(js.statement(
+            'const # = Object.create(#.library)', [libraryId, _runtimeModule]));
       }
-      var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
-          ? _rtiLibraryId
-          : js_ast.TemporaryId(_jsLibraryName(library));
+      // dart:_runtime has a magic library that holds extension method symbols.
+      // TODO(nshahan): Could this be created with a kernel transform or just
+      // become a member in dart:_runtime?
+      items.add(js.statement('const # = Object.create(#.library)',
+          [_extensionSymbolsModule, _runtimeModule]));
+      items.add(js_ast.ExportDeclaration(js_ast.ExportClause(
+          [js_ast.NameSpecifier(_extensionSymbolsModule)],
+          from: js.string('dartx'))));
+    } else {
+      for (var library in libraries) {
+        if (_isBuildingSdk && _isSdkInternalRuntime(library)) {
+          _libraries[library] = _runtimeModule;
+          continue;
+        }
+        var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
+            ? _rtiLibraryId
+            : js_ast.TemporaryId(_jsLibraryName(library));
 
-      _libraries[library] = libraryId;
-      var alias = _jsLibraryAlias(library);
-      var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+        _libraries[library] = libraryId;
+        var alias = _jsLibraryAlias(library);
+        var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
 
-      // TODO(vsm): Change back to `const`.
-      // See https://github.com/dart-lang/sdk/issues/40380.
-      items.add(js.statement(
-          'var # = Object.create(#.library)', [libraryId, _runtimeModule]));
-      exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
+        // TODO(vsm): Change back to `const`.
+        // See https://github.com/dart-lang/sdk/issues/40380.
+        items.add(js.statement(
+            'var # = Object.create(#.library)', [libraryId, _runtimeModule]));
+        exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
+      }
+
+      // dart:_runtime has a magic module that holds extension method symbols.
+      // TODO(jmesserly): find a cleaner design for this.
+      if (_isBuildingSdk) {
+        var id = _extensionSymbolsModule;
+        // TODO(vsm): Change back to `const`.
+        // See https://github.com/dart-lang/sdk/issues/40380.
+        items.add(js.statement(
+            'var # = Object.create(#.library)', [id, _runtimeModule]));
+        exports.add(js_ast.NameSpecifier(id));
+      }
+      items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
     }
-
-    // dart:_runtime has a magic module that holds extension method symbols.
-    // TODO(jmesserly): find a cleaner design for this.
-    if (_isBuildingSdk) {
-      var id = _extensionSymbolsModule;
-      // TODO(vsm): Change back to `const`.
-      // See https://github.com/dart-lang/sdk/issues/40380.
-      items.add(js
-          .statement('var # = Object.create(#.library)', [id, _runtimeModule]));
-      exports.add(js_ast.NameSpecifier(id));
-    }
-    items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
 
     if (_isBuildingSdk) {
       // Initialize the private name function.
@@ -8210,6 +8264,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// field of the result.
   js_ast.Program _finishModule(List<js_ast.ModuleItem> items, String moduleName,
       {List<js_ast.Comment> header = const []}) {
+    if (_options.emitLibraryBundle) {
+      assert(_isBuildingSdk);
+      // Manually add a link method for the runtime "dartx" library. It is
+      // synthetically created by DDC and doesn't have an associated kernel
+      // library node.
+      // TODO(nshahan): Remove when the Dart SDK can be compiled with the
+      // `LibraryBundleCompiler`.
+      _moduleItems.add(_emitEmptyLinkMethod('dartx', _extensionSymbolsModule));
+    }
     // TODO(jmesserly): there's probably further consolidation we can do
     // between DDC's two backends, by moving more code into this method, as the
     // code between `startModule` and `finishModule` is very similar in both.

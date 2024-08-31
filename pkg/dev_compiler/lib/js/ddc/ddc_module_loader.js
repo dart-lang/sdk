@@ -1325,8 +1325,9 @@ if (!self.deferred_loader) {
           throw 'Library not defined: ' + libraryName + '. Failed to initialize.';
         }
         currentLibrary = initializer(currentLibrary);
-        // TODO(nshahan): Link the library when link methods are added to the
-        // compiled output.
+        // Link the library. This action will trigger the initialization and
+        // linking of dependency libraries as needed.
+        currentLibrary.link();
         this.libraries[libraryName] = currentLibrary;
       }
       if (installFn != null) {
@@ -1367,7 +1368,7 @@ if (!self.deferred_loader) {
     // See docs on `DartDevEmbedder.runMain`.
     runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
       console.log('Setting Dart SDK runtime options.');
-      let dartRuntimeLibrary = this.initializeAndLinkLibrary('dart');
+      let dartRuntimeLibrary = this.initializeAndLinkLibrary('dart:_runtime');
 
       // TODO(nshahan) Use a single method in the Dart SDK to set all options.
       dartRuntimeLibrary.weakNullSafetyErrors(dartSdkRuntimeOptions.weakNullSafetyErrors);
