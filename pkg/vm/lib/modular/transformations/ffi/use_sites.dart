@@ -1510,6 +1510,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return ('', parameterType, argument);
     }
 
+    // If an argument is an invalid expression, ffi don't need to report
+    // any error further, so skipping transformation for its descendants of the
+    // argument by transforming into empty expression (which is invalid)
+    if ((argument is AsExpression && argument.operand is InvalidExpression) ||
+        argument is InvalidExpression) {
+      return ('E', parameterType, InvalidExpression('Invalid Type'));
+    }
     if (argument is InstanceInvocation &&
         argument.interfaceTarget == castMethod &&
         argument.functionType.returnType == parameterType) {

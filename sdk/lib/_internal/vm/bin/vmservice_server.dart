@@ -535,10 +535,10 @@ class Server {
     return file.writeAsString(json.encode(serviceInfo));
   }
 
-  Future<Server> startup() async {
+  Future<void> startup() async {
     if (running) {
       // Already running.
-      return this;
+      return;
     }
 
     {
@@ -547,7 +547,7 @@ class Server {
         if (!startingCompleter.isCompleted) {
           await startingCompleter.future;
         }
-        return this;
+        return;
       }
     }
 
@@ -584,14 +584,14 @@ class Server {
 
     if (!(await startServer())) {
       startingCompleter.complete(true);
-      return this;
+      return;
     }
     if (_service.isExiting) {
       serverPrint('Dart VM service HTTP server exiting before listening as '
           'vm service has received exit request\n');
       startingCompleter.complete(true);
       await shutdown(true);
-      return this;
+      return;
     }
     final server = _server!;
     server.listen(_requestHandler, cancelOnError: true);
@@ -613,7 +613,6 @@ class Server {
     _notifyServerState(serverAddress.toString());
     onServerAddressChange('$serverAddress');
     startingCompleter.complete(true);
-    return this;
   }
 
   Future<void> outputConnectionInformation() async {
