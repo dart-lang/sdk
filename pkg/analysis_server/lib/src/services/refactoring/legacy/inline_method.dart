@@ -221,7 +221,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String? get className {
-    var interfaceElement = _methodElement?.enclosingElement;
+    var interfaceElement = _methodElement?.enclosingElement3;
     if (interfaceElement is InterfaceElement) {
       return interfaceElement.displayName;
     }
@@ -867,13 +867,13 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     } else {
       return;
     }
-    if (element.enclosingElement is! InterfaceElement) {
+    if (element.enclosingElement3 is! InterfaceElement) {
       return;
     }
     // record the implicit static or instance reference
     var offset = node.offset;
     if (element.isStatic) {
-      var className = element.enclosingElement.displayName;
+      var className = element.enclosingElement3.displayName;
       result.addImplicitClassNameOffset(className, offset);
     } else {
       result.addImplicitThisOffset(offset);

@@ -67,32 +67,32 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _addImplicitExtensionName(node.readElement?.enclosingElement);
-    _addImplicitExtensionName(node.writeElement?.enclosingElement);
+    _addImplicitExtensionName(node.readElement?.enclosingElement3);
+    _addImplicitExtensionName(node.writeElement?.enclosingElement3);
     super.visitAssignmentExpression(node);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    _addImplicitExtensionName(node.staticElement?.enclosingElement3);
     super.visitBinaryExpression(node);
   }
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    _addImplicitExtensionName(node.staticElement?.enclosingElement3);
     super.visitFunctionExpressionInvocation(node);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    _addImplicitExtensionName(node.staticElement?.enclosingElement3);
     super.visitIndexExpression(node);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _addImplicitExtensionName(node.methodName.staticElement?.enclosingElement);
+    _addImplicitExtensionName(node.methodName.staticElement?.enclosingElement3);
     super.visitMethodInvocation(node);
   }
 
@@ -104,26 +104,26 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
-    _addImplicitExtensionName(node.element?.enclosingElement);
+    _addImplicitExtensionName(node.element?.enclosingElement3);
     super.visitPatternField(node);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    _addImplicitExtensionName(node.staticElement?.enclosingElement3);
     super.visitPrefixedIdentifier(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _addImplicitExtensionName(node.staticElement?.enclosingElement);
+    _addImplicitExtensionName(node.staticElement?.enclosingElement3);
     super.visitPrefixExpression(node);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _addImplicitExtensionName(
-        node.propertyName.staticElement?.enclosingElement);
+        node.propertyName.staticElement?.enclosingElement3);
     super.visitPropertyAccess(node);
   }
 

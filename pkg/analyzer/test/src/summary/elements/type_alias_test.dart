@@ -298,14 +298,14 @@ typedef void F<T>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement, same(F));
+    expect(T.enclosingElement3, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement, same(F));
+    expect(function.enclosingElement3, same(F));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement, same(function));
+    expect(a.enclosingElement3, same(function));
   }
 
   test_functionTypeAlias_type_element() async {
@@ -695,18 +695,18 @@ typedef F<T> = void Function<U>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement, same(F));
+    expect(T.enclosingElement3, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement, same(F));
+    expect(function.enclosingElement3, same(F));
 
     var U = function.typeParameters[0];
     expect(U.name, 'U');
-    expect(U.enclosingElement, same(function));
+    expect(U.enclosingElement3, same(function));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement, same(function));
+    expect(a.enclosingElement3, same(function));
   }
 
   test_genericTypeAlias_recursive() async {

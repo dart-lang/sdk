@@ -29,8 +29,15 @@ class SinceSdkVersionComputer {
     }
 
     var specified = _specifiedVersion(element);
-    var enclosing = element.enclosingElement?.sinceSdkVersion;
-    return specified.maxWith(enclosing);
+    if (element.enclosingElement3 case var enclosingElement?) {
+      var enclosing = enclosingElement.sinceSdkVersion;
+      return specified.maxWith(enclosing);
+    } else if (element.library case var libraryElement?) {
+      var enclosing = libraryElement.sinceSdkVersion;
+      return specified.maxWith(enclosing);
+    } else {
+      return specified;
+    }
   }
 
   /// Returns the maximal specified `@Since()` version from the [annotations].

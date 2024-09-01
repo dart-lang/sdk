@@ -245,7 +245,7 @@ Location newLocation_fromUnit(
 /// Construct based on an element from the analyzer engine.
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   var element = convertElement(member);
-  var className = member.enclosingElement!.displayName;
+  var className = member.enclosingElement3!.displayName;
   return OverriddenMember(element, className);
 }
 
@@ -305,9 +305,8 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
     return element;
   }
 
-  var enclosingElement = element.enclosingElement;
-  if (enclosingElement is engine.LibraryElement) {
-    element = enclosingElement;
+  if (element.enclosingElement3 case engine.LibraryElement enclosing) {
+    return enclosing.definingCompilationUnit;
   }
 
   if (element is engine.LibraryElement) {

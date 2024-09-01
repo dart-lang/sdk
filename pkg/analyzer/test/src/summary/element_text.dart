@@ -408,7 +408,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       var superConstructor = f.superConstructor;
       if (superConstructor != null) {
-        var enclosingElement = superConstructor.enclosingElement;
+        var enclosingElement = superConstructor.enclosingElement3;
         if (enclosingElement is ClassElement &&
             !enclosingElement.isDartCoreObject) {
           _elementPrinter.writeNamedElement(
@@ -437,7 +437,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     if (f.isSynthetic) {
       expect(f.nameOffset, -1);
-      expect(f.nonSynthetic, same(f.enclosingElement));
+      expect(f.nonSynthetic, same(f.enclosingElement3));
     } else {
       expect(f.nameOffset, isPositive);
     }
@@ -1597,7 +1597,7 @@ class _ElementWriter extends _AbstractElementWriter {
   });
 
   void writeLibraryElement(LibraryElementImpl e) {
-    expect(e.enclosingElement, isNull);
+    expect(e.enclosingElement3, isNull);
 
     _sink.writelnWithIndent('library');
     _sink.withIndent(() {
@@ -1893,7 +1893,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        var enclosingElement = superConstructor.enclosingElement;
+        var enclosingElement = superConstructor.enclosingElement3;
         if (enclosingElement is ClassElement &&
             !enclosingElement.isDartCoreObject) {
           _elementPrinter.writeNamedElement(
@@ -1922,7 +1922,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
-      expect(e.nonSynthetic, same(e.enclosingElement));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       expect(e.nameOffset, isPositive);
     }
@@ -1947,6 +1947,7 @@ class _ElementWriter extends _AbstractElementWriter {
   void _writeEnclosingElement(ElementImpl e) {
     _elementPrinter.writeNamedElement(
       'enclosingElement',
+      // ignore: deprecated_member_use_from_same_package
       e.enclosingElement,
     );
 
@@ -1977,7 +1978,7 @@ class _ElementWriter extends _AbstractElementWriter {
           e.enclosingElement3,
         );
       default:
-        expect(e.enclosingElement3, same(e.enclosingElement));
+        expect(e.enclosingElement3, same(e.enclosingElement3));
     }
   }
 
@@ -2556,9 +2557,9 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeAugmentation(e);
     });
 
-    if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
+    if (e.isSynthetic && e.enclosingElement3 is EnumElementImpl) {
       expect(e.name, 'toString');
-      expect(e.nonSynthetic, same(e.enclosingElement));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       _assertNonSyntheticElementSelf(e);
     }
@@ -2619,7 +2620,7 @@ class _ElementWriter extends _AbstractElementWriter {
   void _writeParameterElement(ParameterElement e) {
     e as ParameterElementImpl;
 
-    if (e.isNamed && e.enclosingElement is ExecutableElement) {
+    if (e.isNamed && e.enclosingElement3 is ExecutableElement) {
       expect(e.reference, isNotNull);
     } else {
       expect(e.reference, isNull);
@@ -2708,7 +2709,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
     var variable = e.variable2;
     if (variable != null) {
-      var variableEnclosing = variable.enclosingElement;
+      var variableEnclosing = variable.enclosingElement3;
       if (variableEnclosing is CompilationUnitElement) {
         expect(variableEnclosing.topLevelVariables, contains(variable));
       } else if (variableEnclosing is InterfaceElement) {

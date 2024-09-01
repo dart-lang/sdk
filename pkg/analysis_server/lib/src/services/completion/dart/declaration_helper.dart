@@ -227,7 +227,7 @@ class DeclarationHelper {
   /// be skipped because the cursor is inside that field's name.
   void addFieldsForInitializers(
       ConstructorDeclaration constructor, FieldElement? fieldToInclude) {
-    var containingElement = constructor.declaredElement?.enclosingElement;
+    var containingElement = constructor.declaredElement?.enclosingElement3;
     if (containingElement == null) {
       return;
     }
@@ -554,7 +554,7 @@ class DeclarationHelper {
   void addPossibleRedirectionsInLibrary(
       ConstructorElement redirectingConstructor, LibraryElement library) {
     var classElement =
-        redirectingConstructor.enclosingElement.augmented.declaration;
+        redirectingConstructor.enclosingElement3.augmented.declaration;
     var classType = classElement.thisType;
     var typeSystem = library.typeSystem;
     for (var unit in library.units) {
@@ -1273,7 +1273,7 @@ class DeclarationHelper {
               (containingElement is EnumElement && field.name == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
-          var enumElement = field.enclosingElement;
+          var enumElement = field.enclosingElement3;
           var matcherScore =
               state.matcher.score('${enumElement.name}.${field.name}');
           if (matcherScore != -1) {
@@ -1379,7 +1379,7 @@ class DeclarationHelper {
     }
 
     if (element.isProtected) {
-      var elementInterface = element.enclosingElement;
+      var elementInterface = element.enclosingElement3;
       if (elementInterface is! InterfaceElement) {
         return false;
       }
@@ -1486,7 +1486,7 @@ class DeclarationHelper {
     }
     if (importData?.isNotImported ?? false) {
       if (!visibilityTracker.isVisible(
-          element: element.enclosingElement, importData: importData)) {
+          element: element.enclosingElement3, importData: importData)) {
         // If the constructor is on a class from a not-yet-imported library and
         // the class isn't visible, then we shouldn't suggest it.
         //
@@ -1500,7 +1500,7 @@ class DeclarationHelper {
       // Add the class to the visibility tracker so that we will know later that
       // any non-imported elements with the same name are not visible.
       visibilityTracker.isVisible(
-          element: element.enclosingElement, importData: importData);
+          element: element.enclosingElement3, importData: importData);
     }
 
     // TODO(keertip): Compute the completion string.
@@ -1715,7 +1715,7 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(method.displayName);
       if (matcherScore != -1) {
-        var enclosingElement = method.enclosingElement;
+        var enclosingElement = method.enclosingElement3;
         if (method.name == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
@@ -1857,7 +1857,7 @@ class DeclarationHelper {
         request.libraryElement.typeSystem
             .isSubtypeOf(element.type, contextType)) {
       if (element.isEnumConstant) {
-        var enumElement = element.enclosingElement;
+        var enumElement = element.enclosingElement3;
         var matcherScore = state.matcher
             .score('${enumElement.displayName}.${element.displayName}');
         if (matcherScore != -1) {

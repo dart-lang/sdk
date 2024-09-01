@@ -83,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = creation.constructorName.staticElement;
     if (element == null ||
         element.name != 'fromIterable' ||
-        element.enclosingElement != context.typeProvider.mapElement) {
+        element.enclosingElement3 != context.typeProvider.mapElement) {
       return;
     }
 

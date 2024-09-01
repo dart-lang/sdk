@@ -212,7 +212,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on VariableElement {
   bool get overridesField {
-    var enclosingElement = this.enclosingElement;
+    var enclosingElement = enclosingElement3;
     if (enclosingElement is! InterfaceElement) return false;
 
     var library = this.library;

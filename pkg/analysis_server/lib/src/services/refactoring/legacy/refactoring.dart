@@ -421,7 +421,10 @@ abstract class RenameRefactoring implements Refactoring {
         return null;
       }
     }
-    var enclosingElement = element.enclosingElement;
+    if (element is LibraryImportElement) {
+      return RenameImportRefactoringImpl(workspace, sessionHelper, element);
+    }
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is CompilationUnitElement) {
       return RenameUnitMemberRefactoringImpl(
           workspace, sessionHelper, resolvedUnit, element);
@@ -429,9 +432,6 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is ConstructorElement) {
       return RenameConstructorRefactoringImpl(
           workspace, sessionHelper, element);
-    }
-    if (element is LibraryImportElement) {
-      return RenameImportRefactoringImpl(workspace, sessionHelper, element);
     }
     if (element is LabelElement) {
       return RenameLabelRefactoringImpl(workspace, sessionHelper, element);

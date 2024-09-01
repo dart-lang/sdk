@@ -5649,7 +5649,7 @@ class _WhyNotPromotedVisitor
           addConflictMessage(
               conflictingElement: field,
               kind: 'non-promotable field',
-              enclosingElement: field.enclosingElement,
+              enclosingElement: field.enclosingElement3,
               link:
                   NonPromotionDocumentationLink.conflictingNonPromotableField);
         }
@@ -5657,7 +5657,7 @@ class _WhyNotPromotedVisitor
           addConflictMessage(
               conflictingElement: getter,
               kind: 'getter',
-              enclosingElement: getter.enclosingElement,
+              enclosingElement: getter.enclosingElement3,
               link: NonPromotionDocumentationLink.conflictingGetter);
         }
         for (var nsmClass in fieldNameInfo.conflictingNsmClasses) {

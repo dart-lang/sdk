@@ -3285,7 +3285,7 @@ class NoMatchABCDEF {}
     }
 
     String elementToReferenceString(Element element) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       var reference = (element as ElementImpl).reference;
       if (reference != null) {
         return referenceToString(reference);

@@ -42,7 +42,7 @@ ConstructorElement? _getActualConstructorElement(
     ConstructorElement? constructor) {
   var seenConstructors = <ConstructorElement?>{};
   while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-    var enclosing = constructor.enclosingElement;
+    var enclosing = constructor.enclosingElement3;
     if (enclosing is ClassElement && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers
           .whereType<SuperConstructorInvocation>()
@@ -72,7 +72,7 @@ LibraryImportElement? _getImportElement(
     String prefix,
     Element element,
     Map<LibraryImportElement, Set<Element>> importElementsMap) {
-  if (element.enclosingElement is! CompilationUnitElement) {
+  if (element.enclosingElement3 is! CompilationUnitElement) {
     return null;
   }
   var usedLibrary = element.library;
@@ -309,7 +309,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         length = 0;
       }
       references.add(MatchInfo(offset, length, kind));
-    } else if (e != null && e.enclosingElement == element) {
+    } else if (e != null && e.enclosingElement3 == element) {
       kind = MatchKind.REFERENCE;
       offset = node.offset;
       length = element.nameLength;

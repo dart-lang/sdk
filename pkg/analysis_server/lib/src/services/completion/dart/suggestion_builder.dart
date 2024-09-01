@@ -254,7 +254,7 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement.augmented.declaration;
+    var enclosingClass = constructor.enclosingElement3.augmented.declaration;
 
     if (completion == null) {
       var className = enclosingClass.name;
@@ -307,10 +307,10 @@ class SuggestionBuilder {
     } else if (element is ExtensionElement) {
       suggestExtension(element, kind: kind);
     } else if (element is FunctionElement &&
-        element.enclosingElement is CompilationUnitElement) {
+        element.enclosingElement3 is CompilationUnitElement) {
       suggestTopLevelFunction(element, kind: kind);
     } else if (element is PropertyAccessorElement &&
-        element.enclosingElement is CompilationUnitElement) {
+        element.enclosingElement3 is CompilationUnitElement) {
       suggestTopLevelPropertyAccessor(element);
     } else if (element is TypeAliasElement) {
       suggestTypeAlias(element);
@@ -324,7 +324,7 @@ class SuggestionBuilder {
   void suggestEnumConstant(FieldElement constant,
       {String? prefix, int? relevance}) {
     var constantName = constant.name;
-    var enumElement = constant.enclosingElement;
+    var enumElement = constant.enclosingElement3;
     var enumName = enumElement.name;
     var completion = '$enumName.$constantName';
     relevance ??= relevanceComputer.computeTopLevelRelevance(constant,
@@ -655,10 +655,10 @@ class SuggestionBuilder {
 
     // Optionally add Flutter child widget details.
     // TODO(pq): revisit this special casing; likely it can be generalized away.
-    var element = parameter.enclosingElement;
+    var element = parameter.enclosingElement3;
     // If `appendColon` is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (element.enclosingElement.augmented.declaration.isWidget) {
+      if (element.enclosingElement3.augmented.declaration.isWidget) {
         var analysisOptions = request.analysisSession.analysisContext
             .getAnalysisOptionsForFile(
                 request.resourceProvider.getFile(request.path));
@@ -974,9 +974,9 @@ class SuggestionBuilder {
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {String? prefix, int? relevance}) {
     assert(
-        accessor.enclosingElement is CompilationUnitElement,
+        accessor.enclosingElement3 is CompilationUnitElement,
         'Enclosing element of ${accessor.runtimeType} is '
-        '${accessor.enclosingElement.runtimeType}.');
+        '${accessor.enclosingElement3.runtimeType}.');
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a
@@ -1033,7 +1033,7 @@ class SuggestionBuilder {
     var completion = _getCompletionString(variable);
     if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
-      assert(variable.enclosingElement is CompilationUnitElement);
+      assert(variable.enclosingElement3 is CompilationUnitElement);
       relevance ??= relevanceComputer.computeTopLevelRelevance(variable,
           elementType: variable.type,
           isNotImportedLibrary: isNotImportedLibrary);
@@ -1115,7 +1115,7 @@ class SuggestionBuilder {
           // `InScopeCompletionPass`.
           var suggestedElement = suggestion.orgElement;
           if (suggestedElement is ConstructorElement) {
-            var parentName = suggestedElement.enclosingElement.name;
+            var parentName = suggestedElement.enclosingElement3.name;
             var existingSuggestion = _suggestionMap[parentName];
             if (existingSuggestion is _CompletionSuggestionBuilderImpl &&
                 existingSuggestion.orgElement is! ClassElement) {
@@ -1231,7 +1231,7 @@ class SuggestionBuilder {
 
     var suggestedElement = protocol.convertElement(element);
 
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
 
     String? declaringType;
     if (enclosingElement is InterfaceElement) {
@@ -1287,7 +1287,7 @@ class SuggestionBuilder {
   /// The enclosing element must be either a class, or extension; otherwise
   /// we either fail with assertion, or return `null`.
   String? _enclosingClassOrExtensionName(Element element) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
     if (enclosing is InterfaceElement) {
       return enclosing.name;
     } else if (enclosing is ExtensionElement) {
