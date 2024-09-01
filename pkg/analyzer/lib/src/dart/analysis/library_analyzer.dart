@@ -182,11 +182,18 @@ class LibraryAnalyzer {
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
-      var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
-          libraryResolutionContext, file.source, _typeProvider, errorListener,
-          featureSet: _libraryElement.featureSet,
-          analysisOptions: _library.file.analysisOptions,
-          flowAnalysisHelper: flowAnalysisHelper);
+      var resolverVisitor = ResolverVisitor(
+        _inheritance,
+        _libraryElement,
+        libraryResolutionContext,
+        file.source,
+        _typeProvider,
+        errorListener,
+        featureSet: _libraryElement.featureSet,
+        analysisOptions: _library.file.analysisOptions,
+        flowAnalysisHelper: flowAnalysisHelper,
+        libraryFragment: unitElement,
+      );
       _testingData?.recordTypeConstraintGenerationDataForTesting(
           file.uri, resolverVisitor.inferenceHelper.dataForTesting!);
 
@@ -498,7 +505,9 @@ class LibraryAnalyzer {
 
     // Verify imports.
     {
-      ImportsVerifier verifier = ImportsVerifier();
+      var verifier = ImportsVerifier(
+        fileAnalysis: fileAnalysis,
+      );
       verifier.addImports(unit);
       usedImportedElements.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateExportWarnings(errorReporter);
@@ -618,8 +627,22 @@ class LibraryAnalyzer {
       fileElement: _libraryElement.definingCompilationUnit,
     );
 
+    // Configure scopes for all files to track imports usages.
+    // Associate tracking objects with file objects.
+    for (var fileAnalysis in _libraryFiles.values) {
+      var scope = fileAnalysis.element.scope;
+      var tracking = scope.importsTrackingInit();
+      fileAnalysis.importsTracking = tracking;
+    }
+
     for (var fileAnalysis in _libraryFiles.values) {
       _resolveFile(fileAnalysis);
+    }
+
+    // Stop tracking usages by scopes.
+    for (var fileAnalysis in _libraryFiles.values) {
+      var scope = fileAnalysis.element.scope;
+      scope.importsTrackingDestroy();
     }
 
     _computeConstants();
@@ -911,11 +934,18 @@ class LibraryAnalyzer {
     _testingData?.recordFlowAnalysisDataForTesting(
         fileAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
 
-    var resolver = ResolverVisitor(_inheritance, _libraryElement,
-        libraryResolutionContext, source, _typeProvider, errorListener,
-        analysisOptions: _library.file.analysisOptions,
-        featureSet: unit.featureSet,
-        flowAnalysisHelper: flowAnalysisHelper);
+    var resolver = ResolverVisitor(
+      _inheritance,
+      _libraryElement,
+      libraryResolutionContext,
+      source,
+      _typeProvider,
+      errorListener,
+      analysisOptions: _library.file.analysisOptions,
+      featureSet: unit.featureSet,
+      flowAnalysisHelper: flowAnalysisHelper,
+      libraryFragment: unitElement,
+    );
     unit.accept(resolver);
     _testingData?.recordTypeConstraintGenerationDataForTesting(
         fileAnalysis.file.uri, resolver.inferenceHelper.dataForTesting!);
