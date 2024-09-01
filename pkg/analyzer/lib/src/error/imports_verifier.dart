@@ -5,7 +5,9 @@
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
@@ -107,7 +109,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
 
   void _recordIfExtensionMember(Element? element) {
     if (element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ExtensionElement) {
         _recordUsedExtension(enclosingElement);
       }
@@ -208,14 +210,14 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
     if (_recordPrefixMap(identifier, element)) {
       return;
     }
-    var enclosingElement = element.enclosingElement;
-    if (enclosingElement is CompilationUnitElement) {
+    var enclosingElement = element.enclosingElement3;
+    if (element is PrefixElement) {
+      usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
+    } else if (enclosingElement is CompilationUnitElement) {
       _recordUsedElement(element);
     } else if (enclosingElement is ExtensionElement) {
       _recordUsedExtension(enclosingElement);
       return;
-    } else if (element is PrefixElement) {
-      usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
     } else if (element is MultiplyDefinedElement) {
       // If the element is multiply defined then call this method recursively
       // for each of the conflicting elements.
@@ -241,6 +243,8 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
 /// this logic built up in this class could be used for such an action in the
 /// future.
 class ImportsVerifier {
+  final FileAnalysis fileAnalysis;
+
   /// All [ImportDirective]s of the current library.
   final List<ImportDirectiveImpl> _allImports = [];
 
@@ -295,6 +299,10 @@ class ImportsVerifier {
   /// A map of names that are shown more than once.
   final Map<NamespaceDirective, List<SimpleIdentifier>>
       _duplicateShownNamesMap = {};
+
+  ImportsVerifier({
+    required this.fileAnalysis,
+  });
 
   void addImports(CompilationUnit node) {
     var importsWithLibraries = <_NamespaceDirective>[];
@@ -431,37 +439,41 @@ class ImportsVerifier {
     verifier.reportImports(errorReporter);
   }
 
-  /// Report an [HintCode.UNUSED_IMPORT] hint for each unused import.
-  ///
-  /// Only call this method after all of the compilation units have been visited
-  /// by this visitor.
-  ///
-  /// @param errorReporter the error reporter used to report the set of
-  ///        [HintCode.UNUSED_IMPORT] hints
+  /// Report [WarningCode.UNUSED_IMPORT] for each unused import.
   void generateUnusedImportHints(ErrorReporter errorReporter) {
-    int length = _unusedImports.length;
-    for (int i = 0; i < length; i++) {
-      ImportDirective unusedImport = _unusedImports[i];
-      // Check that the imported URI exists and isn't dart:core
-      var importElement = unusedImport.element;
-      if (importElement != null) {
-        var libraryElement = importElement.importedLibrary;
-        if (libraryElement == null ||
-            libraryElement.isDartCore ||
-            libraryElement.isSynthetic) {
+    for (var importDirective in fileAnalysis.unit.directives) {
+      if (importDirective is ImportDirectiveImpl) {
+        var importElement = importDirective.element!;
+        var prefixElement = importElement.prefix?.element;
+        var tracking = fileAnalysis.importsTracking.map[prefixElement]!;
+
+        // If there are errors reported against this group (by import prefix)
+        // of imports, then it does not matter which imports are used.
+        if (tracking.hasErrorReported) {
           continue;
         }
+
+        if (importElement.uri case DirectiveUriWithLibraryImpl uri) {
+          // Ignore explicit dart:core import.
+          if (uri.library.isDartCore) {
+            continue;
+          }
+
+          // The URI target does not exist, reported this elsewhere.
+          if (uri.library.isSynthetic) {
+            continue;
+          }
+
+          var isUsed = tracking.usedImports.contains(importElement);
+          if (!isUsed) {
+            errorReporter.atNode(
+              importDirective.uri,
+              WarningCode.UNUSED_IMPORT,
+              arguments: [uri.relativeUriString],
+            );
+          }
+        }
       }
-      StringLiteral uri = unusedImport.uri;
-      // We can safely assume that `uri.stringValue` is non-`null`, because the
-      // only way for it to be `null` is if the import contains a string
-      // interpolation, in which case the import wouldn't have resolved and
-      // would not have been included in [_unusedImports].
-      errorReporter.atNode(
-        uri,
-        WarningCode.UNUSED_IMPORT,
-        arguments: [uri.stringValue!],
-      );
     }
   }
 

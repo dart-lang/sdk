@@ -147,7 +147,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // Parentheses are required to stop null-aware shorting, which then
         // allows an extension getter, which extends a nullable type, to be
         // called on a `null` value.
-        var target = parent.propertyName.staticElement?.enclosingElement;
+        var target = parent.propertyName.staticElement?.enclosingElement3;
         if (target is ExtensionElement &&
             typeSystem.isNullable(target.extendedType)) {
           return;
@@ -162,7 +162,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // Parentheses are required to stop null-aware shorting, which then
         // allows an extension method, which extends a nullable type, to be
         // called on a `null` value.
-        var target = parent.methodName.staticElement?.enclosingElement;
+        var target = parent.methodName.staticElement?.enclosingElement3;
         if (target is ExtensionElement &&
             typeSystem.isNullable(target.extendedType)) {
           return;

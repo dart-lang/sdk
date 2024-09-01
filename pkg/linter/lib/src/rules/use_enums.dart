@@ -98,7 +98,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
     var constructorElement = node.constructorName.staticElement;
     return constructorElement != null &&
         !constructorElement.isFactory &&
-        constructorElement.enclosingElement == classElement;
+        constructorElement.enclosingElement3 == classElement;
   }
 }
 
@@ -223,7 +223,7 @@ class _Visitor extends SimpleAstVisitor {
           var constructorElement = initializer.constructorName.staticElement;
           if (constructorElement == null) continue;
           if (constructorElement.isFactory) continue;
-          if (constructorElement.enclosingElement != classElement) continue;
+          if (constructorElement.enclosingElement3 != classElement) continue;
           if (fieldElement.computeConstantValue() == null) continue;
 
           candidateConstants.add(field);

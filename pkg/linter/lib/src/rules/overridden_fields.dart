@@ -133,7 +133,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var overriddenField = _getOverriddenMember(declaredField);
         if (overriddenField != null && !overriddenField.isAbstract) {
           rule.reportLintForToken(variable.name,
-              arguments: [overriddenField.enclosingElement.displayName]);
+              arguments: [overriddenField.enclosingElement3.displayName]);
         }
       }
     }
@@ -158,7 +158,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
-    var enclosingElement = member.enclosingElement;
+    var enclosingElement = member.enclosingElement3;
     if (enclosingElement is! InterfaceElement) {
       return null;
     }

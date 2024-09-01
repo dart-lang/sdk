@@ -63,7 +63,8 @@ class AssignmentVerifier {
         node,
         CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
       );
-    } else if (recovery is PrefixElement) {
+    } else if (recovery is PrefixElementImpl) {
+      recovery.scope.notifyErrorReported();
       _errorReporter.atNode(
         node,
         CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
@@ -83,7 +84,7 @@ class AssignmentVerifier {
         _errorReporter.atNode(
           node,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-          arguments: [variable.name, variable.enclosingElement.displayName],
+          arguments: [variable.name, variable.enclosingElement3.displayName],
         );
       } else {
         _errorReporter.atNode(

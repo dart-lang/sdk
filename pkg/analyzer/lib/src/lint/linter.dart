@@ -487,7 +487,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   bool get canBeConst {
     var element = declaredElement!;
 
-    var classElement = element.enclosingElement;
+    var classElement = element.enclosingElement3;
     if (classElement is ClassElement && classElement.hasNonFinalField) {
       return false;
     }

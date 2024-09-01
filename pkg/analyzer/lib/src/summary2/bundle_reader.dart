@@ -298,7 +298,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ResolutionReader reader,
     ElementImpl element,
   ) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
     if (enclosing is InstanceElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
@@ -377,7 +377,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement,
+      unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
@@ -420,7 +420,7 @@ class ExtensionElementLinkedData
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement,
+      unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.augmentationTargetAny = reader.readElement() as ElementImpl?;
@@ -460,7 +460,7 @@ class ExtensionTypeElementLinkedData
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement,
+      unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.interfaces = reader._readInterfaceTypeList();
@@ -1963,7 +1963,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement,
+      unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.macroDiagnostics = reader.readMacroDiagnostics();
@@ -2076,7 +2076,7 @@ class ResolutionReader {
     }
 
     if (memberFlags == Tag.MemberWithTypeArguments) {
-      var enclosing = element.enclosingElement as InstanceElement;
+      var enclosing = element.enclosingElement3 as InstanceElement;
 
       var declaration = enclosing.augmented.declaration;
       var declarationTypeParameters = declaration.typeParameters;

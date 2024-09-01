@@ -325,7 +325,7 @@ class PropertyElementResolver with ScopeHelpers {
           CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
         );
       } else {
-        var enclosingElement = element.enclosingElement;
+        var enclosingElement = element.enclosingElement3;
         if (enclosingElement is ExtensionElement &&
             enclosingElement.name == null) {
           _resolver.errorReporter.atNode(

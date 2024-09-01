@@ -226,7 +226,7 @@ class DeclarationBuilder {
           kind: macro.IdentifierKind.staticInstanceMember,
           name: element.name,
           uri: element.library.source.uri,
-          staticScope: element.enclosingElement.name,
+          staticScope: element.enclosingElement3.name,
         );
       case DynamicElementImpl():
         return macro.ResolvedIdentifier(
@@ -248,7 +248,7 @@ class DeclarationBuilder {
             kind: macro.IdentifierKind.staticInstanceMember,
             name: element.name,
             uri: element.library.source.uri,
-            staticScope: element.enclosingElement.name,
+            staticScope: element.enclosingElement3.name,
           );
         } else {
           return macro.ResolvedIdentifier(
@@ -278,7 +278,7 @@ class DeclarationBuilder {
             kind: macro.IdentifierKind.staticInstanceMember,
             name: element.name,
             uri: element.library.source.uri,
-            staticScope: element.enclosingElement.name,
+            staticScope: element.enclosingElement3.name,
           );
         } else {
           return macro.ResolvedIdentifier(
@@ -296,7 +296,7 @@ class DeclarationBuilder {
           staticScope: null,
         );
       case PropertyAccessorElement():
-        if (element.enclosingElement is CompilationUnitElement) {
+        if (element.enclosingElement3 is CompilationUnitElement) {
           return macro.ResolvedIdentifier(
             kind: macro.IdentifierKind.topLevelMember,
             name: element.name,
@@ -308,7 +308,7 @@ class DeclarationBuilder {
             kind: macro.IdentifierKind.staticInstanceMember,
             name: element.name,
             uri: element.library.source.uri,
-            staticScope: element.enclosingElement.name,
+            staticScope: element.enclosingElement3.name,
           );
         } else {
           return macro.ResolvedIdentifier(
@@ -679,7 +679,7 @@ class DeclarationBuilderFromElement {
       case MethodElementImpl():
         return methodElement(element);
       case PropertyAccessorElementImpl():
-        if (element.enclosingElement is CompilationUnitElement) {
+        if (element.enclosingElement3 is CompilationUnitElement) {
           return functionElement(element);
         } else {
           return methodElement(element);
@@ -920,7 +920,7 @@ class DeclarationBuilderFromElement {
   EnumValueDeclarationImpl _enumConstantElement(
     FieldElementImpl element,
   ) {
-    var enclosing = element.enclosingElement as EnumElementImpl;
+    var enclosing = element.enclosingElement3 as EnumElementImpl;
     return EnumValueDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
@@ -1718,7 +1718,7 @@ class DeclarationBuilderFromNode {
   macro.EnumValueDeclarationImpl _enumConstantDeclaration(
     FieldElementImpl element,
   ) {
-    var enclosing = element.enclosingElement as EnumElementImpl;
+    var enclosing = element.enclosingElement3 as EnumElementImpl;
     return EnumValueDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier2(element.name, element),
@@ -2508,7 +2508,7 @@ extension on Element {
   /// is not an invalid augmentation, return the declaration - the start of
   /// the augmentation chain.
   InstanceElement get enclosingInstanceElement {
-    var enclosing = enclosingElement as InstanceElement;
+    var enclosing = enclosingElement3 as InstanceElement;
     return enclosing.augmented.declaration;
   }
 }

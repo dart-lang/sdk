@@ -120,7 +120,7 @@ extension on ElementAnnotation {
   }) {
     var element = this.element;
     return element is ConstructorElement &&
-        element.enclosingElement.name == className &&
+        element.enclosingElement3.name == className &&
         element.library.name == libraryName;
   }
 }

@@ -480,7 +480,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (initializer != null && (node.isConst || node.isFinal)) {
       var element = node.declaredElement as VariableElementImpl;
       if (element is FieldElement && !element.isStatic) {
-        var enclosingElement = element.enclosingElement;
+        var enclosingElement = element.enclosingElement3;
         if (enclosingElement is ClassElementImpl &&
             !enclosingElement.hasGenerativeConstConstructor) {
           // TODO(kallentu): Evaluate if we need to do this check for inline

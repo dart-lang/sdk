@@ -706,7 +706,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     var target = node.target;
     var methodElement = node.methodName.staticElement;
     switch (methodElement) {
-      case FunctionElement(enclosingElement: CompilationUnitElement()):
+      case FunctionElement(enclosingElement3: CompilationUnitElement()):
         assert(!node.isNullAware);
         _handleInvocationArgs(
             argumentList: node.argumentList,

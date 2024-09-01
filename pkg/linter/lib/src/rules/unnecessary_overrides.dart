@@ -220,7 +220,7 @@ class _UnnecessaryGetterOverrideVisitor
   ExecutableElement? getInheritedElement(MethodDeclaration node) {
     var element = node.declaredElement;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpGetter2(
       element.name,
@@ -247,7 +247,7 @@ class _UnnecessaryMethodOverrideVisitor
     var element = node.declaredElement;
     if (element == null) return null;
 
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement) return null;
 
     var augmented = enclosingElement.augmented;
@@ -279,7 +279,7 @@ class _UnnecessaryOperatorOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredElement;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpMethod2(
       element.name,
@@ -326,7 +326,7 @@ class _UnnecessarySetterOverrideVisitor
   ExecutableElement? getInheritedElement(node) {
     var element = node.declaredElement;
     if (element == null) return null;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpSetter2(
       node.name.lexeme,

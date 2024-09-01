@@ -19871,7 +19871,7 @@ extension on ElementTextConfiguration {
   void forCodeOptimizer() {
     filter = (obj) {
       if (obj is CompilationUnitElement) {
-        return obj.enclosingElement is LibraryAugmentationElement;
+        return obj.enclosingElement3 is LibraryAugmentationElement;
       }
       return true;
     };

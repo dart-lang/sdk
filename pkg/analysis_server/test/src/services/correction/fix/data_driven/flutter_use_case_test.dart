@@ -95,7 +95,7 @@ import '$importUri';
 void f() {
   CupertinoAlertDialog(content: 'x');
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void>
@@ -171,7 +171,7 @@ import '$importUri';
 void f() {
   CupertinoPopupSurface(child: 'x');
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void>

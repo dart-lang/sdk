@@ -672,7 +672,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
 
     for (var fieldElement in finalInstanceFields) {
-      var enclosing = fieldElement.enclosingElement;
+      var enclosing = fieldElement.enclosingElement3;
       var augmented = enclosing.ifTypeOrNull<ClassElementImpl>()?.augmented;
       if (augmented == null) continue;
       if (!withConstConstructors.contains(augmented.declaration)) {

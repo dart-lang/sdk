@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Element should also support "isNotEmpty".
-    var propertyTarget = propertyElement.enclosingElement;
+    var propertyTarget = propertyElement.enclosingElement3;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;

@@ -96,6 +96,6 @@ import '$importUri';
 main() {
   expect(true, true);
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 }

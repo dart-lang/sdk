@@ -109,6 +109,85 @@ class FormalParameterScope extends EnclosedScope {
   }
 }
 
+/// Tracking information for all import in [CompilationUnitElementImpl].
+class ImportsTracking {
+  /// Tracking information for each import prefix.
+  final Map<PrefixElementImpl?, ImportsTrackingOfPrefix> map;
+
+  ImportsTracking({
+    required this.map,
+  });
+
+  void notifyExtensionUsed(ExtensionElement element) {
+    for (var tracking in map.values) {
+      tracking.notifyExtensionUsed(element);
+    }
+  }
+}
+
+class ImportsTrackingOfPrefix {
+  final PrefixScope scope;
+  final Map<Element, List<LibraryImportElementImpl>> elementImports;
+  final Set<LibraryImportElementImpl> usedImports = {};
+
+  /// This flag is set to `true` when there is a compile-time error reported
+  /// against the group of imports with this import prefix. Specifically,
+  /// currently there are two errors:
+  ///
+  /// 1. Unresolved identifier.
+  /// 2. Using import prefix itself, without `.identifier` after it.
+  ///
+  /// When this happens, we don't want to report unused imports.
+  bool hasErrorReported = false;
+
+  /// We set it temporarily to `false` while resolving combinators.
+  bool active = true;
+
+  ImportsTrackingOfPrefix({
+    required this.scope,
+    required this.elementImports,
+  });
+
+  void lookupResult(Element? element) {
+    if (!active) {
+      return;
+    }
+
+    if (element == null) {
+      return;
+    }
+
+    if (element is MultiplyDefinedElement) {
+      notifyErrorReported();
+      return;
+    }
+
+    // SAFETY: if we have `element`, it is from a local import.
+    var imports = elementImports[element]!;
+    usedImports.addAll(imports);
+  }
+
+  /// We cannot resolve something, mark this group of imports as affected.
+  void notifyErrorReported() {
+    if (active) {
+      hasErrorReported = true;
+    }
+  }
+
+  void notifyExtensionUsed(ExtensionElement element) {
+    var imports = elementImports[element];
+    if (imports != null) {
+      usedImports.addAll(imports);
+    } else {
+      // We include into `accessibleExtensions` elements from parents.
+      // So, it is possible that the element is not from this scope.
+      // In this case we notify the parent tracker.
+      var parentTracking = scope.parent?._importsTracking;
+      parentTracking?.notifyExtensionUsed(element);
+    }
+  }
+}
+
 /// The scope defined by an instance element.
 class InstanceScope extends EnclosedScope {
   InstanceScope(super.parent, InstanceElement element) {
@@ -177,13 +256,22 @@ class LibraryFragmentScope implements Scope {
   /// The cached result for [accessibleExtensions].
   List<ExtensionElement>? _extensions;
 
+  /// This field is set temporarily while resolving all files of a library.
+  /// So, we can track which elements were actually returned, and which imports
+  /// in which file (including enclosing files) provided these elements.
+  ///
+  /// When we are done, we remove the tracker, so that it does not use memory
+  /// when we are not resolving files of this library.
+  ImportsTracking? _importsTracking;
+
   factory LibraryFragmentScope(CompilationUnitElementImpl fragment) {
+    var parent = fragment.enclosingElement3?.scope;
     return LibraryFragmentScope._(
-      parent: fragment.enclosingElement3?.scope,
+      parent: parent,
       fragment: fragment,
       noPrefixScope: PrefixScope(
         libraryElement: fragment.library,
-        parent: null,
+        parent: parent?.noPrefixScope,
         libraryImports: fragment.libraryImports,
         prefix: null,
       ),
@@ -217,6 +305,34 @@ class LibraryFragmentScope implements Scope {
     }.toFixedList();
   }
 
+  // TODO(scheglov): this is kludge.
+  // We should not use the fragment scope for resolving combinators.
+  // We should use the export scope of the imported library.
+  void importsTrackingActive(bool value) {
+    if (_importsTracking case var importsTracking?) {
+      for (var tracking in importsTracking.map.values) {
+        tracking.active = value;
+      }
+    }
+  }
+
+  void importsTrackingDestroy() {
+    noPrefixScope.importsTrackingDestroy();
+    for (var prefixElement in _prefixElements.values) {
+      prefixElement.scope.importsTrackingDestroy();
+    }
+  }
+
+  ImportsTracking importsTrackingInit() {
+    return _importsTracking = ImportsTracking(
+      map: {
+        null: noPrefixScope.importsTrackingInit(),
+        for (var prefixElement in _prefixElements.values)
+          prefixElement: prefixElement.scope.importsTrackingInit(),
+      },
+    );
+  }
+
   @override
   ScopeLookupResult lookup(String id) {
     // Try declarations of the whole library.
@@ -230,8 +346,12 @@ class LibraryFragmentScope implements Scope {
       return importResult;
     }
 
-    // No parent, no result.
+    // No result.
     return ScopeLookupResultImpl(null, null);
+  }
+
+  void notifyExtensionUsed(ExtensionElement element) {
+    _importsTracking?.notifyExtensionUsed(element);
   }
 
   PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
@@ -266,12 +386,7 @@ class LibraryFragmentScope implements Scope {
     }
 
     // Try the parent's combined import scope.
-    var parentResult = parent?._lookupCombined(id);
-    if (parentResult != null) {
-      return parentResult;
-    }
-
-    return null;
+    return parent?._lookupCombined(id);
   }
 
   ScopeLookupResult? _lookupLibrary(String id) {
@@ -310,6 +425,9 @@ class PrefixScope implements Scope {
   final LibraryElementImpl libraryElement;
   final PrefixScope? parent;
 
+  final List<LibraryImportElementImpl> _importElements = [];
+  final Map<Element, List<LibraryImportElementImpl>> _elementImports = {};
+
   final Map<String, Element> _getters = {};
   final Map<String, Element> _setters = {};
   Set<String>? _settersFromDeprecatedExport;
@@ -317,38 +435,52 @@ class PrefixScope implements Scope {
   final Set<ExtensionElement> _extensions = {};
   LibraryElement? _deferredLibrary;
 
+  ImportsTrackingOfPrefix? _importsTracking;
+
   PrefixScope({
     required this.libraryElement,
     required this.parent,
-    required List<LibraryImportElement> libraryImports,
+    required List<LibraryImportElementImpl> libraryImports,
     required PrefixElement? prefix,
   }) {
     var elementFactory = libraryElement.session.elementFactory;
     for (var import in libraryImports) {
       var importedUri = import.uri;
-      if (importedUri is DirectiveUriWithLibrary &&
+      if (importedUri is DirectiveUriWithLibraryImpl &&
           import.prefix?.element == prefix) {
+        _importElements.add(import);
         var importedLibrary = importedUri.library;
-        if (importedLibrary is LibraryElementImpl) {
-          var combinators = import.combinators.build();
-          for (var exportedReference in importedLibrary.exportedReferences) {
-            var reference = exportedReference.reference;
-            if (combinators.allows(reference.name)) {
-              var element = elementFactory.elementOfReference(reference)!;
-              if (_shouldAdd(importedLibrary, element)) {
-                _add(
-                  element,
-                  importedLibrary.isFromDeprecatedExport(exportedReference),
-                );
-              }
+        var combinators = import.combinators.build();
+        for (var exportedReference in importedLibrary.exportedReferences) {
+          var reference = exportedReference.reference;
+          var id = reference.name;
+          if (combinators.allows(id)) {
+            var element = elementFactory.elementOfReference(reference)!;
+            if (_shouldAdd(importedLibrary, element)) {
+              (_elementImports[element] ??= []).add(import);
+              _add(
+                element,
+                importedLibrary.isFromDeprecatedExport(exportedReference),
+              );
             }
           }
-          if (import.prefix is DeferredImportElementPrefix) {
-            _deferredLibrary ??= importedLibrary;
-          }
+        }
+        if (import.prefix is DeferredImportElementPrefix) {
+          _deferredLibrary ??= importedLibrary;
         }
       }
     }
+  }
+
+  void importsTrackingDestroy() {
+    _importsTracking = null;
+  }
+
+  ImportsTrackingOfPrefix importsTrackingInit() {
+    return _importsTracking = ImportsTrackingOfPrefix(
+      scope: this,
+      elementImports: _elementImports,
+    );
   }
 
   @override
@@ -361,6 +493,8 @@ class PrefixScope implements Scope {
     var getter = _getters[id];
     var setter = _setters[id];
     if (getter != null || setter != null) {
+      _importsTracking?.lookupResult(getter);
+      _importsTracking?.lookupResult(setter);
       return PrefixScopeLookupResult(
         getter,
         setter,
@@ -373,7 +507,16 @@ class PrefixScope implements Scope {
       return parent.lookup(id);
     }
 
+    _importsTracking?.notifyErrorReported();
     return ScopeLookupResultImpl(null, null);
+  }
+
+  /// This method is invoked when the import prefix is used by itself,
+  /// without the `.identifier` after it. This is a compile-time error that
+  /// we expect the user to fix first, and we don't want to report unused
+  /// imports until then.
+  void notifyErrorReported() {
+    _importsTracking?.notifyErrorReported();
   }
 
   void _add(Element element, bool isFromDeprecatedExport) {

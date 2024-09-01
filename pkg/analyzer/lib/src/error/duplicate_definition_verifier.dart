@@ -598,7 +598,7 @@ class MemberDuplicateDefinitionVerifier {
           arguments: [
             declarationElement.displayName,
             baseName,
-            inherited.enclosingElement.displayName,
+            inherited.enclosingElement3.displayName,
           ],
         );
       }
@@ -620,7 +620,7 @@ class MemberDuplicateDefinitionVerifier {
           arguments: [
             declarationElement.displayName,
             baseName,
-            inherited.enclosingElement.displayName,
+            inherited.enclosingElement3.displayName,
           ],
         );
       }

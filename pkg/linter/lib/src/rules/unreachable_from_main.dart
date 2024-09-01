@@ -401,8 +401,8 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   void _addDeclaration(Element element) {
     // First add the enclosing top-level declaration.
     var enclosingTopLevelElement = element.thisOrAncestorMatching((a) =>
-        a.enclosingElement == null ||
-        a.enclosingElement is CompilationUnitElement);
+        a.enclosingElement3 == null ||
+        a.enclosingElement3 is CompilationUnitElement);
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
     if (enclosingTopLevelDeclaration != null) {
       declarations.add(enclosingTopLevelDeclaration);
@@ -413,7 +413,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
     if (element.isPrivate) {
       return;
     }
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement == null || enclosingElement.isPrivate) {
       return;
     }

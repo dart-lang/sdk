@@ -508,13 +508,13 @@ class _MacroResultWriter {
         sink.writeEnum(_ElementLocationKind.dynamic);
       case ParameterElement():
         sink.writeEnum(_ElementLocationKind.formalParameter);
-        var executable = element.enclosingElement as ExecutableElement;
+        var executable = element.enclosingElement3 as ExecutableElement;
         var index = executable.parameters.indexOf(element);
         _writeElement(executable);
         sink.writeUInt30(index);
       case TypeParameterElement():
         sink.writeEnum(_ElementLocationKind.typeParameter);
-        var executable = element.enclosingElement as ExecutableElement;
+        var executable = element.enclosingElement3 as ExecutableElement;
         var index = executable.typeParameters.indexOf(element);
         _writeElement(executable);
         sink.writeUInt30(index);

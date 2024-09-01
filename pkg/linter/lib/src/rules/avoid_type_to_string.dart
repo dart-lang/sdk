@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   bool _isSimpleIdDeclByCoreObj(SimpleIdentifier simpleIdentifier) {
-    var encloser = simpleIdentifier.staticElement?.enclosingElement;
+    var encloser = simpleIdentifier.staticElement?.enclosingElement3;
     return encloser is ClassElement && encloser.isDartCoreObject;
   }
 

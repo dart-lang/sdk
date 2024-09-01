@@ -206,7 +206,7 @@ class MethodInvocationResolver with ScopeHelpers {
     ExecutableElement element,
     bool nullReceiver,
   ) {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (nullReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.atNode(
@@ -265,7 +265,11 @@ class MethodInvocationResolver with ScopeHelpers {
     );
   }
 
-  void _reportPrefixIdentifierNotFollowedByDot(SimpleIdentifier target) {
+  void _reportPrefixIdentifierNotFollowedByDot(
+    SimpleIdentifier target,
+    PrefixElementImpl prefixElement,
+  ) {
+    prefixElement.scope.notifyErrorReported();
     _resolver.errorReporter.atNode(
       target,
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
@@ -586,10 +590,10 @@ class MethodInvocationResolver with ScopeHelpers {
         return _rewriteAsFunctionExpressionInvocation(node, targetType);
       }
       // TODO(scheglov): This is a questionable distinction.
-      if (element is PrefixElement) {
+      if (element is PrefixElementImpl) {
         _setInvalidTypeResolution(node,
             whyNotPromotedList: whyNotPromotedList, contextType: contextType);
-        _reportPrefixIdentifierNotFollowedByDot(nameNode);
+        _reportPrefixIdentifierNotFollowedByDot(nameNode, element);
         return null;
       }
       _reportInvocationOfNonFunction(node, whyNotPromotedList,
@@ -618,8 +622,8 @@ class MethodInvocationResolver with ScopeHelpers {
       // or is static, then we do not keep searching for the getter; this
       // setter represents the property being accessed (erroneously).
       var noGetterIsPossible =
-          element.enclosingElement is CompilationUnitElement ||
-              element.enclosingElement is ExtensionElement ||
+          element.enclosingElement3 is CompilationUnitElement ||
+              element.enclosingElement3 is ExtensionElement ||
               (element is ExecutableElement && element.isStatic);
       if (noGetterIsPossible) {
         nameNode.staticElement = element;
@@ -953,7 +957,7 @@ class MethodInvocationResolver with ScopeHelpers {
       functionExpression = node.methodName;
       var element = node.methodName.staticElement;
       if (element is ExecutableElement &&
-          element.enclosingElement is InstanceElement &&
+          element.enclosingElement3 is InstanceElement &&
           !element.isStatic) {
         targetType = _resolver.flowAnalysis.flow
                 ?.propertyGet(

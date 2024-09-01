@@ -95,7 +95,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
     if (element.isOperator) {
       return;
     }
-    if (element.enclosingElement is! CompilationUnitElement) {
+    if (element.enclosingElement3 is! CompilationUnitElement) {
       return;
     }
     var returnType = element.returnType;
@@ -134,7 +134,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
         (opType.includeAnnotationSuggestions &&
             variable != null &&
             variable.isConst)) {
-      var parent = element.enclosingElement;
+      var parent = element.enclosingElement3;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         if (element.isSynthetic) {
           if (element.isGetter) {

@@ -264,6 +264,9 @@ class NamedTypeResolver with ScopeHelpers {
       );
       return _verifyTypeAliasForContext(node, element, type);
     } else if (_isInstanceCreation(node)) {
+      if (element is PrefixElementImpl) {
+        element.scope.notifyErrorReported();
+      }
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
       return InvalidTypeImpl.instance;
     } else if (element is DynamicElementImpl) {
@@ -602,7 +605,7 @@ class _ErrorHelper {
 
     if (element is LocalVariableElement ||
         (element is FunctionElement &&
-            element.enclosingElement is ExecutableElement)) {
+            element.enclosingElement3 is ExecutableElement)) {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
@@ -614,6 +617,9 @@ class _ErrorHelper {
     }
 
     if (element != null) {
+      if (element is PrefixElementImpl) {
+        element.scope.notifyErrorReported();
+      }
       var errorRange = _getErrorRange(node);
       errorReporter.atOffset(
         offset: errorRange.offset,

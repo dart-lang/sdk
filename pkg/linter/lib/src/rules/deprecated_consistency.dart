@@ -88,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var constructorElement = node.declaredElement;
     if (constructorElement != null &&
-        constructorElement.enclosingElement.hasDeprecated &&
+        constructorElement.enclosingElement3.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
       rule.reportLintForOffset(nodeToAnnotate.offset, nodeToAnnotate.length,

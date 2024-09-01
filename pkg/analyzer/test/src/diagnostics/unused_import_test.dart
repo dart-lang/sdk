@@ -315,6 +315,30 @@ f() {
 ''');
   }
 
+  test_extension_instance_method_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {
+  void foo() {}
+}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+
+void f() {
+  0.foo();
+}
+''');
+
+    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(c, []);
+  }
+
   test_extension_instance_operator_binary() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on String {
@@ -473,6 +497,52 @@ f() {
 ''', [
       error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
+  }
+
+  test_noPrefix_constructorName_name() async {
+    await assertErrorsInCode(r'''
+import 'dart:async';
+
+class A {
+  A.foo();
+}
+
+void f() {
+  A.foo();
+}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 12),
+    ]);
+  }
+
+  test_noPrefix_named_argument() async {
+    await assertErrorsInCode(r'''
+import 'dart:math';
+
+void f() {
+  Duration(seconds: 0);
+}
+''', [
+      error(WarningCode.UNUSED_IMPORT, 7, 11),
+    ]);
+  }
+
+  test_prefixed_commentReference_prefix() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:math' as math;
+
+/// [math]
+void f() {}
+''');
+  }
+
+  test_prefixed_commentReference_prefixClass() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:math' as math;
+
+/// [math.Random]
+void f() {}
+''');
   }
 
   test_show() async {

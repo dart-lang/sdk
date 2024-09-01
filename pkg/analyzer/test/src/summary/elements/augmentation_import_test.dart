@@ -100,7 +100,7 @@ library
 
     var import_0 = library.augmentationImports[0];
     var augmentation = import_0.importedAugmentation!;
-    expect(augmentation.enclosingElement, same(library));
+    expect(augmentation.enclosingElement3, same(library));
   }
 
   test_library_augmentationImports_depthFirst() async {
@@ -175,7 +175,7 @@ library
 
     var import_0 = library.augmentationImports[0];
     var augmentation = import_0.importedAugmentation!;
-    expect(augmentation.enclosingElement, same(library));
+    expect(augmentation.enclosingElement3, same(library));
   }
 
   test_library_augmentationImports_noRelativeUriStr() async {
