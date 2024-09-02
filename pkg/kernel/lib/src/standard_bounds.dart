@@ -569,15 +569,15 @@ mixin StandardBounds {
       // subtype relation is established.
       case (_, _)
           when isSubtypeOf(
-              type1WithoutNullabilityMarker,
-              type2WithoutNullabilityMarker,
+              greatestClosureForLowerBound(type1WithoutNullabilityMarker),
+              greatestClosureForLowerBound(type2WithoutNullabilityMarker),
               SubtypeCheckMode.withNullabilities):
         return type1.withDeclaredNullability(intersectNullabilities(
             type1.declaredNullability, type2.declaredNullability));
       case (_, _)
           when isSubtypeOf(
-              type2WithoutNullabilityMarker,
-              type1WithoutNullabilityMarker,
+              greatestClosureForLowerBound(type2WithoutNullabilityMarker),
+              greatestClosureForLowerBound(type1WithoutNullabilityMarker),
               SubtypeCheckMode.withNullabilities):
         return type2.withDeclaredNullability(intersectNullabilities(
             type2.declaredNullability, type1.declaredNullability));
@@ -1052,8 +1052,8 @@ mixin StandardBounds {
       // type if the subtype relation is established.
       case (_, _)
           when isSubtypeOf(
-              typeWithoutNullabilityMarker1,
-              typeWithoutNullabilityMarker2,
+              leastClosureForUpperBound(typeWithoutNullabilityMarker1),
+              leastClosureForUpperBound(typeWithoutNullabilityMarker2),
               SubtypeCheckMode.withNullabilities):
         // UP(T1, T2) = T2 if T1 <: T2
         //   Note that both types must be interface or extension types at this
@@ -1062,8 +1062,8 @@ mixin StandardBounds {
             uniteNullabilities(type1.nullability, type2.nullability));
       case (_, _)
           when isSubtypeOf(
-              typeWithoutNullabilityMarker2,
-              typeWithoutNullabilityMarker1,
+              leastClosureForUpperBound(typeWithoutNullabilityMarker2),
+              leastClosureForUpperBound(typeWithoutNullabilityMarker1),
               SubtypeCheckMode.withNullabilities):
         // UP(T1, T2) = T1 if T2 <: T1
         //   Note that both types must be interface or extension types at this
@@ -1699,13 +1699,15 @@ mixin StandardBounds {
     //     where B1a is the greatest closure of B1 with respect to X1,
     //     as defined in [inference.md].
 
-    if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(type1),
+        leastClosureForUpperBound(type2), SubtypeCheckMode.withNullabilities)) {
       return type2.withDeclaredNullability(combineNullabilitiesForSubstitution(
           inner: type2.nullability,
           outer: uniteNullabilities(
               type1.declaredNullability, type2.nullability)));
     }
-    if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(type2),
+        leastClosureForUpperBound(type1), SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(combineNullabilitiesForSubstitution(
           inner: type1.declaredNullability,
           outer: uniteNullabilities(
@@ -1740,11 +1742,15 @@ mixin StandardBounds {
     //     where B1a is the greatest closure of B1 with respect to X1,
     //     as defined in [inference.md].
     DartType demoted = type1.left;
-    if (isSubtypeOf(demoted, type2, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(demoted),
+        leastClosureForUpperBound(type2), SubtypeCheckMode.withNullabilities)) {
       return type2.withDeclaredNullability(uniteNullabilities(
           type1.declaredNullability, type2.declaredNullability));
     }
-    if (isSubtypeOf(type2, demoted, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(
+        leastClosureForUpperBound(type2),
+        leastClosureForUpperBound(demoted),
+        SubtypeCheckMode.withNullabilities)) {
       return demoted.withDeclaredNullability(uniteNullabilities(
           demoted.declaredNullability, type2.declaredNullability));
     }
@@ -2065,10 +2071,12 @@ mixin StandardBounds {
     // 3. Otherwise return the spec-defined standard upper bound.  This will
     //    be an upper bound, might (or might not) be least, and might
     //    (or might not) be a well-formed type.
-    if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(type1),
+        leastClosureForUpperBound(type2), SubtypeCheckMode.withNullabilities)) {
       return type2;
     }
-    if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(leastClosureForUpperBound(type2),
+        leastClosureForUpperBound(type1), SubtypeCheckMode.withNullabilities)) {
       return type1;
     }
     if (identical(type1.classNode, type2.classNode)) {
@@ -2163,4 +2171,26 @@ mixin StandardBounds {
       return const DynamicType();
     }
   }
+
+  /// Compute the greatest closure of [typeSchema] for subtyping in DOWN.
+  ///
+  /// > We add the axiom that DOWN(T, _) == T and the symmetric version.
+  /// > We replace all uses of T1 <: T2 in the DOWN algorithm by S1 <: S2 where
+  /// >   Si is the greatest closure of Ti with respect to _.
+  ///
+  /// The specification of using the greatest closure in DOWN can be found at
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#upper-bound
+  DartType greatestClosureForLowerBound(DartType typeSchema) => typeSchema;
+
+  /// Compute the least closure of [typeSchema] for subtyping in UP.
+  ///
+  /// Taking closures of type schemas in UP is specified as follows:
+  ///
+  /// > We add the axiom that UP(T, _) == T and the symmetric version.
+  /// > We replace all uses of T1 <: T2 in the UP algorithm by S1 <: S2 where Si
+  /// >   is the least closure of Ti with respect to _.
+  ///
+  /// The specification of using the least closure in UP can be found at
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#upper-bound
+  DartType leastClosureForUpperBound(DartType typeSchema) => typeSchema;
 }
