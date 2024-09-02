@@ -72,7 +72,6 @@ import 'builder_factory.dart';
 import 'offset_map.dart';
 import 'source_enum_builder.dart';
 import 'stack_listener_impl.dart';
-import 'type_parameter_scope_builder.dart';
 import 'value_kinds.dart';
 
 enum MethodBody {
@@ -3598,7 +3597,6 @@ class OutlineBuilder extends StackListenerImpl {
 
     Identifier? suffix = popIfNotNull(periodBeforeName) as Identifier?;
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
-    int charOffset = start.charOffset;
     Object? name = pop();
     if (name is ParserRecovery) {
       push(name);
@@ -3607,35 +3605,9 @@ class OutlineBuilder extends StackListenerImpl {
           name.typeName, typeArguments, suffix?.name, name.qualifierOffset));
     } else {
       assert(name == null);
-      // At the moment, the name of the type in a constructor reference can be
-      // omitted only within an enum element declaration.
-      if (_builderFactory.currentTypeParameterScopeBuilder.kind ==
-          TypeParameterScopeKind.enumDeclaration) {
-        if (libraryFeatures.enhancedEnums.isEnabled) {
-          int constructorNameOffset = suffix?.nameOffset ?? charOffset;
-          push(_builderFactory.addConstructorReference(
-              new SyntheticTypeName(
-                  _builderFactory.currentTypeParameterScopeBuilder.name,
-                  constructorNameOffset),
-              typeArguments,
-              suffix?.name,
-              constructorNameOffset));
-        } else {
-          // For entries that consist of their name only, all of the elements
-          // of the constructor reference should be null.
-          if (typeArguments != null || suffix != null) {
-            // Coverage-ignore-block(suite): Not run.
-            _compilationUnit.reportFeatureNotEnabled(
-                libraryFeatures.enhancedEnums, uri, charOffset, noLength);
-          }
-          push(NullValues.ConstructorReference);
-        }
-      } else {
-        internalProblem(
-            messageInternalProblemOmittedTypeNameInConstructorReference,
-            charOffset,
-            uri);
-      }
+      push(_builderFactory.addUnnamedConstructorReference(
+              typeArguments, suffix, start.charOffset) ??
+          NullValues.ConstructorReference);
     }
   }
 

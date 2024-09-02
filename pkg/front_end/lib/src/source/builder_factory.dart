@@ -468,6 +468,9 @@ abstract class BuilderFactory {
   ConstructorReferenceBuilder addConstructorReference(TypeName name,
       List<TypeBuilder>? typeArguments, String? suffix, int charOffset);
 
+  ConstructorReferenceBuilder? addUnnamedConstructorReference(
+      List<TypeBuilder>? typeArguments, Identifier? suffix, int charOffset);
+
   TypeBuilder addNamedType(
       TypeName typeName,
       NullabilityBuilder nullabilityBuilder,

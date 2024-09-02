@@ -50,7 +50,7 @@ JSMethods _performJSInteropTransformations(
 }
 
 class RuntimeFinalizer {
-  final Map<Procedure, String> allJSMethods;
+  final Map<Procedure, ({String importName, String jsCode})> allJSMethods;
 
   RuntimeFinalizer(this.allJSMethods);
 
@@ -59,26 +59,46 @@ class RuntimeFinalizer {
     String escape(String s) => json.encode(s);
 
     Set<Procedure> usedProcedures = {};
-    List<String> usedJSMethods = [];
+    final usedJSMethods = <({String importName, String jsCode})>[];
     for (Procedure p in translatedProcedures) {
       if (usedProcedures.add(p) && allJSMethods.containsKey(p)) {
         usedJSMethods.add(allJSMethods[p]!);
       }
     }
     // Sort so _9 comes before _11 (for example)
-    usedJSMethods.sort(compareNatural);
+    usedJSMethods.sort((a, b) => compareNatural(a.importName, b.importName));
+
+    final jsMethods = StringBuffer();
+    for (final jsMethod in usedJSMethods) {
+      jsMethods.write('      ');
+      jsMethods.write(jsMethod.importName);
+      jsMethods.write(': ');
+      final lines = _unindentJsCode(jsMethod.jsCode);
+      for (int i = 0; i < lines.length; ++i) {
+        if (i != 0) {
+          jsMethods.write('      ');
+        }
+        jsMethods.write(lines[i]);
+        if (i < (lines.length - 1)) {
+          jsMethods.writeln();
+        } else {
+          jsMethods.writeln(',');
+        }
+      }
+    }
 
     String internalizedStrings = '';
     if (constantStrings.isNotEmpty) {
       internalizedStrings = '''
-s: [
-  ${constantStrings.map(escape).join(',\n')}
-],''';
+      s: [
+        ${constantStrings.map(escape).join(',\n')}
+      ],
+''';
     }
     return '''
 $jsRuntimeBlobPart1
 $jsRuntimeBlobPart3
-${usedJSMethods.join(',\n')}
+$jsMethods
 $jsRuntimeBlobPart4
 $internalizedStrings
 $jsRuntimeBlobPart5
@@ -98,8 +118,45 @@ RuntimeFinalizer createRuntimeFinalizer(
     ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:js_interop")),
   };
-  Map<Procedure, String> jsInteropMethods = {};
-  jsInteropMethods = _performJSInteropTransformations(
+  final jsInteropMethods = _performJSInteropTransformations(
       component, coreTypes, classHierarchy, transitiveImportingJSInterop);
   return RuntimeFinalizer(jsInteropMethods);
+}
+
+// Removes indentation common among all lines of [block] (except for first one)
+List<String> _unindentJsCode(String block) {
+  block = block.trim();
+  final lines = block.split('\n');
+  if (lines.length == 1) return lines;
+
+  int minSpaces = -1;
+  for (int i = 1; i < lines.length; ++i) {
+    final line = lines[i];
+    final currentSpaces = _countLeadingSpaces(line);
+    if (currentSpaces == line.length) continue; // empty line
+    if (minSpaces == -1 || currentSpaces < minSpaces) {
+      minSpaces = currentSpaces;
+    }
+  }
+
+  if (minSpaces > 0) {
+    for (int i = 1; i < lines.length; ++i) {
+      final line = lines[i];
+      if (line.length <= minSpaces) {
+        lines[i] = '';
+      } else {
+        lines[i] = lines[i].substring(minSpaces);
+      }
+    }
+  }
+  return lines;
+}
+
+int _countLeadingSpaces(String line) {
+  int spaces = 0;
+  for (int i = 0; i < line.length; ++i) {
+    if (line.codeUnitAt(i) != ' '.codeUnitAt(0)) break;
+    spaces++;
+  }
+  return spaces;
 }

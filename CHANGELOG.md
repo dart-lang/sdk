@@ -58,6 +58,17 @@ number, like `.`, `x`, or the `e` in scientific notation.
 
 ### Tools
 
+#### CFE
+
+- **Breaking Change** [#56466][]: The implementation of the UP and
+  DOWN algorithms in the CFE are changed to match the specification
+  and the corresponding implementations in the Analyzer. The upper and
+  lower closures of type schemas are now computed just before they are
+  passed into the subtype testing procedure instead of at the very
+  beginning of the UP and DOWN algorithms.
+
+[#56466]: https://github.com/dart-lang/sdk/issues/56466
+
 #### Wasm compiler (dart2wasm)
 
 - The condition `dart.library.js` is now false on conditional imports in

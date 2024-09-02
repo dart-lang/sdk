@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show mix64, patch, unsafeCast;
+import "dart:_internal" show mix64, patch;
 import "dart:_js_types" show JSUint8ArrayImpl;
 import "dart:js_interop";
 
@@ -248,14 +248,8 @@ extension _JSCryptoGetRandomValues on _JSCrypto {
   external void getRandomValues(JSUint8Array array);
 }
 
-@JS('Uint8Array')
-extension type _JSUint8Array(JSObject _) {
-  external factory _JSUint8Array.create(int length);
-}
-
 class _SecureRandom implements Random {
-  final JSUint8ArrayImpl _buffer = unsafeCast<JSUint8ArrayImpl>(
-      (_JSUint8Array.create(8) as JSUint8Array).toDart);
+  final JSUint8ArrayImpl _buffer = JSUint8ArrayImpl(8);
 
   _SecureRandom() {
     // Throw early in constructor if entropy source is not hooked up.

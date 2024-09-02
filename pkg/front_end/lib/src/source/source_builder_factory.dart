@@ -35,7 +35,7 @@ import '../base/modifier.dart'
         namedMixinApplicationMask,
         staticMask;
 import '../base/name_space.dart';
-import '../base/problems.dart' show unexpected, unhandled;
+import '../base/problems.dart' show internalProblem, unexpected, unhandled;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../base/uris.dart';
@@ -2413,6 +2413,42 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         name, typeArguments, suffix, _compilationUnit.fileUri, charOffset);
     _constructorReferences.add(ref);
     return ref;
+  }
+
+  @override
+  ConstructorReferenceBuilder? addUnnamedConstructorReference(
+      List<TypeBuilder>? typeArguments, Identifier? suffix, int charOffset) {
+    // At the moment, the name of the type in a constructor reference can be
+    // omitted only within an enum element declaration.
+    if (currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.enumDeclaration) {
+      if (libraryFeatures.enhancedEnums.isEnabled) {
+        int constructorNameOffset = suffix?.nameOffset ?? charOffset;
+        return addConstructorReference(
+            new SyntheticTypeName(
+                currentTypeParameterScopeBuilder.name, constructorNameOffset),
+            typeArguments,
+            suffix?.name,
+            constructorNameOffset);
+      } else {
+        // For entries that consist of their name only, all of the elements
+        // of the constructor reference should be null.
+        if (typeArguments != null || suffix != null) {
+          // Coverage-ignore-block(suite): Not run.
+          _compilationUnit.reportFeatureNotEnabled(
+              libraryFeatures.enhancedEnums,
+              _compilationUnit.fileUri,
+              charOffset,
+              noLength);
+        }
+        return null;
+      }
+    } else {
+      internalProblem(
+          messageInternalProblemOmittedTypeNameInConstructorReference,
+          charOffset,
+          _compilationUnit.fileUri);
+    }
   }
 
   @override
