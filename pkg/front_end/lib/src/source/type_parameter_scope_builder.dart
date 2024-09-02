@@ -36,66 +36,6 @@ enum TypeParameterScopeKind {
   enumDeclaration,
 }
 
-extension TypeParameterScopeBuilderExtension on TypeParameterScopeBuilder {
-  /// Returns the [ContainerName] corresponding to this type parameter scope,
-  /// if any.
-  ContainerName? get containerName {
-    switch (kind) {
-      case TypeParameterScopeKind.library:
-        return null;
-      case TypeParameterScopeKind.classOrNamedMixinApplication:
-      case TypeParameterScopeKind.classDeclaration:
-      case TypeParameterScopeKind.mixinDeclaration:
-      case TypeParameterScopeKind.unnamedMixinApplication:
-      case TypeParameterScopeKind.namedMixinApplication:
-      case TypeParameterScopeKind.enumDeclaration:
-      case TypeParameterScopeKind.extensionTypeDeclaration:
-        return new ClassName(name);
-      case TypeParameterScopeKind.extensionDeclaration:
-        return extensionName;
-      // Coverage-ignore(suite): Not run.
-      case TypeParameterScopeKind.typedef:
-      case TypeParameterScopeKind.staticMethod:
-      case TypeParameterScopeKind.instanceMethod:
-      case TypeParameterScopeKind.constructor:
-      case TypeParameterScopeKind.topLevelMethod:
-      case TypeParameterScopeKind.factoryMethod:
-      case TypeParameterScopeKind.functionType:
-      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
-        throw new UnsupportedError("Unexpected field container: ${this}");
-    }
-  }
-
-  /// Returns the [ContainerType] corresponding to this type parameter scope.
-  ContainerType get containerType {
-    switch (kind) {
-      case TypeParameterScopeKind.library:
-        return ContainerType.Library;
-      case TypeParameterScopeKind.classOrNamedMixinApplication:
-      case TypeParameterScopeKind.classDeclaration:
-      case TypeParameterScopeKind.mixinDeclaration:
-      case TypeParameterScopeKind.unnamedMixinApplication:
-      case TypeParameterScopeKind.namedMixinApplication:
-      case TypeParameterScopeKind.enumDeclaration:
-        return ContainerType.Class;
-      case TypeParameterScopeKind.extensionDeclaration:
-        return ContainerType.Extension;
-      case TypeParameterScopeKind.extensionTypeDeclaration:
-        return ContainerType.ExtensionType;
-      // Coverage-ignore(suite): Not run.
-      case TypeParameterScopeKind.typedef:
-      case TypeParameterScopeKind.staticMethod:
-      case TypeParameterScopeKind.instanceMethod:
-      case TypeParameterScopeKind.constructor:
-      case TypeParameterScopeKind.topLevelMethod:
-      case TypeParameterScopeKind.factoryMethod:
-      case TypeParameterScopeKind.functionType:
-      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
-        throw new UnsupportedError("Unexpected field container: ${this}");
-    }
-  }
-}
-
 /// A builder object preparing for building declarations that can introduce type
 /// parameter and/or members.
 ///
@@ -117,15 +57,9 @@ class TypeParameterScopeBuilder {
   final Map<String, List<Builder>> setterAugmentations =
       <String, List<Builder>>{};
 
-  List<SourceFieldBuilder>? primaryConstructorFields;
-
-  List<_AddBuilder> _addedBuilders = [];
-
   // TODO(johnniwinther): Stop using [_name] for determining the declaration
   // kind.
   String _name;
-
-  ExtensionName? _extensionName;
 
   /// Offset of name token, updated by the outline builder along
   /// with the name as the current declaration changes.
@@ -138,8 +72,6 @@ class TypeParameterScopeBuilder {
   /// Instance methods declared in extension declarations methods are extended
   /// with a synthesized parameter of this type.
   TypeBuilder? _extensionThisType;
-
-  bool declaresConstConstructor = false;
 
   TypeParameterScopeBuilder(this._kind, this.members, this.setters,
       this.extensions, this._name, this._charOffset, this.parent);
@@ -221,10 +153,7 @@ class TypeParameterScopeBuilder {
         // Coverage-ignore(suite): Not run.
         "Unexpected declaration kind: $_kind");
     _kind = TypeParameterScopeKind.extensionDeclaration;
-    _extensionName = name != null
-        ? new FixedExtensionName(name)
-        : new UnnamedExtensionName();
-    _name = _extensionName!.name;
+    _name = name ?? UnnamedExtensionName.unnamedExtensionSentinel;
     _charOffset = charOffset;
     _typeVariables = typeVariables;
   }
@@ -284,8 +213,6 @@ class TypeParameterScopeBuilder {
 
   String get name => _name;
 
-  ExtensionName? get extensionName => _extensionName;
-
   int get charOffset => _charOffset;
 
   List<NominalVariableBuilder>? get typeVariables => _typeVariables;
@@ -314,27 +241,9 @@ class TypeParameterScopeBuilder {
     return _extensionThisType!;
   }
 
-  void addPrimaryConstructorField(SourceFieldBuilder builder) {
-    (primaryConstructorFields ??= []).add(builder);
-  }
-
   NameSpace toNameSpace() {
     return new NameSpaceImpl(
         getables: members, setables: setters, extensions: extensions);
-  }
-
-  DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
-      NominalParameterNameSpace? nominalParameterNameSpace) {
-    assert(members == null);
-    assert(setters == null);
-    assert(extensions == null);
-    return new DeclarationNameSpaceBuilder._(
-        name, nominalParameterNameSpace, _addedBuilders);
-  }
-
-  void addBuilderToDeclaration(
-      String name, Builder declaration, Uri fileUri, int charOffset) {
-    _addedBuilders.add(new _AddBuilder(name, declaration, fileUri, charOffset));
   }
 
   @override
@@ -392,6 +301,154 @@ class NominalParameterNameSpace {
       }
     }
   }
+}
+
+enum DeclarationFragmentKind {
+  classDeclaration,
+  mixinDeclaration,
+  enumDeclaration,
+  extensionDeclaration,
+  extensionTypeDeclaration,
+}
+
+abstract class DeclarationFragment {
+  final int nameOffset;
+  final LookupScope typeParameterScope;
+  final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
+  final List<_AddBuilder> _addedBuilders = [];
+
+  List<SourceFieldBuilder>? primaryConstructorFields;
+
+  DeclarationFragment(this.nameOffset, this.typeParameterScope);
+
+  String get name;
+
+  ContainerName get containerName;
+
+  ContainerType get containerType;
+
+  DeclarationFragmentKind get kind;
+
+  bool declaresConstConstructor = false;
+
+  void addPrimaryConstructorField(SourceFieldBuilder builder) {
+    (primaryConstructorFields ??= []).add(builder);
+  }
+
+  void addBuilder(
+      String name, Builder declaration, Uri fileUri, int charOffset) {
+    _addedBuilders.add(new _AddBuilder(name, declaration, fileUri, charOffset));
+  }
+
+  DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder(
+      NominalParameterNameSpace? nominalParameterNameSpace) {
+    return new DeclarationNameSpaceBuilder._(
+        name, nominalParameterNameSpace, _addedBuilders);
+  }
+}
+
+class ClassFragment extends DeclarationFragment {
+  @override
+  final String name;
+
+  final ClassName _className;
+
+  ClassFragment(this.name, super.nameOffset, super.typeParameterScope)
+      : _className = new ClassName(name);
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
+}
+
+class MixinFragment extends DeclarationFragment {
+  @override
+  final String name;
+
+  final ClassName _className;
+
+  MixinFragment(this.name, super.nameOffset, super.typeParameterScope)
+      : _className = new ClassName(name);
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
+}
+
+class EnumFragment extends DeclarationFragment {
+  @override
+  final String name;
+
+  final ClassName _className;
+
+  EnumFragment(this.name, super.nameOffset, super.typeParameterScope)
+      : _className = new ClassName(name);
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.Class;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind => DeclarationFragmentKind.enumDeclaration;
+}
+
+class ExtensionFragment extends DeclarationFragment {
+  final ExtensionName extensionName;
+
+  ExtensionFragment(String? name, super.nameOffset, super.typeParameterScope)
+      : extensionName = name != null
+            ? new FixedExtensionName(name)
+            : new UnnamedExtensionName();
+
+  @override
+  String get name => extensionName.name;
+
+  @override
+  ContainerName get containerName => extensionName;
+
+  @override
+  ContainerType get containerType => ContainerType.Extension;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind =>
+      DeclarationFragmentKind.extensionDeclaration;
+}
+
+class ExtensionTypeFragment extends DeclarationFragment {
+  @override
+  final String name;
+
+  final ClassName _className;
+
+  ExtensionTypeFragment(this.name, super.nameOffset, super.typeParameterScope)
+      : _className = new ClassName(name);
+
+  @override
+  ContainerName get containerName => _className;
+
+  @override
+  ContainerType get containerType => ContainerType.ExtensionType;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DeclarationFragmentKind get kind =>
+      DeclarationFragmentKind.extensionTypeDeclaration;
 }
 
 class _AddBuilder {

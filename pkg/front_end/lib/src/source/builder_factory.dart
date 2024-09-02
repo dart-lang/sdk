@@ -127,7 +127,7 @@ abstract class BuilderFactory {
 
   void beginEnumBody();
 
-  TypeParameterScopeBuilder endEnumDeclaration(String name);
+  void endEnumDeclaration(String name);
 
   void endEnumDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables);
@@ -139,7 +139,7 @@ abstract class BuilderFactory {
   void beginExtensionDeclaration(String? name, int charOffset,
       List<NominalVariableBuilder>? typeVariables);
 
-  void beginExtensionBody();
+  void beginExtensionBody(TypeBuilder? extensionThisType);
 
   TypeParameterScopeBuilder endExtensionDeclaration(String? name);
 
@@ -373,7 +373,6 @@ abstract class BuilderFactory {
       {required OffsetMap offsetMap,
       required Token beginToken,
       required String constructorName,
-      required List<NominalVariableBuilder>? typeVariables,
       required List<FormalParameterBuilder>? formals,
       required int charOffset,
       required bool isConst});
