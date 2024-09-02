@@ -1899,6 +1899,167 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
+  void addClassMethod(
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Identifier identifier,
+      required String name,
+      required TypeBuilder? returnType,
+      required List<FormalParameterBuilder>? formals,
+      required List<NominalVariableBuilder>? typeVariables,
+      required Token? beginInitializers,
+      required int startCharOffset,
+      required int endCharOffset,
+      required int charOffset,
+      required int formalsOffset,
+      required int modifiers,
+      required bool inConstructor,
+      required bool isStatic,
+      required bool isConstructor,
+      required bool forAbstractClassOrMixin,
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember,
+      required AsyncMarker asyncModifier,
+      required String? nativeMethodName,
+      required ProcedureKind? kind}) {
+    if (inConstructor) {
+      endConstructor();
+    } else if (isStatic) {
+      endStaticMethod();
+    } else {
+      endInstanceMethod();
+    }
+
+    String? constructorName;
+    if (isConstructor) {
+      constructorName = computeAndValidateConstructorName(
+              currentTypeParameterScopeBuilder, identifier) ??
+          name;
+    }
+    bool cloneTypeVariablesFromEnclosingDeclaration;
+    switch (currentTypeParameterScopeBuilder.kind) {
+      case TypeParameterScopeKind.extensionDeclaration:
+      case TypeParameterScopeKind.extensionTypeDeclaration:
+        cloneTypeVariablesFromEnclosingDeclaration = !isStatic;
+      case TypeParameterScopeKind.library:
+      case TypeParameterScopeKind.classOrNamedMixinApplication:
+      case TypeParameterScopeKind.classDeclaration:
+      case TypeParameterScopeKind.mixinDeclaration:
+      case TypeParameterScopeKind.unnamedMixinApplication:
+      case TypeParameterScopeKind.namedMixinApplication:
+      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
+      case TypeParameterScopeKind.typedef:
+      case TypeParameterScopeKind.staticMethod:
+      case TypeParameterScopeKind.instanceMethod:
+      case TypeParameterScopeKind.constructor:
+      case TypeParameterScopeKind.topLevelMethod:
+      case TypeParameterScopeKind.factoryMethod:
+      case TypeParameterScopeKind.functionType:
+      case TypeParameterScopeKind.enumDeclaration:
+        cloneTypeVariablesFromEnclosingDeclaration = false;
+    }
+    if (cloneTypeVariablesFromEnclosingDeclaration) {
+      TypeParameterScopeBuilder declaration = currentTypeParameterScopeBuilder;
+      NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
+          declaration.typeVariables,
+          kind: TypeVariableKind.extensionSynthesized,
+          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
+
+      if (nominalVariableCopy != null) {
+        if (typeVariables != null) {
+          typeVariables = nominalVariableCopy.newVariableBuilders
+            ..addAll(typeVariables);
+        } else {
+          typeVariables = nominalVariableCopy.newVariableBuilders;
+        }
+      }
+
+      if (!isConstructor) {
+        List<FormalParameterBuilder> synthesizedFormals = [];
+        TypeBuilder thisType;
+        if (declaration.kind == TypeParameterScopeKind.extensionDeclaration) {
+          thisType = declaration.extensionThisType;
+        } else {
+          thisType = addNamedType(
+              new SyntheticTypeName(declaration.name, charOffset),
+              const NullabilityBuilder.omitted(),
+              declaration.typeVariables != null
+                  ? new List<TypeBuilder>.generate(
+                      declaration.typeVariables!.length,
+                      (int index) =>
+                          new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                              typeVariables![index],
+                              const NullabilityBuilder.omitted(),
+                              instanceTypeVariableAccess:
+                                  InstanceTypeVariableAccessState.Allowed))
+                  : null,
+              charOffset,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
+        }
+        if (nominalVariableCopy != null) {
+          thisType = new SynthesizedTypeBuilder(
+              thisType,
+              nominalVariableCopy.newToOldVariableMap,
+              nominalVariableCopy.substitutionMap);
+        }
+        synthesizedFormals.add(new FormalParameterBuilder(
+            FormalParameterKind.requiredPositional,
+            finalMask,
+            thisType,
+            syntheticThisName,
+            null,
+            charOffset,
+            fileUri: _compilationUnit.fileUri,
+            isExtensionThis: true,
+            hasImmediatelyDeclaredInitializer: false));
+        if (formals != null) {
+          synthesizedFormals.addAll(formals);
+        }
+        formals = synthesizedFormals;
+      }
+    }
+
+    if (constructorName != null) {
+      addConstructor(
+          offsetMap,
+          metadata,
+          modifiers,
+          identifier,
+          constructorName,
+          typeVariables,
+          formals,
+          startCharOffset,
+          charOffset,
+          formalsOffset,
+          endCharOffset,
+          nativeMethodName,
+          beginInitializers: beginInitializers,
+          forAbstractClassOrMixin: forAbstractClassOrMixin);
+    } else {
+      addProcedure(
+          offsetMap,
+          metadata,
+          modifiers,
+          returnType,
+          identifier,
+          name,
+          typeVariables,
+          formals,
+          kind!,
+          startCharOffset,
+          charOffset,
+          formalsOffset,
+          endCharOffset,
+          nativeMethodName,
+          asyncModifier,
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember,
+          isExtensionTypeMember: isExtensionTypeMember);
+    }
+  }
+
+  @override
   void addConstructor(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
