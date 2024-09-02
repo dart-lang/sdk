@@ -226,8 +226,11 @@ class _Random implements Random {
 
   static int _setupSeed(int seed) => mix64(seed);
 
-  // TODO: Make this actually random
-  static int _initialSeed() => 0xCAFEBABEDEADBEEF;
+  static int _initialSeed() {
+    final low = (_jsMath.random() * 4294967295.0).toInt();
+    final high = (_jsMath.random() * 4294967295.0).toInt();
+    return ((high << 32) | low);
+  }
 
   static int _nextSeed() {
     // Trigger the PRNG once to change the internal state.
@@ -246,6 +249,18 @@ extension type _JSCrypto._(JSObject _jsCrypto) implements JSObject {}
 extension _JSCryptoGetRandomValues on _JSCrypto {
   @JS('getRandomValues')
   external void getRandomValues(JSUint8Array array);
+}
+
+@JS('Math')
+external _JSMath get _jsMathGetter;
+
+final _JSMath _jsMath = _jsMathGetter;
+
+extension type _JSMath._(JSObject _jsMath) implements JSObject {}
+
+extension _JSMathRandom on _JSMath {
+  @JS('random')
+  external double random();
 }
 
 class _SecureRandom implements Random {
