@@ -45,10 +45,10 @@ provide a name in the `library` directive.
 class LibraryAnnotations extends LintRule {
   LibraryAnnotations()
       : super(
-            name: 'library_annotations',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'library_annotations',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.library_annotations;

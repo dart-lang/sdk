@@ -47,10 +47,10 @@ Future<void> createDir(String path) async {}
 class DiscardedFutures extends LintRule {
   DiscardedFutures()
       : super(
-            name: 'discarded_futures',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'discarded_futures',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.discarded_futures;

@@ -94,10 +94,10 @@ bool _isFormalParameterReassigned(
 class ParameterAssignments extends LintRule {
   ParameterAssignments()
       : super(
-            name: 'parameter_assignments',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'parameter_assignments',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.parameter_assignments;

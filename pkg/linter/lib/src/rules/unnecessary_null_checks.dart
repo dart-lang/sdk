@@ -159,11 +159,11 @@ DartType? getExpectedType(PostfixExpression node) {
 class UnnecessaryNullChecks extends LintRule {
   UnnecessaryNullChecks()
       : super(
-            name: 'unnecessary_null_checks',
-            description: _desc,
-            details: _details,
-            state: State.experimental(),
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_null_checks',
+          description: _desc,
+          details: _details,
+          state: State.experimental(),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_null_checks;

@@ -92,10 +92,10 @@ void main() {
 class AvoidImplementingValueTypes extends LintRule {
   AvoidImplementingValueTypes()
       : super(
-            name: 'avoid_implementing_value_types',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_implementing_value_types',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_implementing_value_types;

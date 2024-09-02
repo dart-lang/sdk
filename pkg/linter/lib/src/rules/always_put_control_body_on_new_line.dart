@@ -53,10 +53,10 @@ when the Dart formatter is used.
 class AlwaysPutControlBodyOnNewLine extends LintRule {
   AlwaysPutControlBodyOnNewLine()
       : super(
-            name: 'always_put_control_body_on_new_line',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'always_put_control_body_on_new_line',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.always_put_control_body_on_new_line;

@@ -44,10 +44,10 @@ import 'baz.dart';
 class AvoidRelativeLibImports extends LintRule {
   AvoidRelativeLibImports()
       : super(
-            name: 'avoid_relative_lib_imports',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'avoid_relative_lib_imports',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_relative_lib_imports;

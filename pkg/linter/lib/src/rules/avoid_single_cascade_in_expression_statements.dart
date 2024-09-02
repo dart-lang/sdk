@@ -29,10 +29,10 @@ o.m();
 class AvoidSingleCascadeInExpressionStatements extends LintRule {
   AvoidSingleCascadeInExpressionStatements()
       : super(
-            name: 'avoid_single_cascade_in_expression_statements',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'avoid_single_cascade_in_expression_statements',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

@@ -58,10 +58,10 @@ A foo(int x) => new A(x);
 class PreferConstConstructors extends LintRule {
   PreferConstConstructors()
       : super(
-            name: 'prefer_const_constructors',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_const_constructors',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_const_constructors;

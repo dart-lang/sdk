@@ -52,13 +52,10 @@ class Box {
 class UnnecessaryGettersSetters extends LintRule {
   UnnecessaryGettersSetters()
       : super(
-            name: 'unnecessary_getters_setters',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'unnecessary_getters_setters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_getters_setters;

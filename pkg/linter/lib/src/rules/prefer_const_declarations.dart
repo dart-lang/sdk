@@ -41,10 +41,10 @@ class A {
 class PreferConstDeclarations extends LintRule {
   PreferConstDeclarations()
       : super(
-            name: 'prefer_const_declarations',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_const_declarations',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_const_declarations;

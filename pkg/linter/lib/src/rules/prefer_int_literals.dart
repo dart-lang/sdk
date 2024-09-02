@@ -37,10 +37,10 @@ main() {
 class PreferIntLiterals extends LintRule {
   PreferIntLiterals()
       : super(
-            name: 'prefer_int_literals',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_int_literals',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_int_literals;

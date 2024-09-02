@@ -34,10 +34,10 @@ var x = 2 ~/ 3;
 class UseTruncatingDivision extends LintRule {
   UseTruncatingDivision()
       : super(
-            name: 'use_truncating_division',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.languageFeatureUsage});
+          name: 'use_truncating_division',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_truncating_division;

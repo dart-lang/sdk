@@ -60,10 +60,10 @@ void printHashMap(LinkedHashMap map) => printMap(map);
 class PreferCollectionLiterals extends LintRule {
   PreferCollectionLiterals()
       : super(
-            name: 'prefer_collection_literals',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_collection_literals',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_collection_literals;

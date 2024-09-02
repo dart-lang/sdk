@@ -53,10 +53,10 @@ void print(String name) {
 class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
   NoLeadingUnderscoresForLocalIdentifiers()
       : super(
-            name: 'no_leading_underscores_for_local_identifiers',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'no_leading_underscores_for_local_identifiers',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

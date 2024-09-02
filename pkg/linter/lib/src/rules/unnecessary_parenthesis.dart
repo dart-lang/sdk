@@ -47,10 +47,10 @@ include:
 class UnnecessaryParenthesis extends LintRule {
   UnnecessaryParenthesis()
       : super(
-            name: 'unnecessary_parenthesis',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_parenthesis',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_parenthesis;

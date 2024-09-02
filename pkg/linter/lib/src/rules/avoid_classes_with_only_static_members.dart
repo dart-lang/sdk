@@ -48,14 +48,10 @@ const _favoriteMammal = 'weasel';
 class AvoidClassesWithOnlyStaticMembers extends LintRule {
   AvoidClassesWithOnlyStaticMembers()
       : super(
-            name: 'avoid_classes_with_only_static_members',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.style,
-            });
+          name: 'avoid_classes_with_only_static_members',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

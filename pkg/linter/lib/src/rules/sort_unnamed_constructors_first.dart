@@ -36,10 +36,10 @@ abstract class CancelableFuture<T> implements Future<T>  {
 class SortUnnamedConstructorsFirst extends LintRule {
   SortUnnamedConstructorsFirst()
       : super(
-            name: 'sort_unnamed_constructors_first',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'sort_unnamed_constructors_first',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.sort_unnamed_constructors_first;

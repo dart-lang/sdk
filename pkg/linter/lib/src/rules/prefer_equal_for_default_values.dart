@@ -27,11 +27,11 @@ m({a = 1})
 class PreferEqualForDefaultValues extends LintRule {
   PreferEqualForDefaultValues()
       : super(
-            name: 'prefer_equal_for_default_values',
-            description: _desc,
-            details: _details,
-            state: State.removed(since: dart3),
-            categories: {LintRuleCategory.style});
+          name: 'prefer_equal_for_default_values',
+          description: _desc,
+          details: _details,
+          state: State.removed(since: dart3),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

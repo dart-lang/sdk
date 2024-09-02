@@ -28,10 +28,10 @@ var list = ['a', 'b', if (condition) 'c'];
 class PreferIfElementsToConditionalExpressions extends LintRule {
   PreferIfElementsToConditionalExpressions()
       : super(
-            name: 'prefer_if_elements_to_conditional_expressions',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_if_elements_to_conditional_expressions',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

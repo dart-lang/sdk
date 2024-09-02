@@ -959,7 +959,6 @@ class UseBuildContextSynchronously extends LintRule {
           name: 'use_build_context_synchronously',
           description: _desc,
           details: _details,
-          categories: {LintRuleCategory.errorProne, LintRuleCategory.flutter},
           state: State.stable(since: Version(3, 2, 0)),
         );
 

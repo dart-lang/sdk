@@ -40,14 +40,10 @@ class Point {
 class EmptyConstructorBodies extends LintRule {
   EmptyConstructorBodies()
       : super(
-            name: 'empty_constructor_bodies',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'empty_constructor_bodies',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.empty_constructor_bodies;

@@ -45,10 +45,10 @@ by the analyzer.
 class NoDuplicateCaseValues extends LintRule {
   NoDuplicateCaseValues()
       : super(
-            name: 'no_duplicate_case_values',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'no_duplicate_case_values',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.no_duplicate_case_values;

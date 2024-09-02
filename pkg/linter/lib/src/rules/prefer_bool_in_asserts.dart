@@ -36,11 +36,11 @@ assert(() {
 class PreferBoolInAsserts extends LintRule {
   PreferBoolInAsserts()
       : super(
-            name: 'prefer_bool_in_asserts',
-            description: _desc,
-            details: _details,
-            state: State.removed(since: dart3),
-            categories: {LintRuleCategory.style});
+          name: 'prefer_bool_in_asserts',
+          description: _desc,
+          details: _details,
+          state: State.removed(since: dart3),
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.removed_lint;

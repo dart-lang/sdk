@@ -38,10 +38,10 @@ if (todo.isNotEmpty) {
 class PreferIsNotEmpty extends LintRule {
   PreferIsNotEmpty()
       : super(
-            name: 'prefer_is_not_empty',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'prefer_is_not_empty',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_is_not_empty;

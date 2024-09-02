@@ -35,10 +35,10 @@ button.visible = false;
 class UseSettersToChangeProperties extends LintRule {
   UseSettersToChangeProperties()
       : super(
-            name: 'use_setters_to_change_properties',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'use_setters_to_change_properties',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_setters_to_change_properties;

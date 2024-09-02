@@ -55,10 +55,10 @@ final pizzaRecipients = {
 class PreferForElementsToMapFromIterable extends LintRule {
   PreferForElementsToMapFromIterable()
       : super(
-            name: 'prefer_for_elements_to_map_fromIterable',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_for_elements_to_map_fromIterable',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

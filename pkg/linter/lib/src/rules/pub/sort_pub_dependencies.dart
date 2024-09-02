@@ -19,10 +19,10 @@ Sorting list of pub dependencies makes maintenance easier.
 class SortPubDependencies extends LintRule {
   SortPubDependencies()
       : super(
-            name: 'sort_pub_dependencies',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.pub});
+          name: 'sort_pub_dependencies',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.sort_pub_dependencies;

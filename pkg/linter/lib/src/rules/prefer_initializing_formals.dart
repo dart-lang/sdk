@@ -119,10 +119,10 @@ Element? _getRightElement(AssignmentExpression assignment) =>
 class PreferInitializingFormals extends LintRule {
   PreferInitializingFormals()
       : super(
-            name: 'prefer_initializing_formals',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_initializing_formals',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_initializing_formals;

@@ -38,10 +38,10 @@ m({@required a, b, c}) ;
 class AlwaysPutRequiredNamedParametersFirst extends LintRule {
   AlwaysPutRequiredNamedParametersFirst()
       : super(
-            name: 'always_put_required_named_parameters_first',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'always_put_required_named_parameters_first',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

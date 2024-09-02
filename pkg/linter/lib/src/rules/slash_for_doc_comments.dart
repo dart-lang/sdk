@@ -46,13 +46,10 @@ bool isJavaStyle(Comment comment) {
 class SlashForDocComments extends LintRule {
   SlashForDocComments()
       : super(
-            name: 'slash_for_doc_comments',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'slash_for_doc_comments',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   bool get canUseParsedResult => true;

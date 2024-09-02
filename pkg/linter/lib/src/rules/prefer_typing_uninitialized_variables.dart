@@ -60,13 +60,10 @@ class GoodClass {
 class PreferTypingUninitializedVariables extends LintRule {
   PreferTypingUninitializedVariables()
       : super(
-            name: 'prefer_typing_uninitialized_variables',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.errorProne,
-              LintRuleCategory.unintentional
-            });
+          name: 'prefer_typing_uninitialized_variables',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => [

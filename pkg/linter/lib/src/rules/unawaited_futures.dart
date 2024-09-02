@@ -46,10 +46,10 @@ void main() async {
 class UnawaitedFutures extends LintRule {
   UnawaitedFutures()
       : super(
-            name: 'unawaited_futures',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'unawaited_futures',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unawaited_futures;

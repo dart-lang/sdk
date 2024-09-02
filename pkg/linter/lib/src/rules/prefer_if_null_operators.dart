@@ -30,10 +30,10 @@ v = a ?? b;
 class PreferIfNullOperators extends LintRule {
   PreferIfNullOperators()
       : super(
-            name: 'prefer_if_null_operators',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'prefer_if_null_operators',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_if_null_operators;

@@ -133,10 +133,10 @@ class DerivedClass2 extends ClassBase with Mixin {}
 class UnrelatedTypeEqualityChecks extends LintRule {
   UnrelatedTypeEqualityChecks()
       : super(
-            name: 'unrelated_type_equality_checks',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.unintentional});
+          name: 'unrelated_type_equality_checks',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<LintCode> get lintCodes => [

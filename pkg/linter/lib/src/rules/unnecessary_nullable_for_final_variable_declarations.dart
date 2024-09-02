@@ -32,10 +32,10 @@ final int i = 1;
 class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
   UnnecessaryNullableForFinalVariableDeclarations()
       : super(
-            name: 'unnecessary_nullable_for_final_variable_declarations',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'unnecessary_nullable_for_final_variable_declarations',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

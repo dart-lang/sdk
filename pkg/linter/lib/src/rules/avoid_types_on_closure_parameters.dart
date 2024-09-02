@@ -34,10 +34,10 @@ var names = people.map((person) => person.name);
 class AvoidTypesOnClosureParameters extends LintRule {
   AvoidTypesOnClosureParameters()
       : super(
-            name: 'avoid_types_on_closure_parameters',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'avoid_types_on_closure_parameters',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];

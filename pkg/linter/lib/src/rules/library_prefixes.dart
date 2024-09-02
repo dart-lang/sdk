@@ -38,10 +38,10 @@ import 'package:javascript_utils/javascript_utils.dart' as js_utils;
 class LibraryPrefixes extends LintRule {
   LibraryPrefixes()
       : super(
-            name: 'library_prefixes',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'library_prefixes',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.library_prefixes;

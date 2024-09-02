@@ -50,10 +50,10 @@ class Husky extends Dog {
 class AnnotateOverrides extends LintRule {
   AnnotateOverrides()
       : super(
-            name: 'annotate_overrides',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'annotate_overrides',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.annotate_overrides;

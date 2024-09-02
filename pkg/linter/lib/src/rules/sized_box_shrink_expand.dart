@@ -61,10 +61,10 @@ Widget buildLogo() {
 class SizedBoxShrinkExpand extends LintRule {
   SizedBoxShrinkExpand()
       : super(
-            name: 'sized_box_shrink_expand',
-            description: 'Use SizedBox shrink and expand named constructors.',
-            details: _details,
-            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
+          name: 'sized_box_shrink_expand',
+          description: 'Use SizedBox shrink and expand named constructors.',
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.sized_box_shrink_expand;

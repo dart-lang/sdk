@@ -92,11 +92,11 @@ https://github.com/dart-lang/linter/issues/3480.
 class SpecifyNonObviousLocalVariableTypes extends LintRule {
   SpecifyNonObviousLocalVariableTypes()
       : super(
-            name: 'specify_nonobvious_local_variable_types',
-            description: _desc,
-            details: _details,
-            state: State.experimental(),
-            categories: {LintRuleCategory.style});
+          name: 'specify_nonobvious_local_variable_types',
+          description: _desc,
+          details: _details,
+          state: State.experimental(),
+        );
 
   @override
   List<String> get incompatibleRules => const ['omit_local_variable_types'];

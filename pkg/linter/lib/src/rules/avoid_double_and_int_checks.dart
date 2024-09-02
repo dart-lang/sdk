@@ -45,10 +45,10 @@ f(dynamic x) {
 class AvoidDoubleAndIntChecks extends LintRule {
   AvoidDoubleAndIntChecks()
       : super(
-            name: 'avoid_double_and_int_checks',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne, LintRuleCategory.web});
+          name: 'avoid_double_and_int_checks',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_double_and_int_checks;

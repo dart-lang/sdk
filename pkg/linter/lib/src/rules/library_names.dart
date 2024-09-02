@@ -38,10 +38,10 @@ file.
 class LibraryNames extends LintRule {
   LibraryNames()
       : super(
-            name: 'library_names',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'library_names',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.library_names;

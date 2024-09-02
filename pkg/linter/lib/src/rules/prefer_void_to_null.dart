@@ -50,10 +50,10 @@ for any type of map or list:
 class PreferVoidToNull extends LintRule {
   PreferVoidToNull()
       : super(
-            name: 'prefer_void_to_null',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'prefer_void_to_null',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_void_to_null;

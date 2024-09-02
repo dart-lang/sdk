@@ -52,14 +52,10 @@ part "apart.dart"; // contains: `part of "good_library.dart";`
 class UnnecessaryLibraryName extends LintRule {
   UnnecessaryLibraryName()
       : super(
-            name: 'unnecessary_library_name',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.brevity,
-              LintRuleCategory.languageFeatureUsage,
-              LintRuleCategory.style,
-            });
+          name: 'unnecessary_library_name',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_library_name;

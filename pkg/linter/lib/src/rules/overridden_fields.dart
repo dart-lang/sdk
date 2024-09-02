@@ -101,10 +101,10 @@ Iterable<InterfaceType> _findAllSupertypesInMixin(MixinElement mixinElement) {
 class OverriddenFields extends LintRule {
   OverriddenFields()
       : super(
-            name: 'overridden_fields',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'overridden_fields',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.overridden_fields;

@@ -30,10 +30,10 @@ var s3 = r'\a';
 class UnnecessaryRawStrings extends LintRule {
   UnnecessaryRawStrings()
       : super(
-            name: 'unnecessary_raw_strings',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
+          name: 'unnecessary_raw_strings',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.unnecessary_raw_strings;

@@ -26,10 +26,10 @@ const loggingLevel =
 class DoNotUseEnvironment extends LintRule {
   DoNotUseEnvironment()
       : super(
-            name: 'do_not_use_environment',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.errorProne});
+          name: 'do_not_use_environment',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.do_not_use_environment;

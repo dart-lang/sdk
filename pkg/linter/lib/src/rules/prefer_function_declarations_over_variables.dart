@@ -41,13 +41,10 @@ void main() {
 class PreferFunctionDeclarationsOverVariables extends LintRule {
   PreferFunctionDeclarationsOverVariables()
       : super(
-            name: 'prefer_function_declarations_over_variables',
-            description: _desc,
-            details: _details,
-            categories: {
-              LintRuleCategory.effectiveDart,
-              LintRuleCategory.style
-            });
+          name: 'prefer_function_declarations_over_variables',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode =>

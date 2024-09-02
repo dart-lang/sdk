@@ -32,10 +32,10 @@ bool isOdd = 13.isOdd;
 class UseIsEvenRatherThanModulo extends LintRule {
   UseIsEvenRatherThanModulo()
       : super(
-            name: 'use_is_even_rather_than_modulo',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'use_is_even_rather_than_modulo',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_is_even_rather_than_modulo;

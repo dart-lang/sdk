@@ -28,10 +28,10 @@ var s = r'A string with only \ and $';
 class UseRawStrings extends LintRule {
   UseRawStrings()
       : super(
-            name: 'use_raw_strings',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'use_raw_strings',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_raw_strings;

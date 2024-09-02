@@ -65,10 +65,10 @@ enum LogPriority {
 class UseEnums extends LintRule {
   UseEnums()
       : super(
-            name: 'use_enums',
-            description: _desc,
-            details: _details,
-            categories: {LintRuleCategory.style});
+          name: 'use_enums',
+          description: _desc,
+          details: _details,
+        );
 
   @override
   LintCode get lintCode => LinterLintCode.use_enums;
