@@ -41,8 +41,13 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       return;
     }
 
-    // Prepare the list of our children.
-    var childrenArgument = widgetCreation.childrenArgument;
+    // Prepare possible arguments.
+    late var childrenArgument = widgetCreation.childrenArgument;
+    late var childArgument = widgetCreation.childArgument;
+    late var builderArgument = widgetCreation.builderArgument;
+    late var sliverArgument = widgetCreation.sliverArgument;
+    late var sliversArgument = widgetCreation.sliversArgument;
+
     if (childrenArgument != null) {
       var childrenExpression = childrenArgument.expression;
       if (childrenExpression is ListLiteral &&
@@ -50,16 +55,20 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
         await _removeChildren(
             builder, widgetCreation, childrenExpression.elements);
       }
-    } else {
-      var childArgument = widgetCreation.childArgument;
-      if (childArgument != null) {
-        await _removeSingle(builder, widgetCreation, childArgument.expression);
-      } else {
-        var builderArgument = widgetCreation.builderArgument;
-        if (builderArgument != null) {
-          await _removeBuilder(builder, widgetCreation, builderArgument);
-        }
+    } else if (childArgument != null) {
+      await _removeSingle(builder, widgetCreation, childArgument.expression);
+    } else if (builderArgument != null) {
+      await _removeBuilder(builder, widgetCreation, builderArgument);
+    } else if (sliversArgument != null) {
+      var sliversExpression = sliversArgument.expression;
+      if (sliversExpression is ListLiteral &&
+          sliversExpression.elements.isNotEmpty) {
+        await _removeChildren(
+            builder, widgetCreation, sliversExpression.elements);
       }
+    }
+    else if (sliverArgument != null) {
+      await _removeSingle(builder, widgetCreation, sliverArgument.expression);
     }
   }
 
