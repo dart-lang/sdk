@@ -1134,7 +1134,14 @@ class OutlineBuilder extends StackListenerImpl {
         break;
       case DeclarationKind.Extension:
         declarationContext = DeclarationContext.ExtensionBody;
-        _builderFactory.beginExtensionBody();
+        assert(checkState(token, [
+          unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder])
+        ]));
+
+        Object? extensionThisType = peek();
+        // TODO(johnniwinther): Supply an invalid type as the extension on type.
+        _builderFactory.beginExtensionBody(
+            extensionThisType is TypeBuilder ? extensionThisType : null);
         break;
       case DeclarationKind.ExtensionType:
         declarationContext = DeclarationContext.ExtensionTypeBody;
@@ -1147,20 +1154,6 @@ class OutlineBuilder extends StackListenerImpl {
         break;
     }
     pushDeclarationContext(declarationContext);
-    if (kind == DeclarationKind.Extension) {
-      assert(checkState(token, [
-        unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder])
-      ]));
-
-      Object? extensionThisType = peek();
-
-      if (extensionThisType is TypeBuilder) {
-        _builderFactory.currentTypeParameterScopeBuilder
-            .registerExtensionThisType(extensionThisType);
-      } else {
-        // TODO(johnniwinther): Supply an invalid type as the extension on type.
-      }
-    }
     debugEvent("beginClassOrMixinBody");
   }
 
@@ -1744,24 +1737,12 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
 
-    _builderFactory.beginConstructor();
-    _builderFactory.endConstructor();
-    NominalVariableCopy? nominalVariableCopy =
-        _builderFactory.copyTypeVariables(
-            _builderFactory.currentTypeParameterScopeBuilder.typeVariables,
-            kind: TypeVariableKind.extensionSynthesized,
-            instanceTypeVariableAccess:
-                declarationContext.instanceTypeVariableAccessState);
-    List<NominalVariableBuilder>? typeVariables =
-        nominalVariableCopy?.newVariableBuilders;
-
     _builderFactory.addPrimaryConstructor(
         offsetMap: _offsetMap,
         beginToken: beginToken,
         constructorName: constructorName == "new" ? "" : constructorName,
         charOffset: charOffset,
         formals: formals,
-        typeVariables: typeVariables,
         isConst: constKeyword != null);
   }
 

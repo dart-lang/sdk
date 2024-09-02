@@ -22,6 +22,15 @@ extension type LocalStack<T>(List<T> _list) {
   /// ```
   T get current => _list.last;
 
+  /// Return the current top of the stack or `null` if the stack is empty.
+  ///
+  /// ```
+  /// DartDocTest(LocalStack<int>([]).currentOrNull, null)
+  /// DartDocTest(LocalStack<int>([0]).currentOrNull, 0)
+  /// DartDocTest(LocalStack<int>([0, 1]).currentOrNull, 1)
+  /// ```
+  T? get currentOrNull => _list.isNotEmpty ? current : null;
+
   /// Return `true` if the stack has more than one element.
   ///
   /// ```
