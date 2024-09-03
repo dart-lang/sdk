@@ -20,7 +20,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Checks if creating a method with the given [name] in [interfaceElement] will

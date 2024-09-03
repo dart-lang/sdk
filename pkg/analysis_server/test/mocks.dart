@@ -10,7 +10,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
